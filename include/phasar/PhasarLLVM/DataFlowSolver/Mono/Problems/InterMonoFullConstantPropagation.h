@@ -15,10 +15,10 @@
 #include <unordered_map>
 #include <utility>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Utils/LatticeDomain.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -35,14 +35,12 @@ class LLVMPointsToInfo;
 class LLVMBasedICFG;
 
 class InterMonoFullConstantPropagation
-    : public InterMonoProblem<
+    : virtual public InterMonoProblem<
           const llvm::Instruction *,
           std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
           const llvm::Function *, const llvm::StructType *, const llvm::Value *,
-          LLVMBasedICFG> {
-private:
-  IntraMonoFullConstantPropagation IntraPropagation;
-
+          LLVMBasedICFG>,
+          virtual public IntraMonoFullConstantPropagation {
 public:
   using n_t = const llvm::Instruction *;
   using plain_d_t = int64_t;
@@ -60,17 +58,6 @@ public:
 
   ~InterMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
-                         const BitVectorSet<d_t> &Rhs) override;
-
-  bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
-                     const BitVectorSet<d_t> &Rhs) override;
-
-  bool equal_to(const BitVectorSet<d_t> &Lhs,
-                const BitVectorSet<d_t> &Rhs) override;
-
-  std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
-
   BitVectorSet<d_t> normalFlow(n_t S, const BitVectorSet<d_t> &In) override;
 
   BitVectorSet<d_t> callFlow(n_t CallSite, f_t Callee,
@@ -83,6 +70,14 @@ public:
   BitVectorSet<d_t> callToRetFlow(n_t CallSite, n_t RetSite,
                                   std::set<f_t> Callees,
                                   const BitVectorSet<d_t> &In) override;
+
+  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
+                          const BitVectorSet<d_t> &Rhs) override;
+
+  bool equal_to(const BitVectorSet<d_t> &Lhs,
+                const BitVectorSet<d_t> &Rhs) override;
+
+  std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
 
   void printNode(std::ostream &os, n_t n) const override;
 

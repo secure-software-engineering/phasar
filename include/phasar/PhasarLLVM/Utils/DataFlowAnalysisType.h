@@ -17,12 +17,12 @@ namespace psr {
 
 enum class DataFlowAnalysisType {
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def>
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
 };
 
-std::string to_string(const DataFlowAnalysisType &D);
+std::string toString(const DataFlowAnalysisType &D);
 
-DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S);
+DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
 

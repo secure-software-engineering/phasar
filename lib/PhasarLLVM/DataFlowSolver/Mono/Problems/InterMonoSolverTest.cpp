@@ -9,17 +9,18 @@
 
 #include <iostream>
 #include <set>
+#include <utility>
 
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
@@ -34,7 +35,7 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
     : InterMonoProblem<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
                        InterMonoSolverTest::f_t, InterMonoSolverTest::t_t,
                        InterMonoSolverTest::v_t, InterMonoSolverTest::i_t>(
-          IRDB, TH, ICF, PT, EntryPoints) {}
+          IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::merge(const BitVectorSet<const llvm::Value *> &Lhs,
@@ -50,19 +51,13 @@ bool InterMonoSolverTest::equal_to(
   return Lhs == Rhs;
 }
 
-bool InterMonoSolverTest::equal_to(
-    const BitVectorSet<const llvm::Value *> &Lhs,
-    const BitVectorSet<const llvm::Value *> &Rhs) {
-  return Rhs == Lhs;
-}
-
 BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
                                 const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
   Result = Result.setUnion(In);
-  if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
+  if (const auto *const Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
     Result.insert(Alloc);
   }
   return In;
@@ -75,7 +70,7 @@ InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
   cout << "InterMonoSolverTest::callFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
   Result.setUnion(In);
-  if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
+  if (const auto *const Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
   }
   return In;
@@ -100,27 +95,27 @@ BitVectorSet<const llvm::Value *> InterMonoSolverTest::callToRetFlow(
 unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const llvm::Function *main = ICF->getFunction("main");
+  const llvm::Function *Main = ICF->getFunction("main");
   unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
       Seeds;
   Seeds.insert(
-      make_pair(&main->front().front(), BitVectorSet<const llvm::Value *>()));
+      make_pair(&Main->front().front(), BitVectorSet<const llvm::Value *>()));
   return Seeds;
 }
 
-void InterMonoSolverTest::printNode(ostream &os,
-                                    const llvm::Instruction *n) const {
-  os << llvmIRToString(n);
+void InterMonoSolverTest::printNode(ostream &OS,
+                                    const llvm::Instruction *N) const {
+  OS << llvmIRToString(N);
 }
 
-void InterMonoSolverTest::printDataFlowFact(ostream &os,
-                                            const llvm::Value *d) const {
-  os << llvmIRToString(d) << '\n';
+void InterMonoSolverTest::printDataFlowFact(ostream &OS,
+                                            const llvm::Value *D) const {
+  OS << llvmIRToString(D) << '\n';
 }
 
-void InterMonoSolverTest::printFunction(ostream &os,
-                                        const llvm::Function *m) const {
-  os << m->getName().str();
+void InterMonoSolverTest::printFunction(ostream &OS,
+                                        const llvm::Function *M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

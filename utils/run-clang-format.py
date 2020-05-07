@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-
-# author: Philipp D. Schubert
 #
-# This little script reads all C++ related source files from the project
+# author: Philipp Schubert
+#
+# This script reads all C++ related source files from the project
 # and formats them using the clang-format tool according to C++ style scheme
 # defined in the .clang-format files of the parent directories.
+#
 
 import os
 import sys

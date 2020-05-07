@@ -9,20 +9,32 @@
 
 #include <algorithm>
 #include <ostream>
+#include <utility>
 
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
-using namespace std;
+namespace std {
+template <> struct hash<pair<const llvm::Value *, unsigned>> {
+  size_t operator()(const pair<const llvm::Value *, unsigned> &P) const {
+    std::hash<const llvm::Value *> HashPtr;
+    std::hash<unsigned> HashUnsigned;
+    size_t HP = HashPtr(P.first);
+    size_t HU = HashUnsigned(P.second);
+    return HP ^ (HU << 1);
+  }
+};
+} // namespace std
+
 using namespace psr;
 namespace psr {
 
@@ -35,13 +47,13 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
                        IntraMonoFullConstantPropagation::f_t,
                        IntraMonoFullConstantPropagation::t_t,
                        IntraMonoFullConstantPropagation::v_t,
-                       IntraMonoFullConstantPropagation::i_t>(IRDB, TH, CF, PT,
-                                                              EntryPoints) {}
+                       IntraMonoFullConstantPropagation::i_t>(
+          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 bool IntraMonoFullConstantPropagation::bitVectorHasInstr(
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &set,
     IntraMonoFullConstantPropagation::v_t instr) {
-  for (auto e : set.getAsSet()) {
+  for (auto e : set) {
     if (e.first == instr) {
       return true;
     }
@@ -50,18 +62,11 @@ bool IntraMonoFullConstantPropagation::bitVectorHasInstr(
 }
 
 BitVectorSet<IntraMonoFullConstantPropagation::d_t>
-IntraMonoFullConstantPropagation::join(
-    const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Lhs,
-    const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Rhs) {
-  return merge(update(Lhs, Rhs), Rhs);
-}
-
-BitVectorSet<IntraMonoFullConstantPropagation::d_t>
 IntraMonoFullConstantPropagation::merge(
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Rhs) {
   BitVectorSet<IntraMonoFullConstantPropagation::d_t> Out = Lhs;
-  for (auto elem : Rhs.getAsSet()) {
+  for (auto elem : Rhs) {
     if (!bitVectorHasInstr(Lhs, elem.first)) {
       Out.insert(elem);
     }
@@ -74,9 +79,9 @@ IntraMonoFullConstantPropagation::update(
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Rhs) {
   BitVectorSet<IntraMonoFullConstantPropagation::d_t> Out = Lhs;
-  for (auto elem : Rhs.getAsSet()) {
+  for (auto elem : Rhs) {
     if (bitVectorHasInstr(Lhs, elem.first)) {
-      for (auto elen : Out.getAsSet()) {
+      for (auto elen : Out) {
         if (elem.first == elen.first &&
             (std::holds_alternative<Top>(elen.second) ||
              std::holds_alternative<Bottom>(elem.second))) {
@@ -95,22 +100,6 @@ IntraMonoFullConstantPropagation::update(
     }
   }
   return Out;
-}
-
-bool IntraMonoFullConstantPropagation::sqSubSetEqual(
-    const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Lhs,
-    const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Rhs) {
-
-  /* std::cout << "sqSubSetEqual Lhs:\n";
-  for (auto elem : Lhs.getAsSet()) {
-    printDataFlowFact(std::cout, elem);
-  }
-  std::cout << "---------Rhs:\n";
-  for (auto elem : Lhs.getAsSet()) {
-    printDataFlowFact(std::cout, elem);
-  } */
-
-  return Rhs.includes(Lhs);
 }
 
 bool IntraMonoFullConstantPropagation::equal_to(
@@ -154,7 +143,7 @@ IntraMonoFullConstantPropagation::normalFlow(
     auto ValueOp = Store->getValueOperand();
     // Case I: Integer literal
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(ValueOp)) {
-      for (auto elem : In.getAsSet()) {
+      for (auto elem : In) {
         if (elem.first == Store->getPointerOperand()) {
           if (std::holds_alternative<Bottom>(elem.second)) {
             break;
@@ -170,14 +159,14 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (ValueOp->getType()->isIntegerTy()) {
       LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t> latticeVal =
           Top{};
-      for (auto elem : In.getAsSet()) {
+      for (auto elem : In) {
         if (elem.first == ValueOp) {
           latticeVal = elem.second;
           break;
         }
       }
       if (!std::holds_alternative<Top>(latticeVal)) {
-        for (auto elem : In.getAsSet()) {
+        for (auto elem : In) {
           if (elem.first == Store->getPointerOperand()) {
             if (std::holds_alternative<Bottom>(elem.second)) {
               break;
@@ -195,7 +184,7 @@ IntraMonoFullConstantPropagation::normalFlow(
   // check load instructions
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(S)) {
     LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t> latticeVal;
-    for (auto elem : In.getAsSet()) {
+    for (auto elem : In) {
       if (elem.first == Load->getPointerOperand()) {
         latticeVal = elem.second;
         break;
@@ -217,7 +206,7 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(lop)) {
       lval = val->getSExtValue();
     } else {
-      for (auto elem : In.getAsSet()) {
+      for (auto elem : In) {
         if (elem.first == lop) {
           lval = elem.second;
           break;
@@ -229,7 +218,7 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(rop)) {
       rval = val->getSExtValue();
     } else {
-      for (auto elem : In.getAsSet()) {
+      for (auto elem : In) {
         if (elem.first == rop) {
           rval = elem.second;
           break;

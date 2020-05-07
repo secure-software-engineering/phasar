@@ -17,8 +17,8 @@
 #include <type_traits>
 #include <utility>
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
 
 namespace psr {
 
@@ -137,6 +137,12 @@ public:
 
   void emitGraphicalReport(std::ostream &OS = std::cout) {
     DataFlowSolver.emitGraphicalReport(OS);
+  }
+
+  void emitESG(std::ostream &OS = std::cout) {
+    // if (std::is_base_of_v<typename Solver::ProblemTy, ProblemDescription>) {
+    //   DataFlowSolver.emitESGAsDot(OS);
+    // }
   }
 
   void releaseAllHelperAnalyses() {

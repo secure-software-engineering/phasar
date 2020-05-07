@@ -16,7 +16,7 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 
 namespace llvm {
 class Instruction;
@@ -55,7 +55,7 @@ private:
     std::map<IFDSUninitializedVariables::n_t,
              std::set<IFDSUninitializedVariables::d_t>>
         ir_trace;
-    bool empty();
+    bool empty() const;
     void print(std::ostream &os);
   };
   std::map<n_t, std::set<d_t>> UndefValueUses;

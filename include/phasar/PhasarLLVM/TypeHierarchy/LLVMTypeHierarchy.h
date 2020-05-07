@@ -25,17 +25,17 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/graph_traits.hpp"
 
-#include <llvm/ADT/StringRef.h>
+#include "llvm/ADT/StringRef.h"
 
-#include <gtest/gtest_prod.h>
+#include "gtest/gtest_prod.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
 
 namespace llvm {
 class Module;
@@ -112,21 +112,21 @@ private:
 
   static const std::string TypeInfoPrefixDemang;
 
-  std::string removeStructOrClassPrefix(const llvm::StructType &T);
+  static std::string removeStructOrClassPrefix(const llvm::StructType &T);
 
-  std::string removeStructOrClassPrefix(const std::string &TypeName);
+  static std::string removeStructOrClassPrefix(const std::string &TypeName);
 
-  std::string removeTypeInfoPrefix(std::string VarName);
+  static std::string removeTypeInfoPrefix(std::string VarName);
 
-  std::string removeVTablePrefix(std::string VarName);
+  static std::string removeVTablePrefix(std::string VarName);
 
-  bool isTypeInfo(std::string VarName);
+  static bool isTypeInfo(const std::string &VarName);
 
-  bool isVTable(std::string VarName);
+  static bool isVTable(const std::string &VarName);
 
-  bool isStruct(const llvm::StructType &T);
+  static bool isStruct(const llvm::StructType &T);
 
-  bool isStruct(llvm::StringRef TypeName);
+  static bool isStruct(llvm::StringRef TypeName);
 
   std::vector<const llvm::StructType *>
   getSubTypes(const llvm::Module &M, const llvm::StructType &Type);
@@ -230,6 +230,12 @@ public:
    * 	@param an outputstream
    */
   void printAsDot(std::ostream &OS = std::cout) const;
+
+  /**
+   * @brief Prints the class hierarchy to an ostream in json format.
+   * @param an outputstream
+   */
+  void printAsJson(std::ostream &OS = std::cout) const;
 
   // void printGraphAsDot(std::ostream &out);
 

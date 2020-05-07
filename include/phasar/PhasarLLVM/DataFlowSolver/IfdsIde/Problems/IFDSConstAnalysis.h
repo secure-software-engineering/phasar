@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -56,7 +56,7 @@ public:
   typedef LLVMBasedICFG i_t;
 
 private:
-  const PointsToGraph &ptg;
+  const LLVMPointsToGraph &ptg;
   // Holds all allocated memory locations, including global variables
   std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
   // Holds all initialized variables and objects.
@@ -228,8 +228,8 @@ public:
    * @param PointsToSet that is refined.
    * @param Context dictates which points-to information is relevant.
    */ // clang-format on
-  std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
-                                              f_t Context);
+  static std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
+                                                     f_t Context);
 };
 
 } // namespace psr

@@ -1,22 +1,24 @@
-#include <gtest/gtest.h>
-#include <llvm/Support/raw_ostream.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
+#include "llvm/Support/raw_ostream.h"
+
+#include "gtest/gtest.h"
+
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/taint_analysis/";
   const std::set<std::string> EntryPoints = {"main"};
@@ -29,12 +31,12 @@ protected:
   }
   void TearDown() override { delete IRDB; }
 
-  const std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
-  doAnalysis(std::string llvmFilePath, bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+  std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
+  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
+    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    auto *PT = new LLVMPointsToInfo(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
@@ -43,26 +45,26 @@ protected:
                     InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
         TaintSolver(TaintProblem);
     TaintSolver.solve();
-    if (printDump) {
+    if (PrintDump) {
       TaintSolver.dumpResults();
     }
     auto Leaks = TaintProblem.getAllLeaks();
     for (auto &[Inst, Values] : Leaks) {
       // std::cout << "I: " << llvmIRToShortString(Inst) << '\n';
-      for (auto Value : Values) {
+      for (const auto *Value : Values) {
         // std::cout << "V: " << llvmIRToShortString(Value) << '\n';
       }
     }
     return Leaks;
   }
 
-  void doAnalysisAndCompare(std::string llvmFilePath, size_t InstId,
-                            std::set<std::string> GroundTruth,
-                            bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+  void doAnalysisAndCompare(const std::string &LlvmFilePath, size_t InstId,
+                            const std::set<std::string> &GroundTruth,
+                            bool PrintDump = false) {
+    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    auto *PT = new LLVMPointsToInfo(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
@@ -71,30 +73,30 @@ protected:
                     InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
         TaintSolver(TaintProblem);
     TaintSolver.solve();
-    if (printDump) {
+    if (PrintDump) {
       TaintSolver.dumpResults();
     }
     std::set<std::string> FoundResults;
-    for (auto result :
-         TaintSolver.getResultsAt(IRDB->getInstruction(InstId)).getAsSet()) {
-      FoundResults.insert(getMetaDataID(result));
+    for (const auto *Result :
+         TaintSolver.getResultsAt(IRDB->getInstruction(InstId))) {
+      FoundResults.insert(getMetaDataID(Result));
     }
     EXPECT_EQ(FoundResults, GroundTruth);
   }
 
-  void compareResults(
+  static void compareResults(
       std::map<llvm::Instruction const *, std::set<llvm::Value const *>> &Leaks,
       std::map<int, std::set<std::string>> &GroundTruth,
-      std::string errorMessage = "") {
+      const std::string &ErrorMessage = "") {
     std::map<int, std::set<std::string>> LeakIds;
-    for (const auto &kvp : Leaks) {
-      int InstId = stoi(getMetaDataID(kvp.first));
+    for (const auto &Kvp : Leaks) {
+      int InstId = stoi(getMetaDataID(Kvp.first));
       EXPECT_NE(-1, InstId);
-      for (auto leakVal : kvp.second) {
-        LeakIds[InstId].insert(getMetaDataID(leakVal));
+      for (const auto *LeakVal : Kvp.second) {
+        LeakIds[InstId].insert(getMetaDataID(LeakVal));
       }
     }
-    EXPECT_EQ(LeakIds, GroundTruth) << errorMessage;
+    EXPECT_EQ(LeakIds, GroundTruth) << ErrorMessage;
   }
 }; // Test Fixture
 
@@ -378,7 +380,7 @@ TEST_F(InterMonoTaintAnalysisTest, FileIO) {
 }
 ***********************************************************/
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

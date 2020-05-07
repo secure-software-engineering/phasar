@@ -19,11 +19,12 @@
 
 #include <memory>
 
-#include <llvm/ADT/StringRef.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/GlobalVariable.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/Alignment.h"
 
 namespace llvm {
 class Value;
@@ -52,7 +53,7 @@ private:
                                                /*value*/ 0,
                                                /*signed*/ true)),
             LLVMZeroValueInternalName) {
-    setAlignment(4);
+    setAlignment(llvm::MaybeAlign(4));
   }
   static constexpr char LLVMZeroValueInternalName[] = "zero_value";
 

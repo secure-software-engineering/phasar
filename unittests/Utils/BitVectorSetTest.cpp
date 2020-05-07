@@ -1,12 +1,13 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <iostream>
 #include <set>
 #include <utility>
 
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/Utils/BitVectorSet.h"
 
 using namespace psr;
+using namespace std;
 
 TEST(BitVectorSet, ctor) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
@@ -70,7 +71,7 @@ TEST(BitVectorSet, copyAssign) {
 
 TEST(BitVectorSet, move) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
-  BitVectorSet<int> C(std::move(B));
+  BitVectorSet<int> C(B);
 
   EXPECT_EQ(C.count(10), 1);
   EXPECT_EQ(C.count(20), 1);
@@ -256,14 +257,14 @@ TEST(BitVectorSet, setIntersect) {
 namespace std {
 
 template <> struct hash<pair<int, int>> {
-  size_t operator()(const pair<int, int> &p) const {
-    return std::hash<int>()(p.first + p.second);
+  size_t operator()(const pair<int, int> &P) const {
+    return std::hash<int>()(P.first + P.second);
   }
 };
 
 } // namespace std
 
-TEST(BitVectorSet, includes) {
+TEST(BitVectorSet, includesForIntegers) {
 
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({1, 2, 3});
@@ -280,32 +281,111 @@ TEST(BitVectorSet, includes) {
   EXPECT_TRUE(B.includes(E));
   EXPECT_TRUE(E.includes(B));
 
-  BitVectorSet<std::pair<int, int>> a(
-      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}});
-  BitVectorSet<std::pair<int, int>> b({{1, 1}, {2, 2}, {3, 3}});
-  BitVectorSet<std::pair<int, int>> c({{1, 1}, {2, 2}, {42, 42}});
-  BitVectorSet<std::pair<int, int>> d(
-      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}});
-  BitVectorSet<std::pair<int, int>> e({{1, 1}, {2, 2}, {3, 3}});
-  BitVectorSet<std::pair<int, int>> f({{1, 2}, {2, 2}, {3, 3}});
-
-  EXPECT_TRUE(a.includes(b));
-  EXPECT_FALSE(b.includes(a));
-  EXPECT_FALSE(a.includes(c));
-  EXPECT_FALSE(b.includes(c));
-  EXPECT_FALSE(a.includes(d));
-  EXPECT_TRUE(d.includes(a));
-  EXPECT_TRUE(b.includes(e));
-  EXPECT_TRUE(e.includes(b));
-  EXPECT_FALSE(f.includes(b));
-
   BitVectorSet<int> X({1, 2, 3, 4, 5, 6, 7});
   BitVectorSet<int> Y({7});
 
   EXPECT_TRUE(X.includes(Y));
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+TEST(BitVectorSet, includesForPairsOfIntegers) {
+  BitVectorSet<std::pair<int, int>> A(
+      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}});
+  BitVectorSet<std::pair<int, int>> B({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> C({{1, 1}, {2, 2}, {42, 42}});
+  BitVectorSet<std::pair<int, int>> D(
+      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}});
+  BitVectorSet<std::pair<int, int>> E({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> F({{1, 2}, {2, 2}, {3, 3}});
+
+  EXPECT_TRUE(A.includes(B));
+  EXPECT_FALSE(B.includes(A));
+  EXPECT_FALSE(A.includes(C));
+  EXPECT_FALSE(B.includes(C));
+  EXPECT_FALSE(A.includes(D));
+  EXPECT_TRUE(D.includes(A));
+  EXPECT_TRUE(B.includes(E));
+  EXPECT_TRUE(E.includes(B));
+  EXPECT_FALSE(F.includes(B));
+}
+
+TEST(BitVectorSet, includesForIntegersTakeTwo) {
+  BitVectorSet<int> X({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> Y({7});
+
+  EXPECT_TRUE(X.includes(Y));
+}
+
+TEST(BitVectorSet, iterator) {
+  BitVectorSet<int> A({10, 20, 30, 40, 50});
+  BitVectorSet<int> D({10, 20, 30, 40, 50});
+
+  auto IteratorD = D.begin();
+  for (auto It = A.begin(); It != A.end(); It++) {
+    EXPECT_EQ(*It, *IteratorD);
+    IteratorD++;
+  }
+
+  BitVectorSet<int> E({25, 32, 40, 57});
+  std::set<int> ES;
+  std::set<int> ESGT = {25, 32, 40, 57};
+  for (auto It = E.begin(); It != E.end(); It++) {
+    // EXPECT_TRUE(ESGT.find(*it)!=ESGT.end()); //Extra check
+    ES.insert(*It);
+  }
+  EXPECT_EQ(ES, ESGT);
+}
+
+TEST(BitVectorSet, iterator_movement) {
+  BitVectorSet<int> A({10, 20, 30, 40, 50});
+  BitVectorSet<int> B({30, 40, 50, 60});
+  auto IteratorA = A.begin();
+  auto IteratorB = B.begin();
+
+  IteratorA += 4;
+  IteratorB += 2;
+  EXPECT_EQ(*IteratorA, *IteratorB);
+  EXPECT_EQ(A.count(*IteratorA), 1);
+  IteratorB++;
+  EXPECT_EQ(A.count(*IteratorB), 0);
+}
+
+TEST(BitVectorSet, rangeFor) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  std::set<int> AS;
+  std::set<int> ASGT = {1, 2, 3, 4, 5, 6};
+
+  for (auto I : A) {
+    AS.insert(I);
+  }
+  EXPECT_EQ(AS, ASGT);
+
+  BitVectorSet<int> B({6, 5, 4, 3, 2, 1});
+  std::set<int> BS;
+  std::set<int> BSGT = {6, 5, 4, 3, 2, 1};
+  for (auto I : B) {
+    BS.insert(I);
+  }
+  EXPECT_EQ(BS, BSGT);
+
+  BitVectorSet<int> C({5, 6, 7, 8, 42, 13});
+  std::set<int> CS;
+  std::set<int> CSGT = {5, 6, 7, 8, 42, 13};
+  for (auto I : C) {
+    CS.insert(I);
+  }
+  EXPECT_EQ(CS, CSGT);
+
+  const BitVectorSet<int> D({5, 6, 7, 8, 42, 13});
+  std::set<int> DS;
+  std::set<int> DSGT = {5, 6, 7, 8, 42, 13};
+  auto I = D.begin();
+  for (auto I : D) {
+    DS.insert(I);
+  }
+  EXPECT_EQ(DS, DSGT);
+}
+
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

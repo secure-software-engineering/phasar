@@ -1,21 +1,21 @@
-#include <gtest/gtest.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
 
 class LLVMBasedICFG_DTATest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_5_cpp.ll"},
+  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_5_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
@@ -42,7 +42,7 @@ TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 }
 
 TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_6_cpp.ll"},
+  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_6_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
@@ -60,7 +60,7 @@ TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
   ASSERT_TRUE(Callers.count(I));
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

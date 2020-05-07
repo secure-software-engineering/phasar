@@ -1,18 +1,54 @@
-Checks: '-*,modernize-use-override,clang-diagnostic-*,llvm-*,misc-*,-misc-unused-parameters'
-# Careful with the readability-identifier-nameing - we have to fix some errors caused by clang-tidy first.
-# Checks: '-*,modernize-use-override,clang-diagnostic-*,llvm-*,misc-*,-misc-unused-parameters,readability-identifier-naming'
-# CheckOptions:
-#  - key:             readability-identifier-naming.ClassCase
-#    value:           CamelCase
-#  - key:             readability-identifier-naming.EnumCase
-#    value:           CamelCase
-#  - key:             readability-identifier-naming.FunctionCase
-#    value:           camelBack
-#  - key:             readability-identifier-naming.MemberCase
-#    value:           CamelCase
-#  - key:             readability-identifier-naming.ParameterCase
-#    value:           CamelCase
-#  - key:             readability-identifier-naming.UnionCase
-#    value:           CamelCase
-#  - key:             readability-identifier-naming.VariableCase
-#    value:           CamelCase
+Checks: '-*,
+         clang-diagnostic-*,
+         llvm-*,
+         misc-*,
+           -misc-unused-parameters,
+           -misc-non-private-member-variables-in-classes,
+           -misc-no-recursion,
+         readability-*,
+           -readability-else-after*,
+           -readability-simplify-boolean-expr,
+           -readability-implicit-bool-cast,
+           -readability-static-definition-in-anonymous-namespace,
+           -readability-implicit-bool-conversion,
+           -readability-magic-numbers,
+           -readability-identifier-naming,
+         cppcoreguidelines-*,
+           -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+           -cppcoreguidelines-owning-memory,
+           -cppcoreguidelines-pro-type-reinterpret-cast,
+           -cppcoreguidelines-pro-type-cstyle-cast,
+           -cppcoreguidelines-avoid-magic-numbers,
+           -cppcoreguidelines-non-private-member-variables-in-classes,
+           -cppcoreguidelines-avoid-c-arrays,
+           -cppcoreguidelines-init-variables,
+           -cppcoreguidelines-macro-usage,
+         bugprone-*,
+           -bugprone-reserved-identifier,
+         modernize-*,
+           -modernize-avoid-c-arrays,
+           -modernize-use-override,
+           -modernize-use-trailing-return-type,
+         performance-*,
+         clang-analyzer-*,
+        '
+
+CheckOptions:
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.FunctionCase
+    value:           camelBack
+  - key:             readability-identifier-naming.MemberCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ParameterCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.UnionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.VariableCase
+    value:           CamelCase
+  - key:             cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value:           1
+  - key:             cppcoreguidelines-special-member-functions.AllowMissingMoveFunctions
+    value:           1

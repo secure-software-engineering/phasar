@@ -5,7 +5,7 @@
 #ifndef BRANCHSWITCHINSTFLOWFUNCTION_H
 #define BRANCHSWITCHINSTFLOWFUNCTION_H
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/FlowFunctionBase.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/FlowFunctionBase.h"
 
 namespace psr {
 

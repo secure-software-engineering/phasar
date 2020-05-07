@@ -11,28 +11,27 @@
 #include <string>
 #include <tuple>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class InterMonoFullConstantPropagationTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/full_constant/";
   const std::set<std::string> EntryPoints = {"main"};
@@ -48,11 +47,12 @@ protected:
   }
   void TearDown() override { delete IRDB; }
 
-  void doAnalysisAndCompareResults(std::string llvmFilePath,
-                                   std::set<IMFCPCompactResult_t> GroundTruth,
-                                   bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
-    if (printDump) {
+  void
+  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+                              const std::set<IMFCPCompactResult_t> &GroundTruth,
+                              bool PrintDump = false) {
+    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }
     ValueAnnotationPass::resetValueID();
@@ -63,17 +63,17 @@ protected:
     InterMonoFullConstantPropagation FCP(IRDB, &TH, &ICFG, &PT, EntryPoints);
     InterMonoSolver_P<InterMonoFullConstantPropagation, 3> IMSolver(FCP);
     IMSolver.solve();
-    if (printDump) {
+    if (PrintDump) {
       IMSolver.dumpResults();
     }
     std::cout << "Done analysis!\n";
     // do the comparison
     bool ResultNotEmpty = false;
-    for (auto &Truth : GroundTruth) {
-      auto Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
-      auto Line = getNthInstruction(Fun, std::get<1>(Truth));
+    for (const auto &Truth : GroundTruth) {
+      const auto *Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
+      const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultSet = IMSolver.getResultsAt(Line);
-      for (auto &[Fact, Value] : ResultSet.getAsSet()) {
+      for (const auto &[Fact, Value] : ResultSet) {
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
@@ -146,36 +146,6 @@ TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_03) {
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
           "main", 9, "i", 5));
   doAnalysisAndCompareResults("advanced_03_cpp.ll", GroundTruth, true);
-}
-
-TEST_F(InterMonoFullConstantPropagationTest, sqSubSetEqualTest) {
-  InterMonoFullConstantPropagation FCP(nullptr, nullptr, nullptr, nullptr,
-                                       EntryPoints);
-  BitVectorSet<InterMonoFullConstantPropagation::d_t> set1;
-  BitVectorSet<InterMonoFullConstantPropagation::d_t> set2;
-
-  EXPECT_TRUE(FCP.sqSubSetEqual(set2, set1));
-
-  set2.insert({nullptr, Top{}});
-
-  EXPECT_FALSE(FCP.sqSubSetEqual(set2, set1));
-}
-
-TEST_F(InterMonoFullConstantPropagationTest, joinTest) {
-  InterMonoFullConstantPropagation FCP(nullptr, nullptr, nullptr, nullptr,
-                                       EntryPoints);
-  BitVectorSet<InterMonoFullConstantPropagation::d_t> set1;
-  BitVectorSet<InterMonoFullConstantPropagation::d_t> set2;
-  BitVectorSet<InterMonoFullConstantPropagation::d_t> Out;
-
-  set1.insert({nullptr, Top{}});
-  Out = FCP.join(set1, set2);
-  EXPECT_TRUE(set1 == Out);
-
-  set2.insert({nullptr, 3});
-  Out.clear();
-  Out.insert({nullptr, 3});
-  EXPECT_TRUE(Out == FCP.join(set1, set2));
 }
 
 int main(int argc, char **argv) {

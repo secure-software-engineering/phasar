@@ -33,7 +33,7 @@ static constexpr unsigned PAMM_CURR_SEV_LEVEL = 0;
 
 #if defined(PAMM_FULL) || defined(PAMM_CORE)
 // Only include PAMM header if it is used
-#include <phasar/Utils/PAMM.h>
+#include "phasar/Utils/PAMM.h"
 
 #define PAMM_GET_INSTANCE PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()

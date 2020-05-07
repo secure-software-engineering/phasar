@@ -9,7 +9,7 @@
 
 #include <ostream>
 
-#include <phasar/PhasarLLVM/Utils/Scopes.h>
+#include "phasar/PhasarLLVM/Utils/Scopes.h"
 
 using namespace std;
 using namespace psr;
@@ -24,7 +24,7 @@ const map<Scope, string> ScopeToString{{Scope::function, "function"},
                                        {Scope::module, "module"},
                                        {Scope::project, "project"}};
 
-ostream &operator<<(ostream &os, const Scope &s) {
-  return os << ScopeToString.at(s);
+ostream &operator<<(ostream &OS, const Scope &S) {
+  return OS << ScopeToString.at(S);
 }
 } // namespace psr

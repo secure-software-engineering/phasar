@@ -13,7 +13,11 @@ add_executable(myphasartool
   myphasartool.cpp
 )
 
+find_package(Threads REQUIRED)
 find_package(phasar)
+find_package(LLVM 10 REQUIRED CONFIG)
+include_directories(${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
 include_directories(${PHASAR_INCLUDE_DIR})
 link_directories(${PHASAR_LIBRARY_DIR})
 
@@ -23,7 +27,6 @@ target_link_libraries(myphasartool
   phasar::phasar_controller
   phasar::phasar_db
   phasar::phasar_experimental
-  phasar::phasar_clang
   phasar::phasar_controlflow
   phasar::phasar_ifdside
   phasar::phasar_mono
@@ -31,7 +34,8 @@ target_link_libraries(myphasartool
   phasar::phasar_pointer
   phasar::phasar_typehierarchy
   phasar::phasar_phasarllvm_utils
-#  phasar::phasar_utils #already introduced through phasar_clang
+  phasar::phasar_utils
+  pthread
 )
 
 install(TARGETS myphasartool

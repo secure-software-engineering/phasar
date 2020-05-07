@@ -8,21 +8,22 @@
  *****************************************************************************/
 
 #include <algorithm>
-#include <llvm/Support/Casting.h>
 #include <ostream>
-
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
-
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <unordered_map>
+#include <utility>
+
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
+
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;
@@ -40,38 +41,32 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
                        InterMonoFullConstantPropagation::v_t,
                        InterMonoFullConstantPropagation::i_t>(IRDB, TH, ICF, PT,
                                                               EntryPoints),
-      IntraPropagation(IRDB, TH, ICF, PT, EntryPoints) {}
+      IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT, EntryPoints) {}
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::merge(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  return IntraPropagation.join(Lhs, Rhs);
+  return IntraMonoFullConstantPropagation::merge(Lhs, Rhs);
 }
 
 bool InterMonoFullConstantPropagation::equal_to(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  return IntraPropagation.sqSubSetEqual(Lhs, Rhs);
-}
-
-bool InterMonoFullConstantPropagation::equal_to(
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  return IntraPropagation.equal_to(Lhs, Rhs);
+  return IntraMonoFullConstantPropagation::equal_to(Lhs, Rhs);
 }
 
 std::unordered_map<InterMonoFullConstantPropagation::n_t,
                    BitVectorSet<InterMonoFullConstantPropagation::d_t>>
 InterMonoFullConstantPropagation::initialSeeds() {
-  return IntraPropagation.initialSeeds();
+  return IntraMonoFullConstantPropagation::initialSeeds();
 }
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::normalFlow(
     InterMonoFullConstantPropagation::n_t S,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
-  return IntraPropagation.normalFlow(S, In);
+  return IntraMonoFullConstantPropagation::normalFlow(S, In);
 }
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>
@@ -126,7 +121,7 @@ InterMonoFullConstantPropagation::callFlow(
         } */
       } else {
         // Ordinary case: Just perform mapping
-        for (auto elem : In.getAsSet()) {
+        for (auto elem : In) {
           if (elem.first == actuals[idx]) {
             Out.insert({formals[idx], elem.second}); // corresponding formal
             break;
@@ -179,7 +174,7 @@ InterMonoFullConstantPropagation::returnFlow(
     if (ReturnValue->getType()->isIntegerTy()) {
       LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> latticeVal =
           Top{};
-      for (auto elem : In.getAsSet()) {
+      for (auto elem : In) {
         if (elem.first == ReturnValue) {
           latticeVal = elem.second;
           break;
@@ -210,17 +205,17 @@ InterMonoFullConstantPropagation::callToRetFlow(
 
 void InterMonoFullConstantPropagation::printNode(
     std::ostream &os, InterMonoFullConstantPropagation::n_t n) const {
-  IntraPropagation.printNode(os, n);
+  IntraMonoFullConstantPropagation::printNode(os, n);
 }
 
 void InterMonoFullConstantPropagation::printDataFlowFact(
     std::ostream &os, InterMonoFullConstantPropagation::d_t d) const {
-  IntraPropagation.printDataFlowFact(os, d);
+  IntraMonoFullConstantPropagation::printDataFlowFact(os, d);
 }
 
 void InterMonoFullConstantPropagation::printFunction(
     std::ostream &os, InterMonoFullConstantPropagation::f_t f) const {
-  IntraPropagation.printFunction(os, f);
+  IntraMonoFullConstantPropagation::printFunction(os, f);
 }
 
 } // namespace psr

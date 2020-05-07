@@ -22,8 +22,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Instruction;
@@ -61,9 +61,6 @@ public:
 
   bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
                      const BitVectorSet<const llvm::Value *> &Rhs) override;
-
-  bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
-                const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   BitVectorSet<const llvm::Value *>
   normalFlow(const llvm::Instruction *Stmt,

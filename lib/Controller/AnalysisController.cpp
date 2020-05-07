@@ -12,58 +12,74 @@
 #include <functional>
 #include <iostream>
 #include <set>
+#include <utility>
 
-#include <llvm/Support/ErrorHandling.h>
+#include "llvm/Support/ErrorHandling.h"
 
-#include <phasar/Controller/AnalysisController.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKeyDerivationTypeStateDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Controller/AnalysisController.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
+
+namespace std {
+
+template <> struct hash<pair<const llvm::Value *, unsigned>> {
+  size_t operator()(const pair<const llvm::Value *, unsigned> &P) const {
+    std::hash<const llvm::Value *> HashPtr;
+    std::hash<unsigned> HashUnsigned;
+    size_t Hp = HashPtr(P.first);
+    size_t Hu = HashUnsigned(P.second);
+    return Hp ^ (Hu << 1);
+  }
+};
+
+} // namespace std
 
 namespace psr {
 
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
-    CallGraphAnalysisType CGTy, std::set<std::string> EntryPoints,
-    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
-    std::string ProjectID, std::string OutDirectory)
+    CallGraphAnalysisType CGTy, SoundnessFlag SF,
+    const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
+    AnalysisControllerEmitterOptions EmitterOptions,
+    const std::string &ProjectID, const std::string &OutDirectory)
     : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
-      DataFlowAnalyses(DataFlowAnalyses), AnalysisConfigs(AnalysisConfigs),
-      EntryPoints(EntryPoints), Strategy(Strategy),
-      EmitterOptions(EmitterOptions), ProjectID(ProjectID),
-      OutDirectory(OutDirectory) {
-  if (OutDirectory != "") {
+      DataFlowAnalyses(std::move(DataFlowAnalyses)),
+      AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
+      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      OutDirectory(OutDirectory), SF(SF) {
+  if (!OutDirectory.empty()) {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
     boost::filesystem::create_directory(ResultDirectory);
@@ -135,7 +151,7 @@ void AnalysisController::executeWholeProgram() {
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
-      OpenSSLEVPKeyDerivationTypeStateDescription TSDesc;
+      OpenSSLEVPKDFDescription TSDesc;
       WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>,
                            IDETypeStateAnalysis>
           WPA(IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
@@ -262,6 +278,14 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       TH.printAsDot();
     }
   }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsJson) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-th.json");
+      TH.printAsJson(OFS);
+    } else {
+      TH.printAsJson();
+    }
+  }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
     if (!ResultDirectory.empty()) {
       std::ofstream OFS(ResultDirectory.string() + "/psr-pta.txt");
@@ -270,12 +294,20 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       PT.print();
     }
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDOT) {
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
     if (!ResultDirectory.empty()) {
       std::ofstream OFS(ResultDirectory.string() + "/psr-pta.dot");
       PT.print(OFS);
     } else {
       PT.print();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-pta.json");
+      PT.printAsJson(OFS);
+    } else {
+      PT.printAsJson();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
@@ -294,20 +326,15 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       ICF.printAsDot();
     }
   }
+
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.json");
+      ICF.printAsJson(OFS);
+    } else {
+      ICF.printAsJson();
+    }
+  }
 }
 
 } // namespace psr
-
-namespace std {
-
-template <> struct hash<pair<const llvm::Value *, unsigned>> {
-  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
-    std::hash<const llvm::Value *> hash_ptr;
-    std::hash<unsigned> hash_unsigned;
-    size_t hp = hash_ptr(p.first);
-    size_t hu = hash_unsigned(p.second);
-    return hp ^ (hu << 1);
-  }
-};
-
-} // namespace std

@@ -23,8 +23,8 @@
 #include <utility>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace psr {
 
@@ -107,7 +107,7 @@ public:
       if (FlowFacts.empty()) {
         OS << "\tEMPTY\n";
       } else {
-        for (auto FlowFact : FlowFacts.getAsSet()) {
+        for (auto FlowFact : FlowFacts) {
           OS << this->IMProblem.DtoString(FlowFact) << '\n';
         }
       }
@@ -122,9 +122,9 @@ public:
 
 template <typename Problem>
 IntraMonoSolver(Problem &)
-    ->IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
-                      typename Problem::f_t, typename Problem::t_t,
-                      typename Problem::v_t, typename Problem::i_t>;
+    -> IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
+                       typename Problem::f_t, typename Problem::t_t,
+                       typename Problem::v_t, typename Problem::i_t>;
 
 template <typename Problem>
 using IntraMonoSolver_P =

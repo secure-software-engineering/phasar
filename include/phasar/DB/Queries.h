@@ -14,33 +14,33 @@
 
 namespace psr {
 
-extern const std::string SPO_INSERT;
+extern const std::string SPOInsert;
 
-extern const std::string SOP_INSERT;
+extern const std::string SOPInsert;
 
-extern const std::string PSO_INSERT;
+extern const std::string PSOInsert;
 
-extern const std::string POS_INSERT;
+extern const std::string POSInsert;
 
-extern const std::string OSP_INSERT;
+extern const std::string OSPInsert;
 
-extern const std::string OPS_INSERT;
+extern const std::string OPSInsert;
 
-extern const std::string SEARCH_SPO;
+extern const std::string SearchSPO;
 
-extern const std::string SEARCH_SPX;
+extern const std::string SearchSPX;
 
-extern const std::string SEARCH_SXO;
+extern const std::string SearchSXO;
 
-extern const std::string SEARCH_XPO;
+extern const std::string SearchXPO;
 
-extern const std::string SEARCH_SXX;
+extern const std::string SearchSXX;
 
-extern const std::string SEARCH_XPX;
+extern const std::string SearchXPX;
 
-extern const std::string SEARCH_XXO;
+extern const std::string SearchXXO;
 
-extern const std::string SEARCH_XXX;
+extern const std::string SearchXXX;
 
 extern const std::string INIT;
 

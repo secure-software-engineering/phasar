@@ -14,13 +14,13 @@
 #include <memory>
 #include <string>
 
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/Passes/PassBuilder.h>
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Passes/PassBuilder.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
+#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 namespace llvm {
 class Value;
@@ -31,17 +31,17 @@ class Instruction;
 namespace psr {
 
 class ProjectIRDB;
-class PointsToGraph;
+class LLVMPointsToGraph;
 
 enum class PointerAnalysisType {
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
   Invalid
 };
 
-std::string to_string(const PointerAnalysisType &PA);
+std::string toString(const PointerAnalysisType &PA);
 
-PointerAnalysisType to_PointerAnalysisType(const std::string &S);
+PointerAnalysisType toPointerAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 
@@ -51,7 +51,7 @@ private:
   llvm::PassBuilder PB;
   llvm::FunctionAnalysisManager FAM;
   mutable std::unordered_map<const llvm::Function *, llvm::AAResults *> AAInfos;
-  std::map<const llvm::Function *, std::unique_ptr<PointsToGraph>>
+  std::map<const llvm::Function *, std::unique_ptr<LLVMPointsToGraph>>
       PointsToGraphs;
 
 public:
@@ -71,9 +71,11 @@ public:
 
   nlohmann::json getAsJson() const override;
 
+  void printAsJson(std::ostream &OS = std::cout) const override;
+
   llvm::AAResults *getAAResults(const llvm::Function *F) const;
 
-  PointsToGraph *getPointsToGraph(const llvm::Function *F) const;
+  LLVMPointsToGraph *getPointsToGraph(const llvm::Function *F) const;
 };
 
 } // namespace psr

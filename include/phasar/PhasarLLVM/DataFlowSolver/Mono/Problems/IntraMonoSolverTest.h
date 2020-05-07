@@ -21,8 +21,8 @@
 #include <string>
 #include <unordered_map>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -58,9 +58,6 @@ public:
   BitVectorSet<const llvm::Value *>
   merge(const BitVectorSet<const llvm::Value *> &Lhs,
         const BitVectorSet<const llvm::Value *> &Rhs) override;
-
-  bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
-                const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
                 const BitVectorSet<const llvm::Value *> &Rhs) override;

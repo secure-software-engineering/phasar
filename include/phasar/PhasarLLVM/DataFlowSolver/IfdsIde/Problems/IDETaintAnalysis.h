@@ -15,7 +15,7 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 
 namespace llvm {
 class Instruction;
@@ -48,7 +48,7 @@ public:
   // keep in mind that 'char** argv' of main is a source for tainted values as
   // well
   std::set<std::string> sink_functions = {"fwrite", "write", "printf"};
-  bool set_contains_str(std::set<std::string> s, std::string str);
+  static bool setContainsStr(std::set<std::string> s, const std::string &str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
@@ -132,7 +132,7 @@ public:
 
   void printFunction(std::ostream &os, f_t m) const override;
 
-  void printEdgeFact(std::ostream &os, l_t l) const override;
+  void printEdgeFact(std::ostream &os, l_t V) const override;
 };
 
 } // namespace psr

@@ -10,11 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
 #include <iostream>
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <set>
 #include <string>
 

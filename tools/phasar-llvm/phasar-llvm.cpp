@@ -13,13 +13,14 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
+#include "boost/filesystem.hpp"
+#include "boost/program_options.hpp"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/Controller/AnalysisController.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/Controller/AnalysisController.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 using namespace psr;
 
@@ -27,10 +28,10 @@ constexpr char MoreHelp[] =
 #include "../phasar-llvm_more_help.txt"
     ;
 
-template <typename T> static std::set<T> vectorToSet(const std::vector<T> &v) {
-  std::set<T> s;
-  for_each(v.begin(), v.end(), [&s](T t) { s.insert(t); });
-  return s;
+template <typename T> static std::set<T> vectorToSet(const std::vector<T> &V) {
+  std::set<T> S;
+  for_each(V.begin(), V.end(), [&S](T Item) { S.insert(Item); });
+  return S;
 }
 
 void validateParamConfigFile(const std::string &Config) {
@@ -64,7 +65,7 @@ void validateParamExport(const std::string &Export) {
 }
 
 void validateParamOutput(const std::string &Output) {
-  if (Output != "" && !boost::filesystem::is_directory(Output)) {
+  if (!Output.empty() && !boost::filesystem::is_directory(Output)) {
     throw boost::program_options::error_with_option_name(
         "'" + Output +
         "' does not exist, a valid output directory is required!");
@@ -74,8 +75,8 @@ void validateParamOutput(const std::string &Output) {
 void validateParamPammOutputFile(const std::string &Output) {}
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
-  for (auto &Analysis : Analyses) {
-    if (to_DataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
+  for (const auto &Analysis : Analyses) {
+    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
       throw boost::program_options::error_with_option_name(
           "'" + Analysis + "' is not a valid data-flow analysis!");
     }
@@ -83,23 +84,30 @@ void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
 }
 
 void validateParamAnalysisStrategy(const std::string &Strategy) {
-  if (to_AnalysisStrategy(Strategy) == AnalysisStrategy::None) {
+  if (toAnalysisStrategy(Strategy) == AnalysisStrategy::None) {
     throw boost::program_options::error_with_option_name(
         "Invalid analysis strategy '" + Strategy + "'!");
   }
 }
 
 void validateParamPointerAnalysis(const std::string &Analysis) {
-  if (to_PointerAnalysisType(Analysis) == PointerAnalysisType::Invalid) {
+  if (toPointerAnalysisType(Analysis) == PointerAnalysisType::Invalid) {
     throw boost::program_options::error_with_option_name(
         "'" + Analysis + "' is not a valid pointer analysis!");
   }
 }
 
 void validateParamCallGraphAnalysis(const std::string &Analysis) {
-  if (to_CallGraphAnalysisType(Analysis) == CallGraphAnalysisType::Invalid) {
+  if (toCallGraphAnalysisType(Analysis) == CallGraphAnalysisType::Invalid) {
     throw boost::program_options::error_with_option_name(
         "'" + Analysis + "' is not a valid call-graph analysis!");
+  }
+}
+
+void validateSoundnessFlag(const std::string &Flag) {
+  if (toSoundnessFlag(Flag) == SoundnessFlag::Invalid) {
+    throw boost::program_options::error_with_option_name(
+        "'" + Flag + "' is not a valid soundiness flag!");
   }
 }
 
@@ -135,7 +143,7 @@ void validateParamAnalysisConfig(const std::vector<std::string> &Configs) {
   }
 }
 
-int main(int argc, const char **argv) {
+int main(int Argc, const char **Argv) {
   // handling the command line parameters
   std::string ConfigFile;
   // Declare a group of options that will be allowed only on command line
@@ -161,11 +169,14 @@ int main(int argc, const char **argv) {
       ("analysis-config", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamAnalysisConfig), "Set the analysis's configuration (if required)")
       ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
       ("call-graph-analysis,C", boost::program_options::value<std::string>()->notifier(&validateParamCallGraphAnalysis)->default_value("OTF"), "Set the call-graph algorithm to be used (NORESOLVE, CHA, RTA, DTA, VTA, OTF)")
+      ("soundiness-flag", boost::program_options::value<std::string>()->notifier(&validateSoundnessFlag)->default_value("SOUNDY"), "Set the soundiness level to be used (SOUND,SOUNDY,UNSOUND)")
 			("classhierarchy-analysis,H", "Class-hierarchy analysis")
 			("statistical-analysis,S", "Statistics")
 			("mwa,M", "Enable Modulewise-program analysis mode")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
+      #ifdef DYNAMIC_LOG
       ("log,L", "Enable logging")
+      #endif
       ("export,E", boost::program_options::value<std::string>()->notifier(&validateParamExport), "Export mode (JSON, SARIF) (Not implemented yet!)")
       ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project id used for output")
       ("out,O", boost::program_options::value<std::string>()->notifier(&validateParamOutput)->default_value(""), "Output directory; if specified all results are written to the output directory instead of stdout")
@@ -176,10 +187,13 @@ int main(int argc, const char **argv) {
       ("emit-esg-as-dot", "Emit the exploded super-graph (ESG) as DOT graph")
       ("emit-th-as-text", "Emit the type hierarchy as text")
       ("emit-th-as-dot", "Emit the type hierarchy as DOT graph")
+      ("emit-th-as-json", "Emit the type hierarchy as JSON")
       ("emit-cg-as-text", "Emit the call graph as text")
       ("emit-cg-as-dot", "Emit the call graph as DOT graph")
+      ("emit-cg-as-json", "Emit the call graph as JSON")
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
+      ("emit-pta-as-json", "Emit the points-to information as JSON")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
@@ -195,33 +209,35 @@ int main(int argc, const char **argv) {
   Visible.add(Generic).add(Config);
   try {
     boost::program_options::store(
-        boost::program_options::command_line_parser(argc, argv)
+        boost::program_options::command_line_parser(Argc, Argv)
             .options(CmdlineOptions)
             .run(),
         PhasarConfig::VariablesMap());
     boost::program_options::notify(PhasarConfig::VariablesMap());
-  } catch (boost::program_options::error Err) {
+  } catch (boost::program_options::error &Err) {
     std::cerr << "Could not parse command-line arguments!\n"
               << "Error: " << Err.what() << '\n';
     return 1;
   }
   try {
-    if (ConfigFile != "") {
-      std::ifstream ifs(ConfigFile.c_str());
-      if (!ifs) {
+    if (!ConfigFile.empty()) {
+      std::ifstream Ifs(ConfigFile.c_str());
+      if (!Ifs) {
       } else {
         boost::program_options::store(
-            boost::program_options::parse_config_file(ifs, ConfigFileOptions),
+            boost::program_options::parse_config_file(Ifs, ConfigFileOptions),
             PhasarConfig::VariablesMap());
         boost::program_options::notify(PhasarConfig::VariablesMap());
       }
     }
-  } catch (boost::program_options::error Err) {
+  } catch (boost::program_options::error &Err) {
     std::cerr << "Could not parse configuration file!\n"
               << "Error: " << Err.what() << '\n';
     return 1;
   }
+#ifdef DYNAMIC_LOG
   initializeLogger(PhasarConfig::VariablesMap().count("log"));
+#endif
   // print PhASER version
   if (PhasarConfig::VariablesMap().count("version")) {
     std::cout << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
@@ -252,7 +268,7 @@ int main(int argc, const char **argv) {
   // setup the analysis controller which executes the chosen analyses
   AnalysisStrategy Strategy = AnalysisStrategy::None;
   if (PhasarConfig::VariablesMap().count("analysis-strategy")) {
-    Strategy = to_AnalysisStrategy(
+    Strategy = toAnalysisStrategy(
         PhasarConfig::VariablesMap()["analysis-strategy"].as<std::string>());
     if (Strategy == AnalysisStrategy::None) {
       std::cout << "Invalid analysis strategy!\n";
@@ -275,7 +291,7 @@ int main(int argc, const char **argv) {
     auto Analyses = PhasarConfig::VariablesMap()["data-flow-analysis"]
                         .as<std::vector<std::string>>();
     for (auto &Analysis : Analyses) {
-      DataFlowAnalyses.push_back(to_DataFlowAnalysisType(Analysis));
+      DataFlowAnalyses.push_back(toDataFlowAnalysisType(Analysis));
     }
   } else {
     DataFlowAnalyses.push_back(DataFlowAnalysisType::None);
@@ -295,11 +311,14 @@ int main(int argc, const char **argv) {
     EntryPoints.insert("main");
   }
   // setup pointer algorithm to be used
-  PointerAnalysisType PTATy = to_PointerAnalysisType(
+  PointerAnalysisType PTATy = toPointerAnalysisType(
       PhasarConfig::VariablesMap()["pointer-analysis"].as<std::string>());
   // setup call-graph algorithm to be used
-  CallGraphAnalysisType CGTy = to_CallGraphAnalysisType(
+  CallGraphAnalysisType CGTy = toCallGraphAnalysisType(
       PhasarConfig::VariablesMap()["call-graph-analysis"].as<std::string>());
+  // setup soudiness level to be used
+  SoundnessFlag SF = toSoundnessFlag(
+      PhasarConfig::VariablesMap()["soundiness-flag"].as<std::string>());
   // setup the emitter options to display the computed analysis results
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::EmitTextReport;
@@ -324,17 +343,26 @@ int main(int argc, const char **argv) {
   if (PhasarConfig::VariablesMap().count("emit-th-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsDot;
   }
+  if (PhasarConfig::VariablesMap().count("emit-th-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
+  }
   if (PhasarConfig::VariablesMap().count("emit-cg-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
   }
   if (PhasarConfig::VariablesMap().count("emit-cg-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
   }
+  if (PhasarConfig::VariablesMap().count("emit-cg-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
+  }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
   }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-dot")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDOT;
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDot;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
   // setup output directory
   std::string OutDirectory;
@@ -347,7 +375,7 @@ int main(int argc, const char **argv) {
     ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
   AnalysisController Controller(IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy,
-                                CGTy, EntryPoints, Strategy, EmitterOptions,
+                                CGTy, SF, EntryPoints, Strategy, EmitterOptions,
                                 ProjectID, OutDirectory);
   return 0;
 }

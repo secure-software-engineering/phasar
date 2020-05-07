@@ -16,8 +16,8 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 
 namespace llvm {
 class Instruction;
@@ -39,9 +39,9 @@ class IDELinearConstantAnalysis
                                   int64_t, LLVMBasedICFG> {
 private:
   // For debug purpose only
-  static unsigned CurrGenConstant_Id;
-  static unsigned CurrLCAID_Id;
-  static unsigned CurrBinary_Id;
+  static unsigned CurrGenConstantId;
+  static unsigned CurrLCAIDId;
+  static unsigned CurrBinaryId;
 
 public:
   typedef const llvm::Value *d_t;
@@ -75,7 +75,7 @@ public:
 
   typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_results_t;
 
-  void stripBottomResults(std::unordered_map<d_t, l_t> &res);
+  static void stripBottomResults(std::unordered_map<d_t, l_t> &Res);
 
   // start formulating our analysis by specifying the parts required for IFDS
 
@@ -233,7 +233,7 @@ public:
 
   static char opToChar(const unsigned op);
 
-  bool isEntryPoint(std::string FunctionName) const;
+  bool isEntryPoint(const std::string &FunctionName) const;
 
   void printNode(std::ostream &os, n_t n) const override;
 

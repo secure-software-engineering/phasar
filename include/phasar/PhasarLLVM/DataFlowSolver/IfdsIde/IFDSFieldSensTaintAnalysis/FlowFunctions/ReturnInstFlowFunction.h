@@ -5,7 +5,7 @@
 #ifndef RETURNINSTFLOWFUNCTION_H
 #define RETURNINSTFLOWFUNCTION_H
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/FlowFunctionBase.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/FlowFunctionBase.h"
 
 namespace psr {
 

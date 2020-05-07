@@ -6,31 +6,29 @@
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <iostream>
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Utils/Logger.h"
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
-#include <boost/filesystem/operations.hpp>
+#include "boost/filesystem/operations.hpp"
 
 using namespace std;
 using namespace psr;
-namespace bfs = boost::filesystem;
 
 // int main(int argc, char **argv) {
 //   initializeLogger(false);
-//   auto &lg = lg::get();
 //   if (argc < 4 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {
 //     std::cerr << "usage: <prog> <ir file> <ID or LCA> <DIRECTION>\n";
 //     return 1;
@@ -101,7 +99,7 @@ namespace bfs = boost::filesystem;
 //   return 0;
 // }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

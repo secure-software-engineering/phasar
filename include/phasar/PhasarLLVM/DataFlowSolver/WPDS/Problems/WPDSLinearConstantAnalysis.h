@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
 
 namespace llvm {
 class Value;
@@ -37,11 +37,10 @@ class WPDSLinearConstantAnalysis
                                  int64_t, LLVMBasedICFG>,
       public virtual IDELinearConstantAnalysis {
 public:
-  WPDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
-                             const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF,
-                             const LLVMPointsToInfo *PT,
-                             std::set<std::string> EntryPoints = {"main"});
+  WPDSLinearConstantAnalysis(
+      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+      const std::set<std::string> &EntryPoints = {"main"});
 
   ~WPDSLinearConstantAnalysis() override = default;
 };

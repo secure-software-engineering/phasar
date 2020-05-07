@@ -22,9 +22,10 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Utils/Printer.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/Config/ContainerConfiguration.h"
+#include "phasar/PhasarLLVM/Utils/Printer.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 namespace psr {
 
@@ -49,6 +50,7 @@ protected:
   const C *CF;
   const PointsToInfo<V, N> *PT;
   std::set<std::string> EntryPoints;
+  [[maybe_unused]] SoundnessFlag SF = SoundnessFlag::UNUSED;
 
 public:
   // denote that a problem does not require a configuration (type/file)
@@ -59,18 +61,16 @@ public:
                    const C *CF, const PointsToInfo<V, N> *PT,
                    std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
+
   ~IntraMonoProblem() override = default;
+
+  virtual BitVectorSet<D> normalFlow(N S, const BitVectorSet<D> &In) = 0;
 
   virtual BitVectorSet<D> merge(const BitVectorSet<D> &Lhs,
                                 const BitVectorSet<D> &Rhs) = 0;
 
   virtual bool equal_to(const BitVectorSet<D> &Lhs,
                         const BitVectorSet<D> &Rhs) = 0;
-
-  virtual bool equal_to(const BitVectorSet<D> &Lhs,
-                        const BitVectorSet<D> &Rhs) = 0;
-
-  virtual BitVectorSet<D> normalFlow(N S, const BitVectorSet<D> &In) = 0;
 
   virtual std::unordered_map<N, BitVectorSet<D>> initialSeeds() = 0;
 
@@ -83,6 +83,8 @@ public:
   const C *getCFG() const { return CF; }
 
   const PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
+
+  virtual bool setSoundnessFlag(SoundnessFlag SF) { return false; }
 };
 
 } // namespace psr

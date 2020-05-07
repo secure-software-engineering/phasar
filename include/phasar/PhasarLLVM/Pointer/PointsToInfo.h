@@ -13,15 +13,15 @@
 #include <iosfwd>
 #include <set>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 namespace psr {
 
 enum class AliasResult { NoAlias, MayAlias, PartialAlias, MustAlias };
 
-std::string to_string(AliasResult AR);
+std::string toString(AliasResult AR);
 
-AliasResult to_AliasResult(const std::string &S);
+AliasResult toAliasResult(const std::string &S);
 
 std::ostream &operator<<(std::ostream &OS, const AliasResult &AR);
 
@@ -36,6 +36,8 @@ public:
   virtual void print(std::ostream &OS) const = 0;
 
   virtual nlohmann::json getAsJson() const = 0;
+
+  virtual void printAsJson(std::ostream &OS) const = 0;
 };
 
 } // namespace psr

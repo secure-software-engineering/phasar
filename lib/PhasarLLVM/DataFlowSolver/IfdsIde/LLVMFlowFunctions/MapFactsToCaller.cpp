@@ -8,16 +8,17 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <utility>
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;
@@ -25,34 +26,35 @@ using namespace psr;
 namespace psr {
 
 MapFactsToCaller::MapFactsToCaller(
-    llvm::ImmutableCallSite cs, const llvm::Function *calleeFun,
-    const llvm::Instruction *exitstmt,
-    function<bool(const llvm::Value *)> paramPredicate,
-    function<bool(const llvm::Function *)> returnPredicate)
-    : callSite(cs), calleeFun(calleeFun),
-      exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
-      paramPredicate(paramPredicate), returnPredicate(returnPredicate) {
+    llvm::ImmutableCallSite Cs, const llvm::Function *CalleeFun,
+    const llvm::Instruction *ExitStmt,
+    function<bool(const llvm::Value *)> ParamPredicate,
+    function<bool(const llvm::Function *)> ReturnPredicate)
+    : callSite(Cs), calleeFun(CalleeFun),
+      exitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
+      paramPredicate(std::move(ParamPredicate)),
+      returnPredicate(std::move(ReturnPredicate)) {
   // Set up the actual parameters
-  for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-    actuals.push_back(callSite.getArgOperand(idx));
+  for (unsigned Idx = 0; Idx < callSite.getNumArgOperands(); ++Idx) {
+    actuals.push_back(callSite.getArgOperand(Idx));
   }
   // Set up the formal parameters
-  for (unsigned idx = 0; idx < calleeFun->arg_size(); ++idx) {
-    formals.push_back(getNthFunctionArgument(calleeFun, idx));
+  for (unsigned Idx = 0; Idx < calleeFun->arg_size(); ++Idx) {
+    formals.push_back(getNthFunctionArgument(calleeFun, Idx));
   }
 }
 
 set<const llvm::Value *>
-MapFactsToCaller::computeTargets(const llvm::Value *source) {
-  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
-    set<const llvm::Value *> res;
+MapFactsToCaller::computeTargets(const llvm::Value *Source) {
+  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+    set<const llvm::Value *> Res;
     // Handle C-style varargs functions
     if (calleeFun->isVarArg() && !calleeFun->isDeclaration()) {
       const llvm::Instruction *AllocVarArg;
       // Find the allocation of %struct.__va_list_tag
-      for (auto &BB : *calleeFun) {
-        for (auto &I : BB) {
-          if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+      for (const auto &BB : *calleeFun) {
+        for (const auto &I : BB) {
+          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
             if (Alloc->getAllocatedType()->isArrayTy() &&
                 Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
                 Alloc->getAllocatedType()
@@ -68,26 +70,26 @@ MapFactsToCaller::computeTargets(const llvm::Value *source) {
         }
       }
       // Generate the varargs things by using an over-approximation
-      if (source == AllocVarArg) {
-        for (unsigned idx = formals.size(); idx < actuals.size(); ++idx) {
-          res.insert(actuals[idx]);
+      if (Source == AllocVarArg) {
+        for (unsigned Idx = formals.size(); Idx < actuals.size(); ++Idx) {
+          Res.insert(actuals[Idx]);
         }
       }
     }
     // Handle ordinary case
     // Map formal parameter into corresponding actual parameter.
-    for (unsigned idx = 0; idx < formals.size(); ++idx) {
-      if (source == formals[idx] && paramPredicate(formals[idx])) {
-        res.insert(actuals[idx]); // corresponding actual
+    for (unsigned Idx = 0; Idx < formals.size(); ++Idx) {
+      if (Source == formals[Idx] && paramPredicate(formals[Idx])) {
+        Res.insert(actuals[Idx]); // corresponding actual
       }
     }
     // Collect return value facts
-    if (source == exitStmt->getReturnValue() && returnPredicate(calleeFun)) {
-      res.insert(callSite.getInstruction());
+    if (Source == exitStmt->getReturnValue() && returnPredicate(calleeFun)) {
+      Res.insert(callSite.getInstruction());
     }
-    return res;
+    return Res;
   } else {
-    return {source};
+    return {Source};
   }
 }
 

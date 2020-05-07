@@ -143,7 +143,7 @@ public:
    * @brief Returns the elapsed time for a given timer id.
    * @param timerId Unique timer id.
    */
-  std::string getPrintableDuration(unsigned long Duration);
+  static std::string getPrintableDuration(unsigned long Duration);
 
   /**
    * @brief Registers a new counter under the given counter id - associated

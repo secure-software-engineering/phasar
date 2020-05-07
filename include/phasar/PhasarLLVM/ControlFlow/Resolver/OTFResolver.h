@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
 namespace llvm {
 class Instruction;
@@ -33,17 +33,17 @@ namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
-class PointsToGraph;
+class LLVMPointsToGraph;
 
 class OTFResolver : public CHAResolver {
 protected:
   LLVMPointsToInfo &PT;
-  PointsToGraph &WholeModulePTG;
+  LLVMPointsToGraph &WholeModulePTG;
   std::vector<const llvm::Instruction *> CallStack;
 
 public:
   OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo &PT,
-              PointsToGraph &WholeModulePTG);
+              LLVMPointsToGraph &WholeModulePTG);
 
   ~OTFResolver() override = default;
 
@@ -51,7 +51,7 @@ public:
 
   void handlePossibleTargets(
       llvm::ImmutableCallSite CS,
-      std::set<const llvm::Function *> &possible_targets) override;
+      std::set<const llvm::Function *> &CalleeTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 

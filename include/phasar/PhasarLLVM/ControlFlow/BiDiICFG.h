@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 
 namespace psr {
 

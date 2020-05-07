@@ -22,9 +22,9 @@
 #include <unordered_map>
 #include <utility>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
-#include <phasar/PhasarLLVM/Utils/LatticeDomain.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -60,6 +60,7 @@ public:
 
 private:
   bool bitVectorHasInstr(const BitVectorSet<d_t> &set, v_t instr);
+
   LatticeDomain<plain_d_t> executeBinOperation(const unsigned op, plain_d_t lop,
                                                plain_d_t rop);
 
@@ -69,19 +70,14 @@ public:
                                    const LLVMBasedCFG *CF,
                                    const LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints = {});
+
   ~IntraMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<d_t> join(const BitVectorSet<d_t> &Lhs,
-                         const BitVectorSet<d_t> &Rhs) override;
-
   BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
-                          const BitVectorSet<d_t> &Rhs);
+                          const BitVectorSet<d_t> &Rhs) override;
 
   BitVectorSet<d_t> update(const BitVectorSet<d_t> &Lhs,
                            const BitVectorSet<d_t> &Rhs);
-
-  bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
-                     const BitVectorSet<d_t> &Rhs) override;
 
   bool equal_to(const BitVectorSet<d_t> &Lhs,
                 const BitVectorSet<d_t> &Rhs) override;

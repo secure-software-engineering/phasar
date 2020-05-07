@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 
 namespace llvm {
 class Instruction;
@@ -78,7 +78,7 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printFunction(std::ostream &os, f_t f) const override;
+  void printFunction(std::ostream &os, f_t M) const override;
 };
 
 } // namespace psr
