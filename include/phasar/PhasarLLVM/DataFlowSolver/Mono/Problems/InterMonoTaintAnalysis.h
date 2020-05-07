@@ -60,12 +60,12 @@ public:
                          const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                          const TaintConfiguration<const llvm::Value *> &TSF,
                          std::set<std::string> EntryPoints = {});
-  
+
   ~InterMonoTaintAnalysis() override = default;
 
   BitVectorSet<const llvm::Value *>
   merge(const BitVectorSet<const llvm::Value *> &Lhs,
-       const BitVectorSet<const llvm::Value *> &Rhs) override;
+        const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
                 const BitVectorSet<const llvm::Value *> &Rhs) override;

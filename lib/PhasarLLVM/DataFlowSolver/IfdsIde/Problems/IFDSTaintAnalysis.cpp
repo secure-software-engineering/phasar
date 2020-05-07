@@ -193,11 +193,11 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *TaintAnalysis;
         TAFF(llvm::ImmutableCallSite CS, IFDSTaintAnalysis::f_t CalledMthd,
-             const TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction &S,
+             TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction S,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks,
              const IFDSTaintAnalysis *Ta)
-            : CallSite(CS), CalledMthd(CalledMthd), Sink(S), Leaks(Leaks),
-              TaintAnalysis(Ta) {}
+            : CallSite(CS), CalledMthd(CalledMthd), Sink(std::move(S)),
+              Leaks(Leaks), TaintAnalysis(Ta) {}
         set<IFDSTaintAnalysis::d_t>
         computeTargets(IFDSTaintAnalysis::d_t Source) override {
           // check if a tainted value flows into a sink

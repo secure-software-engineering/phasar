@@ -44,7 +44,7 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
 
 BitVectorSet<const llvm::Value *>
 InterMonoTaintAnalysis::merge(const BitVectorSet<const llvm::Value *> &Lhs,
-                             const BitVectorSet<const llvm::Value *> &Rhs) {
+                              const BitVectorSet<const llvm::Value *> &Rhs) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::join()");
   // cout << "InterMonoTaintAnalysis::join()\n";

@@ -33,7 +33,7 @@ namespace psr {
 InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints)
+    const std::set<std::string> &EntryPoints)
     : InterMonoProblem<InterMonoFullConstantPropagation::n_t,
                        InterMonoFullConstantPropagation::d_t,
                        InterMonoFullConstantPropagation::f_t,
@@ -121,7 +121,7 @@ InterMonoFullConstantPropagation::callFlow(
         } */
       } else {
         // Ordinary case: Just perform mapping
-        for (auto elem : In) {
+        for (const auto &elem : In) {
           if (elem.first == actuals[idx]) {
             Out.insert({formals[idx], elem.second}); // corresponding formal
             break;
@@ -174,7 +174,7 @@ InterMonoFullConstantPropagation::returnFlow(
     if (ReturnValue->getType()->isIntegerTy()) {
       LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> latticeVal =
           Top{};
-      for (auto elem : In) {
+      for (const auto &elem : In) {
         if (elem.first == ReturnValue) {
           latticeVal = elem.second;
           break;

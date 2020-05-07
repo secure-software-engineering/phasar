@@ -109,8 +109,8 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
     return {&Fun->front().front()};
   } else {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Could not get starting points of '" << Fun->getName().str()
-                  << "' because it is a declaration");
+                  << "Could not get starting points of '"
+                  << Fun->getName().str() << "' because it is a declaration");
     return {};
   }
 }

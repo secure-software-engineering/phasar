@@ -49,13 +49,13 @@ protected:
 
   void TearDown() override { delete IRDB; }
 
-  void doAnalysisAndCompareResults(std::string llvmFilePath,
-                                   CompactResults_t GroundTruth,
+  void doAnalysisAndCompareResults(const std::string &llvmFilePath,
+                                   const CompactResults_t &GroundTruth,
                                    bool printDump = false) {
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath});
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    auto *PT = new LLVMPointsToInfo(*IRDB);
     LLVMBasedCFG CFG;
     IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);

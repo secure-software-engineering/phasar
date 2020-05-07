@@ -33,8 +33,7 @@ class LLVMBasedCFG;
 class LLVMBasedICFG;
 
 class IntraMonoUninitVariables
-    : public IntraMonoProblem<const llvm::Instruction *,
-                              const llvm::Value *,
+    : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, const llvm::StructType *,
                               const llvm::Value *, LLVMBasedCFG> {
 public:
@@ -45,37 +44,26 @@ public:
   typedef const llvm::Value *v_t;
   typedef LLVMBasedCFG i_t;
 
-  IntraMonoUninitVariables(const ProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedCFG *CF,
-                                   const LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints = {});
+  IntraMonoUninitVariables(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                           const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
+                           std::set<std::string> EntryPoints = {});
   ~IntraMonoUninitVariables() override = default;
 
-  BitVectorSet<d_t>
-  merge(const BitVectorSet<d_t> &Lhs,
-        const BitVectorSet<d_t> &Rhs)
-      override;
+  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
+                          const BitVectorSet<d_t> &Rhs) override;
 
-  bool
-  equal_to(const BitVectorSet<d_t> &Lhs,
-           const BitVectorSet<d_t> &Rhs)
-      override;
+  bool equal_to(const BitVectorSet<d_t> &Lhs,
+                const BitVectorSet<d_t> &Rhs) override;
 
-  BitVectorSet<d_t>
-  normalFlow(const llvm::Instruction *S,
-             const BitVectorSet<d_t> &In)
-      override;
+  BitVectorSet<d_t> normalFlow(const llvm::Instruction *S,
+                               const BitVectorSet<d_t> &In) override;
 
-  std::unordered_map<const llvm::Instruction *,
-                     BitVectorSet<d_t>>
+  std::unordered_map<const llvm::Instruction *, BitVectorSet<d_t>>
   initialSeeds() override;
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override;
 
-  void
-  printDataFlowFact(std::ostream &os,
-                    d_t d) const override;
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
 
   void printFunction(std::ostream &os, const llvm::Function *m) const override;
 };

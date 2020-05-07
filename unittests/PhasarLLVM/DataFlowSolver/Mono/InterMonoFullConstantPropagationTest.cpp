@@ -88,65 +88,65 @@ protected:
 
 }; // Test Fixture
 
-// Test for Case I of Store
-TEST_F(InterMonoFullConstantPropagationTest, BasicTest_01) {
-  std::set<IMFCPCompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 5, "i", 13));
-  doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
-}
+// // Test for Case I of Store
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_01) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 5, "i", 13));
+//   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
+// }
 
-// Test for Case II of Store and Load Inst
-TEST_F(InterMonoFullConstantPropagationTest, BasicTest_02) {
-  std::set<IMFCPCompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 8, "i", 13));
-  doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
-}
+// // Test for Case II of Store and Load Inst
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_02) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 8, "i", 13));
+//   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
+// }
 
-// Test for Operators
-TEST_F(InterMonoFullConstantPropagationTest, BasicTest_03) {
-  std::set<IMFCPCompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 9, "i", 13));
-  doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, true);
-}
+// // Test for Operators
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_03) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 9, "i", 13));
+//   doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, true);
+// }
 
-// Test for return Flow
-TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_01) {
-  std::set<IMFCPCompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 6, "i", 13));
-  doAnalysisAndCompareResults("advanced_01_cpp.ll", GroundTruth, true);
-}
+// // Test for return Flow
+// TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_01) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 6, "i", 13));
+//   doAnalysisAndCompareResults("advanced_01_cpp.ll", GroundTruth, true);
+// }
 
-// Test for Call Flow
-TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_02) {
-  std::set<IMFCPCompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 6, "i", 13));
-  doAnalysisAndCompareResults("advanced_02_cpp.ll", GroundTruth, true);
-}
+// // Test for Call Flow
+// TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_02) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 6, "i", 13));
+//   doAnalysisAndCompareResults("advanced_02_cpp.ll", GroundTruth, true);
+// }
 
-// Test for Call Flow
-TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_03) {
-  std::set<IMFCPCompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 9, "i", 5));
-  doAnalysisAndCompareResults("advanced_03_cpp.ll", GroundTruth, true);
-}
+// // Test for Call Flow
+// TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_03) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 9, "i", 5));
+//   doAnalysisAndCompareResults("advanced_03_cpp.ll", GroundTruth, true);
+// }
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

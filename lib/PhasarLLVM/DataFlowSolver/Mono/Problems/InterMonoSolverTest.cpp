@@ -39,7 +39,7 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
 
 BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::merge(const BitVectorSet<const llvm::Value *> &Lhs,
-                          const BitVectorSet<const llvm::Value *> &Rhs) {
+                           const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "InterMonoSolverTest::join()\n";
   return Lhs.setUnion(Rhs);
 }

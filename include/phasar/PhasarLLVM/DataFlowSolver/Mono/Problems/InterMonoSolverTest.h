@@ -57,10 +57,10 @@ public:
 
   BitVectorSet<const llvm::Value *>
   merge(const BitVectorSet<const llvm::Value *> &Lhs,
-       const BitVectorSet<const llvm::Value *> &Rhs) override;
+        const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
-                     const BitVectorSet<const llvm::Value *> &Rhs) override;
+                const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   BitVectorSet<const llvm::Value *>
   normalFlow(const llvm::Instruction *Stmt,

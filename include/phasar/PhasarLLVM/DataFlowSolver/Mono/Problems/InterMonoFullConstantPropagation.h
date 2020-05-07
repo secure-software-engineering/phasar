@@ -40,7 +40,7 @@ class InterMonoFullConstantPropagation
           std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
           const llvm::Function *, const llvm::StructType *, const llvm::Value *,
           LLVMBasedICFG>,
-          virtual public IntraMonoFullConstantPropagation {
+      virtual public IntraMonoFullConstantPropagation {
 public:
   using n_t = const llvm::Instruction *;
   using plain_d_t = int64_t;
@@ -50,11 +50,10 @@ public:
   using v_t = const llvm::Value *;
   using i_t = LLVMBasedICFG;
 
-  InterMonoFullConstantPropagation(const ProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints = {});
+  InterMonoFullConstantPropagation(
+      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+      const std::set<std::string> &EntryPoints = {});
 
   ~InterMonoFullConstantPropagation() override = default;
 

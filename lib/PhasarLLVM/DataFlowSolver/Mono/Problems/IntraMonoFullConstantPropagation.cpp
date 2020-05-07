@@ -53,7 +53,7 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
 bool IntraMonoFullConstantPropagation::bitVectorHasInstr(
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &set,
     IntraMonoFullConstantPropagation::v_t instr) {
-  for (auto e : set) {
+  for (const auto &e : set) {
     if (e.first == instr) {
       return true;
     }
@@ -66,7 +66,7 @@ IntraMonoFullConstantPropagation::merge(
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Rhs) {
   BitVectorSet<IntraMonoFullConstantPropagation::d_t> Out = Lhs;
-  for (auto elem : Rhs) {
+  for (const auto &elem : Rhs) {
     if (!bitVectorHasInstr(Lhs, elem.first)) {
       Out.insert(elem);
     }
@@ -143,7 +143,7 @@ IntraMonoFullConstantPropagation::normalFlow(
     auto ValueOp = Store->getValueOperand();
     // Case I: Integer literal
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(ValueOp)) {
-      for (auto elem : In) {
+      for (const auto &elem : In) {
         if (elem.first == Store->getPointerOperand()) {
           if (std::holds_alternative<Bottom>(elem.second)) {
             break;
@@ -159,14 +159,14 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (ValueOp->getType()->isIntegerTy()) {
       LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t> latticeVal =
           Top{};
-      for (auto elem : In) {
+      for (const auto &elem : In) {
         if (elem.first == ValueOp) {
           latticeVal = elem.second;
           break;
         }
       }
       if (!std::holds_alternative<Top>(latticeVal)) {
-        for (auto elem : In) {
+        for (const auto &elem : In) {
           if (elem.first == Store->getPointerOperand()) {
             if (std::holds_alternative<Bottom>(elem.second)) {
               break;
@@ -184,7 +184,7 @@ IntraMonoFullConstantPropagation::normalFlow(
   // check load instructions
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(S)) {
     LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t> latticeVal;
-    for (auto elem : In) {
+    for (const auto &elem : In) {
       if (elem.first == Load->getPointerOperand()) {
         latticeVal = elem.second;
         break;
@@ -206,7 +206,7 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(lop)) {
       lval = val->getSExtValue();
     } else {
-      for (auto elem : In) {
+      for (const auto &elem : In) {
         if (elem.first == lop) {
           lval = elem.second;
           break;
@@ -218,7 +218,7 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(rop)) {
       rval = val->getSExtValue();
     } else {
-      for (auto elem : In) {
+      for (const auto &elem : In) {
         if (elem.first == rop) {
           rval = elem.second;
           break;

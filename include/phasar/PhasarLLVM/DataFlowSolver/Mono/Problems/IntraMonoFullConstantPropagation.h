@@ -22,8 +22,8 @@
 #include <unordered_map>
 #include <utility>
 
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
@@ -59,10 +59,10 @@ public:
   friend class InterMonoFullConstantPropagation;
 
 private:
-  bool bitVectorHasInstr(const BitVectorSet<d_t> &set, v_t instr);
+  static bool bitVectorHasInstr(const BitVectorSet<d_t> &set, v_t instr);
 
-  LatticeDomain<plain_d_t> executeBinOperation(const unsigned op, plain_d_t lop,
-                                               plain_d_t rop);
+  static LatticeDomain<plain_d_t>
+  executeBinOperation(const unsigned op, plain_d_t lop, plain_d_t rop);
 
 public:
   IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <llvm/IR/Constants.h>
 #include <ostream>
+#include <utility>
 
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -35,10 +36,9 @@ IntraMonoUninitVariables::IntraMonoUninitVariables(
           IntraMonoUninitVariables::n_t, IntraMonoUninitVariables::d_t,
           IntraMonoUninitVariables::f_t, IntraMonoUninitVariables::t_t,
           IntraMonoUninitVariables::v_t, IntraMonoUninitVariables::i_t>(
-          IRDB, TH, CF, PT, EntryPoints) {}
+          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
-BitVectorSet<IntraMonoUninitVariables::d_t>
-IntraMonoUninitVariables::merge(
+BitVectorSet<IntraMonoUninitVariables::d_t> IntraMonoUninitVariables::merge(
     const BitVectorSet<IntraMonoUninitVariables::d_t> &Lhs,
     const BitVectorSet<IntraMonoUninitVariables::d_t> &Rhs) {
   return Lhs.setIntersect(Rhs);
@@ -60,10 +60,10 @@ IntraMonoUninitVariables::normalFlow(
   }
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     if (Store->getValueOperand()->getType()->isIntegerTy()) {
-        std::cout << "HERE I AM!\n";
-        Store->getValueOperand()->print(llvm::outs());
-        llvm::outs() << '\n';
-        Out.erase(Store->getPointerOperand());
+      std::cout << "HERE I AM!\n";
+      Store->getValueOperand()->print(llvm::outs());
+      llvm::outs() << '\n';
+      Out.erase(Store->getPointerOperand());
     }
   }
   return Out;

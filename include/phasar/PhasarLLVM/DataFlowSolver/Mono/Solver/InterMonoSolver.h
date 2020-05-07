@@ -209,7 +209,8 @@ public:
             bool flowfactsstabilized =
                 IMProblem.equal_to(Out[CTX], Analysis[dst][CTX]);
             if (!flowfactsstabilized) {
-              Analysis[dst][CTX] = IMProblem.merge(Analysis[dst][CTX], Out[CTX]);
+              Analysis[dst][CTX] =
+                  IMProblem.merge(Analysis[dst][CTX], Out[CTX]);
               addToWorklist({src, dst});
             }
           }

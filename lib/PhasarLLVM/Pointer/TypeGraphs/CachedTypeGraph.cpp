@@ -50,7 +50,7 @@ struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
     : public boost::default_dfs_visitor {
   reverse_type_propagation_dfs_visitor(rev_graph_t *G) : G(G) {}
 
-  void examine_edge(rev_edge_t E, rev_graph_t const &U) {
+  void examine_edge(rev_edge_t E, rev_graph_t const &U) const {
     auto Src = boost::source(E, U);
     auto Target = boost::target(E, U);
 

@@ -54,7 +54,7 @@ public:
   getAllInstructionsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *m) const override;
+  getStartPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *fun) const override;
