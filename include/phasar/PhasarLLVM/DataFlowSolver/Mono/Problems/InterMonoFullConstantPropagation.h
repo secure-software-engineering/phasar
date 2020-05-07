@@ -16,6 +16,7 @@
 #include <utility>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Utils/LatticeDomain.h>
 #include <phasar/Utils/BitVectorSet.h>
 
@@ -39,6 +40,9 @@ class InterMonoFullConstantPropagation
           std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
           const llvm::Function *, const llvm::StructType *, const llvm::Value *,
           LLVMBasedICFG> {
+private:
+  IntraMonoFullConstantPropagation IntraPropagation;
+
 public:
   using n_t = const llvm::Instruction *;
   using plain_d_t = int64_t;
@@ -58,14 +62,6 @@ public:
 
   BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
                          const BitVectorSet<d_t> &Rhs) override;
-
-  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
-                          const BitVectorSet<d_t> &Rhs);
-
-  BitVectorSet<d_t> update(const BitVectorSet<d_t> &Lhs,
-                           const BitVectorSet<d_t> &Rhs);
-
-  bool bitVectorHasInstr(const BitVectorSet<d_t> &set, v_t instr);
 
   bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
                      const BitVectorSet<d_t> &Rhs) override;
@@ -88,9 +84,6 @@ public:
                                   std::set<f_t> Callees,
                                   const BitVectorSet<d_t> &In) override;
 
-  LatticeDomain<plain_d_t> executeBinOperation(const unsigned op, plain_d_t lop,
-                                               plain_d_t rop);
-
   void printNode(std::ostream &os, n_t n) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
@@ -99,29 +92,5 @@ public:
 };
 
 } // namespace psr
-
-namespace std {
-
-template <>
-struct hash<std::pair<
-    const llvm::Value *,
-    psr::LatticeDomain<psr::InterMonoFullConstantPropagation::plain_d_t>>> {
-  size_t operator()(const std::pair<const llvm::Value *,
-                                    psr::LatticeDomain<int64_t>> &P) const {
-    std::hash<const llvm::Value *> hash_ptr;
-    std::hash<int64_t> hash_unsigned;
-    size_t hp = hash_ptr(P.first);
-    size_t hu = 0;
-    // returns nullptr if P.second is Top or Bottom, a valid pointer otherwise
-    if (auto Ptr =
-            std::get_if<psr::InterMonoFullConstantPropagation::plain_d_t>(
-                &P.second)) {
-      hu = *Ptr;
-    }
-    return hp ^ (hu << 1);
-  }
-};
-
-} // namespace std
 
 #endif

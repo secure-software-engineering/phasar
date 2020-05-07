@@ -21,6 +21,8 @@
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace std;
 using namespace psr;
@@ -93,6 +95,41 @@ LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *fun) const {
     }
   }
   return Instructions;
+}
+
+/**
+ * Returns all start points of a given method. There may be
+ * more than one start point in case of a backward analysis.
+ */
+set<const llvm::Instruction *>
+LLVMBasedCFG::getStartPointsOf(const llvm::Function *m) const {
+  if (!m) {
+    return {};
+  }
+  if (!m->isDeclaration()) {
+    return {&m->front().front()};
+    // } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
+    // return getStartPointsOf(getMethod(m->getName().str()));
+  } else {
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Could not get starting points of '" << m->getName().str()
+                  << "' because it is a declaration");
+    return {};
+  }
+}
+
+set<const llvm::Instruction *>
+LLVMBasedCFG::getExitPointsOf(const llvm::Function *fun) const {
+  if (!fun->isDeclaration()) {
+    return {&fun->back().back()};
+  } else {
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Could not get exit points of '" << fun->getName().str()
+                  << "' which is declaration!");
+    return {};
+  }
 }
 
 bool LLVMBasedCFG::isExitStmt(const llvm::Instruction *stmt) const {
