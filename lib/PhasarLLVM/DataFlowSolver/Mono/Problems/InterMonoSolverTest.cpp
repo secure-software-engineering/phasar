@@ -38,25 +38,25 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
                        InterMonoSolverTest::container_t>(
           IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
-BitVectorSet<const llvm::Value *>
-InterMonoSolverTest::merge(const BitVectorSet<const llvm::Value *> &Lhs,
-                           const BitVectorSet<const llvm::Value *> &Rhs) {
+InterMonoSolverTest::container_t
+InterMonoSolverTest::merge(const InterMonoSolverTest::container_t &Lhs,
+                           const InterMonoSolverTest::container_t &Rhs) {
   cout << "InterMonoSolverTest::join()\n";
   return Lhs.setUnion(Rhs);
 }
 
 bool InterMonoSolverTest::equal_to(
-    const BitVectorSet<const llvm::Value *> &Lhs,
-    const BitVectorSet<const llvm::Value *> &Rhs) {
+    const InterMonoSolverTest::container_t &Lhs,
+    const InterMonoSolverTest::container_t &Rhs) {
   cout << "InterMonoSolverTest::equal_to()\n";
   return Lhs == Rhs;
 }
 
-BitVectorSet<const llvm::Value *>
+InterMonoSolverTest::container_t
 InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
-                                const BitVectorSet<const llvm::Value *> &In) {
+                                const InterMonoSolverTest::container_t &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
-  BitVectorSet<const llvm::Value *> Result;
+  InterMonoSolverTest::container_t Result;
   Result = Result.setUnion(In);
   if (const auto *const Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
     Result.insert(Alloc);
@@ -64,12 +64,12 @@ InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
   return In;
 }
 
-BitVectorSet<const llvm::Value *>
+InterMonoSolverTest::container_t
 InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
                               const llvm::Function *Callee,
-                              const BitVectorSet<const llvm::Value *> &In) {
+                              const InterMonoSolverTest::container_t &In) {
   cout << "InterMonoSolverTest::callFlow()\n";
-  BitVectorSet<const llvm::Value *> Result;
+  InterMonoSolverTest::container_t Result;
   Result.setUnion(In);
   if (const auto *const Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
@@ -77,30 +77,32 @@ InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
   return In;
 }
 
-BitVectorSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
+InterMonoSolverTest::container_t InterMonoSolverTest::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
     const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
-    const BitVectorSet<const llvm::Value *> &In) {
+    const InterMonoSolverTest::container_t &In) {
   cout << "InterMonoSolverTest::returnFlow()\n";
   return In;
 }
 
-BitVectorSet<const llvm::Value *> InterMonoSolverTest::callToRetFlow(
-    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-    set<const llvm::Function *> Callees,
-    const BitVectorSet<const llvm::Value *> &In) {
+InterMonoSolverTest::container_t
+InterMonoSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
+                                   const llvm::Instruction *RetSite,
+                                   set<const llvm::Function *> Callees,
+                                   const InterMonoSolverTest::container_t &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;
 }
 
-unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+unordered_map<const llvm::Instruction *, InterMonoSolverTest::container_t>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const llvm::Function *Main = ICF->getFunction("main");
-  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+  unordered_map<const llvm::Instruction *, InterMonoSolverTest::container_t>
       Seeds;
-  Seeds.insert(
-      make_pair(&Main->front().front(), BitVectorSet<const llvm::Value *>()));
+  const llvm::Function *Main = ICF->getFunction("main");
+  for (const auto *StartPoint : ICF->getStartPointsOf(Main)) {
+    Seeds.insert(make_pair(StartPoint, allTop()));
+  }
   return Seeds;
 }
 

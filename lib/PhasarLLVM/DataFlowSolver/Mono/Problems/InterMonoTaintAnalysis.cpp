@@ -42,9 +42,9 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
           IRDB, TH, ICF, PT, std::move(EntryPoints)),
       TSF(TSF) {}
 
-BitVectorSet<const llvm::Value *>
-InterMonoTaintAnalysis::merge(const BitVectorSet<const llvm::Value *> &Lhs,
-                              const BitVectorSet<const llvm::Value *> &Rhs) {
+InterMonoTaintAnalysis::container_t
+InterMonoTaintAnalysis::merge(const InterMonoTaintAnalysis::container_t &Lhs,
+                              const InterMonoTaintAnalysis::container_t &Rhs) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::join()");
   // cout << "InterMonoTaintAnalysis::join()\n";
@@ -52,19 +52,19 @@ InterMonoTaintAnalysis::merge(const BitVectorSet<const llvm::Value *> &Lhs,
 }
 
 bool InterMonoTaintAnalysis::equal_to(
-    const BitVectorSet<const llvm::Value *> &Lhs,
-    const BitVectorSet<const llvm::Value *> &Rhs) {
+    const InterMonoTaintAnalysis::container_t &Lhs,
+    const InterMonoTaintAnalysis::container_t &Rhs) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
   return Rhs == Lhs;
 }
 
-BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
+InterMonoTaintAnalysis::container_t InterMonoTaintAnalysis::normalFlow(
     const llvm::Instruction *Stmt,
-    const BitVectorSet<const llvm::Value *> &In) {
+    const InterMonoTaintAnalysis::container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::normalFlow()");
-  BitVectorSet<const llvm::Value *> Out(In);
+  InterMonoTaintAnalysis::container_t Out(In);
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
     if (In.count(Store->getValueOperand())) {
       Out.insert(Store->getPointerOperand());
@@ -85,13 +85,12 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
   return Out;
 }
 
-BitVectorSet<const llvm::Value *>
-InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
-                                 const llvm::Function *Callee,
-                                 const BitVectorSet<const llvm::Value *> &In) {
+InterMonoTaintAnalysis::container_t InterMonoTaintAnalysis::callFlow(
+    const llvm::Instruction *CallSite, const llvm::Function *Callee,
+    const InterMonoTaintAnalysis::container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
-  BitVectorSet<const llvm::Value *> Out;
+  InterMonoTaintAnalysis::container_t Out;
   llvm::ImmutableCallSite CS(CallSite);
   vector<const llvm::Value *> Actuals;
   vector<const llvm::Value *> Formals;
@@ -114,13 +113,13 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
   return Out;
 }
 
-BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
+InterMonoTaintAnalysis::container_t InterMonoTaintAnalysis::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
     const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
-    const BitVectorSet<const llvm::Value *> &In) {
+    const InterMonoTaintAnalysis::container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::returnFlow()");
-  BitVectorSet<const llvm::Value *> Out;
+  InterMonoTaintAnalysis::container_t Out;
   if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
     if (In.count(Ret->getReturnValue())) {
       Out.insert(CallSite);
@@ -139,13 +138,13 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   return Out;
 }
 
-BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
+InterMonoTaintAnalysis::container_t InterMonoTaintAnalysis::callToRetFlow(
     const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
     set<const llvm::Function *> Callees,
-    const BitVectorSet<const llvm::Value *> &In) {
+    const InterMonoTaintAnalysis::container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
-  BitVectorSet<const llvm::Value *> Out(In);
+  InterMonoTaintAnalysis::container_t Out(In);
   llvm::ImmutableCallSite CS(CallSite);
   //-----------------------------------------------------------------------------
   // Handle virtual calls in the loop
@@ -188,14 +187,14 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
   return Out;
 }
 
-unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+unordered_map<const llvm::Instruction *, InterMonoTaintAnalysis::container_t>
 InterMonoTaintAnalysis::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::initialSeeds()");
   const llvm::Function *Main = ICF->getFunction("main");
-  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+  unordered_map<const llvm::Instruction *, InterMonoTaintAnalysis::container_t>
       Seeds;
-  BitVectorSet<const llvm::Value *> Facts;
+  InterMonoTaintAnalysis::container_t Facts;
   for (unsigned Idx = 0; Idx < Main->arg_size(); ++Idx) {
     Facts.insert(getNthFunctionArgument(Main, Idx));
   }

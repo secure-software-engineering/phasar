@@ -50,8 +50,8 @@ protected:
       Worklist.insert(Worklist.begin(), ControlFlowEdges.begin(),
                       ControlFlowEdges.end());
       // set all analysis information to the empty set
-      for (auto s : CFG->getAllInstructionsOf(Function)) {
-        Analysis.insert(std::make_pair(s, IMProblem.allTop()));
+      for (auto Insts : CFG->getAllInstructionsOf(Function)) {
+        Analysis.insert(std::make_pair(Insts, IMProblem.allTop()));
       }
     }
     // insert initial seeds

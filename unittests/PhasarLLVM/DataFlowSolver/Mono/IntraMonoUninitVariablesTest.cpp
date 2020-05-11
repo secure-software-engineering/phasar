@@ -36,7 +36,7 @@ protected:
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/uninitialized_variables/";
 
-  using CompactResults_t = std::set<std::pair<size_t, std::string>>;
+  using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
   const std::set<std::string> EntryPoints = {"main"};
 
@@ -79,6 +79,9 @@ protected:
 
 TEST_F(IntraMonoUninitVariablesTest, Basic_02) {
   CompactResults_t GroundTruth;
+  GroundTruth.insert({13, {"%b"}});
+  GroundTruth.insert({15, {"%a"}});
+  GroundTruth.insert({17, {"%a", "%b"}});
   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
 }
 

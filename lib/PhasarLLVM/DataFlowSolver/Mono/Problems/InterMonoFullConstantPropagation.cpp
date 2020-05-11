@@ -44,37 +44,37 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
           IRDB, TH, ICF, PT, EntryPoints),
       IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT, EntryPoints) {}
 
-BitVectorSet<InterMonoFullConstantPropagation::d_t>
+InterMonoFullConstantPropagation::container_t
 InterMonoFullConstantPropagation::merge(
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
+    const InterMonoFullConstantPropagation::container_t &Lhs,
+    const InterMonoFullConstantPropagation::container_t &Rhs) {
   return IntraMonoFullConstantPropagation::merge(Lhs, Rhs);
 }
 
 bool InterMonoFullConstantPropagation::equal_to(
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
+    const InterMonoFullConstantPropagation::container_t &Lhs,
+    const InterMonoFullConstantPropagation::container_t &Rhs) {
   return IntraMonoFullConstantPropagation::equal_to(Lhs, Rhs);
 }
 
 std::unordered_map<InterMonoFullConstantPropagation::n_t,
-                   BitVectorSet<InterMonoFullConstantPropagation::d_t>>
+                   InterMonoFullConstantPropagation::container_t>
 InterMonoFullConstantPropagation::initialSeeds() {
   return IntraMonoFullConstantPropagation::initialSeeds();
 }
 
-BitVectorSet<InterMonoFullConstantPropagation::d_t>
+InterMonoFullConstantPropagation::container_t
 InterMonoFullConstantPropagation::normalFlow(
     InterMonoFullConstantPropagation::n_t S,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
+    const InterMonoFullConstantPropagation::container_t &In) {
   return IntraMonoFullConstantPropagation::normalFlow(S, In);
 }
 
-BitVectorSet<InterMonoFullConstantPropagation::d_t>
+InterMonoFullConstantPropagation::container_t
 InterMonoFullConstantPropagation::callFlow(
     InterMonoFullConstantPropagation::n_t CallSite,
     InterMonoFullConstantPropagation::f_t Callee,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
+    const InterMonoFullConstantPropagation::container_t &In) {
   auto Out = In;
 
   // Map the actual parameters into the formal parameters
@@ -149,13 +149,13 @@ InterMonoFullConstantPropagation::callFlow(
   return In;
 } // namespace psr
 
-BitVectorSet<InterMonoFullConstantPropagation::d_t>
+InterMonoFullConstantPropagation::container_t
 InterMonoFullConstantPropagation::returnFlow(
     InterMonoFullConstantPropagation::n_t CallSite,
     InterMonoFullConstantPropagation::f_t Callee,
     InterMonoFullConstantPropagation::n_t ExitStmt,
     InterMonoFullConstantPropagation::n_t RetSite,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
+    const InterMonoFullConstantPropagation::container_t &In) {
   auto Out = In;
 
   if (CallSite->getType()->isIntegerTy()) {
@@ -194,12 +194,12 @@ InterMonoFullConstantPropagation::returnFlow(
   return Out;
 }
 
-BitVectorSet<InterMonoFullConstantPropagation::d_t>
+InterMonoFullConstantPropagation::container_t
 InterMonoFullConstantPropagation::callToRetFlow(
     InterMonoFullConstantPropagation::n_t CallSite,
     InterMonoFullConstantPropagation::n_t RetSite,
     std::set<InterMonoFullConstantPropagation::f_t> Callees,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
+    const InterMonoFullConstantPropagation::container_t &In) {
   // TODO implement
   return In;
 }

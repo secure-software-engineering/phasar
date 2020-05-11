@@ -64,7 +64,7 @@ public:
 
   ~IntraMonoProblem() override = default;
 
-  virtual ContainerTy normalFlow(N S, const ContainerTy &In) = 0;
+  virtual ContainerTy normalFlow(N Stmt, const ContainerTy &In) = 0;
 
   virtual ContainerTy merge(const ContainerTy &Lhs, const ContainerTy &Rhs) = 0;
 

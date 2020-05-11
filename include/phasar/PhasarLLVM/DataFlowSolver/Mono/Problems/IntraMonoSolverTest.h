@@ -44,17 +44,18 @@ class IntraMonoSolverTest
                               const llvm::Value *, LLVMBasedCFG,
                               BitVectorSet<const llvm::Value *>> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedCFG i_t;
-  typedef BitVectorSet<const llvm::Value *> container_t;
+  using n_t = const llvm::Instruction *;
+  using d_t = const llvm::Value *;
+  using f_t = const llvm::Function *;
+  using t_t = const llvm::StructType *;
+  using v_t = const llvm::Value *;
+  using i_t = LLVMBasedCFG;
+  using container_t = BitVectorSet<const llvm::Value *>;
 
   IntraMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                       const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
                       std::set<std::string> EntryPoints = {});
+
   ~IntraMonoSolverTest() override = default;
 
   BitVectorSet<const llvm::Value *>
@@ -65,18 +66,21 @@ public:
                 const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   BitVectorSet<const llvm::Value *>
-  normalFlow(const llvm::Instruction *S,
+  normalFlow(const llvm::Instruction *Stmt,
              const BitVectorSet<const llvm::Value *> &In) override;
 
   std::unordered_map<const llvm::Instruction *,
                      BitVectorSet<const llvm::Value *>>
   initialSeeds() override;
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
+  void printNode(std::ostream &OS,
+                 const llvm::Instruction *Stmt) const override;
 
-  void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
+  void printDataFlowFact(std::ostream &OS,
+                         const llvm::Value *FlowFact) const override;
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override;
+  void printFunction(std::ostream &OS,
+                     const llvm::Function *Fun) const override;
 };
 
 } // namespace psr

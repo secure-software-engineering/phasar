@@ -44,48 +44,43 @@ class InterMonoSolverTest
                               const llvm::Value *, LLVMBasedICFG,
                               BitVectorSet<const llvm::Value *>> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
-  typedef BitVectorSet<const llvm::Value *> container_t;
+  using n_t = const llvm::Instruction *;
+  using d_t = const llvm::Value *;
+  using f_t = const llvm::Function *;
+  using t_t = const llvm::StructType *;
+  using v_t = const llvm::Value *;
+  using i_t = LLVMBasedICFG;
+  using container_t = BitVectorSet<const llvm::Value *>;
 
   InterMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                       const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                       std::set<std::string> EntryPoints = {});
+
   ~InterMonoSolverTest() override = default;
 
-  BitVectorSet<const llvm::Value *>
-  merge(const BitVectorSet<const llvm::Value *> &Lhs,
-        const BitVectorSet<const llvm::Value *> &Rhs) override;
+  container_t merge(const container_t &Lhs, const container_t &Rhs) override;
 
-  bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
-                const BitVectorSet<const llvm::Value *> &Rhs) override;
+  bool equal_to(const container_t &Lhs, const container_t &Rhs) override;
 
-  BitVectorSet<const llvm::Value *>
-  normalFlow(const llvm::Instruction *Stmt,
-             const BitVectorSet<const llvm::Value *> &In) override;
+  container_t normalFlow(const llvm::Instruction *Stmt,
+                         const container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-           const BitVectorSet<const llvm::Value *> &In) override;
+  container_t callFlow(const llvm::Instruction *CallSite,
+                       const llvm::Function *Callee,
+                       const container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-             const llvm::Instruction *ExitStmt,
-             const llvm::Instruction *RetSite,
-             const BitVectorSet<const llvm::Value *> &In) override;
+  container_t returnFlow(const llvm::Instruction *CallSite,
+                         const llvm::Function *Callee,
+                         const llvm::Instruction *ExitStmt,
+                         const llvm::Instruction *RetSite,
+                         const container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  callToRetFlow(const llvm::Instruction *CallSite,
-                const llvm::Instruction *RetSite,
-                std::set<const llvm::Function *> Callees,
-                const BitVectorSet<const llvm::Value *> &In) override;
+  container_t callToRetFlow(const llvm::Instruction *CallSite,
+                            const llvm::Instruction *RetSite,
+                            std::set<const llvm::Function *> Callees,
+                            const container_t &In) override;
 
-  std::unordered_map<const llvm::Instruction *,
-                     BitVectorSet<const llvm::Value *>>
+  std::unordered_map<const llvm::Instruction *, container_t>
   initialSeeds() override;
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override;

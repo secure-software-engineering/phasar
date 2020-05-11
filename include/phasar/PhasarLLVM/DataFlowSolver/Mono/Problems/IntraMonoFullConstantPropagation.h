@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 
+#include <cstdint>
+#include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -24,7 +26,6 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -46,9 +47,7 @@ class IntraMonoFullConstantPropagation
           const llvm::Instruction *,
           std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
           const llvm::Function *, const llvm::StructType *, const llvm::Value *,
-          LLVMBasedCFG,
-          BitVectorSet<
-              std::pair<const llvm::Value *, LatticeDomain<int64_t>>>> {
+          LLVMBasedCFG, std::map<const llvm::Value *, LatticeDomain<int64_t>>> {
 public:
   using n_t = const llvm::Instruction *;
   using plain_d_t = int64_t;
@@ -57,15 +56,13 @@ public:
   using t_t = const llvm::StructType *;
   using v_t = const llvm::Value *;
   using i_t = LLVMBasedCFG;
-  using container_t = BitVectorSet<d_t>;
+  using container_t = std::map<const llvm::Value *, LatticeDomain<plain_d_t>>;
 
   friend class InterMonoFullConstantPropagation;
 
 private:
-  static bool bitVectorHasInstr(const BitVectorSet<d_t> &set, v_t instr);
-
   static LatticeDomain<plain_d_t>
-  executeBinOperation(const unsigned op, plain_d_t lop, plain_d_t rop);
+  executeBinOperation(const unsigned Op, plain_d_t Lop, plain_d_t Rop);
 
 public:
   IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,
@@ -76,24 +73,19 @@ public:
 
   ~IntraMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
-                          const BitVectorSet<d_t> &Rhs) override;
+  container_t normalFlow(n_t Stmt, const container_t &In) override;
 
-  BitVectorSet<d_t> update(const BitVectorSet<d_t> &Lhs,
-                           const BitVectorSet<d_t> &Rhs);
+  container_t merge(const container_t &Lhs, const container_t &Rhs) override;
 
-  bool equal_to(const BitVectorSet<d_t> &Lhs,
-                const BitVectorSet<d_t> &Rhs) override;
+  bool equal_to(const container_t &Lhs, const container_t &Rhs) override;
 
-  std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
+  std::unordered_map<n_t, container_t> initialSeeds() override;
 
-  BitVectorSet<d_t> normalFlow(n_t S, const BitVectorSet<d_t> &In) override;
+  void printNode(std::ostream &OS, n_t Stmt) const override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printDataFlowFact(std::ostream &OS, d_t FlowFact) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
-
-  void printFunction(std::ostream &os, f_t f) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
 };
 
 } // namespace psr

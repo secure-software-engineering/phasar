@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H_
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -18,7 +19,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -39,8 +39,7 @@ class InterMonoFullConstantPropagation
           const llvm::Instruction *,
           std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
           const llvm::Function *, const llvm::StructType *, const llvm::Value *,
-          LLVMBasedICFG,
-          BitVectorSet<std::pair<const llvm::Value *, LatticeDomain<int64_t>>>>,
+          LLVMBasedICFG, std::map<const llvm::Value *, LatticeDomain<int64_t>>>,
       virtual public IntraMonoFullConstantPropagation {
 public:
   using n_t = const llvm::Instruction *;
@@ -50,7 +49,7 @@ public:
   using t_t = const llvm::StructType *;
   using v_t = const llvm::Value *;
   using i_t = LLVMBasedICFG;
-  using container_t = BitVectorSet<d_t>;
+  using container_t = std::map<const llvm::Value *, LatticeDomain<int64_t>>;
 
   InterMonoFullConstantPropagation(
       const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
@@ -59,32 +58,28 @@ public:
 
   ~InterMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<d_t> normalFlow(n_t S, const BitVectorSet<d_t> &In) override;
+  container_t normalFlow(n_t Stmt, const container_t &In) override;
 
-  BitVectorSet<d_t> callFlow(n_t CallSite, f_t Callee,
-                             const BitVectorSet<d_t> &In) override;
+  container_t callFlow(n_t CallSite, f_t Callee,
+                       const container_t &In) override;
 
-  BitVectorSet<d_t> returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
-                               n_t RetSite,
-                               const BitVectorSet<d_t> &In) override;
+  container_t returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt, n_t RetSite,
+                         const container_t &In) override;
 
-  BitVectorSet<d_t> callToRetFlow(n_t CallSite, n_t RetSite,
-                                  std::set<f_t> Callees,
-                                  const BitVectorSet<d_t> &In) override;
+  container_t callToRetFlow(n_t CallSite, n_t RetSite, std::set<f_t> Callees,
+                            const container_t &In) override;
 
-  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
-                          const BitVectorSet<d_t> &Rhs) override;
+  container_t merge(const container_t &Lhs, const container_t &Rhs) override;
 
-  bool equal_to(const BitVectorSet<d_t> &Lhs,
-                const BitVectorSet<d_t> &Rhs) override;
+  bool equal_to(const container_t &Lhs, const container_t &Rhs) override;
 
-  std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
+  std::unordered_map<n_t, container_t> initialSeeds() override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &OS, n_t n) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t FlowFact) const override;
 
-  void printFunction(std::ostream &os, f_t f) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
 };
 
 } // namespace psr
