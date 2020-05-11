@@ -56,7 +56,7 @@ protected:
     }
     // insert initial seeds
     for (auto &[Node, FlowFacts] : IMProblem.initialSeeds()) {
-      Analysis[Node].insert(FlowFacts);
+      Analysis[Node].insert(FlowFacts.begin(), FlowFacts.end());
     }
   }
 

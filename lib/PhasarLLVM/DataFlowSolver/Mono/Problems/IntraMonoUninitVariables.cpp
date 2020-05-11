@@ -42,7 +42,25 @@ IntraMonoUninitVariables::IntraMonoUninitVariables(
 IntraMonoUninitVariables::container_t IntraMonoUninitVariables::merge(
     const IntraMonoUninitVariables::container_t &Lhs,
     const IntraMonoUninitVariables::container_t &Rhs) {
-  return Lhs.setIntersect(Rhs);
+  IntraMonoUninitVariables::container_t Intersect;
+  std::cout << "Merge Sets\n";
+  std::cout << "Lhs: ";
+  for (auto D : Lhs) {
+    std::cout << llvmIRToString(D) << ' ';
+  }
+  std::cout << "\nRhs: ";
+  for (auto D : Rhs) {
+    std::cout << llvmIRToString(D) << ' ';
+  }
+  std::cout << '\n';
+  std::set_intersection(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
+                        std::inserter(Intersect, Intersect.begin()));
+  std::cout << "Out: ";
+  for (auto D : Intersect) {
+    std::cout << llvmIRToString(D) << ' ';
+  }
+  std::cout << '\n';
+  return Intersect;
 }
 
 bool IntraMonoUninitVariables::equal_to(

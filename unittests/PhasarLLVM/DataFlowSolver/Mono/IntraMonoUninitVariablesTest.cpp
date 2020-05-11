@@ -72,15 +72,15 @@ protected:
 
 }; // Test Fixture
 
-TEST_F(IntraMonoUninitVariablesTest, Basic_01) {
-  CompactResults_t GroundTruth;
-  doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
-}
-
-// TEST_F(IntraMonoUninitVariablesTest, Basic_02) {
+// TEST_F(IntraMonoUninitVariablesTest, Basic_01) {
 //   CompactResults_t GroundTruth;
-//   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
 // }
+
+TEST_F(IntraMonoUninitVariablesTest, Basic_02) {
+  CompactResults_t GroundTruth;
+  doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

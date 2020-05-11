@@ -16,7 +16,6 @@
 #include <utility>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
 
 namespace llvm {
 class Value;
@@ -36,19 +35,20 @@ class IntraMonoUninitVariables
     : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, const llvm::StructType *,
                               const llvm::Value *, LLVMBasedCFG,
-                              BitVectorSet<const llvm::Value *>> {
+                              std::set<const llvm::Value *>> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedCFG i_t;
-  typedef BitVectorSet<d_t> container_t;
+  using n_t = const llvm::Instruction *;
+  using d_t = const llvm::Value *;
+  using f_t = const llvm::Function *;
+  using t_t = const llvm::StructType *;
+  using v_t = const llvm::Value *;
+  using i_t = LLVMBasedCFG;
+  using container_t = std::set<d_t>;
 
   IntraMonoUninitVariables(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                            const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
                            std::set<std::string> EntryPoints = {});
+
   ~IntraMonoUninitVariables() override = default;
 
   container_t merge(const container_t &Lhs, const container_t &Rhs) override;
