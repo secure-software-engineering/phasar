@@ -106,39 +106,27 @@ IntraMonoFullConstantPropagation::normalFlow(
     auto ValueOp = Store->getValueOperand();
     // Case I: Integer literal
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(ValueOp)) {
-      for (const auto &[Variable, Value] : In) {
-        if (Variable == Store->getPointerOperand()) {
-          if (std::holds_alternative<Bottom>(Value)) {
-            break;
-          }
-
-          Out.erase(Variable);
-          Out.insert({Store->getPointerOperand(), val->getSExtValue()});
-          return Out;
-        }
+      auto Search = In.find(Store->getPointerOperand());
+      if(Search != In.end() && !std::holds_alternative<Bottom>(Search->second)){
+        Out[Store->getPointerOperand()] = val->getSExtValue();
+        return Out;
       }
+      
     }
     // Case II: Storing an integer typed value
     if (ValueOp->getType()->isIntegerTy()) {
+      //get value to be stored
       LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t> latticeVal =
           Top{};
-      for (const auto &[Variable, Value] : In) {
-        if (Variable == ValueOp) {
-          latticeVal = Value;
-          break;
-        }
+      if (In.find(ValueOp) != In.end()) {
+        latticeVal = In.at(ValueOp);
       }
+      //store value in variable if it is not top
       if (!std::holds_alternative<Top>(latticeVal)) {
-        for (const auto &[Variable, Value] : In) {
-          if (Variable == Store->getPointerOperand()) {
-            if (std::holds_alternative<Bottom>(Value)) {
-              break;
-            }
-
-            Out.erase(Variable);
-            Out.insert({Store->getPointerOperand(), latticeVal});
-            return Out;
-          }
+        auto Search = In.find(Store->getPointerOperand());
+        if(Search != In.end() && !std::holds_alternative<Bottom>(Search->second)){
+          Out[Store->getPointerOperand()] = latticeVal;
+          return Out;
         }
       }
     }
@@ -146,16 +134,11 @@ IntraMonoFullConstantPropagation::normalFlow(
 
   // check load instructions
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(S)) {
-    LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t> latticeVal;
-    for (const auto &[Variable, Value] : In) {
-      if (Variable == Load->getPointerOperand()) {
-        latticeVal = Value;
-        break;
-      }
+    auto Search = In.find(Load->getPointerOperand());
+    if(Search != In.end()){
+      Out[Load] = Search->second;
+      return Out;
     }
-    Out.insert({Load, latticeVal});
-
-    return Out;
   }
 
   // check for binary operations: add, sub, mul, udiv/sdiv, urem/srem
@@ -169,11 +152,9 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(Lop)) {
       lval = val->getSExtValue();
     } else {
-      for (const auto &[Variable, Value] : In) {
-        if (Variable == Lop) {
-          lval = Value;
-          break;
-        }
+      auto Search = In.find(Lop);
+      if (Search != In.end()) {
+        lval = Search->second;
       }
     }
 
@@ -181,11 +162,9 @@ IntraMonoFullConstantPropagation::normalFlow(
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(Rop)) {
       rval = val->getSExtValue();
     } else {
-      for (const auto &[Variable, Value] : In) {
-        if (Variable == Rop) {
-          rval = Value;
-          break;
-        }
+      auto Search = In.find(Rop);
+      if (Search != In.end()) {
+        rval = Search->second;
       }
     }
 
@@ -195,13 +174,13 @@ IntraMonoFullConstantPropagation::normalFlow(
         std::holds_alternative<Bottom>(lval) ||
         std::holds_alternative<Bottom>(rval)) {
 
-      Out.insert({Op, Bottom{}});
+      Out[Op] = Bottom{};
       return Out;
 
     } else {
-      Out.insert({S, executeBinOperation(Op->getOpcode(),
+      Out[Op] = executeBinOperation(Op->getOpcode(),
                                          *std::get_if<plain_d_t>(&lval),
-                                         *std::get_if<plain_d_t>(&rval))});
+                                         *std::get_if<plain_d_t>(&rval));
       return Out;
     }
   }
