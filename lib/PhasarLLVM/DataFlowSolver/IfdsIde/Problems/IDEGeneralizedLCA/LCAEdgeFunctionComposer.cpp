@@ -29,48 +29,48 @@ EdgeFunctionComposer::computeTarget(IDEGeneralizedLCA::l_t source) {
 
 LCAEdgeFunctionComposer::LCAEdgeFunctionComposer(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> F,
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> G, size_t maxSize)
-    : EdgeFunctionComposer<IDEGeneralizedLCA::l_t>(F, G), maxSize(maxSize) {}
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> G, size_t MaxSize)
+    : EdgeFunctionComposer<IDEGeneralizedLCA::l_t>(F, G), maxSize(MaxSize) {}
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 LCAEdgeFunctionComposer::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
   // see <phasar/PhasarLVM/IfdsIde/IDELinearConstantAnalysis.h>
 
   if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
-          secondFunction.get()) ||
-      dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(secondFunction.get())) {
+          SecondFunction.get()) ||
+      dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
     return shared_from_this();
   }
-  if (dynamic_cast<IdentityEdgeFunction *>(secondFunction.get())) {
+  if (dynamic_cast<IdentityEdgeFunction *>(SecondFunction.get())) {
     return shared_from_this();
   }
-  if (dynamic_cast<GenConstant *>(secondFunction.get())) {
-    return secondFunction;
+  if (dynamic_cast<GenConstant *>(SecondFunction.get())) {
+    return SecondFunction;
   }
-  auto gPrime = G->composeWith(secondFunction);
-  if (gPrime->equal_to(G)) {
+  auto GPrime = G->composeWith(SecondFunction);
+  if (GPrime->equal_to(G)) {
     return shared_from_this();
   }
-  return F->composeWith(gPrime);
+  return F->composeWith(GPrime);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 LCAEdgeFunctionComposer::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction) {
   // see <phasar/PhasarLVM/IfdsIde/IDELinearConstantAnalysis.h>
-  if (otherFunction.get() == this ||
-      otherFunction->equal_to(this->shared_from_this())) {
+  if (OtherFunction.get() == this ||
+      OtherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
   if (auto *AT =
-          dynamic_cast<AllTop<IDEGeneralizedLCA::l_t> *>(otherFunction.get())) {
+          dynamic_cast<AllTop<IDEGeneralizedLCA::l_t> *>(OtherFunction.get())) {
     return this->shared_from_this();
   }
-  if (AllBot::isBot(otherFunction)) {
+  if (AllBot::isBot(OtherFunction)) {
     return AllBot::getInstance();
   }
-  return std::make_shared<JoinEdgeFunction>(shared_from_this(), otherFunction,
+  return std::make_shared<JoinEdgeFunction>(shared_from_this(), OtherFunction,
                                             maxSize);
 }
 

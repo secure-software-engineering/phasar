@@ -16,8 +16,9 @@
 
 namespace psr {
 
-GenConstant::GenConstant(const IDEGeneralizedLCA::l_t &val, size_t maxSize)
-    : val(val), maxSize(maxSize) {
+GenConstant::GenConstant(const IDEGeneralizedLCA::l_t &Val, size_t MaxSize)
+    : val(Val), maxSize(MaxSize) {
+  // TODO: remove this?
   /*std::cout << "GenConstant: {";
   bool frst = true;
   for (auto &elem : val) {
@@ -30,55 +31,55 @@ GenConstant::GenConstant(const IDEGeneralizedLCA::l_t &val, size_t maxSize)
   std::cout << "}" << std::endl;*/
 }
 IDEGeneralizedLCA::l_t
-GenConstant::computeTarget(IDEGeneralizedLCA::l_t source) {
+GenConstant::computeTarget(IDEGeneralizedLCA::l_t Source) {
   // std::cout << "GenConstant computation (" << source << ")"
   //         << " = " << val << std::endl;
   return val;
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> GenConstant::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
   // std::cout << "GenConstant composing" << std::endl;
-  if (dynamic_cast<IdentityEdgeFunction *>(secondFunction.get()) ||
-      dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(secondFunction.get())) {
+  if (dynamic_cast<IdentityEdgeFunction *>(SecondFunction.get()) ||
+      dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
 
     return shared_from_this();
   }
-  if (dynamic_cast<GenConstant *>(secondFunction.get()))
-    return secondFunction;
+  if (dynamic_cast<GenConstant *>(SecondFunction.get()))
+    return SecondFunction;
   // return std::make_shared<EdgeFunctionComposer>(shared_from_this(),
   //                                              secondFunction, maxSize);
-  return std::make_shared<GenConstant>(secondFunction->computeTarget(val),
+  return std::make_shared<GenConstant>(SecondFunction->computeTarget(val),
                                        maxSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> GenConstant::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) {
-  if (auto otherConst = dynamic_cast<GenConstant *>(other.get())) {
-    switch (compare(val, otherConst->val)) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other) {
+  if (auto OtherConst = dynamic_cast<GenConstant *>(Other.get())) {
+    switch (compare(val, OtherConst->val)) {
     case Ordering::Equal:
     case Ordering::Greater:
       return shared_from_this();
     case Ordering::Less:
-      return other;
+      return Other;
     default:
-      return std::make_shared<GenConstant>(join(val, otherConst->val, maxSize),
+      return std::make_shared<GenConstant>(join(val, OtherConst->val, maxSize),
                                            maxSize);
     }
   }
-  if (AllBot::isBot(other))
+  if (AllBot::isBot(Other))
     return AllBot::getInstance();
-  return std::make_shared<JoinEdgeFunction>(shared_from_this(), other, maxSize);
+  return std::make_shared<JoinEdgeFunction>(shared_from_this(), Other, maxSize);
 }
 
 bool GenConstant::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
-  if (auto otherConst = dynamic_cast<GenConstant *>(other.get())) {
-    return val == otherConst->val && maxSize == otherConst->maxSize;
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other) const {
+  if (auto OtherConst = dynamic_cast<GenConstant *>(Other.get())) {
+    return val == OtherConst->val && maxSize == OtherConst->maxSize;
   }
   return false;
 }
-void GenConstant::print(std::ostream &OS, bool isForDebug) const {
+void GenConstant::print(std::ostream &OS, bool IsForDebug) const {
   OS << "GenConstantEdgeFn(" << val << ")";
 }
 

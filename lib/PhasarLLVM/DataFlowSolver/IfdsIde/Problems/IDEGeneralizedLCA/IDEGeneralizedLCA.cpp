@@ -40,8 +40,8 @@ namespace psr {
 
 inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 flow(std::function<std::set<IDEGeneralizedLCA::d_t>(IDEGeneralizedLCA::d_t)>
-         fn) {
-  return std::make_shared<LambdaFlow<IDEGeneralizedLCA::d_t>>(fn);
+         Fn) {
+  return std::make_shared<LambdaFlow<IDEGeneralizedLCA::d_t>>(Fn);
 }
 
 IDEGeneralizedLCA::IDEGeneralizedLCA(
@@ -56,90 +56,90 @@ IDEGeneralizedLCA::IDEGeneralizedLCA(
 }
 // flow functions
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t curr,
-                                         IDEGeneralizedLCA::n_t succ) {
+IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
+                                         IDEGeneralizedLCA::n_t Succ) {
   // std::cout << "## normal flow for: " << llvmIRToString(curr) <<
   // std::endl;
-  if (auto store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    auto pointerOp = store->getPointerOperand();
-    auto valueOp = store->getValueOperand();
-    if (isConstant(valueOp)) {
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+    auto PointerOp = Store->getPointerOperand();
+    auto ValueOp = Store->getValueOperand();
+    if (isConstant(ValueOp)) {
       // std::cout << "==> constant store" << std::endl;
-      return flow([=](IDEGeneralizedLCA::d_t source)
+      return flow([=](IDEGeneralizedLCA::d_t Source)
                       -> std::set<IDEGeneralizedLCA::d_t> {
         // std::cout << "##> normal flow for: " << llvmIRToString(curr)
         //          << " with " << llvmIRToString(source) << std::endl;
-        if (source == pointerOp)
+        if (Source == PointerOp)
           return {};
-        else if (this->isZeroValue(source))
-          return {pointerOp};
+        else if (this->isZeroValue(Source))
+          return {PointerOp};
         else
-          return {source};
+          return {Source};
       });
     } else {
-      return flow([=](IDEGeneralizedLCA::d_t source)
+      return flow([=](IDEGeneralizedLCA::d_t Source)
                       -> std::set<IDEGeneralizedLCA::d_t> {
         // std::cout << "BLA" << std::endl;
-        if (source == pointerOp)
+        if (Source == PointerOp)
           return {};
-        else if (source == valueOp)
-          return {pointerOp, valueOp};
+        else if (Source == ValueOp)
+          return {PointerOp, ValueOp};
         else
-          return {source};
+          return {Source};
       });
     }
-  } else if (auto load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+  } else if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
 
     return flow(
-        [=](IDEGeneralizedLCA::d_t source) -> std::set<IDEGeneralizedLCA::d_t> {
+        [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           // std::cout << "LOAD " << llvmIRToString(curr) << std::endl;
           // std::cout << "\twith " << llvmIRToString(source) << " ==> ";
-          if (source == load->getPointerOperand()) {
+          if (Source == Load->getPointerOperand()) {
             // std::cout << "GEN" << std::endl;
-            return {source, load};
+            return {Source, Load};
           } else {
             // std::cout << "ID" << std::endl;
-            return {source};
+            return {Source};
           }
         });
-  } else if (auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
+  } else if (auto Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     return flow(
-        [=](IDEGeneralizedLCA::d_t source) -> std::set<IDEGeneralizedLCA::d_t> {
-          if (source == gep->getPointerOperand())
-            return {source, gep};
+        [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
+          if (Source == Gep->getPointerOperand())
+            return {Source, Gep};
           else
-            return {source};
+            return {Source};
         });
 
-  } else if (auto cast = llvm::dyn_cast<llvm::CastInst>(curr);
-             cast &&
-             (cast->getSrcTy()->isIntegerTy() ||
-              cast->getSrcTy()->isFloatingPointTy()) &&
-             (cast->getDestTy()->isIntegerTy() ||
-              cast->getDestTy()->isFloatingPointTy())) {
+  } else if (auto Cast = llvm::dyn_cast<llvm::CastInst>(Curr);
+             Cast &&
+             (Cast->getSrcTy()->isIntegerTy() ||
+              Cast->getSrcTy()->isFloatingPointTy()) &&
+             (Cast->getDestTy()->isIntegerTy() ||
+              Cast->getDestTy()->isFloatingPointTy())) {
     return flow(
-        [=](IDEGeneralizedLCA::d_t source) -> std::set<IDEGeneralizedLCA::d_t> {
-          if (source == cast->getOperand(0))
-            return {source, cast};
+        [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
+          if (Source == Cast->getOperand(0))
+            return {Source, Cast};
           else
-            return {source};
+            return {Source};
         });
-  } else if (llvm::isa<llvm::BinaryOperator>(curr)) {
-    auto lhs = curr->getOperand(0);
-    auto rhs = curr->getOperand(1);
+  } else if (llvm::isa<llvm::BinaryOperator>(Curr)) {
+    auto Lhs = Curr->getOperand(0);
+    auto Rhs = Curr->getOperand(1);
     // if (isConstant(lhs) || isConstant(rhs)) {
-    bool leftConst = isConstant(lhs);
-    bool rightConst = isConstant(rhs);
-    bool bothConst = leftConst && rightConst;
-    bool noneConst = !leftConst && !rightConst;
+    bool LeftConst = isConstant(Lhs);
+    bool RightConst = isConstant(Rhs);
+    bool BothConst = LeftConst && RightConst;
+    bool NoneConst = !LeftConst && !RightConst;
     return flow(
-        [=](IDEGeneralizedLCA::d_t source) -> std::set<IDEGeneralizedLCA::d_t> {
+        [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           // std::cout << "BLUBB" << std::endl;
-          if (source == lhs || source == rhs ||
-              ((bothConst || noneConst) && isZeroValue(source)))
-            return {source, curr};
+          if (Source == Lhs || Source == Rhs ||
+              ((BothConst || NoneConst) && isZeroValue(Source)))
+            return {Source, Curr};
           else
-            return {source};
+            return {Source};
         });
     //}
   } /*else if (llvm::isa<llvm::UnaryOperator>(curr)) {
@@ -157,20 +157,20 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t curr,
   return Identity<IDEGeneralizedLCA::d_t>::getInstance();
 }
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t callStmt,
-                                       IDEGeneralizedLCA::f_t destMthd) {
+IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
+                                       IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
   // return std::make_shared<MapFactsToCallee>(
   //    llvm::ImmutableCallSite(callStmt), destMthd);
   return std::make_shared<MapFactsToCalleeFlowFunction>(
-      llvm::ImmutableCallSite(callStmt), destMthd);
+      llvm::ImmutableCallSite(CallStmt), DestMthd);
 }
 
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t callSite,
-                                      IDEGeneralizedLCA::f_t calleeMthd,
-                                      IDEGeneralizedLCA::n_t exitStmt,
-                                      IDEGeneralizedLCA::n_t retSite) {
+IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
+                                      IDEGeneralizedLCA::f_t CalleeMthd,
+                                      IDEGeneralizedLCA::n_t ExitStmt,
+                                      IDEGeneralizedLCA::n_t RetSite) {
   // std::cout << "Ret flow: " << llvmIRToString(exitStmt) << std::endl;
   /*return std::make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
@@ -178,31 +178,31 @@ IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t callSite,
         return v && v->getType()->isPointerTy();
       });*/
   return std::make_shared<MapFactsToCallerFlowFunction>(
-      llvm::ImmutableCallSite(callSite), exitStmt, calleeMthd);
+      llvm::ImmutableCallSite(CallSite), ExitStmt, CalleeMthd);
 }
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t callSite,
-                                            IDEGeneralizedLCA::n_t retSite,
-                                            std::set<f_t> callees) {
+IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
+                                            IDEGeneralizedLCA::n_t RetSite,
+                                            std::set<f_t> Callees) {
   // std::cout << "CTR flow: " << llvmIRToString(callSite) << std::endl;
-  if (auto call = llvm::dyn_cast<llvm::CallBase>(callSite)) {
+  if (auto Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
 
-    return flow([call](IDEGeneralizedLCA::d_t source)
+    return flow([Call](IDEGeneralizedLCA::d_t Source)
                     -> std::set<IDEGeneralizedLCA::d_t> {
-      if (source->getType()->isPointerTy()) {
-        for (auto &arg : call->arg_operands()) {
-          if (arg.get() == source)
+      if (Source->getType()->isPointerTy()) {
+        for (auto &Arg : Call->arg_operands()) {
+          if (Arg.get() == Source)
             return {};
         }
       }
-      return {source};
+      return {Source};
     });
   } else
     return Identity<d_t>::getInstance();
 }
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-IDEGeneralizedLCA::getSummaryFlowFunction(IDEGeneralizedLCA::n_t callStmt,
-                                          IDEGeneralizedLCA::f_t destMthd) {
+IDEGeneralizedLCA::getSummaryFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
+                                          IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Summary flow: " << llvmIRToString(callStmt) <<
   // std::endl;
   return nullptr;
@@ -241,39 +241,39 @@ IDEGeneralizedLCA::d_t IDEGeneralizedLCA::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDEGeneralizedLCA::isZeroValue(IDEGeneralizedLCA::d_t d) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+bool IDEGeneralizedLCA::isZeroValue(IDEGeneralizedLCA::d_t D) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
 }
 
 // edge functions
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t curr,
-                                         IDEGeneralizedLCA::d_t currNode,
-                                         IDEGeneralizedLCA::n_t succ,
-                                         IDEGeneralizedLCA::d_t succNode) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
+                                         IDEGeneralizedLCA::d_t CurrNode,
+                                         IDEGeneralizedLCA::n_t Succ,
+                                         IDEGeneralizedLCA::d_t SuccNode) {
+  auto &Lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
                 << "IDEGeneralizedLCA::getNormalEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(curr));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+                << "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(Curr));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
                 << "(D) Curr Node :   "
-                << IDEGeneralizedLCA::DtoString(currNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Succ Inst : " << IDEGeneralizedLCA::NtoString(succ));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << IDEGeneralizedLCA::DtoString(CurrNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+                << "(N) Succ Inst : " << IDEGeneralizedLCA::NtoString(Succ));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
                 << "(D) Succ Node :   "
-                << IDEGeneralizedLCA::DtoString(succNode));
+                << IDEGeneralizedLCA::DtoString(SuccNode));
   //  normal edge fn
 
   // Initialize global variables at entry point
-  if (!isZeroValue(currNode) && ICF->isStartPoint(curr) &&
-      isEntryPoint(ICF->getFunctionOf(curr)->getName().str()) &&
-      llvm::isa<llvm::GlobalVariable>(currNode) && currNode == succNode) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
+      isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
+      llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
                   << "Case: Intialize global variable at entry point.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-    auto GV = llvm::cast<llvm::GlobalVariable>(currNode);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG) << ' ');
+    auto GV = llvm::cast<llvm::GlobalVariable>(CurrNode);
     if (GV->getLinkage() != llvm::GlobalValue::LinkageTypes::
                                 CommonLinkage) { // clang uses common linkage
                                                  // for uninitialized globals
@@ -298,14 +298,14 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t curr,
   }
 
   // All_Bottom for zero value
-  if (isZeroValue(currNode) && isZeroValue(succNode)) {
-    static auto allBottom = std::make_shared<AllBottom<l_t>>(bottomElement());
-    return allBottom;
+  if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
+    static auto AllBot = std::make_shared<AllBottom<l_t>>(bottomElement());
+    return AllBot;
   }
   // Check store instruction
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    IDEGeneralizedLCA::d_t pointerOperand = Store->getPointerOperand();
-    IDEGeneralizedLCA::d_t valueOperand = Store->getValueOperand();
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+    IDEGeneralizedLCA::d_t PointerOperand = Store->getPointerOperand();
+    IDEGeneralizedLCA::d_t ValueOperand = Store->getValueOperand();
     /*if (auto cnstFP = llvm::dyn_cast<llvm::ConstantFP>(valueOperand)) {
       llvm::errs() << "Value Operand: " << *cnstFP << "\n";
       llvm::errs() << "ValueOperand as APF: ";
@@ -314,11 +314,11 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t curr,
       llvm::errs() << "Value operand as double: "
                    << cnstFP->getValueAPF().convertToDouble() << "\n";
     }*/
-    if (pointerOperand == succNode) {
+    if (PointerOperand == SuccNode) {
       // Case I: Storing a constant value.
-      if (isZeroValue(currNode) && isConstant(valueOperand)) {
-        EdgeValue ev(valueOperand);
-        return std::make_shared<GenConstant>(l_t({ev}), maxSetSize);
+      if (isZeroValue(CurrNode) && isConstant(ValueOperand)) {
+        EdgeValue Ev(ValueOperand);
+        return std::make_shared<GenConstant>(l_t({Ev}), maxSetSize);
       }
       // Case II: Storing an integer typed value.
       /*if (currNode != succNode && valueOperand->getType()->isIntegerTy()) {
@@ -341,45 +341,45 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t curr,
     }
   }*/
   // binary operators
-  if (auto binOp = llvm::dyn_cast<llvm::BinaryOperator>(curr);
-      binOp && curr == succNode) {
+  if (auto BinOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr);
+      BinOp && Curr == SuccNode) {
 
     // BinaryEdgeFunction(op, cnst, leftConst, maxSize)
-    if (isConstant(curr->getOperand(0))) {
-      EdgeValue lcnst(curr->getOperand(0));
-      if (isConstant(curr->getOperand(1)) && isZeroValue(currNode)) {
+    if (isConstant(Curr->getOperand(0))) {
+      EdgeValue Lcnst(Curr->getOperand(0));
+      if (isConstant(Curr->getOperand(1)) && isZeroValue(CurrNode)) {
         // Both const
-        EdgeValue rcnst(curr->getOperand(1));
-        auto ret = // join({lcnst}, {rcnst});
-            performBinOp(binOp->getOpcode(), {lcnst}, {rcnst}, maxSetSize);
-        return std::make_shared<GenConstant>(ret, maxSetSize);
+        EdgeValue Rcnst(Curr->getOperand(1));
+        auto Ret = // join({lcnst}, {rcnst});
+            performBinOp(BinOp->getOpcode(), {Lcnst}, {Rcnst}, maxSetSize);
+        return std::make_shared<GenConstant>(Ret, maxSetSize);
       } else {
         // only lhs const
         return std::make_shared<BinaryEdgeFunction>(
-            binOp->getOpcode(), l_t({lcnst}), true, maxSetSize);
+            BinOp->getOpcode(), l_t({Lcnst}), true, maxSetSize);
       }
-    } else if (!isConstant(curr->getOperand(1))) {
+    } else if (!isConstant(Curr->getOperand(1))) {
       // none const
       return std::make_shared<GenConstant>(bottomElement(), maxSetSize);
     } else {
 
       // only rhs const
-      EdgeValue rcnst(curr->getOperand(1));
+      EdgeValue Rcnst(Curr->getOperand(1));
       return std::make_shared<BinaryEdgeFunction>(
-          binOp->getOpcode(), l_t({rcnst}), false, maxSetSize);
+          BinOp->getOpcode(), l_t({Rcnst}), false, maxSetSize);
     }
-  } else if (auto cast = llvm::dyn_cast<llvm::CastInst>(curr);
-             cast && curr == succNode) {
-    if (cast->getDestTy()->isIntegerTy()) {
-      auto destTy = llvm::cast<llvm::IntegerType>(cast->getDestTy());
+  } else if (auto Cast = llvm::dyn_cast<llvm::CastInst>(Curr);
+             Cast && Curr == SuccNode) {
+    if (Cast->getDestTy()->isIntegerTy()) {
+      auto DestTy = llvm::cast<llvm::IntegerType>(Cast->getDestTy());
 
       return std::make_shared<TypecastEdgeFunction>(
-          destTy->getBitWidth(), EdgeValue::Integer, maxSetSize);
-    } else if (cast->getDestTy()->isFloatingPointTy()) {
-      auto bits = cast->getDestTy()->isFloatTy() ? 32 : 64;
+          DestTy->getBitWidth(), EdgeValue::Integer, maxSetSize);
+    } else if (Cast->getDestTy()->isFloatingPointTy()) {
+      auto Bits = Cast->getDestTy()->isFloatTy() ? 32 : 64;
 
       return std::make_shared<TypecastEdgeFunction>(
-          bits, EdgeValue::FloatingPoint, maxSetSize);
+          Bits, EdgeValue::FloatingPoint, maxSetSize);
     }
   }
   // std::cout << "FallThrough: identity edge fn" << std::endl;
@@ -389,13 +389,13 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t curr,
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t callStmt,
-                                       IDEGeneralizedLCA::d_t srcNode,
-                                       IDEGeneralizedLCA::f_t destinationMethod,
-                                       IDEGeneralizedLCA::d_t destNode) {
+IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
+                                       IDEGeneralizedLCA::d_t SrcNode,
+                                       IDEGeneralizedLCA::f_t DestinationMethod,
+                                       IDEGeneralizedLCA::d_t DestNode) {
   // assert(destNode && "Invalid dest node");
   // assert(srcNode && "Invalid src node");
-  if (!destNode) {
+  if (!DestNode) {
     return IdentityEdgeFunction::getInstance(maxSetSize);
   }
   /*if (isZeroValue(srcNode) &&
@@ -409,18 +409,18 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t callStmt,
   // return std::make_shared<MapFactsToCalleeEdgeFunction>(
   //    llvm::ImmutableCallSite(callStmt), srcNode, destinationMethod, destNode,
   //    maxSetSize);
-  llvm::ImmutableCallSite cs(callStmt);
-  auto len =
-      std::min<size_t>(cs.getNumArgOperands(), destinationMethod->arg_size());
+  llvm::ImmutableCallSite Cs(CallStmt);
+  auto Len =
+      std::min<size_t>(Cs.getNumArgOperands(), DestinationMethod->arg_size());
 
-  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(srcNode)) {
-    for (size_t i = 0; i < len; ++i) {
-      auto formalArg = getNthFunctionArgument(destinationMethod, i);
-      if (destNode == formalArg) {
-        auto actualArg = cs.getArgOperand(i);
+  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(SrcNode)) {
+    for (size_t I = 0; I < Len; ++I) {
+      auto FormalArg = getNthFunctionArgument(DestinationMethod, I);
+      if (DestNode == FormalArg) {
+        auto ActualArg = Cs.getArgOperand(I);
         // if (isConstant(actualArg))  // -> always const, since srcNode is zero
         return std::make_shared<GenConstant>(
-            l_t({EdgeValue(cs.getArgOperand(i))}), maxSetSize);
+            l_t({EdgeValue(Cs.getArgOperand(I))}), maxSetSize);
         // else
         //  return IdentityEdgeFunction::getInstance(maxSetSize);
       }
@@ -430,19 +430,19 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t callStmt,
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getReturnEdgeFunction(IDEGeneralizedLCA::n_t callSite,
-                                         IDEGeneralizedLCA::f_t calleeMethod,
-                                         IDEGeneralizedLCA::n_t exitStmt,
-                                         IDEGeneralizedLCA::d_t exitNode,
-                                         IDEGeneralizedLCA::n_t reSite,
-                                         IDEGeneralizedLCA::d_t retNode) {
-  if (isZeroValue(exitNode)) {
-    if (auto retStmt = llvm::dyn_cast<llvm::ReturnInst>(exitStmt)) {
-      if (retStmt->getReturnValue() && isConstant(retStmt->getReturnValue())) {
+IDEGeneralizedLCA::getReturnEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
+                                         IDEGeneralizedLCA::f_t CalleeMethod,
+                                         IDEGeneralizedLCA::n_t ExitStmt,
+                                         IDEGeneralizedLCA::d_t ExitNode,
+                                         IDEGeneralizedLCA::n_t ReSite,
+                                         IDEGeneralizedLCA::d_t RetNode) {
+  if (isZeroValue(ExitNode)) {
+    if (auto RetStmt = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
+      if (RetStmt->getReturnValue() && isConstant(RetStmt->getReturnValue())) {
         // std::cout << "Constant return value: "
         //          << llvmIRToShortString(exitStmt) << std::endl;
         return std::make_shared<GenConstant>(
-            l_t({EdgeValue(retStmt->getReturnValue())}), maxSetSize);
+            l_t({EdgeValue(RetStmt->getReturnValue())}), maxSetSize);
       }
     }
   }
@@ -453,18 +453,18 @@ IDEGeneralizedLCA::getReturnEdgeFunction(IDEGeneralizedLCA::n_t callSite,
 }
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 IDEGeneralizedLCA::getCallToRetEdgeFunction(
-    IDEGeneralizedLCA::n_t callSite, IDEGeneralizedLCA::d_t callNode,
-    IDEGeneralizedLCA::n_t retSite, IDEGeneralizedLCA::d_t retSiteNode,
-    std::set<IDEGeneralizedLCA::f_t> callees) {
+    IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
+    IDEGeneralizedLCA::n_t RetSite, IDEGeneralizedLCA::d_t RetSiteNode,
+    std::set<IDEGeneralizedLCA::f_t> Callees) {
   // return edge-identity
   return IdentityEdgeFunction::getInstance(maxSetSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getSummaryEdgeFunction(IDEGeneralizedLCA::n_t callStmt,
-                                          IDEGeneralizedLCA::d_t callNode,
-                                          IDEGeneralizedLCA::n_t retSite,
-                                          IDEGeneralizedLCA::d_t retSiteNode) {
+IDEGeneralizedLCA::getSummaryEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
+                                          IDEGeneralizedLCA::d_t CallNode,
+                                          IDEGeneralizedLCA::n_t RetSite,
+                                          IDEGeneralizedLCA::d_t RetSiteNode) {
   // return edge-identity
   return IdentityEdgeFunction::getInstance(maxSetSize);
 }
@@ -475,38 +475,38 @@ IDEGeneralizedLCA::l_t IDEGeneralizedLCA::bottomElement() {
   return l_t({EdgeValue::top});
 }
 
-IDEGeneralizedLCA::l_t IDEGeneralizedLCA::join(IDEGeneralizedLCA::l_t lhs,
-                                               IDEGeneralizedLCA::l_t rhs) {
+IDEGeneralizedLCA::l_t IDEGeneralizedLCA::join(IDEGeneralizedLCA::l_t Lhs,
+                                               IDEGeneralizedLCA::l_t Rhs) {
   // sets are passed by value
-  return psr::join(lhs, rhs, maxSetSize);
+  return psr::join(Lhs, Rhs, maxSetSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 IDEGeneralizedLCA::allTopFunction() {
-  static std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> alltopFn =
+  static std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> AlltopFn =
       std::make_shared<AllTop<l_t>>(topElement());
-  return alltopFn;
+  return AlltopFn;
 }
 
-void IDEGeneralizedLCA::printNode(std::ostream &os,
-                                  IDEGeneralizedLCA::n_t n) const {
-  os << llvmIRToString(n);
+void IDEGeneralizedLCA::printNode(std::ostream &Os,
+                                  IDEGeneralizedLCA::n_t N) const {
+  Os << llvmIRToString(N);
 }
 
-void IDEGeneralizedLCA::printDataFlowFact(std::ostream &os,
-                                          IDEGeneralizedLCA::d_t d) const {
-  assert(d && "Invalid dataflow fact");
-  os << llvmIRToString(d);
+void IDEGeneralizedLCA::printDataFlowFact(std::ostream &Os,
+                                          IDEGeneralizedLCA::d_t D) const {
+  assert(D && "Invalid dataflow fact");
+  Os << llvmIRToString(D);
 }
 
-void IDEGeneralizedLCA::printFunction(std::ostream &os,
-                                      IDEGeneralizedLCA::f_t m) const {
-  os << m->getName().str();
+void IDEGeneralizedLCA::printFunction(std::ostream &Os,
+                                      IDEGeneralizedLCA::f_t M) const {
+  Os << M->getName().str();
 }
 
-void IDEGeneralizedLCA::printEdgeFact(std::ostream &os,
-                                      IDEGeneralizedLCA::l_t v) const {
-  os << v;
+void IDEGeneralizedLCA::printEdgeFact(std::ostream &Os,
+                                      IDEGeneralizedLCA::l_t V) const {
+  Os << V;
 }
 
 /*void IDEGeneralizedLCA::printIDEReport(
@@ -539,55 +539,55 @@ void IDEGeneralizedLCA::printEdgeFact(std::ostream &os,
 void IDEGeneralizedLCA::emitTextReport(
     const SolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
                         IDEGeneralizedLCA::l_t> &SR,
-    std::ostream &os) {
+    std::ostream &Os) {
 
-  os << "\n====================== IDE-Linear-Constant-Analysis Report "
+  Os << "\n====================== IDE-Linear-Constant-Analysis Report "
         "======================\n";
   if (!IRDB->debugInfoAvailable()) {
     // Emit only IR code, function name and module info
-    os << "\nWARNING: No Debug Info available - emiting results without "
+    Os << "\nWARNING: No Debug Info available - emiting results without "
           "source code mapping!\n";
-    for (auto f : ICF->getAllFunctions()) {
-      std::string fName = getFunctionNameFromIR(f);
-      os << "\nFunction: " << fName << "\n----------"
-         << std::string(fName.size(), '-') << '\n';
-      for (auto stmt : ICF->getAllInstructionsOf(f)) {
-        auto results = SR.resultsAt(stmt, true);
-        stripBottomResults(results);
-        if (!results.empty()) {
-          os << "At IR statement: " << NtoString(stmt) << '\n';
-          for (auto res : results) {
-            if (res.second != bottomElement()) {
-              os << "   Fact: " << DtoString(res.first)
-                 << "\n  Value: " << VtoString(res.second) << '\n';
+    for (auto F : ICF->getAllFunctions()) {
+      std::string FName = getFunctionNameFromIR(F);
+      Os << "\nFunction: " << FName << "\n----------"
+         << std::string(FName.size(), '-') << '\n';
+      for (auto Stmt : ICF->getAllInstructionsOf(F)) {
+        auto Results = SR.resultsAt(Stmt, true);
+        stripBottomResults(Results);
+        if (!Results.empty()) {
+          Os << "At IR statement: " << NtoString(Stmt) << '\n';
+          for (auto Res : Results) {
+            if (Res.second != bottomElement()) {
+              Os << "   Fact: " << DtoString(Res.first)
+                 << "\n  Value: " << VtoString(Res.second) << '\n';
             }
           }
-          os << '\n';
+          Os << '\n';
         }
       }
-      os << '\n';
+      Os << '\n';
     }
   } else {
-    auto lcaResults = getLCAResults(SR);
-    for (auto entry : lcaResults) {
-      os << "\nFunction: " << entry.first
-         << "\n==========" << std::string(entry.first.size(), '=') << '\n';
-      for (auto fResult : entry.second) {
-        fResult.second.print(os);
-        os << "--------------------------------------\n\n";
+    auto LcaResults = getLCAResults(SR);
+    for (auto Entry : LcaResults) {
+      Os << "\nFunction: " << Entry.first
+         << "\n==========" << std::string(Entry.first.size(), '=') << '\n';
+      for (auto FResult : Entry.second) {
+        FResult.second.print(Os);
+        Os << "--------------------------------------\n\n";
       }
-      os << '\n';
+      Os << '\n';
     }
   }
 }
 
 void IDEGeneralizedLCA::stripBottomResults(
-    std::unordered_map<IDEGeneralizedLCA::d_t, IDEGeneralizedLCA::l_t> &res) {
-  for (auto it = res.begin(); it != res.end();) {
-    if (it->second == bottomElement()) {
-      it = res.erase(it);
+    std::unordered_map<IDEGeneralizedLCA::d_t, IDEGeneralizedLCA::l_t> &Res) {
+  for (auto It = Res.begin(); It != Res.end();) {
+    if (It->second == bottomElement()) {
+      It = Res.erase(It);
     } else {
-      ++it;
+      ++It;
     }
   }
 }
@@ -595,120 +595,121 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
     SolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
                   IDEGeneralizedLCA::l_t>
         SR) {
-  std::map<std::string, std::map<unsigned, LCAResult>> aggResults;
+  std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   std::cout << "\n==== Computing LCA Results ====\n";
-  for (auto f : ICF->getAllFunctions()) {
-    std::string fName = getFunctionNameFromIR(f);
-    std::cout << "\n-- Function: " << fName << " --\n";
-    std::map<unsigned, LCAResult> fResults;
-    std::set<std::string> allocatedVars;
-    for (auto stmt : ICF->getAllInstructionsOf(f)) {
-      unsigned lnr = getLineFromIR(stmt);
-      std::cout << "\nIR : " << NtoString(stmt) << "\nLNR: " << lnr << '\n';
+  for (auto F : ICF->getAllFunctions()) {
+    std::string FName = getFunctionNameFromIR(F);
+    std::cout << "\n-- Function: " << FName << " --\n";
+    std::map<unsigned, LCAResult> FResults;
+    std::set<std::string> AllocatedVars;
+    for (auto Stmt : ICF->getAllInstructionsOf(F)) {
+      unsigned Lnr = getLineFromIR(Stmt);
+      std::cout << "\nIR : " << NtoString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping
-      if (lnr == 0) {
+      if (Lnr == 0) {
         std::cout << "Skipping this stmt!\n";
         continue;
       }
-      LCAResult *lcaRes = &fResults[lnr];
+      LCAResult *LcaRes = &FResults[Lnr];
       // Check if it is a new result
-      if (lcaRes->src_code.empty()) {
-        std::string sourceCode = getSrcCodeFromIR(stmt);
+      if (LcaRes->src_code.empty()) {
+        std::string SourceCode = getSrcCodeFromIR(Stmt);
         // Skip results for line containing only closed braces which is the
         // case for functions with void return value
-        if (sourceCode == "}") {
-          fResults.erase(lnr);
+        if (SourceCode == "}") {
+          FResults.erase(Lnr);
           continue;
         }
-        lcaRes->src_code = sourceCode;
-        lcaRes->line_nr = lnr;
+        LcaRes->src_code = SourceCode;
+        LcaRes->line_nr = Lnr;
       }
-      lcaRes->ir_trace.push_back(stmt);
-      if (stmt->isTerminator() && !ICF->isExitStmt(stmt)) {
+      LcaRes->ir_trace.push_back(Stmt);
+      if (Stmt->isTerminator() && !ICF->isExitStmt(Stmt)) {
         std::cout << "Delete result since stmt is Terminator or Exit!\n";
-        fResults.erase(lnr);
+        FResults.erase(Lnr);
       } else {
         // check results of succ(stmt)
-        std::unordered_map<d_t, l_t> results;
-        if (ICF->isExitStmt(stmt)) {
-          results = SR.resultsAt(stmt, true);
+        std::unordered_map<d_t, l_t> Results;
+        if (ICF->isExitStmt(Stmt)) {
+          Results = SR.resultsAt(Stmt, true);
         } else {
           // It's not a terminator inst, hence it has only a single successor
-          auto succ = ICF->getSuccsOf(stmt)[0];
-          std::cout << "Succ stmt: " << NtoString(succ) << '\n';
-          results = SR.resultsAt(succ, true);
+          auto Succ = ICF->getSuccsOf(Stmt)[0];
+          std::cout << "Succ stmt: " << NtoString(Succ) << '\n';
+          Results = SR.resultsAt(Succ, true);
         }
         // stripBottomResults(results);
-        std::set<std::string> validVarsAtStmt;
-        for (auto res : results) {
-          auto varName = getVarNameFromIR(res.first);
-          std::cout << "  D: " << DtoString(res.first)
-                    << " | V: " << VtoString(res.second)
-                    << " | Var: " << varName << '\n';
-          if (!varName.empty()) {
+        std::set<std::string> ValidVarsAtStmt;
+        for (auto Res : Results) {
+          auto VarName = getVarNameFromIR(Res.first);
+          std::cout << "  D: " << DtoString(Res.first)
+                    << " | V: " << VtoString(Res.second)
+                    << " | Var: " << VarName << '\n';
+          if (!VarName.empty()) {
             // Only store/overwrite values of variables from allocas or
             // globals unless there is no value stored for a variable
-            if (llvm::isa<llvm::AllocaInst>(res.first) ||
-                llvm::isa<llvm::GlobalVariable>(res.first)) {
+            if (llvm::isa<llvm::AllocaInst>(Res.first) ||
+                llvm::isa<llvm::GlobalVariable>(Res.first)) {
               // lcaRes->variableToValue.find(varName) ==
               // lcaRes->variableToValue.end()) {
-              validVarsAtStmt.insert(varName);
-              allocatedVars.insert(varName);
-              lcaRes->variableToValue[varName] = res.second;
-            } else if (allocatedVars.find(varName) == allocatedVars.end()) {
-              validVarsAtStmt.insert(varName);
-              lcaRes->variableToValue[varName] = res.second;
+              ValidVarsAtStmt.insert(VarName);
+              AllocatedVars.insert(VarName);
+              LcaRes->variableToValue[VarName] = Res.second;
+            } else if (AllocatedVars.find(VarName) == AllocatedVars.end()) {
+              ValidVarsAtStmt.insert(VarName);
+              LcaRes->variableToValue[VarName] = Res.second;
             }
           }
         }
         // remove no longer valid variables at current IR stmt
-        for (auto it = lcaRes->variableToValue.begin();
-             it != lcaRes->variableToValue.end();) {
-          if (validVarsAtStmt.find(it->first) == validVarsAtStmt.end()) {
-            std::cout << "Erase var: " << it->first << '\n';
-            it = lcaRes->variableToValue.erase(it);
+        for (auto It = LcaRes->variableToValue.begin();
+             It != LcaRes->variableToValue.end();) {
+          if (ValidVarsAtStmt.find(It->first) == ValidVarsAtStmt.end()) {
+            std::cout << "Erase var: " << It->first << '\n';
+            It = LcaRes->variableToValue.erase(It);
           } else {
-            ++it;
+            ++It;
           }
         }
       }
     }
     // delete entries with no result
-    for (auto it = fResults.begin(); it != fResults.end();) {
-      if (it->second.variableToValue.empty()) {
-        it = fResults.erase(it);
+    for (auto It = FResults.begin(); It != FResults.end();) {
+      if (It->second.variableToValue.empty()) {
+        It = FResults.erase(It);
       } else {
-        ++it;
+        ++It;
       }
     }
-    aggResults[fName] = fResults;
+    AggResults[FName] = FResults;
   }
-  return aggResults;
+  return AggResults;
 }
 
-void IDEGeneralizedLCA::LCAResult::print(std::ostream &os) {
-  os << "Line " << line_nr << ": " << src_code << '\n';
-  os << "Var(s): ";
-  for (auto it = variableToValue.begin(); it != variableToValue.end(); ++it) {
-    if (it != variableToValue.begin()) {
-      os << ", ";
+void IDEGeneralizedLCA::LCAResult::print(std::ostream &Os) {
+  Os << "Line " << line_nr << ": " << src_code << '\n';
+  Os << "Var(s): ";
+  for (auto It = variableToValue.begin(); It != variableToValue.end(); ++It) {
+    if (It != variableToValue.begin()) {
+      Os << ", ";
     }
-    os << it->first << " = " << it->second;
+    Os << It->first << " = " << It->second;
   }
-  os << "\nCorresponding IR Instructions:\n";
-  for (auto ir : ir_trace) {
-    os << "  " << llvmIRToString(ir) << '\n';
+  Os << "\nCorresponding IR Instructions:\n";
+  for (auto Ir : ir_trace) {
+    Os << "  " << llvmIRToString(Ir) << '\n';
   }
-}
-bool IDEGeneralizedLCA::isEntryPoint(const std::string &name) const {
-  // For now, the only entrypoint is main
-  return name == "main";
 }
 
-template <typename V> std::string IDEGeneralizedLCA::VtoString(V v) {
-  std::stringstream ss;
-  ss << v;
-  return ss.str();
+bool IDEGeneralizedLCA::isEntryPoint(const std::string &Name) const {
+  // For now, the only entrypoint is main
+  return Name == "main";
+}
+
+template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
+  std::stringstream Ss;
+  Ss << Val;
+  return Ss.str();
 }
 
 } // namespace psr

@@ -13,8 +13,8 @@ namespace psr {
 
 EdgeValueSet::EdgeValueSet() : underlying({EdgeValue(nullptr)}) {}
 
-EdgeValueSet::EdgeValueSet(std::initializer_list<EdgeValue> ilist)
-    : underlying(ilist) {}
+EdgeValueSet::EdgeValueSet(std::initializer_list<EdgeValue> Ilist)
+    : underlying(Ilist) {}
 auto EdgeValueSet::begin() -> decltype(underlying.begin()) {
   return underlying.begin();
 }
@@ -27,31 +27,31 @@ auto EdgeValueSet::begin() const -> decltype(underlying.begin()) {
 auto EdgeValueSet::end() const -> decltype(underlying.end()) {
   return underlying.end();
 }
-int EdgeValueSet::count(const EdgeValue &ev) const {
-  return underlying.count(ev);
+int EdgeValueSet::count(const EdgeValue &Ev) const {
+  return underlying.count(Ev);
 }
-auto EdgeValueSet::find(const EdgeValue &ev) -> decltype(underlying.find(ev)) {
-  return underlying.find(ev);
+auto EdgeValueSet::find(const EdgeValue &Ev) -> decltype(underlying.find(Ev)) {
+  return underlying.find(Ev);
 }
-auto EdgeValueSet::find(const EdgeValue &ev) const
-    -> decltype(underlying.find(ev)) {
-  return underlying.find(ev);
+auto EdgeValueSet::find(const EdgeValue &Ev) const
+    -> decltype(underlying.find(Ev)) {
+  return underlying.find(Ev);
 }
 
 size_t EdgeValueSet::size() const { return underlying.size(); }
-auto EdgeValueSet::insert(const EdgeValue &ev)
-    -> decltype(underlying.insert(ev)) {
-  return underlying.insert(ev);
+auto EdgeValueSet::insert(const EdgeValue &Ev)
+    -> decltype(underlying.insert(Ev)) {
+  return underlying.insert(Ev);
 }
-auto EdgeValueSet::insert(EdgeValue &&ev) -> decltype(underlying.insert(ev)) {
-  return underlying.insert(ev);
+auto EdgeValueSet::insert(EdgeValue &&Ev) -> decltype(underlying.insert(Ev)) {
+  return underlying.insert(Ev);
 }
 bool EdgeValueSet::empty() const { return underlying.empty(); }
-bool EdgeValueSet::operator==(const EdgeValueSet &other) const {
-  return underlying == other.underlying;
+bool EdgeValueSet::operator==(const EdgeValueSet &Other) const {
+  return underlying == Other.underlying;
 }
-bool EdgeValueSet::operator!=(const EdgeValueSet &other) const {
-  return underlying != other.underlying;
+bool EdgeValueSet::operator!=(const EdgeValueSet &Other) const {
+  return underlying != Other.underlying;
 }
 
 } // namespace psr

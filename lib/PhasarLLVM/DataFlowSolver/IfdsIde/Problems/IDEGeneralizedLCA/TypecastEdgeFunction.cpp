@@ -14,37 +14,37 @@
 namespace psr {
 
 IDEGeneralizedLCA::l_t
-TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t source) {
-  return performTypecast(source, dest, bits);
+TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
+  return performTypecast(Source, dest, bits);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 TypecastEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
-  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(secondFunction.get()))
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
+  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get()))
     return shared_from_this();
   return std::make_shared<LCAEdgeFunctionComposer>(shared_from_this(),
-                                                   secondFunction, maxSize);
+                                                   SecondFunction, maxSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 TypecastEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction) {
-  return std::make_shared<JoinEdgeFunction>(shared_from_this(), otherFunction,
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction) {
+  return std::make_shared<JoinEdgeFunction>(shared_from_this(), OtherFunction,
                                             maxSize);
 }
 
 bool TypecastEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
-  if (this == other.get())
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other) const {
+  if (this == Other.get())
     return true;
-  if (auto otherTC = dynamic_cast<TypecastEdgeFunction *>(other.get())) {
-    return bits == otherTC->bits && dest == otherTC->dest;
+  if (auto OtherTC = dynamic_cast<TypecastEdgeFunction *>(Other.get())) {
+    return bits == OtherTC->bits && dest == OtherTC->dest;
   }
   return false;
 }
 
-void TypecastEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
+void TypecastEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
   OS << "TypecastEdgeFn[to=" << EdgeValue::typeToString(dest)
      << "; bits=" << bits << "]";
 }

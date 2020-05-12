@@ -17,56 +17,56 @@
 
 namespace psr {
 
-IdentityEdgeFunction::IdentityEdgeFunction(size_t maxSize) : maxSize(maxSize) {}
+IdentityEdgeFunction::IdentityEdgeFunction(size_t MaxSize) : maxSize(MaxSize) {}
 IDEGeneralizedLCA::l_t
-IdentityEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t source) {
-  return source;
+IdentityEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
+  return Source;
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 IdentityEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
   // std::cout << "Identity composing" << std::endl;
-  return secondFunction;
+  return SecondFunction;
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 IdentityEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction) {
   // std::cout << "Identity join" << std::endl;
   // see <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-  if ((otherFunction.get() == this) ||
-      otherFunction->equal_to(this->shared_from_this()))
+  if ((OtherFunction.get() == this) ||
+      OtherFunction->equal_to(this->shared_from_this()))
     return this->shared_from_this();
-  if (AllBot::isBot(otherFunction))
+  if (AllBot::isBot(OtherFunction))
     return AllBot::getInstance();
-  if (auto at =
-          dynamic_cast<AllTop<IDEGeneralizedLCA::l_t> *>(otherFunction.get()))
+  if (auto At =
+          dynamic_cast<AllTop<IDEGeneralizedLCA::l_t> *>(OtherFunction.get()))
     return this->shared_from_this();
-  return std::make_shared<JoinEdgeFunction>(shared_from_this(), otherFunction,
+  return std::make_shared<JoinEdgeFunction>(shared_from_this(), OtherFunction,
                                             maxSize);
 }
 
 bool IdentityEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other) const {
   // see <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-  return other.get() == this;
+  return Other.get() == this;
 }
 std::shared_ptr<IdentityEdgeFunction>
-IdentityEdgeFunction::getInstance(size_t maxSize) {
+IdentityEdgeFunction::getInstance(size_t MaxSize) {
   // see <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 
   static std::unordered_map<size_t, std::shared_ptr<IdentityEdgeFunction>>
-      cache;
-  auto it = cache.find(maxSize);
-  if (it != cache.end())
-    return it->second;
+      Cache;
+  auto It = Cache.find(MaxSize);
+  if (It != Cache.end())
+    return It->second;
   else
-    return cache[maxSize] = std::make_shared<IdentityEdgeFunction>(maxSize);
+    return Cache[MaxSize] = std::make_shared<IdentityEdgeFunction>(MaxSize);
 
   // return std::make_shared<IdentityEdgeFunction>(maxSize);
 }
-void IdentityEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
+void IdentityEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
   OS << "IdentityEdgeFn";
 }
 

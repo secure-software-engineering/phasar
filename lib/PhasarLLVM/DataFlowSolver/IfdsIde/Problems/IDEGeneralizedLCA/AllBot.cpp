@@ -14,31 +14,31 @@
 namespace psr {
 
 std::shared_ptr<AllBot::type> AllBot::getInstance() {
-  static std::shared_ptr<type> ret =
+  static std::shared_ptr<type> Ret =
       std::make_shared<type>(IDEGeneralizedLCA::l_t{nullptr});
-  return ret;
+  return Ret;
 }
 
-bool AllBot::isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *edgeFn,
-                   bool nonRec) {
-  if (edgeFn == nullptr)
+bool AllBot::isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *EdgeFn,
+                   bool NonRec) {
+  if (EdgeFn == nullptr)
     return false;
-  if (edgeFn == getInstance().get())
+  if (EdgeFn == getInstance().get())
     return true;
-  if (dynamic_cast<const type *>(edgeFn))
+  if (dynamic_cast<const type *>(EdgeFn))
     return true;
-  if (!nonRec) {
-    if (auto joinEFn = dynamic_cast<const JoinEdgeFunction *>(edgeFn))
-      return isBot(joinEFn->getFirst(), true) &&
-             isBot(joinEFn->getSecond(), true);
+  if (!NonRec) {
+    if (auto JoinEFn = dynamic_cast<const JoinEdgeFunction *>(EdgeFn))
+      return isBot(JoinEFn->getFirst(), true) &&
+             isBot(JoinEFn->getSecond(), true);
   }
   return false;
 }
 
 bool AllBot::isBot(
-    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &edgeFn,
-    bool nonRec) {
-  return isBot(edgeFn.get(), nonRec);
+    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &EdgeFn,
+    bool NonRec) {
+  return isBot(EdgeFn.get(), NonRec);
 }
 
 } // namespace psr

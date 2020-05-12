@@ -13,22 +13,22 @@
 namespace psr {
 
 MapFactsToCallerFlowFunction::MapFactsToCallerFlowFunction(
-    llvm::ImmutableCallSite cs, const llvm::Instruction *exitStmt,
-    const llvm::Function *calleeMthd)
-    : cs(cs), exitStmt(llvm::cast<llvm::ReturnInst>(exitStmt)),
-      calleeMthd(calleeMthd) {
-  for (unsigned idx = 0; idx < cs.getNumArgOperands(); ++idx) {
-    actuals.push_back(cs.getArgOperand(idx));
+    llvm::ImmutableCallSite Cs, const llvm::Instruction *ExitStmt,
+    const llvm::Function *CalleeMthd)
+    : cs(Cs), exitStmt(llvm::cast<llvm::ReturnInst>(ExitStmt)),
+      calleeMthd(CalleeMthd) {
+  for (unsigned Idx = 0; Idx < Cs.getNumArgOperands(); ++Idx) {
+    actuals.push_back(Cs.getArgOperand(Idx));
   }
   // Set up the formal parameters
-  for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
-    formals.push_back(getNthFunctionArgument(calleeMthd, idx));
+  for (unsigned Idx = 0; Idx < CalleeMthd->arg_size(); ++Idx) {
+    formals.push_back(getNthFunctionArgument(CalleeMthd, Idx));
   }
 }
 std::set<const llvm::Value *>
-MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *source) {
+MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *Source) {
   // most copied from phasar
-  std::set<const llvm::Value *> res;
+  std::set<const llvm::Value *> Res;
   // Handle C-style varargs functions
   if (calleeMthd->isVarArg() && !calleeMthd->isDeclaration()) {
     const llvm::Instruction *AllocVarArg;
@@ -49,26 +49,26 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *source) {
       }
     }
     // Generate the varargs things by using an over-approximation
-    if (source == AllocVarArg && source->getType()->isPointerTy()) {
-      for (unsigned idx = formals.size(); idx < actuals.size(); ++idx) {
-        res.insert(actuals[idx]);
+    if (Source == AllocVarArg && Source->getType()->isPointerTy()) {
+      for (unsigned Idx = formals.size(); Idx < actuals.size(); ++Idx) {
+        Res.insert(actuals[Idx]);
       }
     }
   }
   // Handle ordinary case
   // Map formal parameter into corresponding actual parameter.
-  for (unsigned idx = 0; idx < formals.size(); ++idx) {
-    if (source == formals[idx] && formals[idx]->getType()->isPointerTy()) {
-      res.insert(actuals[idx]); // corresponding actual
+  for (unsigned Idx = 0; Idx < formals.size(); ++Idx) {
+    if (Source == formals[Idx] && formals[Idx]->getType()->isPointerTy()) {
+      Res.insert(actuals[Idx]); // corresponding actual
     }
   }
   // Collect return value facts
-  if (source == exitStmt->getReturnValue() ||
-      (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
+  if (Source == exitStmt->getReturnValue() ||
+      (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
        exitStmt->getReturnValue() && isConstant(exitStmt->getReturnValue()))) {
-    res.insert(cs.getInstruction());
+    Res.insert(cs.getInstruction());
   }
-  return res;
+  return Res;
 }
 
 } // namespace psr

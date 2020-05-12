@@ -15,24 +15,24 @@
 
 namespace psr {
 
-bool isConstant(const llvm::Value *val) {
+bool isConstant(const llvm::Value *Val) {
   // is constantInt, constantFP or constant string
-  if (llvm::isa<llvm::ConstantInt>(val)) // const int
+  if (llvm::isa<llvm::ConstantInt>(Val)) // const int
     return true;
-  if (llvm::isa<llvm::ConstantFP>(val)) // const fp
+  if (llvm::isa<llvm::ConstantFP>(Val)) // const fp
     return true;
-  if (llvm::isa<llvm::ConstantPointerNull>(val)) // NULL
+  if (llvm::isa<llvm::ConstantPointerNull>(Val)) // NULL
     return true;
-  if (auto gep = llvm::dyn_cast<llvm::ConstantExpr>(val);
-      gep && val->getType()->isPointerTy() &&
-      val->getType()->getPointerElementType()->isIntegerTy()) {
+  if (auto Gep = llvm::dyn_cast<llvm::ConstantExpr>(Val);
+      Gep && Val->getType()->isPointerTy() &&
+      Val->getType()->getPointerElementType()->isIntegerTy()) {
     // const string
     // val isa GEP
-    auto op1 = gep->getOperand(0); // op1 is pointer-operand
-    if (auto glob = llvm::dyn_cast<llvm::GlobalVariable>(op1);
-        glob && glob->hasInitializer()) {
-      if (auto cdat =
-              llvm::dyn_cast<llvm::ConstantDataArray>(glob->getInitializer())) {
+    auto Op1 = Gep->getOperand(0); // op1 is pointer-operand
+    if (auto Glob = llvm::dyn_cast<llvm::GlobalVariable>(Op1);
+        Glob && Glob->hasInitializer()) {
+      if (auto Cdat =
+              llvm::dyn_cast<llvm::ConstantDataArray>(Glob->getInitializer())) {
         return true; // it is definitely a const string
       }
     }
