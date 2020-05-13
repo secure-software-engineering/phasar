@@ -120,7 +120,6 @@ ${DO_UNIT_TESTS} && echo "with unit tests."
 git submodule init
 git submodule update
 
-export LD_LIBRARY_PATH=${LLVM_INSTALL_DIR}/lib:$LD_LIBRARY_PATH
 export CC=${LLVM_INSTALL_DIR}/bin/clang
 export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
@@ -142,6 +141,7 @@ echo "phasar successfully built"
 echo "install phasar..."
 sudo cmake -DCMAKE_INSTALL_PREFIX=${PHASAR_INSTALL_DIR} -P cmake_install.cmake
 
+echo "${PHASAR_INSTALL_DIR}/lib" | sudo tee /etc/ld.so.conf.d/phasar.conf > /dev/null
 sudo ldconfig
 cd ..
 echo "phasar successfully installed to ${PHASAR_INSTALL_DIR}"
