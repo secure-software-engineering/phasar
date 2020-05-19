@@ -19,7 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -52,8 +52,8 @@ protected:
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
+    LLVMPointsToSet PT(*IRDB);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                        &PT);
     IDEInstInteractionAnalysis IIAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
     // use Phasar's instruction ids as testing labels
@@ -115,9 +115,9 @@ TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
   }
   ValueAnnotationPass::resetValueID();
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToInfo PT(IRDB);
+  LLVMPointsToSet PT(IRDB);
   std::set<std::string> EntryPoints({"main"});
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH, &PT);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
   IDEInstInteractionAnalysisT<int> IIAProblem(&IRDB, &TH, &ICFG, &PT,
                                               EntryPoints);
   // use Phasar's instruction ids as testing labels

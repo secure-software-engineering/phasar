@@ -70,7 +70,7 @@ public:
    * @param EntryPoints
    */
   IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     const TaintConfiguration<const llvm::Value *> &TSF,
                     std::set<std::string> EntryPoints = {"main"});
 

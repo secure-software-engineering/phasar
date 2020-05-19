@@ -158,6 +158,8 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
                                            unsigned Idx);
 
+const llvm::Instruction *getLastInstructionOf(const llvm::Function *F);
+
 /**
  * The Termination Instruction count starts with one (not zero, as in Function
  * arguments).

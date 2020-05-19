@@ -50,7 +50,8 @@ public:
 
 private:
   const TypeStateDescription &TSD;
-  std::map<const llvm::Value *, std::set<const llvm::Value *>> PointsToCache;
+  std::map<const llvm::Value *, std::unordered_set<const llvm::Value *>>
+      PointsToCache;
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
       RelevantAllocaCache;
 
@@ -96,7 +97,7 @@ public:
   const l_t BOTTOM;
 
   IDETypeStateAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                       const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                       const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                        const TypeStateDescription &TSD,
                        std::set<std::string> EntryPoints = {"main"});
 

@@ -5,6 +5,7 @@
 
 #include "llvm/Support/raw_ostream.h"
 
+#include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -215,7 +216,8 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_7) {
   ASSERT_TRUE(F);
 
   const llvm::Instruction *I = getNthInstruction(FooF, 4);
-  const llvm::Instruction *LastInst = ICFG.getLastInstructionOf("_ZN3Foo1fEv");
+  const llvm::Instruction *LastInst =
+      getLastInstructionOf(IRDB.getFunctionDefinition("_ZN3Foo1fEv"));
   set<const llvm::Function *> AllMethods = ICFG.getAllFunctions();
   ASSERT_EQ(LastInst, I);
   ASSERT_EQ(AllMethods.size(), 3);
@@ -237,7 +239,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_8) {
   std::vector<const llvm::Instruction *> Insts =
       ICFG.getAllInstructionsOf(FooF);
   std::vector<const llvm::Instruction *> Insts1 =
-      ICFG.getAllInstructionsOfFunction("_ZN4Foo21fEv");
+      ICFG.getAllInstructionsOf(IRDB.getFunctionDefinition("_ZN4Foo21fEv"));
   ASSERT_EQ(Insts.size(), Insts1.size());
 
   set<const llvm::Function *> FunSet = ICFG.getAllFunctions();

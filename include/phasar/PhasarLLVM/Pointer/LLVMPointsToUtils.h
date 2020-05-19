@@ -7,25 +7,26 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
-#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
 
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+#include <set>
+
+#include "llvm/ADT/StringRef.h"
 
 namespace llvm {
-class Instruction;
 class Value;
 } // namespace llvm
 
 namespace psr {
 
-class LLVMPointsToInfo
-    : public PointsToInfo<const llvm::Value *, const llvm::Instruction *> {
-public:
-  ~LLVMPointsToInfo() override = default;
+/**
+ * @brief Returns true if the given pointer is an interesting pointer,
+ *        i.e. not a constant null pointer.
+ */
+bool isInterestingPointer(const llvm::Value *V);
 
-  llvm::Function *retrieveFunction(const llvm::Value *V);
-};
+extern const std::set<llvm::StringRef> HeapAllocatingFunctions;
 
 } // namespace psr
 

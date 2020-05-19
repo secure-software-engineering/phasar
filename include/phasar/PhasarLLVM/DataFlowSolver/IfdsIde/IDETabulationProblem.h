@@ -44,7 +44,7 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, F, T, V, I>,
 
 public:
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
-                       const I *ICF, const PointsToInfo<V, N> *PT,
+                       const I *ICF, PointsToInfo<V, N> *PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT,
                                                 EntryPoints) {}

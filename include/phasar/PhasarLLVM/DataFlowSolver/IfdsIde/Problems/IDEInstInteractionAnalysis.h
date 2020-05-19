@@ -15,6 +15,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -73,8 +74,7 @@ private:
 public:
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
-                              const LLVMBasedICFG *ICF,
-                              const LLVMPointsToInfo *PT,
+                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints = {"main"})
       : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, const llvm::StructType *,
@@ -113,7 +113,7 @@ public:
         struct IIAFlowFunction : FlowFunction<d_t> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::LoadInst *Load;
-          std::set<d_t> PTS;
+          std::unordered_set<d_t> PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
@@ -139,8 +139,8 @@ public:
         struct IIAFlowFunction : FlowFunction<d_t> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::StoreInst *Store;
-          std::set<d_t> ValuePTS;
-          std::set<d_t> PointerPTS;
+          std::unordered_set<d_t> ValuePTS;
+          std::unordered_set<d_t> PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)

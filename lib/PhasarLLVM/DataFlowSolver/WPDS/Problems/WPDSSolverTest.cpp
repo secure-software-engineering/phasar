@@ -26,8 +26,7 @@ namespace psr {
 
 WPDSSolverTest::WPDSSolverTest(const ProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF,
-                               const LLVMPointsToInfo *PT,
+                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
     : WPDSProblem<WPDSSolverTest::n_t, WPDSSolverTest::d_t, WPDSSolverTest::f_t,
                   WPDSSolverTest::t_t, WPDSSolverTest::v_t, WPDSSolverTest::l_t,

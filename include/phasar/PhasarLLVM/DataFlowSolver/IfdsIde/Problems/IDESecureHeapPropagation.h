@@ -46,7 +46,7 @@ public:
   typedef SecureHeapValue l_t;
   typedef LLVMBasedICFG i_t;
   IDESecureHeapPropagation(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            std::set<std::string> EntryPoints = {"main"});
   ~IDESecureHeapPropagation() override = default;
 

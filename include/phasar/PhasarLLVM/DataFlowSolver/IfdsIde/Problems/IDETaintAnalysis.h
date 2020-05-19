@@ -51,7 +51,7 @@ public:
   static bool setContainsStr(std::set<std::string> s, const std::string &str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                   const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                    std::set<std::string> EntryPoints = {"main"});
 
   ~IDETaintAnalysis() override = default;

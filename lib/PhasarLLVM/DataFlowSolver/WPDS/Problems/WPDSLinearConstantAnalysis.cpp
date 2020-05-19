@@ -19,7 +19,7 @@ namespace psr {
 
 WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     const std::set<std::string> &EntryPoints)
     : WPDSProblem<
           WPDSLinearConstantAnalysis::n_t, WPDSLinearConstantAnalysis::d_t,

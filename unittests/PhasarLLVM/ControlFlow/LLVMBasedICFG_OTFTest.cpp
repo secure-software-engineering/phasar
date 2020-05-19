@@ -1,9 +1,11 @@
+#include "gtest/gtest.h"
+
+#include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
-#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
@@ -18,8 +20,9 @@ protected:
 TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_7_cpp.ll"},
                    IRDBOptions::WPA);
+  IRDB.emitPreprocessedIR();
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToInfo PT(IRDB);
+  LLVMPointsToSet PT(IRDB, false);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");

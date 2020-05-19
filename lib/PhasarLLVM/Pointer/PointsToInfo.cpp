@@ -9,6 +9,8 @@
 
 #include <string>
 
+#include "llvm/ADT/StringSwitch.h"
+
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 namespace psr {
@@ -44,6 +46,37 @@ AliasResult toAliasResult(const std::string &S) {
 
 std::ostream &operator<<(std::ostream &OS, const AliasResult &AR) {
   return OS << toString(AR);
+}
+
+std::string tostring(const PointerAnalysisType &PA) {
+  switch (PA) {
+  default:
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  case PointerAnalysisType::TYPE:                                              \
+    return NAME;                                                               \
+    break;
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+  }
+}
+
+PointerAnalysisType toPointerAnalysisType(const std::string &S) {
+  PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(NAME, PointerAnalysisType::TYPE)
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+                                 .Default(PointerAnalysisType::Invalid);
+  if (Type == PointerAnalysisType::Invalid) {
+    Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(CMDFLAG, PointerAnalysisType::TYPE)
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+               .Default(PointerAnalysisType::Invalid);
+  }
+  return Type;
+}
+
+std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA) {
+  return os << tostring(PA);
 }
 
 } // namespace psr

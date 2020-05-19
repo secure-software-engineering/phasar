@@ -39,7 +39,7 @@ namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     const TaintConfiguration<const llvm::Value *> &TSF,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
@@ -152,7 +152,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
-          auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
+          auto PTS = PT->getPointsToSet(V);
           for (const auto *Alias : PTS) {
             ToGenerate.insert(Alias);
           }
@@ -168,7 +168,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
-          auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
+          auto PTS = PT->getPointsToSet(V);
           for (const auto *Alias : PTS) {
             ToGenerate.insert(Alias);
           }

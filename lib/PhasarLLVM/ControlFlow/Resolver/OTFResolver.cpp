@@ -19,9 +19,12 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -34,9 +37,8 @@ using namespace std;
 using namespace psr;
 
 OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
-                         LLVMPointsToInfo &PT,
-                         LLVMPointsToGraph &WholeModulePTG)
-    : CHAResolver(IRDB, TH), PT(PT), WholeModulePTG(WholeModulePTG) {}
+                         LLVMBasedICFG &ICF, LLVMPointsToInfo &PT)
+    : CHAResolver(IRDB, TH), ICF(ICF), PT(PT) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {
   CallStack.push_back(Inst);
@@ -45,16 +47,35 @@ void OTFResolver::preCall(const llvm::Instruction *Inst) {
 void OTFResolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
     std::set<const llvm::Function *> &CalleeTargets) {
-
-  for (const auto *CalleeTarget : CalleeTargets) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Target name: " << CalleeTarget->getName().str());
-    // Do the merge of the points-to graphs for all possible targets, but
-    // only if they are available
-    if (!CalleeTarget->isDeclaration()) {
-      auto *CalleePTG = PT.getPointsToGraph(CalleeTarget);
-      WholeModulePTG.mergeWith(CalleePTG, CalleeTarget);
-      WholeModulePTG.mergeCallSite(CS, CalleeTarget);
+  if (!PT.isInterProcedural()) {
+    for (const auto *CalleeTarget : CalleeTargets) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Target name: " << CalleeTarget->getName().str());
+      // do the merge of the points-to information for all possible targets, but
+      // only if they are available
+      if (!CalleeTarget->isDeclaration()) {
+        // handle parameter pairs
+        auto Pairs = getActualFormalPointerPairs(CS, CalleeTarget);
+        for (auto &[Actual, Formal] : Pairs) {
+          PT.introduceAlias(Actual, Formal, CS.getInstruction());
+        }
+        // handle return value
+        if (CalleeTarget->getReturnType()->isPointerTy()) {
+          // get the target value to which the return value is written to
+          if (const auto *Store =
+                  llvm::dyn_cast<llvm::StoreInst>(CS->getNextNode())) {
+            const auto *TargetVal = Store->getPointerOperand();
+            for (const auto &ExitPoint : ICF.getExitPointsOf(CalleeTarget)) {
+              // get the return value
+              if (const auto *Ret =
+                      llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
+                PT.introduceAlias(TargetVal, Ret->getReturnValue(),
+                                  CS.getInstruction());
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -86,10 +107,9 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 
   const llvm::Value *Receiver = CS.getArgOperand(0);
 
-  auto AllocSites =
-      WholeModulePTG.getReachableAllocationSites(Receiver, CallStack);
-  auto PossibleAllocatedTypes =
-      psr::LLVMPointsToGraph::computeTypesFromAllocationSites(AllocSites);
+  // Use points-to information to resolve the indirect call
+  auto AllocSites = PT.getReachableAllocationSites(Receiver);
+  auto PossibleAllocatedTypes = getReachableTypes(AllocSites);
 
   const auto *ReceiverType = getReceiverType(CS);
 
@@ -119,7 +139,7 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   std::set<const llvm::Function *> Callees;
-  auto PTS = PT.getPointsToSet(CS.getCalledValue());
+  const auto &PTS = PT.getPointsToSet(CS.getCalledValue());
   for (const auto *P : PTS) {
     if (P->getType()->isPointerTy() &&
         P->getType()->getPointerElementType()->isFunctionTy()) {
@@ -133,4 +153,46 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
     return Resolver::resolveFunctionPointer(CS);
   }
   return Callees;
+}
+
+std::set<const llvm::Type *> OTFResolver::getReachableTypes(
+    const std::unordered_set<const llvm::Value *> &Values) {
+  std::set<const llvm::Type *> Types;
+  // an allocation site can either be an AllocaInst or a call to an
+  // allocating function
+  for (const auto *V : Values) {
+    if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(V)) {
+      Types.insert(Alloc->getAllocatedType());
+    } else {
+      // usually if an allocating function is called, it is immediately
+      // bit-casted
+      // to the desired allocated value and hence we can determine it from
+      // the destination type of that cast instruction.
+      for (const auto *User : V->users()) {
+        if (const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+          Types.insert(Cast->getDestTy());
+        }
+      }
+    }
+  }
+  return Types;
+}
+
+std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
+OTFResolver::getActualFormalPointerPairs(
+    llvm::ImmutableCallSite CS, const llvm::Function *CalleeTarget) const {
+  std::vector<std::pair<const llvm::Value *, const llvm::Value *>> Pairs;
+  // ordinary case
+  if (!CalleeTarget->isVarArg()) {
+    Pairs.reserve(CS.arg_size());
+    for (unsigned idx = 0; idx < CS.arg_size(); ++idx) {
+      // only collect pointer typed pairs
+      if (CS.getArgOperand(idx)->getType()->isPointerTy() &&
+          CalleeTarget->getArg(idx)->getType()->isPointerTy()) {
+        Pairs.push_back({CS.getArgOperand(idx), CalleeTarget->getArg(idx)});
+      }
+    }
+  }
+  // TODO handle varargs
+  return Pairs;
 }

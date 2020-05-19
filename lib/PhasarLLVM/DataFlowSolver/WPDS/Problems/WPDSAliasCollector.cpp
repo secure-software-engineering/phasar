@@ -28,7 +28,7 @@ namespace psr {
 WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
                                        const LLVMTypeHierarchy *TH,
                                        const LLVMBasedICFG *ICF,
-                                       const LLVMPointsToInfo *PT,
+                                       LLVMPointsToInfo *PT,
                                        std::set<std::string> EntryPoints)
     : WPDSProblem<WPDSAliasCollector::n_t, WPDSAliasCollector::d_t,
                   WPDSAliasCollector::f_t, WPDSAliasCollector::t_t,

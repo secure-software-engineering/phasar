@@ -52,7 +52,7 @@ protected:
   const ProjectIRDB *IRDB;
   const TypeHierarchy<T, F> *TH;
   const I *ICF;
-  const PointsToInfo<V, N> *PT;
+  PointsToInfo<V, N> *PT;
   D ZeroValue;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] SoundnessFlag SF = SoundnessFlag::UNUSED;
@@ -61,7 +61,7 @@ public:
   using ConfigurationTy = HasNoConfigurationType;
 
   IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
-                        const I *ICF, const PointsToInfo<V, N> *PT,
+                        const I *ICF, PointsToInfo<V, N> *PT,
                         std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT), EntryPoints(EntryPoints) {}
 
@@ -83,7 +83,7 @@ public:
 
   const I *getICFG() const { return ICF; }
 
-  const PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
+  PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
 
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
     SolverConfig = Config;
