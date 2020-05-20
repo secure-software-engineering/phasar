@@ -22,7 +22,7 @@
 #include "nlohmann/json.hpp"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 namespace llvm {
@@ -105,7 +105,7 @@ private:
   ValueVertexMapT ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
-  LLVMPointsToAnalysis PTA;
+  LLVMBasedPointsToAnalysis PTA;
 
   // void mergeGraph(const LLVMPointsToGraph &Other);
 

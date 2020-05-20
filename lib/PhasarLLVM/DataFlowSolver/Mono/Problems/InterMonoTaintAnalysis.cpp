@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"

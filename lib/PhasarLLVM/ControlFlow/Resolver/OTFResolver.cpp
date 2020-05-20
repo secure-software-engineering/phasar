@@ -47,6 +47,8 @@ void OTFResolver::preCall(const llvm::Instruction *Inst) {
 void OTFResolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
     std::set<const llvm::Function *> &CalleeTargets) {
+  // if we have no inter-procedural points-to information, use call-graph
+  // information to simulate inter-procedural points-to information
   if (!PT.isInterProcedural()) {
     for (const auto *CalleeTarget : CalleeTargets) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

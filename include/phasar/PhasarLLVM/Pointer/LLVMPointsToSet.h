@@ -10,16 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H_
 
-#include <functional>
 #include <iostream>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
-#include "llvm/IR/CallSite.h"
-
 #include "nlohmann/json.hpp"
 
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 namespace llvm {
@@ -35,14 +33,12 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
-  LLVMPointsToAnalysis PTA;
+  LLVMBasedPointsToAnalysis PTA;
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
-  std::unordered_map<
-      const llvm::Value *,
-      std::reference_wrapper<std::unordered_set<const llvm::Value *>>>
-      ValueSetRefMap;
-  std::vector<std::unordered_set<const llvm::Value *>> PointsToSets;
-  std::unordered_set<const llvm::Value *> EmptySet;
+  std::unordered_map<const llvm::Value *,
+                     std::shared_ptr<std::unordered_set<const llvm::Value *>>>
+      PointsToSets;
+  const std::unordered_set<const llvm::Value *> EmptySet;
 
   void computePointsToSet(const llvm::Value *V);
 

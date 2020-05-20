@@ -24,7 +24,7 @@
 #include "llvm/IR/Verifier.h"
 
 #include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 
 using namespace psr;
@@ -79,19 +79,30 @@ static inline void PrintLoadStoreResults(llvm::AliasResult AR, bool P,
   }
 }
 
-bool LLVMPointsToAnalysis::hasPointsToInfo(const llvm::Function &Fun) const {
+bool LLVMBasedPointsToAnalysis::hasPointsToInfo(
+    const llvm::Function &Fun) const {
   return AAInfos.find(&Fun) != AAInfos.end();
 }
 
-void LLVMPointsToAnalysis::computePointsToInfo(llvm::Function &Fun) {
+void LLVMBasedPointsToAnalysis::computePointsToInfo(llvm::Function &Fun) {
   llvm::PreservedAnalyses PA = FPM.run(Fun, FAM);
   llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(Fun);
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
 
-LLVMPointsToAnalysis::LLVMPointsToAnalysis(ProjectIRDB &IRDB,
-                                           bool UseLazyEvaluation,
-                                           PointerAnalysisType PATy)
+void LLVMBasedPointsToAnalysis::erase(const llvm::Function *F) {
+  AAInfos.erase(F);
+  FAM.clear();
+}
+
+void LLVMBasedPointsToAnalysis::clear() {
+  AAInfos.clear();
+  FAM.clear();
+}
+
+LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(ProjectIRDB &IRDB,
+                                                     bool UseLazyEvaluation,
+                                                     PointerAnalysisType PATy)
     : PATy(PATy) {
   AA.registerFunctionAnalysis<llvm::BasicAA>();
   switch (PATy) {
@@ -120,7 +131,7 @@ LLVMPointsToAnalysis::LLVMPointsToAnalysis(ProjectIRDB &IRDB,
   }
 }
 
-void LLVMPointsToAnalysis::print(std::ostream &OS) const {
+void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
   OS << "Points-to Info:\n";
   for (auto &[Fn, AA] : AAInfos) {
     bool PrintAll;
@@ -379,14 +390,14 @@ void LLVMPointsToAnalysis::print(std::ostream &OS) const {
   }
 }
 
-llvm::AAResults *LLVMPointsToAnalysis::getAAResults(llvm::Function *F) {
+llvm::AAResults *LLVMBasedPointsToAnalysis::getAAResults(llvm::Function *F) {
   if (!hasPointsToInfo(*F)) {
     computePointsToInfo(*F);
   }
   return AAInfos.at(F);
 }
 
-PointerAnalysisType LLVMPointsToAnalysis::getPointerAnalysisType() const {
+PointerAnalysisType LLVMBasedPointsToAnalysis::getPointerAnalysisType() const {
   return PATy;
 }
 

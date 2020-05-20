@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOANALYSIS_H_
-#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
 
 #include <iostream>
 #include <unordered_map>
@@ -29,7 +29,7 @@ namespace psr {
 
 class ProjectIRDB;
 
-class LLVMPointsToAnalysis {
+class LLVMBasedPointsToAnalysis {
 private:
   llvm::PassBuilder PB;
   llvm::AAManager AA;
@@ -43,15 +43,19 @@ private:
   void computePointsToInfo(llvm::Function &Fun);
 
 public:
-  LLVMPointsToAnalysis(
+  LLVMBasedPointsToAnalysis(
       ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
       PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
 
-  ~LLVMPointsToAnalysis() = default;
+  ~LLVMBasedPointsToAnalysis() = default;
 
   void print(std::ostream &OS = std::cout) const;
 
   llvm::AAResults *getAAResults(llvm::Function *F);
+
+  void erase(const llvm::Function *F);
+
+  void clear();
 
   PointerAnalysisType getPointerAnalysisType() const;
 };
