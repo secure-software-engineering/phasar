@@ -30,7 +30,7 @@ class WPDSProblem : public IDETabulationProblem<N, D, F, T, V, L, I> {
 
 public:
   WPDSProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
-              const I *ICF, const PointsToInfo<V, N> *PT,
+              const I *ICF, PointsToInfo<V, N> *PT,
               std::set<std::string> EntryPoints = {})
       : IDETabulationProblem<N, D, F, T, V, L, I>(IRDB, TH, ICF, PT,
                                                   EntryPoints) {}

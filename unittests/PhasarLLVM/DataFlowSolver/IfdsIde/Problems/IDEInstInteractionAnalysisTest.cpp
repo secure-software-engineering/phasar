@@ -19,7 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -57,8 +57,8 @@ protected:
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
+    LLVMPointsToSet PT(*IRDB);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                        &PT);
     IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &TH, &ICFG,
                                                               &PT, EntryPoints);
@@ -93,7 +93,8 @@ protected:
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Checking variable: " << FactStr);
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                        << "Checking variable: " << FactStr);
           EXPECT_EQ(std::get<3>(Truth), Value);
         }
       }
@@ -442,7 +443,8 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
           "main", 24, "retval", {"6", "11"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "i", {"1", "4", "2", "7", "0", "3", "16", "18", "12", "28"}));
+          "main", 24, "i",
+          {"1", "4", "2", "7", "0", "3", "16", "18", "12", "28"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "j", {"1", "4", "19", "2", "0", "21", "3", "13", "8"}));
@@ -458,13 +460,16 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
 // TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
 //   std::set<IIACompactResult_t> GroundTruth;
 //   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//       std::tuple<std::string, size_t, std::string,
+//       BitVectorSet<std::string>>(
 //           "main", 9, "retval", {"1", "3"}));
 //   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//       std::tuple<std::string, size_t, std::string,
+//       BitVectorSet<std::string>>(
 //           "main", 9, "i", {"0", "7", "8"}));
 //   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//       std::tuple<std::string, size_t, std::string,
+//       BitVectorSet<std::string>>(
 //           "main", 9, "j", {"2", "6", "5", "0"}));
 //   doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, true);
 // }

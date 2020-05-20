@@ -19,6 +19,7 @@
 
 #include <iosfwd>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -29,7 +30,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/Utils/SoundnessFlag.h"
 
 namespace llvm {
@@ -45,7 +46,6 @@ namespace psr {
 class Resolver;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
@@ -60,7 +60,7 @@ private:
   bool UserPTInfos = true;
   LLVMTypeHierarchy *TH;
   LLVMPointsToInfo *PT;
-  LLVMPointsToGraph WholeModulePTG;
+  std::unique_ptr<Resolver> Res;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
   // std::vector<const llvm::Instruction *> CallStack;
@@ -89,16 +89,16 @@ private:
   };
 
   /// Specify the type of graph to be used.
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-                                VertexProperties, EdgeProperties>
-      bidigraph_t;
+  using bidigraph_t =
+      boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
+                            VertexProperties, EdgeProperties>;
 
   // Let us have some handy typedefs.
-  typedef boost::graph_traits<bidigraph_t>::vertex_descriptor vertex_t;
-  typedef boost::graph_traits<bidigraph_t>::vertex_iterator vertex_iterator;
-  typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
-  typedef boost::graph_traits<bidigraph_t>::out_edge_iterator out_edge_iterator;
-  typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
+  using vertex_t = boost::graph_traits<bidigraph_t>::vertex_descriptor;
+  using vertex_iterator = boost::graph_traits<bidigraph_t>::vertex_iterator;
+  using edge_t = boost::graph_traits<bidigraph_t>::edge_descriptor;
+  using out_edge_iterator = boost::graph_traits<bidigraph_t>::out_edge_iterator;
+  using in_edge_iterator = boost::graph_traits<bidigraph_t>::in_edge_iterator;
 
   /// The call graph.
   bidigraph_t CallGraph;
@@ -108,6 +108,11 @@ private:
 
   void constructionWalker(const llvm::Function *F, Resolver &Resolver);
 
+  std::unique_ptr<Resolver> makeResolver(ProjectIRDB &IRDB,
+                                         CallGraphAnalysisType CGT,
+                                         LLVMTypeHierarchy &TH,
+                                         LLVMPointsToInfo &PT);
+
   struct dependency_visitor;
 
 public:
@@ -116,9 +121,8 @@ public:
    * For example, if the points-to analysis indicates that a pointer could
    * be for multiple different types.
    */
-  typedef std::unordered_multimap<const llvm::Instruction *,
-                                  const llvm::Function *>
-      OutEdgesAndTargets;
+  using OutEdgesAndTargets = std::unordered_multimap<const llvm::Instruction *,
+                                                     const llvm::Function *>;
 
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
@@ -192,7 +196,7 @@ public:
   getCallsFromWithin(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *M) const override;
+  getStartPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;
@@ -204,14 +208,9 @@ public:
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
-  const llvm::Instruction *getLastInstructionOf(const std::string &Name);
-
-  std::vector<const llvm::Instruction *>
-  getAllInstructionsOfFunction(const std::string &Name);
-
   void mergeWith(const LLVMBasedICFG &Other);
 
-  bool isPrimitiveFunction(const std::string &Name);
+  CallGraphAnalysisType getCallGraphAnalysisType() const;
 
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;
@@ -230,8 +229,6 @@ public:
   unsigned getNumOfVertices();
 
   unsigned getNumOfEdges();
-
-  const LLVMPointsToGraph &getWholeModulePTG() const;
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };

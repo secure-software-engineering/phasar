@@ -48,15 +48,14 @@ class IFDSConstAnalysis
                                    const llvm::StructType *,
                                    const llvm::Value *, LLVMBasedICFG> {
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
+  using d_t = const llvm::Value *;
+  using n_t = const llvm::Instruction *;
+  using f_t = const llvm::Function *;
+  using t_t = const llvm::StructType *;
+  using v_t = const llvm::Value *;
+  using i_t = LLVMBasedICFG;
 
 private:
-  const LLVMPointsToGraph &ptg;
   // Holds all allocated memory locations, including global variables
   std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
   // Holds all initialized variables and objects.
@@ -64,7 +63,7 @@ private:
 
 public:
   IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;

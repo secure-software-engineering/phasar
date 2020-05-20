@@ -17,11 +17,9 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/PassManager.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Linker/Linker.h"
-#include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Transforms/Utils.h"
@@ -45,7 +43,17 @@ using namespace std;
 
 namespace psr {
 
-ProjectIRDB::ProjectIRDB(IRDBOptions Options) : Options(Options) {}
+ProjectIRDB::ProjectIRDB(IRDBOptions Options) : Options(Options) {
+  // register the GeneralStaticsPass analysis pass to the ModuleAnalysisManager
+  // such that we can query its results later on
+  GeneralStatisticsAnalysis GSP;
+  MAM.registerPass([&]() { return std::move(GSP); });
+  PB.registerModuleAnalyses(MAM);
+  // add the transformation pass ValueAnnotationPass
+  MPM.addPass(ValueAnnotationPass());
+  // just to be sure that none of the passes messed up the module!
+  MPM.addPass(llvm::VerifierPass());
+}
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
                          IRDBOptions Options)
@@ -105,6 +113,7 @@ ProjectIRDB::~ProjectIRDB() {
       Module.release();
     }
   }
+  MAM.clear();
 }
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
@@ -113,18 +122,6 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   START_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Preprocess module: " << M->getModuleIdentifier());
-  llvm::PassBuilder PB;
-  llvm::ModuleAnalysisManager MAM;
-  // register the GeneralStaticsPass analysis pass to the ModuleAnalysisManager
-  // such that we can query its results later on
-  GeneralStatisticsAnalysis GSP;
-  MAM.registerPass([&]() { return std::move(GSP); });
-  PB.registerModuleAnalyses(MAM);
-  llvm::ModulePassManager MPM;
-  // add the transformation pass ValueAnnotationPass
-  MPM.addPass(ValueAnnotationPass());
-  // just to be sure that none of the passes messed up the module!
-  MPM.addPass(llvm::VerifierPass());
   MPM.run(*M, MAM);
   // retrieve data from the GeneralStatisticsAnalysis registered earlier
   auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);

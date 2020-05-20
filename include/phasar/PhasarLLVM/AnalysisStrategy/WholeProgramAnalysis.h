@@ -139,6 +139,12 @@ public:
     DataFlowSolver.emitGraphicalReport(OS);
   }
 
+  void emitESG(std::ostream &OS = std::cout) {
+    // if (std::is_base_of_v<typename Solver::ProblemTy, ProblemDescription>) {
+    //   DataFlowSolver.emitESGAsDot(OS);
+    // }
+  }
+
   void releaseAllHelperAnalyses() {
     releasePointerInformation();
     releaseCallGraph();

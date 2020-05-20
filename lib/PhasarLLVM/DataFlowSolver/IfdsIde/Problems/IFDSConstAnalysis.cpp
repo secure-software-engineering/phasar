@@ -40,10 +40,9 @@ namespace psr {
 IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
-                                     const LLVMPointsToInfo *PT,
+                                     LLVMPointsToInfo *PT,
                                      std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
-      ptg(ICF->getWholeModulePTG()) {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,
@@ -93,7 +92,8 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Pointer operand of store Instruction: "
                   << llvmIRToString(PointerOp));
-    set<IFDSConstAnalysis::d_t> PointsToSet = ptg.getPointsToSet(PointerOp);
+    const auto &PTS = PT->getPointsToSet(PointerOp);
+    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS.begin(), PTS.end());
     // Check if this store instruction is the second write access to the memory
     // location the pointer operand or it's alias are pointing to.
     // This is done by checking the Initialized set.
@@ -183,7 +183,8 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::d_t PointerOp = CallSite->getOperand(0);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Pointer Operand: " << llvmIRToString(PointerOp));
-    set<IFDSConstAnalysis::d_t> PointsToSet = ptg.getPointsToSet(PointerOp);
+    const auto &PTS = PT->getPointsToSet(PointerOp);
+    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS.begin(), PTS.end());
     for (const auto *Alias : PointsToSet) {
       if (isInitialized(Alias)) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

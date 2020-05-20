@@ -47,7 +47,7 @@ namespace psr {
 IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
                                            const LLVMTypeHierarchy *TH,
                                            const LLVMBasedICFG *ICF,
-                                           const LLVMPointsToInfo *PT,
+                                           LLVMPointsToInfo *PT,
                                            const TypeStateDescription &TSD,
                                            std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)), TSD(TSD),
@@ -654,14 +654,17 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
 std::set<IDETypeStateAnalysis::d_t>
 IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
   if (PointsToCache.find(V) != PointsToCache.end()) {
-    return PointsToCache[V];
+    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PointsToCache[V].begin(),
+                                                    PointsToCache[V].end());
+    return PointsToSet;
   } else {
-    auto PointsToSet = ICF->getWholeModulePTG().getPointsToSet(V);
-    for (const auto *Alias : PointsToSet) {
+    const auto &PTS = PT->getPointsToSet(V);
+    for (const auto *Alias : PTS) {
       if (hasMatchingType(Alias)) {
-        PointsToCache[Alias] = PointsToSet;
+        PointsToCache[Alias] = PTS;
       }
     }
+    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PTS.begin(), PTS.end());
     return PointsToSet;
   }
 }

@@ -1,5 +1,6 @@
 set(lca_files
   basic_01.cpp
+  call_01.cpp
   dynamic_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp

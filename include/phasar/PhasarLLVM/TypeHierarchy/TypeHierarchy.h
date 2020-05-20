@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 
+#include <iostream>
 #include <set>
 #include <string>
 
@@ -47,7 +48,7 @@ public:
 
   virtual bool empty() const = 0;
 
-  virtual void print(std::ostream &OS) const = 0;
+  virtual void print(std::ostream &OS = std::cout) const = 0;
 
   virtual nlohmann::json getAsJson() const = 0;
 };

@@ -12,6 +12,7 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -31,7 +32,7 @@ namespace psr {
 IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
-                                     const LLVMPointsToInfo *PT,
+                                     LLVMPointsToInfo *PT,
                                      std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSProtoAnalysis::ZeroValue = createZeroValue();

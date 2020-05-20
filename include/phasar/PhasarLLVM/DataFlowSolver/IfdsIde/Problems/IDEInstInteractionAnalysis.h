@@ -12,20 +12,21 @@
 
 #include <functional>
 #include <iostream>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
-#include <llvm/Support/Compiler.h>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
@@ -113,8 +114,7 @@ private:
 public:
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
-                              const LLVMBasedICFG *ICF,
-                              const LLVMPointsToInfo *PT,
+                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints = {"main"})
       : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, const llvm::StructType *,
@@ -145,7 +145,8 @@ public:
     // if (LLVM_UNLIKELY(!GeneratedGlobalVariables)) {
     //   if (const llvm::Module *M = curr->getModule()) {
     //     for (const auto &Global : M->globals()) {
-    //       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&Global)) {
+    //       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&Global))
+    //       {
     //         return std::make_shared<Gen<d_t>>(GV, this->getZeroValue());
     //       }
     //     }
@@ -187,7 +188,7 @@ public:
         struct IIAFlowFunction : FlowFunction<d_t> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::LoadInst *Load;
-          std::set<d_t> PTS;
+          std::unordered_set<d_t> PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
@@ -213,8 +214,8 @@ public:
         struct IIAFlowFunction : FlowFunction<d_t> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::StoreInst *Store;
-          std::set<d_t> ValuePTS;
-          std::set<d_t> PointerPTS;
+          std::unordered_set<d_t> ValuePTS;
+          std::unordered_set<d_t> PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
@@ -502,11 +503,11 @@ public:
       } else {
         // consider points-to information and find all possible overriding edges
         // using points-to sets
-        std::set<d_t> ValuePTS;
+        std::unordered_set<d_t> ValuePTS;
         if (Store->getValueOperand()->getType()->isPointerTy()) {
           ValuePTS = this->PT->getPointsToSet(Store->getValueOperand());
         }
-        std::set<d_t> PointerPTS =
+        std::unordered_set<d_t> PointerPTS =
             this->PT->getPointsToSet(Store->getPointerOperand());
         // overriding edge
         if ((currNode == Store->getValueOperand() ||

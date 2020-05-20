@@ -15,6 +15,9 @@ add_executable(myphasartool
 
 find_package(Threads REQUIRED)
 find_package(phasar)
+find_package(LLVM 10 REQUIRED CONFIG)
+include_directories(${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
 include_directories(${PHASAR_INCLUDE_DIR})
 link_directories(${PHASAR_LIBRARY_DIR})
 

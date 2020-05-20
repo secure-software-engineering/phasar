@@ -270,6 +270,10 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
   return nullptr;
 }
 
+const llvm::Instruction *getLastInstructionOf(const llvm::Function *F) {
+  return &F->back().back();
+}
+
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
                                            unsigned Idx) {
   unsigned Current = 1;

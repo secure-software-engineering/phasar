@@ -51,8 +51,7 @@ protected:
 public:
   IFDSTabulationProblemPlugin(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
-                              const LLVMBasedICFG *ICF,
-                              const LLVMPointsToInfo *PT,
+                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints)
       : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, const llvm::StructType *,
@@ -88,7 +87,7 @@ public:
 extern std::map<std::string,
                 std::unique_ptr<IFDSTabulationProblemPlugin> (*)(
                     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints)>
     IFDSTabulationProblemPluginFactory;
 

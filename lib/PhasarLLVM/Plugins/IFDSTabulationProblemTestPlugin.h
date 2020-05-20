@@ -26,7 +26,7 @@ public:
   IFDSTabulationProblemTestPlugin(const ProjectIRDB *IRDB,
                                   const LLVMTypeHierarchy *TH,
                                   const LLVMBasedICFG *ICF,
-                                  const LLVMPointsToInfo *PT,
+                                  LLVMPointsToInfo *PT,
                                   std::set<std::string> EntryPoints);
 
   ~IFDSTabulationProblemTestPlugin() = default;

@@ -27,7 +27,7 @@ struct AnalysisSetup {
 };
 
 struct DefaultAnalysisSetup : AnalysisSetup {
-  using PointerAnalysisTy = LLVMPointsToInfo;
+  using PointerAnalysisTy = LLVMPointsToSet;
   using CallGraphAnalysisTy = LLVMBasedICFG;
   using TypeHierarchyTy = LLVMTypeHierarchy;
 };

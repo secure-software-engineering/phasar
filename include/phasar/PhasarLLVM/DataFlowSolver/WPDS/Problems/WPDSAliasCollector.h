@@ -47,7 +47,7 @@ public:
   typedef LLVMBasedICFG i_t;
 
   WPDSAliasCollector(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                      std::set<std::string> EntryPoints);
 
   ~WPDSAliasCollector() override = default;

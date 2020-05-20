@@ -27,6 +27,7 @@
 #include "boost/log/support/date_time.hpp"
 // Not useful here but enable all logging macros in files that include Logger.h
 #include "boost/log/sources/record_ostream.hpp"
+#include <llvm/Support/Compiler.h> // LLVM_UNLIKELY
 
 #include "llvm/Support/ErrorHandling.h"
 

@@ -19,6 +19,8 @@
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Passes/PassBuilder.h"
 
 #include "phasar/Utils/EnumFlags.h"
 
@@ -44,6 +46,9 @@ class ProjectIRDB {
 private:
   llvm::Module *WPAModule = nullptr;
   IRDBOptions Options;
+  llvm::PassBuilder PB;
+  llvm::ModuleAnalysisManager MAM;
+  llvm::ModulePassManager MPM;
   // Stores all allocation instructions
   std::set<const llvm::Instruction *> AllocaInstructions;
   // Stores all allocated types

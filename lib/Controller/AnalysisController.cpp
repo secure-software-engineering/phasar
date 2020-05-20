@@ -73,7 +73,7 @@ AnalysisController::AnalysisController(
     const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
     AnalysisControllerEmitterOptions EmitterOptions,
     const std::string &ProjectID, const std::string &OutDirectory)
-    : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
+    : IRDB(IRDB), TH(IRDB), PT(IRDB, true, PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
       AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),

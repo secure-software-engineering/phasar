@@ -37,10 +37,11 @@ class WPDSLinearConstantAnalysis
                                  int64_t, LLVMBasedICFG>,
       public virtual IDELinearConstantAnalysis {
 public:
-  WPDSLinearConstantAnalysis(
-      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-      const std::set<std::string> &EntryPoints = {"main"});
+  WPDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
+                             const LLVMTypeHierarchy *TH,
+                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                             const std::set<std::string> &EntryPoints = {
+                                 "main"});
 
   ~WPDSLinearConstantAnalysis() override = default;
 };

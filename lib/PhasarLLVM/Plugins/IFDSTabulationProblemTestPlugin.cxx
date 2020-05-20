@@ -30,7 +30,7 @@ namespace psr {
 
 unique_ptr<IFDSTabulationProblemPlugin> makeIFDSTabulationProblemTestPlugin(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
       new IFDSTabulationProblemTestPlugin(IRDB, TH, ICF, PT,
@@ -49,7 +49,7 @@ __attribute__((destructor)) void fini() {
 
 IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 

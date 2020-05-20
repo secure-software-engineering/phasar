@@ -63,8 +63,7 @@ private:
 public:
   IFDSUninitializedVariables(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF,
-                             const LLVMPointsToInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSUninitializedVariables() override = default;

@@ -50,7 +50,7 @@ public:
 
   IFDSFieldSensTaintAnalysis(
       const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
       const TaintConfiguration<ExtendedValue> &TaintConfig,
       std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;
