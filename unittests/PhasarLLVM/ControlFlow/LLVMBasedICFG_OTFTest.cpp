@@ -27,24 +27,24 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
   const llvm::Function *VFuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");
+
   ASSERT_TRUE(F);
   ASSERT_TRUE(VFuncA);
   ASSERT_TRUE(VFuncB);
 
-  set<const llvm::Instruction *> Insts;
-  Insts.insert(getNthInstruction(F, 19));
-  Insts.insert(getNthInstruction(F, 25));
-  for (const auto *I : Insts) {
-    if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-      set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
-      ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
-      ASSERT_EQ(Callees.size(), 2);
-      ASSERT_TRUE(Callees.count(VFuncB));
-      ASSERT_TRUE(Callees.count(VFuncA));
-      ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(I));
-      ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(I));
-    }
-  }
+  auto CallToAFunc = getNthInstruction(F, 19);
+  ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
+  auto AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
+  ASSERT_EQ(AsCallees.size(), 1);
+  ASSERT_TRUE(AsCallees.count(VFuncA));
+  ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(CallToAFunc));
+
+  auto CallToBFunc = getNthInstruction(F, 25);
+  ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
+  auto BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
+  ASSERT_EQ(BsCallees.size(), 1);
+  ASSERT_TRUE(BsCallees.count(VFuncB));
+  ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(CallToBFunc));
 }
 
 // TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
