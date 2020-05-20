@@ -91,8 +91,9 @@ void LLVMBasedPointsToAnalysis::computePointsToInfo(llvm::Function &Fun) {
 }
 
 void LLVMBasedPointsToAnalysis::erase(const llvm::Function *F) {
-  AAInfos.erase(F);
-  FAM.clear();
+  // TODO
+  // after we clear all stuff, we need to set it up for the next function-wise
+  // analysis AAInfos.erase(F); FAM.clear();
 }
 
 void LLVMBasedPointsToAnalysis::clear() {

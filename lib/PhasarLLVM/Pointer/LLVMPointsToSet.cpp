@@ -173,7 +173,7 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
     }
   }
   // we no longer need the LLVM representation
-  // PTA.erase(F);
+  // TODO PTA.erase(F);
 }
 
 bool LLVMPointsToSet::isInterProcedural() const { return false; }
