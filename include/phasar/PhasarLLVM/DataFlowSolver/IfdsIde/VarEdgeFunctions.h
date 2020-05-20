@@ -82,9 +82,12 @@ public:
   VarEdgeFunction(std::shared_ptr<EdgeFunction<user_l_t>> UserEdgeFn,
                   z3::expr Constraint)
       : UserEdgeFns({std::make_pair(Constraint, UserEdgeFn)}) {
+
+    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+    //              << "construct VAREdgeFunction with '"
+    //              << Constraint.to_string() << "'");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "construct VAREdgeFunction with '"
-                  << Constraint.to_string() << "'");
+                  << "construct VAREdgeFunction: " << this->str());
   }
 
   VarEdgeFunction(

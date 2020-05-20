@@ -453,6 +453,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
             // CurrentState = TSD.start();
             CurrentState = TSD.getNextState(
                 Token, Source == TSD.top() ? TSD.uninit() : Source, CS);
+
             return CurrentState;
           }
 

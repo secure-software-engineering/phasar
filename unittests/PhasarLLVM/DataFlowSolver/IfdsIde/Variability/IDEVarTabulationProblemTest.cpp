@@ -32,7 +32,7 @@ class IDEVarTabulationProblemTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/variability/";
+      "build/test/llvm_test_code/variability/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Z3Constraint x Value

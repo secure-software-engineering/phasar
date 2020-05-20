@@ -7,11 +7,12 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
+#include <iostream>
 
 using namespace std;
 using namespace psr;
@@ -58,6 +59,7 @@ const OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryState
 bool OpenSSLSecureMemoryDescription::isFactoryFunction(
     const std::string &F) const {
   if (isAPIFunction(F)) {
+
     return OpenSSLSecureMemoryFuncs.at(F).find(-1) !=
            OpenSSLSecureMemoryFuncs.at(F).end();
   }
@@ -67,6 +69,7 @@ bool OpenSSLSecureMemoryDescription::isFactoryFunction(
 bool OpenSSLSecureMemoryDescription::isConsumingFunction(
     const std::string &F) const {
   if (isAPIFunction(F)) {
+
     return OpenSSLSecureMemoryFuncs.at(F).find(-1) ==
            OpenSSLSecureMemoryFuncs.at(F).end();
   }
@@ -74,6 +77,7 @@ bool OpenSSLSecureMemoryDescription::isConsumingFunction(
 }
 
 bool OpenSSLSecureMemoryDescription::isAPIFunction(const std::string &F) const {
+
   return OpenSSLSecureMemoryFuncs.find(F) != OpenSSLSecureMemoryFuncs.end();
 }
 

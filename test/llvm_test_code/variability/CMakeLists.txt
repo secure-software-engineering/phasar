@@ -1,6 +1,4 @@
-file(GLOB variability_files *.c *.cpp)
-
-foreach(TEST_SRC ${variability_files})
-  get_filename_component(TEST_SRC_FILE ${TEST_SRC} NAME)
-  generate_ll_file(FILE ${TEST_SRC_FILE})
-endforeach(TEST_SRC)
+subdirlist(subdirs ${CMAKE_CURRENT_SOURCE_DIR})
+foreach(subdir ${subdirs})
+  add_subdirectory(${subdir})
+endforeach(subdir)

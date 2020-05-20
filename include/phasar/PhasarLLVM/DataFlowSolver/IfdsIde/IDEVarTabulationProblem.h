@@ -158,6 +158,9 @@ public:
                            std::set<F> callees) override {
     auto UserEF = IDEProblem.getCallToRetEdgeFunction(
         callSite, callNode, retSite, retSiteNode, callees);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Get User CTR EF: " << UserEF->str() << " AT "
+                  << llvmIRToShortString(callSite));
     return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
