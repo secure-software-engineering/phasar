@@ -239,21 +239,35 @@ void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
   if (SearchV1 == PointsToSets.end() || SearchV2 == PointsToSets.end()) {
     return;
   }
+  auto V1Ptr = SearchV1->first;
+  auto V2Ptr = SearchV2->first;
+  auto V1Set = SearchV1->second;
+  auto V2Set = SearchV2->second;
   // if V1 and V2 are not already aliases, make them aliases
-  if (SearchV1->second->find(V2) == SearchV1->second->end()) {
-    auto &Larger = (SearchV1->second->size() < SearchV2->second->size())
-                       ? SearchV2
-                       : SearchV1;
-    auto &Smaller = (SearchV1->second->size() < SearchV2->second->size())
-                        ? SearchV1
-                        : SearchV2;
-    Larger->second->insert(Smaller->second->begin(), Smaller->second->end());
-    // reindex
-    for (const auto *Pointer : *(Smaller->second)) {
-      PointsToSets[Pointer] = Larger->second;
+  if (V1Set->find(V2) == V1Set->end()) {
+    std::shared_ptr<std::unordered_set<const llvm::Value *>> SmallerSet;
+    std::shared_ptr<std::unordered_set<const llvm::Value *>> LargerSet;
+    const llvm::Value *SmallerPtr;
+    const llvm::Value *LargerPtr;
+    if (V1Set->size() < V2Set->size()) {
+      SmallerSet = V1Set;
+      LargerSet = V2Set;
+      SmallerPtr = V1Ptr;
+      LargerPtr = V2Ptr;
+    } else {
+      SmallerSet = V2Set;
+      LargerSet = V1Set;
+      SmallerPtr = V2Ptr;
+      LargerPtr = V1Ptr;
     }
-    // no we don't need Smaller anymore
-    PointsToSets.erase(Smaller);
+    LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
+    // reindex
+    for (const auto *Pointer : *SmallerSet) {
+      PointsToSets[Pointer] = LargerSet;
+    }
+    // no we don't need V2Set anymore
+    SmallerSet->clear();
+    PointsToSets.erase(SmallerPtr);
   }
 }
 
