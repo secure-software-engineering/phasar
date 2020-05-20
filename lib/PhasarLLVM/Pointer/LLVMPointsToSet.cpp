@@ -173,6 +173,7 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
     }
   }
   // we no longer need the LLVM representation
+  // TODO
   // PTA.erase(F);
 }
 
