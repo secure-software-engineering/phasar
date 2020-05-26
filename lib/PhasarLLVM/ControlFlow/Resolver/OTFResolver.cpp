@@ -187,11 +187,12 @@ OTFResolver::getActualFormalPointerPairs(
   // ordinary case
   if (!CalleeTarget->isVarArg()) {
     Pairs.reserve(CS.arg_size());
-    for (unsigned idx = 0; idx < CS.arg_size(); ++idx) {
+    for (unsigned Idx = 0;
+         Idx < CS.arg_size() && Idx < CalleeTarget->arg_size(); ++Idx) {
       // only collect pointer typed pairs
-      if (CS.getArgOperand(idx)->getType()->isPointerTy() &&
-          CalleeTarget->getArg(idx)->getType()->isPointerTy()) {
-        Pairs.push_back({CS.getArgOperand(idx), CalleeTarget->getArg(idx)});
+      if (CS.getArgOperand(Idx)->getType()->isPointerTy() &&
+          CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
+        Pairs.push_back({CS.getArgOperand(Idx), CalleeTarget->getArg(Idx)});
       }
     }
   }
