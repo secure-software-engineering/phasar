@@ -195,7 +195,34 @@ OTFResolver::getActualFormalPointerPairs(
         Pairs.push_back({CS.getArgOperand(Idx), CalleeTarget->getArg(Idx)});
       }
     }
+  } else {
+    // in case of vararg, we can pair-up incoming pointer parameters with the
+    // vararg pack of the callee target. the vararg pack will alias
+    // (intra-procedurally) with any pointer values loaded from the pack
+    const llvm::AllocaInst *VarArgs = nullptr;
+    for (const auto &BB : *CalleeTarget) {
+      for (const auto &I : BB) {
+        if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+          if (const auto *AT =
+                  llvm::dyn_cast<llvm::ArrayType>(Alloca->getAllocatedType())) {
+            if (const auto *ST = llvm::dyn_cast<llvm::StructType>(
+                    AT->getArrayElementType())) {
+              if (ST->hasName() && ST->getName() == "struct.__va_list_tag") {
+                VarArgs = Alloca;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (VarArgs) {
+      for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
+        if (CS.getArgOperand(Idx)->getType()->isPointerTy()) {
+          Pairs.push_back({CS.getArgOperand(Idx), VarArgs});
+        }
+      }
+    }
   }
-  // TODO handle varargs
   return Pairs;
 }

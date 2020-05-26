@@ -35,7 +35,17 @@ namespace psr {
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
-    : PTA(IRDB, UseLazyEvaluation, PATy) {}
+    : PTA(IRDB, UseLazyEvaluation, PATy) {
+  if (!UseLazyEvaluation) {
+    for (llvm::Module *M : IRDB.getAllModules()) {
+      for (auto &F : *M) {
+        if (!F.isDeclaration()) {
+          computePointsToSet(&F);
+        }
+      }
+    }
+  }
+}
 
 void LLVMPointsToSet::computePointsToSet(const llvm::Value *V) {
   auto *VF = retrieveFunction(V);
