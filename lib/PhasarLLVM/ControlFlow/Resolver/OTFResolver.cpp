@@ -187,14 +187,42 @@ OTFResolver::getActualFormalPointerPairs(
   // ordinary case
   if (!CalleeTarget->isVarArg()) {
     Pairs.reserve(CS.arg_size());
-    for (unsigned idx = 0; idx < CS.arg_size(); ++idx) {
+    for (unsigned Idx = 0;
+         Idx < CS.arg_size() && Idx < CalleeTarget->arg_size(); ++Idx) {
       // only collect pointer typed pairs
-      if (CS.getArgOperand(idx)->getType()->isPointerTy() &&
-          CalleeTarget->getArg(idx)->getType()->isPointerTy()) {
-        Pairs.push_back({CS.getArgOperand(idx), CalleeTarget->getArg(idx)});
+      if (CS.getArgOperand(Idx)->getType()->isPointerTy() &&
+          CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
+        Pairs.push_back({CS.getArgOperand(Idx), CalleeTarget->getArg(Idx)});
+      }
+    }
+  } else {
+    // in case of vararg, we can pair-up incoming pointer parameters with the
+    // vararg pack of the callee target. the vararg pack will alias
+    // (intra-procedurally) with any pointer values loaded from the pack
+    const llvm::AllocaInst *VarArgs = nullptr;
+    for (const auto &BB : *CalleeTarget) {
+      for (const auto &I : BB) {
+        if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+          if (const auto *AT =
+                  llvm::dyn_cast<llvm::ArrayType>(Alloca->getAllocatedType())) {
+            if (const auto *ST = llvm::dyn_cast<llvm::StructType>(
+                    AT->getArrayElementType())) {
+              if (ST->hasName() && ST->getName() == "struct.__va_list_tag") {
+                VarArgs = Alloca;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (VarArgs) {
+      for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
+        if (CS.getArgOperand(Idx)->getType()->isPointerTy()) {
+          Pairs.push_back({CS.getArgOperand(Idx), VarArgs});
+        }
       }
     }
   }
-  // TODO handle varargs
   return Pairs;
 }

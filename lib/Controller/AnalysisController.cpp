@@ -66,6 +66,12 @@ template <> struct hash<pair<const llvm::Value *, unsigned>> {
 
 namespace psr {
 
+bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
+  return (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) ||
+         (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) ||
+         (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText);
+}
+
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
@@ -73,7 +79,7 @@ AnalysisController::AnalysisController(
     const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
     AnalysisControllerEmitterOptions EmitterOptions,
     const std::string &ProjectID, const std::string &OutDirectory)
-    : IRDB(IRDB), TH(IRDB), PT(IRDB, true, PTATy),
+    : IRDB(IRDB), TH(IRDB), PT(IRDB, !needsToEmitPTA(EmitterOptions), PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
       AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
