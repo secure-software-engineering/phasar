@@ -14,7 +14,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 
 namespace psr {
@@ -42,7 +41,8 @@ LCAEdgeFunctionComposer::composeWith(
       dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
     return shared_from_this();
   }
-  if (dynamic_cast<IdentityEdgeFunction *>(SecondFunction.get())) {
+  if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
+          SecondFunction.get())) {
     return shared_from_this();
   }
   if (dynamic_cast<GenConstant *>(SecondFunction.get())) {

@@ -8,10 +8,10 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 
 namespace psr {
@@ -67,7 +67,8 @@ JoinEdgeFunction::composeWith(
   if (dynamic_cast<GenConstant *>(SecondFunction.get())) {
     return SecondFunction;
   }
-  if (dynamic_cast<IdentityEdgeFunction *>(SecondFunction.get())) {
+  if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
+          SecondFunction.get())) {
     return shared_from_this();
   }
   return std::make_shared<LCAEdgeFunctionComposer>(shared_from_this(),

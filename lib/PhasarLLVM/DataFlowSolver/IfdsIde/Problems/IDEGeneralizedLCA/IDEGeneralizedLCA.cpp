@@ -28,7 +28,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
@@ -383,9 +382,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
     }
   }
   // std::cout << "FallThrough: identity edge fn" << std::endl;
-  return IdentityEdgeFunction::getInstance(maxSetSize);
-  // return std::make_shared<DebugIdentityEdgeFunction>(curr, succ,
-  // maxSetSize);
+  return EdgeIdentity<l_t>::getInstance();
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
@@ -396,7 +393,7 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
   // assert(destNode && "Invalid dest node");
   // assert(srcNode && "Invalid src node");
   if (!DestNode) {
-    return IdentityEdgeFunction::getInstance(maxSetSize);
+    return EdgeIdentity<l_t>::getInstance();
   }
   /*if (isZeroValue(srcNode) &&
       destinationMethod->getName().contains("EVP_KDF_ctrl")) {
@@ -426,7 +423,7 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
       }
     }
   }
-  return IdentityEdgeFunction::getInstance(maxSetSize);
+  return EdgeIdentity<l_t>::getInstance();
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
@@ -449,7 +446,7 @@ IDEGeneralizedLCA::getReturnEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
   // std::cout << "Return identity: " << llvmIRToShortString(exitStmt)
   //          << std::endl;
   // return edge-identity
-  return IdentityEdgeFunction::getInstance(maxSetSize);
+  return EdgeIdentity<l_t>::getInstance();
 }
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 IDEGeneralizedLCA::getCallToRetEdgeFunction(
@@ -457,7 +454,7 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
     IDEGeneralizedLCA::n_t RetSite, IDEGeneralizedLCA::d_t RetSiteNode,
     std::set<IDEGeneralizedLCA::f_t> Callees) {
   // return edge-identity
-  return IdentityEdgeFunction::getInstance(maxSetSize);
+  return EdgeIdentity<l_t>::getInstance();
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
@@ -466,7 +463,7 @@ IDEGeneralizedLCA::getSummaryEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                           IDEGeneralizedLCA::n_t RetSite,
                                           IDEGeneralizedLCA::d_t RetSiteNode) {
   // return edge-identity
-  return IdentityEdgeFunction::getInstance(maxSetSize);
+  return EdgeIdentity<l_t>::getInstance();
 }
 
 IDEGeneralizedLCA::l_t IDEGeneralizedLCA::topElement() { return l_t({}); }

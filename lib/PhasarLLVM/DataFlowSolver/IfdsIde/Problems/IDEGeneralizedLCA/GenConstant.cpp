@@ -9,9 +9,9 @@
 
 #include <iostream>
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 
 namespace psr {
@@ -40,7 +40,8 @@ GenConstant::computeTarget(IDEGeneralizedLCA::l_t Source) {
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> GenConstant::composeWith(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
   // std::cout << "GenConstant composing" << std::endl;
-  if (dynamic_cast<IdentityEdgeFunction *>(SecondFunction.get()) ||
+  if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
+          SecondFunction.get()) ||
       dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
 
     return shared_from_this();
