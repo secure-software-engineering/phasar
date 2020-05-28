@@ -32,11 +32,15 @@ extern const std::shared_ptr<AllBottom<BinaryDomain>> ALLBOTTOM;
  * using a binary domain for the edge functions.
  */
 template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
+          typename I, typename Container = std::set<D>>
 class IFDSToIDETabulationProblem
-    : public IDETabulationProblem<N, D, F, T, V, BinaryDomain, I> {
+    : public IDETabulationProblem<N, D, F, T, V, BinaryDomain, I, Container> {
+
+  using typename IDETabulationProblem<N, D, F, T, V, BinaryDomain, I,
+                                      Container>::FlowFunctionPtrType;
+
 public:
-  IFDSTabulationProblem<N, D, F, T, V, I> &Problem;
+  IFDSTabulationProblem<N, D, F, T, V, I, Container> &Problem;
 
   IFDSToIDETabulationProblem(
       IFDSTabulationProblem<N, D, F, T, V, I> &IFDSProblem)
@@ -48,29 +52,25 @@ public:
     this->ZeroValue = Problem.createZeroValue();
   }
 
-  std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr,
-                                                         N succ) override {
+  FlowFunctionPtrType getNormalFlowFunction(N curr, N succ) override {
     return Problem.getNormalFlowFunction(curr, succ);
   }
 
-  std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
-                                                       F destFun) override {
+  FlowFunctionPtrType getCallFlowFunction(N callStmt, F destFun) override {
     return Problem.getCallFlowFunction(callStmt, destFun);
   }
 
-  std::shared_ptr<FlowFunction<D>>
-  getRetFlowFunction(N callSite, F calleeFun, N exitStmt, N retSite) override {
+  FlowFunctionPtrType getRetFlowFunction(N callSite, F calleeFun, N exitStmt,
+                                         N retSite) override {
     return Problem.getRetFlowFunction(callSite, calleeFun, exitStmt, retSite);
   }
 
-  std::shared_ptr<FlowFunction<D>>
-  getCallToRetFlowFunction(N callSite, N retSite,
-                           std::set<F> callees) override {
+  FlowFunctionPtrType getCallToRetFlowFunction(N callSite, N retSite,
+                                               std::set<F> callees) override {
     return Problem.getCallToRetFlowFunction(callSite, retSite, callees);
   }
 
-  std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
-                                                          F destFun) override {
+  FlowFunctionPtrType getSummaryFlowFunction(N callStmt, F destFun) override {
     return Problem.getSummaryFlowFunction(callStmt, destFun);
   }
 

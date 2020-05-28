@@ -56,7 +56,7 @@ namespace psr {
 
 // Forward declare the Transformation
 template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
+          typename I, typename Container>
 class IFDSToIDETabulationProblem;
 
 /**
@@ -74,19 +74,24 @@ class IFDSToIDETabulationProblem;
  * @param <I> The type of inter-procedural control-flow graph being used.
  */
 template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I>
+          typename L, typename I, typename Container = std::set<D>>
 class IDESolver {
 public:
-  using ProblemTy = IDETabulationProblem<N, D, F, T, V, L, I>;
+  using ProblemTy = IDETabulationProblem<N, D, F, T, V, L, I, Container>;
+  using container_type = typename ProblemTy::container_type;
+  using FlowFunctionPtrType = typename ProblemTy::FlowFunctionPtrType;
 
-  IDESolver(IDETabulationProblem<N, D, F, T, V, L, I> &Problem)
+  IDESolver(IDETabulationProblem<N, D, F, T, V, L, I, Container> &Problem)
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
         ICF(Problem.getICFG()), SolverConfig(Problem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(Problem), allTop(Problem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I>>(
+        jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I, Container>>(
             allTop, IDEProblem)),
         initialSeeds(Problem.initialSeeds()) {}
 
+  IDESolver(const IDESolver &) = delete;
+  IDESolver &operator=(const IDESolver &) = delete;
+  IDESolver(IDESolver &&) = delete;
   IDESolver &operator=(IDESolver &&) = delete;
 
   virtual ~IDESolver() = default;
@@ -309,23 +314,23 @@ public:
 
 protected:
   // have a shared point to allow for a copy constructor of IDESolver
-  std::unique_ptr<IFDSToIDETabulationProblem<N, D, F, T, V, I>>
+  std::unique_ptr<IFDSToIDETabulationProblem<N, D, F, T, V, I, Container>>
       TransformedProblem;
-  IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem;
+  IDETabulationProblem<N, D, F, T, V, L, I, Container> &IDEProblem;
   D ZeroValue;
   const I *ICF;
   const IFDSIDESolverConfig SolverConfig;
   unsigned PathEdgeCount = 0;
 
-  FlowEdgeFunctionCache<N, D, F, T, V, L, I> cachedFlowEdgeFunctions;
+  FlowEdgeFunctionCache<N, D, F, T, V, L, I, Container> cachedFlowEdgeFunctions;
 
-  Table<N, N, std::map<D, std::set<D>>> computedIntraPathEdges;
+  Table<N, N, std::map<D, Container>> computedIntraPathEdges;
 
-  Table<N, N, std::map<D, std::set<D>>> computedInterPathEdges;
+  Table<N, N, std::map<D, Container>> computedInterPathEdges;
 
   std::shared_ptr<EdgeFunction<L>> allTop;
 
-  std::shared_ptr<JumpFunctions<N, D, F, T, V, L, I>> jumpFn;
+  std::shared_ptr<JumpFunctions<N, D, F, T, V, L, I, Container>> jumpFn;
 
   std::map<std::tuple<N, D, N, D>,
            std::vector<std::shared_ptr<EdgeFunction<L>>>>
@@ -337,7 +342,7 @@ protected:
 
   // edges going along calls
   // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<N, D, std::map<N, std::set<D>>> incomingtab;
+  Table<N, D, std::map<N, Container>> incomingtab;
 
   // stores the return sites (inside callers) to which we have unbalanced
   // returns if SolverConfig.followReturnPastSeeds is enabled
@@ -355,16 +360,17 @@ protected:
   // a modifiable l-value reference within the IDESolver implementation leads
   // to (massive) undefined behavior (and nightmares):
   // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
-  IDESolver(IFDSTabulationProblem<N, D, F, T, V, I> &Problem)
+  IDESolver(IFDSTabulationProblem<N, D, F, T, V, I, Container> &Problem)
       : TransformedProblem(
-            std::make_unique<IFDSToIDETabulationProblem<N, D, F, T, V, I>>(
+            std::make_unique<
+                IFDSToIDETabulationProblem<N, D, F, T, V, I, Container>>(
                 Problem)),
         IDEProblem(*TransformedProblem), ZeroValue(IDEProblem.getZeroValue()),
         ICF(IDEProblem.getICFG()),
         SolverConfig(IDEProblem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(IDEProblem),
         allTop(IDEProblem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I>>(
+        jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I, Container>>(
             allTop, IDEProblem)),
         initialSeeds(IDEProblem.initialSeeds()) {}
 
@@ -415,7 +421,7 @@ protected:
     // for each possible callee
     for (F sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
-      std::shared_ptr<FlowFunction<D>> specialSum =
+      FlowFunctionPtrType specialSum =
           cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN);
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
@@ -423,7 +429,7 @@ protected:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found and process special summary");
         for (N returnSiteN : returnSiteNs) {
-          std::set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
+          container_type res = computeSummaryFlowFunction(specialSum, d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1,
                       PAMM_SEVERITY_LEVEL::Full);
           ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
@@ -446,10 +452,10 @@ protected:
         }
       } else {
         // compute the call-flow function
-        std::shared_ptr<FlowFunction<D>> function =
+        FlowFunctionPtrType function =
             cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        std::set<D> res = computeCallFlowFunction(function, d1, d2);
+        container_type res = computeCallFlowFunction(function, d1, d2);
         ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
         // for each callee's start point(s)
@@ -499,12 +505,12 @@ protected:
               // for each return site
               for (N retSiteN : returnSiteNs) {
                 // compute return-flow function
-                std::shared_ptr<FlowFunction<D>> retFunction =
+                FlowFunctionPtrType retFunction =
                     cachedFlowEdgeFunctions.getRetFlowFunction(n, sCalledProcN,
                                                                eP, retSiteN);
                 INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-                const std::set<D> returnedFacts = computeReturnFlowFunction(
-                    retFunction, d3, d4, n, std::set<D>{d2});
+                const container_type returnedFacts = computeReturnFlowFunction(
+                    retFunction, d3, d4, n, Container{d2});
                 ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1,
                                  PAMM_SEVERITY_LEVEL::Full);
                 saveEdges(eP, retSiteN, d4, returnedFacts, true);
@@ -563,11 +569,11 @@ protected:
       // line 17-19 of Naeem/Lhotak/Rodriguez
       // process intra-procedural flows along call-to-return flow functions
       for (N returnSiteN : returnSiteNs) {
-        std::shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
+        FlowFunctionPtrType callToReturnFlowFunction =
             cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
                                                              callees);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        std::set<D> returnFacts =
+        container_type returnFacts =
             computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
         ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
@@ -611,10 +617,11 @@ protected:
     D d2 = edge.factAtTarget();
     std::shared_ptr<EdgeFunction<L>> f = jumpFunction(edge);
     for (const auto fn : ICF->getSuccsOf(n)) {
-      std::shared_ptr<FlowFunction<D>> flowFunction =
+      FlowFunctionPtrType flowFunction =
           cachedFlowEdgeFunctions.getNormalFlowFunction(n, fn);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-      const std::set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
+      const container_type res =
+          computeNormalFlowFunction(flowFunction, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
       saveEdges(n, fn, d2, res, false);
@@ -662,7 +669,7 @@ protected:
     PAMM_GET_INSTANCE;
     D d = nAndD.second;
     for (const F q : ICF->getCalleesOfCallAt(n)) {
-      std::shared_ptr<FlowFunction<D>> callFlowFunction =
+      FlowFunctionPtrType callFlowFunction =
           cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       for (const D dPrime : callFlowFunction->computeTargets(d)) {
@@ -831,10 +838,11 @@ protected:
   }
 
   virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal,
-                         const std::set<D> &destVals, bool interP) {
-    if (!SolverConfig.recordEdges)
+                         const container_type &destVals, bool interP) {
+    if (!SolverConfig.recordEdges) {
       return;
-    Table<N, N, std::map<D, std::set<D>>> &tgtMap =
+    }
+    Table<N, N, std::map<D, container_type>> &tgtMap =
         (interP) ? computedInterPathEdges : computedIntraPathEdges;
     tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
                                                        destVals.end());
@@ -917,13 +925,13 @@ protected:
     // for each of the method's start points, determine incoming calls
     const std::set<N> startPointsOf =
         ICF->getStartPointsOf(functionThatNeedsSummary);
-    std::map<N, std::set<D>> inc;
+    std::map<N, container_type> inc;
     for (N sP : startPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
       // register end-summary
       addEndSummary(sP, d1, n, d2, f);
       for (auto entry : incoming(d1, sP)) {
-        inc[entry.first] = std::set<D>{entry.second};
+        inc[entry.first] = Container{entry.second};
       }
     }
     printEndSummaryTab();
@@ -936,13 +944,13 @@ protected:
       // for each return site
       for (N retSiteC : ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
-        std::shared_ptr<FlowFunction<D>> retFunction =
+        FlowFunctionPtrType retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 c, functionThatNeedsSummary, n, retSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
         for (D d4 : entry.second) {
-          const std::set<D> targets =
+          const container_type targets =
               computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
@@ -1016,12 +1024,12 @@ protected:
       const std::set<N> callers = ICF->getCallersOf(functionThatNeedsSummary);
       for (N c : callers) {
         for (N retSiteC : ICF->getReturnSitesOfCallAt(c)) {
-          std::shared_ptr<FlowFunction<D>> retFunction =
+          FlowFunctionPtrType retFunction =
               cachedFlowEdgeFunctions.getRetFlowFunction(
                   c, functionThatNeedsSummary, n, retSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          const std::set<D> targets = computeReturnFlowFunction(
-              retFunction, d1, d2, c, std::set<D>{ZeroValue});
+          const container_type targets = computeReturnFlowFunction(
+              retFunction, d1, d2, c, Container{ZeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, retSiteC, d2, targets, true);
@@ -1050,7 +1058,7 @@ protected:
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
       if (callers.empty()) {
-        std::shared_ptr<FlowFunction<D>> retFunction =
+        FlowFunctionPtrType retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 nullptr, functionThatNeedsSummary, n, nullptr);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -1100,16 +1108,18 @@ protected:
    * @param d2 The abstraction at the current node
    * @return The set of abstractions at the successor node
    */
-  std::set<D> computeNormalFlowFunction(
-      const std::shared_ptr<FlowFunction<D>> &flowFunction, D d1, D d2) {
+  container_type computeNormalFlowFunction(
+      const std::shared_ptr<FlowFunction<D, Container>> &flowFunction, D d1,
+      D d2) {
     return flowFunction->computeTargets(d2);
   }
 
   /**
    * TODO: comment
    */
-  std::set<D> computeSummaryFlowFunction(
-      const std::shared_ptr<FlowFunction<D>> &SummaryFlowFunction, D d1, D d2) {
+  container_type computeSummaryFlowFunction(
+      const std::shared_ptr<FlowFunction<D, Container>> &SummaryFlowFunction,
+      D d1, D d2) {
     return SummaryFlowFunction->computeTargets(d2);
   }
 
@@ -1120,8 +1130,9 @@ protected:
    * @param d2 The abstraction at the call site
    * @return The set of caller-side abstractions at the callee's start node
    */
-  std::set<D> computeCallFlowFunction(
-      const std::shared_ptr<FlowFunction<D>> &callFlowFunction, D d1, D d2) {
+  container_type computeCallFlowFunction(
+      const std::shared_ptr<FlowFunction<D, Container>> &callFlowFunction, D d1,
+      D d2) {
     return callFlowFunction->computeTargets(d2);
   }
 
@@ -1134,9 +1145,10 @@ protected:
    * @param d2 The abstraction at the call site
    * @return The set of caller-side abstractions at the return site
    */
-  std::set<D> computeCallToReturnFlowFunction(
-      const std::shared_ptr<FlowFunction<D>> &callToReturnFlowFunction, D d1,
-      D d2) {
+  container_type computeCallToReturnFlowFunction(
+      const std::shared_ptr<FlowFunction<D, Container>>
+          &callToReturnFlowFunction,
+      D d1, D d2) {
     return callToReturnFlowFunction->computeTargets(d2);
   }
 
@@ -1150,10 +1162,9 @@ protected:
    * @param callerSideDs The abstractions at the call site
    * @return The set of caller-side abstractions at the return site
    */
-  std::set<D>
-  computeReturnFlowFunction(const std::shared_ptr<FlowFunction<D>> &retFunction,
-                            D d1, D d2, N callSite,
-                            const std::set<D> &callerSideDs) {
+  container_type computeReturnFlowFunction(
+      const std::shared_ptr<FlowFunction<D, Container>> &retFunction, D d1,
+      D d2, N callSite, const Container &callerSideDs) {
     return retFunction->computeTargets(d2);
   }
 
@@ -1250,7 +1261,7 @@ protected:
     return endsummarytab.get(sP, d3).cellSet();
   }
 
-  std::map<N, std::set<D>> incoming(D d1, N sP) {
+  std::map<N, container_type> incoming(D d1, N sP) {
     return incomingtab.get(sP, d1);
   }
 
@@ -1822,16 +1833,18 @@ public:
 };
 
 template <typename Problem>
-IDESolver(Problem &) -> IDESolver<typename Problem::n_t, typename Problem::d_t,
-                                  typename Problem::f_t, typename Problem::t_t,
-                                  typename Problem::v_t, typename Problem::l_t,
-                                  typename Problem::i_t>;
+IDESolver(Problem &)
+    -> IDESolver<typename Problem::n_t, typename Problem::d_t,
+                 typename Problem::f_t, typename Problem::t_t,
+                 typename Problem::v_t, typename Problem::l_t,
+                 typename Problem::i_t, typename Problem::container_type>;
 
 template <typename Problem>
-using IDESolver_P = IDESolver<typename Problem::n_t, typename Problem::d_t,
-                              typename Problem::f_t, typename Problem::t_t,
-                              typename Problem::v_t, typename Problem::l_t,
-                              typename Problem::i_t>;
+using IDESolver_P =
+    IDESolver<typename Problem::n_t, typename Problem::d_t,
+              typename Problem::f_t, typename Problem::t_t,
+              typename Problem::v_t, typename Problem::l_t,
+              typename Problem::i_t, typename Problem::container_type>;
 
 } // namespace psr
 

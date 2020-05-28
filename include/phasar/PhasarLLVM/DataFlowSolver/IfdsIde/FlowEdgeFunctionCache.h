@@ -31,9 +31,9 @@ namespace psr {
 template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I, typename Container = std::set<D>>
 class FlowEdgeFunctionCache {
-  using FlowFunctionType =
+  using FlowFunctionPtrType =
       typename IDETabulationProblem<N, D, F, T, V, L, I,
-                                    Container>::FlowFunctionType;
+                                    Container>::FlowFunctionPtrType;
 
 private:
   IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem;
@@ -41,10 +41,10 @@ private:
   bool autoAddZero;
   D zeroValue;
   // Caches for the flow functions
-  std::map<std::tuple<N, N>, FlowFunctionType> NormalFlowFunctionCache;
-  std::map<std::tuple<N, F>, FlowFunctionType> CallFlowFunctionCache;
-  std::map<std::tuple<N, F, N, N>, FlowFunctionType> ReturnFlowFunctionCache;
-  std::map<std::tuple<N, N, std::set<F>>, FlowFunctionType>
+  std::map<std::tuple<N, N>, FlowFunctionPtrType> NormalFlowFunctionCache;
+  std::map<std::tuple<N, F>, FlowFunctionPtrType> CallFlowFunctionCache;
+  std::map<std::tuple<N, F, N, N>, FlowFunctionPtrType> ReturnFlowFunctionCache;
+  std::map<std::tuple<N, N, std::set<F>>, FlowFunctionPtrType>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
   std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
@@ -107,7 +107,7 @@ public:
   FlowEdgeFunctionCache &
   operator=(FlowEdgeFunctionCache &&FEFC) noexcept = default;
 
-  FlowFunctionType getNormalFlowFunction(N curr, N succ) {
+  FlowFunctionPtrType getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Normal flow function factory call");
@@ -136,7 +136,7 @@ public:
     }
   }
 
-  FlowFunctionType getCallFlowFunction(N callStmt, F destFun) {
+  FlowFunctionPtrType getCallFlowFunction(N callStmt, F destFun) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call flow function factory call");
@@ -166,8 +166,8 @@ public:
     }
   }
 
-  FlowFunctionType getRetFlowFunction(N callSite, F calleeFun, N exitStmt,
-                                      N retSite) {
+  FlowFunctionPtrType getRetFlowFunction(N callSite, F calleeFun, N exitStmt,
+                                         N retSite) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Return flow function factory call");
@@ -203,8 +203,8 @@ public:
     }
   }
 
-  FlowFunctionType getCallToRetFlowFunction(N callSite, N retSite,
-                                            std::set<F> callees) {
+  FlowFunctionPtrType getCallToRetFlowFunction(N callSite, N retSite,
+                                               std::set<F> callees) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call-to-Return flow function factory call");
@@ -241,7 +241,7 @@ public:
     }
   }
 
-  FlowFunctionType getSummaryFlowFunction(N callStmt, F destFun) {
+  FlowFunctionPtrType getSummaryFlowFunction(N callStmt, F destFun) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
