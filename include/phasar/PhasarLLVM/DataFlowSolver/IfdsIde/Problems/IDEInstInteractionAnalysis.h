@@ -686,17 +686,14 @@ public:
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(otherFunction.get())) {
-        // auto Union = Analysis.join(Replacement, AD->Data);
-        // return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
         return this->shared_from_this();
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(otherFunction.get())) {
-        auto Union = Analysis.join(Replacement, KR->Replacement);
-        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
+        Replacement = Analysis.join(Replacement, KR->Replacement);
+        return this->shared_from_this();
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
-      // return otherFunction;
     }
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
@@ -749,7 +746,6 @@ public:
 
     l_t computeTarget(l_t Src) override {
       return Analysis.join(Src, Data);
-      // return Src.setUnion(Data);
     }
 
     std::shared_ptr<EdgeFunction<l_t>>
@@ -769,9 +765,7 @@ public:
       }
       if (auto *KR =
               dynamic_cast<IIAAKillOrReplaceEF *>(secondFunction.get())) {
-        // auto Union = Analysis.join(Data, KR->Replacement);
         return std::make_shared<IIAAAddLabelsEF>(Analysis, KR->Replacement);
-        // return secondFunction;
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
@@ -789,7 +783,6 @@ public:
         return this->shared_from_this();
       }
       if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(otherFunction.get())) {
-        // auto Union = Data.setUnion(AS->Data);
         auto Union = Analysis.join(Data, AS->Data);
         return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
       }

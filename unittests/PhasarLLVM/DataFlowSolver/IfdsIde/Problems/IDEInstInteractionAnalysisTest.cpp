@@ -42,7 +42,7 @@ protected:
   ProjectIRDB *IRDB = nullptr;
 
   void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(true);
+    boost::log::core::get()->set_logging_enabled(false);
     setLoggerFilterLevel(DFADEBUG);
   }
 
@@ -58,7 +58,7 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
                        &PT);
     IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &TH, &ICFG,
                                                               &PT, EntryPoints);
@@ -79,6 +79,7 @@ protected:
     IIAProblem.registerEdgeFactGenerator(Generator);
     IDESolver_P<IDEInstInteractionAnalysisT<std::string, true>> IIASolver(
         IIAProblem);
+    std::cout << "Start solving the problem.\n";
     IIASolver.solve();
     if (PrintDump) {
       IIASolver.dumpResults();
@@ -341,10 +342,6 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
   doAnalysisAndCompareResults("basic_10_cpp.ll", GroundTruth, false);
 }
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleRealWorldProgram_GZipTest) {
-//   doAnalysisAndCompareResults("gzip-gzip-81c9fe4d09.ll", {}, false);
-// }
-
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
@@ -490,6 +487,10 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
           "main", 12, "k", {"3", "9", "8", "1", "5", "6"}));
   doAnalysisAndCompareResults("KillTest_cpp.ll", GroundTruth, false);
 }
+
+// TEST_F(IDEInstInteractionAnalysisTest, HandleRealWorldProgram_GZipTest) {
+//   doAnalysisAndCompareResults("gzip-gzip-81c9fe4d09.ll", {}, false);
+// }
 
 // main function for the test case/*  */
 int main(int Argc, char **Argv) {
