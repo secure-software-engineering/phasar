@@ -13,7 +13,11 @@
 #include <functional>
 #include <vector>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "llvm/IR/CallSite.h"
+
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace llvm {
 class Value;

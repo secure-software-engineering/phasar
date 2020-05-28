@@ -24,9 +24,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsAlongsideCallSite.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
@@ -98,8 +96,7 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override {
+  FlowFunctionType getNormalFlowFunction(n_t curr, n_t succ) override {
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
     }
@@ -110,7 +107,7 @@ public:
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
         // if one of the potentially many loaded values holds, the load itself
         // must also be populated
-        struct IIAFlowFunction : FlowFunction<d_t> {
+        struct IIAFlowFunction : FlowFunction<d_t, cont> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::LoadInst *Load;
           std::set<d_t> PTS;
@@ -136,7 +133,7 @@ public:
       if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
         // if the value to be stored holds the potentially memory location
         // that it is stored to must be populated as well
-        struct IIAFlowFunction : FlowFunction<d_t> {
+        struct IIAFlowFunction : FlowFunction<d_t, cont> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::StoreInst *Store;
           std::set<d_t> ValuePTS;
@@ -172,7 +169,7 @@ public:
     }
 
     // (i) handle syntactic propagation for all other statements
-    struct IIAFlowFunction : FlowFunction<d_t> {
+    struct IIAFlowFunction : FlowFunction<d_t, cont> {
       IDEInstInteractionAnalysisT &Problem;
       n_t Inst;
 
@@ -208,23 +205,23 @@ public:
     return std::make_shared<IIAFlowFunction>(*this, curr);
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
-  getCallFlowFunction(n_t callStmt, f_t destMthd) override {
+  inline FlowFunctionType getCallFlowFunction(n_t callStmt,
+                                              f_t destMthd) override {
     // just use the auto mapping
     return std::make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
                                               destMthd);
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
-  getRetFlowFunction(n_t callSite, f_t calleeMthd, n_t exitStmt,
-                     n_t retSite) override {
+  inline FlowFunctionType getRetFlowFunction(n_t callSite, f_t calleeMthd,
+                                             n_t exitStmt,
+                                             n_t retSite) override {
     // if pointer parameters hold at the end of a callee function generate all
     // of the
     return std::make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(callSite),
                                               calleeMthd, exitStmt);
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
+  inline FlowFunctionType
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<f_t> callees) override {
     // just use the auto mapping, pointer parameters are killed and handled by
@@ -233,8 +230,8 @@ public:
         llvm::ImmutableCallSite(callSite));
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, f_t destMthd) override {
+  inline FlowFunctionType getSummaryFlowFunction(n_t callStmt,
+                                                 f_t destMthd) override {
     // do not use summaries
     return nullptr;
   }

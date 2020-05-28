@@ -17,26 +17,31 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+
 #include <memory>
 #include <set>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include <type_traits>
 
 namespace psr {
 
-template <typename N, typename D, typename F> class FlowFunctions {
+template <typename N, typename D, typename F, typename Container = std::set<D>>
+class FlowFunctions {
+  static_assert(
+      std::is_same<typename Container::value_type, D>::value,
+      "Value type of the container needs to match the type parameter D");
+
 public:
+  using FlowFunctionType = std::shared_ptr<FlowFunction<D, Container>>;
+
   virtual ~FlowFunctions() = default;
-  virtual std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr,
-                                                                 N succ) = 0;
-  virtual std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
-                                                               F destFun) = 0;
-  virtual std::shared_ptr<FlowFunction<D>>
-  getRetFlowFunction(N callSite, F calleeFun, N exitStmt, N retSite) = 0;
-  virtual std::shared_ptr<FlowFunction<D>>
-  getCallToRetFlowFunction(N callSite, N retSite, std::set<F> callees) = 0;
-  virtual std::shared_ptr<FlowFunction<D>>
-  getSummaryFlowFunction(N curr, F destFun) = 0;
+  virtual FlowFunctionType getNormalFlowFunction(N curr, N succ) = 0;
+  virtual FlowFunctionType getCallFlowFunction(N callStmt, F destFun) = 0;
+  virtual FlowFunctionType getRetFlowFunction(N callSite, F calleeFun,
+                                              N exitStmt, N retSite) = 0;
+  virtual FlowFunctionType getCallToRetFlowFunction(N callSite, N retSite,
+                                                    std::set<F> callees) = 0;
+  virtual FlowFunctionType getSummaryFlowFunction(N curr, F destFun) = 0;
 };
 } // namespace  psr
 
