@@ -159,7 +159,7 @@ public:
     // We start our analysis and construct exploded supergraph
     submitInitialSeeds();
     STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
-    if (SolverConfig.computeValues) {
+    if (SolverConfig.computeValues()) {
       START_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
       // Computing the final values for the edge functions
       LOG_IF_ENABLE(
@@ -172,8 +172,8 @@ public:
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       computeAndPrintStatistics();
     }
-    if (SolverConfig.emitESG) {
-      emitESGasDot();
+    if (SolverConfig.emitESG()) {
+      emitESGAsDot();
     }
   }
 
@@ -319,7 +319,7 @@ protected:
   IDETabulationProblem<N, D, F, T, V, L, I, Container> &IDEProblem;
   D ZeroValue;
   const I *ICF;
-  const IFDSIDESolverConfig SolverConfig;
+  IFDSIDESolverConfig SolverConfig;
   unsigned PathEdgeCount = 0;
 
   FlowEdgeFunctionCache<N, D, F, T, V, L, I, Container> cachedFlowEdgeFunctions;
@@ -530,7 +530,7 @@ protected:
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Queried Return Edge Function: "
                                 << f5->str());
-                  if (SolverConfig.emitESG) {
+                  if (SolverConfig.emitESG()) {
                     for (auto sP : ICF->getStartPointsOf(sCalledProcN)) {
                       intermediateEdgeFunctions[std::make_tuple(n, d2, sP, d3)]
                           .push_back(f4);
@@ -585,7 +585,7 @@ protected:
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Queried Call-to-Return Edge Function: "
                         << edgeFnE->str());
-          if (SolverConfig.emitESG) {
+          if (SolverConfig.emitESG()) {
             intermediateEdgeFunctions[std::make_tuple(n, d2, returnSiteN, d3)]
                 .push_back(edgeFnE);
           }
@@ -631,9 +631,9 @@ protected:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
         std::shared_ptr<EdgeFunction<L>> fprime = f->composeWith(g);
-        if (SolverConfig.emitESG) {
+        if (SolverConfig.emitESG()) {
           intermediateEdgeFunctions[std::make_tuple(n, d2, fn, d3)].push_back(
-              fprime);
+              g);
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << g->str() << " * " << f->str()
@@ -677,7 +677,7 @@ protected:
             cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Call Edge Function: " << edgeFn->str());
-        if (SolverConfig.emitESG) {
+        if (SolverConfig.emitESG()) {
           for (const auto sP : ICF->getStartPointsOf(q)) {
             intermediateEdgeFunctions[std::make_tuple(n, d, sP, dPrime)]
                 .push_back(edgeFn);
@@ -839,7 +839,7 @@ protected:
 
   virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal,
                          const container_type &destVals, bool interP) {
-    if (!SolverConfig.recordEdges) {
+    if (!SolverConfig.recordEdges()) {
       return;
     }
     Table<N, N, std::map<D, container_type>> &tgtMap =
@@ -971,7 +971,7 @@ protected:
                     c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
-            if (SolverConfig.emitESG) {
+            if (SolverConfig.emitESG()) {
               for (auto sP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
                 intermediateEdgeFunctions[std::make_tuple(c, d4, sP, d1)]
                     .push_back(f4);
@@ -1019,7 +1019,7 @@ protected:
     // conditionally generated values should only
     // be propagated into callers that have an incoming edge for this
     // condition
-    if (SolverConfig.followReturnsPastSeeds && inc.empty() &&
+    if (SolverConfig.followReturnsPastSeeds() && inc.empty() &&
         IDEProblem.isZeroValue(d1)) {
       const std::set<N> callers = ICF->getCallersOf(functionThatNeedsSummary);
       for (N c : callers) {
@@ -1039,7 +1039,7 @@ protected:
                     c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
-            if (SolverConfig.emitESG) {
+            if (SolverConfig.emitESG()) {
               intermediateEdgeFunctions[std::make_tuple(n, d2, retSiteC, d5)]
                   .push_back(f5);
             }
@@ -1595,7 +1595,9 @@ protected:
   }
 
 public:
-  void emitESGasDot() {
+  void enableESGAsDot() { SolverConfig.setEmitESG(); }
+
+  void emitESGAsDot(std::ostream &OS = std::cout) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Emit Exploded super-graph (ESG) as DOT graph";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1804,7 +1806,9 @@ public:
             auto EFVec = intermediateEdgeFunctions[std::make_tuple(
                 Edge.first, D1Fact, Edge.second, D2Fact)];
             for (auto EF : EFVec) {
-              EFLabel += EF->str() + ", ";
+              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                            << "Partial EF Label: " << EF->str());
+              EFLabel.append(EF->str() + ", ");
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "EF LABEL: " << EFLabel);
@@ -1815,10 +1819,7 @@ public:
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     }
-
-    std::ofstream dotFile("ESG.dot", std::ios::binary);
-    dotFile << G;
-    dotFile.close();
+    OS << G;
   }
 
   /// @brief: Allows less-than comparison based on the statement ID.

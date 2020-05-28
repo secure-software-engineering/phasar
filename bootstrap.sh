@@ -53,7 +53,6 @@ case $key in
 esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
-
 # End - Parsing command-line-parameters
 
 
@@ -62,9 +61,7 @@ if [ -x "$(command -v pacman)" ]; then
     yes | sudo pacman -Syu which zlib sqlite3 ncurses make python3 doxygen libxml2 swig gcc cmake z3 libedit graphviz python-sphinx openmp curl python-pip
     ./utils/installBuildEAR.sh
 else
-    sudo apt-get update
-    sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev bear python3 doxygen graphviz python python-dev python3-pip python-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev ninja -y
-
+    ./utils/InstallAptDependencies.sh
 fi
 sudo pip3 install Pygments pyyaml
 
@@ -115,18 +112,14 @@ else
 	fi
 fi
 
-
-
 # installing LLVM
-tmp_dir=`mktemp -d "llvm-10_build.XXXXXXXX" --tmpdir`
-./utils/install-llvm.sh ${NUM_THREADS} ${tmp_dir} ${LLVM_INSTALL_DIR} ${LLVM_RELEASE}
-rm -rf ${tmp_dir}
+./utils/install-llvm.sh ${NUM_THREADS} ${LLVM_INSTALL_DIR} ${LLVM_RELEASE}
 sudo pip3 install wllvm
-
 echo "dependencies successfully installed"
+
+
 echo "Building PhASAR..."
 ${DO_UNIT_TESTS} && echo "with unit tests."
-
 git submodule init
 git submodule update
 
@@ -136,8 +129,8 @@ export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
 mkdir -p ${PHASAR_DIR}/build
 cd ${PHASAR_DIR}/build
-cmake -DCMAKE_BUILD_TYPE=Release ${BOOST_PARAMS} -DPHASAR_BUILD_UNITTESTS=${DO_UNIT_TEST} ${PHASAR_DIR}
-make -j $NUM_THREADS
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ${BOOST_PARAMS} -DPHASAR_BUILD_UNITTESTS=${DO_UNIT_TEST} ${PHASAR_DIR}
+cmake --build . -j${num_cores}
 
 if ${DO_UNIT_TEST}; then
    echo "Running PhASAR unit tests..."
@@ -151,7 +144,6 @@ fi
 echo "phasar successfully built"
 echo "install phasar..."
 sudo cmake -DCMAKE_INSTALL_PREFIX=${PHASAR_INSTALL_DIR} -P cmake_install.cmake
-
 sudo ldconfig
 cd ..
 echo "phasar successfully installed to ${PHASAR_INSTALL_DIR}"

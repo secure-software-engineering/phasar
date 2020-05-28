@@ -20,13 +20,14 @@ RUN apt install libboost-all-dev -y
 
 # installing LLVM
 COPY utils/install-llvm.sh /usr/src/phasar/utils/install-llvm.sh
-RUN ./utils/install-llvm.sh $(nproc) . ${LLVM_INSTALL_DIR} "llvmorg-10.0.0"
+RUN ./utils/install-llvm.sh $(nproc) ${LLVM_INSTALL_DIR} "llvmorg-10.0.0"
 
 # installing wllvm
 RUN pip3 install wllvm
 
 ENV CC=${LLVM_INSTALL_DIR}/bin/clang
 ENV CXX=${LLVM_INSTALL_DIR}/bin/clang++
+ENV LD_LIBRARY_PATH=${LLVM_INSTALL_DIR}/lib:$LD_LIBRARY_PATH
 
 COPY . /usr/src/phasar
 

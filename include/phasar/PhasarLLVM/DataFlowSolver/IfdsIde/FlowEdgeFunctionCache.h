@@ -64,7 +64,7 @@ public:
   FlowEdgeFunctionCache(
       IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem)
       : problem(problem),
-        autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero),
+        autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero()),
         zeroValue(problem.getZeroValue()) {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Normal-FF Construction", 0, PAMM_SEVERITY_LEVEL::Full);
