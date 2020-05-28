@@ -27,6 +27,7 @@ RUN pip3 install wllvm
 
 ENV CC=${LLVM_INSTALL_DIR}/bin/clang
 ENV CXX=${LLVM_INSTALL_DIR}/bin/clang++
+ENV LD_LIBRARY_PATH=${LLVM_INSTALL_DIR}/lib:$LD_LIBRARY_PATH
 
 COPY . /usr/src/phasar
 

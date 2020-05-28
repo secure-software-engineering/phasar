@@ -40,8 +40,7 @@ enum class SolverConfigOptions : uint32_t {
 
 struct IFDSIDESolverConfig {
   IFDSIDESolverConfig();
-
-  IFDSIDESolverConfig(SolverConfigOptions options);
+  IFDSIDESolverConfig(SolverConfigOptions Options);
   ~IFDSIDESolverConfig() = default;
   IFDSIDESolverConfig(const IFDSIDESolverConfig &) = default;
   IFDSIDESolverConfig &operator=(const IFDSIDESolverConfig &) = default;
@@ -55,18 +54,18 @@ struct IFDSIDESolverConfig {
   bool emitESG() const;
   bool computePersistedSummaries() const;
 
-  void setFollowReturnsPastSeeds(bool set = true);
-  void setAutoAddZero(bool set = true);
-  void setComputeValues(bool set = true);
-  void setRecordEdges(bool set = true);
-  void setEmitESG(bool set = true);
-  void setComputePersistedSummaries(bool set = true);
+  void setFollowReturnsPastSeeds(bool Set = true);
+  void setAutoAddZero(bool Set = true);
+  void setComputeValues(bool Set = true);
+  void setRecordEdges(bool Set = true);
+  void setEmitESG(bool Set = true);
+  void setComputePersistedSummaries(bool Set = true);
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const IFDSIDESolverConfig &sc);
+  friend std::ostream &operator<<(std::ostream &OS,
+                                  const IFDSIDESolverConfig &SC);
 
 private:
-  SolverConfigOptions options = SolverConfigOptions::AutoAddZero |
+  SolverConfigOptions Options = SolverConfigOptions::AutoAddZero |
                                 SolverConfigOptions::ComputeValues |
                                 SolverConfigOptions::RecordEdges;
 };
