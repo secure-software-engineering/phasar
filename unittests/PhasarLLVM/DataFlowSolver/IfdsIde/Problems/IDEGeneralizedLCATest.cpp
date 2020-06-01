@@ -122,7 +122,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
 
-  auto node = IRDB->getInstruction(2); 
+  auto node = IRDB->getInstruction(2);
   auto stmt = IRDB->getInstruction(10);
 
   std::cout << "Node:\n";
