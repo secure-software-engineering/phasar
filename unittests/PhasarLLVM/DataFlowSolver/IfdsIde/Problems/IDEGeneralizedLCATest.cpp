@@ -13,6 +13,8 @@
 
 #include "gtest/gtest.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
@@ -119,8 +121,21 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
 TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
-  groundTruth.push_back({{EdgeValue("Hello, World")}, 2, 8});
-  groundTruth.push_back({{EdgeValue("Hello, World")}, 3, 8});
+
+  auto node = IRDB->getInstruction(2); 
+  auto stmt = IRDB->getInstruction(10);
+
+  std::cout << "Node:\n";
+  llvm::outs() << *node << '\n';
+  std::cout << "Statement:\n";
+  llvm::outs() << *stmt << '\n';
+
+  auto result = LCASolver->resultAt(stmt, node);
+  std::cout << "Result:\n";
+  std::cout << result << '\n';
+
+  groundTruth.push_back({{EdgeValue("Hello, World")}, 2, 10});
+  groundTruth.push_back({{EdgeValue("Hello, World")}, 3, 10});
   compareResults(groundTruth);
 }
 
