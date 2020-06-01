@@ -20,34 +20,34 @@ class MonoCache {
   // TODO
 public:
         unordered_map<K, V> items;
-        vector<K> time; //The most recently added or recently used key is placed last
+        vector<int> time; //The most recently added or recently used key is placed last
         int c;
 
         MonoCache(int capacity) {
                 c = capacity;
         }
 
-void get(K) {
-        unordered_map<K, V>::iterator iter = items.find(K);
+void get(K key) {
+        unordered_map<K, V>::iterator iter = items.find(key);
         if(iter == items.end())
         return -1; //not found
         else {
-                vector<K>::iterator it = std::find(time.begin(), time.end(), K);
+                vector<int>::iterator it = std::find(time.begin(), time.end(), key);
                 time.erase(it); //The visited element is placed at the end
-                time.push_back(K);
+                time.push_back(key);
                 return iter->second; //value
         }
 
 }
 
 
-void put(K, V) {
-        if(items.count(K)) //key already exists in cache
+void put(K key, V value) {
+        if(items.count(key)) //key already exists in cache
         {
-            items[K] = value; //key is set to the new value
-            vector<K>::iterator it = std::find(time.begin(), time.end(), K);
+            items[key] = value; //key is set to the new value
+            vector<int>::iterator it = std::find(time.begin(), time.end(), key);
             time.erase(it); //Update key usage time
-            time.push_back(K);
+            time.push_back(key);
         }
         else { //Key is not in cache
                 if(time.size()==c) { //The cache is full, delete an element that has not been used for the longest time
@@ -56,7 +56,7 @@ void put(K, V) {
                         items.erase(pop);
             }
             time.push_back(K);
-            items[K] = value;
+            items[key] = value;
         }
     }
 };
