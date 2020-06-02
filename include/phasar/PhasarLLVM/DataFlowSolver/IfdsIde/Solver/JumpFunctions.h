@@ -33,15 +33,15 @@ namespace psr {
 // Forward declare the IDETabulationProblem as we require its toString
 // functionality.
 template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I>
+          typename L, typename I, typename Container>
 class IDETabulationProblem;
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I>
+          typename L, typename I, typename Container>
 class JumpFunctions {
 private:
   std::shared_ptr<EdgeFunction<L>> allTop;
-  const IDETabulationProblem<N, D, F, T, V, L, I> &problem;
+  const IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem;
 
 protected:
   // mapping from target node and value to a list of all source values and
@@ -62,14 +62,15 @@ protected:
 
 public:
   JumpFunctions(std::shared_ptr<EdgeFunction<L>> allTop,
-                const IDETabulationProblem<N, D, F, T, V, L, I> &p)
-      : allTop(allTop), problem(p) {}
+                const IDETabulationProblem<N, D, F, T, V, L, I, Container> &p)
+      : allTop(std::move(allTop)), problem(p) {}
 
   ~JumpFunctions() = default;
 
   JumpFunctions(const JumpFunctions &JFs) = default;
-
-  JumpFunctions(JumpFunctions &&JFs) = default;
+  JumpFunctions &operator=(const JumpFunctions &JFs) = default;
+  JumpFunctions(JumpFunctions &&JFs) noexcept = default;
+  JumpFunctions &operator=(JumpFunctions &&JFs) noexcept = default;
 
   /**
    * Records a jump function. The source statement is implicit.
