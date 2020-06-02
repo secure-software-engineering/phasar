@@ -100,37 +100,37 @@ public:
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
   getNormalEdgeFunction(N src, D srcNode, N tgt, D tgtNode) override {
-    if (Problem.isZeroValue(srcNode))
+    if (Problem.isZeroValue(srcNode)) {
       return ALLBOTTOM;
-    else
-      return EdgeIdentity<BinaryDomain>::getInstance();
+    }
+    return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
   getCallEdgeFunction(N callStmt, D srcNode, F destinationFunction,
                       D destNode) override {
-    if (Problem.isZeroValue(srcNode))
+    if (Problem.isZeroValue(srcNode)) {
       return ALLBOTTOM;
-    else
-      return EdgeIdentity<BinaryDomain>::getInstance();
+    }
+    return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
   getReturnEdgeFunction(N callSite, F calleeFunction, N exitStmt, D exitNode,
                         N returnSite, D retNode) override {
-    if (Problem.isZeroValue(exitNode))
+    if (Problem.isZeroValue(exitNode)) {
       return ALLBOTTOM;
-    else
-      return EdgeIdentity<BinaryDomain>::getInstance();
+    }
+    return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
   getCallToRetEdgeFunction(N callStmt, D callNode, N returnSite,
                            D returnSideNode, std::set<F> callees) override {
-    if (Problem.isZeroValue(callNode))
+    if (Problem.isZeroValue(callNode)) {
       return ALLBOTTOM;
-    else
-      return EdgeIdentity<BinaryDomain>::getInstance();
+    }
+    return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
