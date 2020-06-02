@@ -253,10 +253,23 @@ void AnalysisController::executeWholeProgram() {
       }
     } else if (std::holds_alternative<IFDSPluginConstructor>(
                    _DataFlowAnalysis)) {
-      // TODO call IFDS Analysis Plugin
+      auto Problem = std::get<IFDSPluginConstructor>(_DataFlowAnalysis)(
+          &IRDB, &TH, &ICF, &PT, EntryPoints);
+      IFDSSolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
+          *Problem);
+      Solver.solve();
+      emitRequestedDataFlowResults(Solver);
     } else if (std::holds_alternative<IDEPluginConstructor>(
                    _DataFlowAnalysis)) {
-      // TODO call IDE Analysis Plugin
+      // TODO call IDE Analysis Plugin; Problem: It does not implement the
+      // IDETabulationProblem interface (we don't know the edge-value type l_t)
+
+      // auto Problem = std::get<IDEPluginConstructor>(_DataFlowAnalysis)(
+      //     &IRDB, &TH, &ICF, &PT, EntryPoints);
+      // IDESolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
+      //     *Problem);
+      // Solver.solve();
+      // emitRequestedDataFlowResults(Solver);
     } else if (std::holds_alternative<IntraMonoPluginConstructor>(
                    _DataFlowAnalysis)) {
       // TODO call IntraMono Analysis Plugin

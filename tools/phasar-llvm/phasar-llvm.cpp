@@ -299,27 +299,29 @@ int main(int Argc, const char **Argv) {
       PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
 
   // setup plugins
+  std::vector<boost::dll::shared_library> PluginLibs;
   if (PhasarConfig::VariablesMap().count("analysis-plugin")) {
     auto Plugins = PhasarConfig::VariablesMap()["analysis-plugin"]
                        .as<std::vector<std::string>>();
     for (auto &Plugin : Plugins) {
       boost::filesystem::path LibPath(Plugin);
       boost::system::error_code Err;
-      boost::dll::shared_library SharedLib(
-          LibPath, boost::dll::load_mode::rtld_lazy, Err);
+      // boost::dll::shared_library SharedLib(LibPath,
+      // boost::dll::load_mode::rtld_lazy, Err);
+      PluginLibs.emplace_back(LibPath, boost::dll::load_mode::rtld_lazy, Err);
       if (Err) {
         llvm::report_fatal_error(Err.message());
       }
     }
   }
   // setup data-flow analyses
-  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
+  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
   if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
     auto Analyses = PhasarConfig::VariablesMap()["data-flow-analysis"]
                         .as<std::vector<std::string>>();
     validateParamDataFlowAnalysis(Analyses);
     for (auto &Analysis : Analyses) {
-      DataFlowAnalyses.push_back(toDataFlowAnalysisType(Analysis));
+      DataFlowAnalyses.push_back(toDataFlowAnalysisKind(Analysis));
     }
   } else {
     DataFlowAnalyses.push_back(DataFlowAnalysisType::None);

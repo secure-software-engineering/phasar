@@ -81,7 +81,7 @@ private:
         std::ofstream OFS(ResultDirectory.string() + "/psr-report.txt");
         WPA.emitTextReport(OFS);
       } else {
-        WPA.emitTextReport();
+        WPA.emitTextReport(std::cout);
       }
     }
     if (EmitterOptions &
@@ -90,7 +90,7 @@ private:
         std::ofstream OFS(ResultDirectory.string() + "/psr-report.html");
         WPA.emitGraphicalReport(OFS);
       } else {
-        WPA.emitGraphicalReport();
+        WPA.emitGraphicalReport(std::cout);
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
@@ -98,7 +98,7 @@ private:
         std::ofstream OFS(ResultDirectory.string() + "/psr-raw-results.txt");
         WPA.dumpResults(OFS);
       } else {
-        WPA.dumpResults();
+        WPA.dumpResults(std::cout);
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
