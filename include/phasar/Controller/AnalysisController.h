@@ -52,7 +52,7 @@ private:
   LLVMTypeHierarchy TH;
   LLVMPointsToInfo PT;
   LLVMBasedICFG ICF;
-  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
+  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] AnalysisStrategy Strategy;
@@ -108,7 +108,7 @@ private:
 
 public:
   AnalysisController(ProjectIRDB &IRDB,
-                     std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+                     std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
                      SoundnessFlag SF, const std::set<std::string> &EntryPoints,
