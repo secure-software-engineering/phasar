@@ -23,7 +23,7 @@
 #include <ostream>
 #include <unordered_map>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"

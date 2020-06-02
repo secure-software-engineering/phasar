@@ -32,7 +32,7 @@
 #include "wali/wpds/fwpds/FWPDS.hpp"
 #include "wali/wpds/fwpds/SWPDS.hpp"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
@@ -44,7 +44,7 @@
 
 namespace llvm {
 class CallInst;
-}
+} // namespace llvm
 
 namespace psr {
 
