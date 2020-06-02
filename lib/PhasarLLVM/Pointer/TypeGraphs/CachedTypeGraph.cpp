@@ -34,7 +34,7 @@ namespace psr {
 struct CachedTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
   dfs_visitor(graph_t *G) : G(G) {}
 
-  void finish_edge(edge_t E, graph_t const &U) {
+  void finish_edge(edge_t E, graph_t const &U) { // NOLINT
     CachedTypeGraph::vertex_t Src = boost::source(E, U);
     CachedTypeGraph::vertex_t Target = boost::target(E, U);
 
@@ -50,7 +50,7 @@ struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
     : public boost::default_dfs_visitor {
   reverse_type_propagation_dfs_visitor(rev_graph_t *G) : G(G) {}
 
-  void examine_edge(rev_edge_t E, rev_graph_t const &U) {
+  void examine_edge(rev_edge_t E, rev_graph_t const &U) { // NOLINT
     auto Src = boost::source(E, U);
     auto Target = boost::target(E, U);
 
