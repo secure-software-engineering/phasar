@@ -80,6 +80,8 @@ public:
   void printDataFlowFact(std::ostream &OS, d_t FlowFact) const override;
 
   void printFunction(std::ostream &OS, f_t Fun) const override;
+
+  void printContainer(std::ostream &OS, container_t Con) const override;
 };
 
 } // namespace psr

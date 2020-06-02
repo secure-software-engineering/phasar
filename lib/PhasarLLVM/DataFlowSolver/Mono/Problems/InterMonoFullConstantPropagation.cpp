@@ -16,6 +16,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -75,79 +76,46 @@ InterMonoFullConstantPropagation::callFlow(
     InterMonoFullConstantPropagation::n_t CallSite,
     InterMonoFullConstantPropagation::f_t Callee,
     const InterMonoFullConstantPropagation::container_t &In) {
-  auto Out = In;
+  InterMonoFullConstantPropagation::container_t Out;
 
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    Out.clear();
-    vector<const llvm::Value *> actuals;
-    vector<const llvm::Value *> formals;
-    auto IM = llvm::ImmutableCallSite(CallSite);
+    llvm::ImmutableCallSite CS(CallSite);
+    // early exit; varargs not handled yet
+    if (CS.getNumArgOperands() == 0 || Callee->isVarArg()) {
+      return Out;
+    }
+    vector<const llvm::Value *> Actuals;
+    vector<const llvm::Value *> Formals;
     // Set up the actual parameters
-    std::cout << "actuals:\n";
-    for (unsigned idx = 0; idx < IM.getNumArgOperands(); ++idx) {
-      actuals.push_back(IM.getArgOperand(idx));
-      std::cout << llvmIRToString(IM.getArgOperand(idx)) << "\n";
+    for (unsigned idx = 0; idx < CS.getNumArgOperands(); ++idx) {
+      Actuals.push_back(CS.getArgOperand(idx));
     }
     // Set up the formal parameters
-    std::cout << "formals:\n";
     for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
-      formals.push_back(getNthFunctionArgument(Callee, idx));
-      std::cout << llvmIRToString(getNthFunctionArgument(Callee, idx)) << "\n";
+      Formals.push_back(Callee->getArg(idx));
     }
-    for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-      // Check for C-style varargs: idx >= destFun->arg_size()
-      if (idx >= Callee->arg_size() && !Callee->isDeclaration()) {
-        // Handle C-style varargs
-        /* // Over-approximate by trying to add the
-        //   alloca [1 x %struct.__va_list_tag], align 16
-        // to the results
-        // find the allocated %struct.__va_list_tag and generate it
-        for (auto &BB : *Callee) {
-          for (auto &I : BB) {
-            if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-              if (Alloc->getAllocatedType()->isArrayTy() &&
-                  Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                  Alloc->getAllocatedType()
-                      ->getArrayElementType()
-                      ->isStructTy() &&
-                  Alloc->getAllocatedType()
-                          ->getArrayElementType()
-                          ->getStructName() == "struct.__va_list_tag") {
-                res.insert(Alloc);
-              }
-            }
-          }
-        } */
-      } else {
-        // Ordinary case: Just perform mapping
-        for (const auto &elem : In) {
-          if (elem.first == actuals[idx]) {
-            Out.insert({formals[idx], elem.second}); // corresponding formal
-            break;
-          }
-        }
+    // Perform mapping
+    for (unsigned idx = 0; idx < Actuals.size(); ++idx) {
+      auto Search = In.find(Actuals[idx]);
+      if (Search != In.end()) {
+        Out.insert({Formals[idx], Search->second});
       }
-      // Special case: Check if function is called with integer literals as
-      // parameter (in case of varargs ignore)
-      if (idx < Callee->arg_size() &&
-          llvm::isa<llvm::ConstantInt>(actuals[idx])) {
-        auto val = llvm::dyn_cast<llvm::ConstantInt>(actuals[idx]);
-        Out.insert({formals[idx], val->getSExtValue()}); // corresponding formal
+      // check for integer literals
+      if (const auto *ConstInt =
+              llvm::dyn_cast<llvm::ConstantInt>(Actuals[idx])) {
+        Out.insert({Formals[idx], ConstInt->getSExtValue()});
       }
     }
-    // TODO: Handle globals
-    /*
-    if (llvm::isa<llvm::GlobalVariable>(source)) {
-      res.insert(source);
-    }*/
-
-    return Out;
   }
-  // Pass everything else as identity
-  return In;
-} // namespace psr
+  // TODO: Handle globals
+  /*
+  if (llvm::isa<llvm::GlobalVariable>(source)) {
+    res.insert(source);
+  }*/
+  return Out;
+}
 
 InterMonoFullConstantPropagation::container_t
 InterMonoFullConstantPropagation::returnFlow(
@@ -156,41 +124,25 @@ InterMonoFullConstantPropagation::returnFlow(
     InterMonoFullConstantPropagation::n_t ExitStmt,
     InterMonoFullConstantPropagation::n_t RetSite,
     const InterMonoFullConstantPropagation::container_t &In) {
-  auto Out = In;
+  InterMonoFullConstantPropagation::container_t Out;
 
-  if (CallSite->getType()->isIntegerTy()) {
-    auto Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
-    auto ReturnValue = Return->getReturnValue();
-
-    // Kill everything that is not returned
-    Out.clear();
-
-    // Return value is integer literal
-    if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
-      Out.insert({CallSite, CI->getSExtValue()});
-      return Out;
-    }
-
-    // handle return of integer variable
-    if (ReturnValue->getType()->isIntegerTy()) {
-      LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> latticeVal =
-          Top{};
-      for (const auto &elem : In) {
-        if (elem.first == ReturnValue) {
-          latticeVal = elem.second;
-          break;
+  if (const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
+    if (Return->getReturnValue()->getType()->isIntegerTy()) {
+      // Return value is integer literal
+      if (auto ConstInt =
+              llvm::dyn_cast<llvm::ConstantInt>(Return->getReturnValue())) {
+        Out.insert({CallSite, ConstInt->getSExtValue()});
+      } else {
+        // handle return of integer variable
+        auto Search = In.find(Return->getReturnValue());
+        if (Search != In.end()) {
+          Out.insert({CallSite, Search->second});
         }
       }
-      if (!std::holds_alternative<Top>(latticeVal)) {
-        Out.insert({CallSite, latticeVal});
-      }
-      return Out;
+      // handle Global Variables
+      // TODO:handle globals
     }
-
-    // handle Global Variables
-    // TODO:handle globals
   }
-  Out.clear();
   return Out;
 }
 
@@ -200,7 +152,6 @@ InterMonoFullConstantPropagation::callToRetFlow(
     InterMonoFullConstantPropagation::n_t RetSite,
     std::set<InterMonoFullConstantPropagation::f_t> Callees,
     const InterMonoFullConstantPropagation::container_t &In) {
-  // TODO implement
   return In;
 }
 
@@ -217,6 +168,13 @@ void InterMonoFullConstantPropagation::printDataFlowFact(
 void InterMonoFullConstantPropagation::printFunction(
     std::ostream &os, InterMonoFullConstantPropagation::f_t f) const {
   IntraMonoFullConstantPropagation::printFunction(os, f);
+}
+
+void InterMonoFullConstantPropagation::printContainer(
+    std::ostream &OS, InterMonoFullConstantPropagation::container_t Con) const {
+  for (const auto &[Var, Val] : Con) {
+    OS << "<" << llvmIRToString(Var) << ", " << Val << ">, ";
+  }
 }
 
 } // namespace psr

@@ -125,6 +125,23 @@ template <typename F> struct FunctionPrinter {
   }
 };
 
+template <typename ContainerTy> struct ContainerPrinter {
+  ContainerPrinter() = default;
+  ContainerPrinter(const ContainerPrinter &) = delete;
+  ContainerPrinter &operator=(const ContainerPrinter &) = delete;
+  ContainerPrinter(ContainerPrinter &&) = delete;
+  ContainerPrinter &operator=(ContainerPrinter &&) = delete;
+  virtual ~ContainerPrinter() = default;
+
+  virtual void printContainer(std::ostream &os, ContainerTy c) const = 0;
+
+  virtual std::string ContainertoString(ContainerTy c) const {
+    std::stringstream ss;
+    printContainer(ss, c);
+    return ss.str();
+  }
+};
+
 } // namespace psr
 
 #endif

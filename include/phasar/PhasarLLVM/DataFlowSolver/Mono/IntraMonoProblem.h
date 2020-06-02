@@ -40,7 +40,8 @@ template <typename N, typename D, typename F, typename T, typename V,
           typename C, typename ContainerTy>
 class IntraMonoProblem : public NodePrinter<N>,
                          public DataFlowFactPrinter<D>,
-                         public FunctionPrinter<F> {
+                         public FunctionPrinter<F>,
+                         public ContainerPrinter<ContainerTy> {
   static_assert(std::is_base_of_v<CFG<N, F>, C>,
                 "C must implement the CFG interface!");
 
@@ -85,6 +86,8 @@ public:
   const PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
 
   virtual bool setSoundnessFlag(SoundnessFlag SF) { return false; }
+
+  void printContainer(std::ostream &os, ContainerTy c) const override {}
 };
 
 } // namespace psr

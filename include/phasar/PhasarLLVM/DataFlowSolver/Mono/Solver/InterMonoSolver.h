@@ -54,11 +54,12 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &[Src, Dst] : ControlFlowEdges) {
-        Analysis[Src][CallStringCTX<N, K>()];
+        Analysis[Src][CallStringCTX<N, K>()] = IMProblem.allTop();
       }
       // Initialize last
       if (!ControlFlowEdges.empty()) {
-        Analysis[ControlFlowEdges.back().second][CallStringCTX<N, K>()];
+        Analysis[ControlFlowEdges.back().second][CallStringCTX<N, K>()] =
+            IMProblem.allTop();
       }
       // Additionally, insert the initial seeds
       Analysis[Node][CallStringCTX<N, K>()].insert(FlowFacts.begin(),
@@ -92,7 +93,7 @@ protected:
     auto Dst = Edge.second;
     // Add inter- and intra-edges of callee(s)
     for (auto Callee : ICF->getCalleesOfCallAt(Src)) {
-      if (AddedFunctions.count(Callee)) {
+      if (AddedFunctions.find(Callee) != AddedFunctions.end()) {
         break;
       }
       AddedFunctions.insert(Callee);
@@ -101,21 +102,21 @@ protected:
         Worklist.push_back({Src, StartPoint});
       }
       // Add intra edges of callee
-      std::vector<std::pair<N, N>> edges = ICF->getAllControlFlowEdges(Callee);
-      Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
+      auto Edges = ICF->getAllControlFlowEdges(Callee);
+      Worklist.insert(Worklist.begin(), Edges.begin(), Edges.end());
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
-      for (auto &Edge : edges) {
-        Analysis[Edge.first][CallStringCTX<N, K>()];
+      for (auto &[Src, Dst] : Edges) {
+        Analysis[Src][CallStringCTX<N, K>()] = IMProblem.allTop();
       }
       // Initialize last
-      if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<N, K>()];
+      if (!Edges.empty()) {
+        Analysis[Edges.back().second][CallStringCTX<N, K>()] = IMProblem.allTop();
       }
       // Add return Edge(s)
-      for (auto ret : ICF->getExitPointsOf(Callee)) {
-        for (auto retSite : ICF->getReturnSitesOfCallAt(Src)) {
-          Worklist.push_back({ret, retSite});
+      for (auto Ret : ICF->getExitPointsOf(Callee)) {
+        for (auto RetSite : ICF->getReturnSitesOfCallAt(Src)) {
+          Worklist.push_back({Ret, RetSite});
         }
       }
     }
@@ -184,6 +185,7 @@ public:
         // Handle call and call-to-ret flow
         if (!isIntraEdge(Edge)) {
           // Handle call flow
+          std::cout << "Handle call flow\n";
           for (auto &[Ctx, Facts] : Analysis[Src]) {
             auto CTXAdd(Ctx);
             CTXAdd.push_back(Src);
@@ -199,6 +201,7 @@ public:
           }
         } else {
           // Handle call-to-ret flow
+          std::cout << "Handle call to ret flow\n";
           for (auto &[Ctx, Facts] : Analysis[Src]) {
             // call-to-ret flow does not modify contexts
             Out[Ctx] = IMProblem.callToRetFlow(
@@ -214,12 +217,12 @@ public:
         }
       } else if (ICF->isExitStmt(Src)) {
         // Handle return flow
+        std::cout << "Handle ret flow\n";
         for (auto &[Ctx, Facts] : Analysis[Src]) {
           auto CTXRm(Ctx);
           // we need to use several call- and retsites if the context is empty
           std::set<N> CallSites;
           std::set<N> RetSites;
-          std::cout << "Ctx: " << Ctx << '\n';
           // handle empty context
           if (Ctx.empty()) {
             CallSites = ICF->getCallersOf(ICF->getFunctionOf(Src));
@@ -227,7 +230,6 @@ public:
             // handle context containing at least one element
             CallSites.insert(CTXRm.pop_back());
           }
-          std::cout << "CTXRm: " << CTXRm << std::endl;
           // retrieve the possible return sites for each call
           for (auto CallSite : CallSites) {
             auto RetSitesPerCall = ICF->getReturnSitesOfCallAt(CallSite);
@@ -239,22 +241,40 @@ public:
                                      Dst, Analysis[Src][Ctx]);
             Out[CTXRm].insert(RetFactsPerCall.begin(), RetFactsPerCall.end());
           }
+          // TODO!
           for (auto RetSite : RetSites) {
+            std::cout << "RetSite: " << llvmIRToString(RetSite) << '\n';
+            std::cout << "Return facts: ";
+            IMProblem.printContainer(std::cout, Out[CTXRm]);
+            std::cout << '\n';
+            std::cout << "RetSite facts: ";
+            IMProblem.printContainer(std::cout, Analysis[RetSite][CTXRm]);
+            std::cout << '\n';
             bool FlowFactStabilized =
                 IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
             if (!FlowFactStabilized) {
-              Analysis[Dst][CTXRm] =
-                  IMProblem.merge(Analysis[RetSite][CTXRm], Out[CTXRm]);
+              std::cout << "FlowFacts did not stabilize!\n";
+              ContainerTy merge;
+              merge.insert(Analysis[RetSite][CTXRm].begin(), Analysis[RetSite][CTXRm].end());
+              merge.insert(Out[CTXRm].begin(), Out[CTXRm].end());
+              Analysis[RetSite][CTXRm] = merge;
+              Analysis[Dst][CTXRm] = merge;
+                  // IMProblem.merge(Analysis[RetSite][CTXRm], Out[CTXRm]);
+              std::cout << "Merged to: ";
+              IMProblem.printContainer(std::cout, Analysis[Dst][CTXRm]);
+              std::cout << '\n';
               addToWorklist({Src, RetSite});
             }
           }
         }
       } else {
         // Handle normal flow
+        std::cout << "Handle normal flow\n";
         for (auto &[Ctx, Facts] : Analysis[Src]) {
           Out[Ctx] = IMProblem.normalFlow(Src, Analysis[Src][Ctx]);
           // need to merge if Dst is a branch target
           if (ICF->isBranchTarget(Src, Dst)) {
+            std::cout << "Num preds: " << ICF->getPredsOf(Dst).size() << '\n';
             for (auto Pred : ICF->getPredsOf(Dst)) {
               if (Pred != Src) {
                 // we need to compute the out set of Pred and merge it with the
