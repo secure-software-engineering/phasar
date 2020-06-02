@@ -68,8 +68,8 @@ public:
 
 private:
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
-  static inline l_t BottomElement = Bottom{};
-  static inline l_t TopElement = Top{};
+  static inline const l_t BottomElement = Bottom{};
+  static inline const l_t TopElement = Top{};
   // can be set if a syntactic-only analysis is desired
   // (without using points-to information)
   const bool SyntacticAnalysisOnly = false;
@@ -84,8 +84,8 @@ public:
                              const llvm::Function *, const llvm::StructType *,
                              const llvm::Value *,
                              LatticeDomain<BitVectorSet<EdgeFactType>>,
-                             LLVMBasedICFG, container_type>(IRDB, TH, ICF, PT,
-                                                            EntryPoints) {
+                             LLVMBasedICFG, container_type>(
+            IRDB, TH, ICF, PT, std::move(EntryPoints)) {
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType>::createZeroValue();
   }
@@ -255,7 +255,7 @@ public:
     return SeedMap;
   }
 
-  inline d_t createZeroValue() const override {
+  [[nodiscard]] inline d_t createZeroValue() const override {
     // create a special value to represent the zero value!
     return LLVMZeroValue::getInstance();
   }
@@ -291,7 +291,7 @@ public:
         }
         // generate labels from zero when an operand of the current instruction
         // is a flow fact that is generated
-        for (auto &Op : curr->operands()) {
+        for (const auto &Op : curr->operands()) {
           // also propagate the labels if one of the operands holds
           if (isZeroValue(currNode) && Op == succNode) {
             return std::make_shared<IIAALabelEdgeFunction>(*this,
@@ -417,7 +417,8 @@ public:
       return std::make_shared<AllBottom<l_t>>(Analysis.BottomElement);
     }
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
+    [[nodiscard]] bool
+    equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
       // std::cout << "IIAALabelEdgeFunction::equal_to\n";
       if (auto *I = dynamic_cast<IIAALabelEdgeFunction *>(other.get())) {
         return (I->Data == this->Data);

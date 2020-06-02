@@ -95,13 +95,16 @@ public:
   static std::shared_ptr<FlowFunction<D>>
   compose(const std::vector<FlowFunction<D>> &funcs) {
     std::vector<FlowFunction<D>> vec;
-    for (const FlowFunction<D> &func : funcs)
-      if (func != Identity<D>::getInstance())
+    for (const FlowFunction<D> &func : funcs) {
+      if (func != Identity<D>::getInstance()) {
         vec.insert(func);
-    if (vec.size == 1)
+      }
+    }
+    if (vec.size == 1) {
       return vec[0];
-    else if (vec.empty())
+    } else if (vec.empty()) {
       return Identity<D>::getInstance();
+    }
     return std::make_shared<Compose>(vec);
   }
 };
@@ -190,10 +193,11 @@ public:
   Kill(D killValue) : killValue(killValue) {}
   virtual ~Kill() = default;
   std::set<D> computeTargets(D source) override {
-    if (source == killValue)
+    if (source == killValue) {
       return {};
-    else
+    } else {
       return {source};
+    }
   }
 };
 
@@ -209,10 +213,11 @@ public:
   KillIf(std::function<bool(D)> Predicate) : Predicate(Predicate) {}
   virtual ~KillIf() = default;
   std::set<D> computeTargets(D source) override {
-    if (Predicate(source))
+    if (Predicate(source)) {
       return {};
-    else
+    } else {
       return {source};
+    }
   }
 };
 
@@ -224,10 +229,11 @@ public:
   KillMultiple(std::set<D> killValues) : killValues(killValues) {}
   virtual ~KillMultiple() = default;
   std::set<D> computeTargets(D source) override {
-    if (killValues.find(source) != killValues.end())
+    if (killValues.find(source) != killValues.end()) {
       return {};
-    else
+    } else {
       return {source};
+    }
   }
 };
 
@@ -256,12 +262,13 @@ public:
   Transfer(D toValue, D fromValue) : toValue(toValue), fromValue(fromValue) {}
   virtual ~Transfer() = default;
   std::set<D> computeTargets(D source) override {
-    if (source == fromValue)
+    if (source == fromValue) {
       return {source, toValue};
-    else if (source == toValue)
+    } else if (source == toValue) {
       return {};
-    else
+    } else {
       return {source};
+    }
   }
 };
 
@@ -282,13 +289,16 @@ public:
   }
   static FlowFunction<D> setunion(const std::vector<FlowFunction<D>> &funcs) {
     std::vector<FlowFunction<D>> vec;
-    for (const FlowFunction<D> &func : funcs)
-      if (func != Identity<D>::getInstance())
+    for (const FlowFunction<D> &func : funcs) {
+      if (func != Identity<D>::getInstance()) {
         vec.add(func);
-    if (vec.size() == 1)
+      }
+    }
+    if (vec.size() == 1) {
       return vec[0];
-    else if (vec.empty())
+    } else if (vec.empty()) {
       return Identity<D>::getInstance();
+    }
     return Union(vec);
   }
 };

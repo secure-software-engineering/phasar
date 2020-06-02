@@ -30,6 +30,8 @@
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 #include "phasar/Utils/IO.h" // readFile
 
+#include "llvm/IR/Function.h"
+
 namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {

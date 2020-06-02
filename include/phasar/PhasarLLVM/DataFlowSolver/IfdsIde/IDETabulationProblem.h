@@ -47,8 +47,8 @@ public:
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                        const I *ICF, const PointsToInfo<V, N> *PT,
                        std::set<std::string> EntryPoints = {})
-      : IFDSTabulationProblem<N, D, F, T, V, I, Container>(IRDB, TH, ICF, PT,
-                                                           EntryPoints) {}
+      : IFDSTabulationProblem<N, D, F, T, V, I, Container>(
+            IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
 #pragma clang diagnostic push
