@@ -155,8 +155,17 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
-  // return std::make_shared<MapFactsToCallee>(
-  //    llvm::ImmutableCallSite(callStmt), destMthd);
+  llvm::ImmutableCallSite CS(CallStmt);
+  llvm::StringRef FunName = CS.getCalledFunction()->getName();
+  SpecialMemberFunctionTy FunType = specialMemberFunctionType(FunName);
+
+  if (FunType == SpecialMemberFunctionTy::CTOR ||
+    FunType == SpecialMemberFunctionTy::DTOR) {
+    // std::cout << "getCallFlowFunction\n";
+    // std::cout << FunName.str() << "\n";
+    return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
+  }
+
   return std::make_shared<MapFactsToCalleeFlowFunction>(
       llvm::ImmutableCallSite(CallStmt), DestMthd);
 }
