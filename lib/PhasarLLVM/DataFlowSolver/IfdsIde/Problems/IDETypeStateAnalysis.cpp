@@ -14,6 +14,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/DB/ProjectIRDB.h"
@@ -148,7 +149,7 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
     return make_shared<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
                                            DestFun);
   }
-  assert(false && "callStmt not a CallInst nor a InvokeInst");
+  llvm::report_fatal_error("callStmt not a CallInst nor a InvokeInst");
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>

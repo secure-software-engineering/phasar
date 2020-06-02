@@ -192,7 +192,7 @@ public:
   getCallsFromWithin(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *M) const override;
+  getStartPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;

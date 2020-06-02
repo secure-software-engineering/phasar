@@ -40,7 +40,7 @@ public:
     Cell(const Cell &) = default;
     Cell &operator=(const Cell &) = default;
     Cell(Cell &&) noexcept = default;
-    Cell &operator=(Cell &&) noexcept= default;
+    Cell &operator=(Cell &&) noexcept = default;
 
     R getRowKey() const { return r; }
     C getColumnKey() const { return c; }

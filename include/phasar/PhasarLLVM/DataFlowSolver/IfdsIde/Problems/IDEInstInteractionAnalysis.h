@@ -222,8 +222,8 @@ public:
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
-                                             n_t exitStmt,
-                                             n_t retSite) override {
+                                                n_t exitStmt,
+                                                n_t retSite) override {
     // if pointer parameters hold at the end of a callee function generate all
     // of the
     return std::make_shared<MapFactsToCaller<container_type>>(
