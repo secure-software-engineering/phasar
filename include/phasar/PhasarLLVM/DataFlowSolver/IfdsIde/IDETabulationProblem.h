@@ -42,15 +42,16 @@ class IDETabulationProblem
       public virtual EdgeFactPrinter<L> {
   static_assert(std::is_base_of_v<ICFG<N, F>, I>,
                 "I must implement the ICFG interface!");
-
 public:
+  using typename EdgeFunctions<N, D, F, L>::EdgeFunctionPtrType;
+
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                        const I *ICF, const PointsToInfo<V, N> *PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<N, D, F, T, V, I, Container>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblem() override = default;
-  virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
+  virtual EdgeFunctionPtrType allTopFunction() = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
   virtual void emitTextReport(const SolverResults<N, D, L> &SR,

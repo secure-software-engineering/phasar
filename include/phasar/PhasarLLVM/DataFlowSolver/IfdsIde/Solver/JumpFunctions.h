@@ -39,29 +39,31 @@ class IDETabulationProblem;
 template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I, typename Container>
 class JumpFunctions {
+public:
+  using EdgeFunctionType = EdgeFunction<L>;
+  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunctionType>;
+
 private:
-  std::shared_ptr<EdgeFunction<L>> allTop;
+  EdgeFunctionPtrType allTop;
   const IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem;
 
 protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<N, D, std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>
-      nonEmptyReverseLookup;
+  Table<N, D, std::unordered_map<D, EdgeFunctionPtrType>> nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<D, N, std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>
-      nonEmptyForwardLookup;
+  Table<D, N, std::unordered_map<D, EdgeFunctionPtrType>> nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
   // we exclude empty default functions
-  std::unordered_map<N, Table<D, D, std::shared_ptr<EdgeFunction<L>>>>
+  std::unordered_map<N, Table<D, D, EdgeFunctionPtrType>>
       nonEmptyLookupByTargetNode;
 
 public:
-  JumpFunctions(std::shared_ptr<EdgeFunction<L>> allTop,
+  JumpFunctions(EdgeFunctionPtrType allTop,
                 const IDETabulationProblem<N, D, F, T, V, L, I, Container> &p)
       : allTop(std::move(allTop)), problem(p) {}
 
@@ -77,7 +79,7 @@ public:
    * @see PathEdge
    */
   void addFunction(D sourceVal, N target, D targetVal,
-                   std::shared_ptr<EdgeFunction<L>> function) {
+                   EdgeFunctionPtrType function) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Start adding new jump function";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -94,10 +96,10 @@ public:
     }
     // it is important that existing values in JumpFunctions are overwritten
     // (use operator[] instead of insert)
-    std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
+    std::unordered_map<D, EdgeFunctionPtrType> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
     sourceValToFunc[sourceVal] = function;
-    std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> &targetValToFunc =
+    std::unordered_map<D, EdgeFunctionPtrType> &targetValToFunc =
         nonEmptyForwardLookup.get(sourceVal, target);
     targetValToFunc[targetVal] = function;
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
@@ -112,8 +114,8 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  std::optional<std::reference_wrapper<
-      std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
+  std::optional<
+      std::reference_wrapper<std::unordered_map<D, EdgeFunctionPtrType>>>
   reverseLookup(N target, D targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal)) {
       return std::nullopt;
@@ -127,8 +129,8 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  std::optional<std::reference_wrapper<
-      std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
+  std::optional<
+      std::reference_wrapper<std::unordered_map<D, EdgeFunctionPtrType>>>
   forwardLookup(D sourceVal, N target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
       return std::nullopt;
@@ -143,7 +145,7 @@ public:
    * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
-  Table<D, D, std::shared_ptr<EdgeFunction<L>>> lookupByTarget(N target) {
+  Table<D, D, EdgeFunctionPtrType> lookupByTarget(N target) {
     return nonEmptyLookupByTargetNode[target];
   }
 
@@ -186,7 +188,7 @@ public:
 
   void printNonEmptyReverseLookup(std::ostream &os) {
     os << "DUMP nonEmptyReverseLookup\nTable<N, D, std::unordered_map<D, "
-          "std::shared_ptr<EdgeFunction<L>>>>\n";
+          "EdgeFunctionPtrType>>\n";
     auto cellvec = nonEmptyReverseLookup.cellVec();
     for (auto cell : cellvec) {
       os << "N : " << problem.NtoString(cell.r)
@@ -201,7 +203,7 @@ public:
 
   void printNonEmptyForwardLookup(std::ostream &os) {
     os << "DUMP nonEmptyForwardLookup\nTable<D, N, std::unordered_map<D, "
-          "std::shared_ptr<EdgeFunction<L>>>>\n";
+          "EdgeFunctionPtrType>>\n";
     auto cellvec = nonEmptyForwardLookup.cellVec();
     for (auto cell : cellvec) {
       os << "D1: " << problem.DtoString(cell.r)
@@ -216,7 +218,7 @@ public:
 
   void printNonEmptyLookupByTargetNode(std::ostream &os) {
     os << "DUMP nonEmptyLookupByTargetNode\nstd::unordered_map<N, Table<D, D, "
-          "std::shared_ptr<EdgeFunction<L>>>>\n";
+          "EdgeFunctionPtrType>>\n";
     for (auto node : nonEmptyLookupByTargetNode) {
       os << "\nN : " << problem.NtoString(node.first) << '\n';
       auto table = nonEmptyLookupByTargetNode[node.first];

@@ -18,12 +18,12 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_EDGEIDENTITY_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
+
 #include <iostream>
 #include <memory>
 #include <string>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
 
 namespace psr {
 
@@ -32,6 +32,9 @@ template <typename L> class EdgeFunction;
 template <typename L>
 class EdgeIdentity : public EdgeFunction<L>,
                      public std::enable_shared_from_this<EdgeIdentity<L>> {
+public:
+  using typename EdgeFunction<L>::EdgeFunctionPtrType;
+
 private:
   EdgeIdentity() = default;
 
@@ -44,31 +47,32 @@ public:
 
   L computeTarget(L source) override { return source; }
 
-  std::shared_ptr<EdgeFunction<L>>
-  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) override {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
     return secondFunction;
   }
 
-  std::shared_ptr<EdgeFunction<L>>
-  joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) override {
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
     if ((otherFunction.get() == this) ||
-        otherFunction->equal_to(this->shared_from_this()))
+        otherFunction->equal_to(this->shared_from_this())) {
       return this->shared_from_this();
-    if (AllBottom<L> *ab = dynamic_cast<AllBottom<L> *>(otherFunction.get()))
+    }
+    if (auto *ab = dynamic_cast<AllBottom<L> *>(otherFunction.get())) {
       return otherFunction;
-    if (AllTop<L> *at = dynamic_cast<AllTop<L> *>(otherFunction.get()))
+    }
+    if (auto *at = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
       return this->shared_from_this();
+    }
     // do not know how to join; hence ask other function to decide on this
     return otherFunction->joinWith(this->shared_from_this());
   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const override {
+  bool equal_to(EdgeFunctionPtrType other) const override {
     return this == other.get();
   }
 
-  static std::shared_ptr<EdgeIdentity<L>> getInstance() {
+  static EdgeFunctionPtrType getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
-    static std::shared_ptr<EdgeIdentity<L>> instance(new EdgeIdentity<L>());
+    static EdgeFunctionPtrType instance(new EdgeIdentity<L>());
     return instance;
   }
 

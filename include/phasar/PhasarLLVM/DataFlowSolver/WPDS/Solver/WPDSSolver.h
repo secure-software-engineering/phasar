@@ -89,6 +89,8 @@ private:
   }
 
 public:
+  using typename IDESolver<N, D, F, T, V, L, I>::EdgeFunctionPtrType;
+
   WPDSSolver(WPDSProblem<N, D, F, T, V, L, I> &Problem)
       : IDESolver<N, D, F, T, V, L, I>(Problem), Problem(Problem),
         SolverConf(Problem.getWPDSSolverConfig()),
@@ -189,8 +191,7 @@ public:
     D d1 = edge.factAtSource();
     N n = edge.getTarget();
     D d2 = edge.factAtTarget();
-    std::shared_ptr<EdgeFunction<L>> f =
-        IDESolver<N, D, F, T, V, L, I>::jumpFunction(edge);
+    EdgeFunctionPtrType f = IDESolver<N, D, F, T, V, L, I>::jumpFunction(edge);
     auto successorInst = IDESolver<N, D, F, T, V, L, I>::ICF->getSuccsOf(n);
     for (auto f : successorInst) {
       std::shared_ptr<FlowFunction<D>> flowFunction =
@@ -204,7 +205,7 @@ public:
                        PAMM_SEVERITY_LEVEL::Full);
       IDESolver<N, D, F, T, V, L, I>::saveEdges(n, f, d2, res, false);
       for (D d3 : res) {
-        std::shared_ptr<EdgeFunction<L>> g =
+        EdgeFunctionPtrType g =
             IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                 .getNormalEdgeFunction(n, d2, f, d3);
         // add normal PDS rule
@@ -226,7 +227,7 @@ public:
         if (!SRElem.is_valid()) {
           SRElem = wptr;
         }
-        std::shared_ptr<EdgeFunction<L>> fprime = f->composeWith(g);
+        EdgeFunctionPtrType fprime = f->composeWith(g);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Compose: " << g->str() << " * " << f->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -247,8 +248,7 @@ public:
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
-    std::shared_ptr<EdgeFunction<L>> f =
-        IDESolver<N, D, F, T, V, L, I>::jumpFunction(edge);
+    EdgeFunctionPtrType f = IDESolver<N, D, F, T, V, L, I>::jumpFunction(edge);
     std::set<N> returnSiteNs =
         IDESolver<N, D, F, T, V, L, I>::ICF->getReturnSitesOfCallAt(n);
     std::set<F> callees =
@@ -285,7 +285,7 @@ public:
           IDESolver<N, D, F, T, V, L, I>::saveEdges(n, returnSiteN, d2, res,
                                                     false);
           for (D d3 : res) {
-            std::shared_ptr<EdgeFunction<L>> sumEdgFnE =
+            EdgeFunctionPtrType sumEdgFnE =
                 IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                     .getSummaryEdgeFunction(n, d2, returnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1,
@@ -332,10 +332,8 @@ public:
             IDESolver<N, D, F, T, V, L, I>::addIncoming(sP, d3, n, d2);
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
-            std::set<
-                typename Table<N, D, std::shared_ptr<EdgeFunction<L>>>::Cell>
-                endSumm = std::set<typename Table<
-                    N, D, std::shared_ptr<EdgeFunction<L>>>::Cell>(
+            std::set<typename Table<N, D, EdgeFunctionPtrType>::Cell> endSumm =
+                std::set<typename Table<N, D, EdgeFunctionPtrType>::Cell>(
                     IDESolver<N, D, F, T, V, L, I>::endSummary(sP, d3));
             // std::cout << "ENDSUMM" << std::endl;
             // std::cout << "Size: " << endSumm.size() << std::endl;
@@ -348,12 +346,11 @@ public:
             // <sP,d3>, create new caller-side jump functions to the return
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
-            for (typename Table<N, D, std::shared_ptr<EdgeFunction<L>>>::Cell
-                     entry : endSumm) {
+            for (typename Table<N, D, EdgeFunctionPtrType>::Cell entry :
+                 endSumm) {
               N eP = entry.getRowKey();
               D d4 = entry.getColumnKey();
-              std::shared_ptr<EdgeFunction<L>> fCalleeSummary =
-                  entry.getValue();
+              EdgeFunctionPtrType fCalleeSummary = entry.getValue();
               // for each return site
               for (N retSiteN : returnSiteNs) {
                 // compute return-flow function
@@ -372,7 +369,7 @@ public:
                 for (D d5 : returnedFacts) {
                   // update the caller-side summary function
                   // get call edge function
-                  std::shared_ptr<EdgeFunction<L>> f4 =
+                  EdgeFunctionPtrType f4 =
                       IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                           .getCallEdgeFunction(n, d2, sCalledProcN, d3);
                   // add call PDS rule
@@ -396,7 +393,7 @@ public:
                     SRElem = wptrCall;
                   }
                   // get return edge function
-                  std::shared_ptr<EdgeFunction<L>> f5 =
+                  EdgeFunctionPtrType f5 =
                       IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                           .getReturnEdgeFunction(n, sCalledProcN, eP, d4,
                                                  retSiteN, d5);
@@ -431,7 +428,7 @@ public:
                                 << fCalleeSummary->str() << " * " << f4->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "         (return * calleeSummary * call)");
-                  std::shared_ptr<EdgeFunction<L>> fPrime =
+                  EdgeFunctionPtrType fPrime =
                       f4->composeWith(fCalleeSummary)->composeWith(f5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "       = " << fPrime->str());
@@ -468,7 +465,7 @@ public:
         IDESolver<N, D, F, T, V, L, I>::saveEdges(n, returnSiteN, d2,
                                                   returnFacts, false);
         for (D d3 : returnFacts) {
-          std::shared_ptr<EdgeFunction<L>> edgeFnE =
+          EdgeFunctionPtrType edgeFnE =
               IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                   .getCallToRetEdgeFunction(n, d2, returnSiteN, d3, callees);
           // add calltoret PDS rule
@@ -509,8 +506,7 @@ public:
                   << "Process exit at target: "
                   << this->ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
-    std::shared_ptr<EdgeFunction<L>> f =
-        IDESolver<N, D, F, T, V, L, I>::jumpFunction(edge);
+    EdgeFunctionPtrType f = IDESolver<N, D, F, T, V, L, I>::jumpFunction(edge);
     F functionThatNeedsSummary =
         IDESolver<N, D, F, T, V, L, I>::ICF->getFunctionOf(n);
     D d1 = edge.factAtSource();
@@ -558,14 +554,14 @@ public:
           for (D d5 : targets) {
             // compute composed function
             // get call edge function
-            std::shared_ptr<EdgeFunction<L>> f4 =
+            EdgeFunctionPtrType f4 =
                 IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                     .getCallEdgeFunction(
                         c, d4,
                         IDESolver<N, D, F, T, V, L, I>::ICF->getFunctionOf(n),
                         d1);
             // get return edge function
-            std::shared_ptr<EdgeFunction<L>> f5 =
+            EdgeFunctionPtrType f5 =
                 IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                     .getReturnEdgeFunction(
                         c,
@@ -597,8 +593,7 @@ public:
                           << " * " << f4->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "         (return * function * call)");
-            std::shared_ptr<EdgeFunction<L>> fPrime =
-                f4->composeWith(f)->composeWith(f5);
+            EdgeFunctionPtrType fPrime = f4->composeWith(f)->composeWith(f5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "       = " << fPrime->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -606,7 +601,7 @@ public:
             // site using the composed function
             for (auto valAndFunc :
                  IDESolver<N, D, F, T, V, L, I>::jumpFn->reverseLookup(c, d4)) {
-              std::shared_ptr<EdgeFunction<L>> f3 = valAndFunc.second;
+              EdgeFunctionPtrType f3 = valAndFunc.second;
               if (!f3->equal_to(IDESolver<N, D, F, T, V, L, I>::allTop)) {
                 D d3 = valAndFunc.first;
                 D d5_restoredCtx =
@@ -651,7 +646,7 @@ public:
           IDESolver<N, D, F, T, V, L, I>::saveEdges(n, retSiteC, d2, targets,
                                                     true);
           for (D d5 : targets) {
-            std::shared_ptr<EdgeFunction<L>> f5 =
+            EdgeFunctionPtrType f5 =
                 IDESolver<N, D, F, T, V, L, I>::cachedFlowEdgeFunctions
                     .getReturnEdgeFunction(
                         c,

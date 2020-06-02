@@ -26,17 +26,18 @@ namespace psr {
 
 template <typename L> class EdgeFunction {
 public:
+  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunction<L>>;
+
   virtual ~EdgeFunction() = default;
 
   virtual L computeTarget(L source) = 0;
 
-  virtual std::shared_ptr<EdgeFunction<L>>
-  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) = 0;
+  virtual EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType secondFunction) = 0;
 
-  virtual std::shared_ptr<EdgeFunction<L>>
-  joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) = 0;
+  virtual EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) = 0;
 
-  virtual bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const = 0;
+  virtual bool equal_to(EdgeFunctionPtrType other) const = 0;
 
   virtual void print(std::ostream &OS, bool isForDebug = false) const {
     OS << "EdgeFunction";

@@ -25,20 +25,24 @@ namespace psr {
 
 template <typename N, typename D, typename F, typename L> class EdgeFunctions {
 public:
+  using EdgeFunctionType = EdgeFunction<L>;
+  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunctionType>;
+
   virtual ~EdgeFunctions() = default;
-  virtual std::shared_ptr<EdgeFunction<L>>
-  getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
-  virtual std::shared_ptr<EdgeFunction<L>>
-  getCallEdgeFunction(N callStmt, D srcNode, F destinationFunction,
-                      D destNode) = 0;
-  virtual std::shared_ptr<EdgeFunction<L>>
-  getReturnEdgeFunction(N callSite, F calleeFunction, N exitStmt, D exitNode,
-                        N reSite, D retNode) = 0;
-  virtual std::shared_ptr<EdgeFunction<L>>
-  getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
-                           std::set<F> callees) = 0;
-  virtual std::shared_ptr<EdgeFunction<L>>
-  getSummaryEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
+  virtual EdgeFunctionPtrType getNormalEdgeFunction(N curr, D currNode, N succ,
+                                                    D succNode) = 0;
+  virtual EdgeFunctionPtrType getCallEdgeFunction(N callStmt, D srcNode,
+                                                  F destinationFunction,
+                                                  D destNode) = 0;
+  virtual EdgeFunctionPtrType getReturnEdgeFunction(N callSite,
+                                                    F calleeFunction,
+                                                    N exitStmt, D exitNode,
+                                                    N reSite, D retNode) = 0;
+  virtual EdgeFunctionPtrType getCallToRetEdgeFunction(N callSite, D callNode,
+                                                       N retSite, D retSiteNode,
+                                                       std::set<F> callees) = 0;
+  virtual EdgeFunctionPtrType getSummaryEdgeFunction(N curr, D currNode, N succ,
+                                                     D succNode) = 0;
 };
 
 } // namespace psr

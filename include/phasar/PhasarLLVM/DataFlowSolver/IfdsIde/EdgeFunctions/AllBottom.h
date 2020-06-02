@@ -32,6 +32,9 @@ template <typename L> class AllTop;
 template <typename L>
 class AllBottom : public EdgeFunction<L>,
                   public std::enable_shared_from_this<AllBottom<L>> {
+public:
+  using typename EdgeFunction<L>::EdgeFunctionPtrType;
+
 private:
   const L bottomElement;
 
@@ -42,33 +45,32 @@ public:
 
   L computeTarget(L source) override { return bottomElement; }
 
-  std::shared_ptr<EdgeFunction<L>>
-  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) override {
-    if (AllBottom<L> *ab = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
+    if (auto *ab = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
-    if (EdgeIdentity<L> *ei =
-            dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
+    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
     return secondFunction->composeWith(this->shared_from_this());
   }
 
-  std::shared_ptr<EdgeFunction<L>>
-  joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) override {
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
     if (otherFunction.get() == this ||
-        otherFunction->equal_to(this->shared_from_this()))
+        otherFunction->equal_to(this->shared_from_this())) {
       return this->shared_from_this();
-    if (AllTop<L> *alltop = dynamic_cast<AllTop<L> *>(otherFunction.get()))
+    }
+    if (auto *alltop = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
       return this->shared_from_this();
-    if (EdgeIdentity<L> *ei =
-            dynamic_cast<EdgeIdentity<L> *>(otherFunction.get()))
+    }
+    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(otherFunction.get())) {
       return this->shared_from_this();
+    }
     return this->shared_from_this();
   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const override {
-    if (AllBottom<L> *allbottom = dynamic_cast<AllBottom<L> *>(other.get())) {
+  bool equal_to(EdgeFunctionPtrType other) const override {
+    if (auto *allbottom = dynamic_cast<AllBottom<L> *>(other.get())) {
       return (allbottom->bottomElement == bottomElement);
     }
     return false;
