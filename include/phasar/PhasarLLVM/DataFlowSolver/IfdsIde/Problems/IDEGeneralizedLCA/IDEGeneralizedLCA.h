@@ -140,6 +140,7 @@ private:
   void stripBottomResults(std::unordered_map<d_t, l_t> &res);
   bool isEntryPoint(const std::string &name) const;
   template <typename V> std::string VtoString(V v);
+  bool isSpecialMemberFunction(const llvm::Function *F);
 };
 
 } // namespace psr

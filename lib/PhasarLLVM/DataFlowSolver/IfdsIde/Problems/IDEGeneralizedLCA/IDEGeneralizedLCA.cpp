@@ -155,16 +155,8 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
-  llvm::ImmutableCallSite CS(CallStmt);
-  llvm::StringRef FunName = CS.getCalledFunction()->getName();
-  SpecialMemberFunctionTy FunType = specialMemberFunctionType(FunName);
-
-  if (FunType == SpecialMemberFunctionTy::CTOR ||
-    FunType == SpecialMemberFunctionTy::DTOR) {
-    // std::cout << "getCallFlowFunction\n";
-    // std::cout << FunName.str() << "\n";
+  if (isSpecialMemberFunction(DestMthd))
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
-  }
 
   return std::make_shared<MapFactsToCalleeFlowFunction>(
       llvm::ImmutableCallSite(CallStmt), DestMthd);
@@ -713,4 +705,10 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
   return Ss.str();
 }
 
+bool IDEGeneralizedLCA::isSpecialMemberFunction(const llvm::Function *F) {
+  SpecialMemberFunctionTy FunctionType =
+      specialMemberFunctionType(F->getName());
+  return (FunctionType == SpecialMemberFunctionTy::CTOR ||
+          FunctionType == SpecialMemberFunctionTy::DTOR);
+}
 } // namespace psr
