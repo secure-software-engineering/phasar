@@ -42,6 +42,7 @@ class IDETabulationProblem
       public virtual EdgeFactPrinter<L> {
   static_assert(std::is_base_of_v<ICFG<N, F>, I>,
                 "I must implement the ICFG interface!");
+
 public:
   using typename EdgeFunctions<N, D, F, L>::EdgeFunctionPtrType;
 
