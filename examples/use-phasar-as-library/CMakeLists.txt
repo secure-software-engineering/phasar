@@ -13,7 +13,6 @@ add_executable(myphasartool
   myphasartool.cpp
 )
 
-find_package(Threads REQUIRED)
 find_package(phasar COMPONENTS ifdside REQUIRED)
 include_directories(${PHASAR_INCLUDE_DIR})
 link_directories(${PHASAR_LIBRARY_DIR})
