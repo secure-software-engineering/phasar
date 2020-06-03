@@ -11,12 +11,11 @@ CXX := clang++
 CXX_FLAGS := -std=c++17
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
+CXX_FLAGS += -g
 CXX_FLAGS += -O0
 # CXX_FLAGS += -march=native
 # CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -pipe
-CXX_FLAGS += -g
-CXX_FLAGS += -rdynamic
 
 # llvm flags
 LLVM_FLAGS := `llvm-config --cppflags --ldflags`
