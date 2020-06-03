@@ -31,9 +31,9 @@ namespace psr {
 template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I, typename Container = std::set<D>>
 class FlowEdgeFunctionCache {
-  using FlowFunctionPtrType =
-      typename IDETabulationProblem<N, D, F, T, V, L, I,
-                                    Container>::FlowFunctionPtrType;
+  using IDEProblemType = IDETabulationProblem<N, D, F, T, V, L, I, Container>;
+  using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
+  using EdgeFunctionPtrType = typename IDEProblemType::EdgeFunctionPtrType;
 
 private:
   IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem;
@@ -47,15 +47,13 @@ private:
   std::map<std::tuple<N, N, std::set<F>>, FlowFunctionPtrType>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
-      NormalEdgeFunctionCache;
-  std::map<std::tuple<N, D, F, D>, std::shared_ptr<EdgeFunction<L>>>
-      CallEdgeFunctionCache;
-  std::map<std::tuple<N, F, N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunctionPtrType> NormalEdgeFunctionCache;
+  std::map<std::tuple<N, D, F, D>, EdgeFunctionPtrType> CallEdgeFunctionCache;
+  std::map<std::tuple<N, F, N, D, N, D>, EdgeFunctionPtrType>
       ReturnEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunctionPtrType>
       CallToRetEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunctionPtrType>
       SummaryEdgeFunctionCache;
 
 public:
@@ -255,8 +253,8 @@ public:
     return ff;
   }
 
-  std::shared_ptr<EdgeFunction<L>> getNormalEdgeFunction(N curr, D currNode,
-                                                         N succ, D succNode) {
+  EdgeFunctionPtrType getNormalEdgeFunction(N curr, D currNode, N succ,
+                                            D succNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Normal edge function factory call");
@@ -286,9 +284,8 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>> getCallEdgeFunction(N callStmt, D srcNode,
-                                                       F destinationFunction,
-                                                       D destNode) {
+  EdgeFunctionPtrType getCallEdgeFunction(N callStmt, D srcNode,
+                                          F destinationFunction, D destNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call edge function factory call");
@@ -320,10 +317,9 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>> getReturnEdgeFunction(N callSite,
-                                                         F calleeFunction,
-                                                         N exitStmt, D exitNode,
-                                                         N reSite, D retNode) {
+  EdgeFunctionPtrType getReturnEdgeFunction(N callSite, F calleeFunction,
+                                            N exitStmt, D exitNode, N reSite,
+                                            D retNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Return edge function factory call");
@@ -359,9 +355,9 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
-  getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
-                           std::set<F> callees) {
+  EdgeFunctionPtrType getCallToRetEdgeFunction(N callSite, D callNode,
+                                               N retSite, D retSiteNode,
+                                               std::set<F> callees) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call-to-Return edge function factory call");
@@ -397,8 +393,8 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
-  getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
+  EdgeFunctionPtrType getSummaryEdgeFunction(N callSite, D callNode, N retSite,
+                                             D retSiteNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Summary edge function factory call");
