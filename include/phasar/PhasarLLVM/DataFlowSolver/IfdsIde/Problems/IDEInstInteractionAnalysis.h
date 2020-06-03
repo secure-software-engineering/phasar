@@ -510,8 +510,7 @@ public:
         if (Store->getValueOperand()->getType()->isPointerTy()) {
           ValuePTS = this->PT->getPointsToSet(Store->getValueOperand());
         }
-        auto PointerPTS =
-            this->PT->getPointsToSet(Store->getPointerOperand());
+        auto PointerPTS = this->PT->getPointsToSet(Store->getPointerOperand());
         // overriding edge
         if ((currNode == Store->getValueOperand() ||
              ValuePTS->count(Store->getValueOperand()) ||
@@ -747,9 +746,7 @@ public:
 
     ~IIAAAddLabelsEF() override = default;
 
-    l_t computeTarget(l_t Src) override {
-      return Analysis.join(Src, Data);
-    }
+    l_t computeTarget(l_t Src) override { return Analysis.join(Src, Data); }
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {

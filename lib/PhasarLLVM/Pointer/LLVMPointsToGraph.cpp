@@ -281,8 +281,7 @@ LLVMPointsToGraph::getReachableAllocationSites(const llvm::Value *V,
 void LLVMPointsToGraph::mergeWith(
     const LLVMPointsToGraph::PointsToInfo<const llvm::Value *,
                                           const llvm::Instruction *> &PTI) {
-  const LLVMPointsToGraph *OtherPTI =
-      dynamic_cast<const LLVMPointsToGraph *>(&PTI);
+  const auto *OtherPTI = dynamic_cast<const LLVMPointsToGraph *>(&PTI);
   if (!OtherPTI) {
     llvm::report_fatal_error(
         "LLVMPointsToSet can only be merged with another LLVMPointsToSet!");

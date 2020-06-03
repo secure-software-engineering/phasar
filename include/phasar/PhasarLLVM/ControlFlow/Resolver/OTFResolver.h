@@ -66,12 +66,12 @@ public:
   std::set<const llvm::Function *>
   resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
 
-  std::set<const llvm::Type *>
-  getReachableTypes(const std::unordered_set<const llvm::Value *> &AllocSites);
+  static std::set<const llvm::Type *>
+  getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
 
-  std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
+  static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
   getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
-                              const llvm::Function *CalleeTarget) const;
+                              const llvm::Function *CalleeTarget);
 };
 } // namespace psr
 

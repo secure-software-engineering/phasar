@@ -146,16 +146,13 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
   }
 
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
-  for (llvm::SetVector<llvm::Value *>::iterator I1 = Pointers.begin(),
-                                                E = Pointers.end();
-       I1 != E; ++I1) {
+  for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
     llvm::Type *I1ElTy =
         llvm::cast<llvm::PointerType>((*I1)->getType())->getElementType();
     const uint64_t I1Size = I1ElTy->isSized()
                                 ? DL.getTypeStoreSize(I1ElTy)
                                 : llvm::MemoryLocation::UnknownSize;
-    for (llvm::SetVector<llvm::Value *>::iterator I2 = Pointers.begin();
-         I2 != I1; ++I2) {
+    for (auto I2 = Pointers.begin(); I2 != I1; ++I2) {
       llvm::Type *I2ElTy =
           llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
       const uint64_t I2Size = I2ElTy->isSized()
@@ -260,7 +257,7 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
 }
 
 void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
-  const LLVMPointsToSet *OtherPTI = dynamic_cast<const LLVMPointsToSet *>(&PTI);
+  const auto *OtherPTI = dynamic_cast<const LLVMPointsToSet *>(&PTI);
   if (!OtherPTI) {
     llvm::report_fatal_error(
         "LLVMPointsToSet can only be merged with another LLVMPointsToSet!");

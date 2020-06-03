@@ -24,7 +24,7 @@ class LLVMPointsToInfo
 public:
   ~LLVMPointsToInfo() override = default;
 
-  llvm::Function *retrieveFunction(const llvm::Value *V);
+  static llvm::Function *retrieveFunction(const llvm::Value *V);
 };
 
 } // namespace psr

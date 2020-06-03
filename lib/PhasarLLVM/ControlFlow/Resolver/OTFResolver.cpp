@@ -181,8 +181,8 @@ std::set<const llvm::Type *> OTFResolver::getReachableTypes(
 }
 
 std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-OTFResolver::getActualFormalPointerPairs(
-    llvm::ImmutableCallSite CS, const llvm::Function *CalleeTarget) const {
+OTFResolver::getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
+                                         const llvm::Function *CalleeTarget) {
   std::vector<std::pair<const llvm::Value *, const llvm::Value *>> Pairs;
   // ordinary case
   if (!CalleeTarget->isVarArg()) {
@@ -192,7 +192,7 @@ OTFResolver::getActualFormalPointerPairs(
       // only collect pointer typed pairs
       if (CS.getArgOperand(Idx)->getType()->isPointerTy() &&
           CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
-        Pairs.push_back({CS.getArgOperand(Idx), CalleeTarget->getArg(Idx)});
+        Pairs.emplace_back(CS.getArgOperand(Idx), CalleeTarget->getArg(Idx));
       }
     }
   } else {
@@ -219,7 +219,7 @@ OTFResolver::getActualFormalPointerPairs(
     if (VarArgs) {
       for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
         if (CS.getArgOperand(Idx)->getType()->isPointerTy()) {
-          Pairs.push_back({CS.getArgOperand(Idx), VarArgs});
+          Pairs.emplace_back(CS.getArgOperand(Idx), VarArgs);
         }
       }
     }
