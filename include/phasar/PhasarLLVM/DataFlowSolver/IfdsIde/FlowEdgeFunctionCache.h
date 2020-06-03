@@ -15,10 +15,8 @@
 #include <set>
 #include <tuple>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroedFlowFunction.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 
@@ -31,38 +29,38 @@ namespace psr {
  * into the cache.
  */
 template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I>
+          typename L, typename I, typename Container = std::set<D>>
 class FlowEdgeFunctionCache {
+  using IDEProblemType = IDETabulationProblem<N, D, F, T, V, L, I, Container>;
+  using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
+  using EdgeFunctionPtrType = typename IDEProblemType::EdgeFunctionPtrType;
+
 private:
-  IDETabulationProblem<N, D, F, T, V, L, I> &problem;
+  IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem;
   // Auto add zero
   bool autoAddZero;
   D zeroValue;
   // Caches for the flow functions
-  std::map<std::tuple<N, N>, std::shared_ptr<FlowFunction<D>>>
-      NormalFlowFunctionCache;
-  std::map<std::tuple<N, F>, std::shared_ptr<FlowFunction<D>>>
-      CallFlowFunctionCache;
-  std::map<std::tuple<N, F, N, N>, std::shared_ptr<FlowFunction<D>>>
-      ReturnFlowFunctionCache;
-  std::map<std::tuple<N, N, std::set<F>>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, N>, FlowFunctionPtrType> NormalFlowFunctionCache;
+  std::map<std::tuple<N, F>, FlowFunctionPtrType> CallFlowFunctionCache;
+  std::map<std::tuple<N, F, N, N>, FlowFunctionPtrType> ReturnFlowFunctionCache;
+  std::map<std::tuple<N, N, std::set<F>>, FlowFunctionPtrType>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
-      NormalEdgeFunctionCache;
-  std::map<std::tuple<N, D, F, D>, std::shared_ptr<EdgeFunction<L>>>
-      CallEdgeFunctionCache;
-  std::map<std::tuple<N, F, N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunctionPtrType> NormalEdgeFunctionCache;
+  std::map<std::tuple<N, D, F, D>, EdgeFunctionPtrType> CallEdgeFunctionCache;
+  std::map<std::tuple<N, F, N, D, N, D>, EdgeFunctionPtrType>
       ReturnEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunctionPtrType>
       CallToRetEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunctionPtrType>
       SummaryEdgeFunctionCache;
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
-  FlowEdgeFunctionCache(IDETabulationProblem<N, D, F, T, V, L, I> &problem)
+  FlowEdgeFunctionCache(
+      IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem)
       : problem(problem),
         autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero()),
         zeroValue(problem.getZeroValue()) {
@@ -101,10 +99,13 @@ public:
   ~FlowEdgeFunctionCache() = default;
 
   FlowEdgeFunctionCache(const FlowEdgeFunctionCache &FEFC) = default;
+  FlowEdgeFunctionCache &operator=(const FlowEdgeFunctionCache &FEFC) = default;
 
-  FlowEdgeFunctionCache(FlowEdgeFunctionCache &&FEFC) = default;
+  FlowEdgeFunctionCache(FlowEdgeFunctionCache &&FEFC) noexcept = default;
+  FlowEdgeFunctionCache &
+  operator=(FlowEdgeFunctionCache &&FEFC) noexcept = default;
 
-  std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
+  FlowFunctionPtrType getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Normal flow function factory call");
@@ -122,7 +123,7 @@ public:
     } else {
       INC_COUNTER("Normal-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<D>>(
+                    ? std::make_shared<ZeroedFlowFunction<D, Container>>(
                           problem.getNormalFlowFunction(curr, succ), zeroValue)
                     : problem.getNormalFlowFunction(curr, succ);
       NormalFlowFunctionCache.insert(make_pair(key, ff));
@@ -133,7 +134,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, F destFun) {
+  FlowFunctionPtrType getCallFlowFunction(N callStmt, F destFun) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call flow function factory call");
@@ -152,7 +153,7 @@ public:
       INC_COUNTER("Call-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<D>>(
+              ? std::make_shared<ZeroedFlowFunction<D, Container>>(
                     problem.getCallFlowFunction(callStmt, destFun), zeroValue)
               : problem.getCallFlowFunction(callStmt, destFun);
       CallFlowFunctionCache.insert(std::make_pair(key, ff));
@@ -163,8 +164,8 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, F calleeFun,
-                                                      N exitStmt, N retSite) {
+  FlowFunctionPtrType getRetFlowFunction(N callSite, F calleeFun, N exitStmt,
+                                         N retSite) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Return flow function factory call");
@@ -185,12 +186,13 @@ public:
       return ReturnFlowFunctionCache.at(key);
     } else {
       INC_COUNTER("Return-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ff = (autoAddZero) ? std::make_shared<ZeroedFlowFunction<D>>(
-                                    problem.getRetFlowFunction(
-                                        callSite, calleeFun, exitStmt, retSite),
-                                    zeroValue)
-                              : problem.getRetFlowFunction(callSite, calleeFun,
-                                                           exitStmt, retSite);
+      auto ff = (autoAddZero)
+                    ? std::make_shared<ZeroedFlowFunction<D, Container>>(
+                          problem.getRetFlowFunction(callSite, calleeFun,
+                                                     exitStmt, retSite),
+                          zeroValue)
+                    : problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
+                                                 retSite);
       ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Flow function constructed");
@@ -199,8 +201,8 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>>
-  getCallToRetFlowFunction(N callSite, N retSite, std::set<F> callees) {
+  FlowFunctionPtrType getCallToRetFlowFunction(N callSite, N retSite,
+                                               std::set<F> callees) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call-to-Return flow function factory call");
@@ -224,7 +226,7 @@ public:
       INC_COUNTER("CallToRet-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<D>>(
+              ? std::make_shared<ZeroedFlowFunction<D, Container>>(
                     problem.getCallToRetFlowFunction(callSite, retSite,
                                                      callees),
                     zeroValue)
@@ -237,8 +239,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
-                                                          F destFun) {
+  FlowFunctionPtrType getSummaryFlowFunction(N callStmt, F destFun) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -252,8 +253,8 @@ public:
     return ff;
   }
 
-  std::shared_ptr<EdgeFunction<L>> getNormalEdgeFunction(N curr, D currNode,
-                                                         N succ, D succNode) {
+  EdgeFunctionPtrType getNormalEdgeFunction(N curr, D currNode, N succ,
+                                            D succNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Normal edge function factory call");
@@ -283,9 +284,8 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>> getCallEdgeFunction(N callStmt, D srcNode,
-                                                       F destinationFunction,
-                                                       D destNode) {
+  EdgeFunctionPtrType getCallEdgeFunction(N callStmt, D srcNode,
+                                          F destinationFunction, D destNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call edge function factory call");
@@ -317,10 +317,9 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>> getReturnEdgeFunction(N callSite,
-                                                         F calleeFunction,
-                                                         N exitStmt, D exitNode,
-                                                         N reSite, D retNode) {
+  EdgeFunctionPtrType getReturnEdgeFunction(N callSite, F calleeFunction,
+                                            N exitStmt, D exitNode, N reSite,
+                                            D retNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Return edge function factory call");
@@ -356,9 +355,9 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
-  getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
-                           std::set<F> callees) {
+  EdgeFunctionPtrType getCallToRetEdgeFunction(N callSite, D callNode,
+                                               N retSite, D retSiteNode,
+                                               std::set<F> callees) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call-to-Return edge function factory call");
@@ -394,8 +393,8 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
-  getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
+  EdgeFunctionPtrType getSummaryEdgeFunction(N callSite, D callNode, N retSite,
+                                             D retSiteNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Summary edge function factory call");
