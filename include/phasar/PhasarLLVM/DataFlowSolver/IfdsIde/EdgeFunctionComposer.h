@@ -10,9 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+
 #include <memory>
 
 namespace psr {
@@ -35,6 +34,9 @@ template <typename L>
 class EdgeFunctionComposer
     : public EdgeFunction<L>,
       public std::enable_shared_from_this<EdgeFunctionComposer<L>> {
+public:
+  using typename EdgeFunction<L>::EdgeFunctionPtrType;
+
 private:
   // For debug purpose only
   const unsigned EFComposer_Id;
@@ -42,13 +44,12 @@ private:
 
 protected:
   /// First edge function
-  std::shared_ptr<EdgeFunction<L>> F;
+  EdgeFunctionPtrType F;
   /// Second edge function
-  std::shared_ptr<EdgeFunction<L>> G;
+  EdgeFunctionPtrType G;
 
 public:
-  EdgeFunctionComposer(std::shared_ptr<EdgeFunction<L>> F,
-                       std::shared_ptr<EdgeFunction<L>> G)
+  EdgeFunctionComposer(EdgeFunctionPtrType F, EdgeFunctionPtrType G)
       : EFComposer_Id(++CurrEFComposer_Id), F(F), G(G) {}
 
   ~EdgeFunctionComposer() override = default;
@@ -68,8 +69,7 @@ public:
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  std::shared_ptr<EdgeFunction<L>>
-  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) override {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
     if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
@@ -79,10 +79,10 @@ public:
     return F->composeWith(G->composeWith(secondFunction));
   }
 
-  // virtual std::shared_ptr<EdgeFunction<L>>
-  // joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) = 0;
+  // virtual EdgeFunctionPtrType
+  // joinWith(EdgeFunctionPtrType otherFunction) = 0;
 
-  bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const override {
+  bool equal_to(EdgeFunctionPtrType other) const override {
     if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(other.get())) {
       return F->equal_to(EFC->F) && G->equal_to(EFC->G);
     }

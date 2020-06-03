@@ -523,7 +523,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
   std::cout << "PointsTo(2) = {";
   bool Frst = true;
-  for (const auto *P : Pts) {
+  for (const auto *P : *Pts) {
     if (Frst) {
       Frst = false;
     } else {

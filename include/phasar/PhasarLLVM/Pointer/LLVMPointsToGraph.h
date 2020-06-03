@@ -109,6 +109,8 @@ private:
 
   // void mergeGraph(const LLVMPointsToGraph &Other);
 
+  void computePointsToGraph(const llvm::Value *V);
+
   void computePointsToGraph(llvm::Function *F);
 
 public:
@@ -134,7 +136,7 @@ public:
   AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
                     const llvm::Instruction *I = nullptr) override;
 
-  const std::unordered_set<const llvm::Value *> &
+  std::shared_ptr<std::unordered_set<const llvm::Value *>>
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
@@ -146,7 +148,8 @@ public:
                                     const llvm::Instruction *> &PTI) override;
 
   void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
-                      const llvm::Instruction *I = nullptr) override;
+                      const llvm::Instruction *I = nullptr,
+                      AliasResult Kind = AliasResult::MustAlias) override;
 
   void print(std::ostream &OS = std::cout) const override;
 
@@ -190,34 +193,11 @@ public:
   getPointersEscapingThroughReturnsForFunction(const llvm::Function *Fd) const;
 
   /**
-   * @brief Returns all reachable allocation sites from a given pointer.
-   * @note An allocation site can either be an Alloca Instruction or a call to
-   * an allocating function.
-   * @return Set of Allocation sites.
-   */
-  std::set<const llvm::Value *> getReachableAllocationSites(
-      const llvm::Value *V,
-      const std::vector<const llvm::Instruction *> &CallStack);
-
-  /**
    * @brief Checks if a given value is represented by a vertex in the points-to
    * graph.
    * @return True, the points-to graph contains the given value.
    */
   bool containsValue(llvm::Value *V);
-
-  // TODO add more detailed description
-  inline bool representsSingleFunction();
-
-  // void mergeWith(const LLVMPointsToGraph *Other, const llvm::Function *F);
-
-  // void mergeCallSite(const llvm::ImmutableCallSite &CS,
-  //                    const llvm::Function *F);
-
-  // void mergeWith(const LLVMPointsToGraph &Other,
-  //                const std::vector<std::pair<llvm::ImmutableCallSite,
-  //                                            const llvm::Function *>>
-  //                                            &Calls);
 
   /**
    * The value-vertex-map maps each Value of the points-to graph to

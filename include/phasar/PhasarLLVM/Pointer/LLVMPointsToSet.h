@@ -25,6 +25,7 @@ class Value;
 class Module;
 class Instruction;
 class AAResults;
+class GlobalVariable;
 class Function;
 class Type;
 } // namespace llvm
@@ -38,9 +39,10 @@ private:
   std::unordered_map<const llvm::Value *,
                      std::shared_ptr<std::unordered_set<const llvm::Value *>>>
       PointsToSets;
-  const std::unordered_set<const llvm::Value *> EmptySet;
 
   void computePointsToSet(const llvm::Value *V);
+
+  void computePointsToSet(const llvm::GlobalVariable *G);
 
   void computePointsToSet(llvm::Function *F);
 
@@ -66,7 +68,7 @@ public:
   AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
                     const llvm::Instruction *I = nullptr) override;
 
-  const std::unordered_set<const llvm::Value *> &
+  std::shared_ptr<std::unordered_set<const llvm::Value *>>
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
@@ -77,7 +79,8 @@ public:
   void mergeWith(const PointsToInfo &PTI) override;
 
   void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
-                      const llvm::Instruction *I = nullptr) override;
+                      const llvm::Instruction *I = nullptr,
+                      AliasResult Kind = AliasResult::MustAlias) override;
 
   bool empty() const;
 

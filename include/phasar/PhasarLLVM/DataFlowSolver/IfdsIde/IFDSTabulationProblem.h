@@ -39,8 +39,8 @@ template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
-class IFDSTabulationProblem : public virtual FlowFunctions<N, D, F>,
+          typename I, typename Container = std::set<D>>
+class IFDSTabulationProblem : public virtual FlowFunctions<N, D, F, Container>,
                               public virtual NodePrinter<N>,
                               public virtual DataFlowFactPrinter<D>,
                               public virtual FunctionPrinter<F> {
@@ -63,7 +63,8 @@ public:
   IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                         const I *ICF, PointsToInfo<V, N> *PT,
                         std::set<std::string> EntryPoints = {})
-      : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT), EntryPoints(EntryPoints) {}
+      : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT),
+        EntryPoints(std::move(EntryPoints)) {}
 
   ~IFDSTabulationProblem() override = default;
 
@@ -75,7 +76,9 @@ public:
 
   D getZeroValue() const { return ZeroValue; }
 
-  std::set<std::string> getEntryPoints() const { return EntryPoints; }
+  [[nodiscard]] std::set<std::string> getEntryPoints() const {
+    return EntryPoints;
+  }
 
   const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
@@ -89,7 +92,9 @@ public:
     SolverConfig = Config;
   }
 
-  IFDSIDESolverConfig getIFDSIDESolverConfig() const { return SolverConfig; }
+  [[nodiscard]] IFDSIDESolverConfig getIFDSIDESolverConfig() const {
+    return SolverConfig;
+  }
 
   virtual void emitTextReport(const SolverResults<N, D, BinaryDomain> &SR,
                               std::ostream &OS = std::cout) {

@@ -141,8 +141,8 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   std::set<const llvm::Function *> Callees;
-  const auto &PTS = PT.getPointsToSet(CS.getCalledValue());
-  for (const auto *P : PTS) {
+  const auto PTS = PT.getPointsToSet(CS.getCalledValue());
+  for (const auto *P : *PTS) {
     if (P->getType()->isPointerTy() &&
         P->getType()->getPointerElementType()->isFunctionTy()) {
       if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {

@@ -16,12 +16,8 @@
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -92,8 +88,8 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Pointer operand of store Instruction: "
                   << llvmIRToString(PointerOp));
-    const auto &PTS = PT->getPointsToSet(PointerOp);
-    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS.begin(), PTS.end());
+    const auto PTS = PT->getPointsToSet(PointerOp);
+    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
     // Check if this store instruction is the second write access to the memory
     // location the pointer operand or it's alias are pointing to.
     // This is done by checking the Initialized set.
@@ -145,7 +141,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallStmt,
                   << "Call statement: " << llvmIRToString(CallStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Destination method: " << DestFun->getName().str());
-    return make_shared<MapFactsToCallee>(
+    return make_shared<MapFactsToCallee<>>(
         llvm::ImmutableCallSite(CallStmt), DestFun,
         [](IFDSConstAnalysis::d_t Actual) {
           return Actual->getType()->isPointerTy();
@@ -163,7 +159,7 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
                                       IFDSConstAnalysis::n_t RetSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
-  return make_shared<MapFactsToCaller>(
+  return make_shared<MapFactsToCaller<>>(
       llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt,
       [](IFDSConstAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
@@ -183,8 +179,8 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::d_t PointerOp = CallSite->getOperand(0);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Pointer Operand: " << llvmIRToString(PointerOp));
-    const auto &PTS = PT->getPointsToSet(PointerOp);
-    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS.begin(), PTS.end());
+    const auto PTS = PT->getPointsToSet(PointerOp);
+    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
     for (const auto *Alias : PointsToSet) {
       if (isInitialized(Alias)) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

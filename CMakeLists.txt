@@ -283,12 +283,6 @@ install(DIRECTORY config/
               WORLD_READ
 )
 
-install(EXPORT phasarTargets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
-  NAMESPACE phasar::
-  FILE phasarTargets.cmake
-)
-
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
   Config.cmake.in

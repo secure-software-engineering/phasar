@@ -30,16 +30,10 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsAlongsideCallSite.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -82,7 +76,15 @@ class IDEInstInteractionAnalysisT
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, const llvm::StructType *, const llvm::Value *,
           LatticeDomain<BitVectorSet<EdgeFactType>>, LLVMBasedICFG> {
+  using IDETabProblemType = IDETabulationProblem<
+      const llvm::Instruction *, const llvm::Value *, const llvm::Function *,
+      const llvm::StructType *, const llvm::Value *,
+      LatticeDomain<BitVectorSet<EdgeFactType>>, LLVMBasedICFG>;
+  using typename IDETabProblemType::FlowFunctionPtrType;
+
 public:
+  using typename IDETabProblemType::container_type;
+
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
   using f_t = const llvm::Function *;
@@ -98,8 +100,8 @@ public:
 
 private:
   std::function<EdgeFactGeneratorTy> edgeFactGen;
-  static inline l_t BottomElement = Bottom{};
-  static inline l_t TopElement = Top{};
+  static inline const l_t BottomElement = Bottom{};
+  static inline const l_t TopElement = Top{};
   // bool GeneratedGlobalVariables = false;
 
   inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t curr) {
@@ -120,7 +122,8 @@ public:
                              const llvm::Function *, const llvm::StructType *,
                              const llvm::Value *,
                              LatticeDomain<BitVectorSet<EdgeFactType>>,
-                             LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
+                             LLVMBasedICFG, container_type>(
+            IRDB, TH, ICF, PT, std::move(EntryPoints)) {
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
                                     EnableIndirectTaints>::createZeroValue();
@@ -166,7 +169,7 @@ public:
       if (auto br = llvm::dyn_cast<llvm::BranchInst>(curr);
           br && br->isConditional()) {
         return std::make_shared<LambdaFlow<d_t>>([=](d_t src) {
-          std::set<d_t> ret = {src, br};
+          container_type ret = {src, br};
           if (src == br->getCondition()) {
             for (auto succ : br->successors()) {
               // this->indirecrTaints[succ].insert(src);
@@ -185,7 +188,7 @@ public:
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
         // if one of the potentially many loaded values holds, the load itself
         // must also be populated
-        struct IIAFlowFunction : FlowFunction<d_t> {
+        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::LoadInst *Load;
           std::unordered_set<d_t> PTS;
@@ -193,10 +196,10 @@ public:
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
               : Problem(Problem), Load(Load),
-                PTS(Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
+                PTS(*Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
 
-          std::set<d_t> computeTargets(d_t src) override {
-            std::set<d_t> Facts;
+          container_type computeTargets(d_t src) override {
+            container_type Facts;
             Facts.insert(src);
             if (PTS.count(src)) {
               Facts.insert(Load);
@@ -211,7 +214,7 @@ public:
       if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
         // if the value to be stored holds the potentially memory location
         // that it is stored to must be populated as well
-        struct IIAFlowFunction : FlowFunction<d_t> {
+        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::StoreInst *Store;
           std::unordered_set<d_t> ValuePTS;
@@ -220,12 +223,12 @@ public:
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
               : Problem(Problem), Store(Store),
-                ValuePTS(Problem.PT->getPointsToSet(Store->getValueOperand())),
+                ValuePTS(*Problem.PT->getPointsToSet(Store->getValueOperand())),
                 PointerPTS(
-                    Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
+                    *Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
 
-          std::set<d_t> computeTargets(d_t src) override {
-            std::set<d_t> Facts;
+          container_type computeTargets(d_t src) override {
+            container_type Facts;
             Facts.insert(src);
             // if a value is stored that holds we must generate all potential
             // memory locations the store might write to
@@ -260,8 +263,8 @@ public:
               : Store(S), Load(L) {}
           ~IIAAFlowFunction() override = default;
 
-          std::set<d_t> computeTargets(d_t src) override {
-            std::set<d_t> Facts;
+          container_type computeTargets(d_t src) override {
+            container_type Facts;
             if (Load == src || Load->getPointerOperand() == src) {
               Facts.insert(src);
               Facts.insert(Load->getPointerOperand());
@@ -285,8 +288,8 @@ public:
           IIAAFlowFunction(const llvm::StoreInst *S) : Store(S) {}
           ~IIAAFlowFunction() override = default;
 
-          std::set<d_t> computeTargets(d_t src) override {
-            std::set<d_t> Facts;
+          container_type computeTargets(d_t src) override {
+            container_type Facts;
             if (Store->getValueOperand() == src) {
               Facts.insert(src);
               Facts.insert(Store->getPointerOperand());
@@ -315,8 +318,8 @@ public:
 
       ~IIAFlowFunction() override = default;
 
-      std::set<d_t> computeTargets(d_t src) override {
-        std::set<d_t> Facts;
+      container_type computeTargets(d_t src) override {
+        container_type Facts;
         if (Problem.isZeroValue(src)) {
           // keep the zero flow fact
           Facts.insert(src);
@@ -350,48 +353,48 @@ public:
     return std::make_shared<IIAFlowFunction>(*this, curr);
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
-  getCallFlowFunction(n_t callStmt, f_t destMthd) override {
+  inline FlowFunctionPtrType getCallFlowFunction(n_t callStmt,
+                                                 f_t destMthd) override {
     // just use the auto mapping
-    return std::make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
-                                              destMthd);
+    return std::make_shared<MapFactsToCallee<container_type>>(
+        llvm::ImmutableCallSite(callStmt), destMthd);
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
-  getRetFlowFunction(n_t callSite, f_t calleeMthd, n_t exitStmt,
-                     n_t retSite) override {
+  inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
+                                                n_t exitStmt,
+                                                n_t retSite) override {
     // if pointer parameters hold at the end of a callee function generate all
     // of the
-    return std::make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(callSite),
-                                              calleeMthd, exitStmt);
+    return std::make_shared<MapFactsToCaller<container_type>>(
+        llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt);
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
+  inline FlowFunctionPtrType
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<f_t> callees) override {
     // just use the auto mapping, pointer parameters are killed and handled by
     // getCallFlowfunction() and getRetFlowFunction()
-    return std::make_shared<MapFactsAlongsideCallSite>(
+    return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
         llvm::ImmutableCallSite(callSite));
   }
 
-  inline std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, f_t destMthd) override {
+  inline FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+                                                    f_t destMthd) override {
     // do not use user-crafted summaries
     return nullptr;
   }
 
-  inline std::map<n_t, std::set<d_t>> initialSeeds() override {
-    std::map<n_t, std::set<d_t>> SeedMap;
+  inline std::map<n_t, container_type> initialSeeds() override {
+    std::map<n_t, container_type> SeedMap;
     for (auto &EntryPoint : this->EntryPoints) {
       SeedMap.insert(
           std::make_pair(&this->ICF->getFunction(EntryPoint)->front().front(),
-                         std::set<d_t>({this->getZeroValue()})));
+                         container_type({this->getZeroValue()})));
     }
     return SeedMap;
   }
 
-  inline d_t createZeroValue() const override {
+  [[nodiscard]] inline d_t createZeroValue() const override {
     // create a special value to represent the zero value!
     return LLVMZeroValue::getInstance();
   }
@@ -503,22 +506,22 @@ public:
       } else {
         // consider points-to information and find all possible overriding edges
         // using points-to sets
-        std::unordered_set<d_t> ValuePTS;
+        std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
         if (Store->getValueOperand()->getType()->isPointerTy()) {
           ValuePTS = this->PT->getPointsToSet(Store->getValueOperand());
         }
-        std::unordered_set<d_t> PointerPTS =
+        auto PointerPTS =
             this->PT->getPointsToSet(Store->getPointerOperand());
         // overriding edge
         if ((currNode == Store->getValueOperand() ||
-             ValuePTS.count(Store->getValueOperand()) ||
+             ValuePTS->count(Store->getValueOperand()) ||
              llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
-            PointerPTS.count(Store->getPointerOperand())) {
+            PointerPTS->count(Store->getPointerOperand())) {
           return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
         }
         // kill all labels that are propagated along the edge of the
         // value/values that is/are overridden
-        if (currNode == succNode && PointerPTS.count(currNode)) {
+        if (currNode == succNode && PointerPTS->count(currNode)) {
           return std::make_shared<IIAAKillOrReplaceEF>(*this);
         }
       }
@@ -539,7 +542,7 @@ public:
         }
         // generate labels from zero when an operand of the current instruction
         // is a flow fact that is generated
-        for (auto &Op : curr->operands()) {
+        for (const auto &Op : curr->operands()) {
           // also propagate the labels if one of the operands holds
           if (isZeroValue(currNode) && Op == succNode) {
             return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
@@ -793,9 +796,9 @@ public:
       return std::make_shared<AllBottom<l_t>>(Analysis.BottomElement);
     }
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) <<
-      // "IIAAAddLabelsEF::equal_to");
+    [[nodiscard]] bool
+    equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
+      // std::cout << "IIAAAddLabelsEF::equal_to\n";
       if (auto *I = dynamic_cast<IIAAAddLabelsEF *>(other.get())) {
         return (I->Data == this->Data);
       }

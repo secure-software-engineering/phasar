@@ -6,7 +6,7 @@
 #include <set>
 #include <vector>
 
-#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+#include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h"
 
 namespace psr {
 class ProjectIRDB;
@@ -18,9 +18,11 @@ class LLVMPointsToInfo;
 class MyIFDSProblem : public psr::IFDSTabulationProblemPlugin {
 public:
   MyIFDSProblem(const psr::ProjectIRDB *IRDB, const psr::LLVMTypeHierarchy *TH,
-                const psr::LLVMBasedICFG *ICF, const psr::LLVMPointsToInfo *PT,
+                const psr::LLVMBasedICFG *ICF, psr::LLVMPointsToInfo *PT,
                 std::set<std::string> EntryPoints);
+
   ~MyIFDSProblem() = default;
+
   std::shared_ptr<psr::FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
@@ -49,6 +51,9 @@ public:
 };
 
 extern "C" std::unique_ptr<psr::IFDSTabulationProblemPlugin>
-makeMyIFDSProblem(psr::LLVMBasedICFG &I, std::vector<std::string> EntryPoints);
+makeMyIFDSProblem(const psr::ProjectIRDB *IRDB,
+                  const psr::LLVMTypeHierarchy *TH,
+                  const psr::LLVMBasedICFG *ICF, psr::LLVMPointsToInfo *PT,
+                  std::set<std::string> EntryPoints);
 
 #endif
