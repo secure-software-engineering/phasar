@@ -34,7 +34,7 @@ TEST_F(LLVMBasedICFG_CHATest, StaticCallSite_1) {
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
         llvm::ImmutableCallSite CS(&I);
         auto Callees = ICFG.getCalleesOfCallAt(&I);
-        ASSERT_EQ(Callees.size(), 1);
+        ASSERT_EQ(Callees.size(), 1U);
         ASSERT_TRUE(Callees.count(Foo));
         ASSERT_TRUE(ICFG.getCallersOf(Foo).count(&I));
       }
@@ -53,7 +53,7 @@ TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_2) {
   const llvm::Instruction *I = getNthInstruction(F, 13);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
     set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
-    ASSERT_EQ(Callees.size(), 2);
+    ASSERT_EQ(Callees.size(), 2U);
     set<string> CalleeNames;
     for (const llvm::Function *F : Callees) {
       CalleeNames.insert(F->getName().str());
@@ -81,7 +81,7 @@ TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_9) {
     for (const llvm::Function *F : Callees) {
       CalleeNames.insert(F->getName().str());
     }
-    ASSERT_EQ(Callees.size(), 4);
+    ASSERT_EQ(Callees.size(), 4U);
     ASSERT_TRUE(CalleeNames.count("_ZN1B3fooEv"));
     ASSERT_TRUE(CalleeNames.count("_ZN1A3fooEv"));
     ASSERT_TRUE(CalleeNames.count("_ZN1D3fooEv"));
@@ -107,7 +107,7 @@ TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_7) {
     llvm::ImmutableCallSite CS(I);
     set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
     ASSERT_TRUE(ICFG.getCallersOf(VfuncB).count(I));
-    ASSERT_EQ(Callees.size(), 2);
+    ASSERT_EQ(Callees.size(), 2U);
     ASSERT_TRUE(Callees.count(VfuncB));
     ASSERT_TRUE(Callees.count(VfuncA));
   }
