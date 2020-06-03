@@ -24,11 +24,11 @@ TEST(HexastoreTest, QueryBlankFieldEntries) {
   hs_result SecondRes("one", "", "four");
 
   auto Result = H.get({{"one", "", ""}});
-  ASSERT_EQ(Result.size(), 1);
+  ASSERT_EQ(Result.size(), 1U);
   ASSERT_EQ(Result[0], FirstRes);
 
   Result = H.get({{"one", "?", "?"}});
-  ASSERT_EQ(Result.size(), 2);
+  ASSERT_EQ(Result.size(), 2U);
   ASSERT_EQ(Result[0], FirstRes);
   ASSERT_EQ(Result[1], SecondRes);
 }
@@ -52,49 +52,49 @@ TEST(HexastoreTest, AllQueryTypes) {
 
   // Does peter hate hexastores? (SPO query in 'spo' tables)
   auto Result = H.get({{"peter", "hates", "hexastores"}});
-  ASSERT_EQ(Result.size(), 1);
+  ASSERT_EQ(Result.size(), 1U);
   ASSERT_EQ(Result[0], GroundTruth[4]);
 
   // What does Mary like? (SPX query in 'spo' tables)
   Result = H.get({{"mary", "likes", "?"}});
-  ASSERT_EQ(Result.size(), 2);
+  ASSERT_EQ(Result.size(), 2U);
   ASSERT_EQ(Result[0], GroundTruth[0]);
   ASSERT_EQ(Result[1], GroundTruth[1]);
 
   // What's Franks opinion on bananas? (SXO query in 'sop' tables)
   Result = H.get({{"frank", "?", "bananas"}});
-  ASSERT_EQ(Result.size(), 1);
+  ASSERT_EQ(Result.size(), 1U);
   ASSERT_EQ(Result[0], GroundTruth[5]);
 
   // Who likes apples? (XPO query in 'pos' tables)
   Result = H.get({{"?", "likes", "apples"}});
-  ASSERT_EQ(Result.size(), 2);
+  ASSERT_EQ(Result.size(), 2U);
   ASSERT_EQ(Result[0], GroundTruth[1]);
   ASSERT_EQ(Result[1], GroundTruth[3]);
 
   // What's Marry up to? (SXX query in 'spo' tables)
   Result = H.get({{"mary", "?", "?"}});
-  ASSERT_EQ(Result.size(), 3);
+  ASSERT_EQ(Result.size(), 3U);
   ASSERT_EQ(Result[0], GroundTruth[0]);
   ASSERT_EQ(Result[1], GroundTruth[1]);
   ASSERT_EQ(Result[2], GroundTruth[2]);
 
   // Who likes what? (XPX query in 'pso' tables)
   Result = H.get({{"?", "likes", "?"}});
-  ASSERT_EQ(Result.size(), 3);
+  ASSERT_EQ(Result.size(), 3U);
   ASSERT_EQ(Result[0], GroundTruth[0]);
   ASSERT_EQ(Result[1], GroundTruth[1]);
   ASSERT_EQ(Result[2], GroundTruth[3]);
 
   // Who has what opinion on apples? (XXO query in 'osp' tables)
   Result = H.get({{"?", "?", "apples"}});
-  ASSERT_EQ(Result.size(), 2);
+  ASSERT_EQ(Result.size(), 2U);
   ASSERT_EQ(Result[0], GroundTruth[1]);
   ASSERT_EQ(Result[1], GroundTruth[3]);
 
   // All data in the Hexastore? (XXX query in 'spo' tables)
   Result = H.get({{"?", "?", "?"}});
-  ASSERT_EQ(Result.size(), 6);
+  ASSERT_EQ(Result.size(), 6U);
   ASSERT_EQ(Result, GroundTruth);
 }
 

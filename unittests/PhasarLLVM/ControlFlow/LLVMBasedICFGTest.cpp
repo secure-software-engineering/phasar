@@ -64,7 +64,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_2) {
   ASSERT_EQ(FunctionSet, FunSet);
 
   set<const llvm::Instruction *> CallsFromWithin = ICFG.getCallsFromWithin(F);
-  ASSERT_EQ(2, CallsFromWithin.size());
+  ASSERT_EQ(CallsFromWithin.size(), 2U);
 }
 
 TEST_F(LLVMBasedICFGTest, VirtualCallSite_1) {
@@ -173,7 +173,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_5) {
       if (ICFG.isCallStmt(&I)) {
         set<const llvm::Instruction *> CallsFromWithin =
             ICFG.getCallsFromWithin(ICFG.getFunctionOf(&I));
-        ASSERT_EQ(CallsFromWithin.size(), 1);
+        ASSERT_EQ(CallsFromWithin.size(), 1U);
       }
     }
   }
@@ -195,9 +195,9 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_6) {
     set<const llvm::Instruction *> CallsFromWithin =
         ICFG.getCallsFromWithin(ICFG.getFunctionOf(getNthInstruction(F, 2)));
 
-    ASSERT_EQ(StartPoints.size(), 1);
+    ASSERT_EQ(StartPoints.size(), 1U);
     ASSERT_TRUE(StartPoints.count(I));
-    ASSERT_EQ(CallsFromWithin.size(), 2);
+    ASSERT_EQ(CallsFromWithin.size(), 2U);
     ASSERT_TRUE(CallsFromWithin.count(getNthInstruction(F, 2)));
     ASSERT_TRUE(CallsFromWithin.count(getNthInstruction(FooF, 4)));
   }
@@ -220,7 +220,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_7) {
       getLastInstructionOf(IRDB.getFunctionDefinition("_ZN3Foo1fEv"));
   set<const llvm::Function *> AllMethods = ICFG.getAllFunctions();
   ASSERT_EQ(LastInst, I);
-  ASSERT_EQ(AllMethods.size(), 3);
+  ASSERT_EQ(AllMethods.size(), 3U);
   ASSERT_TRUE(AllMethods.count(Main));
   ASSERT_TRUE(AllMethods.count(FooF));
   ASSERT_TRUE(AllMethods.count(F));
@@ -243,7 +243,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_8) {
   ASSERT_EQ(Insts.size(), Insts1.size());
 
   set<const llvm::Function *> FunSet = ICFG.getAllFunctions();
-  ASSERT_EQ(FunSet.size(), 3);
+  ASSERT_EQ(FunSet.size(), 3U);
 
   const llvm::Instruction *I = getNthInstruction(F, 1);
   ASSERT_TRUE(ICFG.isStartPoint(I));
