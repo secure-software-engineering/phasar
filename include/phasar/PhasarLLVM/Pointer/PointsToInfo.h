@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
 #include <iosfwd>
+#include <memory>
 #include <unordered_set>
 
 #include "nlohmann/json.hpp"
@@ -47,7 +48,8 @@ public:
 
   virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
 
-  virtual const std::unordered_set<V> &getPointsToSet(V V1, N I = N{}) = 0;
+  virtual std::shared_ptr<std::unordered_set<V>> getPointsToSet(V V1,
+                                                                N I = N{}) = 0;
 
   virtual std::unordered_set<V> getReachableAllocationSites(V V1,
                                                             N I = N{}) = 0;
@@ -64,7 +66,8 @@ public:
   // novel information.
   virtual void mergeWith(const PointsToInfo &PTI) = 0;
 
-  virtual void introduceAlias(V V1, V V2, N I = N{}) = 0;
+  virtual void introduceAlias(V V1, V V2, N I = N{},
+                              AliasResult Kind = AliasResult::MustAlias) = 0;
 };
 
 template <typename V, typename N>

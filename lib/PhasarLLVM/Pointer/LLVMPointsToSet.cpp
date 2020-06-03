@@ -20,6 +20,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
@@ -201,14 +202,14 @@ AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
                                      : AliasResult::NoAlias;
 }
 
-const std::unordered_set<const llvm::Value *> &
+std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
                                 const llvm::Instruction *I) {
   computePointsToSet(V);
   if (PointsToSets.find(V) == PointsToSets.end()) {
-    return EmptySet;
+    return std::make_shared<std::unordered_set<const llvm::Value *>>();
   }
-  return *PointsToSets[V];
+  return PointsToSets[V];
 }
 
 std::unordered_set<const llvm::Value *>
@@ -234,12 +235,46 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
 }
 
 void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
-  // TODO
+  const LLVMPointsToSet *OtherPTI = dynamic_cast<const LLVMPointsToSet *>(&PTI);
+  if (!OtherPTI) {
+    llvm::report_fatal_error(
+        "LLVMPointsToSet can only be merged with another LLVMPointsToSet!");
+  }
+  // merge analyzed functions
+  AnalyzedFunctions.insert(OtherPTI->AnalyzedFunctions.begin(),
+                           OtherPTI->AnalyzedFunctions.end());
+  // merge points-to sets
+  for (auto &[KeyPtr, Set] : OtherPTI->PointsToSets) {
+    bool FoundElemPtr = false;
+    for (auto ElemPtr : *Set) {
+      // check if a pointer of other is already present in this
+      auto Search = PointsToSets.find(ElemPtr);
+      if (Search != PointsToSets.end()) {
+        // if so, copy its elements
+        FoundElemPtr = true;
+        Search->second->insert(Set->begin(), Set->end());
+        // and reindex its elements
+        for (auto ElemPtr : *Set) {
+          PointsToSets.insert({ElemPtr, Search->second});
+        }
+        break;
+      }
+    }
+    // if none of the pointers of a set of other is known in this, we need to
+    // perform a copy
+    if (!FoundElemPtr) {
+      PointsToSets.insert(
+          {KeyPtr,
+           std::make_shared<std::unordered_set<const llvm::Value *>>(*Set)});
+    }
+    FoundElemPtr = false;
+  }
 }
 
 void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
                                      const llvm::Value *V2,
-                                     const llvm::Instruction *I) {
+                                     const llvm::Instruction *I,
+                                     AliasResult Kind) {
   // before introducing additional aliases make sure we initially computed
   // the aliases for V1 and V2
   computePointsToSet(V1);

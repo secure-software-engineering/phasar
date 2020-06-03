@@ -153,7 +153,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
           auto PTS = PT->getPointsToSet(V);
-          for (const auto *Alias : PTS) {
+          for (const auto *Alias : *PTS) {
             ToGenerate.insert(Alias);
           }
         }
@@ -169,7 +169,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
           auto PTS = PT->getPointsToSet(V);
-          for (const auto *Alias : PTS) {
+          for (const auto *Alias : *PTS) {
             ToGenerate.insert(Alias);
           }
         }

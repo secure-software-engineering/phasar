@@ -118,7 +118,7 @@ public:
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
               : Problem(Problem), Load(Load),
-                PTS(Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
+                PTS(*Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
 
           std::set<d_t> computeTargets(d_t src) override {
             std::set<d_t> Facts;
@@ -145,8 +145,8 @@ public:
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
               : Problem(Problem), Store(Store),
-                ValuePTS(Problem.PT->getPointsToSet(Store->getValueOperand())),
-                PointerPTS(
+                ValuePTS(*Problem.PT->getPointsToSet(Store->getValueOperand())),
+                PointerPTS(*
                     Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
 
           std::set<d_t> computeTargets(d_t src) override {

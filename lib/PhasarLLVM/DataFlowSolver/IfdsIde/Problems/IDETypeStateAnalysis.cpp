@@ -658,13 +658,13 @@ IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
                                                     PointsToCache[V].end());
     return PointsToSet;
   } else {
-    const auto &PTS = PT->getPointsToSet(V);
-    for (const auto *Alias : PTS) {
+    const auto PTS = PT->getPointsToSet(V);
+    for (const auto *Alias : *PTS) {
       if (hasMatchingType(Alias)) {
-        PointsToCache[Alias] = PTS;
+        PointsToCache[Alias] = *PTS;
       }
     }
-    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PTS.begin(), PTS.end());
+    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
     return PointsToSet;
   }
 }

@@ -23,7 +23,7 @@ TEST_F(LLVMBasedICFGTest, Intra_01) {
   auto *Main = IRDB.getFunctionDefinition("main");
   for (auto &BB : *Main) {
     for (auto &I : BB) {
-      auto &S = PTS.getPointsToSet(&I);
+      auto S = PTS.getPointsToSet(&I);
     }
   }
   PTS.print(std::cout);
@@ -38,7 +38,7 @@ TEST_F(LLVMBasedICFGTest, Inter_01) {
   auto *Main = IRDB.getFunctionDefinition("main");
   for (auto &BB : *Main) {
     for (auto &I : BB) {
-      auto &S = PTS.getPointsToSet(&I);
+      auto S = PTS.getPointsToSet(&I);
     }
   }
   PTS.print(std::cout);
