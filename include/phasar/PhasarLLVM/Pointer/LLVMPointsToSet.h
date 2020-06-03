@@ -25,6 +25,7 @@ class Value;
 class Module;
 class Instruction;
 class AAResults;
+class GlobalVariable;
 class Function;
 class Type;
 } // namespace llvm
@@ -40,6 +41,8 @@ private:
       PointsToSets;
 
   void computePointsToSet(const llvm::Value *V);
+
+  void computePointsToSet(const llvm::GlobalVariable *G);
 
   void computePointsToSet(llvm::Function *F);
 

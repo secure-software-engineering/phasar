@@ -49,8 +49,33 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
 }
 
 void LLVMPointsToSet::computePointsToSet(const llvm::Value *V) {
-  auto *VF = retrieveFunction(V);
-  computePointsToSet(VF);
+  if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    computePointsToSet(G);
+  } else {
+    auto *VF = retrieveFunction(V);
+    computePointsToSet(VF);
+  }
+}
+
+void LLVMPointsToSet::computePointsToSet(const llvm::GlobalVariable *G) {
+  auto Search = PointsToSets.find(G);
+  if (Search == PointsToSets.end()) {
+    PointsToSets.insert(
+        {G, std::make_shared<std::unordered_set<const llvm::Value *>>()});
+    PointsToSets[G]->insert(G);
+    for (const auto *User : G->users()) {
+      computePointsToSet(User);
+      if (User->getType()->isPointerTy()) {
+        PointsToSets[G]->insert(User);
+      }
+    }
+  }
+  std::cout << "Computed points-to set for global variable: "
+            << llvmIRToString(G) << '\n';
+  for (const auto *Ptr : *PointsToSets[G]) {
+    std::cout << "Ptr: " << llvmIRToString(Ptr) << '\n';
+  }
+  std::cout << std::endl;
 }
 
 void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {

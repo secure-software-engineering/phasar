@@ -149,8 +149,8 @@ public:
                           const llvm::StoreInst *Store)
               : Problem(Problem), Store(Store),
                 ValuePTS(*Problem.PT->getPointsToSet(Store->getValueOperand())),
-                PointerPTS(*
-                    Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
+                PointerPTS(
+                    *Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
