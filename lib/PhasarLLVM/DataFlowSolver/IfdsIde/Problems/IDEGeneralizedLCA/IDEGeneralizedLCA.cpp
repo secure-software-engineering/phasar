@@ -12,6 +12,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -182,15 +183,21 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t RetSite,
                                             std::set<f_t> Callees) {
   // std::cout << "CTR flow: " << llvmIRToString(callSite) << std::endl;
+
   if (auto Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     return flow([Call](IDEGeneralizedLCA::d_t Source)
                     -> std::set<IDEGeneralizedLCA::d_t> {
+      //std::cout << "In getCallToRetFlowFunction\n";
+      //std::cout << llvmIRToString(Source) << '\n';
       if (Source->getType()->isPointerTy()) {
         for (auto &Arg : Call->arg_operands()) {
-          if (Arg.get() == Source)
+          if (Arg.get() == Source) {
+            //std::cout << "return {}/n";
             return {};
+          }
         }
       }
+      //std::cout << "return {Source}\n";
       return {Source};
     });
   }
@@ -384,22 +391,10 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::d_t SrcNode,
                                        IDEGeneralizedLCA::f_t DestinationMethod,
                                        IDEGeneralizedLCA::d_t DestNode) {
-  // assert(destNode && "Invalid dest node");
-  // assert(srcNode && "Invalid src node");
-  if (!DestNode) {
+  if (!DestNode)
     return EdgeIdentity<l_t>::getInstance();
-  }
-  /*if (isZeroValue(srcNode) &&
-      destinationMethod->getName().contains("EVP_KDF_ctrl")) {
-    std::cerr << "######################################################"
-              << std::endl
-              << destNode << std::endl;
-  }*/
-  // return edge-identity
-  // return IdentityEdgeFunction::getInstance(maxSetSize);
-  // return std::make_shared<MapFactsToCalleeEdgeFunction>(
-  //    llvm::ImmutableCallSite(callStmt), srcNode, destinationMethod, destNode,
-  //    maxSetSize);
+
+
   llvm::ImmutableCallSite Cs(CallStmt);
   auto Len =
       std::min<size_t>(Cs.getNumArgOperands(), DestinationMethod->arg_size());
@@ -407,13 +402,12 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(SrcNode)) {
     for (size_t I = 0; I < Len; ++I) {
       auto FormalArg = getNthFunctionArgument(DestinationMethod, I);
+
       if (DestNode == FormalArg) {
         auto ActualArg = Cs.getArgOperand(I);
         // if (isConstant(actualArg))  // -> always const, since srcNode is zero
-        return std::make_shared<GenConstant>(
-            l_t({EdgeValue(Cs.getArgOperand(I))}), maxSetSize);
-        // else
-        //  return IdentityEdgeFunction::getInstance(maxSetSize);
+        return std::make_shared<GenConstant>(l_t({EdgeValue(ActualArg)}),
+                                             maxSetSize);
       }
     }
   }
@@ -448,7 +442,27 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
     IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
     IDEGeneralizedLCA::n_t RetSite, IDEGeneralizedLCA::d_t RetSiteNode,
     std::set<IDEGeneralizedLCA::f_t> Callees) {
-  // return edge-identity
+
+  llvm::ImmutableCallSite CS(CallSite);
+
+  for (size_t I = 0; I < CS.arg_size(); ++I) {
+    if (auto User = llvm::dyn_cast<llvm::User>(CS.getArgument(I))) {
+      if (User->getNumOperands() == 0)
+        return EdgeIdentity<l_t>::getInstance();
+      if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
+        if (!GV->hasInitializer())
+          return EdgeIdentity<l_t>::getInstance();
+        if (auto CDA =
+                llvm::dyn_cast<llvm::ConstantDataArray>(GV->getInitializer())) {
+          if (CDA->isCString()) {
+            return std::make_shared<GenConstant>(
+                l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
+          }
+        }
+      }
+    }
+  }
+
   return EdgeIdentity<l_t>::getInstance();
 }
 
@@ -705,10 +719,12 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
   return Ss.str();
 }
 
+// TODO: use f_t
 bool IDEGeneralizedLCA::isSpecialMemberFunction(const llvm::Function *F) {
   SpecialMemberFunctionTy FunctionType =
       specialMemberFunctionType(F->getName());
   return (FunctionType == SpecialMemberFunctionTy::CTOR ||
           FunctionType == SpecialMemberFunctionTy::DTOR);
 }
+
 } // namespace psr
