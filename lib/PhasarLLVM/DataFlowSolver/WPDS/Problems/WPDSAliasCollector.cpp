@@ -30,11 +30,8 @@ WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
                                        const LLVMBasedICFG *ICF,
                                        LLVMPointsToInfo *PT,
                                        std::set<std::string> EntryPoints)
-    : WPDSProblem<WPDSAliasCollector::n_t, WPDSAliasCollector::d_t,
-                  WPDSAliasCollector::f_t, WPDSAliasCollector::t_t,
-                  WPDSAliasCollector::v_t, WPDSAliasCollector::l_t,
-                  WPDSAliasCollector::i_t>(IRDB, TH, ICF, PT,
-                                           std::move(EntryPoints)) {}
+    : WPDSProblem<WPDSAliasCollectorAnalysisDomain>(IRDB, TH, ICF, PT,
+                                                    std::move(EntryPoints)) {}
 
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t Curr,

@@ -211,26 +211,30 @@ public:
 //===----------------------------------------------------------------------===//
 // EdgeFunctions interface
 
-template <typename N, typename D, typename F, typename L> class EdgeFunctions {
+template <typename AnalysisDomainTy> class EdgeFunctions {
 public:
-  using EdgeFunctionType = EdgeFunction<L>;
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using l_t = typename AnalysisDomainTy::l_t;
+
+  using EdgeFunctionType = EdgeFunction<l_t>;
   using EdgeFunctionPtrType = std::shared_ptr<EdgeFunctionType>;
 
   virtual ~EdgeFunctions() = default;
-  virtual EdgeFunctionPtrType getNormalEdgeFunction(N curr, D currNode, N succ,
-                                                    D succNode) = 0;
-  virtual EdgeFunctionPtrType getCallEdgeFunction(N callStmt, D srcNode,
-                                                  F destinationFunction,
-                                                  D destNode) = 0;
-  virtual EdgeFunctionPtrType getReturnEdgeFunction(N callSite,
-                                                    F calleeFunction,
-                                                    N exitStmt, D exitNode,
-                                                    N reSite, D retNode) = 0;
-  virtual EdgeFunctionPtrType getCallToRetEdgeFunction(N callSite, D callNode,
-                                                       N retSite, D retSiteNode,
-                                                       std::set<F> callees) = 0;
-  virtual EdgeFunctionPtrType getSummaryEdgeFunction(N curr, D currNode, N succ,
-                                                     D succNode) = 0;
+  virtual EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode,
+                                                    n_t succ, d_t succNode) = 0;
+  virtual EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
+                                                  f_t destinationFunction,
+                                                  d_t destNode) = 0;
+  virtual EdgeFunctionPtrType
+  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
+                        d_t exitNode, n_t reSite, d_t retNode) = 0;
+  virtual EdgeFunctionPtrType
+  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
+                           d_t retSiteNode, std::set<f_t> callees) = 0;
+  virtual EdgeFunctionPtrType
+  getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ, d_t succNode) = 0;
 };
 
 } // namespace psr

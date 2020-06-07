@@ -28,10 +28,8 @@ WPDSSolverTest::WPDSSolverTest(const ProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
                                const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
-    : WPDSProblem<WPDSSolverTest::n_t, WPDSSolverTest::d_t, WPDSSolverTest::f_t,
-                  WPDSSolverTest::t_t, WPDSSolverTest::v_t, WPDSSolverTest::l_t,
-                  WPDSSolverTest::i_t>(IRDB, TH, ICF, PT,
-                                       std::move(EntryPoints)) {}
+    : WPDSProblem<WPDSSolverTestAnalysisDomain>(IRDB, TH, ICF, PT,
+                                                std::move(EntryPoints)) {}
 
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getNormalFlowFunction(WPDSSolverTest::n_t Curr,

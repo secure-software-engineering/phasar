@@ -22,7 +22,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
@@ -36,20 +38,9 @@ namespace psr {
 
 class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
-class LLVMBasedICFG;
 
-class InterMonoSolverTest
-    : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedICFG> {
+class InterMonoSolverTest : public InterMonoProblem<LLVMAnalysisDomainDefault> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
-
   InterMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                       const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                       std::set<std::string> EntryPoints = {});

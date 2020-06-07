@@ -329,26 +329,34 @@ public:
 //                             FlowFunctions Class
 //===----------------------------------------------------------------------===//
 
-template <typename N, typename D, typename F, typename Container = std::set<D>>
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class FlowFunctions {
   static_assert(
-      std::is_same<typename Container::value_type, D>::value,
+      std::is_same<typename Container::value_type,
+                   typename AnalysisDomainTy::d_t>::value,
       "Value type of the container needs to match the type parameter D");
 
 public:
-  using FlowFunctionType = FlowFunction<D, Container>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunction<D, Container>>;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using n_t = typename AnalysisDomainTy::n_t;
+
+  using FlowFunctionType = FlowFunction<d_t, Container>;
+  using FlowFunctionPtrType = std::shared_ptr<FlowFunction<d_t, Container>>;
 
   using container_type = typename FlowFunctionType::container_type;
 
   virtual ~FlowFunctions() = default;
-  virtual FlowFunctionPtrType getNormalFlowFunction(N curr, N succ) = 0;
-  virtual FlowFunctionPtrType getCallFlowFunction(N callStmt, F destFun) = 0;
-  virtual FlowFunctionPtrType getRetFlowFunction(N callSite, F calleeFun,
-                                                 N exitStmt, N retSite) = 0;
-  virtual FlowFunctionPtrType getCallToRetFlowFunction(N callSite, N retSite,
-                                                       std::set<F> callees) = 0;
-  virtual FlowFunctionPtrType getSummaryFlowFunction(N curr, F destFun) = 0;
+  virtual FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) = 0;
+  virtual FlowFunctionPtrType getCallFlowFunction(n_t callStmt,
+                                                  f_t destFun) = 0;
+  virtual FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+                                                 n_t exitStmt, n_t retSite) = 0;
+  virtual FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<f_t> callees) = 0;
+  virtual FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destFun) = 0;
 };
 } // namespace  psr
 

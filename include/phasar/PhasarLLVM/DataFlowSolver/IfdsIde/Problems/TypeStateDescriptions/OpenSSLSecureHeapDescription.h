@@ -17,8 +17,15 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace psr {
+
+struct OpenSSLSecureHeapDescriptionAnalysisDomain
+    : public LLVMAnalysisDomainDefault {
+  using d_t = SecureHeapFact;
+  using l_t = SecureHeapValue;
+};
 
 class OpenSSLSecureHeapDescription : public TypeStateDescription {
 private:
@@ -44,17 +51,14 @@ private:
   // Delta matrix to implement the state machine's Delta function
   static const OpenSSLSecureHeapState Delta[5][6];
 
-  IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
-            const llvm::StructType *, const llvm::Value *, SecureHeapValue,
-            LLVMBasedICFG> &secureHeapPropagationResults;
+  IDESolver<OpenSSLSecureHeapDescriptionAnalysisDomain>
+      &secureHeapPropagationResults;
 
   static OpenSSLSecureHeapToken funcNameToToken(const std::string &F);
 
 public:
   OpenSSLSecureHeapDescription(
-      IDESolver<const llvm::Instruction *, SecureHeapFact,
-                const llvm::Function *, const llvm::StructType *,
-                const llvm::Value *, SecureHeapValue, LLVMBasedICFG>
+      IDESolver<OpenSSLSecureHeapDescriptionAnalysisDomain>
           &secureHeapPropagationResults);
 
   bool isFactoryFunction(const std::string &F) const override;

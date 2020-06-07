@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -33,19 +34,22 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
+struct IDETypeStateAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using l_t = int;
+};
+
 class IDETypeStateAnalysis
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  int, LLVMBasedICFG> {
+    : public IDETabulationProblem<IDETypeStateAnalysisDomain> {
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef int l_t;
-  typedef LLVMBasedICFG i_t;
+  using IDETabProblemType = IDETabulationProblem<IDETypeStateAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
+
   using ConfigurationTy = TypeStateDescription;
 
 private:

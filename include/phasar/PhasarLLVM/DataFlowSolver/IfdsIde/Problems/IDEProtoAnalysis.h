@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -31,19 +32,20 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
-class IDEProtoAnalysis
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  const llvm::Value *, LLVMBasedICFG> {
+struct IDEProtoAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using l_t = const llvm::Value *;
+};
+
+class IDEProtoAnalysis : public IDETabulationProblem<IDEProtoAnalysisDomain> {
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef const llvm::Value *l_t;
-  typedef LLVMBasedICFG i_t;
+  using IDETabProblemType = IDETabulationProblem<IDEProtoAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
 
   IDEProtoAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,

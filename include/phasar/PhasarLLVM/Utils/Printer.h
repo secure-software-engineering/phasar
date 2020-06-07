@@ -23,7 +23,9 @@
 
 namespace psr {
 
-template <typename N> struct NodePrinter {
+template <typename AnalysisDomainTy> struct NodePrinter {
+  using N = typename AnalysisDomainTy::n_t;
+
   NodePrinter() = default;
   NodePrinter(const NodePrinter &) = delete;
   NodePrinter &operator=(const NodePrinter &) = delete;
@@ -40,7 +42,9 @@ template <typename N> struct NodePrinter {
   }
 };
 
-template <typename D> struct DataFlowFactPrinter {
+template <typename AnalysisDomainTy> struct DataFlowFactPrinter {
+  using D = typename AnalysisDomainTy::d_t;
+
   DataFlowFactPrinter() = default;
   DataFlowFactPrinter(const DataFlowFactPrinter &) = delete;
   DataFlowFactPrinter &operator=(const DataFlowFactPrinter &) = delete;
@@ -91,7 +95,9 @@ template <typename T> struct TypePrinter {
   }
 };
 
-template <typename L> struct EdgeFactPrinter {
+template <typename AnalysisDomainTy> struct EdgeFactPrinter {
+  using l_t = typename AnalysisDomainTy::l_t;
+
   EdgeFactPrinter() = default;
   EdgeFactPrinter(const EdgeFactPrinter &) = delete;
   EdgeFactPrinter &operator=(const EdgeFactPrinter &) = delete;
@@ -99,16 +105,18 @@ template <typename L> struct EdgeFactPrinter {
   EdgeFactPrinter &operator=(EdgeFactPrinter &&) = delete;
   virtual ~EdgeFactPrinter() = default;
 
-  virtual void printEdgeFact(std::ostream &os, L l) const = 0;
+  virtual void printEdgeFact(std::ostream &os, l_t l) const = 0;
 
-  virtual std::string LtoString(L l) const {
+  [[nodiscard]] virtual std::string LtoString(l_t l) const {
     std::stringstream ss;
     printEdgeFact(ss, l);
     return ss.str();
   }
 };
 
-template <typename F> struct FunctionPrinter {
+template <typename AnalysisDomainTy> struct FunctionPrinter {
+  using F = typename AnalysisDomainTy::f_t;
+
   FunctionPrinter() = default;
   FunctionPrinter(const FunctionPrinter &) = delete;
   FunctionPrinter &operator=(const FunctionPrinter &) = delete;

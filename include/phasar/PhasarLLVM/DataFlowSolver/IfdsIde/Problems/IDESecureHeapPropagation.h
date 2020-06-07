@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
@@ -29,22 +30,29 @@ class Function;
 namespace psr {
 enum class SecureHeapFact { ZERO, INITIALIZED };
 enum class SecureHeapValue { TOP, INITIALIZED, BOT };
+
+struct IDESecureHeapPropagationAnalysisDomain : LLVMAnalysisDomainDefault {
+  using d_t = SecureHeapFact;
+  using l_t = SecureHeapValue;
+};
+
 class IDESecureHeapPropagation
-    : public IDETabulationProblem<const llvm::Instruction *, SecureHeapFact,
-                                  const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  SecureHeapValue, LLVMBasedICFG> {
+    : public IDETabulationProblem<IDESecureHeapPropagationAnalysisDomain> {
+
   const llvm::StringLiteral initializerFn = "CRYPTO_secure_malloc_init";
   const llvm::StringLiteral shutdownFn = "CRYPTO_secure_malloc_done";
 
 public:
-  typedef SecureHeapFact d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef SecureHeapValue l_t;
-  typedef LLVMBasedICFG i_t;
+  using IDETabProblemType =
+      IDETabulationProblem<IDESecureHeapPropagationAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
+
   IDESecureHeapPropagation(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            std::set<std::string> EntryPoints = {"main"});

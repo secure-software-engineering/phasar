@@ -17,6 +17,7 @@
 #include <string>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -31,19 +32,8 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
-class IFDSSolverTest
-    : public IFDSTabulationProblem<const llvm::Instruction *,
-                                   const llvm::Value *, const llvm::Function *,
-                                   const llvm::StructType *,
-                                   const llvm::Value *, LLVMBasedICFG> {
+class IFDSSolverTest : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
-
   IFDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                  const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                  std::set<std::string> EntryPoints = {"main"});

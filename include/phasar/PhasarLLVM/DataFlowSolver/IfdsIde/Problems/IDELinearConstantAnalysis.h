@@ -18,6 +18,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -28,15 +29,17 @@ class Value;
 
 namespace psr {
 
+struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
+  // int64_t corresponds to llvm's type of constant integer
+  using l_t = int64_t;
+};
+
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
 class IDELinearConstantAnalysis
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  int64_t, LLVMBasedICFG> {
+    : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
 private:
   // For debug purpose only
   static unsigned CurrGenConstantId;
@@ -44,14 +47,15 @@ private:
   static unsigned CurrBinaryId;
 
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
-  // int64_t corresponds to llvm's type of constant integer
-  typedef int64_t l_t;
+  using IDETabProblemType =
+      IDETabulationProblem<IDELinearConstantAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
 
   static const l_t TOP;
   static const l_t BOTTOM;
@@ -72,7 +76,7 @@ public:
     void print(std::ostream &os);
   };
 
-  typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_results_t;
+  using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
 
   static void stripBottomResults(std::unordered_map<d_t, l_t> &Res);
 

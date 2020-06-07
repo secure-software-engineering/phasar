@@ -11,7 +11,9 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
+
 #include <iostream>
 #include <map>
 #include <memory>
@@ -43,20 +45,11 @@ struct HasNoConfigurationType;
  * taint-sensitive source and sink functions.
  */
 class IFDSTaintAnalysis
-    : public IFDSTabulationProblem<const llvm::Instruction *,
-                                   const llvm::Value *, const llvm::Function *,
-                                   const llvm::StructType *,
-                                   const llvm::Value *, LLVMBasedICFG> {
+    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
 private:
   const TaintConfiguration<const llvm::Value *> &SourceSinkFunctions;
 
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
   // Setup the configuration type
   using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
 

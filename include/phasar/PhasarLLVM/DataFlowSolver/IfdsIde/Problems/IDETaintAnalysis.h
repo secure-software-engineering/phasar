@@ -16,6 +16,7 @@
 #include <string>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -30,19 +31,20 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
-class IDETaintAnalysis
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  const llvm::Value *, LLVMBasedICFG> {
+struct IDETaintAnalysisDomain : LLVMAnalysisDomainDefault {
+  using l_t = const llvm::Value *;
+};
+
+class IDETaintAnalysis : public IDETabulationProblem<IDETaintAnalysisDomain> {
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef const llvm::Value *l_t;
-  typedef LLVMBasedICFG i_t;
+  using IDETabProblemType = IDETabulationProblem<IDETaintAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
 
   std::set<std::string> source_functions = {"fread", "read"};
   // keep in mind that 'char** argv' of main is a source for tainted values as

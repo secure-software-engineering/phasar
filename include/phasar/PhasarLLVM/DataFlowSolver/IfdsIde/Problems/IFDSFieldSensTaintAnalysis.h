@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
 #include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -35,17 +36,13 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
+struct IFDSFieldSensTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using d_t = ExtendedValue;
+};
+
 class IFDSFieldSensTaintAnalysis
-    : public IFDSTabulationProblem<
-          const llvm::Instruction *, ExtendedValue, const llvm::Function *,
-          const llvm::StructType *, const llvm::Value *, LLVMBasedICFG> {
+    : public IFDSTabulationProblem<IFDSFieldSensTaintAnalysisDomain> {
 public:
-  typedef ExtendedValue d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
   using ConfigurationTy = TaintConfiguration<ExtendedValue>;
 
   IFDSFieldSensTaintAnalysis(

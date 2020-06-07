@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -54,18 +55,13 @@ template <> struct hash<psr::LCAPair> {
 
 namespace psr {
 
-class IFDSLinearConstantAnalysis
-    : public IFDSTabulationProblem<
-          const llvm::Instruction *, LCAPair, const llvm::Function *,
-          const llvm::StructType *, const llvm::Value *, LLVMBasedICFG> {
-public:
-  typedef LCAPair d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
+struct IFDSLinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using d_t = LCAPair;
+};
 
+class IFDSLinearConstantAnalysis
+    : public IFDSTabulationProblem<IFDSLinearConstantAnalysisDomain> {
+public:
   IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,

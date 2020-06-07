@@ -17,6 +17,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -24,6 +25,11 @@ class Value;
 } // namespace llvm
 
 namespace psr {
+
+struct OpenSSLEVPKDFCTXDescriptionAnalysisDomain
+    : public LLVMAnalysisDomainDefault {
+  using l_t = int;
+};
 
 /**
  * A type state description for OpenSSL's EVP Key Derivation functions. The
@@ -70,16 +76,12 @@ private:
 
   // std::map<std::pair<const llvm::Instruction *, const llvm::Value *>, int>
   //     requiredKDFState;
-  IDESolver<const llvm::Instruction *, const llvm::Value *,
-            const llvm::Function *, const llvm::StructType *,
-            const llvm::Value *, int, LLVMBasedICFG> &kdfAnalysisResults;
+  IDESolver<OpenSSLEVPKDFCTXDescriptionAnalysisDomain> &kdfAnalysisResults;
   static OpenSSLEVTKDFToken funcNameToToken(const std::string &F);
 
 public:
   OpenSSLEVPKDFCTXDescription(
-      IDESolver<const llvm::Instruction *, const llvm::Value *,
-                const llvm::Function *, const llvm::StructType *,
-                const llvm::Value *, int, LLVMBasedICFG> &kdfAnalysisResults)
+      IDESolver<OpenSSLEVPKDFCTXDescriptionAnalysisDomain> &kdfAnalysisResults)
       : kdfAnalysisResults(kdfAnalysisResults) {}
   bool isFactoryFunction(const std::string &F) const override;
   bool isConsumingFunction(const std::string &F) const override;

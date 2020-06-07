@@ -16,6 +16,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 
@@ -33,19 +34,13 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
-class WPDSAliasCollector
-    : public WPDSProblem<const llvm::Instruction *, const llvm::Value *,
-                         const llvm::Function *, const llvm::StructType *,
-                         const llvm::Value *, BinaryDomain, LLVMBasedICFG> {
-public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef BinaryDomain l_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
+struct WPDSAliasCollectorAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using l_t = BinaryDomain;
+};
 
+class WPDSAliasCollector
+    : public WPDSProblem<WPDSAliasCollectorAnalysisDomain> {
+public:
   WPDSAliasCollector(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                      std::set<std::string> EntryPoints);

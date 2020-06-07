@@ -26,6 +26,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -41,10 +42,9 @@ namespace psr {
 class ProjectIRDB;
 
 class IFDSTabulationProblemPlugin
-    : public IFDSTabulationProblem<const llvm::Instruction *,
-                                   const llvm::Value *, const llvm::Function *,
-                                   const llvm::StructType *,
-                                   const llvm::Value *, LLVMBasedICFG> {
+    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
+  using AnalysisDomainTy = LLVMAnalysisDomainDefault;
+
 protected:
   std::vector<std::string> EntryPoints;
 
@@ -53,10 +53,8 @@ public:
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints)
-      : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedICFG>(
-            IRDB, TH, ICF, PT, EntryPoints) {
+      : IFDSTabulationProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT,
+                                                EntryPoints) {
     IFDSTabulationProblem::ZeroValue = createZeroValue();
   }
   ~IFDSTabulationProblemPlugin() override = default;

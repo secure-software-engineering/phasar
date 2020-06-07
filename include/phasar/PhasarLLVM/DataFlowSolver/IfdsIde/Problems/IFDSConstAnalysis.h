@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -43,18 +44,7 @@ class LLVMTypeHierarchy;
  * @brief Computes all possibly mutable memory locations.
  */
 class IFDSConstAnalysis
-    : public IFDSTabulationProblem<const llvm::Instruction *,
-                                   const llvm::Value *, const llvm::Function *,
-                                   const llvm::StructType *,
-                                   const llvm::Value *, LLVMBasedICFG> {
-public:
-  using d_t = const llvm::Value *;
-  using n_t = const llvm::Instruction *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
-  using i_t = LLVMBasedICFG;
-
+    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
 private:
   // Holds all allocated memory locations, including global variables
   std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
