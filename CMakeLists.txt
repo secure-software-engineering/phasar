@@ -96,6 +96,9 @@ include_directories(
   ${PHASAR_SRC_DIR}/include
 )
 
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 ### Adding external libraries
 # Threads
 find_package(Threads)
