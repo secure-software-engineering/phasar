@@ -20,20 +20,52 @@ class StructType;
 namespace psr {
 class LLVMBasedICFG;
 
+// AnalysisDomain - This class should be specialized by different static
+// analyses types... which is why the default version declares all analysis
+// domains as aliases of void.
+//
+// Virtually all of PhASAR's internal analyses are implemented in a generic way
+// using interfaces and template parameters. In order to specify concrete types
+// for the template parameters such that an analysis can compute some useful
+// information on some concrete target code, a configuration template parameter
+// of type AnalysisDomain is passed around to make the necessary information
+// available to the required analyses.
+//
+// If a type is not meant to be used by an analysis it should be left as an
+// alias to void. If any analysis detects that a parameter is required to
+// conduct an analysis but not correctly set, it will statically report an error
+// and ask for the missing piece of information.
 struct AnalysisDomain {
+  // Data-flow fact --- Specifies the type of an individual data-flow fact that
+  // is propagated through the program under analysis.
   using d_t = void;
+  // (Control-flow) Node --- Specifies the type of a node in the
+  // (inter-procedural) control-flow graph and can be though of as an individual
+  // statement or instruction of the program.
   using n_t = void;
+  // Function --- Specifies the type of functions.
   using f_t = void;
+  // (User-defined) type --- Specifies the type of a user-defined (i.e. struct
+  // or class) data type.
   using t_t = void;
+  // (Pointer) value --- Specifies the type of pointers.
   using v_t = void;
+  // Inter-procedural control flow --- Specifies the type of the
+  // inter-procedural control-flow graph to be used.
+  using i_t = void;
 
   // type of the element contained in the sets of edge functions
+  // TODO: we probably wish to remove that here and add it as a local
+  // type alias to the IDEInstInteractionanalysis.
   using e_t = void;
+  // Lattice element --- Specifies the type of the underlying lattice; the value
+  // computation domain IDE's edge functions or WPDS's weights operate on.
   using l_t = void;
-  using i_t = void;
 };
 
 struct LLVMAnalysisDomainDefault : public AnalysisDomain {
+  // TODO we should probably remove d_t here; as it is very likely to be
+  // overwritten by many LLVM-based data-flow analyses
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
   using f_t = const llvm::Function *;

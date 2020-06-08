@@ -26,7 +26,6 @@ extern const std::shared_ptr<AllBottom<BinaryDomain>> ALLBOTTOM;
 
 template <typename OriginalAnalysisDomain>
 struct AnalysisDomainExtender : public OriginalAnalysisDomain {
-  // TODO (philipp): should we keep this assert?
   static_assert(
       std::is_same<void, typename OriginalAnalysisDomain::l_t>::value ||
           std::is_same<BinaryDomain,

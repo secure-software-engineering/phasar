@@ -31,8 +31,7 @@ namespace psr {
 template <typename AnalysisDomainTy> class IntraMonoSolver {
 public:
   using ProblemTy = IntraMonoProblem<AnalysisDomainTy>;
-  using C =
-      typename AnalysisDomainTy::i_t; // TODO (philipp): why is this named C?
+  using c_t = typename AnalysisDomainTy::i_t;
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
   using f_t = typename AnalysisDomainTy::f_t;
@@ -43,7 +42,7 @@ protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<n_t, n_t>> Worklist;
   std::unordered_map<n_t, BitVectorSet<d_t>> Analysis;
-  const C *CFG;
+  const c_t *CFG;
 
   void initialize() {
     auto EntryPoints = IMProblem.getEntryPoints();
