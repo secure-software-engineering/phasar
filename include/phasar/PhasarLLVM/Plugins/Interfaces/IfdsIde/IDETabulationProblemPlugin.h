@@ -14,8 +14,10 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -35,14 +37,74 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
-class IDETabulationProblemPlugin {};
+class IDETabulationProblemPlugin
+    : public IDETabulationProblem<const llvm::Instruction *,
+                                  const llvm::Value *, const llvm::Function *,
+                                  const llvm::StructType *, const llvm::Value *,
+                                  const llvm::Value *, LLVMBasedICFG> {
+public:
+  using n_t = const llvm::Instruction *;
+  using d_t = const llvm::Value *;
+  using f_t = const llvm::Function *;
+  using t_t = const llvm::StructType *;
+  using v_t = const llvm::Value *;
+  using l_t = const llvm::Value *;
+  using i_t = LLVMBasedICFG;
 
-extern "C" std::unique_ptr<IDETabulationProblemPlugin>
+protected:
+  std::vector<std::string> EntryPoints;
+
+public:
+  IDETabulationProblemPlugin(const ProjectIRDB *IRDB,
+                             const LLVMTypeHierarchy *TH,
+                             const LLVMBasedICFG *ICF,
+                             const LLVMPointsToInfo *PT,
+                             std::set<std::string> EntryPoints)
+      : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                             const llvm::Function *, const llvm::StructType *,
+                             const llvm::Value *, const llvm::Value *,
+                             LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
+    ZeroValue = createZeroValue();
+  }
+  ~IDETabulationProblemPlugin() override = default;
+
+  const llvm::Value *createZeroValue() const override {
+    // create a special value to represent the zero value!
+    return LLVMZeroValue::getInstance();
+  }
+
+  bool isZeroValue(const llvm::Value *d) const override {
+    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+  }
+
+  void printNode(std::ostream &os, const llvm::Instruction *n) const override {
+    os << llvmIRToString(n);
+  }
+
+  void printDataFlowFact(std::ostream &os,
+                         const llvm::Value *d) const override {
+    os << llvmIRToString(d);
+  }
+
+  void printFunction(std::ostream &os, const llvm::Function *m) const override {
+    os << m->getName().str();
+  }
+
+  void printEdgeFact(std::ostream &os, const llvm::Value *l) const override {
+    os << llvmIRToString(l);
+  }
+
+  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
+    return std::make_shared<AllTop<l_t>>(topElement());
+  }
+};
+
+/*extern "C" std::unique_ptr<IDETabulationProblemPlugin>
 makeIDETabulationProblemPlugin(const ProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
                                const LLVMBasedICFG *ICF,
                                const LLVMPointsToInfo *PT,
-                               std::set<std::string> EntryPoints);
+                               std::set<std::string> EntryPoints);*/
 
 extern std::map<std::string,
                 std::unique_ptr<IDETabulationProblemPlugin> (*)(
