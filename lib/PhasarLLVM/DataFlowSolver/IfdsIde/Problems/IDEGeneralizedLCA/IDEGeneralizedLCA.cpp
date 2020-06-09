@@ -187,17 +187,17 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   if (auto Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     return flow([Call](IDEGeneralizedLCA::d_t Source)
                     -> std::set<IDEGeneralizedLCA::d_t> {
-      //std::cout << "In getCallToRetFlowFunction\n";
-      //std::cout << llvmIRToString(Source) << '\n';
+      // std::cout << "In getCallToRetFlowFunction\n";
+      // std::cout << llvmIRToString(Source) << '\n';
       if (Source->getType()->isPointerTy()) {
         for (auto &Arg : Call->arg_operands()) {
           if (Arg.get() == Source) {
-            //std::cout << "return {}/n";
+            // std::cout << "return {}/n";
             return {};
           }
         }
       }
-      //std::cout << "return {Source}\n";
+      // std::cout << "return {Source}\n";
       return {Source};
     });
   }
@@ -391,20 +391,17 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::d_t SrcNode,
                                        IDEGeneralizedLCA::f_t DestinationMethod,
                                        IDEGeneralizedLCA::d_t DestNode) {
-  if (!DestNode)
-    return EdgeIdentity<l_t>::getInstance();
+  llvm::ImmutableCallSite CS(CallStmt);
 
-
-  llvm::ImmutableCallSite Cs(CallStmt);
+  // not necessary, CS.getNumArgOperands() == Destinationmethod->arg_size() is always true
   auto Len =
-      std::min<size_t>(Cs.getNumArgOperands(), DestinationMethod->arg_size());
+      std::min<size_t>(CS.getNumArgOperands(), DestinationMethod->arg_size());
 
-  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(SrcNode)) {
+  if (isZeroValue(SrcNode)) {
     for (size_t I = 0; I < Len; ++I) {
       auto FormalArg = getNthFunctionArgument(DestinationMethod, I);
-
       if (DestNode == FormalArg) {
-        auto ActualArg = Cs.getArgOperand(I);
+        auto ActualArg = CS.getArgOperand(I);
         // if (isConstant(actualArg))  // -> always const, since srcNode is zero
         return std::make_shared<GenConstant>(l_t({EdgeValue(ActualArg)}),
                                              maxSetSize);
@@ -445,8 +442,8 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
 
   llvm::ImmutableCallSite CS(CallSite);
 
-  for (size_t I = 0; I < CS.arg_size(); ++I) {
-    if (auto User = llvm::dyn_cast<llvm::User>(CS.getArgument(I))) {
+  for (auto &Arg : CS.args()) {
+    if (auto User = llvm::dyn_cast<llvm::User>(Arg)) {
       if (User->getNumOperands() == 0)
         return EdgeIdentity<l_t>::getInstance();
       if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
