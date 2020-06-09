@@ -63,6 +63,11 @@ private:
   boost::filesystem::path ResultDirectory;
   [[maybe_unused]] SoundnessFlag SF;
 
+  ///
+  /// \brief The maximum length of the CallStrings used in the InterMonoSolver
+  ///
+  static const unsigned K = 3;
+
   void executeDemandDriven();
 
   void executeIncremental();

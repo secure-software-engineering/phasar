@@ -99,13 +99,6 @@ public:
   }
 };
 
-/*extern "C" std::unique_ptr<IDETabulationProblemPlugin>
-makeIDETabulationProblemPlugin(const ProjectIRDB *IRDB,
-                               const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF,
-                               const LLVMPointsToInfo *PT,
-                               std::set<std::string> EntryPoints);*/
-
 extern std::map<std::string,
                 std::unique_ptr<IDETabulationProblemPlugin> (*)(
                     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,

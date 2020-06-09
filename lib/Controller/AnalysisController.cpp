@@ -269,10 +269,21 @@ void AnalysisController::executeWholeProgram() {
       emitRequestedDataFlowResults(Solver);
     } else if (std::holds_alternative<IntraMonoPluginConstructor>(
                    _DataFlowAnalysis)) {
-      // TODO call IntraMono Analysis Plugin
+
+      auto Problem = std::get<IntraMonoPluginConstructor>(_DataFlowAnalysis)(
+          &IRDB, &TH, &ICF, &PT, EntryPoints);
+      IntraMonoSolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
+          *Problem);
+      Solver.solve();
+      emitRequestedDataFlowResults(Solver);
     } else if (std::holds_alternative<InterMonoPluginConstructor>(
                    _DataFlowAnalysis)) {
-      // TODO call InterMono Analysis Plugin
+      auto Problem = std::get<InterMonoPluginConstructor>(_DataFlowAnalysis)(
+          &IRDB, &TH, &ICF, &PT, EntryPoints);
+      InterMonoSolver_P<std::remove_reference<decltype(*Problem)>::type, K>
+          Solver(*Problem);
+      Solver.solve();
+      emitRequestedDataFlowResults(Solver);
     }
   }
 }

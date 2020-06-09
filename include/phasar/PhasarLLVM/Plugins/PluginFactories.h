@@ -29,10 +29,22 @@ using IDEPluginConstructor = std::unique_ptr<IDETabulationProblemPlugin> (*)(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints);
-using IntraMonoPluginConstructor =
-    std::unique_ptr<IntraMonoProblemPlugin> (*)();
-using InterMonoPluginConstructor =
-    std::unique_ptr<InterMonoProblemPlugin> (*)();
+using IntraMonoPluginConstructor = std::unique_ptr<IntraMonoProblemPlugin> (*)(
+    const ProjectIRDB *IRDB,
+    const TypeHierarchy<IntraMonoProblemPlugin::t_t,
+                        IntraMonoProblemPlugin::f_t> *TH,
+    const IntraMonoProblemPlugin::i_t *CF,
+    const PointsToInfo<IntraMonoProblemPlugin::v_t, IntraMonoProblemPlugin::n_t>
+        *PT,
+    std::set<std::string> EntryPoints);
+using InterMonoPluginConstructor = std::unique_ptr<InterMonoProblemPlugin> (*)(
+    const ProjectIRDB *IRDB,
+    const TypeHierarchy<InterMonoProblemPlugin::t_t,
+                        InterMonoProblemPlugin::f_t> *TH,
+    const InterMonoProblemPlugin::i_t *ICF,
+    const PointsToInfo<InterMonoProblemPlugin::v_t, InterMonoProblemPlugin::n_t>
+        *PT,
+    std::set<std::string> EntryPoints);
 
 } // namespace psr
 #endif
