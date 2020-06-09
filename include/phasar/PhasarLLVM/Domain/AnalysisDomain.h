@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_ANALYSISDOMAIN_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_ANALYSISDOMAIN_H_
+#ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
+#define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
 
 namespace llvm {
 class Value;
@@ -18,6 +18,7 @@ class StructType;
 } // namespace llvm
 
 namespace psr {
+class LLVMBasedCFG;
 class LLVMBasedICFG;
 
 // AnalysisDomain - This class should be specialized by different static
@@ -50,28 +51,24 @@ struct AnalysisDomain {
   using t_t = void;
   // (Pointer) value --- Specifies the type of pointers.
   using v_t = void;
+  // Intra-procedural control flow --- Specifies the type of the
+  // control-flow graph to be used.
+  using c_t = void;
   // Inter-procedural control flow --- Specifies the type of the
   // inter-procedural control-flow graph to be used.
   using i_t = void;
-
-  // type of the element contained in the sets of edge functions
-  // TODO: we probably wish to remove that here and add it as a local
-  // type alias to the IDEInstInteractionanalysis.
-  using e_t = void;
   // Lattice element --- Specifies the type of the underlying lattice; the value
   // computation domain IDE's edge functions or WPDS's weights operate on.
   using l_t = void;
 };
 
 struct LLVMAnalysisDomainDefault : public AnalysisDomain {
-  // TODO we should probably remove d_t here; as it is very likely to be
-  // overwritten by many LLVM-based data-flow analyses
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
   using f_t = const llvm::Function *;
   using t_t = const llvm::StructType *;
   using v_t = const llvm::Value *;
-
+  using c_t = LLVMBasedCFG;
   using i_t = LLVMBasedICFG;
 };
 

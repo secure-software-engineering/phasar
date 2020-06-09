@@ -40,10 +40,7 @@ protected:
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
-    InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                    InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
-        TaintSolver(TaintProblem);
+    InterMonoSolver<LLVMAnalysisDomainDefault, 3> TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
       TaintSolver.dumpResults();
@@ -68,10 +65,7 @@ protected:
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
-    InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                    InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
-        TaintSolver(TaintProblem);
+    InterMonoSolver<LLVMAnalysisDomainDefault, 3> TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
       TaintSolver.dumpResults();

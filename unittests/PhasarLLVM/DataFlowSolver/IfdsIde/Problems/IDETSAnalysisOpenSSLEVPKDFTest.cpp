@@ -36,11 +36,7 @@ protected:
   OpenSSLEVPKDFCTXDescription *OpenSSLEVPKeyDerivationDesc{};
   OpenSSLEVPKDFDescription *OpenSSLEVPKDFDesc{};
   IDETypeStateAnalysis *TSProblem{}, *TSKDFProblem{};
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t> *Llvmtssolver{},
-      *KdfSolver{};
+  IDESolver<IDETypeStateAnalysisDomain> *Llvmtssolver{}, *KdfSolver{};
 
   enum OpenSSLEVPKeyDerivationState {
     TOP = 42,
@@ -65,20 +61,13 @@ protected:
     TSKDFProblem = new IDETypeStateAnalysis(IRDB, TH, ICFG, PT,
                                             *OpenSSLEVPKDFDesc, EntryPoints);
     KdfSolver =
-        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                      IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                      IDETypeStateAnalysis::i_t>(*TSKDFProblem);
+        new IDESolver<OpenSSLEVPKDFCTXDescriptionAnalysisDomain>(*TSKDFProblem);
 
     OpenSSLEVPKeyDerivationDesc = new OpenSSLEVPKDFCTXDescription(*KdfSolver);
     TSProblem = new IDETypeStateAnalysis(
         IRDB, TH, ICFG, PT, *OpenSSLEVPKeyDerivationDesc, EntryPoints);
 
-    Llvmtssolver =
-        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                      IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                      IDETypeStateAnalysis::i_t>(*TSProblem);
+    Llvmtssolver = new IDESolver<IDETypeStateAnalysisDomain>(*TSProblem);
     KdfSolver->solve();
     Llvmtssolver->solve();
   }

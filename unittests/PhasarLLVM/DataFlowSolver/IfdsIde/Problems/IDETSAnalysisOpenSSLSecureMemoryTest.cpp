@@ -33,10 +33,7 @@ protected:
   LLVMPointsToInfo *PT{};
   OpenSSLSecureMemoryDescription *Desc{};
   IDETypeStateAnalysis *TSProblem{};
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t> *Llvmtssolver = nullptr;
+  IDESolver_P<IDETypeStateAnalysis> *Llvmtssolver = nullptr;
 
   enum OpenSSLSecureMemoryState {
     TOP = 42,
@@ -58,11 +55,7 @@ protected:
     Desc = new OpenSSLSecureMemoryDescription();
     TSProblem =
         new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *Desc, EntryPoints);
-    Llvmtssolver =
-        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                      IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                      IDETypeStateAnalysis::i_t>(*TSProblem);
+    Llvmtssolver = new IDESolver_P<IDETypeStateAnalysis>(*TSProblem);
 
     Llvmtssolver->solve();
   }
