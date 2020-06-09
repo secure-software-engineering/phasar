@@ -143,8 +143,7 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override {
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
     // generate all global variables (only once)
     // if (LLVM_UNLIKELY(!GeneratedGlobalVariables)) {
     //   if (const llvm::Module *M = curr->getModule()) {

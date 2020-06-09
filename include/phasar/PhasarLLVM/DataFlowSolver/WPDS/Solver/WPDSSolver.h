@@ -202,7 +202,7 @@ public:
     EdgeFunctionPtrType f = IDESolver<AnalysisDomainTy>::jumpFunction(edge);
     auto successorInst = IDESolver<AnalysisDomainTy>::ICF->getSuccsOf(n);
     for (auto f : successorInst) {
-      std::shared_ptr<FlowFunction<d_t>> flowFunction =
+      FlowFunctionPtrType flowFunction =
           IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
               .getNormalFlowFunction(n, f);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -274,7 +274,7 @@ public:
     // for each possible callee
     for (f_t sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
-      std::shared_ptr<FlowFunction<d_t>> specialSum =
+      FlowFunctionPtrType specialSum =
           IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
               .getSummaryFlowFunction(n, sCalledProcN);
       // if a special summary is available, treat this as a normal flow
@@ -308,7 +308,7 @@ public:
         }
       } else {
         // compute the call-flow function
-        std::shared_ptr<FlowFunction<d_t>> function =
+        FlowFunctionPtrType function =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                 .getCallFlowFunction(n, sCalledProcN);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -363,7 +363,7 @@ public:
               // for each return site
               for (n_t retSiteN : returnSiteNs) {
                 // compute return-flow function
-                std::shared_ptr<FlowFunction<d_t>> retFunction =
+                FlowFunctionPtrType retFunction =
                     IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                         .getRetFlowFunction(n, sCalledProcN, eP, retSiteN);
                 INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -461,7 +461,7 @@ public:
       // line 17-19 of Naeem/Lhotak/Rodriguez
       // process intra-procedural flows along call-to-return flow functions
       for (n_t returnSiteN : returnSiteNs) {
-        std::shared_ptr<FlowFunction<d_t>> callToReturnFlowFunction =
+        FlowFunctionPtrType callToReturnFlowFunction =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                 .getCallToRetFlowFunction(n, returnSiteN, callees);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -543,7 +543,7 @@ public:
       for (n_t retSiteC :
            IDESolver<AnalysisDomainTy>::ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
-        std::shared_ptr<FlowFunction<d_t>> retFunction =
+        FlowFunctionPtrType retFunction =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                 .getRetFlowFunction(c, functionThatNeedsSummary, n, retSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -639,7 +639,7 @@ public:
       for (n_t c : callers) {
         for (n_t retSiteC :
              IDESolver<AnalysisDomainTy>::ICF->getReturnSitesOfCallAt(c)) {
-          std::shared_ptr<FlowFunction<d_t>> retFunction =
+          FlowFunctionPtrType retFunction =
               IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                   .getRetFlowFunction(c, functionThatNeedsSummary, n, retSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -673,7 +673,7 @@ public:
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
       if (callers.empty()) {
-        std::shared_ptr<FlowFunction<d_t>> retFunction =
+        FlowFunctionPtrType retFunction =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                 .getRetFlowFunction(nullptr, functionThatNeedsSummary, n,
                                     nullptr);

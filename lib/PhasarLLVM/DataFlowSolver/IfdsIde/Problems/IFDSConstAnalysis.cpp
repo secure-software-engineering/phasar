@@ -46,7 +46,7 @@ IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
   IFDSTabulationProblem::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+IFDSConstAnalysis::FlowFunctionPtrType
 IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
                                          IFDSConstAnalysis::n_t Succ) {
   // Check all store instructions.
@@ -123,7 +123,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+IFDSConstAnalysis::FlowFunctionPtrType
 IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallStmt,
                                        IFDSConstAnalysis::f_t DestFun) {
   // Handle one of the three llvm memory intrinsics (memcpy, memmove or memset)
@@ -152,11 +152,9 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallStmt,
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
-IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
-                                      IFDSConstAnalysis::f_t CalleeFun,
-                                      IFDSConstAnalysis::n_t ExitStmt,
-                                      IFDSConstAnalysis::n_t RetSite) {
+IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
+    IFDSConstAnalysis::n_t CallSite, IFDSConstAnalysis::f_t CalleeFun,
+    IFDSConstAnalysis::n_t ExitStmt, IFDSConstAnalysis::n_t RetSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
   return make_shared<MapFactsToCaller<>>(
@@ -170,7 +168,7 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
   // All other data-flow facts of the callee function are killed at this point
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+IFDSConstAnalysis::FlowFunctionPtrType
 IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::n_t CallSite, IFDSConstAnalysis::n_t RetSite,
     set<IFDSConstAnalysis::f_t> Callees) {
@@ -203,7 +201,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+IFDSConstAnalysis::FlowFunctionPtrType
 IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t CallStmt,
                                           IFDSConstAnalysis::f_t DestFun) {
   return nullptr;

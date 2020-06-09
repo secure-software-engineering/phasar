@@ -43,34 +43,32 @@ IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
 
 // start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getNormalFlowFunction(IDEProtoAnalysis::n_t Curr,
                                         IDEProtoAnalysis::n_t Succ) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getCallFlowFunction(IDEProtoAnalysis::n_t CallStmt,
                                       IDEProtoAnalysis::f_t DestFun) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
-IDEProtoAnalysis::getRetFlowFunction(IDEProtoAnalysis::n_t CallSite,
-                                     IDEProtoAnalysis::f_t CalleeFun,
-                                     IDEProtoAnalysis::n_t ExitStmt,
-                                     IDEProtoAnalysis::n_t RetSite) {
+IDEProtoAnalysis::FlowFunctionPtrType IDEProtoAnalysis::getRetFlowFunction(
+    IDEProtoAnalysis::n_t CallSite, IDEProtoAnalysis::f_t CalleeFun,
+    IDEProtoAnalysis::n_t ExitStmt, IDEProtoAnalysis::n_t RetSite) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t CallSite,
                                            IDEProtoAnalysis::n_t RetSite,
                                            set<IDEProtoAnalysis::f_t> Callees) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getSummaryFlowFunction(IDEProtoAnalysis::n_t CallStmt,
                                          IDEProtoAnalysis::f_t DestFun) {
   return nullptr;

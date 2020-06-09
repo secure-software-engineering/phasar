@@ -28,23 +28,23 @@ IDESecureHeapPropagation::IDESecureHeapPropagation(
   ZeroValue = createZeroValue();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getNormalFlowFunction(n_t Curr, n_t Succ) {
   return Identity<d_t>::getInstance();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallFlowFunction(n_t CallStmt, f_t DestMthd) {
   return Identity<d_t>::getInstance();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
                                              n_t ExitStmt, n_t RetSite) {
   return Identity<d_t>::getInstance();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                    std::set<f_t> Callees) {
 
@@ -57,7 +57,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
   }
   return Identity<d_t>::getInstance();
 }
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getSummaryFlowFunction(n_t CallStmt, f_t DestMthd) {
   return nullptr;
 }

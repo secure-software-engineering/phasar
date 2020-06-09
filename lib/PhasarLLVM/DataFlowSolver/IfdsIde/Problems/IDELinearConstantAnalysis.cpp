@@ -64,7 +64,7 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 
 // Start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t Curr, IDELinearConstantAnalysis::n_t Succ) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
@@ -119,7 +119,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t CallStmt,
     IDELinearConstantAnalysis::f_t DestFun) {
@@ -196,7 +196,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t CalleeFun,
@@ -240,7 +240,7 @@ IDELinearConstantAnalysis::getRetFlowFunction(
       });
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::n_t RetSite, set<f_t> Callees) {
@@ -258,7 +258,7 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getSummaryFlowFunction(
     IDELinearConstantAnalysis::n_t CallStmt,
     IDELinearConstantAnalysis::f_t DestFun) {

@@ -49,7 +49,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
 
 // Start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
                                             IDETypeStateAnalysis::n_t Succ) {
   // Check if Alloca's type matches the target type. If so, generate from zero
@@ -134,7 +134,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
                                           IDETypeStateAnalysis::f_t DestFun) {
   // Kill all data-flow facts if we hit a function of the target API.
@@ -152,7 +152,7 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
   llvm::report_fatal_error("callStmt not a CallInst nor a InvokeInst");
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
                                          IDETypeStateAnalysis::f_t CalleeFun,
                                          IDETypeStateAnalysis::n_t ExitStmt,
@@ -245,7 +245,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
                                      CalleeFun, ExitStmt, this);
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::n_t RetSite,
     set<IDETypeStateAnalysis::f_t> Callees) {
@@ -299,7 +299,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getSummaryFlowFunction(
     IDETypeStateAnalysis::n_t CallStmt, IDETypeStateAnalysis::f_t DestFun) {
   return nullptr;

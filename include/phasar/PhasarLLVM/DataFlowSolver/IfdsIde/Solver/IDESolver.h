@@ -1130,18 +1130,18 @@ protected:
    * @param d2 The abstraction at the current node
    * @return The set of abstractions at the successor node
    */
-  container_type computeNormalFlowFunction(
-      const std::shared_ptr<FlowFunction<d_t, Container>> &flowFunction, d_t d1,
-      d_t d2) {
+  container_type
+  computeNormalFlowFunction(const FlowFunctionPtrType &flowFunction, d_t d1,
+                            d_t d2) {
     return flowFunction->computeTargets(d2);
   }
 
   /**
    * TODO: comment
    */
-  container_type computeSummaryFlowFunction(
-      const std::shared_ptr<FlowFunction<d_t, Container>> &SummaryFlowFunction,
-      d_t d1, d_t d2) {
+  container_type
+  computeSummaryFlowFunction(const FlowFunctionPtrType &SummaryFlowFunction,
+                             d_t d1, d_t d2) {
     return SummaryFlowFunction->computeTargets(d2);
   }
 
@@ -1152,9 +1152,9 @@ protected:
    * @param d2 The abstraction at the call site
    * @return The set of caller-side abstractions at the callee's start node
    */
-  container_type computeCallFlowFunction(
-      const std::shared_ptr<FlowFunction<d_t, Container>> &callFlowFunction,
-      d_t d1, d_t d2) {
+  container_type
+  computeCallFlowFunction(const FlowFunctionPtrType &callFlowFunction, d_t d1,
+                          d_t d2) {
     return callFlowFunction->computeTargets(d2);
   }
 
@@ -1168,9 +1168,7 @@ protected:
    * @return The set of caller-side abstractions at the return site
    */
   container_type computeCallToReturnFlowFunction(
-      const std::shared_ptr<FlowFunction<d_t, Container>>
-          &callToReturnFlowFunction,
-      d_t d1, d_t d2) {
+      const FlowFunctionPtrType &callToReturnFlowFunction, d_t d1, d_t d2) {
     return callToReturnFlowFunction->computeTargets(d2);
   }
 
@@ -1184,9 +1182,10 @@ protected:
    * @param callerSideDs The abstractions at the call site
    * @return The set of caller-side abstractions at the return site
    */
-  container_type computeReturnFlowFunction(
-      const std::shared_ptr<FlowFunction<d_t, Container>> &retFunction, d_t d1,
-      d_t d2, n_t callSite, const Container &callerSideDs) {
+  container_type
+  computeReturnFlowFunction(const FlowFunctionPtrType &retFunction, d_t d1,
+                            d_t d2, n_t callSite,
+                            const Container &callerSideDs) {
     return retFunction->computeTargets(d2);
   }
 

@@ -80,8 +80,7 @@ public:
    * @param curr Currently analyzed program statement.
    * @param succ Successor statement.
    */
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
   /**
    * The following llvm intrinsics
@@ -103,8 +102,7 @@ public:
    * @param callStmt Call statement.
    * @param destFun Callee function.
    */
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
 
   /**
    * Maps formal parameters back into actual parameters. Data-flow fact(s)
@@ -115,10 +113,8 @@ public:
    * @param exitStmt Exit statement in callee.
    * @param retSite Return site.
    */
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        f_t calleeFun,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+                                         n_t exitStmt, n_t retSite) override;
 
   /**
    * If the called function is a llvm memory intrinsic function, appropriate
@@ -131,15 +127,14 @@ public:
    * @param callSite Call site.
    * @param retSite Return site.
    */
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override;
 
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.
    */
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+                                             f_t destFun) override;
 
   /**
    * Only the zero value is valid at the first program statement, i.e.

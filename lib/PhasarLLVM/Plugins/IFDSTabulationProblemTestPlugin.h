@@ -31,26 +31,26 @@ public:
 
   ~IFDSTabulationProblemTestPlugin() = default;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallFlowFunction(const llvm::Instruction *callStmt,
                       const llvm::Function *destFun) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeFun,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite,
                            std::set<const llvm::Function *> callees) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
                          const llvm::Function *destFun) override;
 
