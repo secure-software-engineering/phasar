@@ -61,7 +61,7 @@ protected:
     TSKDFProblem = new IDETypeStateAnalysis(IRDB, TH, ICFG, PT,
                                             *OpenSSLEVPKDFDesc, EntryPoints);
     KdfSolver =
-        new IDESolver<OpenSSLEVPKDFCTXDescriptionAnalysisDomain>(*TSKDFProblem);
+        new IDESolver<IDETypeStateAnalysisDomain>(*TSKDFProblem);
 
     OpenSSLEVPKeyDerivationDesc = new OpenSSLEVPKDFCTXDescription(*KdfSolver);
     TSProblem = new IDETypeStateAnalysis(

@@ -21,12 +21,6 @@
 
 namespace psr {
 
-struct OpenSSLSecureHeapDescriptionAnalysisDomain
-    : public LLVMAnalysisDomainDefault {
-  using d_t = SecureHeapFact;
-  using l_t = SecureHeapValue;
-};
-
 class OpenSSLSecureHeapDescription : public TypeStateDescription {
 private:
   enum OpenSSLSecureHeapState {
@@ -51,14 +45,14 @@ private:
   // Delta matrix to implement the state machine's Delta function
   static const OpenSSLSecureHeapState Delta[5][6];
 
-  IDESolver<OpenSSLSecureHeapDescriptionAnalysisDomain>
+  IDESolver<IDESecureHeapPropagationAnalysisDomain>
       &secureHeapPropagationResults;
 
   static OpenSSLSecureHeapToken funcNameToToken(const std::string &F);
 
 public:
   OpenSSLSecureHeapDescription(
-      IDESolver<OpenSSLSecureHeapDescriptionAnalysisDomain>
+      IDESolver<IDESecureHeapPropagationAnalysisDomain>
           &secureHeapPropagationResults);
 
   bool isFactoryFunction(const std::string &F) const override;

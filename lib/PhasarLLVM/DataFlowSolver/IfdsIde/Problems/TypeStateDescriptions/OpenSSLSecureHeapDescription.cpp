@@ -54,7 +54,7 @@ const OpenSSLSecureHeapDescription::OpenSSLSecureHeapState
          OpenSSLSecureHeapState::FREED, OpenSSLSecureHeapState::ERROR},
 };
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapDescription(
-    IDESolver<OpenSSLSecureHeapDescriptionAnalysisDomain>
+    IDESolver<IDESecureHeapPropagationAnalysisDomain>
         &SecureHeapPropagationResults)
     : secureHeapPropagationResults(SecureHeapPropagationResults) {}
 
