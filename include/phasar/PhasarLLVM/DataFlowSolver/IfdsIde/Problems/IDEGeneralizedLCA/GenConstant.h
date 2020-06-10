@@ -28,6 +28,14 @@ public:
       std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction)
       override;
 
+  //              lambda ---------------------
+  // int x = 20;    |    \  \x.20            |
+  //                v     \                  | result of composeWith()
+  //              lambda   x                 | \x (\x.20) + 10
+  // x = x + 10;    |      |   \x.x + 10     |
+  //                v      v                 v
+  //              lambda   x                 x
+
   std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
   joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction)
       override;
