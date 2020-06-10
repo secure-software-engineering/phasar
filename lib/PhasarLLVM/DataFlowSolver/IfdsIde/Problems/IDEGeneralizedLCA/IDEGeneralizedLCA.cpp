@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h"
@@ -187,10 +188,12 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             std::set<f_t> Callees) {
   // std::cout << "CTR flow: " << llvmIRToString(callSite) << std::endl;
   llvm::ImmutableCallSite CS(CallSite);
-  // check for ctor and then demangle function name and check for std::basic_string
+  // check for ctor and then demangle function name and check for
+  // std::basic_string
   if (isSpecialMemberFunction(CS.getCalledFunction())) {
     // found std::string ctor
-    return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0), getZeroValue());
+    return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
+                                                         getZeroValue());
   }
 
   if (auto Call = llvm::dyn_cast<llvm::CallBase>(CS.getInstruction())) {
@@ -402,7 +405,8 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::d_t DestNode) {
   llvm::ImmutableCallSite CS(CallStmt);
 
-  // not necessary, CS.getNumArgOperands() == Destinationmethod->arg_size() is always true
+  // not necessary, CS.getNumArgOperands() == Destinationmethod->arg_size() is
+  // always true
   auto Len =
       std::min<size_t>(CS.getNumArgOperands(), DestinationMethod->arg_size());
 
@@ -450,28 +454,40 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
     std::set<IDEGeneralizedLCA::f_t> Callees) {
 
   llvm::ImmutableCallSite CS(CallSite);
-  // check for ctor and then demangle function name and check for std::basic_string
+  // check for ctor and then demangle function name and check for
+  // std::basic_string
   if (isSpecialMemberFunction(CS.getCalledFunction())) {
     // found correct place and time
+    if (CS.getNumArgOperands() < 2) {
+      return std::make_shared<AllBottom<l_t>>(bottomElement());
+    }
     if (CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)) {
       // find string literal that is used to initialize the string
- 
-        if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(CS.getArgOperand(1))) {
-          if (!GV->hasInitializer()) {
-            // in this case we don't now the initial value statically
-            return ALLBOTTOM;
-          }
-          if (auto CDA =
-                  llvm::dyn_cast<llvm::ConstantDataArray>(GV->getInitializer())) {
-            if (CDA->isCString()) {
-              // here we statically now the string literal the std::string is initialized with
-              return std::make_shared<GenConstant>(
-                  l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
-            }
+      std::cout << "here ..." << '\n';
+      assert(llvm::isa<llvm::GlobalVariable>(CS.getArgOperand(1)));
+
+      assert(llvm::isa<llvm::User>(CS.getArgOperand(1)));
+
+      if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(CS.getArgOperand(1))) {
+        if (!GV->hasInitializer()) {
+          // in this case we don't know the initial value statically
+          // return ALLBOTTOM;
+          return std::make_shared<AllBottom<l_t>>(bottomElement());
+        }
+        if (auto CDA =
+                llvm::dyn_cast<llvm::ConstantDataArray>(GV->getInitializer())) {
+          if (CDA->isCString()) {
+            // here we statically know the string literal the std::string is
+            // initialized with
+
+            // seems like we never arrive here ...
+            std::cout << "string literal:\n";
+            std::cout << CDA->getAsCString().str() << '\n';
+            return std::make_shared<GenConstant>(
+                l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
           }
         }
       }
-
     }
   }
 
@@ -731,7 +747,9 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
   return Ss.str();
 }
 
-// TODO: use f_t
+// TODO:
+// - use f_t
+// - only get basic_string constructor
 bool IDEGeneralizedLCA::isSpecialMemberFunction(const llvm::Function *F) {
   SpecialMemberFunctionTy FunctionType =
       specialMemberFunctionType(F->getName());
