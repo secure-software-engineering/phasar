@@ -51,7 +51,10 @@ namespace psr {
 template <typename AnalysisDomainTy>
 class WPDSSolver : public IDESolver<AnalysisDomainTy> {
 public:
-  using typename IDESolver<AnalysisDomainTy>::EdgeFunctionPtrType;
+  using ProblemTy = IDETabulationProblem<AnalysisDomainTy>;
+  using container_type = typename ProblemTy::container_type;
+  using FlowFunctionPtrType = typename ProblemTy::FlowFunctionPtrType;
+  using EdgeFunctionPtrType = typename ProblemTy::EdgeFunctionPtrType;
 
   using l_t = typename AnalysisDomainTy::l_t;
   using n_t = typename AnalysisDomainTy::n_t;
