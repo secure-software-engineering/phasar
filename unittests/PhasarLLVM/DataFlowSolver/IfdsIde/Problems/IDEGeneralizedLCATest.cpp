@@ -123,7 +123,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   std::vector<groundTruth_t> groundTruth;
 
   auto node = IRDB->getInstruction(2);
-  auto stmt = IRDB->getInstruction(10);
+  auto stmt = IRDB->getInstruction(8);
 
   std::cout << "Node:\n";
   llvm::outs() << *node << '\n';
@@ -134,8 +134,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   std::cout << "Result:\n";
   std::cout << result << '\n';
 
-  groundTruth.push_back({{EdgeValue("Hello, World")}, 2, 10});
-  groundTruth.push_back({{EdgeValue("Hello, World")}, 3, 10});
+  groundTruth.push_back({{EdgeValue("Hello, World")}, 2, 8});
   compareResults(groundTruth);
 }
 
