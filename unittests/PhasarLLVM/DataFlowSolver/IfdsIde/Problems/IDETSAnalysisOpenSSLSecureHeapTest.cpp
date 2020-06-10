@@ -36,7 +36,8 @@ protected:
   OpenSSLSecureHeapDescription *Desc{};
   IDETypeStateAnalysis *TSProblem{};
   IDESolver<IDETypeStateAnalysisDomain> *Llvmtssolver{};
-  IDESolver<IDESecureHeapPropagationAnalysisDomain> *SecureHeapPropagationResults{};
+  IDESolver<IDESecureHeapPropagationAnalysisDomain>
+      *SecureHeapPropagationResults{};
   IDESecureHeapPropagation *SecureHeapPropagationProblem{};
   enum OpenSSLSecureHeapState {
     TOP = 42,
@@ -66,8 +67,7 @@ protected:
     Desc = new OpenSSLSecureHeapDescription(*SecureHeapPropagationResults);
     TSProblem =
         new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *Desc, EntryPoints);
-    Llvmtssolver =
-        new IDESolver<IDETypeStateAnalysisDomain>(*TSProblem);
+    Llvmtssolver = new IDESolver<IDETypeStateAnalysisDomain>(*TSProblem);
 
     SecureHeapPropagationResults->solve();
     Llvmtssolver->solve();

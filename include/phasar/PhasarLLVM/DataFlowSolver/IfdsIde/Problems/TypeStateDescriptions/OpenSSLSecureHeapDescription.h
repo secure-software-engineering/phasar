@@ -51,9 +51,8 @@ private:
   static OpenSSLSecureHeapToken funcNameToToken(const std::string &F);
 
 public:
-  OpenSSLSecureHeapDescription(
-      IDESolver<IDESecureHeapPropagationAnalysisDomain>
-          &secureHeapPropagationResults);
+  OpenSSLSecureHeapDescription(IDESolver<IDESecureHeapPropagationAnalysisDomain>
+                                   &secureHeapPropagationResults);
 
   bool isFactoryFunction(const std::string &F) const override;
   bool isConsumingFunction(const std::string &F) const override;
