@@ -14,6 +14,8 @@
  *      Author: philipp
  */
 
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -21,6 +23,10 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/Utils/LLVMShorthands.h"
+
+#include <algorithm>
+#include <cassert>
+#include <iterator>
 
 using namespace std;
 using namespace psr;
@@ -43,15 +49,12 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
    * lead to our instruction in question!
    */
   if (Preds.empty()) {
-    for (const auto &BB : *I->getFunction()) {
-      if (const llvm::Instruction *T = BB.getTerminator()) {
-        for (unsigned Idx = 0; Idx < T->getNumSuccessors(); ++Idx) {
-          if (&*T->getSuccessor(Idx)->begin() == I) {
-            Preds.push_back(T);
-          }
-        }
-      }
-    }
+    std::transform(llvm::pred_begin(I->getParent()),
+                   llvm::pred_end(I->getParent()), back_inserter(Preds),
+                   [](const llvm::BasicBlock *BB) {
+                     assert(BB && "BB under analysis was not well formed.");
+                     return BB->getTerminator();
+                   });
   }
   return Preds;
 }
@@ -63,12 +66,13 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
     Successors.push_back(I->getNextNode());
   }
   if (I->isTerminator()) {
-    for (unsigned Idx = 0; Idx < I->getNumSuccessors(); ++Idx) {
-      Successors.push_back(&*I->getSuccessor(Idx)->begin());
-    }
+    Successors.reserve(I->getNumSuccessors() + Successors.size());
+    std::transform(llvm::succ_begin(I), llvm::succ_end(I),
+                   back_inserter(Successors),
+                   [](const llvm::BasicBlock *BB) { return &BB->front(); });
   }
   return Successors;
-}
+} // namespace psr
 
 vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
@@ -139,8 +143,8 @@ bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *Stmt,
 bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *Stmt,
                                   const llvm::Instruction *Succ) const {
   if (Stmt->isTerminator()) {
-    for (unsigned I = 0; I < Stmt->getNumSuccessors(); ++I) {
-      if (&*Stmt->getSuccessor(I)->begin() == Succ) {
+    for (const auto *BB : llvm::successors(Stmt->getParent())) {
+      if (&BB->front() == Succ) {
         return true;
       }
     }
