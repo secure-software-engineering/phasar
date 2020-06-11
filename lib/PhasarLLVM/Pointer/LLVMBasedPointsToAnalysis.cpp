@@ -139,24 +139,20 @@ LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(ProjectIRDB &IRDB,
 void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
   OS << "Points-to Info:\n";
   for (auto &[Fn, AA] : AAInfos) {
-    bool PrintAll;
-    bool PrintNoAlias;
-    bool PrintMayAlias;
-    bool PrintPartialAlias;
-    bool PrintMustAlias;
-    bool EvalAAMD;
-    bool PrintNoModRef;
-    bool PrintMod;
-    bool PrintRef;
-    bool PrintModRef;
-    bool PrintMust;
-    bool PrintMustMod;
-    bool PrintMustRef;
-    bool PrintMustModRef;
-    PrintAll = PrintNoAlias = PrintMayAlias = PrintPartialAlias =
-        PrintMustAlias = EvalAAMD = PrintNoModRef = PrintMod = PrintRef =
-            PrintModRef = PrintMust = PrintMustMod = PrintMustRef =
-                PrintMustModRef = true;
+    bool PrintAll = true;
+    bool PrintNoAlias = true;
+    bool PrintMayAlias = true;
+    bool PrintPartialAlias = true;
+    bool PrintMustAlias = true;
+    bool EvalAAMD = true;
+    bool PrintNoModRef = true;
+    bool PrintMod = true;
+    bool PrintRef = true;
+    bool PrintModRef = true;
+    bool PrintMust = true;
+    bool PrintMustMod = true;
+    bool PrintMustRef = true;
+    bool PrintMustModRef = true;
 
     // taken from llvm/Analysis/AliasAnalysisEvaluator.cpp
     const llvm::DataLayout &DL = Fn->getParent()->getDataLayout();
