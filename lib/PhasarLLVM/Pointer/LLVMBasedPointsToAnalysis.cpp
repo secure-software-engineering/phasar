@@ -305,7 +305,7 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
 
     // Mod/ref alias analysis: compare all pairs of calls and values
     for (llvm::CallBase *Call : Calls) {
-      for (auto Pointer : Pointers) {
+      for (auto *Pointer : Pointers) {
         auto Size = llvm::LocationSize::unknown();
         llvm::Type *ElTy =
             llvm::cast<llvm::PointerType>(Pointer->getType())->getElementType();
@@ -391,17 +391,6 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
       }
     }
   }
-}
-
-llvm::AAResults *LLVMBasedPointsToAnalysis::getAAResults(llvm::Function *F) {
-  if (!hasPointsToInfo(*F)) {
-    computePointsToInfo(*F);
-  }
-  return AAInfos.at(F);
-}
-
-PointerAnalysisType LLVMBasedPointsToAnalysis::getPointerAnalysisType() const {
-  return PATy;
 }
 
 } // namespace psr
