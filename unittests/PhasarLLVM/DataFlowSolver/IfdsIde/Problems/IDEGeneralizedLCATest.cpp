@@ -123,7 +123,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   std::vector<groundTruth_t> groundTruth;
 
   size_t node_id = 2;
-  size_t stmt_id = 5;
+  size_t stmt_id = 6;
 
   auto node = IRDB->getInstruction(node_id);
   auto stmt = IRDB->getInstruction(stmt_id);
@@ -132,6 +132,9 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   // for (int i = 2; i < 30; ++i) {
   //   if (IRDB->getInstruction(i)) {
   //     auto result = LCASolver->resultAt(IRDB->getInstruction(i), node);
+  //     std::cout << "statement id: " << i << '\n';
+  //     llvm::outs() << "statement: \n" 
+  //     << *(IRDB->getInstruction(i)) <<'\n';
   //     std::cout << "Result:\n";
   //     std::cout << result << '\n';
   //   }

@@ -141,6 +141,7 @@ private:
   bool isEntryPoint(const std::string &name) const;
   template <typename V> std::string VtoString(V v);
   bool isStringConstructor(const std::string &FunName);
+  bool isStringDestructor(const std::string &FunName);
 };
 
 } // namespace psr

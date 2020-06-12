@@ -160,8 +160,10 @@ IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
   // kill all data-flow facts at calls to string constructors
-  if (isStringConstructor(DestMthd->getName())) {
-    std::cout << "Killing Function: \n" << DestMthd->getName().str() << '\n';
+  
+  std::string FunName = DestMthd->getName().str();
+  if (isStringConstructor(FunName) || isStringDestructor(FunName)) {
+    // std::cout << "Killing Function: \n" << DestMthd->getName().str() << '\n';
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
   return std::make_shared<MapFactsToCalleeFlowFunction>(
@@ -191,7 +193,7 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   llvm::ImmutableCallSite CS(CallSite);
   // check for ctor and then demangle function name and check for
   // std::basic_string
-  if (isStringConstructor(CS.getCalledFunction()->getName())) {
+  if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
     // found std::string ctor
     std::cout << "in getCallToRetFlowFunction: "
               << CS.getCalledFunction()->getName().str() << '\n';
@@ -460,7 +462,7 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
   // check for ctor and then demangle function name and check for
   // std::basic_string
 
-  if (isStringConstructor(CS.getCalledFunction()->getName())) {
+  if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
     // found correct place and time
     if (CS.getNumArgOperands() < 2) {
       return std::make_shared<AllBottom<l_t>>(bottomElement());
@@ -763,6 +765,11 @@ bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
       "std::__1::basic_string<char, std::__1::char_traits<char>, "
       "std::__1::allocator<char> >::basic_string<std::nullptr_t>(char const*)";
   return cxxDemangle(FunName) == stringConstructorName;
+}
+
+bool IDEGeneralizedLCA::isStringDestructor(const std::string &FunName) {
+  const std::string stringDestructorName = "std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >::~basic_string()";
+  return cxxDemangle(FunName) == stringDestructorName;
 }
 
 } // namespace psr
