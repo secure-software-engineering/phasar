@@ -10,11 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 #define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
-#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 #include <iosfwd>
 #include <set>
 #include <string>
 #include <variant>
+
+#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 
 namespace psr {
 
