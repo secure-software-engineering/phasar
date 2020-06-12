@@ -161,6 +161,7 @@ IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
   // kill all data-flow facts at calls to string constructors
   if (isStringConstructor(DestMthd->getName())) {
+    std::cout << "Killing Function: \n" << DestMthd->getName().str() << '\n';
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
   return std::make_shared<MapFactsToCalleeFlowFunction>(
@@ -192,6 +193,7 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   // std::basic_string
   if (isStringConstructor(CS.getCalledFunction()->getName())) {
     // found std::string ctor
+    std::cout << "in getCallToRetFlowFunction: " << CS.getCalledFunction()->getName().str() << '\n';
     return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                          getZeroValue());
   }
@@ -486,6 +488,7 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
             if (CDA->isCString()) {
               // here we statically know the string literal the std::string is
               // initialized with
+              std::cout << "string literal: " << CDA->getAsCString().str() << '\n';
               return std::make_shared<GenConstant>(
                   l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
             }
@@ -753,7 +756,7 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
 
 bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
   return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR &&
-          FunName.find("basic_str") != std::string::npos);
+          FunName.find("_ZNSt3__112basic_string") != std::string::npos);
 }
 
 } // namespace psr
