@@ -54,10 +54,8 @@ makeInterMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
 
 extern std::map<std::string,
                 std::unique_ptr<InterMonoProblemPlugin> (*)(
-                    const ProjectIRDB *IRDB,
-                    const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF,
-                    LLVMPointsToInfo *PT,
+                    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints)>
     InterMonoProblemPluginFactory;
 

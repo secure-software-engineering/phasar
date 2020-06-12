@@ -47,19 +47,15 @@ public:
   }
 };
 
-extern std::unique_ptr<IntraMonoProblemPlugin> makeIntraMonoProblemPlugin(
-    const ProjectIRDB *IRDB,
-    const LLVMTypeHierarchy *TH,
-    const LLVMBasedCFG *CF,
-    LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints);
+extern std::unique_ptr<IntraMonoProblemPlugin>
+makeIntraMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                           const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
+                           std::set<std::string> EntryPoints);
 
 extern std::map<std::string,
                 std::unique_ptr<IntraMonoProblemPlugin> (*)(
-                    const ProjectIRDB *IRDB,
-                    const LLVMTypeHierarchy *TH,
-                    const LLVMBasedCFG *CF,
-                    LLVMPointsToInfo *PT,
+                    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                    const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints)>
     IntraMonoProblemPluginFactory;
 

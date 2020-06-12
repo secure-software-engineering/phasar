@@ -9,8 +9,7 @@ class IDETabulationProblemTestPlugin : public IDETabulationProblemPlugin {
 public:
   IDETabulationProblemTestPlugin(const ProjectIRDB *IRDB,
                                  const LLVMTypeHierarchy *TH,
-                                 const LLVMBasedICFG *ICF,
-                                 LLVMPointsToInfo *PT,
+                                 const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                  std::set<std::string> EntryPoints);
 
   ~IDETabulationProblemTestPlugin() = default;

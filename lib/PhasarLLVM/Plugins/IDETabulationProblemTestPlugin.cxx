@@ -2,8 +2,8 @@
 #include <utility>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 
 #include "IDETabulationProblemTestPlugin.h"
 
@@ -123,10 +123,12 @@ IDETabulationProblemTestPlugin::bottomElement() {
 }
 IDETabulationProblemTestPlugin::l_t
 IDETabulationProblemTestPlugin::join(l_t lhs, l_t rhs) {
-  if (lhs == rhs || rhs == topElement())
+  if (lhs == rhs || rhs == topElement()) {
     return lhs;
-  if (lhs == topElement())
+  }
+  if (lhs == topElement()) {
     return rhs;
+  }
   return bottomElement();
 }
 

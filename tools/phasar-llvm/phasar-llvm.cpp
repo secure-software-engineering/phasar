@@ -338,7 +338,7 @@ int main(int Argc, const char **Argv) {
       DataFlowAnalyses.push_back(toDataFlowAnalysisKind(Analysis));
     }
   } else {
-    DataFlowAnalyses.push_back(DataFlowAnalysisType::None);
+    DataFlowAnalyses.emplace_back(DataFlowAnalysisType::None);
   }
   // setup the data-flow analyses's corresponding analysis configs if anay
   std::vector<std::string> AnalysisConfigs;
