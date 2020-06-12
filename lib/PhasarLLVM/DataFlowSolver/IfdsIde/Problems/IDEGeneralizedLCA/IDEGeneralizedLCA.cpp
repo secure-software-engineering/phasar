@@ -7,6 +7,10 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+// TODO:
+// - get only std::string constructor
+// - find out why unittest still fails
+
 #include <llvm/IR/CallSite.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
 #include <sstream>
@@ -458,33 +462,37 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
   // std::basic_string
   if (isSpecialMemberFunction(CS.getCalledFunction())) {
     // found correct place and time
+
     if (CS.getNumArgOperands() < 2) {
       return std::make_shared<AllBottom<l_t>>(bottomElement());
     }
+
     if (CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)) {
       // find string literal that is used to initialize the string
-      std::cout << "here ..." << '\n';
-      assert(llvm::isa<llvm::GlobalVariable>(CS.getArgOperand(1)));
 
-      assert(llvm::isa<llvm::User>(CS.getArgOperand(1)));
+      // llvm::outs() << "getArgOperand(1)\n" <<
+      // *(CS.getArgOperand(1)) << '\n';
 
-      if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(CS.getArgOperand(1))) {
-        if (!GV->hasInitializer()) {
-          // in this case we don't know the initial value statically
-          // return ALLBOTTOM;
-          return std::make_shared<AllBottom<l_t>>(bottomElement());
-        }
-        if (auto CDA =
-                llvm::dyn_cast<llvm::ConstantDataArray>(GV->getInitializer())) {
-          if (CDA->isCString()) {
-            // here we statically know the string literal the std::string is
-            // initialized with
-
-            // seems like we never arrive here ...
-            std::cout << "string literal:\n";
-            std::cout << CDA->getAsCString().str() << '\n';
-            return std::make_shared<GenConstant>(
-                l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
+      if (auto User = llvm::dyn_cast<llvm::User>(CS.getArgOperand(1))) {
+        // for (size_t i = 0; i < User->getNumOperands(); ++i) {
+        //   llvm::outs() << "Operand " << i << ":\n" << *(User->getOperand(i))
+        //   << '\n';
+        // }
+        if (auto GV =
+                llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
+          if (!GV->hasInitializer()) {
+            // in this case we don't know the initial value statically
+            // return ALLBOTTOM;
+            return std::make_shared<AllBottom<l_t>>(bottomElement());
+          }
+          if (auto CDA = llvm::dyn_cast<llvm::ConstantDataArray>(
+                  GV->getInitializer())) {
+            if (CDA->isCString()) {
+              // here we statically know the string literal the std::string is
+              // initialized with
+              return std::make_shared<GenConstant>(
+                  l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
+            }
           }
         }
       }
