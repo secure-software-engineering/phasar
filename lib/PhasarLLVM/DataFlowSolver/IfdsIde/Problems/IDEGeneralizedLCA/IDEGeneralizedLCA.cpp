@@ -34,10 +34,10 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
 
 namespace psr {
 
@@ -193,7 +193,8 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   // std::basic_string
   if (isStringConstructor(CS.getCalledFunction()->getName())) {
     // found std::string ctor
-    std::cout << "in getCallToRetFlowFunction: " << CS.getCalledFunction()->getName().str() << '\n';
+    std::cout << "in getCallToRetFlowFunction: "
+              << CS.getCalledFunction()->getName().str() << '\n';
     return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                          getZeroValue());
   }
@@ -488,7 +489,8 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
             if (CDA->isCString()) {
               // here we statically know the string literal the std::string is
               // initialized with
-              std::cout << "string literal: " << CDA->getAsCString().str() << '\n';
+              std::cout << "string literal: " << CDA->getAsCString().str()
+                        << '\n';
               return std::make_shared<GenConstant>(
                   l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
             }

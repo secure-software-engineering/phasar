@@ -127,7 +127,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
 
   auto node = IRDB->getInstruction(node_id);
   auto stmt = IRDB->getInstruction(stmt_id);
-  
+
   // let's do a brutforce for the results
   // for (int i = 2; i < 30; ++i) {
   //   if (IRDB->getInstruction(i)) {
