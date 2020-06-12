@@ -7,16 +7,11 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-// TODO:
-// - get only std::string constructor
-// - find out why unittest still fails
-
-#include <llvm/IR/CallSite.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
 #include <sstream>
 
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
+#include <llvm/IR/CallSite.h>
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -39,6 +34,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -164,7 +160,7 @@ IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
   // kill all data-flow facts at calls to string constructors
-  if (isSpecialMemberFunction(DestMthd)) {
+  if (isStringConstructor(DestMthd->getName())) {
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
   return std::make_shared<MapFactsToCalleeFlowFunction>(
@@ -194,7 +190,7 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   llvm::ImmutableCallSite CS(CallSite);
   // check for ctor and then demangle function name and check for
   // std::basic_string
-  if (isSpecialMemberFunction(CS.getCalledFunction())) {
+  if (isStringConstructor(CS.getCalledFunction()->getName())) {
     // found std::string ctor
     return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                          getZeroValue());
@@ -460,9 +456,9 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
   llvm::ImmutableCallSite CS(CallSite);
   // check for ctor and then demangle function name and check for
   // std::basic_string
-  if (isSpecialMemberFunction(CS.getCalledFunction())) {
-    // found correct place and time
 
+  if (isStringConstructor(CS.getCalledFunction()->getName())) {
+    // found correct place and time
     if (CS.getNumArgOperands() < 2) {
       return std::make_shared<AllBottom<l_t>>(bottomElement());
     }
@@ -755,14 +751,9 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
   return Ss.str();
 }
 
-// TODO:
-// - use f_t
-// - only get basic_string constructor
-bool IDEGeneralizedLCA::isSpecialMemberFunction(const llvm::Function *F) {
-  SpecialMemberFunctionTy FunctionType =
-      specialMemberFunctionType(F->getName());
-  return (FunctionType == SpecialMemberFunctionTy::CTOR ||
-          FunctionType == SpecialMemberFunctionTy::DTOR);
+bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
+  return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR &&
+          FunName.find("basic_str") != std::string::npos);
 }
 
 } // namespace psr
