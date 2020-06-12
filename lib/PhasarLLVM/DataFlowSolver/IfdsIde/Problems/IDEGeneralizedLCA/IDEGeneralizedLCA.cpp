@@ -36,8 +36,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 
@@ -757,8 +757,12 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
 }
 
 bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
-  return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR &&
-          FunName.find("_ZNSt3__112basic_string") != std::string::npos);
+  // return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR
+  // && FunName.find("_ZNSt3__112basic_string") != std::string::npos);
+  const std::string stringConstructorName =
+      "std::__1::basic_string<char, std::__1::char_traits<char>, "
+      "std::__1::allocator<char> >::basic_string<std::nullptr_t>(char const*)";
+  return cxxDemangle(FunName) == stringConstructorName;
 }
 
 } // namespace psr
