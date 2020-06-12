@@ -23,7 +23,7 @@ makeMyIFDSProblem(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
 // Is executed on plug-in load and has to register this plug-in to Phasar.
 __attribute__((constructor)) void init() {
   cout << "init - MyIFDSProblem\n";
-  IFDSTabulationProblemPluginFactory["ifds_testplugin"] = &makeMyIFDSProblem;
+  IFDSTabulationProblemPluginFactory["MyIFDSProblem"] = &makeMyIFDSProblem;
 }
 
 // Is executed on unload, can be used to unregister the plug-in.
@@ -108,10 +108,15 @@ map<const llvm::Instruction *, set<const llvm::Value *>>
 MyIFDSProblem::initialSeeds() {
   cout << "MyIFDSProblem::initialSeeds()\n";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(
-        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                       set<const llvm::Value *>({getZeroValue()})));
+  auto EntryPoints = getEntryPoints();
+  for (const auto &EntryPoint : EntryPoints) {
+    if (const auto *F = IRDB->getFunctionDefinition(EntryPoint)) {
+      SeedMap.insert(std::make_pair(
+          &F->front().front(), set<const llvm::Value *>({getZeroValue()})));
+    } else {
+      cout << "Could not retrieve function '" << EntryPoint
+           << "' --> Function does not exist or is declaration only.\n";
+    }
   }
   return SeedMap;
 }

@@ -45,10 +45,14 @@ class IFDSTabulationProblemPlugin
                                    const llvm::Value *, const llvm::Function *,
                                    const llvm::StructType *,
                                    const llvm::Value *, LLVMBasedICFG> {
-protected:
-  std::vector<std::string> EntryPoints;
-
 public:
+  using n_t = const llvm::Instruction *;
+  using d_t = const llvm::Value *;
+  using f_t = const llvm::Function *;
+  using t_t = const llvm::StructType *;
+  using v_t = const llvm::Value *;
+  using i_t = LLVMBasedICFG;
+
   IFDSTabulationProblemPlugin(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,

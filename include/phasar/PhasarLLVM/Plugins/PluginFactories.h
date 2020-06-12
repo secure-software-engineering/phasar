@@ -19,4 +19,28 @@
 // Inter-procedural control flow graph plug-ins
 #include "phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h"
 
+namespace psr {
+
+using IFDSPluginConstructor = std::unique_ptr<IFDSTabulationProblemPlugin> (*)(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints);
+
+using IDEPluginConstructor = std::unique_ptr<IDETabulationProblemPlugin> (*)(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints);
+
+using IntraMonoPluginConstructor = std::unique_ptr<IntraMonoProblemPlugin> (*)(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const IntraMonoProblemPlugin::i_t *CF, LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints);
+
+using InterMonoPluginConstructor = std::unique_ptr<InterMonoProblemPlugin> (*)(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const InterMonoProblemPlugin::i_t *ICF, LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints);
+
+} // namespace psr
+
 #endif

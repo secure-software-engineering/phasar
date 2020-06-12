@@ -53,7 +53,7 @@ private:
   LLVMTypeHierarchy TH;
   LLVMPointsToSet PT;
   LLVMBasedICFG ICF;
-  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
+  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] AnalysisStrategy Strategy;
@@ -63,6 +63,11 @@ private:
   std::string OutDirectory;
   boost::filesystem::path ResultDirectory;
   [[maybe_unused]] SoundnessFlag SF;
+
+  ///
+  /// \brief The maximum length of the CallStrings used in the InterMonoSolver
+  ///
+  static const unsigned K = 3;
 
   void executeDemandDriven();
 
@@ -82,7 +87,7 @@ private:
         std::ofstream OFS(ResultDirectory.string() + "/psr-report.txt");
         WPA.emitTextReport(OFS);
       } else {
-        WPA.emitTextReport();
+        WPA.emitTextReport(std::cout);
       }
     }
     if (EmitterOptions &
@@ -91,7 +96,7 @@ private:
         std::ofstream OFS(ResultDirectory.string() + "/psr-report.html");
         WPA.emitGraphicalReport(OFS);
       } else {
-        WPA.emitGraphicalReport();
+        WPA.emitGraphicalReport(std::cout);
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
@@ -99,7 +104,7 @@ private:
         std::ofstream OFS(ResultDirectory.string() + "/psr-raw-results.txt");
         WPA.dumpResults(OFS);
       } else {
-        WPA.dumpResults();
+        WPA.dumpResults(std::cout);
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
@@ -109,7 +114,7 @@ private:
 
 public:
   AnalysisController(ProjectIRDB &IRDB,
-                     std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+                     std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
                      SoundnessFlag SF, const std::set<std::string> &EntryPoints,

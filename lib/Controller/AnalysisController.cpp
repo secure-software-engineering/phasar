@@ -73,7 +73,7 @@ bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
 }
 
 AnalysisController::AnalysisController(
-    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
     CallGraphAnalysisType CGTy, SoundnessFlag SF,
     const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
@@ -126,135 +126,170 @@ void AnalysisController::executeVariational() {}
 
 void AnalysisController::executeWholeProgram() {
   size_t ConfigIdx = 0;
-  for (auto DataFlowAnalysis : DataFlowAnalyses) {
+  for (auto _DataFlowAnalysis : DataFlowAnalyses) {
     std::string AnalysisConfigPath =
         (ConfigIdx < AnalysisConfigs.size()) ? AnalysisConfigs[ConfigIdx] : "";
-    switch (DataFlowAnalysis) {
-    case DataFlowAnalysisType::IFDSUninitializedVariables: {
-      WholeProgramAnalysis<IFDSSolver_P<IFDSUninitializedVariables>,
-                           IFDSUninitializedVariables>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IFDSConstAnalysis: {
-      WholeProgramAnalysis<IFDSSolver_P<IFDSConstAnalysis>, IFDSConstAnalysis>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IFDSTaintAnalysis: {
-      WholeProgramAnalysis<IFDSSolver_P<IFDSTaintAnalysis>, IFDSTaintAnalysis>
-          WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
-    } break;
-    case DataFlowAnalysisType::IDETaintAnalysis: {
-      WholeProgramAnalysis<IDESolver_P<IDETaintAnalysis>, IDETaintAnalysis> WPA(
-          IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
-      OpenSSLEVPKDFDescription TSDesc;
-      WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>,
-                           IDETypeStateAnalysis>
-          WPA(IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-      WPA.releaseConfiguration();
-    } break;
-    case DataFlowAnalysisType::IFDSTypeAnalysis: {
-      WholeProgramAnalysis<IFDSSolver_P<IFDSTypeAnalysis>, IFDSTypeAnalysis>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IFDSSolverTest: {
-      WholeProgramAnalysis<IFDSSolver_P<IFDSSolverTest>, IFDSSolverTest> WPA(
-          IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
-      WholeProgramAnalysis<IFDSSolver_P<IFDSLinearConstantAnalysis>,
-                           IFDSLinearConstantAnalysis>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
-      WholeProgramAnalysis<IFDSSolver_P<IFDSFieldSensTaintAnalysis>,
-                           IFDSFieldSensTaintAnalysis>
-          WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IDELinearConstantAnalysis: {
-      WholeProgramAnalysis<IDESolver_P<IDELinearConstantAnalysis>,
-                           IDELinearConstantAnalysis>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IDESolverTest: {
-      WholeProgramAnalysis<IDESolver_P<IDESolverTest>, IDESolverTest> WPA(
-          IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IDEInstInteractionAnalysis: {
-      WholeProgramAnalysis<IDESolver_P<IDEInstInteractionAnalysis>,
-                           IDEInstInteractionAnalysis>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IntraMonoFullConstantPropagation: {
-      WholeProgramAnalysis<IntraMonoSolver_P<IntraMonoFullConstantPropagation>,
-                           IntraMonoFullConstantPropagation>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::IntraMonoSolverTest: {
-      WholeProgramAnalysis<IntraMonoSolver_P<IntraMonoSolverTest>,
-                           IntraMonoSolverTest>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::InterMonoSolverTest: {
-      WholeProgramAnalysis<InterMonoSolver_P<InterMonoSolverTest, 3>,
-                           InterMonoSolverTest>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::InterMonoTaintAnalysis: {
-      WholeProgramAnalysis<InterMonoSolver_P<InterMonoTaintAnalysis, 3>,
-                           InterMonoTaintAnalysis>
-          WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } break;
-    case DataFlowAnalysisType::Plugin:
-      break;
-    default:
-      break;
+    if (std::holds_alternative<DataFlowAnalysisType>(_DataFlowAnalysis)) {
+      auto DataFlowAnalysis = std::get<DataFlowAnalysisType>(_DataFlowAnalysis);
+      switch (DataFlowAnalysis) {
+      case DataFlowAnalysisType::IFDSUninitializedVariables: {
+        WholeProgramAnalysis<IFDSSolver_P<IFDSUninitializedVariables>,
+                             IFDSUninitializedVariables>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IFDSConstAnalysis: {
+        WholeProgramAnalysis<IFDSSolver_P<IFDSConstAnalysis>, IFDSConstAnalysis>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IFDSTaintAnalysis: {
+        WholeProgramAnalysis<IFDSSolver_P<IFDSTaintAnalysis>, IFDSTaintAnalysis>
+            WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
+      } break;
+      case DataFlowAnalysisType::IDETaintAnalysis: {
+        WholeProgramAnalysis<IDESolver_P<IDETaintAnalysis>, IDETaintAnalysis>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
+        OpenSSLEVPKDFDescription TSDesc;
+        WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>,
+                             IDETypeStateAnalysis>
+            WPA(IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+        WPA.releaseConfiguration();
+      } break;
+      case DataFlowAnalysisType::IFDSTypeAnalysis: {
+        WholeProgramAnalysis<IFDSSolver_P<IFDSTypeAnalysis>, IFDSTypeAnalysis>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IFDSSolverTest: {
+        WholeProgramAnalysis<IFDSSolver_P<IFDSSolverTest>, IFDSSolverTest> WPA(
+            IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
+        WholeProgramAnalysis<IFDSSolver_P<IFDSLinearConstantAnalysis>,
+                             IFDSLinearConstantAnalysis>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
+        WholeProgramAnalysis<IFDSSolver_P<IFDSFieldSensTaintAnalysis>,
+                             IFDSFieldSensTaintAnalysis>
+            WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IDELinearConstantAnalysis: {
+        WholeProgramAnalysis<IDESolver_P<IDELinearConstantAnalysis>,
+                             IDELinearConstantAnalysis>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IDESolverTest: {
+        WholeProgramAnalysis<IDESolver_P<IDESolverTest>, IDESolverTest> WPA(
+            IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IDEInstInteractionAnalysis: {
+        WholeProgramAnalysis<IDESolver_P<IDEInstInteractionAnalysis>,
+                             IDEInstInteractionAnalysis>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IntraMonoFullConstantPropagation: {
+        WholeProgramAnalysis<
+            IntraMonoSolver_P<IntraMonoFullConstantPropagation>,
+            IntraMonoFullConstantPropagation>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::IntraMonoSolverTest: {
+        WholeProgramAnalysis<IntraMonoSolver_P<IntraMonoSolverTest>,
+                             IntraMonoSolverTest>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::InterMonoSolverTest: {
+        WholeProgramAnalysis<InterMonoSolver_P<InterMonoSolverTest, 3>,
+                             InterMonoSolverTest>
+            WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      case DataFlowAnalysisType::InterMonoTaintAnalysis: {
+        WholeProgramAnalysis<InterMonoSolver_P<InterMonoTaintAnalysis, 3>,
+                             InterMonoTaintAnalysis>
+            WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
+      } break;
+      default:
+        break;
+      }
+    } else if (std::holds_alternative<IFDSPluginConstructor>(
+                   _DataFlowAnalysis)) {
+      auto Problem = std::get<IFDSPluginConstructor>(_DataFlowAnalysis)(
+          &IRDB, &TH, &ICF, &PT, EntryPoints);
+      IFDSSolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
+          *Problem);
+      Solver.solve();
+      emitRequestedDataFlowResults(Solver);
+    } else if (std::holds_alternative<IDEPluginConstructor>(
+                   _DataFlowAnalysis)) {
+      auto Problem = std::get<IDEPluginConstructor>(_DataFlowAnalysis)(
+          &IRDB, &TH, &ICF, &PT, EntryPoints);
+      IDESolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
+          *Problem);
+      Solver.solve();
+      emitRequestedDataFlowResults(Solver);
+    } else if (std::holds_alternative<IntraMonoPluginConstructor>(
+                   _DataFlowAnalysis)) {
+
+      auto Problem = std::get<IntraMonoPluginConstructor>(_DataFlowAnalysis)(
+          &IRDB, &TH, &ICF, &PT, EntryPoints);
+      IntraMonoSolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
+          *Problem);
+      Solver.solve();
+      emitRequestedDataFlowResults(Solver);
+    } else if (std::holds_alternative<InterMonoPluginConstructor>(
+                   _DataFlowAnalysis)) {
+      auto Problem = std::get<InterMonoPluginConstructor>(_DataFlowAnalysis)(
+          &IRDB, &TH, &ICF, &PT, EntryPoints);
+      InterMonoSolver_P<std::remove_reference<decltype(*Problem)>::type, K>
+          Solver(*Problem);
+      Solver.solve();
+      emitRequestedDataFlowResults(Solver);
     }
   }
 }
