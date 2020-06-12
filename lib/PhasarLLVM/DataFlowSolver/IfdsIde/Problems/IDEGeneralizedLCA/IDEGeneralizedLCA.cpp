@@ -161,6 +161,10 @@ IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
   // kill all data-flow facts at calls to string constructors
   
+  // Problem:
+  // after the string destructor is called, the edge value is lost
+  // figure out why
+
   std::string FunName = DestMthd->getName().str();
   if (isStringConstructor(FunName) || isStringDestructor(FunName)) {
     // std::cout << "Killing Function: \n" << DestMthd->getName().str() << '\n';
