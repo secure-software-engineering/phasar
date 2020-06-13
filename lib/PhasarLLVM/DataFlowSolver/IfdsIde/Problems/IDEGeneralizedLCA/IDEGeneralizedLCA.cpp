@@ -64,6 +64,26 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
                                          IDEGeneralizedLCA::n_t Succ) {
   // std::cout << "## normal flow for: " << llvmIRToString(curr) <<
   // std::endl;
+  if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
+    llvm::ImmutableCallSite CS(Curr);
+    if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
+      // llvm::outs() << *(CS.getArgOperand(0)) << '\n';
+      return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
+                                                           getZeroValue());
+
+      //   return flow([=](IDEGeneralizedLCA::d_t Source)
+      //                   -> std::set<IDEGeneralizedLCA::d_t> {
+      //     if (isZeroValue(Source)) {
+      //       return {Invoke->getArgOperand(0), Source};
+      //     } else {
+      //       return {Source};
+      //     }
+      //     // CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)
+      //   });
+      // }
+    }
+  }
+
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     auto PointerOp = Store->getPointerOperand();
     auto ValueOp = Store->getValueOperand();
@@ -160,13 +180,16 @@ IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
   // kill all data-flow facts at calls to string constructors
-  
+
   // Problem:
   // after the string destructor is called, the edge value is lost
   // figure out why
 
+  // on linux the std::string constructor call is an invoke
+  // and apparently invokes are not processed here
+
   std::string FunName = DestMthd->getName().str();
-  if (isStringConstructor(FunName) || isStringDestructor(FunName)) {
+  if (isStringConstructor(FunName)) {
     // std::cout << "Killing Function: \n" << DestMthd->getName().str() << '\n';
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
@@ -179,7 +202,7 @@ IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                       IDEGeneralizedLCA::f_t CalleeMthd,
                                       IDEGeneralizedLCA::n_t ExitStmt,
                                       IDEGeneralizedLCA::n_t RetSite) {
-  // std::cout << "Ret flow: " << llvmIRToString(exitStmt) << std::endl;
+  std::cout << "Ret flow: " << llvmIRToString(ExitStmt) << std::endl;
   /*return std::make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
       [](const llvm::Value *v) -> bool {
@@ -193,14 +216,15 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t RetSite,
                                             std::set<f_t> Callees) {
-  // std::cout << "CTR flow: " << llvmIRToString(callSite) << std::endl;
+  // std::cout << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
   llvm::ImmutableCallSite CS(CallSite);
   // check for ctor and then demangle function name and check for
   // std::basic_string
+
   if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
     // found std::string ctor
-    std::cout << "in getCallToRetFlowFunction: "
-              << CS.getCalledFunction()->getName().str() << '\n';
+    // std::cout << "in getCallToRetFlowFunction: "
+    //           << CS.getCalledFunction()->getName().str() << '\n';
     return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                          getZeroValue());
   }
@@ -213,12 +237,10 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
       if (Source->getType()->isPointerTy()) {
         for (auto &Arg : Call->arg_operands()) {
           if (Arg.get() == Source) {
-            // std::cout << "return {}/n";
             return {};
           }
         }
       }
-      // std::cout << "return {Source}\n";
       return {Source};
     });
   }
@@ -290,6 +312,32 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
   LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
                 << "(D) Succ Node :   "
                 << IDEGeneralizedLCA::DtoString(SuccNode));
+
+  if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
+    if (isStringConstructor(Invoke->getCalledFunction()->getName().str())) {
+      if (CurrNode == getZeroValue() && SuccNode == Invoke->getArgOperand(0)) {
+        // find string literal that is used to initialize the string
+        if (auto User = llvm::dyn_cast<llvm::User>(Invoke->getArgOperand(1))) {
+          if (auto GV =
+                  llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
+            if (!GV->hasInitializer()) {
+              // in this case we don't know the initial value statically
+              return std::make_shared<AllBottom<l_t>>(bottomElement());
+            }
+            if (auto CDA = llvm::dyn_cast<llvm::ConstantDataArray>(
+                    GV->getInitializer())) {
+              if (CDA->isCString()) {
+                // here we statically know the string literal the std::string is
+                // initialized with
+                return std::make_shared<GenConstant>(
+                    l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   // Initialize global variables at entry point
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
@@ -468,9 +516,10 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
 
   if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
     // found correct place and time
-    if (CS.getNumArgOperands() < 2) {
-      return std::make_shared<AllBottom<l_t>>(bottomElement());
-    }
+    assert(CS.getNumArgOperands() > 1);
+    // if (CS.getNumArgOperands() < 2) {
+    //   return std::make_shared<AllBottom<l_t>>(bottomElement());
+    // }
 
     if (CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)) {
       // find string literal that is used to initialize the string
@@ -765,15 +814,32 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
 bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
   // return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR
   // && FunName.find("_ZNSt3__112basic_string") != std::string::npos);
-  const std::string stringConstructorName =
-      "std::__1::basic_string<char, std::__1::char_traits<char>, "
-      "std::__1::allocator<char> >::basic_string<std::nullptr_t>(char const*)";
-  return cxxDemangle(FunName) == stringConstructorName;
+
+  //      mac os version
+  //     "std::__1::basic_string<char, std::__1::char_traits<char>, "
+  //     "std::__1::allocator<char> >::basic_string<std::nullptr_t>(char
+  //     const*)";
+
+  //           linux version
+  //                  "std::__cxx11::basic_string<char, std::char_traits<char>,
+  //                  " "std::allocator<char> >::basic_string(char const*, "
+  //                  "std::allocator<char> const&)";
+
+  // TODO: use utilities functions to check if constructor
+  return cxxDemangle(FunName).find("::allocator<char> >::basic_string") !=
+         std::string::npos;
 }
 
 bool IDEGeneralizedLCA::isStringDestructor(const std::string &FunName) {
-  const std::string stringDestructorName = "std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >::~basic_string()";
-  return cxxDemangle(FunName) == stringDestructorName;
+  // mac os version
+  // "std::__1::basic_string<char, std::__1::char_traits<char>, "
+  // "std::__1::allocator<char> >::~basic_string()";
+
+  // linux version
+  // "std::__cxx11::basic_string<char, std::char_traits<char>, "
+  // "std::allocator<char> >::~basic_string()"
+  return cxxDemangle(FunName).find("::allocator<char> >::~basic_string()") !=
+         std::string::npos;
 }
 
 } // namespace psr

@@ -123,37 +123,25 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   std::vector<groundTruth_t> groundTruth;
 
   size_t node_id = 2;
-  size_t stmt_id = 6;
+  size_t stmt_id = 11;
 
   auto node = IRDB->getInstruction(node_id);
   auto stmt = IRDB->getInstruction(stmt_id);
 
-  // let's do a brutforce for the results
   // for (int i = 2; i < 30; ++i) {
   //   if (IRDB->getInstruction(i)) {
   //     auto result = LCASolver->resultAt(IRDB->getInstruction(i), node);
   //     std::cout << "statement id: " << i << '\n';
-  //     llvm::outs() << "statement: \n" 
-  //     << *(IRDB->getInstruction(i)) <<'\n';
+  //     llvm::outs() << "statement: \n" << *(IRDB->getInstruction(i)) << '\n';
   //     std::cout << "Result:\n";
   //     std::cout << result << '\n';
   //   }
   // }
 
-  // part of the output:
-  // {<TOP>}
-  // Result:
-  // {"Hello, World"}
-  // Result:
-  // {"Hello, World"}
-  // Result:
-  // {<TOP>}
-  // => it seems like the edge value gets "lost" somehow
-
-  // std::cout << "Node:\n";
-  // llvm::outs() << *node << '\n';
-  // std::cout << "Statement:\n";
-  // llvm::outs() << *stmt << '\n';
+  std::cout << "Node:\n";
+  llvm::outs() << *node << '\n';
+  std::cout << "Statement:\n";
+  llvm::outs() << *stmt << '\n';
 
   auto result = LCASolver->resultAt(stmt, node);
   std::cout << "Result:\n";
