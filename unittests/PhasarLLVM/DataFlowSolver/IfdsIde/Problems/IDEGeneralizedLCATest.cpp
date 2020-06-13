@@ -123,37 +123,24 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
 
-  // std::string constructor behaves differently
-  // on mac os and linux
-  // llvm ir is different
-  // can't use same stmt_id for both
-  std::size_t node_id = 2;
-  std::size_t stmt_id;
-  
-  // hacky way to get return instruction
-  // TODO: change this
-  for (auto &Inst : IRDB->getRetOrResInstructions()) {
-    if (auto Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
-      stmt_id = IRDB->getInstructionID(Inst);
-    }
-  }
+  std::size_t node_id = 2; 
+  std::size_t stmt_id = 13;
 
+  /*
   auto node = IRDB->getInstruction(node_id);
   auto stmt = IRDB->getInstruction(stmt_id);
-  // for (int i = 2; i < 20; ++i) {
-  //   if (IRDB->getInstruction(i)) {
-  //     auto result = LCASolver->resultAt(IRDB->getInstruction(i), node);
-  //     std::cout << "statement id: " << i << '\n';
-  //     llvm::outs() << "statement: \n" << *(IRDB->getInstruction(i)) << '\n';
-  //     std::cout << "Result:\n";
-  //     std::cout << result << '\n';
-  //   }
-  // }
+  for (int i = 2; i < 20; ++i) {
+    if (IRDB->getInstruction(i)) {
+     auto result = LCASolver->resultAt(IRDB->getInstruction(i), node);
+     std::cout << "statement id: " << i << '\n';
+     llvm::outs() << "statement: \n" << *(IRDB->getInstruction(i)) << '\n';
+     std::cout << "Result:\n";
+     std::cout << result << '\n';
+    }
+  }
+  */
 
-  // on mac os:
-  // after %this.addr = alloca %"class.std::__1::basic_string"
-  // EdgeValue becomes TOP again
-
+  /*
   std::cout << "Node:\n";
   llvm::outs() << *node << '\n';
   std::cout << "Statement:\n";
@@ -162,6 +149,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   auto result = LCASolver->resultAt(stmt, node);
   std::cout << "Result:\n";
   std::cout << result << '\n';
+  */
 
   groundTruth.push_back({{EdgeValue("Hello, World")}, node_id, stmt_id});
   compareResults(groundTruth);
@@ -208,8 +196,8 @@ TEST_F(IDEGeneralizedLCATest, Imprecision) {
   auto yInst = IRDB->getInstruction(1); // foo.y
   auto barInst = IRDB->getInstruction(7);
 
-  std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) << std::endl;
-  std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst) << std::endl;
+  //std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) << std::endl;
+  //std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst) << std::endl;
 
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(1), EdgeValue(2)}, 0, 7}); // i
