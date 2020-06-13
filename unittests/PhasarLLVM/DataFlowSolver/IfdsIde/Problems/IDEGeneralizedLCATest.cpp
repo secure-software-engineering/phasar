@@ -118,6 +118,7 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
   compareResults(groundTruth);
 }
 
+// TODO: add more complicated std::string tests
 TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
@@ -133,10 +134,14 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   //     auto result = LCASolver->resultAt(IRDB->getInstruction(i), node);
   //     std::cout << "statement id: " << i << '\n';
   //     llvm::outs() << "statement: \n" << *(IRDB->getInstruction(i)) << '\n';
-  //     // std::cout << "Result:\n";
-  //     // std::cout << result << '\n';
+  //     std::cout << "Result:\n";
+  //     std::cout << result << '\n';
   //   }
   // }
+  
+  // on mac os:
+  // after %this.addr = alloca %"class.std::__1::basic_string"
+  // EdgeValue becomes TOP again
 
   std::cout << "Node:\n";
   llvm::outs() << *node << '\n';
