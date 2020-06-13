@@ -202,7 +202,7 @@ IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                       IDEGeneralizedLCA::f_t CalleeMthd,
                                       IDEGeneralizedLCA::n_t ExitStmt,
                                       IDEGeneralizedLCA::n_t RetSite) {
-  std::cout << "Ret flow: " << llvmIRToString(ExitStmt) << std::endl;
+  // std::cout << "Ret flow: " << llvmIRToString(ExitStmt) << std::endl;
   /*return std::make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
       [](const llvm::Value *v) -> bool {
