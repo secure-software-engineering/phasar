@@ -123,12 +123,23 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
 
-  size_t node_id = 2;
-  size_t stmt_id = 13;
+  // std::string constructor behaves differently
+  // on mac os and linux
+  // llvm ir is different
+  // can't use same stmt_id for both
+  std::size_t node_id = 2;
+  std::size_t stmt_id;
+  
+  // hacky way to get return instruction
+  // TODO: change this
+  for (auto &Inst : IRDB->getRetOrResInstructions()) {
+    if (auto Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
+      stmt_id = IRDB->getInstructionID(Inst);
+    }
+  }
 
   auto node = IRDB->getInstruction(node_id);
   auto stmt = IRDB->getInstruction(stmt_id);
-
   // for (int i = 2; i < 20; ++i) {
   //   if (IRDB->getInstruction(i)) {
   //     auto result = LCASolver->resultAt(IRDB->getInstruction(i), node);
