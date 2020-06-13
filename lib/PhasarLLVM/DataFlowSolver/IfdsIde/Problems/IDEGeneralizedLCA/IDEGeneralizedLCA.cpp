@@ -813,9 +813,6 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
 }
 
 bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
-  // return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR
-  // && FunName.find("_ZNSt3__112basic_string") != std::string::npos);
-
   //      mac os version
   //     "std::__1::basic_string<char, std::__1::char_traits<char>, "
   //     "std::__1::allocator<char> >::basic_string<std::nullptr_t>(char
@@ -825,10 +822,9 @@ bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
   //                  "std::__cxx11::basic_string<char, std::char_traits<char>,
   //                  " "std::allocator<char> >::basic_string(char const*, "
   //                  "std::allocator<char> const&)";
-
-  // TODO: use utilities functions to check if constructor
-  return cxxDemangle(FunName).find("::allocator<char> >::basic_string") !=
-         std::string::npos;
+  return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR &&
+          cxxDemangle(FunName).find("::allocator<char> >::basic_string") !=
+              std::string::npos);
 }
 
 bool IDEGeneralizedLCA::isStringDestructor(const std::string &FunName) {
@@ -839,8 +835,9 @@ bool IDEGeneralizedLCA::isStringDestructor(const std::string &FunName) {
   // linux version
   // "std::__cxx11::basic_string<char, std::char_traits<char>, "
   // "std::allocator<char> >::~basic_string()"
-  return cxxDemangle(FunName).find("::allocator<char> >::~basic_string()") !=
-         std::string::npos;
+  return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::DTOR &&
+          cxxDemangle(FunName).find("::allocator<char> >::~basic_string()") !=
+              std::string::npos);
 }
 
 } // namespace psr

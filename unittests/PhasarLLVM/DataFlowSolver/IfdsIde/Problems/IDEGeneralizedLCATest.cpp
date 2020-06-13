@@ -138,7 +138,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   //     std::cout << result << '\n';
   //   }
   // }
-  
+
   // on mac os:
   // after %this.addr = alloca %"class.std::__1::basic_string"
   // EdgeValue becomes TOP again
