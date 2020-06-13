@@ -185,11 +185,13 @@ IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
   // after the string destructor is called, the edge value is lost
   // figure out why
 
+  // find string destructor and make sure edge identity is returned
+
   // on linux the std::string constructor call is an invoke
   // and apparently invokes are not processed here
 
   std::string FunName = DestMthd->getName().str();
-  if (isStringConstructor(FunName)) {
+  if (isStringConstructor(FunName) || isStringDestructor(FunName)) {
     // std::cout << "Killing Function: \n" << DestMthd->getName().str() << '\n';
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
@@ -221,12 +223,15 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   // check for ctor and then demangle function name and check for
   // std::basic_string
 
+  // TODO: store function name in variable
   if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
     // found std::string ctor
     // std::cout << "in getCallToRetFlowFunction: "
     //           << CS.getCalledFunction()->getName().str() << '\n';
     return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                          getZeroValue());
+  } else if (isStringDestructor(CS.getCalledFunction()->getName().str())) {
+    return Identity<d_t>::getInstance();
   }
 
   if (auto Call = llvm::dyn_cast<llvm::CallBase>(CS.getInstruction())) {
@@ -314,6 +319,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
                 << IDEGeneralizedLCA::DtoString(SuccNode));
 
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
+    // TODO: store function name in variable
     if (isStringConstructor(Invoke->getCalledFunction()->getName().str())) {
       if (CurrNode == getZeroValue() && SuccNode == Invoke->getArgOperand(0)) {
         // find string literal that is used to initialize the string
@@ -516,11 +522,6 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
 
   if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
     // found correct place and time
-    assert(CS.getNumArgOperands() > 1);
-    // if (CS.getNumArgOperands() < 2) {
-    //   return std::make_shared<AllBottom<l_t>>(bottomElement());
-    // }
-
     if (CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)) {
       // find string literal that is used to initialize the string
 
