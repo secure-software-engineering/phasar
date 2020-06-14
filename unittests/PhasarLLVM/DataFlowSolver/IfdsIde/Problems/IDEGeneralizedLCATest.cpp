@@ -118,7 +118,15 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
   compareResults(groundTruth);
 }
 
-// TODO: add more complicated std::string tests
+TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
+  Initialize("StringBranchTest_c.ll");
+  std::vector<groundTruth_t> groundTruth;
+  groundTruth.push_back(
+      {{EdgeValue("Hello, World"), EdgeValue("Hello Hello")}, 3, 15});
+  groundTruth.push_back({{EdgeValue("Hello Hello")}, 4, 15});
+  compareResults(groundTruth);
+}
+
 TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
@@ -155,12 +163,34 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   compareResults(groundTruth);
 }
 
-TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
-  Initialize("StringBranchTest_c.ll");
+TEST_F(IDEGeneralizedLCATest, StringBranchTestCpp) {
+  Initialize("StringBranchTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
+
+  std::size_t node_id = 3; 
+  std::size_t stmt_id = 43;
+
+  auto node = IRDB->getInstruction(node_id);
+  auto stmt = IRDB->getInstruction(stmt_id);
+  
+  // for (int i = 0; i < 50; ++i) {
+  //   if (IRDB->getInstruction(i)) {
+  //    std::cout << "statement id: " << i << '\n';
+  //    llvm::outs() << "statement: \n" << *(IRDB->getInstruction(i)) << '\n';
+  //   }
+  // }
+
+  std::cout << "Node:\n";
+  llvm::outs() << *node << '\n';
+  std::cout << "Statement:\n";
+  llvm::outs() << *stmt << '\n';
+  
+  // str1 can stay hello world or become hello hello
   groundTruth.push_back(
-      {{EdgeValue("Hello, World"), EdgeValue("Hello Hello")}, 3, 15});
-  groundTruth.push_back({{EdgeValue("Hello Hello")}, 4, 15});
+      {{EdgeValue("Hello, World"), EdgeValue("Hello Hello")}, 3, stmt_id});
+
+  // str2 should just be hello hello
+  // groundTruth.push_back({{EdgeValue("Hello Hello")}, 7, stmt_id});
   compareResults(groundTruth);
 }
 
