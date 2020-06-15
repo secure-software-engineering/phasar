@@ -85,8 +85,8 @@ $ brew install python3
 $ brew install llvm 
 # Setting the paths
 # Use LLVM's Clang rather than Apple's Clang compiler
-export CC=/usr/local/opt/llvm/bin/clang
-export CXX=/usr/local/opt/llvm/bin/clang++
+$ export CC=/usr/local/opt/llvm/bin/clang
+$ export CXX=/usr/local/opt/llvm/bin/clang++
 # Set PATH env variable to /usr/local/opt/llvm/bin
 # Go to Phasar directory run the following commands
 $ git submodule init
