@@ -219,7 +219,7 @@ public:
   using l_t = typename AnalysisDomainTy::l_t;
 
   using EdgeFunctionType = EdgeFunction<l_t>;
-  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunctionType>;
+  using EdgeFunctionPtrType = typename EdgeFunctionType::EdgeFunctionPtrType;
 
   virtual ~EdgeFunctions() = default;
   virtual EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode,
