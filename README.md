@@ -76,13 +76,27 @@ Done!
 Mac OS 10.13.1 or higher only!
 To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
-The needed packages are
+Please follow the instructions down below.
+
 ```
 $ brew install boost
 $ brew install python3
+# Install llvm version 10
+$ brew install llvm 
+# Setting the paths
+# Use LLVM's Clang rather than Apple's Clang compiler
+export CC=/usr/local/opt/llvm/bin/clang
+export CXX=/usr/local/opt/llvm/bin/clang++
+# Set PATH env variable to /usr/local/opt/llvm/bin
+# Go to Phasar directory run the following commands
+$ git submodule init
+$ git submodule update
+$ mkdir build
+$ cd build/
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
+$ make -j $(nproc) # or use a different number of cores to compile it
+$ sudo make install # if you wish a system-wise installation
 ```
-
-**To be continued.**
 
 ### Installing Phasar on a Windows system
 
