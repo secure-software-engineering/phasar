@@ -21,9 +21,11 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -41,13 +43,19 @@ namespace psr {
 
 class ProjectIRDB;
 
+struct GeneralIFDSAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using d_t = const FlowFact *;
+};
+
 class IFDSTabulationProblemPlugin
-    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
-  using AnalysisDomainTy = LLVMAnalysisDomainDefault;
+    : public IFDSTabulationProblem<GeneralIFDSAnalysisDomain> {
+  using AnalysisDomainTy = GeneralIFDSAnalysisDomain;
+
+  std::vector<std::unique_ptr<FlowFact>> _memoryManager;
 
 public:
   using n_t = const llvm::Instruction *;
-  using d_t = const llvm::Value *;
+  using d_t = const FlowFact *;
   using f_t = const llvm::Function *;
   using t_t = const llvm::StructType *;
   using v_t = const llvm::Value *;
@@ -63,25 +71,36 @@ public:
   }
   ~IFDSTabulationProblemPlugin() override = default;
 
-  const llvm::Value *createZeroValue() const override {
-    // create a special value to represent the zero value!
-    return LLVMZeroValue::getInstance();
+  template <typename T, typename... Args>
+  static inline T *createFlowFact(Args &&... args) {
+    static_assert(std::is_base_of<FlowFact, T>::value,
+                  "Your custom dataflow-fact type must inherit from "
+                  "psr::FlowFact. You may create a subclass of "
+                  "psr::FlowFactWrapper in order to achieve that");
+    auto ret = new T(std::forward<Args>(args)...);
+    _memoryManager.emplace_back(ret);
+    return ret;
   }
 
-  bool isZeroValue(const llvm::Value *d) const override {
+  /* const d_t createZeroValue() const override {
+     // create a special value to represent the zero value!
+     return LLVMZeroValue::getInstance();
+   }
+
+  bool isZeroValue(d_t d) const override {
     return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
-  }
+  }*/
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override {
+  void printNode(std::ostream &os, n_t n) const override {
     os << llvmIRToString(n);
   }
 
-  void printDataFlowFact(std::ostream &os,
-                         const llvm::Value *d) const override {
-    os << llvmIRToString(d);
+  void printDataFlowFact(std::ostream &os, d_t d) const override {
+    // os << llvmIRToString(d);
+    d->print(os);
   }
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override {
+  void printFunction(std::ostream &os, f_t m) const override {
     os << m->getName().str();
   }
 };
