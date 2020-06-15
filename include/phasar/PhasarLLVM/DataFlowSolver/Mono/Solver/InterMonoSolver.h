@@ -31,49 +31,54 @@
 
 namespace psr {
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename I, unsigned K>
-class InterMonoSolver {
+template <typename AnalysisDomainTy, unsigned K> class InterMonoSolver {
 public:
-  using ProblemTy = InterMonoProblem<N, D, F, T, V, I>;
+  using ProblemTy = InterMonoProblem<AnalysisDomainTy>;
+
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using v_t = typename AnalysisDomainTy::v_t;
+  using i_t = typename AnalysisDomainTy::i_t;
 
 protected:
-  InterMonoProblem<N, D, F, T, V, I> &IMProblem;
-  std::deque<std::pair<N, N>> Worklist;
-  std::unordered_map<N,
-                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+  ProblemTy &IMProblem;
+  std::deque<std::pair<n_t, n_t>> Worklist;
+  std::unordered_map<
+      n_t, std::unordered_map<CallStringCTX<n_t, K>, BitVectorSet<d_t>>>
       Analysis;
-  std::unordered_set<F> AddedFunctions;
-  const I *ICF;
+  std::unordered_set<f_t> AddedFunctions;
+  const i_t *ICF;
 
   void initialize() {
     for (auto &seed : IMProblem.initialSeeds()) {
-      std::vector<std::pair<N, N>> edges =
+      std::vector<std::pair<n_t, n_t>> edges =
           ICF->getAllControlFlowEdges(ICF->getFunctionOf(seed.first));
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<N, K>()];
+        Analysis[edge.first][CallStringCTX<n_t, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<N, K>()];
+        Analysis[edges.back().second][CallStringCTX<n_t, K>()];
       }
       // Additionally, insert the initial seeds
-      Analysis[seed.first][CallStringCTX<N, K>()].insert(seed.second);
+      Analysis[seed.first][CallStringCTX<n_t, K>()].insert(seed.second);
     }
   }
 
-  bool isIntraEdge(std::pair<N, N> edge) {
+  bool isIntraEdge(std::pair<n_t, n_t> edge) {
     return ICF->getFunctionOf(edge.first) == ICF->getFunctionOf(edge.second);
   }
 
-  bool isCallEdge(std::pair<N, N> edge) {
+  bool isCallEdge(std::pair<n_t, n_t> edge) {
     return !isIntraEdge(edge) && ICF->isCallStmt(edge.first);
   }
 
-  bool isReturnEdge(std::pair<N, N> edge) {
+  bool isReturnEdge(std::pair<n_t, n_t> edge) {
     return !isIntraEdge(edge) && ICF->isExitStmt(edge.first);
   }
 
@@ -86,7 +91,7 @@ protected:
     std::cout << "-----------------" << std::endl;
   }
 
-  void printBitVectorSet(const BitVectorSet<D> &S) {
+  void printBitVectorSet(const BitVectorSet<d_t> &S) {
     std::cout << "SET CONTENTS:\n{ ";
     for (auto Entry : S) {
       std::cout << llvmIRToString(Entry) << ", ";
@@ -94,7 +99,7 @@ protected:
     std::cout << "}" << std::endl;
   }
 
-  void addCalleesToWorklist(std::pair<N, N> edge) {
+  void addCalleesToWorklist(std::pair<n_t, n_t> edge) {
     auto src = edge.first;
     auto dst = edge.second;
     // Add inter- and intra-edges of callee(s)
@@ -108,16 +113,17 @@ protected:
         Worklist.push_back({src, startPoint});
       }
       // Add intra edges of callee
-      std::vector<std::pair<N, N>> edges = ICF->getAllControlFlowEdges(callee);
+      std::vector<std::pair<n_t, n_t>> edges =
+          ICF->getAllControlFlowEdges(callee);
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<N, K>()];
+        Analysis[edge.first][CallStringCTX<n_t, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<N, K>()];
+        Analysis[edges.back().second][CallStringCTX<n_t, K>()];
       }
       // Add return edge(s)
       for (auto ret : ICF->getExitPointsOf(callee)) {
@@ -130,7 +136,7 @@ protected:
     // the worklist
   }
 
-  void addToWorklist(std::pair<N, N> edge) {
+  void addToWorklist(std::pair<n_t, n_t> edge) {
     auto src = edge.first;
     auto dst = edge.second;
     Worklist.push_back({src, dst});
@@ -157,16 +163,15 @@ protected:
   }
 
 public:
-  InterMonoSolver(InterMonoProblem<N, D, F, T, V, I> &IMP)
-      : IMProblem(IMP), ICF(IMP.getICFG()) {}
+  InterMonoSolver(ProblemTy &IMP) : IMProblem(IMP), ICF(IMP.getICFG()) {}
   InterMonoSolver(const InterMonoSolver &) = delete;
   InterMonoSolver &operator=(const InterMonoSolver &) = delete;
   InterMonoSolver(InterMonoSolver &&) = delete;
   InterMonoSolver &operator=(InterMonoSolver &&) = delete;
   virtual ~InterMonoSolver() = default;
 
-  std::unordered_map<N,
-                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+  std::unordered_map<
+      n_t, std::unordered_map<CallStringCTX<n_t, K>, BitVectorSet<d_t>>>
   getAnalysis() {
     return Analysis;
   }
@@ -174,7 +179,7 @@ public:
   virtual void solve() {
     initialize();
     while (!Worklist.empty()) {
-      std::pair<N, N> edge = Worklist.front();
+      std::pair<n_t, n_t> edge = Worklist.front();
       Worklist.pop_front();
       auto src = edge.first;
       auto dst = edge.second;
@@ -182,7 +187,7 @@ public:
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>> Out;
+      std::unordered_map<CallStringCTX<n_t, K>, BitVectorSet<d_t>> Out;
       if (ICF->isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
@@ -219,8 +224,8 @@ public:
         for (auto &[CTX, Facts] : Analysis[src]) {
           auto CTXRm(CTX);
           // we need to use several call- and retsites if the context is empty
-          std::set<N> callsites;
-          std::set<N> retsites;
+          std::set<n_t> callsites;
+          std::set<n_t> retsites;
           std::cout << "CTX: " << CTX << '\n';
           // handle empty context
           if (CTX.empty()) {
@@ -268,8 +273,8 @@ public:
     }
   }
 
-  BitVectorSet<D> getResultsAt(N n) {
-    BitVectorSet<D> Result;
+  BitVectorSet<d_t> getResultsAt(n_t n) {
+    BitVectorSet<d_t> Result;
     for (auto &[CTX, Facts] : Analysis[n]) {
       Result.insert(Facts);
     }
@@ -306,9 +311,7 @@ public:
 
 template <typename Problem, unsigned K>
 using InterMonoSolver_P =
-    InterMonoSolver<typename Problem::n_t, typename Problem::d_t,
-                    typename Problem::f_t, typename Problem::t_t,
-                    typename Problem::v_t, typename Problem::i_t, K>;
+    InterMonoSolver<typename Problem::ProblemAnalysisDomain, K>;
 
 } // namespace psr
 

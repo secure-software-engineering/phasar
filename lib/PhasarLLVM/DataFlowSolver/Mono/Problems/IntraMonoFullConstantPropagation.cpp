@@ -16,6 +16,7 @@
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -41,12 +42,7 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IntraMonoProblem<IntraMonoFullConstantPropagation::n_t,
-                       IntraMonoFullConstantPropagation::d_t,
-                       IntraMonoFullConstantPropagation::f_t,
-                       IntraMonoFullConstantPropagation::t_t,
-                       IntraMonoFullConstantPropagation::v_t,
-                       IntraMonoFullConstantPropagation::i_t>(
+    : IntraMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<std::pair<const llvm::Value *, unsigned>>

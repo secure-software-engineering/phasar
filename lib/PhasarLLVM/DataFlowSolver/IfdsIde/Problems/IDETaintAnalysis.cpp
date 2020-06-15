@@ -43,34 +43,32 @@ IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
 
 // start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getNormalFlowFunction(IDETaintAnalysis::n_t Curr,
                                         IDETaintAnalysis::n_t Succ) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getCallFlowFunction(IDETaintAnalysis::n_t CallStmt,
                                       IDETaintAnalysis::f_t DestFun) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
-IDETaintAnalysis::getRetFlowFunction(IDETaintAnalysis::n_t CallSite,
-                                     IDETaintAnalysis::f_t CalleeFun,
-                                     IDETaintAnalysis::n_t ExitStmt,
-                                     IDETaintAnalysis::n_t RetSite) {
+IDETaintAnalysis::FlowFunctionPtrType IDETaintAnalysis::getRetFlowFunction(
+    IDETaintAnalysis::n_t CallSite, IDETaintAnalysis::f_t CalleeFun,
+    IDETaintAnalysis::n_t ExitStmt, IDETaintAnalysis::n_t RetSite) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getCallToRetFlowFunction(IDETaintAnalysis::n_t CallSite,
                                            IDETaintAnalysis::n_t RetSite,
                                            set<IDETaintAnalysis::f_t> Callees) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getSummaryFlowFunction(IDETaintAnalysis::n_t CallStmt,
                                          IDETaintAnalysis::f_t DestFun) {
   return nullptr;

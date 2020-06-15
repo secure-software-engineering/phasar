@@ -42,7 +42,7 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(
   IFDSTaintAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
                                          IFDSTaintAnalysis::n_t Succ) {
   // If a tainted value is stored, the store location must be tainted too
@@ -84,7 +84,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
                                        IFDSTaintAnalysis::f_t DestFun) {
   string FunctionName = cxxDemangle(DestFun->getName().str());
@@ -106,11 +106,9 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
-IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t CallSite,
-                                      IFDSTaintAnalysis::f_t CalleeFun,
-                                      IFDSTaintAnalysis::n_t ExitStmt,
-                                      IFDSTaintAnalysis::n_t RetSite) {
+IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
+    IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t CalleeFun,
+    IFDSTaintAnalysis::n_t ExitStmt, IFDSTaintAnalysis::n_t RetSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
@@ -122,7 +120,7 @@ IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t CallSite,
   // All other stuff is killed at this point
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::n_t RetSite,
     set<IFDSTaintAnalysis::f_t> Callees) {
@@ -218,7 +216,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
                                           IFDSTaintAnalysis::f_t DestFun) {
   SpecialSummaries<IFDSTaintAnalysis::d_t> &SS =

@@ -33,29 +33,38 @@ class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I, typename Container = std::set<D>>
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem
-    : public IFDSTabulationProblem<N, D, F, T, V, I, Container>,
-      public virtual EdgeFunctions<N, D, F, L>,
-      public virtual JoinLattice<L>,
-      public virtual EdgeFactPrinter<L> {
-  static_assert(std::is_base_of_v<ICFG<N, F>, I>,
+    : public IFDSTabulationProblem<AnalysisDomainTy, Container>,
+      public virtual EdgeFunctions<AnalysisDomainTy>,
+      public virtual JoinLattice<AnalysisDomainTy>,
+      public virtual EdgeFactPrinter<AnalysisDomainTy> {
+public:
+  using d_t = typename AnalysisDomainTy::d_t;
+  using n_t = typename AnalysisDomainTy::n_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using v_t = typename AnalysisDomainTy::v_t;
+  using l_t = typename AnalysisDomainTy::l_t;
+  using i_t = typename AnalysisDomainTy::i_t;
+
+  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>, // TODO: fix ICFG
                 "I must implement the ICFG interface!");
 
-public:
-  using typename EdgeFunctions<N, D, F, L>::EdgeFunctionPtrType;
+  using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
 
-  IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
-                       const I *ICF, PointsToInfo<V, N> *PT,
+  IDETabulationProblem(const ProjectIRDB *IRDB,
+                       const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
+                       PointsToInfo<v_t, n_t> *PT,
                        std::set<std::string> EntryPoints = {})
-      : IFDSTabulationProblem<N, D, F, T, V, I, Container>(
+      : IFDSTabulationProblem<AnalysisDomainTy, Container>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblem() override = default;
   virtual EdgeFunctionPtrType allTopFunction() = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
-  virtual void emitTextReport(const SolverResults<N, D, L> &SR,
+  virtual void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                               std::ostream &OS = std::cout) {
     OS << "No text report available!\n";
   }
@@ -63,14 +72,14 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
-  virtual void emitGraphicalReport(const SolverResults<N, D, L> &SR,
+  virtual void emitGraphicalReport(const SolverResults<n_t, d_t, l_t> &SR,
                                    std::ostream &OS = std::cout) {
     OS << "No graphical report available!\n";
   }
 #pragma clang diagnostic pop
 private:
-  using IFDSTabulationProblem<N, D, F, T, V, I, Container>::emitTextReport;
-  using IFDSTabulationProblem<N, D, F, T, V, I, Container>::emitGraphicalReport;
+  using IFDSTabulationProblem<AnalysisDomainTy, Container>::emitTextReport;
+  using IFDSTabulationProblem<AnalysisDomainTy, Container>::emitGraphicalReport;
 };
 
 } // namespace psr

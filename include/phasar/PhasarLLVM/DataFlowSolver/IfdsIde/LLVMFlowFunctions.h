@@ -40,18 +40,16 @@ namespace psr {
  */
 class AutoKillTMPs : public FlowFunction<const llvm::Value *> {
 protected:
-  std::shared_ptr<FlowFunction<const llvm::Value *>> delegate;
+  FlowFunctionPtrType delegate;
   const llvm::Instruction *inst;
 
 public:
-  AutoKillTMPs(std::shared_ptr<FlowFunction<const llvm::Value *>> FF,
-               const llvm::Instruction *In)
+  AutoKillTMPs(FlowFunctionPtrType FF, const llvm::Instruction *In)
       : delegate(std::move(FF)), inst(In) {}
   virtual ~AutoKillTMPs() = default;
 
-  std::set<const llvm::Value *>
-  computeTargets(const llvm::Value *Source) override {
-    std::set<const llvm::Value *> Result = delegate->computeTargets(Source);
+  container_type computeTargets(const llvm::Value *Source) override {
+    container_type Result = delegate->computeTargets(Source);
     for (const llvm::Use &U : inst->operands()) {
       if (llvm::isa<llvm::LoadInst>(U)) {
         Result.erase(U);

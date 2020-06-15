@@ -32,10 +32,8 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMBasedICFG *ICF,
                                          const LLVMPointsToInfo *PT,
                                          std::set<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
-                       InterMonoSolverTest::f_t, InterMonoSolverTest::t_t,
-                       InterMonoSolverTest::v_t, InterMonoSolverTest::i_t>(
-          IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
+    : InterMonoProblem<LLVMAnalysisDomainDefault>(IRDB, TH, ICF, PT,
+                                                  std::move(EntryPoints)) {}
 
 BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,

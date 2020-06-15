@@ -35,6 +35,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
@@ -63,6 +64,14 @@ getAllocaInstruction(const llvm::GetElementPtrInst *GEP) {
 
 namespace psr {
 
+template <typename EdgeFactType>
+struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
+  // type of the element contained in the sets of edge functions
+  using e_t = EdgeFactType;
+  using l_t = LatticeDomain<BitVectorSet<e_t>>;
+  using i_t = LLVMBasedICFG;
+};
+
 ///
 /// SyntacticAnalysisOnly: Can be set if a syntactic-only analysis is desired
 /// (without using points-to information)
@@ -73,28 +82,24 @@ template <typename EdgeFactType = std::string,
           bool SyntacticAnalysisOnly = false, bool EnableIndirectTaints = false>
 class IDEInstInteractionAnalysisT
     : public IDETabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, const llvm::StructType *, const llvm::Value *,
-          LatticeDomain<BitVectorSet<EdgeFactType>>, LLVMBasedICFG> {
-  using IDETabProblemType = IDETabulationProblem<
-      const llvm::Instruction *, const llvm::Value *, const llvm::Function *,
-      const llvm::StructType *, const llvm::Value *,
-      LatticeDomain<BitVectorSet<EdgeFactType>>, LLVMBasedICFG>;
+          IDEInstInteractionAnalysisDomain<EdgeFactType>> {
+public:
+  using AnalysisDomainTy = IDEInstInteractionAnalysisDomain<EdgeFactType>;
+
+  using IDETabProblemType = IDETabulationProblem<AnalysisDomainTy>;
+  using typename IDETabProblemType::container_type;
   using typename IDETabProblemType::FlowFunctionPtrType;
 
-public:
-  using typename IDETabProblemType::container_type;
-
-  using d_t = const llvm::Value *;
-  using n_t = const llvm::Instruction *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using n_t = typename AnalysisDomainTy::n_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using v_t = typename AnalysisDomainTy::v_t;
 
   // type of the element contained in the sets of edge functions
-  using e_t = EdgeFactType;
-  using l_t = LatticeDomain<BitVectorSet<e_t>>;
-  using i_t = LLVMBasedICFG;
+  using e_t = typename AnalysisDomainTy::e_t;
+  using l_t = typename AnalysisDomainTy::l_t;
+  using i_t = typename AnalysisDomainTy::i_t;
 
   using EdgeFactGeneratorTy = std::set<e_t>(n_t curr);
 
@@ -118,11 +123,7 @@ public:
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints = {"main"})
-      : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
-                             const llvm::Function *, const llvm::StructType *,
-                             const llvm::Value *,
-                             LatticeDomain<BitVectorSet<EdgeFactType>>,
-                             LLVMBasedICFG, container_type>(
+      : IDETabulationProblem<AnalysisDomainTy, container_type>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
@@ -142,8 +143,7 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override {
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
     // generate all global variables (only once)
     // if (LLVM_UNLIKELY(!GeneratedGlobalVariables)) {
     //   if (const llvm::Module *M = curr->getModule()) {

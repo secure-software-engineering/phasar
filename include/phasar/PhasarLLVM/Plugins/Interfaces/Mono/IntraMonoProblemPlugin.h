@@ -10,31 +10,22 @@
 #ifndef PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTRAMONOPROBLEMPLUGIN_H_
 #define PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTRAMONOPROBLEMPLUGIN_H_
 
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include <map>
 #include <memory>
 #include <string>
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+
 namespace psr {
 
 class IntraMonoProblemPlugin
-    : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedCFG> {
+    : public IntraMonoProblem<LLVMAnalysisDomainDefault> {
 public:
-  using n_t = const llvm::Instruction *;
-  using d_t = const llvm::Value *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
-  using i_t = LLVMBasedCFG;
-
-  IntraMonoProblemPlugin(const ProjectIRDB *IRDB,
-                         const TypeHierarchy<t_t, f_t> *TH, const i_t *CF,
-                         const PointsToInfo<v_t, n_t> *PT,
+  IntraMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                         const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
                          std::set<std::string> EntryPoints)
-      : IntraMonoProblem<n_t, d_t, f_t, t_t, v_t, i_t>(IRDB, TH, CF, PT,
-                                                       EntryPoints) {}
+      : IntraMonoProblem(IRDB, TH, CF, PT, EntryPoints) {}
 
   void printNode(std::ostream &os, n_t n) const override {
     os << llvmIRToString(n);

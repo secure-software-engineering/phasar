@@ -35,13 +35,9 @@ protected:
   LLVMPointsToInfo *PT{};
   OpenSSLSecureHeapDescription *Desc{};
   IDETypeStateAnalysis *TSProblem{};
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t> *Llvmtssolver = nullptr;
-  IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
-            const llvm::StructType *, const llvm::Value *, SecureHeapValue,
-            LLVMBasedICFG> *SecureHeapPropagationResults{};
+  IDESolver<IDETypeStateAnalysisDomain> *Llvmtssolver{};
+  IDESolver<IDESecureHeapPropagationAnalysisDomain>
+      *SecureHeapPropagationResults{};
   IDESecureHeapPropagation *SecureHeapPropagationProblem{};
   enum OpenSSLSecureHeapState {
     TOP = 42,
@@ -65,19 +61,13 @@ protected:
     SecureHeapPropagationProblem =
         new IDESecureHeapPropagation(IRDB, TH, ICFG, PT, EntryPoints);
     SecureHeapPropagationResults =
-        new IDESolver<const llvm::Instruction *, SecureHeapFact,
-                      const llvm::Function *, const llvm::StructType *,
-                      const llvm::Value *, SecureHeapValue, LLVMBasedICFG>(
+        new IDESolver<IDESecureHeapPropagationAnalysisDomain>(
             *SecureHeapPropagationProblem);
 
     Desc = new OpenSSLSecureHeapDescription(*SecureHeapPropagationResults);
     TSProblem =
         new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *Desc, EntryPoints);
-    Llvmtssolver =
-        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                      IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                      IDETypeStateAnalysis::i_t>(*TSProblem);
+    Llvmtssolver = new IDESolver<IDETypeStateAnalysisDomain>(*TSProblem);
 
     SecureHeapPropagationResults->solve();
     Llvmtssolver->solve();

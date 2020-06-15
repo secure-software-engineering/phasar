@@ -37,7 +37,7 @@ IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
   IFDSProtoAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
                                          IFDSProtoAnalysis::n_t Succ) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
@@ -47,28 +47,26 @@ IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t CallStmt,
                                        IFDSProtoAnalysis::f_t DestFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
-IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t CallSite,
-                                      IFDSProtoAnalysis::f_t CalleeFun,
-                                      IFDSProtoAnalysis::n_t ExitStmt,
-                                      IFDSProtoAnalysis::n_t RetSite) {
+IFDSProtoAnalysis::FlowFunctionPtrType IFDSProtoAnalysis::getRetFlowFunction(
+    IFDSProtoAnalysis::n_t CallSite, IFDSProtoAnalysis::f_t CalleeFun,
+    IFDSProtoAnalysis::n_t ExitStmt, IFDSProtoAnalysis::n_t RetSite) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getCallToRetFlowFunction(
     IFDSProtoAnalysis::n_t CallSite, IFDSProtoAnalysis::n_t RetSite,
     set<IFDSProtoAnalysis::f_t> Callees) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t CallStmt,
                                           IFDSProtoAnalysis::f_t DestFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();

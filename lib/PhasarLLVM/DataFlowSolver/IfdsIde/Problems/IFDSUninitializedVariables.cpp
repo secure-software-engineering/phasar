@@ -42,7 +42,7 @@ IFDSUninitializedVariables::IFDSUninitializedVariables(
   IFDSUninitializedVariables::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getNormalFlowFunction(
     IFDSUninitializedVariables::n_t Curr,
     IFDSUninitializedVariables::n_t Succ) {
@@ -234,7 +234,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getCallFlowFunction(
     IFDSUninitializedVariables::n_t CallStmt,
     IFDSUninitializedVariables::f_t DestFun) {
@@ -318,7 +318,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t CalleeFun,
@@ -363,7 +363,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getCallToRetFlowFunction(
     IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::n_t RetSite,
@@ -393,7 +393,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getSummaryFlowFunction(
     IFDSUninitializedVariables::n_t CallStmt,
     IFDSUninitializedVariables::f_t DestFun) {

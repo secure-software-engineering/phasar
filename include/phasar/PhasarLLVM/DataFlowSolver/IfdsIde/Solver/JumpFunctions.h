@@ -32,39 +32,42 @@ namespace psr {
 
 // Forward declare the IDETabulationProblem as we require its toString
 // functionality.
-template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I, typename Container>
+template <typename AnalysisDomainTy, typename Container>
 class IDETabulationProblem;
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I, typename Container>
-class JumpFunctions {
+template <typename AnalysisDomainTy, typename Container> class JumpFunctions {
 public:
-  using EdgeFunctionType = EdgeFunction<L>;
+  using l_t = typename AnalysisDomainTy::l_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using n_t = typename AnalysisDomainTy::n_t;
+
+  using EdgeFunctionType = EdgeFunction<l_t>;
   using EdgeFunctionPtrType = std::shared_ptr<EdgeFunctionType>;
 
 private:
   EdgeFunctionPtrType allTop;
-  const IDETabulationProblem<N, D, F, T, V, L, I, Container> &problem;
+  const IDETabulationProblem<AnalysisDomainTy, Container> &problem;
 
 protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<N, D, std::unordered_map<D, EdgeFunctionPtrType>> nonEmptyReverseLookup;
+  Table<n_t, d_t, std::unordered_map<d_t, EdgeFunctionPtrType>>
+      nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<D, N, std::unordered_map<D, EdgeFunctionPtrType>> nonEmptyForwardLookup;
+  Table<d_t, n_t, std::unordered_map<d_t, EdgeFunctionPtrType>>
+      nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
   // we exclude empty default functions
-  std::unordered_map<N, Table<D, D, EdgeFunctionPtrType>>
+  std::unordered_map<n_t, Table<d_t, d_t, EdgeFunctionPtrType>>
       nonEmptyLookupByTargetNode;
 
 public:
   JumpFunctions(EdgeFunctionPtrType allTop,
-                const IDETabulationProblem<N, D, F, T, V, L, I, Container> &p)
+                const IDETabulationProblem<AnalysisDomainTy, Container> &p)
       : allTop(std::move(allTop)), problem(p) {}
 
   ~JumpFunctions() = default;
@@ -78,7 +81,7 @@ public:
    * Records a jump function. The source statement is implicit.
    * @see PathEdge
    */
-  void addFunction(D sourceVal, N target, D targetVal,
+  void addFunction(d_t sourceVal, n_t target, d_t targetVal,
                    EdgeFunctionPtrType function) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Start adding new jump function";
@@ -96,10 +99,10 @@ public:
     }
     // it is important that existing values in JumpFunctions are overwritten
     // (use operator[] instead of insert)
-    std::unordered_map<D, EdgeFunctionPtrType> &sourceValToFunc =
+    std::unordered_map<d_t, EdgeFunctionPtrType> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
     sourceValToFunc[sourceVal] = function;
-    std::unordered_map<D, EdgeFunctionPtrType> &targetValToFunc =
+    std::unordered_map<d_t, EdgeFunctionPtrType> &targetValToFunc =
         nonEmptyForwardLookup.get(sourceVal, target);
     targetValToFunc[targetVal] = function;
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
@@ -115,8 +118,8 @@ public:
    * The return value is a mapping from source value to function.
    */
   std::optional<
-      std::reference_wrapper<std::unordered_map<D, EdgeFunctionPtrType>>>
-  reverseLookup(N target, D targetVal) {
+      std::reference_wrapper<std::unordered_map<d_t, EdgeFunctionPtrType>>>
+  reverseLookup(n_t target, d_t targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal)) {
       return std::nullopt;
     } else {
@@ -130,8 +133,8 @@ public:
    * The return value is a mapping from target value to function.
    */
   std::optional<
-      std::reference_wrapper<std::unordered_map<D, EdgeFunctionPtrType>>>
-  forwardLookup(D sourceVal, N target) {
+      std::reference_wrapper<std::unordered_map<d_t, EdgeFunctionPtrType>>>
+  forwardLookup(d_t sourceVal, n_t target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
       return std::nullopt;
     } else {
@@ -145,7 +148,7 @@ public:
    * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
-  Table<D, D, EdgeFunctionPtrType> lookupByTarget(N target) {
+  Table<d_t, d_t, EdgeFunctionPtrType> lookupByTarget(n_t target) {
     return nonEmptyLookupByTargetNode[target];
   }
 
@@ -155,7 +158,7 @@ public:
    * @return True if the function has actually been removed. False if it was not
    * there anyway.
    */
-  bool removeFunction(D sourceVal, N target, D targetVal) {
+  bool removeFunction(d_t sourceVal, n_t target, d_t targetVal) {
     nonEmptyReverseLookup.get(target, targetVal).erase(sourceVal);
     nonEmptyForwardLookup.get(sourceVal, target).erase(targetVal);
     return nonEmptyLookupByTargetNode.erase(target);

@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -37,29 +38,18 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
-class IDETabulationProblemPlugin
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  const llvm::Value *, LLVMBasedICFG> {
-public:
-  using n_t = const llvm::Instruction *;
-  using d_t = const llvm::Value *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
+struct IDETabulationProblemPluginDomain : public LLVMAnalysisDomainDefault {
   using l_t = const llvm::Value *;
-  using i_t = LLVMBasedICFG;
+};
 
+class IDETabulationProblemPlugin
+    : public IDETabulationProblem<IDETabulationProblemPluginDomain> {
 public:
   IDETabulationProblemPlugin(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-      : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
-                             const llvm::Function *, const llvm::StructType *,
-                             const llvm::Value *, const llvm::Value *,
-                             LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
+      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
     ZeroValue = createZeroValue();
   }
   ~IDETabulationProblemPlugin() override = default;

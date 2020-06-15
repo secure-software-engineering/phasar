@@ -23,11 +23,11 @@
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
 using namespace std;
 using namespace psr;
 
@@ -38,9 +38,7 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMBasedCFG *CF,
                                          const LLVMPointsToInfo *PT,
                                          std::set<std::string> EntryPoints)
-    : IntraMonoProblem<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
-                       IntraMonoSolverTest::f_t, IntraMonoSolverTest::t_t,
-                       IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>(
+    : IntraMonoProblem<IntraMonoSolverTestAnalysisDomain>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<const llvm::Value *>

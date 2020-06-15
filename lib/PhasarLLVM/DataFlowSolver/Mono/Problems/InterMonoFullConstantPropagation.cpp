@@ -34,12 +34,7 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoFullConstantPropagation::n_t,
-                       InterMonoFullConstantPropagation::d_t,
-                       InterMonoFullConstantPropagation::f_t,
-                       InterMonoFullConstantPropagation::t_t,
-                       InterMonoFullConstantPropagation::v_t,
-                       InterMonoFullConstantPropagation::i_t>(
+    : InterMonoProblem<InterMonoFullConstantPropagationAnalysisDomain>(
           IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>

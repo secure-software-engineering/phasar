@@ -35,7 +35,7 @@ MyIFDSProblem::MyIFDSProblem(const ProjectIRDB *IRDB,
                              std::set<std::string> EntryPoints)
     : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+MyIFDSProblem::FlowFunctionPtrType
 MyIFDSProblem::getNormalFlowFunction(const llvm::Instruction *curr,
                                      const llvm::Instruction *succ) {
   cout << "MyIFDSProblem::getNormalFlowFunction()\n";
@@ -46,7 +46,7 @@ MyIFDSProblem::getNormalFlowFunction(const llvm::Instruction *curr,
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+MyIFDSProblem::FlowFunctionPtrType
 MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callStmt,
                                    const llvm::Function *destMthd) {
   cout << "MyIFDSProblem::getCallFlowFunction()\n";
@@ -65,7 +65,7 @@ MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callStmt,
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>> MyIFDSProblem::getRetFlowFunction(
+MyIFDSProblem::FlowFunctionPtrType MyIFDSProblem::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   cout << "MyIFDSProblem::getRetFlowFunction()\n";
@@ -80,7 +80,7 @@ shared_ptr<FlowFunction<const llvm::Value *>> MyIFDSProblem::getRetFlowFunction(
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+MyIFDSProblem::FlowFunctionPtrType
 MyIFDSProblem::getCallToRetFlowFunction(const llvm::Instruction *callSite,
                                         const llvm::Instruction *retSite,
                                         set<const llvm::Function *> callees) {
@@ -94,7 +94,7 @@ MyIFDSProblem::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 // May be used to model function calls to libc or llvm.intrinsic functions
 // for which no implementation is accessible. If nullptr is returned it applies
 // identity on all flow facts that are present.
-shared_ptr<FlowFunction<const llvm::Value *>>
+MyIFDSProblem::FlowFunctionPtrType
 MyIFDSProblem::getSummaryFlowFunction(const llvm::Instruction *callStmt,
                                       const llvm::Function *destMthd) {
   cout << "MyIFDSProblem::getSummaryFlowFunction()\n";

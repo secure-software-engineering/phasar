@@ -28,39 +28,35 @@ WPDSSolverTest::WPDSSolverTest(const ProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
                                const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
-    : WPDSProblem<WPDSSolverTest::n_t, WPDSSolverTest::d_t, WPDSSolverTest::f_t,
-                  WPDSSolverTest::t_t, WPDSSolverTest::v_t, WPDSSolverTest::l_t,
-                  WPDSSolverTest::i_t>(IRDB, TH, ICF, PT,
-                                       std::move(EntryPoints)) {}
+    : WPDSProblem<WPDSSolverTestAnalysisDomain>(IRDB, TH, ICF, PT,
+                                                std::move(EntryPoints)) {}
 
-shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
+WPDSSolverTest::FlowFunctionPtrType
 WPDSSolverTest::getNormalFlowFunction(WPDSSolverTest::n_t Curr,
                                       WPDSSolverTest::n_t Succ) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
+WPDSSolverTest::FlowFunctionPtrType
 WPDSSolverTest::getCallFlowFunction(WPDSSolverTest::n_t CallStmt,
                                     WPDSSolverTest::f_t DestFun) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
-WPDSSolverTest::getRetFlowFunction(WPDSSolverTest::n_t CallSite,
-                                   WPDSSolverTest::f_t CalleeFun,
-                                   WPDSSolverTest::n_t ExitStmt,
-                                   WPDSSolverTest::n_t RetSite) {
+WPDSSolverTest::FlowFunctionPtrType WPDSSolverTest::getRetFlowFunction(
+    WPDSSolverTest::n_t CallSite, WPDSSolverTest::f_t CalleeFun,
+    WPDSSolverTest::n_t ExitStmt, WPDSSolverTest::n_t RetSite) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
+WPDSSolverTest::FlowFunctionPtrType
 WPDSSolverTest::getCallToRetFlowFunction(WPDSSolverTest::n_t CallSite,
                                          WPDSSolverTest::n_t RetSite,
                                          set<WPDSSolverTest::f_t> Callees) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
+WPDSSolverTest::FlowFunctionPtrType
 WPDSSolverTest::getSummaryFlowFunction(WPDSSolverTest::n_t Curr,
                                        WPDSSolverTest::f_t DestFun) {
   return nullptr;
