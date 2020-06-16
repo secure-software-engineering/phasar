@@ -192,7 +192,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "  " << llvmIRToString(CS.getInstruction()));
             // call the resolve routine
-            if (isVirtualFunctionCall(CS.getInstruction())) {
+            if (LLVMBasedICFG::isVirtualFunctionCall(CS.getInstruction())) {
               PossibleTargets = Resolver.resolveVirtualCall(CS);
             } else {
               PossibleTargets = Resolver.resolveFunctionPointer(CS);
@@ -497,7 +497,7 @@ set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
 }
 
 void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
-  typedef bidigraph_t::vertex_descriptor vertex_t;
+  using vertex_t = bidigraph_t::vertex_descriptor;
   using vertex_map_t = std::map<vertex_t, vertex_t>;
   vertex_map_t OldToNewVertexMapping;
   boost::associative_property_map<vertex_map_t> VertexMapWrapper(

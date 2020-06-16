@@ -61,18 +61,24 @@ public:
 
   ~LLVMPointsToSet() override = default;
 
-  bool isInterProcedural() const override;
+  [[nodiscard]] inline bool isInterProcedural() const override {
+    return false;
+  };
 
-  PointerAnalysisType getPointerAnalysistype() const override;
+  [[nodiscard]] inline PointerAnalysisType
+  getPointerAnalysistype() const override {
+    return PTA.getPointerAnalysisType();
+  };
 
-  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
-                    const llvm::Instruction *I = nullptr) override;
+  [[nodiscard]] AliasResult
+  alias(const llvm::Value *V1, const llvm::Value *V2,
+        const llvm::Instruction *I = nullptr) override;
 
-  std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  [[nodiscard]] std::shared_ptr<std::unordered_set<const llvm::Value *>>
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
-  std::unordered_set<const llvm::Value *>
+  [[nodiscard]] std::unordered_set<const llvm::Value *>
   getReachableAllocationSites(const llvm::Value *V,
                               const llvm::Instruction *I = nullptr) override;
 
@@ -82,11 +88,11 @@ public:
                       const llvm::Instruction *I = nullptr,
                       AliasResult Kind = AliasResult::MustAlias) override;
 
-  bool empty() const;
+  [[nodiscard]] inline bool empty() const { return AnalyzedFunctions.empty(); }
 
   void print(std::ostream &OS = std::cout) const override;
 
-  nlohmann::json getAsJson() const override;
+  [[nodiscard]] nlohmann::json getAsJson() const override;
 
   void printAsJson(std::ostream &OS = std::cout) const override;
 };

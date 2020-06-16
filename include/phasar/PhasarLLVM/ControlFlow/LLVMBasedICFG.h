@@ -76,7 +76,7 @@ private:
     const llvm::Function *F = nullptr;
     VertexProperties() = default;
     VertexProperties(const llvm::Function *F);
-    std::string getFunctionName() const;
+    [[nodiscard]] std::string getFunctionName() const;
   };
 
   // The EdgeProperties for our call-graph.
@@ -85,7 +85,7 @@ private:
     size_t ID = 0;
     EdgeProperties() = default;
     EdgeProperties(const llvm::Instruction *I);
-    std::string getCallSiteAsString() const;
+    [[nodiscard]] std::string getCallSiteAsString() const;
   };
 
   /// Specify the type of graph to be used.
@@ -133,13 +133,15 @@ public:
 
   ~LLVMBasedICFG() override;
 
-  std::set<const llvm::Function *> getAllFunctions() const override;
+  [[nodiscard]] std::set<const llvm::Function *>
+  getAllFunctions() const override;
 
   bool isIndirectFunctionCall(const llvm::Instruction *N) const override;
 
   bool isVirtualFunctionCall(const llvm::Instruction *N) const override;
 
-  const llvm::Function *getFunction(const std::string &Fun) const override;
+  [[nodiscard]] const llvm::Function *
+  getFunction(const std::string &Fun) const override;
 
   /**
    * Essentially the same as `getCallsFromWithin`, but uses the callgraph
@@ -180,37 +182,38 @@ public:
   /**
    * \return all callee methods for a given call that might be called.
    */
-  std::set<const llvm::Function *>
+  [[nodiscard]] std::set<const llvm::Function *>
   getCalleesOfCallAt(const llvm::Instruction *N) const override;
 
   /**
    * \return all caller statements/nodes of a given method.
    */
-  std::set<const llvm::Instruction *>
+  [[nodiscard]] std::set<const llvm::Instruction *>
   getCallersOf(const llvm::Function *Fun) const override;
 
   /**
    * \return all call sites within a given method.
    */
-  std::set<const llvm::Instruction *>
+  [[nodiscard]] std::set<const llvm::Instruction *>
   getCallsFromWithin(const llvm::Function *Fun) const override;
 
-  std::set<const llvm::Instruction *>
+  [[nodiscard]] std::set<const llvm::Instruction *>
   getStartPointsOf(const llvm::Function *Fun) const override;
 
-  std::set<const llvm::Instruction *>
+  [[nodiscard]] std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;
 
-  std::set<const llvm::Instruction *>
+  [[nodiscard]] std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
-  bool isCallStmt(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
-  std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  allNonCallStartNodes() const override;
 
   void mergeWith(const LLVMBasedICFG &Other);
 
-  CallGraphAnalysisType getCallGraphAnalysisType() const;
+  [[nodiscard]] CallGraphAnalysisType getCallGraphAnalysisType() const;
 
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;
@@ -222,13 +225,13 @@ public:
 
   using LLVMBasedCFG::getAsJson; // tell the compiler we wish to have both
                                  // prints
-  nlohmann::json getAsJson() const override;
+  [[nodiscard]] nlohmann::json getAsJson() const override;
 
   void printAsJson(std::ostream &OS = std::cout) const;
 
-  unsigned getNumOfVertices();
+  [[nodiscard]] unsigned getNumOfVertices();
 
-  unsigned getNumOfEdges();
+  [[nodiscard]] unsigned getNumOfEdges();
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };

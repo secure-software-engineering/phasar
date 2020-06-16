@@ -210,12 +210,6 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
   // PTA.erase(F);
 }
 
-bool LLVMPointsToSet::isInterProcedural() const { return false; }
-
-PointerAnalysisType LLVMPointsToSet::getPointerAnalysistype() const {
-  return PTA.getPointerAnalysisType();
-}
-
 AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
                                    const llvm::Instruction *I) {
   computePointsToSet(V1);
@@ -266,9 +260,9 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
   AnalyzedFunctions.insert(OtherPTI->AnalyzedFunctions.begin(),
                            OtherPTI->AnalyzedFunctions.end());
   // merge points-to sets
-  for (auto &[KeyPtr, Set] : OtherPTI->PointsToSets) {
+  for (const auto &[KeyPtr, Set] : OtherPTI->PointsToSets) {
     bool FoundElemPtr = false;
-    for (auto ElemPtr : *Set) {
+    for (const auto *ElemPtr : *Set) {
       // check if a pointer of other is already present in this
       auto Search = PointsToSets.find(ElemPtr);
       if (Search != PointsToSets.end()) {
@@ -276,7 +270,7 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
         FoundElemPtr = true;
         Search->second->insert(Set->begin(), Set->end());
         // and reindex its elements
-        for (auto ElemPtr : *Set) {
+        for (const auto *ElemPtr : *Set) {
           PointsToSets.insert({ElemPtr, Search->second});
         }
         break;
@@ -289,7 +283,6 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
           {KeyPtr,
            std::make_shared<std::unordered_set<const llvm::Value *>>(*Set)});
     }
-    FoundElemPtr = false;
   }
 }
 
@@ -307,8 +300,8 @@ void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
   if (SearchV1 == PointsToSets.end() || SearchV2 == PointsToSets.end()) {
     return;
   }
-  auto V1Ptr = SearchV1->first;
-  auto V2Ptr = SearchV2->first;
+  const auto *V1Ptr = SearchV1->first;
+  const auto *V2Ptr = SearchV2->first;
   auto V1Set = SearchV1->second;
   auto V2Set = SearchV2->second;
   // if V1 and V2 are not already aliases, make them aliases
@@ -316,17 +309,17 @@ void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
     std::shared_ptr<std::unordered_set<const llvm::Value *>> SmallerSet;
     std::shared_ptr<std::unordered_set<const llvm::Value *>> LargerSet;
     const llvm::Value *SmallerPtr;
-    const llvm::Value *LargerPtr;
+    // const llvm::Value *LargerPtr; // TODO (philipp): never used, removed?
     if (V1Set->size() < V2Set->size()) {
       SmallerSet = V1Set;
       LargerSet = V2Set;
       SmallerPtr = V1Ptr;
-      LargerPtr = V2Ptr;
+      // LargerPtr = V2Ptr;
     } else {
       SmallerSet = V2Set;
       LargerSet = V1Set;
       SmallerPtr = V2Ptr;
-      LargerPtr = V1Ptr;
+      // LargerPtr = V1Ptr;
     }
     LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
     // reindex
@@ -338,8 +331,6 @@ void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
     PointsToSets.erase(SmallerPtr);
   }
 }
-
-bool LLVMPointsToSet::empty() const { return AnalyzedFunctions.empty(); }
 
 nlohmann::json LLVMPointsToSet::getAsJson() const { return ""_json; }
 

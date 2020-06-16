@@ -390,15 +390,4 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
   }
 }
 
-llvm::AAResults *LLVMBasedPointsToAnalysis::getAAResults(llvm::Function *F) {
-  if (!hasPointsToInfo(*F)) {
-    computePointsToInfo(*F);
-  }
-  return AAInfos.at(F);
-}
-
-PointerAnalysisType LLVMBasedPointsToAnalysis::getPointerAnalysisType() const {
-  return PATy;
-}
-
 } // namespace psr
