@@ -118,49 +118,19 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
   compareResults(groundTruth);
 }
 
-// TODO: add more complicated std::string tests
-TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
-  Initialize("StringTest_cpp.ll");
-  std::vector<groundTruth_t> groundTruth;
-
-  std::size_t node_id = 2;
-  std::size_t stmt_id = 13;
-
-  /*
-  auto node = IRDB->getInstruction(node_id);
-  auto stmt = IRDB->getInstruction(stmt_id);
-  for (int i = 2; i < 20; ++i) {
-    if (IRDB->getInstruction(i)) {
-     auto result = LCASolver->resultAt(IRDB->getInstruction(i), node);
-     std::cout << "statement id: " << i << '\n';
-     llvm::outs() << "statement: \n" << *(IRDB->getInstruction(i)) << '\n';
-     std::cout << "Result:\n";
-     std::cout << result << '\n';
-    }
-  }
-  */
-
-  /*
-  std::cout << "Node:\n";
-  llvm::outs() << *node << '\n';
-  std::cout << "Statement:\n";
-  llvm::outs() << *stmt << '\n';
-
-  auto result = LCASolver->resultAt(stmt, node);
-  std::cout << "Result:\n";
-  std::cout << result << '\n';
-  */
-
-  groundTruth.push_back({{EdgeValue("Hello, World")}, node_id, stmt_id});
-  compareResults(groundTruth);
-}
-
 TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
   Initialize("StringBranchTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back(
       {{EdgeValue("Hello, World"), EdgeValue("Hello Hello")}, 3, 15});
   groundTruth.push_back({{EdgeValue("Hello Hello")}, 4, 15});
+  compareResults(groundTruth);
+}
+
+TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
+  Initialize("StringTest_cpp.ll");
+  std::vector<groundTruth_t> groundTruth;
+  groundTruth.push_back({{EdgeValue("Hello, World")}, 2, 13});
   compareResults(groundTruth);
 }
 
