@@ -44,6 +44,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
+#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/Utilities.h"
 

@@ -62,43 +62,8 @@ DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
   return Type;
 }
 
-DataFlowAnalysisKind toDataFlowAnalysisKind(const std::string &S) {
-  auto ty = toDataFlowAnalysisType(S);
-  if (ty != DataFlowAnalysisType::None) {
-    return ty;
-  }
-  {
-    auto ifds = IFDSTabulationProblemPluginFactory.find(S);
-    if (ifds != IFDSTabulationProblemPluginFactory.end()) {
-      return ifds->second;
-    }
-  }
-  {
-    auto ide = IDETabulationProblemPluginFactory.find(S);
-    if (ide != IDETabulationProblemPluginFactory.end()) {
-      return ide->second;
-    }
-  }
-  {
-    auto intraMono = IntraMonoProblemPluginFactory.find(S);
-    if (intraMono != IntraMonoProblemPluginFactory.end()) {
-      return intraMono->second;
-    }
-  }
-  {
-    auto interMono = InterMonoProblemPluginFactory.find(S);
-    if (interMono != InterMonoProblemPluginFactory.end()) {
-      return interMono->second;
-    }
-  }
-  return DataFlowAnalysisType::None;
-}
-
 ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
   return OS << toString(D);
 }
 
-ostream &operator<<(ostream &OS, const DataFlowAnalysisKind &D) {
-  return OS << toString(D);
-}
 } // namespace psr

@@ -15,7 +15,7 @@
 #include <string>
 #include <variant>
 
-#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
+#include "phasar/PhasarLLVM/Plugins/PluginCtors.h"
 
 namespace psr {
 
@@ -34,13 +34,10 @@ using DataFlowAnalysisKind =
                  InterMonoPluginConstructor>;
 
 std::string toString(const DataFlowAnalysisType &D);
-std::string toString(const DataFlowAnalysisKind &D);
 
 DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
-DataFlowAnalysisKind toDataFlowAnalysisKind(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
-std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisKind &D);
 
 } // namespace psr
 
