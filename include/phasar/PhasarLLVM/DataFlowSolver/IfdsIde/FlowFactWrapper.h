@@ -20,7 +20,7 @@ namespace psr {
 template <typename T> class FlowFactWrapper : public FlowFact {
   static_assert(std::is_copy_constructible<T>::value &&
                     std::is_move_constructible<T>::value,
-                "The flow fact type must be copy- and move constructible");
+                "The dataflow fact type must be copy- and move constructible");
   T fact;
 
 public:
@@ -44,7 +44,7 @@ template <typename FFW> class FlowFactManager {
       std::is_same<FFW *,
                    decltype(new FFW(std::declval<typename FFW::d_t>()))>::value,
       "Your custom FlowFactWrapper must have a constructor where the only "
-      "parameter is of type T");
+      "parameter is of the wrapped type d_t");
   std::map<typename FFW::d_t, std::unique_ptr<FFW>> cache;
 
 public:
