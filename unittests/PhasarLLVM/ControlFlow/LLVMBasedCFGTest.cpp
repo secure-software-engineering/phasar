@@ -84,9 +84,9 @@ TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   const auto *TermInst = getNthTermInstruction(F, 4);
   std::vector<const llvm::Instruction *> Predeccessor;
   // br label %12
-  Predeccessor.push_back(getNthTermInstruction(F, 2));
-  // br label %12
   Predeccessor.push_back(getNthTermInstruction(F, 3));
+  // br label %12
+  Predeccessor.push_back(getNthTermInstruction(F, 2));
   auto PredsOfTermInst = Cfg.getPredsOf(TermInst);
   ASSERT_EQ(PredsOfTermInst, Predeccessor);
 }
