@@ -51,13 +51,20 @@ public:
 
   void print(std::ostream &OS = std::cout) const;
 
-  llvm::AAResults *getAAResults(llvm::Function *F);
+  [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
+    if (!hasPointsToInfo(*F)) {
+      computePointsToInfo(*F);
+    }
+    return AAInfos.at(F);
+  };
 
   void erase(const llvm::Function *F);
 
   void clear();
 
-  PointerAnalysisType getPointerAnalysisType() const;
+  [[nodiscard]] inline PointerAnalysisType getPointerAnalysisType() const {
+    return PATy;
+  };
 };
 
 } // namespace psr

@@ -41,40 +41,46 @@ public:
   const llvm::Function *
   getFunctionOf(const llvm::Instruction *Stmt) const override;
 
-  std::vector<const llvm::Instruction *>
+  [[nodiscard]] std::vector<const llvm::Instruction *>
   getPredsOf(const llvm::Instruction *Inst) const override;
 
-  std::vector<const llvm::Instruction *>
+  [[nodiscard]] std::vector<const llvm::Instruction *>
   getSuccsOf(const llvm::Instruction *Inst) const override;
 
-  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
+  [[nodiscard]] std::vector<
+      std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *Fun) const override;
 
-  std::vector<const llvm::Instruction *>
+  [[nodiscard]] std::vector<const llvm::Instruction *>
   getAllInstructionsOf(const llvm::Function *Fun) const override;
 
-  bool isExitStmt(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isExitStmt(const llvm::Instruction *Stmt) const override;
 
-  bool isStartPoint(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isStartPoint(const llvm::Instruction *Stmt) const override;
 
-  bool isFieldLoad(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isFieldLoad(const llvm::Instruction *Stmt) const override;
 
-  bool isFieldStore(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isFieldStore(const llvm::Instruction *Stmt) const override;
 
-  bool isFallThroughSuccessor(const llvm::Instruction *Stmt,
-                              const llvm::Instruction *succ) const override;
+  [[nodiscard]] bool
+  isFallThroughSuccessor(const llvm::Instruction *Stmt,
+                         const llvm::Instruction *succ) const override;
 
-  bool isBranchTarget(const llvm::Instruction *Stmt,
-                      const llvm::Instruction *succ) const override;
+  [[nodiscard]] bool
+  isBranchTarget(const llvm::Instruction *Stmt,
+                 const llvm::Instruction *succ) const override;
 
-  std::string getStatementId(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] std::string
+  getStatementId(const llvm::Instruction *Stmt) const override;
 
-  std::string getFunctionName(const llvm::Function *Fun) const override;
+  [[nodiscard]] std::string
+  getFunctionName(const llvm::Function *Fun) const override;
 
   void print(const llvm::Function *Fun,
              std::ostream &OS = std::cout) const override;
 
-  nlohmann::json getAsJson(const llvm::Function *Fun) const override;
+  [[nodiscard]] nlohmann::json
+  getAsJson(const llvm::Function *Fun) const override;
 };
 
 } // namespace psr
