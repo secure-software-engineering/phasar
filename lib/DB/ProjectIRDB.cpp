@@ -107,11 +107,9 @@ ProjectIRDB::~ProjectIRDB() {
   // release resources if IRDB does not own
   if (!(Options & IRDBOptions::OWNS)) {
     for (auto &Context : Contexts) {
-      // TODO (philipp): why are these explicitly released
       Context.release();
     }
     for (auto &[File, Module] : Modules) {
-      // TODO (philipp): why are these explicitly released
       Module.release();
     }
   }
