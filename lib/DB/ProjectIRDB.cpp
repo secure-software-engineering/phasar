@@ -223,18 +223,12 @@ void ProjectIRDB::buildIDModuleMapping(llvm::Module *M) {
   }
 }
 
-bool ProjectIRDB::containsSourceFile(const std::string &File) const {
-  return Modules.find(File) != Modules.end();
-}
-
 llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
   if (Modules.count(ModuleName)) {
     return Modules[ModuleName].get();
   }
   return nullptr;
 }
-
-std::size_t ProjectIRDB::getNumberOfModules() const { return Modules.size(); }
 
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
   if (IDInstructionMapping.count(Id)) {
@@ -300,11 +294,6 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
     }
     OS << '\n';
   }
-}
-
-std::set<const llvm::Instruction *>
-ProjectIRDB::getRetOrResInstructions() const {
-  return RetOrResInstructions;
 }
 
 const llvm::Function *
@@ -445,10 +434,6 @@ ProjectIRDB::persistedStringToValue(const std::string &S) const {
   return nullptr;
 }
 
-std::set<const llvm::Instruction *> ProjectIRDB::getAllocaInstructions() const {
-  return AllocaInstructions;
-}
-
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() const {
   std::set<const llvm::Function *> Functions;
   for (const auto &[File, Module] : Modules) {
@@ -459,16 +444,10 @@ std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() const {
   return Functions;
 }
 
-bool ProjectIRDB::empty() const { return Modules.empty(); }
-
 void ProjectIRDB::insertModule(llvm::Module *M) {
   Contexts.push_back(std::unique_ptr<llvm::LLVMContext>(&M->getContext()));
   Modules.insert(std::make_pair(M->getModuleIdentifier(), M));
   preprocessModule(M);
-}
-
-set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() const {
-  return AllocatedTypes;
 }
 
 std::set<const llvm::StructType *>
@@ -508,10 +487,6 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
     }
   }
   return AllMemoryLoc;
-}
-
-bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) {
-  return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
 bool ProjectIRDB::debugInfoAvailable() const {
