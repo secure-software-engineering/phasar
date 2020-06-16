@@ -10,22 +10,61 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
 
-#include <ostream>
+#include <iostream>
+#include <type_traits>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 
 namespace psr {
 
 template <typename T> class FlowFactWrapper : public FlowFact {
-private:
+  static_assert(std::is_copy_constructible<T>::value &&
+                    std::is_move_constructible<T>::value,
+                "The flow fact type must be copy- and move constructible");
   T fact;
 
 public:
-  FlowFactWrapper(T f) : fact(f) {}
-  virtual ~FlowFactWrapper() = default;
-  T get() { return fact; }
-  std::ostream &print(std::ostream &os) const override {
-    return os << fact << '\n';
+  using d_t = T;
+
+  FlowFactWrapper(const T &f) : fact(f) {}
+  FlowFactWrapper(T &&f) : fact(std::move(f)) {}
+  ~FlowFactWrapper() override = default;
+  const T &get() const { return fact; }
+  void print(std::ostream &os) const override { os << fact << '\n'; }
+};
+
+template <typename FFW> class FlowFactManager {
+  static_assert(std::is_base_of<FlowFactWrapper<typename FFW::d_t>, FFW>::value,
+                "Your custom FlowFactWrapper type must inherit from "
+                "psr::FlowFactWrapper");
+  static_assert(!std::is_abstract<FFW>::value,
+                "Your custom FlowFactWrapper is an abstract class. Please make "
+                "sure to overwrite all pure virtual functions");
+  static_assert(
+      std::is_same<FFW *,
+                   decltype(new FFW(std::declval<typename FFW::d_t>()))>::value,
+      "Your custom FlowFactWrapper must have a constructor where the only "
+      "parameter is of type T");
+  std::map<typename FFW::d_t, std::unique_ptr<FFW>> cache;
+
+public:
+  FlowFact *getOrCreateFlowFact(const typename FFW::d_t &fact) {
+    auto it = cache.find(fact);
+    if (it != cache.end())
+      return it->second.get();
+
+    auto ret = new FFW(fact);
+    cache[fact] = std::unique_ptr<FFW>(ret);
+    return ret;
+  }
+  FlowFact *getOrCreateFlowFact(typename FFW::d_t &&fact) {
+    auto it = cache.find(fact);
+    if (it != cache.end())
+      return it->second.get();
+
+    auto ret = new FFW(fact);
+    cache[std::move(fact)] = std::unique_ptr<FFW>(ret);
+    return ret;
   }
 };
 } // namespace psr

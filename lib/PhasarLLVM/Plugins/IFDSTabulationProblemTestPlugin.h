@@ -17,11 +17,22 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_H_
 
-#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
+#include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h"
 
 namespace psr {
 
+struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
+
+  using FlowFactWrapper::FlowFactWrapper;
+  void print(std::ostream &os) const override {
+    os << llvmIRToShortString(get()) << '\n';
+  }
+};
+
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
+  FlowFactManager<ValueFlowFactWrapper> ffManager;
+
 public:
   IFDSTabulationProblemTestPlugin(const ProjectIRDB *IRDB,
                                   const LLVMTypeHierarchy *TH,
@@ -30,6 +41,8 @@ public:
                                   std::set<std::string> EntryPoints);
 
   ~IFDSTabulationProblemTestPlugin() = default;
+
+  const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
@@ -54,7 +67,7 @@ public:
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+  std::map<const llvm::Instruction *, std::set<const FlowFact *>>
   initialSeeds() override;
 };
 

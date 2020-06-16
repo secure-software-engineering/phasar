@@ -56,11 +56,17 @@ IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
+const FlowFact *IFDSSimpleTaintAnalysis::createZeroValue() const {
+  static auto zero =
+      std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
+  return zero.get();
+}
+
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
                                                const llvm::Instruction *Succ) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    struct STA : FlowFunction<const llvm::Value *> {
+    /*struct STA : FlowFunction<const FlowFact *> {
       const llvm::StoreInst *Store;
       STA(const llvm::StoreInst *S) : Store(S) {}
       set<const llvm::Value *> computeTargets(const llvm::Value *Src) override {
@@ -70,10 +76,20 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
           return {Store->getValueOperand()};
         }
       }
-    };
-    return make_shared<STA>(Store);
+    };*/
+    // return make_shared<STA>(Store);
+    return make_shared<LambdaFlow<const FlowFact *>>(
+        [this, Store](const FlowFact *source) -> set<const FlowFact *> {
+          if (auto VFW = dynamic_cast<const ValueFlowFactWrapper *>(source);
+              VFW && Store->getValueOperand() == VFW->get()) {
+            return {ffManager.getOrCreateFlowFact(Store->getValueOperand()),
+                    ffManager.getOrCreateFlowFact(Store->getPointerOperand())};
+          } else {
+            return {ffManager.getOrCreateFlowFact(Store->getValueOperand())};
+          }
+        });
   }
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
@@ -81,12 +97,13 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallStmt,
                                              const llvm::Function *DestFun) {
   if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(CallStmt)) {
     if (DestFun->getName().str() == "taint") {
-      return make_shared<Gen<const llvm::Value *>>(Call, getZeroValue());
+      return make_shared<Gen<const FlowFact *>>(
+          ffManager.getOrCreateFlowFact(Call), getZeroValue());
     } else if (DestFun->getName().str() == "leak") {
     } else {
     }
   }
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
@@ -94,14 +111,14 @@ IFDSSimpleTaintAnalysis::getRetFlowFunction(const llvm::Instruction *CallSite,
                                             const llvm::Function *CalleeFun,
                                             const llvm::Instruction *ExitStmt,
                                             const llvm::Instruction *RetSite) {
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
     set<const llvm::Function *> Callees) {
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
@@ -110,14 +127,14 @@ IFDSSimpleTaintAnalysis::getSummaryFlowFunction(
   return nullptr;
 }
 
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<const llvm::Instruction *, set<const FlowFact *>>
 IFDSSimpleTaintAnalysis::initialSeeds() {
   cout << "IFDSSimpleTaintAnalysis::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<const llvm::Instruction *, set<const FlowFact *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(
         std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                       set<const llvm::Value *>({getZeroValue()})));
+                       set<const FlowFact *>({getZeroValue()})));
   }
   return SeedMap;
 }
