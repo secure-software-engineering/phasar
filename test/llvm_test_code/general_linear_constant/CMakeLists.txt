@@ -12,7 +12,6 @@ set(Sources
     StringBranchTest.c
     StringTest.c
     StringTest.cpp
-    StringBranchTest.cpp
 )
 
 foreach(TEST_SRC ${Sources})

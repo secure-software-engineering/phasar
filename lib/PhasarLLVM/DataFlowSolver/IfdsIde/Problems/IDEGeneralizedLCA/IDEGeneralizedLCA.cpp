@@ -66,11 +66,8 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
   // std::endl;
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
     llvm::ImmutableCallSite CS(Curr);
-    std::string FunName = CS.getCalledFunction()->getName().str();
-    if (isStringConstructor(FunName)) {
+    if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
       // llvm::outs() << *(CS.getArgOperand(0)) << '\n';
-      // std::cout << "is string constructor: " <<
-      // cxxDemangle(CS.getCalledFunction()->getName().str()) << '\n';
       return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                            getZeroValue());
 
@@ -84,26 +81,6 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
       //     // CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)
       //   });
       // }
-    } else if (cxxDemangle(FunName).find("::operator=(") != std::string::npos) {
-      // TODO: test this on mac os
-      // std::cout << "is assignment operator:\n"
-      // << cxxDemangle(FunName) << '\n';
-      // look at signature of assignment operatot 
-      
-      // assert(CS.getArgOperand(0) == Curr);
-      
-      // print arg operand 0:
-      llvm::outs() << "First operand: " <<*(CS.getArgOperand(0)) << '\n';
-      llvm::outs() << "Second operand: " <<*(CS.getArgOperand(1)) << '\n';
-
-      // str1 = str2;
-      // what does this mean?
-
-      // get value of str2
-      // store into str1
-
-      
-      // maybe do inline flow function here to comapre with Source
     }
   }
 
@@ -340,7 +317,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
   LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
                 << "(D) Succ Node :   "
                 << IDEGeneralizedLCA::DtoString(SuccNode));
-  
+
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
     // TODO: store function name in variable
     if (isStringConstructor(Invoke->getCalledFunction()->getName().str())) {
@@ -358,8 +335,6 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
               if (CDA->isCString()) {
                 // here we statically know the string literal the std::string is
                 // initialized with
-                std::cout << "string literal: " << CDA->getAsCString().str()
-                          << '\n';
                 return std::make_shared<GenConstant>(
                     l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
               }
@@ -570,8 +545,8 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
             if (CDA->isCString()) {
               // here we statically know the string literal the std::string is
               // initialized with
-              // std::cout << "string literal: " << CDA->getAsCString().str()
-              //           << '\n';
+              std::cout << "string literal: " << CDA->getAsCString().str()
+                        << '\n';
               return std::make_shared<GenConstant>(
                   l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
             }
