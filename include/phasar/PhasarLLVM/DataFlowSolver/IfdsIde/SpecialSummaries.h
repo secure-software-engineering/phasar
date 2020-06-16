@@ -35,11 +35,11 @@ namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {
   using FlowFunctionType = FlowFunction<D>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunction<D>>;
+  using FlowFunctionPtrType = FlowFunction<D>*;
 
 private:
   std::map<std::string, FlowFunctionPtrType> SpecialFlowFunctions;
-  std::map<std::string, std::shared_ptr<EdgeFunction<V>>> SpecialEdgeFunctions;
+  std::map<std::string, EdgeFunction<V>*> SpecialEdgeFunctions;
   std::vector<std::string> SpecialFunctionNames;
 
   // Constructs the SpecialSummaryMap such that it contains all glibc,
@@ -79,7 +79,7 @@ public:
   // Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &name,
                              FlowFunctionPtrType flowfunction,
-                             std::shared_ptr<EdgeFunction<V>> edgefunction) {
+                             EdgeFunction<V>* edgefunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
     SpecialEdgeFunctions[name] = edgefunction;
@@ -103,12 +103,12 @@ public:
     return SpecialFlowFunctions[name];
   }
 
-  std::shared_ptr<EdgeFunction<V>>
+  EdgeFunction<V>*
   getSpecialEdgeFunctionSummary(const llvm::Function *function) {
     return getSpecialEdgeFunctionSummary(function->getName().str());
   }
 
-  std::shared_ptr<EdgeFunction<V>>
+  EdgeFunction<V>*
   getSpecialEdgeFunctionSummary(const std::string &name) {
     return SpecialEdgeFunctions[name];
   }

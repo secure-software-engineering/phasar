@@ -35,7 +35,7 @@ template <typename D, typename Container = std::set<D>> class FlowFunction {
 
 public:
   using FlowFunctionType = FlowFunction<D, Container>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunctionType>;
+  using FlowFunctionPtrType = FlowFunctionType*;
 
   using container_type = Container;
   using value_type = typename container_type::value_type;
@@ -57,9 +57,9 @@ public:
   Identity &operator=(const Identity &i) = delete;
   // simply return what the user provides
   container_type computeTargets(D source) override { return {source}; }
-  static std::shared_ptr<Identity> getInstance() {
-    static std::shared_ptr<Identity> instance =
-        std::shared_ptr<Identity>(new Identity);
+  static Identity* getInstance() {
+    static Identity* instance =
+        new Identity();
     return instance;
   }
 
@@ -118,7 +118,7 @@ public:
     } else if (vec.empty()) {
       return Identity<D, Container>::getInstance();
     }
-    return std::make_shared<Compose>(vec);
+    return new Compose(vec);
   }
 
 protected:
@@ -277,9 +277,8 @@ public:
   KillAll(const KillAll &k) = delete;
   KillAll &operator=(const KillAll &k) = delete;
   container_type computeTargets(D source) override { return container_type(); }
-  static std::shared_ptr<KillAll<D>> getInstance() {
-    static std::shared_ptr<KillAll> instance =
-        std::shared_ptr<KillAll>(new KillAll);
+  static KillAll<D>* getInstance() {
+    static KillAll* instance = new KillAll();
     return instance;
   }
 

@@ -29,7 +29,7 @@ namespace psr {
 
 template <typename L> class EdgeFunction {
 public:
-  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunction<L>>;
+  using EdgeFunctionPtrType = EdgeFunction<L>*;
 
   virtual ~EdgeFunction() = default;
 
@@ -67,8 +67,7 @@ static inline std::ostream &operator<<(std::ostream &OS,
 }
 
 template <typename L>
-class AllTop : public EdgeFunction<L>,
-               public std::enable_shared_from_this<AllTop<L>> {
+class AllTop : public EdgeFunction<L> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
 
@@ -83,7 +82,7 @@ public:
   L computeTarget(L source) override { return topElement; }
 
   EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    return this->shared_from_this();
+    return this;
   }
 
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
@@ -91,7 +90,7 @@ public:
   }
 
   bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(other.get())) {
+    if (auto *alltop = dynamic_cast<AllTop<L> *>(other)) {
       return (alltop->topElement == topElement);
     }
     return false;
@@ -105,8 +104,7 @@ public:
 template <typename L> class EdgeIdentity;
 
 template <typename L>
-class AllBottom : public EdgeFunction<L>,
-                  public std::enable_shared_from_this<AllBottom<L>> {
+class AllBottom : public EdgeFunction<L> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
 
@@ -121,31 +119,31 @@ public:
   L computeTarget(L source) override { return bottomElement; }
 
   EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
-      return this->shared_from_this();
+    if (auto *ab = dynamic_cast<AllBottom<L> *>(secondFunction)) {
+      return this;
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
-      return this->shared_from_this();
+    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(secondFunction)) {
+      return this;
     }
-    return secondFunction->composeWith(this->shared_from_this());
+    return secondFunction->composeWith(this);
   }
 
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    if (otherFunction.get() == this ||
-        otherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
+    if (otherFunction == this ||
+        otherFunction->equal_to(this)) {
+      return this;
     }
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
-      return this->shared_from_this();
+    if (auto *alltop = dynamic_cast<AllTop<L> *>(otherFunction)) {
+      return this;
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(otherFunction.get())) {
-      return this->shared_from_this();
+    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(otherFunction)) {
+      return this;
     }
-    return this->shared_from_this();
+    return this;
   }
 
   bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *allbottom = dynamic_cast<AllBottom<L> *>(other.get())) {
+    if (auto *allbottom = dynamic_cast<AllBottom<L> *>(other)) {
       return (allbottom->bottomElement == bottomElement);
     }
     return false;
@@ -157,8 +155,7 @@ public:
 };
 
 template <typename L>
-class EdgeIdentity : public EdgeFunction<L>,
-                     public std::enable_shared_from_this<EdgeIdentity<L>> {
+class EdgeIdentity : public EdgeFunction<L> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
 
@@ -179,22 +176,22 @@ public:
   }
 
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    if ((otherFunction.get() == this) ||
-        otherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
+    if ((otherFunction == this) ||
+        otherFunction->equal_to(this)) {
+      return this;
     }
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(otherFunction.get())) {
+    if (auto *ab = dynamic_cast<AllBottom<L> *>(otherFunction)) {
       return otherFunction;
     }
-    if (auto *at = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
-      return this->shared_from_this();
+    if (auto *at = dynamic_cast<AllTop<L> *>(otherFunction)) {
+      return this;
     }
     // do not know how to join; hence ask other function to decide on this
-    return otherFunction->joinWith(this->shared_from_this());
+    return otherFunction->joinWith(this);
   }
 
   bool equal_to(EdgeFunctionPtrType other) const override {
-    return this == other.get();
+    return this == other;
   }
 
   static EdgeFunctionPtrType getInstance() {
