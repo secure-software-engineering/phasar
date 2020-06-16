@@ -123,7 +123,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
 
-  std::size_t node_id = 2; 
+  std::size_t node_id = 2;
   std::size_t stmt_id = 13;
 
   /*
@@ -196,8 +196,9 @@ TEST_F(IDEGeneralizedLCATest, Imprecision) {
   auto yInst = IRDB->getInstruction(1); // foo.y
   auto barInst = IRDB->getInstruction(7);
 
-  //std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) << std::endl;
-  //std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst) << std::endl;
+  // std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) <<
+  // std::endl; std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst) <<
+  // std::endl;
 
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(1), EdgeValue(2)}, 0, 7}); // i
