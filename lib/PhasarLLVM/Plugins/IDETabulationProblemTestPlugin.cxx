@@ -35,7 +35,14 @@ IDETabulationProblemTestPlugin::IDETabulationProblemTestPlugin(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IDETabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
+    : IDETabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+  ZeroValue = createZeroValue();
+}
+
+const FlowFact *IDETabulationProblemTestPlugin::createZeroValue() const {
+  static auto zero = new ValueFlowFactWrapper(nullptr);
+  return zero;
+}
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getNormalFlowFunction(

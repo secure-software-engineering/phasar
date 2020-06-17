@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
 
 #include <iostream>
+#include <optional>
 #include <type_traits>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
@@ -21,16 +22,30 @@ template <typename T> class FlowFactWrapper : public FlowFact {
   static_assert(std::is_copy_constructible<T>::value &&
                     std::is_move_constructible<T>::value,
                 "The dataflow fact type must be copy- and move constructible");
-  T fact;
+  std::optional<T> fact;
 
 public:
   using d_t = T;
 
+  FlowFactWrapper(std::nullptr_t) : fact() {}
   FlowFactWrapper(const T &f) : fact(f) {}
   FlowFactWrapper(T &&f) : fact(std::move(f)) {}
   ~FlowFactWrapper() override = default;
-  const T &get() const { return fact; }
-  void print(std::ostream &os) const override { os << fact << '\n'; }
+  const std::optional<T> &get() const { return fact; }
+  bool isZero() const { return !fact; }
+
+  void print(std::ostream &os) const override final {
+    if (isZero())
+      os << "Λ";
+    else
+      print(os, *fact);
+
+    os << '\n';
+  }
+
+  virtual void print(std::ostream &os, const T &nonzeroFact) const {
+    os << nonzeroFact;
+  }
 };
 
 template <typename FFW> class FlowFactManager {
@@ -46,8 +61,15 @@ template <typename FFW> class FlowFactManager {
       "Your custom FlowFactWrapper must have a constructor where the only "
       "parameter is of the wrapped type d_t");
   std::map<typename FFW::d_t, std::unique_ptr<FFW>> cache;
+  std::unique_ptr<FFW> zeroCache;
 
 public:
+  FlowFact *getOrCreateZero() {
+    if (!zeroCache)
+      zeroCache = std::make_unique<FFW>(nullptr);
+
+    return zeroCache.get();
+  }
   FlowFact *getOrCreateFlowFact(const typename FFW::d_t &fact) {
     auto it = cache.find(fact);
     if (it != cache.end())

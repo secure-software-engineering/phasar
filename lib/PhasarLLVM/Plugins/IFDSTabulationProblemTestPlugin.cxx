@@ -49,12 +49,15 @@ IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+  ZeroValue = ffManager.getOrCreateZero();
+}
 
 const FlowFact *IFDSTabulationProblemTestPlugin::createZeroValue() const {
-  static auto zero =
-      std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
-  return zero.get();
+  // static auto zero =
+  //    std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
+  // return zero.get();
+  return ZeroValue;
 }
 
 IFDSTabulationProblemTestPlugin::FlowFunctionPtrType

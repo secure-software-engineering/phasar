@@ -50,12 +50,16 @@ IFDSSFB901TaintAnalysis::IFDSSFB901TaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+  ZeroValue = createZeroValue();
+}
 
 const FlowFact *IFDSSFB901TaintAnalysis::createZeroValue() const {
-  static auto zero =
-      std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
-  return zero.get();
+  // static auto zero =
+  //     std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
+  // return zero.get();
+  static auto zero = new ValueFlowFactWrapper(nullptr);
+  return zero;
 }
 
 IFDSSFB901TaintAnalysis::FlowFunctionPtrType

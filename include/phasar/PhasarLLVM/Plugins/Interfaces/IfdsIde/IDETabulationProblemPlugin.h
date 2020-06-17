@@ -22,7 +22,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroFlowFact.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -55,16 +54,8 @@ public:
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
-    ZeroValue = createZeroValue();
-  }
+      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {}
   ~IDETabulationProblemPlugin() override = default;
-
-  d_t createZeroValue() const override {
-    // create a special value to represent the zero value!
-    // return LLVMZeroValue::getInstance();
-    return ZeroFlowFact::getInstance();
-  }
 
   bool isZeroValue(d_t d) const override {
     // return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);

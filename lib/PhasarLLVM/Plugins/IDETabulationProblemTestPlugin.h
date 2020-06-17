@@ -12,6 +12,14 @@ struct IntEdgeFactWrapper : public EdgeFactWrapper<int> {
 
   inline void print(std::ostream &os) const override { os << get(); }
 };
+struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
+  using FlowFactWrapper::FlowFactWrapper;
+
+  inline void print(std::ostream &os,
+                    const llvm::Value *const &nonzeroFact) const override {
+    os << llvmIRToShortString(nonzeroFact) << '\n';
+  }
+};
 
 class IDETabulationProblemTestPlugin : public IDETabulationProblemPlugin {
   EdgeFactManager<IntEdgeFactWrapper> efManager;
@@ -23,6 +31,8 @@ public:
                                  std::set<std::string> EntryPoints);
 
   ~IDETabulationProblemTestPlugin() = default;
+
+  const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,

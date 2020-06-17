@@ -54,12 +54,15 @@ IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+  ZeroValue = ffManager.getOrCreateZero();
+}
 
 const FlowFact *IFDSSimpleTaintAnalysis::createZeroValue() const {
-  static auto zero =
-      std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
-  return zero.get();
+  // static auto zero =
+  //     std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
+  // return zero.get();
+  return ZeroValue;
 }
 
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
@@ -80,8 +83,8 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
     // return make_shared<STA>(Store);
     return make_shared<LambdaFlow<const FlowFact *>>(
         [this, Store](const FlowFact *source) -> set<const FlowFact *> {
-          if (auto VFW = dynamic_cast<const ValueFlowFactWrapper *>(source);
-              VFW && Store->getValueOperand() == VFW->get()) {
+          auto VFW = static_cast<const ValueFlowFactWrapper *>(source);
+          if (Store->getValueOperand() == VFW->get()) {
             return {ffManager.getOrCreateFlowFact(Store->getValueOperand()),
                     ffManager.getOrCreateFlowFact(Store->getPointerOperand())};
           } else {

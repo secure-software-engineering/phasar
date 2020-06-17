@@ -28,7 +28,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroFlowFact.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -52,24 +51,14 @@ class IFDSTabulationProblemPlugin
     : public IFDSTabulationProblem<GeneralIFDSAnalysisDomain> {
   using AnalysisDomainTy = GeneralIFDSAnalysisDomain;
 
-  std::vector<std::unique_ptr<FlowFact>> _memoryManager;
-
 public:
   IFDSTabulationProblemPlugin(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints)
       : IFDSTabulationProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT,
-                                                EntryPoints) {
-    IFDSTabulationProblem::ZeroValue = createZeroValue();
-  }
+                                                EntryPoints) {}
   ~IFDSTabulationProblemPlugin() override = default;
-
-  d_t createZeroValue() const override {
-    // create a special value to represent the zero value!
-    // return LLVMZeroValue::getInstance();
-    return ZeroFlowFact::getInstance();
-  }
 
   bool isZeroValue(d_t d) const override { return d == getZeroValue(); }
 

@@ -25,8 +25,9 @@ namespace psr {
 struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
 
   using FlowFactWrapper::FlowFactWrapper;
-  void print(std::ostream &os) const override {
-    os << llvmIRToShortString(get()) << '\n';
+  void print(std::ostream &os,
+             const llvm::Value *const &nonzeroFact) const override {
+    os << llvmIRToShortString(nonzeroFact) << '\n';
   }
 };
 
