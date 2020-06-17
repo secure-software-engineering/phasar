@@ -69,26 +69,15 @@ IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
                                                const llvm::Instruction *Succ) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    /*struct STA : FlowFunction<const FlowFact *> {
-      const llvm::StoreInst *Store;
-      STA(const llvm::StoreInst *S) : Store(S) {}
-      set<const llvm::Value *> computeTargets(const llvm::Value *Src) override {
-        if (Store->getValueOperand() == Src) {
-          return {Store->getValueOperand(), Store->getPointerOperand()};
-        } else {
-          return {Store->getValueOperand()};
-        }
-      }
-    };*/
-    // return make_shared<STA>(Store);
     return make_shared<LambdaFlow<const FlowFact *>>(
         [this, Store](const FlowFact *source) -> set<const FlowFact *> {
-          auto VFW = static_cast<const ValueFlowFactWrapper *>(source);
-          if (Store->getValueOperand() == VFW->get()) {
-            return {ffManager.getOrCreateFlowFact(Store->getValueOperand()),
-                    ffManager.getOrCreateFlowFact(Store->getPointerOperand())};
+          // auto VFW = static_cast<const ValueFlowFactWrapper *>(source);
+          if (Store->getValueOperand() ==
+              source->as<ValueFlowFactWrapper>()->get()) {
+            return ffManager.getOrCreateFlowFacts(Store->getValueOperand(),
+                                                  Store->getPointerOperand());
           } else {
-            return {ffManager.getOrCreateFlowFact(Store->getValueOperand())};
+            return ffManager.getOrCreateFlowFacts(Store->getValueOperand());
           }
         });
   }

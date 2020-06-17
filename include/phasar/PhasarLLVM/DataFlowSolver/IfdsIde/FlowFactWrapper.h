@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <optional>
+#include <set>
 #include <type_traits>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
@@ -63,6 +64,12 @@ template <typename FFW> class FlowFactManager {
   std::map<typename FFW::d_t, std::unique_ptr<FFW>> cache;
   std::unique_ptr<FFW> zeroCache;
 
+  // Allow the 'getOrCreateFlowFacts' template to get FlowFacts passed by using
+  // this overload
+  const FlowFact *getOrCreateFlowFact(const FlowFact *fact) const {
+    return fact;
+  }
+
 public:
   FlowFact *getOrCreateZero() {
     if (!zeroCache)
@@ -86,6 +93,13 @@ public:
 
     auto ret = new FFW(fact);
     cache[std::move(fact)] = std::unique_ptr<FFW>(ret);
+    return ret;
+  }
+
+  template <typename... Args>
+  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&... args) {
+    std::set<const FlowFact *> ret;
+    (ret.insert(getOrCreateFlowFact(std::forward<Args>(args))), ...);
     return ret;
   }
 };

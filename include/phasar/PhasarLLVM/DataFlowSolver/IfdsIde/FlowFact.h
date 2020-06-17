@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACT_H_
 
 #include <iosfwd>
+#include <type_traits>
 
 namespace psr {
 
@@ -18,8 +19,15 @@ class FlowFact {
 public:
   virtual ~FlowFact() = default;
   virtual void print(std::ostream &OS) const = 0;
-  // virtual bool equal_to(const FlowFact &FF) const = 0;
-  // virtual bool less(const FlowFact &FF) const = 0;
+
+  template <typename T> T *as() {
+    static_assert(std::is_base_of<FlowFact, T>::value);
+    return reinterpret_cast<T *>(this);
+  }
+  template <typename T> const T *as() const {
+    static_assert(std::is_base_of<FlowFact, T>::value);
+    return reinterpret_cast<const T *>(this);
+  }
 };
 
 static inline std::ostream &operator<<(std::ostream &OS, const FlowFact &F) {
@@ -27,18 +35,6 @@ static inline std::ostream &operator<<(std::ostream &OS, const FlowFact &F) {
   return OS;
 }
 
-/*static inline bool operator==(const FlowFact &F, const FlowFact &G) {
-  return F.equal_to(G);
-}
-
-static inline bool operator!=(const FlowFact &F, const FlowFact &G) {
-  return !F.equal_to(G);
-}
-
-static inline bool operator<(const FlowFact &F, const FlowFact &G) {
-  return F.less(G);
-}
-*/
 } // namespace psr
 
 #endif
