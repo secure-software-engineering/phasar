@@ -5,19 +5,15 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "gtest/gtest.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
-class LLVMBasedICFG_DTATest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
-  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_5_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_5_cpp.ll"},
+      IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -42,9 +38,10 @@ TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
   }
 }
 
-TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
-  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_6_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_6_cpp.ll"},
+      IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");

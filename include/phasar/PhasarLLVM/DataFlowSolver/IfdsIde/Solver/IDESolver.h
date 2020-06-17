@@ -34,6 +34,7 @@
 
 #include "llvm/Support/raw_ostream.h"
 
+#include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowEdgeFunctionCache.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -1618,7 +1619,9 @@ protected:
 public:
   void enableESGAsDot() { SolverConfig.setEmitESG(); }
 
-  void emitESGAsDot(std::ostream &OS = std::cout) {
+  void
+  emitESGAsDot(std::ostream &OS = std::cout,
+               std::string DotConfigDir = PhasarConfig::PhasarDirectory()) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Emit Exploded super-graph (ESG) as DOT graph";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1626,7 +1629,7 @@ public:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "=============================================");
     DOTGraph<d_t> G;
-    DOTConfig::importDOTConfig();
+    DOTConfig::importDOTConfig(std::move(DotConfigDir));
     DOTFunctionSubGraph *FG = nullptr;
 
     // Sort intra-procedural path edges

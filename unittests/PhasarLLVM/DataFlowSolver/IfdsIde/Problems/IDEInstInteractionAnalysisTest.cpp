@@ -25,14 +25,15 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "TestConfig.h"
+
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class IDEInstInteractionAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/inst_interaction/";
+      unittest::PathToLLTestFiles + "inst_interaction/";
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Values

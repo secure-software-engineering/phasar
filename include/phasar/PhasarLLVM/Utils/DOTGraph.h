@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 
+#include "phasar/Config/Configuration.h"
 #include "phasar/Utils/Utilities.h"
 
 namespace psr {
@@ -41,7 +42,8 @@ public:
   static const std::string LambdaIDEdgeAttr() { return LambdaIDEdge; }
   static const std::string LambdaInterEdgeAttr() { return LambdaInterEdge; }
 
-  static void importDOTConfig();
+  static void
+  importDOTConfig(std::string ConfigPath = PhasarConfig::PhasarDirectory());
 
   static DOTConfig &getDOTConfig();
   ~DOTConfig() = default;

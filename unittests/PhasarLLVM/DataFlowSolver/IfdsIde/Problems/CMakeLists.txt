@@ -22,6 +22,7 @@ else()
   )
 endif(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)
 
+test_require_config_file("DOTGraphConfig.json")
 
 foreach(TEST_SRC ${IfdsIdeProblemSources})
 	add_phasar_unittest(${TEST_SRC})

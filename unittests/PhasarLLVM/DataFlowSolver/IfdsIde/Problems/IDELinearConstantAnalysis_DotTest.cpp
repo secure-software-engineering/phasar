@@ -5,7 +5,10 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#include "TestConfig.h"
 
 #include <tuple>
 
@@ -15,8 +18,8 @@ using namespace psr;
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/linear_constant/";
+      unittest::PathToLLTestFiles + "linear_constant/";
+
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
@@ -40,7 +43,7 @@ protected:
     LCASolver.solve();
     if (emitESG) {
       boost::log::core::get()->set_logging_enabled(true);
-      LCASolver.emitESGAsDot();
+      LCASolver.emitESGAsDot(std::cout, "");
       boost::log::core::get()->set_logging_enabled(false);
     }
     if (PrintDump) {

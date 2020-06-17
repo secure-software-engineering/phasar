@@ -23,7 +23,6 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/Utils/DOTGraph.h"
 
 namespace psr {
@@ -247,8 +246,8 @@ DOTConfig &DOTConfig::getDOTConfig() {
   return DC;
 }
 
-void DOTConfig::importDOTConfig() {
-  boost::filesystem::path FilePath(PhasarConfig::PhasarDirectory());
+void DOTConfig::importDOTConfig(std::string ConfigPath) {
+  boost::filesystem::path FilePath(ConfigPath);
   FilePath /= boost::filesystem::path("config/DOTGraphConfig.json");
   if (boost::filesystem::exists(FilePath) &&
       !boost::filesystem::is_directory(FilePath)) {
