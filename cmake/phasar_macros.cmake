@@ -4,6 +4,7 @@ function(add_phasar_unittest test_name)
   add_executable(${test}
     ${test_name}
   )
+  add_dependencies(PhasarUnitTests ${test})
 
   if(USE_LLVM_FAT_LIB)
     llvm_config(${test} USE_SHARED ${LLVM_LINK_COMPONENTS})
@@ -40,6 +41,7 @@ function(add_phasar_unittest test_name)
 
   add_test(NAME "${test}"
     COMMAND ${test} ${CATCH_TEST_FILTER}
+    WORKING_DIRECTORY ${PHASAR_UNITTEST_DIR}
   )
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
