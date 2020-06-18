@@ -272,12 +272,14 @@ public:
             } else {
               Facts.insert(src);
             }
-            for (const auto s : Facts) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                            << "Create edge: " << llvmIRToShortString(src)
-                            << " --" << llvmIRToShortString(Store) << "--> "
-                            << llvmIRToShortString(s));
-            }
+            LOG_IF_ENABLE([&]() {
+              for (const auto s : Facts) {
+                BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                    << "Create edge: " << llvmIRToShortString(src) << " --"
+                    << llvmIRToShortString(Store) << "--> "
+                    << llvmIRToShortString(s);
+              }
+            }());
             return Facts;
           }
         };
@@ -296,12 +298,14 @@ public:
             } else {
               Facts.insert(src);
             }
-            for (const auto s : Facts) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                            << "Create edge: " << llvmIRToShortString(src)
-                            << " --" << llvmIRToShortString(Store) << "--> "
-                            << llvmIRToShortString(s));
-            }
+            LOG_IF_ENABLE([&]() {
+              for (const auto s : Facts) {
+                BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                    << "Create edge: " << llvmIRToShortString(src) << " --"
+                    << llvmIRToShortString(Store) << "--> "
+                    << llvmIRToShortString(s);
+              }
+            }());
             return Facts;
           }
         };
@@ -341,12 +345,14 @@ public:
         }
         // pass everything that already holds as identity
         Facts.insert(src);
-        for (const auto s : Facts) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                        << "Create edge: " << llvmIRToShortString(src) << " --"
-                        << llvmIRToShortString(Inst) << "--> "
-                        << llvmIRToShortString(s));
-        }
+        LOG_IF_ENABLE([&]() {
+          for (const auto s : Facts) {
+            BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                << "Create edge: " << llvmIRToShortString(src) << " --"
+                << llvmIRToShortString(Inst) << "--> "
+                << llvmIRToShortString(s);
+          }
+        }());
         return Facts;
       }
     };
@@ -438,13 +444,14 @@ public:
                 llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
           if (Load->getPointerOperand() == currNode &&
               succNode == Store->getPointerOperand()) {
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                          << "Var-Override: ");
-            for (const auto &EF : EdgeFacts) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << EF << ", ");
-            }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                          << "at '" << llvmIRToString(curr) << "'\n");
+            LOG_IF_ENABLE([&]() {
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Var-Override: ";
+              for (const auto &EF : EdgeFacts) {
+                BOOST_LOG_SEV(lg::get(), DFADEBUG) << EF << ", ";
+              }
+              BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                  << "at '" << llvmIRToString(curr) << "'\n";
+            }());
             return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
           }
         }
@@ -455,15 +462,15 @@ public:
           if (llvm::isa<llvm::ConstantData>(Store->getValueOperand())) {
             // case x is a literal (and y an ordinary variable)
             // y obtains its values from its original allocation and this store
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                          << "Const-Replace at '" << llvmIRToString(curr)
-                          << "'\n");
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                          << "Replacement label(s): ");
-            for (const auto &Item : EdgeFacts) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << Item << ", ");
-            }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n');
+            LOG_IF_ENABLE([&]() {
+              BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                  << "Const-Replace at '" << llvmIRToString(curr) << "'\n";
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Replacement label(s): ";
+              for (const auto &Item : EdgeFacts) {
+                BOOST_LOG_SEV(lg::get(), DFADEBUG) << Item << ", ";
+              }
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
+            }());
             // obtain label from the original allocation
             const llvm::AllocaInst *OrigAlloca = nullptr;
             if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(
@@ -548,24 +555,24 @@ public:
           }
           // handle edges that may add new labels to existing facts
           if (Op == currNode && currNode == succNode) {
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                          << "this is 'i'\n");
-            for (auto &EdgeFact : EdgeFacts) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                            << EdgeFact << ", ");
-            }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n');
+            LOG_IF_ENABLE([&]() {
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is 'i'\n";
+              for (auto &EdgeFact : EdgeFacts) {
+                BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
+              }
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
+            }());
             return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
           }
           // handle edge that are drawn from existing facts
           if (Op == currNode && curr == succNode) {
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                          << "this is '0'\n");
-            for (auto &EdgeFact : EdgeFacts) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                            << EdgeFact << ", ");
-            }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n');
+            LOG_IF_ENABLE([&]() {
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is '0'\n";
+              for (auto &EdgeFact : EdgeFacts) {
+                BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
+              }
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
+            }());
             return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
           }
         }
