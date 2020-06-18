@@ -737,16 +737,17 @@ protected:
   }
 
   void setVal(n_t nHashN, d_t nHashD, l_t l) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Function : "
-                  << ICF->getFunctionOf(nHashN)->getName().str());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Inst.    : " << IDEProblem.NtoString(nHashN));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Fact     : " << IDEProblem.DtoString(nHashD));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Value    : " << IDEProblem.LtoString(l));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    LOG_IF_ENABLE([&]() {
+      BOOST_LOG_SEV(lg::get(), DEBUG)
+          << "Function : " << ICF->getFunctionOf(nHashN)->getName().str();
+      BOOST_LOG_SEV(lg::get(), DEBUG)
+          << "Inst.    : " << IDEProblem.NtoString(nHashN);
+      BOOST_LOG_SEV(lg::get(), DEBUG)
+          << "Fact     : " << IDEProblem.DtoString(nHashD);
+      BOOST_LOG_SEV(lg::get(), DEBUG)
+          << "Value    : " << IDEProblem.LtoString(l);
+      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
+    }());
     // TOP is the implicit default value which we do not need to store.
     // if (l == IDEProblem.topElement()) {
     // do not store top values
@@ -1452,11 +1453,13 @@ protected:
         if (ICF->isCallStmt(Edge.first)) {
           ValidInCallerContext[Edge.second].insert(D2Set.begin(), D2Set.end());
         }
-        LOG_IF_ENABLE(for (auto D2
-                           : D2Set) {
-          BOOST_LOG_SEV(lg::get(), DEBUG) << "d2: " << IDEProblem.DtoString(D2);
-        } BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "----");
+        LOG_IF_ENABLE([&]() {
+          for (auto D2 : D2Set) {
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "d2: " << IDEProblem.DtoString(D2);
+          }
+          BOOST_LOG_SEV(lg::get(), DEBUG) << "----";
+        }());
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     }
