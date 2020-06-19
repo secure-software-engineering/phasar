@@ -37,7 +37,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 
@@ -67,20 +66,8 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
     llvm::ImmutableCallSite CS(Curr);
     if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
-      // llvm::outs() << *(CS.getArgOperand(0)) << '\n';
       return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                            getZeroValue());
-
-      //   return flow([=](IDEGeneralizedLCA::d_t Source)
-      //                   -> std::set<IDEGeneralizedLCA::d_t> {
-      //     if (isZeroValue(Source)) {
-      //       return {Invoke->getArgOperand(0), Source};
-      //     } else {
-      //       return {Source};
-      //     }
-      //     // CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)
-      //   });
-      // }
     }
   }
 
@@ -179,20 +166,9 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
-  // kill all data-flow facts at calls to string constructors
-
-  // Problem:
-  // after the string destructor is called, the edge value is lost
-  // figure out why
-
-  // find string destructor and make sure edge identity is returned
-
-  // on linux the std::string constructor call is an invoke
-  // and apparently invokes are not processed here
-
   std::string FunName = DestMthd->getName().str();
+  // kill all data-flow facts at calls to string constructors
   if (isStringConstructor(FunName) || isStringDestructor(FunName)) {
-    // std::cout << "Killing Function: \n" << DestMthd->getName().str() << '\n';
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
   return std::make_shared<MapFactsToCalleeFlowFunction>(
@@ -219,35 +195,34 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t RetSite,
                                             std::set<f_t> Callees) {
   // std::cout << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
-  llvm::ImmutableCallSite CS(CallSite);
-  // check for ctor and then demangle function name and check for
-  // std::basic_string
+  if (auto Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+    // check for ctor and then demangle function name and check for
+    // std::basic_string
+    std::string FunName = Call->getCalledFunction()->getName().str();
 
-  // TODO: store function name in variable
-  if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
-    // found std::string ctor
-    // std::cout << "in getCallToRetFlowFunction: "
-    //           << CS.getCalledFunction()->getName().str() << '\n';
-    return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
-                                                         getZeroValue());
-  } else if (isStringDestructor(CS.getCalledFunction()->getName().str())) {
-    return Identity<d_t>::getInstance();
-  }
+    if (isStringConstructor(FunName)) {
+      // found std::string ctor
+      return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(
+          Call->getArgOperand(0), getZeroValue());
+    }
 
-  if (auto Call = llvm::dyn_cast<llvm::CallBase>(CS.getInstruction())) {
-    return flow([Call](IDEGeneralizedLCA::d_t Source)
-                    -> std::set<IDEGeneralizedLCA::d_t> {
-      // std::cout << "In getCallToRetFlowFunction\n";
-      // std::cout << llvmIRToString(Source) << '\n';
-      if (Source->getType()->isPointerTy()) {
-        for (auto &Arg : Call->arg_operands()) {
-          if (Arg.get() == Source) {
-            return {};
-          }
-        }
-      }
-      return {Source};
-    });
+    if (isStringDestructor(FunName)) {
+      return Identity<d_t>::getInstance();
+    }
+
+    // return flow([Call](IDEGeneralizedLCA::d_t Source)
+    //                 -> std::set<IDEGeneralizedLCA::d_t> {
+    //   // std::cout << "In getCallToRetFlowFunction\n";
+    //   // std::cout << llvmIRToString(Source) << '\n';
+    //   if (Source->getType()->isPointerTy()) {
+    //     for (auto &Arg : Call->arg_operands()) {
+    //       if (Arg.get() == Source) {
+    //         return {};
+    //       }
+    //     }
+    //   }
+    //   return {Source};
+    // });
   }
   return Identity<d_t>::getInstance();
 }
@@ -319,7 +294,6 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
                 << IDEGeneralizedLCA::DtoString(SuccNode));
 
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
-    // TODO: store function name in variable
     if (isStringConstructor(Invoke->getCalledFunction()->getName().str())) {
       if (CurrNode == getZeroValue() && SuccNode == Invoke->getArgOperand(0)) {
         // find string literal that is used to initialize the string
@@ -468,12 +442,9 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::d_t DestNode) {
   llvm::ImmutableCallSite CS(CallStmt);
 
-  // not necessary, CS.getNumArgOperands() == Destinationmethod->arg_size() is
-  // always true
-  auto Len =
-      std::min<size_t>(CS.getNumArgOperands(), DestinationMethod->arg_size());
-
   if (isZeroValue(SrcNode)) {
+    auto Len =
+        std::min<size_t>(CS.getNumArgOperands(), DestinationMethod->arg_size());
     for (size_t I = 0; I < Len; ++I) {
       auto FormalArg = getNthFunctionArgument(DestinationMethod, I);
       if (DestNode == FormalArg) {
@@ -515,24 +486,15 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
     IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
     IDEGeneralizedLCA::n_t RetSite, IDEGeneralizedLCA::d_t RetSiteNode,
     std::set<IDEGeneralizedLCA::f_t> Callees) {
-
   llvm::ImmutableCallSite CS(CallSite);
+
   // check for ctor and then demangle function name and check for
   // std::basic_string
-
   if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
     // found correct place and time
     if (CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)) {
       // find string literal that is used to initialize the string
-
-      // llvm::outs() << "getArgOperand(1)\n" <<
-      // *(CS.getArgOperand(1)) << '\n';
-
       if (auto User = llvm::dyn_cast<llvm::User>(CS.getArgOperand(1))) {
-        // for (size_t i = 0; i < User->getNumOperands(); ++i) {
-        //   llvm::outs() << "Operand " << i << ":\n" << *(User->getOperand(i))
-        //   << '\n';
-        // }
         if (auto GV =
                 llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
           if (!GV->hasInitializer()) {
@@ -545,8 +507,6 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
             if (CDA->isCString()) {
               // here we statically know the string literal the std::string is
               // initialized with
-              std::cout << "string literal: " << CDA->getAsCString().str()
-                        << '\n';
               return std::make_shared<GenConstant>(
                   l_t({EdgeValue(CDA->getAsCString().str())}), maxSetSize);
             }
@@ -813,28 +773,12 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
 }
 
 bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
-  //      mac os version
-  //     "std::__1::basic_string<char, std::__1::char_traits<char>, "
-  //     "std::__1::allocator<char> >::basic_string<std::nullptr_t>(char
-  //     const*)";
-
-  //           linux version
-  //                  "std::__cxx11::basic_string<char, std::char_traits<char>,
-  //                  " "std::allocator<char> >::basic_string(char const*, "
-  //                  "std::allocator<char> const&)";
   return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR &&
           cxxDemangle(FunName).find("::allocator<char> >::basic_string") !=
               std::string::npos);
 }
 
 bool IDEGeneralizedLCA::isStringDestructor(const std::string &FunName) {
-  // mac os version
-  // "std::__1::basic_string<char, std::__1::char_traits<char>, "
-  // "std::__1::allocator<char> >::~basic_string()";
-
-  // linux version
-  // "std::__cxx11::basic_string<char, std::char_traits<char>, "
-  // "std::allocator<char> >::~basic_string()"
   return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::DTOR &&
           cxxDemangle(FunName).find("::allocator<char> >::~basic_string()") !=
               std::string::npos);
