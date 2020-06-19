@@ -166,9 +166,8 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
-  std::string FunName = DestMthd->getName().str();
-  // kill all data-flow facts at calls to string constructors
-  if (isStringConstructor(FunName) || isStringDestructor(FunName)) {
+  if (isStringConstructor(DestMthd->getName().str())) {
+    // kill all data-flow facts at calls to string constructors
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
   return std::make_shared<MapFactsToCalleeFlowFunction>(
@@ -198,18 +197,11 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   if (auto Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
     // std::basic_string
-    std::string FunName = Call->getCalledFunction()->getName().str();
-
-    if (isStringConstructor(FunName)) {
+    if (isStringConstructor(Call->getCalledFunction()->getName().str())) {
       // found std::string ctor
       return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(
           Call->getArgOperand(0), getZeroValue());
     }
-
-    if (isStringDestructor(FunName)) {
-      return Identity<d_t>::getInstance();
-    }
-
     // return flow([Call](IDEGeneralizedLCA::d_t Source)
     //                 -> std::set<IDEGeneralizedLCA::d_t> {
     //   // std::cout << "In getCallToRetFlowFunction\n";
@@ -777,11 +769,4 @@ bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
           cxxDemangle(FunName).find("::allocator<char> >::basic_string") !=
               std::string::npos);
 }
-
-bool IDEGeneralizedLCA::isStringDestructor(const std::string &FunName) {
-  return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::DTOR &&
-          cxxDemangle(FunName).find("::allocator<char> >::~basic_string()") !=
-              std::string::npos);
-}
-
 } // namespace psr
