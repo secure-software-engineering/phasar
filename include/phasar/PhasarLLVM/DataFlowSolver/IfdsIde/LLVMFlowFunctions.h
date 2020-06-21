@@ -175,6 +175,8 @@ public:
                 }
               }
             } else {
+              assert(Idx < formals.size() &&
+                     "Out of bound access to formal parameters.");
               Res.insert(formals[Idx]); // corresponding formal
             }
           }
