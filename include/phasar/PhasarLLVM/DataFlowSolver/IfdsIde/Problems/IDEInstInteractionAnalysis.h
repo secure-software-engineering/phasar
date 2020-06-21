@@ -520,7 +520,7 @@ public:
         auto PointerPTS = this->PT->getPointsToSet(Store->getPointerOperand());
         // overriding edge
         if ((currNode == Store->getValueOperand() ||
-             ValuePTS->count(Store->getValueOperand()) ||
+             (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
              llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
             PointerPTS->count(Store->getPointerOperand())) {
           return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
