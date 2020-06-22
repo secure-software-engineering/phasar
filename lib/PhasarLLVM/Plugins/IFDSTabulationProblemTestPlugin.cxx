@@ -54,9 +54,6 @@ IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
 }
 
 const FlowFact *IFDSTabulationProblemTestPlugin::createZeroValue() const {
-  // static auto zero =
-  //    std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
-  // return zero.get();
   return ZeroValue;
 }
 

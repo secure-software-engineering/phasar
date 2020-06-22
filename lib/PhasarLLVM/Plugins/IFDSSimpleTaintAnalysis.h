@@ -17,18 +17,19 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
 
 namespace psr {
 struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
 
   using FlowFactWrapper::FlowFactWrapper;
-  void print(std::ostream &os,
-             const llvm::Value *const &nonzeroFact) const override {
-    os << llvmIRToShortString(nonzeroFact) << '\n';
+
+  void print(std::ostream &OS,
+             const llvm::Value *const &NonZeroFact) const override {
+    OS << llvmIRToShortString(NonZeroFact) << '\n';
   }
 };
+
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {
   FlowFactManager<ValueFlowFactWrapper> ffManager;
 

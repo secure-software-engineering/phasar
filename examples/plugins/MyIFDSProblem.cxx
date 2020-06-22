@@ -33,7 +33,13 @@ MyIFDSProblem::MyIFDSProblem(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {
+  ZeroValue = FFManager.getOrCreateZero();
+}
+
+ const FlowFact *MyIFDSProblem::createZeroValue() const {
+   return ZeroValue;
+ }
 
 MyIFDSProblem::FlowFunctionPtrType
 MyIFDSProblem::getNormalFlowFunction(const llvm::Instruction *curr,
@@ -43,7 +49,7 @@ MyIFDSProblem::getNormalFlowFunction(const llvm::Instruction *curr,
   // Tainted values may spread through loads and stores (llvm::LoadInst and
   // llvm::StoreInst). Important memberfunctions are getPointerOperand() and
   // getPointerOperand()/ getValueOperand() respectively.
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 MyIFDSProblem::FlowFunctionPtrType
@@ -62,7 +68,7 @@ MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callStmt,
   // sinks of the taint analysis. It works by killing all flow facts at the
   // call-site and generating the desired facts within the
   // getCallToRetFlowFunction.
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 MyIFDSProblem::FlowFunctionPtrType MyIFDSProblem::getRetFlowFunction(
@@ -77,7 +83,7 @@ MyIFDSProblem::FlowFunctionPtrType MyIFDSProblem::getRetFlowFunction(
   // the function's return instruction - llvm::ReturnInst may be used.
   // The 'retSite' is - in case of LLVM - the call-site and it is possible
   // to wrap it into an llvm::ImmutableCallSite.
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 MyIFDSProblem::FlowFunctionPtrType
@@ -88,7 +94,7 @@ MyIFDSProblem::getCallToRetFlowFunction(const llvm::Instruction *callSite,
   // TODO: Use in combination with getCallFlowFunction to model the effects of
   // source and sink functions. It most analyses flow facts can be passed as
   // identity.
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<const FlowFact *>::getInstance();
 }
 
 // May be used to model function calls to libc or llvm.intrinsic functions
@@ -104,15 +110,15 @@ MyIFDSProblem::getSummaryFlowFunction(const llvm::Instruction *callStmt,
 // Return(s) set(s) of flow fact(s) that hold(s) initially at a corresponding
 // statement. The analysis will start at these instructions and propagate the
 // flow facts according to the analysis description.
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<const llvm::Instruction *, set<const FlowFact *>>
 MyIFDSProblem::initialSeeds() {
   cout << "MyIFDSProblem::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<const llvm::Instruction *, set<const FlowFact *>> SeedMap;
   auto EntryPoints = getEntryPoints();
   for (const auto &EntryPoint : EntryPoints) {
     if (const auto *F = IRDB->getFunctionDefinition(EntryPoint)) {
-      SeedMap.insert(std::make_pair(
-          &F->front().front(), set<const llvm::Value *>({getZeroValue()})));
+      SeedMap.insert(std::make_pair(&F->front().front(),
+                                    set<const FlowFact *>({getZeroValue()})));
     } else {
       cout << "Could not retrieve function '" << EntryPoint
            << "' --> Function does not exist or is declaration only.\n";

@@ -316,7 +316,7 @@ int main(int Argc, const char **Argv) {
     }
     // check what plugins have registed themselves and add those to the vector
     // of data-flow analyses
-    /*for (auto &[Name, IFDSFactory] : IFDSTabulationProblemPluginFactory) {
+    for (auto &[Name, IFDSFactory] : IFDSTabulationProblemPluginFactory) {
       DataFlowAnalyses.emplace_back(IFDSFactory);
     }
     for (auto &[Name, IDEFactory] : IDETabulationProblemPluginFactory) {
@@ -327,7 +327,7 @@ int main(int Argc, const char **Argv) {
     }
     for (auto &[Name, InterMonoFactory] : InterMonoProblemPluginFactory) {
       DataFlowAnalyses.emplace_back(InterMonoFactory);
-    }*/
+    }
   }
   // setup data-flow analyses
   if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {

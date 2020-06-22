@@ -17,7 +17,6 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSSFB901TaintAnalysis_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSSFB901TaintAnalysis_H_
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
 #include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h"
 
 namespace psr {

@@ -18,8 +18,10 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFactWrapper.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -40,14 +42,14 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
-struct GeneralIDEAnalysisDomain : public LLVMAnalysisDomainDefault {
+struct IDEPluginAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = const EdgeFact *;
   using d_t = const FlowFact *;
 };
 
 class IDETabulationProblemPlugin
-    : public IDETabulationProblem<GeneralIDEAnalysisDomain> {
-  using AnalysisDomainTy = GeneralIDEAnalysisDomain;
+    : public IDETabulationProblem<IDEPluginAnalysisDomain> {
+  using AnalysisDomainTy = IDEPluginAnalysisDomain;
 
 public:
   IDETabulationProblemPlugin(const ProjectIRDB *IRDB,

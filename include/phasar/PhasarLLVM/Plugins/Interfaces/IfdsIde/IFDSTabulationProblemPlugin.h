@@ -26,6 +26,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -43,13 +44,13 @@ namespace psr {
 
 class ProjectIRDB;
 
-struct GeneralIFDSAnalysisDomain : public LLVMAnalysisDomainDefault {
+struct IFDSPluginAnalysisDomain : public LLVMAnalysisDomainDefault {
   using d_t = const FlowFact *;
 };
 
 class IFDSTabulationProblemPlugin
-    : public IFDSTabulationProblem<GeneralIFDSAnalysisDomain> {
-  using AnalysisDomainTy = GeneralIFDSAnalysisDomain;
+    : public IFDSTabulationProblem<IFDSPluginAnalysisDomain> {
+  using AnalysisDomainTy = IFDSPluginAnalysisDomain;
 
 public:
   IFDSTabulationProblemPlugin(const ProjectIRDB *IRDB,

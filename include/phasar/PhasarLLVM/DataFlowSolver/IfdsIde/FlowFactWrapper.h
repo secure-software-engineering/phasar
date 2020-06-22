@@ -27,29 +27,30 @@ template <typename T> class FlowFactWrapper : public FlowFact {
   static_assert(std::is_copy_constructible<T>::value &&
                     std::is_move_constructible<T>::value,
                 "The dataflow fact type must be copy- and move constructible");
-  std::optional<T> fact;
+private:
+  std::optional<T> Fact;
 
 public:
   using d_t = T;
 
-  FlowFactWrapper(std::nullptr_t) : fact() {}
-  FlowFactWrapper(const T &f) : fact(f) {}
-  FlowFactWrapper(T &&f) : fact(std::move(f)) {}
+  FlowFactWrapper(std::nullptr_t) : Fact() {}
+  FlowFactWrapper(const T &F) : Fact(F) {}
+  FlowFactWrapper(T &&F) : Fact(std::move(F)) {}
   ~FlowFactWrapper() override = default;
-  const std::optional<T> &get() const { return fact; }
-  bool isZero() const { return !fact; }
+  const std::optional<T> &get() const { return Fact; }
+  bool isZero() const { return !Fact; }
 
-  void print(std::ostream &os) const override final {
-    if (isZero())
-      os << "Λ";
-    else
-      print(os, *fact);
-
-    os << '\n';
+  void print(std::ostream &OS) const override final {
+    if (isZero()) {
+      OS << "Λ";
+    } else {
+      print(OS, *Fact);
+    }
+    OS << '\n';
   }
 
-  virtual void print(std::ostream &os, const T &nonzeroFact) const {
-    os << nonzeroFact;
+  virtual void print(std::ostream &OS, const T &NonZeroFact) const {
+    OS << NonZeroFact;
   }
 };
 
@@ -73,41 +74,43 @@ template <typename FFW> class FlowFactManager {
   static_assert(std::is_same<FFW *, decltype(new FFW(nullptr))>::value,
                 "Your custom FlowFactWrapper must have a constructor that "
                 "takes a nullptr for creating the zero value");
-
-  std::map<typename FFW::d_t, std::unique_ptr<FFW>> cache;
-  std::unique_ptr<FFW> zeroCache;
+private:
+  std::map<typename FFW::d_t, std::unique_ptr<FFW>> Cache;
+  std::unique_ptr<FFW> ZeroCache;
 
   // Allow the 'getOrCreateFlowFacts' template to get FlowFacts passed by using
   // this overload
-  const FlowFact *getOrCreateFlowFact(const FlowFact *fact) const {
-    return fact;
+  const FlowFact *getOrCreateFlowFact(const FlowFact *Fact) const {
+    return Fact;
   }
 
 public:
   FlowFact *getOrCreateZero() {
-    if (!zeroCache)
-      zeroCache = std::make_unique<FFW>(nullptr);
-
-    return zeroCache.get();
+    if (!ZeroCache) {
+      ZeroCache = std::make_unique<FFW>(nullptr);
+    }
+    return ZeroCache.get();
   }
-  FlowFact *getOrCreateFlowFact(const typename FFW::d_t &fact) {
-    auto &cValue = cache[fact];
-    if (!cValue)
-      cValue = std::make_unique<FFW>(fact);
-    return cValue.get();
+  FlowFact *getOrCreateFlowFact(const typename FFW::d_t &Fact) {
+    auto &CValue = Cache[Fact];
+    if (!CValue) {
+      CValue = std::make_unique<FFW>(Fact);
+    }
+    return CValue.get();
   }
-  FlowFact *getOrCreateFlowFact(typename FFW::d_t &&fact) {
-    auto &cValue = cache[fact];
-    if (!cValue)
-      cValue = std::make_unique<FFW>(std::move(fact));
-    return cValue.get();
+  FlowFact *getOrCreateFlowFact(typename FFW::d_t &&Fact) {
+    auto &CValue = Cache[Fact];
+    if (!CValue) {
+      CValue = std::make_unique<FFW>(std::move(Fact));
+    }
+    return CValue.get();
   }
 
   template <typename... Args>
   std::set<const FlowFact *> getOrCreateFlowFacts(Args &&... args) {
-    std::set<const FlowFact *> ret;
-    (ret.insert(getOrCreateFlowFact(std::forward<Args>(args))), ...);
-    return ret;
+    std::set<const FlowFact *> Ret;
+    (Ret.insert(getOrCreateFlowFact(std::forward<Args>(args))), ...);
+    return Ret;
   }
 };
 } // namespace psr
