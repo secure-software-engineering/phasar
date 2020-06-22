@@ -70,7 +70,8 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
           mergePointsToSets(User, G);
         } else if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
           if (Store->getValueOperand()->getType()->isPointerTy()) {
-            mergePointsToSets(Store->getValueOperand(), Store->getPointerOperand());
+            mergePointsToSets(Store->getValueOperand(),
+                              Store->getPointerOperand());
           }
         }
       }

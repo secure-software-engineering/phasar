@@ -24,9 +24,10 @@ namespace psr {
 /// overwrite the print function if necessary. Note, that yout dataflow-fact
 /// must be copy- and move constructible
 template <typename T> class FlowFactWrapper : public FlowFact {
-  static_assert(std::is_copy_constructible<T>::value &&
-                    std::is_move_constructible<T>::value,
+  static_assert(std::is_copy_constructible_v<T> &&
+                    std::is_move_constructible_v<T>,
                 "The dataflow fact type must be copy- and move constructible");
+
 private:
   std::optional<T> Fact;
 
@@ -60,20 +61,21 @@ public:
 /// of) FlowFactWrapper and has a constructor taking a single dataflow-fact (or
 /// nullptr for ZERO).
 template <typename FFW> class FlowFactManager {
-  static_assert(std::is_base_of<FlowFactWrapper<typename FFW::d_t>, FFW>::value,
+  static_assert(std::is_base_of_v<FlowFactWrapper<typename FFW::d_t>, FFW>,
                 "Your custom FlowFactWrapper type must inherit from "
                 "psr::FlowFactWrapper");
-  static_assert(!std::is_abstract<FFW>::value,
+  static_assert(!std::is_abstract_v<FFW>,
                 "Your custom FlowFactWrapper is an abstract class. Please make "
                 "sure to overwrite all pure virtual functions");
   static_assert(
-      std::is_same<FFW *,
-                   decltype(new FFW(std::declval<typename FFW::d_t>()))>::value,
+      std::is_same_v<FFW *,
+                     decltype(new FFW(std::declval<typename FFW::d_t>()))>,
       "Your custom FlowFactWrapper must have a constructor where the only "
       "parameter is of the wrapped type d_t");
-  static_assert(std::is_same<FFW *, decltype(new FFW(nullptr))>::value,
+  static_assert(std::is_same_v<FFW *, decltype(new FFW(nullptr))>,
                 "Your custom FlowFactWrapper must have a constructor that "
                 "takes a nullptr for creating the zero value");
+
 private:
   std::map<typename FFW::d_t, std::unique_ptr<FFW>> Cache;
   std::unique_ptr<FFW> ZeroCache;
@@ -91,17 +93,12 @@ public:
     }
     return ZeroCache.get();
   }
-  FlowFact *getOrCreateFlowFact(const typename FFW::d_t &Fact) {
+
+  template <typename FFTy = typename FFW::d_t>
+  FlowFact *getOrCreateFlowFact(FFTy &&Fact) {
     auto &CValue = Cache[Fact];
     if (!CValue) {
-      CValue = std::make_unique<FFW>(Fact);
-    }
-    return CValue.get();
-  }
-  FlowFact *getOrCreateFlowFact(typename FFW::d_t &&Fact) {
-    auto &CValue = Cache[Fact];
-    if (!CValue) {
-      CValue = std::make_unique<FFW>(std::move(Fact));
+      CValue = std::make_unique<FFW>(std::forward<FFTy>(Fact));
     }
     return CValue.get();
   }

@@ -59,10 +59,7 @@ public:
       : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {}
   ~IDETabulationProblemPlugin() override = default;
 
-  bool isZeroValue(d_t d) const override {
-    // return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
-    return d == getZeroValue();
-  }
+  bool isZeroValue(d_t d) const override { return d == getZeroValue(); }
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override {
     os << llvmIRToString(n);
