@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <cassert>
 #include <iostream>
 #include <type_traits>
 #include <unordered_set>
@@ -39,46 +40,93 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     : PTA(IRDB, UseLazyEvaluation, PATy) {
   if (!UseLazyEvaluation) {
     for (llvm::Module *M : IRDB.getAllModules()) {
+      // compute points-to information for all globals
+      for (const auto &G : M->globals()) {
+        if (isInterestingPointer(&G)) {
+          computeValuesPointsToSet(&G);
+        }
+      }
+      // compute points-to information for all functions
       for (auto &F : *M) {
         if (!F.isDeclaration()) {
-          computePointsToSet(&F);
+          computeFunctionsPointsToSet(&F);
         }
       }
     }
   }
 }
 
-void LLVMPointsToSet::computePointsToSet(const llvm::Value *V) {
+void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
+  assert(isInterestingPointer(V) && "Expect V to be an interesting pointer!");
   if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    computePointsToSet(G);
-  } else {
-    auto *VF = retrieveFunction(V);
-    computePointsToSet(VF);
-  }
-}
-
-void LLVMPointsToSet::computePointsToSet(const llvm::GlobalVariable *G) {
-  auto Search = PointsToSets.find(G);
-  if (Search == PointsToSets.end()) {
-    PointsToSets.insert(
-        {G, std::make_shared<std::unordered_set<const llvm::Value *>>()});
-    PointsToSets[G]->insert(G);
+    // add set for global variable
+    addSingletonPointsToSet(G);
+    // a global variable may be used in multiple functions
     for (const auto *User : G->users()) {
-      computePointsToSet(User);
-      if (User->getType()->isPointerTy()) {
-        PointsToSets[G]->insert(User);
+      if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(User)) {
+        computeFunctionsPointsToSet(
+            const_cast<llvm::Function *>(Inst->getFunction()));
+        if (isInterestingPointer(User)) {
+          mergePointsToSets(User, G);
+        } else if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
+          if (Store->getValueOperand()->getType()->isPointerTy()) {
+            mergePointsToSets(Store->getValueOperand(), Store->getPointerOperand());
+          }
+        }
       }
     }
+  } else {
+    auto *VF = retrieveFunction(V);
+    computeFunctionsPointsToSet(VF);
   }
-  std::cout << "Computed points-to set for global variable: "
-            << llvmIRToString(G) << '\n';
-  for (const auto *Ptr : *PointsToSets[G]) {
-    std::cout << "Ptr: " << llvmIRToString(Ptr) << '\n';
-  }
-  std::cout << std::endl;
 }
 
-void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
+void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
+  if (PointsToSets.find(V) != PointsToSets.end()) {
+    PointsToSets[V]->insert(V);
+  } else {
+    PointsToSets[V] = std::make_shared<std::unordered_set<const llvm::Value *>>(
+        std::unordered_set<const llvm::Value *>{V});
+  }
+}
+
+void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
+                                        const llvm::Value *V2) {
+  auto SearchV1 = PointsToSets.find(V1);
+  assert(SearchV1 != PointsToSets.end());
+  auto SearchV2 = PointsToSets.find(V2);
+  assert(SearchV2 != PointsToSets.end());
+  const auto *V1Ptr = SearchV1->first;
+  const auto *V2Ptr = SearchV2->first;
+  if (V1Ptr == V2Ptr) {
+    return;
+  }
+  auto V1Set = SearchV1->second;
+  auto V2Set = SearchV2->second;
+  // check if we need to merge the sets
+  if (V1Set->find(V2) != V1Set->end()) {
+    return;
+  }
+  std::shared_ptr<std::unordered_set<const llvm::Value *>> SmallerSet;
+  std::shared_ptr<std::unordered_set<const llvm::Value *>> LargerSet;
+  if (V1Set->size() <= V2Set->size()) {
+    SmallerSet = V1Set;
+    LargerSet = V2Set;
+  } else {
+    SmallerSet = V2Set;
+    LargerSet = V1Set;
+  }
+  // add smaller set to larger one
+  LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
+  // reindex the contents of the smaller set
+  for (const auto *Ptr : *SmallerSet) {
+    PointsToSets[Ptr] = LargerSet;
+  }
+  // get rid of the smaller set
+  SmallerSet->clear();
+}
+
+void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   // F may be null
   if (!F) {
     return;
@@ -90,7 +138,6 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Analyzing function: " << F->getName().str());
   AnalyzedFunctions.insert(F);
-  std::vector<size_t> SetsThatNeedReindexing;
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
@@ -144,7 +191,11 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
       }
     }
   }
-
+  // introduce a singleton set for each pointer
+  // those sets will be merged as we discover aliases
+  for (auto *Pointer : Pointers) {
+    addSingletonPointsToSet(Pointer);
+  }
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
   for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
     llvm::Type *I1ElTy =
@@ -159,49 +210,17 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
                                   ? DL.getTypeStoreSize(I2ElTy)
                                   : llvm::MemoryLocation::UnknownSize;
       switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
-      case llvm::NoAlias: {
-        // check if those pointers already have a corresponding points-to sets
-        auto SearchV1 = PointsToSets.find(*I1);
-        if (SearchV1 == PointsToSets.end()) {
-          // if not, we need to add a new set
-          PointsToSets[*I1] =
-              std::make_shared<std::unordered_set<const llvm::Value *>>(
-                  std::unordered_set<const llvm::Value *>{*I1});
-        }
-        auto SearchV2 = PointsToSets.find(*I2);
-        if (SearchV2 == PointsToSets.end()) {
-          PointsToSets[*I2] =
-              std::make_shared<std::unordered_set<const llvm::Value *>>(
-                  std::unordered_set<const llvm::Value *>{*I1});
-        }
-        // if they already have corresponding points-to sets we are fine
+      case llvm::NoAlias:
+        // both pointers already have corresponding points-to sets, we are fine
         break;
-      }
-      case llvm::MayAlias: // no break
+      case llvm::MayAlias: // NOLINT
         [[fallthrough]];
-      case llvm::PartialAlias: // no break
+      case llvm::PartialAlias: // NOLINT
         [[fallthrough]];
-      case llvm::MustAlias: {
-        auto SearchV1 = PointsToSets.find(*I1);
-        if (SearchV1 != PointsToSets.end()) {
-          SearchV1->second->insert(*I1);
-          SearchV1->second->insert(*I2);
-        }
-        auto SearchV2 = PointsToSets.find(*I2);
-        if (SearchV2 != PointsToSets.end()) {
-          SearchV2->second->insert(*I1);
-          SearchV2->second->insert(*I2);
-        }
-        // if neither of the pointers has an existing points-to set, we need to
-        // add a new one
-        if (SearchV1 == PointsToSets.end() && SearchV2 == PointsToSets.end()) {
-          auto Pts = std::make_shared<std::unordered_set<const llvm::Value *>>(
-              std::unordered_set<const llvm::Value *>{*I1, *I2});
-          PointsToSets[*I1] = Pts;
-          PointsToSets[*I2] = Pts;
-        }
+      case llvm::MustAlias:
+        // merge points to sets
+        mergePointsToSets(*I1, *I2);
         break;
-      }
       }
     }
   }
@@ -212,8 +231,12 @@ void LLVMPointsToSet::computePointsToSet(llvm::Function *F) {
 
 AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
                                    const llvm::Instruction *I) {
-  computePointsToSet(V1);
-  computePointsToSet(V2);
+  // if V1 or V2 is not an interesting pointer those values cannot alias
+  if (!isInterestingPointer(V1) || !isInterestingPointer(V2)) {
+    return AliasResult::NoAlias;
+  }
+  computeValuesPointsToSet(V1);
+  computeValuesPointsToSet(V2);
   return PointsToSets[V1]->count(V2) ? AliasResult::MustAlias
                                      : AliasResult::NoAlias;
 }
@@ -221,8 +244,14 @@ AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
 std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
                                 const llvm::Instruction *I) {
-  computePointsToSet(V);
+  // if V is not a (interesting) pointer we can return an empty set
+  if (!isInterestingPointer(V)) {
+    return std::make_shared<std::unordered_set<const llvm::Value *>>();
+  }
+  // compute V's points-to set
+  computeValuesPointsToSet(V);
   if (PointsToSets.find(V) == PointsToSets.end()) {
+    // if we still can't find its value return an empty set
     return std::make_shared<std::unordered_set<const llvm::Value *>>();
   }
   return PointsToSets[V];
@@ -231,7 +260,11 @@ LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
 std::unordered_set<const llvm::Value *>
 LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
                                              const llvm::Instruction *I) {
-  computePointsToSet(V);
+  // if V is not a (interesting) pointer we can return an empty set
+  if (!isInterestingPointer(V)) {
+    return std::unordered_set<const llvm::Value *>();
+  }
+  computeValuesPointsToSet(V);
   std::unordered_set<const llvm::Value *> AllocSites;
   const auto PTS = PointsToSets[V];
   for (const auto *P : *PTS) {
@@ -292,44 +325,9 @@ void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
                                      AliasResult Kind) {
   // before introducing additional aliases make sure we initially computed
   // the aliases for V1 and V2
-  computePointsToSet(V1);
-  computePointsToSet(V2);
-  auto SearchV1 = PointsToSets.find(V1);
-  auto SearchV2 = PointsToSets.find(V2);
-  // better have a safety check
-  if (SearchV1 == PointsToSets.end() || SearchV2 == PointsToSets.end()) {
-    return;
-  }
-  const auto *V1Ptr = SearchV1->first;
-  const auto *V2Ptr = SearchV2->first;
-  auto V1Set = SearchV1->second;
-  auto V2Set = SearchV2->second;
-  // if V1 and V2 are not already aliases, make them aliases
-  if (V1Set->find(V2) == V1Set->end()) {
-    std::shared_ptr<std::unordered_set<const llvm::Value *>> SmallerSet;
-    std::shared_ptr<std::unordered_set<const llvm::Value *>> LargerSet;
-    const llvm::Value *SmallerPtr;
-    // const llvm::Value *LargerPtr; // TODO (philipp): never used, removed?
-    if (V1Set->size() < V2Set->size()) {
-      SmallerSet = V1Set;
-      LargerSet = V2Set;
-      SmallerPtr = V1Ptr;
-      // LargerPtr = V2Ptr;
-    } else {
-      SmallerSet = V2Set;
-      LargerSet = V1Set;
-      SmallerPtr = V2Ptr;
-      // LargerPtr = V1Ptr;
-    }
-    LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
-    // reindex
-    for (const auto *Pointer : *SmallerSet) {
-      PointsToSets[Pointer] = LargerSet;
-    }
-    // no we don't need V2Set anymore
-    SmallerSet->clear();
-    PointsToSets.erase(SmallerPtr);
-  }
+  computeValuesPointsToSet(V1);
+  computeValuesPointsToSet(V2);
+  mergePointsToSets(V1, V2);
 }
 
 nlohmann::json LLVMPointsToSet::getAsJson() const { return ""_json; }
@@ -337,23 +335,10 @@ nlohmann::json LLVMPointsToSet::getAsJson() const { return ""_json; }
 void LLVMPointsToSet::printAsJson(std::ostream &OS) const {}
 
 void LLVMPointsToSet::print(std::ostream &OS) const {
-  size_t NumSets = 0;
-  for (const auto &[Ptr, PointsToSetPtr] : PointsToSets) {
-    ++NumSets;
-    OS << '{';
-    size_t NumPointers = 0;
-    for (const auto &Pointer : *PointsToSetPtr) {
-      ++NumPointers;
-      OS << llvmIRToString(Pointer);
-      // check for last element
-      if (NumPointers != PointsToSetPtr->size()) {
-        OS << " <-> ";
-      }
-    }
-    if (NumSets != PointsToSets.size()) {
-      OS << "}\n";
-    } else {
-      OS << '}';
+  for (const auto &[V, PTS] : PointsToSets) {
+    OS << "V: " << llvmIRToString(V) << '\n';
+    for (const auto &Ptr : *PTS) {
+      OS << "\tpoints to -> " << llvmIRToString(Ptr) << '\n';
     }
   }
 }

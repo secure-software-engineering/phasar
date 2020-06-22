@@ -40,11 +40,13 @@ private:
                      std::shared_ptr<std::unordered_set<const llvm::Value *>>>
       PointsToSets;
 
-  void computePointsToSet(const llvm::Value *V);
+  void computeValuesPointsToSet(const llvm::Value *V);
 
-  void computePointsToSet(const llvm::GlobalVariable *G);
+  void computeFunctionsPointsToSet(llvm::Function *F);
 
-  void computePointsToSet(llvm::Function *F);
+  void addSingletonPointsToSet(const llvm::Value *V);
+
+  void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 
 public:
   /**

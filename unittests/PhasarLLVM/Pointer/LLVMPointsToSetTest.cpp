@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h>
 #include <string>
 
 #include "phasar/Config/Configuration.h"
@@ -17,27 +18,45 @@ protected:
       "build/test/llvm_test_code/";
 };
 
-TEST_F(LLVMBasedICFGTest, Intra_01) {
-  ProjectIRDB IRDB({PathToLlFiles + "pointers/basic_01_cpp_dbg.ll"});
-  LLVMPointsToSet PTS(IRDB, false);
-  auto *Main = IRDB.getFunctionDefinition("main");
-  for (auto &BB : *Main) {
-    for (auto &I : BB) {
-      auto S = PTS.getPointsToSet(&I);
-    }
-  }
-  PTS.print(std::cout);
-  std::cout << '\n';
-}
+// TEST_F(LLVMBasedICFGTest, Intra_01) {
+//   ProjectIRDB IRDB({PathToLlFiles + "pointers/basic_01_cpp_dbg.ll"});
+//   LLVMPointsToSet PTS(IRDB, false);
+//   auto *Main = IRDB.getFunctionDefinition("main");
+//   for (auto &BB : *Main) {
+//     for (auto &I : BB) {
+//       auto S = PTS.getPointsToSet(&I);
+//     }
+//   }
+//   PTS.print(std::cout);
+//   std::cout << '\n';
+// }
 
-TEST_F(LLVMBasedICFGTest, Inter_01) {
-  ProjectIRDB IRDB({PathToLlFiles + "pointers/call_01_cpp_dbg.ll"});
+// TEST_F(LLVMBasedICFGTest, Inter_01) {
+//   ProjectIRDB IRDB({PathToLlFiles + "pointers/call_01_cpp_dbg.ll"});
+//   LLVMPointsToSet PTS(IRDB, false);
+//   LLVMTypeHierarchy TH(IRDB);
+//   LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
+//   auto *Main = IRDB.getFunctionDefinition("main");
+//   for (auto &BB : *Main) {
+//     for (auto &I : BB) {
+//       auto S = PTS.getPointsToSet(&I);
+//     }
+//   }
+//   PTS.print(std::cout);
+//   std::cout << '\n';
+// }
+
+TEST_F(LLVMBasedICFGTest, Global_01) {
+  ProjectIRDB IRDB({PathToLlFiles + "pointers/global_01_cpp_dbg.ll"});
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
-  auto *Main = IRDB.getFunctionDefinition("main");
-  for (auto &BB : *Main) {
-    for (auto &I : BB) {
+  const auto *Main = IRDB.getFunctionDefinition("main");
+  for (const auto &G : Main->getParent()->globals()) {
+    auto S = PTS.getPointsToSet(&G);
+  }
+  for (const auto &BB : *Main) {
+    for (const auto &I : BB) {
       auto S = PTS.getPointsToSet(&I);
     }
   }

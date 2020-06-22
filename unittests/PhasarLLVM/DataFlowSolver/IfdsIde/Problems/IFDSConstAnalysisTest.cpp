@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "gtest/gtest.h"
 
@@ -52,6 +53,7 @@ protected:
 
   void compareResults(const std::set<unsigned long> &GroundTruth,
                       IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+    IRDB->emitPreprocessedIR();
     std::set<const llvm::Value *> AllMutableAllocas;
     for (const auto *RR : IRDB->getRetOrResInstructions()) {
       std::set<const llvm::Value *> Facts = Solver.ifdsResultsAt(RR);

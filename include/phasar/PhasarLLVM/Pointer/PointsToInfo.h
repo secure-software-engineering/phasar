@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
-#include <iosfwd>
+#include <iostream>
 #include <memory>
 #include <unordered_set>
 
@@ -54,7 +54,7 @@ public:
   virtual std::unordered_set<V> getReachableAllocationSites(V V1,
                                                             N I = N{}) = 0;
 
-  virtual void print(std::ostream &OS) const = 0;
+  virtual void print(std::ostream &OS = std::cout) const = 0;
 
   virtual nlohmann::json getAsJson() const = 0;
 

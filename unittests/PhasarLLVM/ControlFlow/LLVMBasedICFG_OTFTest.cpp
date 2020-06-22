@@ -24,6 +24,7 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB, false);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
+
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
   const llvm::Function *VFuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");
@@ -35,14 +36,14 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   const auto *CallToAFunc = getNthInstruction(F, 19);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
   auto AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
-  ASSERT_EQ(AsCallees.size(), 1U);
+  ASSERT_EQ(AsCallees.size(), 2U);
   ASSERT_TRUE(AsCallees.count(VFuncA));
   ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(CallToAFunc));
 
   const auto *CallToBFunc = getNthInstruction(F, 25);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
   auto BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
-  ASSERT_EQ(BsCallees.size(), 1U);
+  ASSERT_EQ(BsCallees.size(), 2U);
   ASSERT_TRUE(BsCallees.count(VFuncB));
   ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(CallToBFunc));
 }

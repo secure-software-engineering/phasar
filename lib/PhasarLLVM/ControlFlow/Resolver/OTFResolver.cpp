@@ -63,15 +63,18 @@ void OTFResolver::handlePossibleTargets(
         }
         // handle return value
         if (CalleeTarget->getReturnType()->isPointerTy()) {
-          // get the target value to which the return value is written to
-          if (const auto *Store =
-                  llvm::dyn_cast<llvm::StoreInst>(CS->getNextNode())) {
-            const auto *TargetVal = Store->getPointerOperand();
-            for (const auto &ExitPoint : ICF.getExitPointsOf(CalleeTarget)) {
-              // get the return value
-              if (const auto *Ret =
-                      llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
+          for (const auto &ExitPoint : ICF.getExitPointsOf(CalleeTarget)) {
+            // get the return value
+            if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
+              // get the target value to which the return value is written to
+              if (const auto *Store =
+                      llvm::dyn_cast<llvm::StoreInst>(CS->getNextNode())) {
+                const auto *TargetVal = Store->getPointerOperand();
                 PT.introduceAlias(TargetVal, Ret->getReturnValue(),
+                                  CS.getInstruction());
+              } else {
+                // return value may also be used directly
+                PT.introduceAlias(CS.getInstruction(), Ret->getReturnValue(),
                                   CS.getInstruction());
               }
             }
