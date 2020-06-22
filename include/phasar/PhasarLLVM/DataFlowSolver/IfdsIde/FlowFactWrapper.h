@@ -19,6 +19,10 @@
 
 namespace psr {
 
+/// A Wrapper over your dataflow-fact. It already contains a special treatment
+/// for the ZERO (Λ) value. Please create a subclass of this template and
+/// overwrite the print function if necessary. Note, that yout dataflow-fact
+/// must be copy- and move constructible
 template <typename T> class FlowFactWrapper : public FlowFact {
   static_assert(std::is_copy_constructible<T>::value &&
                     std::is_move_constructible<T>::value,
@@ -49,6 +53,10 @@ public:
   }
 };
 
+/// A simple memory manager for FlowFactWrappers. You may use them in your
+/// TabulationProblem to manage your dataflow-facts. Please note that this
+/// manager only works, if the template argument FFW is a non-abstract (subclass
+/// of) FlowFactWrapper and has a constructor taking a single dataflow-fact.
 template <typename FFW> class FlowFactManager {
   static_assert(std::is_base_of<FlowFactWrapper<typename FFW::d_t>, FFW>::value,
                 "Your custom FlowFactWrapper type must inherit from "
@@ -78,22 +86,16 @@ public:
     return zeroCache.get();
   }
   FlowFact *getOrCreateFlowFact(const typename FFW::d_t &fact) {
-    auto it = cache.find(fact);
-    if (it != cache.end())
-      return it->second.get();
-
-    auto ret = new FFW(fact);
-    cache[fact] = std::unique_ptr<FFW>(ret);
-    return ret;
+    auto &cValue = cache[fact];
+    if (!cValue)
+      cValue = std::make_unique<FFW>(fact);
+    return cValue.get();
   }
   FlowFact *getOrCreateFlowFact(typename FFW::d_t &&fact) {
-    auto it = cache.find(fact);
-    if (it != cache.end())
-      return it->second.get();
-
-    auto ret = new FFW(fact);
-    cache[std::move(fact)] = std::unique_ptr<FFW>(ret);
-    return ret;
+    auto &cValue = cache[fact];
+    if (!cValue)
+      cValue = std::make_unique<FFW>(std::move(fact));
+    return cValue.get();
   }
 
   template <typename... Args>
