@@ -56,7 +56,8 @@ public:
 /// A simple memory manager for FlowFactWrappers. You may use them in your
 /// TabulationProblem to manage your dataflow-facts. Please note that this
 /// manager only works, if the template argument FFW is a non-abstract (subclass
-/// of) FlowFactWrapper and has a constructor taking a single dataflow-fact.
+/// of) FlowFactWrapper and has a constructor taking a single dataflow-fact (or
+/// nullptr for ZERO).
 template <typename FFW> class FlowFactManager {
   static_assert(std::is_base_of<FlowFactWrapper<typename FFW::d_t>, FFW>::value,
                 "Your custom FlowFactWrapper type must inherit from "
@@ -69,6 +70,10 @@ template <typename FFW> class FlowFactManager {
                    decltype(new FFW(std::declval<typename FFW::d_t>()))>::value,
       "Your custom FlowFactWrapper must have a constructor where the only "
       "parameter is of the wrapped type d_t");
+  static_assert(std::is_same<FFW *, decltype(new FFW(nullptr))>::value,
+                "Your custom FlowFactWrapper must have a constructor that "
+                "takes a nullptr for creating the zero value");
+
   std::map<typename FFW::d_t, std::unique_ptr<FFW>> cache;
   std::unique_ptr<FFW> zeroCache;
 
