@@ -7,19 +7,15 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
-class LLVMBasedICFG_OTFTest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
-  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_7_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_7_cpp.ll"},
+      IRDBOptions::WPA);
   IRDB.emitPreprocessedIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB, false);
@@ -48,7 +44,7 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(CallToBFunc));
 }
 
-// TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
+// TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
 //   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_8_cpp.ll"},
 //                    IRDBOptions::WPA);
 //   LLVMTypeHierarchy TH(IRDB);

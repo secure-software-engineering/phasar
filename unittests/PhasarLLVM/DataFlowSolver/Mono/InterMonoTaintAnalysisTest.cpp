@@ -13,14 +13,15 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "TestConfig.h"
+
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/taint_analysis/";
+      unittest::PathToLLTestFiles + "taint_analysis/";
   const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB = nullptr;

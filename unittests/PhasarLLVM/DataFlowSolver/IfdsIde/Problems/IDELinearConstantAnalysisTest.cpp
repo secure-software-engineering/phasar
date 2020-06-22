@@ -7,6 +7,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "gtest/gtest.h"
 
+#include "TestConfig.h"
+
 #include <tuple>
 
 using namespace psr;
@@ -15,8 +17,7 @@ using namespace psr;
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/linear_constant/";
+      unittest::PathToLLTestFiles + "linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value

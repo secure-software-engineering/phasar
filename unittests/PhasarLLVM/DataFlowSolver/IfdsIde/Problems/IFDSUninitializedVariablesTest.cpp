@@ -8,6 +8,8 @@
 #include "llvm/IR/Module.h"
 #include "gtest/gtest.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
@@ -16,8 +18,7 @@ using namespace psr;
 class IFDSUninitializedVariablesTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/uninitialized_variables/";
+      unittest::PathToLLTestFiles + "uninitialized_variables/";
   const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB{};

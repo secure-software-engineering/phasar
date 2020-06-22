@@ -6,19 +6,15 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
-class LLVMBasedICFG_RTATest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
-  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_9_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_9_cpp.ll"},
+      IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -42,9 +38,10 @@ TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
   }
 }
 
-TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
-  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_3_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_3_cpp.ll"},
+      IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -61,9 +58,10 @@ TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
   }
 }
 
-TEST_F(LLVMBasedICFG_RTATest, StaticCallSite_13) {
-  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/static_callsite_13_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_13_cpp.ll"},
+      IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");

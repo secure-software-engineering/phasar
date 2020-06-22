@@ -8,19 +8,15 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
-class LLVMBasedCFGTest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
+TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -40,9 +36,10 @@ TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
       Cfg.isFallThroughSuccessor(BranchInst, getNthTermInstruction(F, 4)));
 }
 
-TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
+TEST(LLVMBasedCFGTest, BranchTargetTest) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/switch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/switch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SWITCH INSTRUCTION
@@ -75,9 +72,10 @@ TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
   ASSERT_TRUE(Cfg.isBranchTarget(BranchInst, getNthTermInstruction(F, 6)));
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
+TEST(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
@@ -91,9 +89,10 @@ TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   ASSERT_EQ(PredsOfTermInst, Predeccessor);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
+TEST(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE PREDECCESSOR
@@ -122,9 +121,10 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   ASSERT_EQ(PredsOfInst, Predeccessor);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
+TEST(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -148,9 +148,10 @@ TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   ASSERT_EQ(SuccsOfBrInst, Successors);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
+TEST(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/function_call_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE SUCCESSOR
@@ -170,9 +171,10 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   ASSERT_EQ(SuccsOfTermInst, Successors);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
+TEST(LLVMBasedCFGTest, HandlesCallSuccessor) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/function_call_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CALL INSTRUCTION SUCCESSOR
@@ -185,9 +187,9 @@ TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
   ASSERT_EQ(SuccsOfCallInst, Successors);
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldLoadsArray) {
+TEST(LLVMBasedCFGTest, HandleFieldLoadsArray) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/array_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/array_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldLoad(Inst));
@@ -195,9 +197,9 @@ TEST_F(LLVMBasedCFGTest, HandleFieldLoadsArray) {
   ASSERT_TRUE(Cfg.isFieldLoad(Inst));
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldStoreArray) {
+TEST(LLVMBasedCFGTest, HandleFieldStoreArray) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/array_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/array_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldStore(Inst));
@@ -205,9 +207,9 @@ TEST_F(LLVMBasedCFGTest, HandleFieldStoreArray) {
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldLoadsField) {
+TEST(LLVMBasedCFGTest, HandleFieldLoadsField) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/field_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/field_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldLoad(Inst));
@@ -219,9 +221,9 @@ TEST_F(LLVMBasedCFGTest, HandleFieldLoadsField) {
   ASSERT_TRUE(Cfg.isFieldLoad(Inst));
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldStoreField) {
+TEST(LLVMBasedCFGTest, HandleFieldStoreField) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/field_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/field_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldStore(Inst));

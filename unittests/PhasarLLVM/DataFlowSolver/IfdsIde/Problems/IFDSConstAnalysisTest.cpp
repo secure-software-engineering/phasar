@@ -8,6 +8,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "gtest/gtest.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
@@ -15,9 +17,7 @@ using namespace psr;
 
 class IFDSConstAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/constness/";
+  const std::string PathToLlFiles = unittest::PathToLLTestFiles + "constness/";
   const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB{};
