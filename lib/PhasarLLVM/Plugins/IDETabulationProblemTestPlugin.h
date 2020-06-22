@@ -1,11 +1,29 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IDETABULATIONPROBLEMTESTPLUGIN_H_
 #define SRC_ANALYSIS_PLUGINS_IDETABULATIONPROBLEMTESTPLUGIN_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFactWrapper.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
 #include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h"
 
 namespace psr {
 
+struct IntEdgeFactWrapper : public EdgeFactWrapper<int> {
+  using EdgeFactWrapper::EdgeFactWrapper;
+
+  inline void print(std::ostream &os) const override { os << get(); }
+};
+struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
+  using FlowFactWrapper::FlowFactWrapper;
+
+  inline void print(std::ostream &os,
+                    const llvm::Value *const &nonzeroFact) const override {
+    os << llvmIRToShortString(nonzeroFact) << '\n';
+  }
+};
+
 class IDETabulationProblemTestPlugin : public IDETabulationProblemPlugin {
+  EdgeFactManager<IntEdgeFactWrapper> efManager;
+
 public:
   IDETabulationProblemTestPlugin(const ProjectIRDB *IRDB,
                                  const LLVMTypeHierarchy *TH,
@@ -14,47 +32,47 @@ public:
 
   ~IDETabulationProblemTestPlugin() = default;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  const FlowFact *createZeroValue() const override;
+
+  FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallFlowFunction(const llvm::Instruction *callStmt,
                       const llvm::Function *destFun) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeFun,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite,
                            std::set<const llvm::Function *> callees) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+  std::map<const llvm::Instruction *, std::set<const FlowFact *>>
   initialSeeds() override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                        d_t succNode) override;
-  std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
-                      d_t destNode) override;
-  std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
-                        d_t exitNode, n_t reSite, d_t retNode) override;
-  std::shared_ptr<EdgeFunction<l_t>>
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<f_t> callees) override;
-  std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                         d_t succNode) override;
+  EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                                            d_t succNode) override;
+  EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
+                                          f_t destinationFunction,
+                                          d_t destNode) override;
+  EdgeFunctionPtrType getReturnEdgeFunction(n_t callSite, f_t calleeFunction,
+                                            n_t exitStmt, d_t exitNode,
+                                            n_t reSite, d_t retNode) override;
+  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t callSite, d_t callNode,
+                                               n_t retSite, d_t retSiteNode,
+                                               std::set<f_t> callees) override;
+  EdgeFunctionPtrType getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                                             d_t succNode) override;
 
   l_t topElement() override;
   l_t bottomElement() override;

@@ -17,16 +17,29 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
 
 namespace psr {
+struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
 
+  using FlowFactWrapper::FlowFactWrapper;
+  void print(std::ostream &os,
+             const llvm::Value *const &nonzeroFact) const override {
+    os << llvmIRToShortString(nonzeroFact) << '\n';
+  }
+};
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {
+  FlowFactManager<ValueFlowFactWrapper> ffManager;
+
 public:
   IFDSSimpleTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                           std::set<std::string> EntryPoints = {});
   ~IFDSSimpleTaintAnalysis() = default;
+
+  const FlowFact *createZeroValue() const override;
+
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
@@ -50,7 +63,7 @@ public:
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+  std::map<const llvm::Instruction *, std::set<const FlowFact *>>
   initialSeeds() override;
 };
 

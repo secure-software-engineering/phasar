@@ -17,7 +17,9 @@
 #include <vector>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -38,46 +40,44 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
-struct IDETabulationProblemPluginDomain : public LLVMAnalysisDomainDefault {
-  using l_t = const llvm::Value *;
+struct GeneralIDEAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using l_t = const EdgeFact *;
+  using d_t = const FlowFact *;
 };
 
 class IDETabulationProblemPlugin
-    : public IDETabulationProblem<IDETabulationProblemPluginDomain> {
+    : public IDETabulationProblem<GeneralIDEAnalysisDomain> {
+  using AnalysisDomainTy = GeneralIDEAnalysisDomain;
+
 public:
   IDETabulationProblemPlugin(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
-    ZeroValue = createZeroValue();
-  }
+      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {}
   ~IDETabulationProblemPlugin() override = default;
 
-  const llvm::Value *createZeroValue() const override {
-    // create a special value to represent the zero value!
-    return LLVMZeroValue::getInstance();
-  }
-
-  bool isZeroValue(const llvm::Value *d) const override {
-    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+  bool isZeroValue(d_t d) const override {
+    // return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+    return d == getZeroValue();
   }
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override {
     os << llvmIRToString(n);
   }
 
-  void printDataFlowFact(std::ostream &os,
-                         const llvm::Value *d) const override {
-    os << llvmIRToString(d);
+  void printDataFlowFact(std::ostream &os, d_t d) const override {
+    // os << llvmIRToString(d);
+    d->print(os);
   }
 
   void printFunction(std::ostream &os, const llvm::Function *m) const override {
     os << m->getName().str();
   }
 
-  void printEdgeFact(std::ostream &os, const llvm::Value *l) const override {
-    os << llvmIRToString(l);
+  void printEdgeFact(std::ostream &os, l_t l) const override {
+    // os << llvmIRToString(l);
+    l->print(os);
   }
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {

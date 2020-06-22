@@ -21,9 +21,11 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -41,47 +43,35 @@ namespace psr {
 
 class ProjectIRDB;
 
+struct GeneralIFDSAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using d_t = const FlowFact *;
+};
+
 class IFDSTabulationProblemPlugin
-    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
-  using AnalysisDomainTy = LLVMAnalysisDomainDefault;
+    : public IFDSTabulationProblem<GeneralIFDSAnalysisDomain> {
+  using AnalysisDomainTy = GeneralIFDSAnalysisDomain;
 
 public:
-  using n_t = const llvm::Instruction *;
-  using d_t = const llvm::Value *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
-  using i_t = LLVMBasedICFG;
-
   IFDSTabulationProblemPlugin(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints)
       : IFDSTabulationProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT,
-                                                EntryPoints) {
-    IFDSTabulationProblem::ZeroValue = createZeroValue();
-  }
+                                                EntryPoints) {}
   ~IFDSTabulationProblemPlugin() override = default;
 
-  const llvm::Value *createZeroValue() const override {
-    // create a special value to represent the zero value!
-    return LLVMZeroValue::getInstance();
-  }
+  bool isZeroValue(d_t d) const override { return d == getZeroValue(); }
 
-  bool isZeroValue(const llvm::Value *d) const override {
-    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
-  }
-
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override {
+  void printNode(std::ostream &os, n_t n) const override {
     os << llvmIRToString(n);
   }
 
-  void printDataFlowFact(std::ostream &os,
-                         const llvm::Value *d) const override {
-    os << llvmIRToString(d);
+  void printDataFlowFact(std::ostream &os, d_t d) const override {
+    // os << llvmIRToString(d);
+    d->print(os);
   }
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override {
+  void printFunction(std::ostream &os, f_t m) const override {
     os << m->getName().str();
   }
 };
