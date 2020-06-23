@@ -121,43 +121,48 @@ class MapFactsToCallee : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 protected:
-  const llvm::Function *destFun;
-  std::vector<const llvm::Value *> actuals{};
-  std::vector<const llvm::Value *> formals{};
-  std::function<bool(const llvm::Value *)> predicate;
+  const llvm::Function *DestFun;
+  std::vector<const llvm::Value *> Actuals{};
+  std::vector<const llvm::Value *> Formals{};
+  std::function<bool(const llvm::Value *)> Predicate;
 
 public:
   MapFactsToCallee(
-      llvm::ImmutableCallSite CallSite, const llvm::Function *destFun,
-      std::function<bool(const llvm::Value *)> predicate =
+      llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
+      std::function<bool(const llvm::Value *)> Predicate =
           [](const llvm::Value *) { return true; })
-      : destFun(destFun), predicate(std::move(predicate)) {
+      : DestFun(DestFun), Predicate(std::move(Predicate)) {
     // Set up the actual parameters
-    for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-      actuals.push_back(CallSite.getArgOperand(Idx));
+    for (const auto &Actual : CallSite.args()) {
+      Actuals.push_back(Actual);
     }
     // Set up the formal parameters
-    for (unsigned Idx = 0; Idx < destFun->arg_size(); ++Idx) {
-      formals.push_back(getNthFunctionArgument(destFun, Idx));
+    for (const auto &Formal : DestFun->args()) {
+      Formals.push_back(&Formal);
     }
   }
 
-  virtual ~MapFactsToCallee() = default;
+  ~MapFactsToCallee() override = default;
 
   container_type computeTargets(const llvm::Value *Source) override {
+    // If DestFun is a declaration we cannot follow this call, we thus need to
+    // kill everything
+    if (DestFun->isDeclaration()) {
+      return {};
+    }
     if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
       container_type Res;
       // Handle C-style varargs functions
-      if (destFun->isVarArg()) {
+      if (DestFun->isVarArg()) {
         // Map actual parameter into corresponding formal parameter.
-        for (unsigned Idx = 0; Idx < actuals.size(); ++Idx) {
-          if (Source == actuals[Idx] && predicate(actuals[Idx])) {
-            if (Idx >= destFun->arg_size() && !destFun->isDeclaration()) {
+        for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
+          if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
+            if (Idx >= DestFun->arg_size()) {
               // Over-approximate by trying to add the
               //   alloca [1 x %struct.__va_list_tag], align 16
               // to the results
               // find the allocated %struct.__va_list_tag and generate it
-              for (const auto &BB : *destFun) {
+              for (const auto &BB : *DestFun) {
                 for (const auto &I : BB) {
                   if (const auto *Alloc =
                           llvm::dyn_cast<llvm::AllocaInst>(&I)) {
@@ -175,7 +180,9 @@ public:
                 }
               }
             } else {
-              Res.insert(formals[Idx]); // corresponding formal
+              assert(Idx < Formals.size() &&
+                     "Out of bound access to formal parameters!");
+              Res.insert(Formals[Idx]); // corresponding formal
             }
           }
         }
@@ -183,14 +190,15 @@ public:
       } else {
         // Handle ordinary case
         // Map actual parameter into corresponding formal parameter.
-        for (unsigned Idx = 0; Idx < actuals.size(); ++Idx) {
-          if (Source == actuals[Idx] && predicate(actuals[Idx])) {
-            Res.insert(formals[Idx]); // corresponding formal
+        for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
+          if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
+            Res.insert(Formals[Idx]); // corresponding formal
           }
         }
         return Res;
       }
     } else {
+      // Pass ZeroValue as is
       return {Source};
     }
   }
@@ -209,48 +217,51 @@ class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 private:
-  llvm::ImmutableCallSite callSite;
-  const llvm::Function *calleeFun;
-  const llvm::ReturnInst *exitStmt;
-  std::vector<const llvm::Value *> actuals;
-  std::vector<const llvm::Value *> formals;
-  std::function<bool(const llvm::Value *)> paramPredicate;
-  std::function<bool(const llvm::Function *)> returnPredicate;
+  llvm::ImmutableCallSite CallSite;
+  const llvm::Function *CalleeFun;
+  const llvm::ReturnInst *ExitStmt;
+  std::vector<const llvm::Value *> Actuals;
+  std::vector<const llvm::Value *> Formals;
+  std::function<bool(const llvm::Value *)> ParamPredicate;
+  std::function<bool(const llvm::Function *)> ReturnPredicate;
 
 public:
   MapFactsToCaller(
-      llvm::ImmutableCallSite cs, const llvm::Function *calleeFun,
-      const llvm::Instruction *exitStmt,
-      std::function<bool(const llvm::Value *)> paramPredicate =
+      llvm::ImmutableCallSite CS, const llvm::Function *CalleeFun,
+      const llvm::Instruction *ExitStmt,
+      std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
-      std::function<bool(const llvm::Function *)> returnPredicate =
+      std::function<bool(const llvm::Function *)> ReturnPredicate =
           [](const llvm::Function *) { return true; })
-      : callSite(cs), calleeFun(calleeFun),
-        exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitStmt)),
-        paramPredicate(std::move(paramPredicate)),
-        returnPredicate(std::move(returnPredicate)) {
-    assert(exitStmt && "Should not be null");
+      : CallSite(CS), CalleeFun(CalleeFun),
+        ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
+        ParamPredicate(std::move(ParamPredicate)),
+        ReturnPredicate(std::move(ReturnPredicate)) {
+    assert(ExitStmt && "Should not be null");
     // Set up the actual parameters
-    for (unsigned Idx = 0; Idx < callSite.getNumArgOperands(); ++Idx) {
-      actuals.push_back(callSite.getArgOperand(Idx));
+    for (const auto &Actual : CallSite.args()) {
+      Actuals.push_back(Actual);
     }
     // Set up the formal parameters
-    for (unsigned Idx = 0; Idx < calleeFun->arg_size(); ++Idx) {
-      formals.push_back(getNthFunctionArgument(calleeFun, Idx));
+    for (const auto &Formal : CalleeFun->args()) {
+      Formals.push_back(&Formal);
     }
   }
-  virtual ~MapFactsToCaller() = default;
+
+  ~MapFactsToCaller() override = default;
 
   // std::set<const llvm::Value *>
-  container_type computeTargets(const llvm::Value *Source) {
+  container_type computeTargets(const llvm::Value *Source) override {
+    assert(!CalleeFun->isDeclaration() &&
+           "Cannot perform mapping to caller for function declaration");
     if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
       container_type Res;
 
       // Handle C-style varargs functions
-      if (calleeFun->isVarArg() && !calleeFun->isDeclaration()) {
+      if (CalleeFun->isVarArg()) {
         const llvm::Instruction *AllocVarArg;
         // Find the allocation of %struct.__va_list_tag
-        for (const auto &BB : *calleeFun) {
+        for (const auto &BB : *CalleeFun) {
           for (const auto &I : BB) {
             if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
               if (Alloc->getAllocatedType()->isArrayTy() &&
@@ -269,21 +280,21 @@ public:
         }
         // Generate the varargs things by using an over-approximation
         if (Source == AllocVarArg) {
-          for (unsigned Idx = formals.size(); Idx < actuals.size(); ++Idx) {
-            Res.insert(actuals[Idx]);
+          for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
+            Res.insert(Actuals[Idx]);
           }
         }
       }
       // Handle ordinary case
       // Map formal parameter into corresponding actual parameter.
-      for (unsigned Idx = 0; Idx < formals.size(); ++Idx) {
-        if (Source == formals[Idx] && paramPredicate(formals[Idx])) {
-          Res.insert(actuals[Idx]); // corresponding actual
+      for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
+        if (Source == Formals[Idx] && ParamPredicate(Formals[Idx])) {
+          Res.insert(Actuals[Idx]); // corresponding actual
         }
       }
       // Collect return value facts
-      if (Source == exitStmt->getReturnValue() && returnPredicate(calleeFun)) {
-        Res.insert(callSite.getInstruction());
+      if (Source == ExitStmt->getReturnValue() && ReturnPredicate(CalleeFun)) {
+        Res.insert(CallSite.getInstruction());
       }
       return Res;
     } else {
