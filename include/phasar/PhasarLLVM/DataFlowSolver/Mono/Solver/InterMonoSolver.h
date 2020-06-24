@@ -111,7 +111,8 @@ protected:
       }
       // Initialize last
       if (!Edges.empty()) {
-        Analysis[Edges.back().second][CallStringCTX<N, K>()] = IMProblem.allTop();
+        Analysis[Edges.back().second][CallStringCTX<N, K>()] =
+            IMProblem.allTop();
       }
       // Add return Edge(s)
       for (auto Ret : ICF->getExitPointsOf(Callee)) {
@@ -169,6 +170,179 @@ public:
     return Analysis;
   }
 
+  void processNormal(std::pair<N, N> Edge) {
+    std::cout << "Handle normal flow\n";
+    auto Src = Edge.first;
+    auto Dst = Edge.second;
+    std::cout << "Src: " << llvmIRToString(Src) << '\n';
+    std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+    std::unordered_map<CallStringCTX<N, K>, ContainerTy> Out;
+    for (auto &[Ctx, Facts] : Analysis[Src]) {
+      Out[Ctx] = IMProblem.normalFlow(Src, Analysis[Src][Ctx]);
+      // need to merge if Dst is a branch target
+      if (ICF->isBranchTarget(Src, Dst)) {
+        std::cout << "Num preds: " << ICF->getPredsOf(Dst).size() << '\n';
+        for (auto Pred : ICF->getPredsOf(Dst)) {
+          if (Pred != Src) {
+            // we need to compute the out set of Pred and merge it with the
+            // out set of Src on-the-fly as we do not have a dedicated
+            // storage for merge points (otherwise we run into trouble with
+            // merge operator such as set union)
+            auto OtherPredOut = IMProblem.normalFlow(Pred, Analysis[Pred][Ctx]);
+            Out[Ctx] = IMProblem.merge(Out[Ctx], OtherPredOut);
+          }
+        }
+      }
+      // Check if data-flow facts have changed and if so, add Edge(s) to
+      // worklist again.
+      std::cout << "\nNormal Out[Ctx]:\n";
+      IMProblem.printContainer(std::cout, Out[Ctx]);
+      std::cout << "\nAnalysis[Dst][Ctx]:\n";
+      IMProblem.printContainer(std::cout, Analysis[Dst][Ctx]);
+      bool FlowFactStabilized =
+          IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
+      if (!FlowFactStabilized) {
+        std::cout << "\nNormal stabilized? --> " << FlowFactStabilized << '\n';
+        auto merged = Out[Ctx];
+        std::cout << "Normal merged:\n";
+        IMProblem.printContainer(std::cout, merged);
+        std::cout << '\n';
+        Analysis[Dst][Ctx] = merged;
+        addToWorklist({Src, Dst});
+      }
+    }
+  }
+
+  void processCall(std::pair<N, N> Edge) {
+    auto Src = Edge.first;
+    auto Dst = Edge.second;
+    std::unordered_map<CallStringCTX<N, K>, ContainerTy> Out;
+    if (!isIntraEdge(Edge)) {
+      std::cout << "Handle call flow\n";
+      std::cout << "Src: " << llvmIRToString(Src) << '\n';
+      std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+      for (auto &[Ctx, Facts] : Analysis[Src]) {
+        auto CTXAdd(Ctx);
+        CTXAdd.push_back(Src);
+        Out[CTXAdd] = IMProblem.callFlow(Src, ICF->getFunctionOf(Dst),
+                                         Analysis[Src][Ctx]);
+        bool FlowFactStabilized =
+            IMProblem.equal_to(Out[CTXAdd], Analysis[Dst][CTXAdd]);
+        std::cout << "Call Out[CTXAdd]:\n";
+        IMProblem.printContainer(std::cout, Out[CTXAdd]);
+        std::cout << '\n';
+        std::cout << "Call Analysis[Dst][CTXAdd]:\n";
+        IMProblem.printContainer(std::cout, Analysis[Dst][CTXAdd]);
+        std::cout << '\n';
+        std::cout << "Call stabilized? --> " << FlowFactStabilized << '\n';
+        if (!FlowFactStabilized) {
+          // auto merge = IMProblem.merge(Analysis[Dst][CTXAdd], Out[CTXAdd]);
+          auto merge = Out[CTXAdd];
+          std::cout << "Call merge:\n";
+          IMProblem.printContainer(std::cout, merge);
+          std::cout << '\n';
+          Analysis[Dst][CTXAdd] = merge;
+          addToWorklist({Src, Dst});
+        }
+      }
+    } else {
+      // Handle call-to-ret flow
+      std::cout << "Handle call to ret flow\n";
+      std::cout << "Src: " << llvmIRToString(Src) << '\n';
+      std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+      for (auto &[Ctx, Facts] : Analysis[Src]) {
+        // call-to-ret flow does not modify contexts
+        Out[Ctx] = IMProblem.callToRetFlow(
+            Src, Dst, ICF->getCalleesOfCallAt(Src), Analysis[Src][Ctx]);
+        bool FlowFactStabilized =
+            IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
+        std::cout << "Call to ret stabilized? --> " << FlowFactStabilized
+                  << '\n';
+        std::cout << "Call Out[Ctx]:\n";
+        IMProblem.printContainer(std::cout, Out[Ctx]);
+        std::cout << '\n';
+        std::cout << "Call Analysis[Dst][CTX]:\n";
+        IMProblem.printContainer(std::cout, Analysis[Dst][Ctx]);
+        std::cout << '\n';
+        if (!FlowFactStabilized) {
+          auto merge = Out[Ctx];
+          std::cout << "Call to ret merge:\n";
+          IMProblem.printContainer(std::cout, merge);
+          std::cout << '\n';
+          Analysis[Dst][Ctx] =
+              merge; // IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
+          addToWorklist({Src, Dst});
+        }
+      }
+    }
+  }
+
+  void processExit(std::pair<N, N> Edge) {
+    auto Src = Edge.first;
+    auto Dst = Edge.second;
+    std::unordered_map<CallStringCTX<N, K>, ContainerTy> Out;
+    std::cout << "\nHandle ret flow in: "
+              << ICF->getFunctionName(ICF->getFunctionOf(Src)) << '\n';
+    std::cout << "Src: " << llvmIRToString(Src) << '\n';
+    std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+    for (auto &[Ctx, Facts] : Analysis[Src]) {
+      auto CTXRm(Ctx);
+      std::cout << "CTXRm: " << CTXRm << '\n';
+      // we need to use several call- and retsites if the context is empty
+      std::set<N> CallSites;
+      std::set<N> RetSites;
+      // handle empty context
+      if (Ctx.empty()) {
+        CallSites = ICF->getCallersOf(ICF->getFunctionOf(Src));
+      } else {
+        // handle context containing at least one element
+        CallSites.insert(CTXRm.pop_back());
+      }
+      // retrieve the possible return sites for each call
+      for (auto CallSite : CallSites) {
+        auto RetSitesPerCall = ICF->getReturnSitesOfCallAt(CallSite);
+        RetSites.insert(RetSitesPerCall.begin(), RetSitesPerCall.end());
+      }
+      for (auto CallSite : CallSites) {
+        auto RetFactsPerCall = IMProblem.returnFlow(
+            CallSite, ICF->getFunctionOf(Src), Src, Dst, Analysis[Src][Ctx]);
+        Out[CTXRm].insert(RetFactsPerCall.begin(), RetFactsPerCall.end());
+      }
+      // TODO!
+      std::cout << "ResSites.size(): " << RetSites.size() << '\n';
+      for (auto RetSite : RetSites) {
+        std::cout << "RetSite: " << llvmIRToString(RetSite) << '\n';
+        std::cout << "Return facts: ";
+        IMProblem.printContainer(std::cout, Out[CTXRm]);
+        std::cout << '\n';
+        std::cout << "RetSite facts: ";
+        IMProblem.printContainer(std::cout, Analysis[RetSite][CTXRm]);
+        std::cout << '\n';
+        bool FlowFactStabilized =
+            IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
+        std::cout << "Ret stabilized? --> " << FlowFactStabilized << '\n';
+        if (!FlowFactStabilized) {
+          ContainerTy merge;
+          merge.insert(Analysis[RetSite][CTXRm].begin(),
+                       Analysis[RetSite][CTXRm].end());
+          merge.insert(Out[CTXRm].begin(), Out[CTXRm].end());
+          Analysis[RetSite][CTXRm] = merge;
+          Analysis[Dst][CTXRm] = merge;
+          // IMProblem.merge(Analysis[RetSite][CTXRm], Out[CTXRm]);
+          std::cout << "Merged to: ";
+          IMProblem.printContainer(std::cout, merge);
+          std::cout << '\n';
+          // addToWorklist({Src, RetSite});
+        }
+      }
+    }
+  }
+
+  ContainerTy summarize(/*Function CalleeTarget, ContainerTy FactAtCall */) {
+    // spawn a new analysis with its own worklist
+
+  }
+
   virtual void solve() {
     initialize();
     while (!Worklist.empty()) {
@@ -179,123 +353,41 @@ public:
       if (ICF->isCallStmt(Src)) {
         addCalleesToWorklist(Edge);
       }
-      // Compute the data-flow facts using the respective flow function
-      std::unordered_map<CallStringCTX<N, K>, ContainerTy> Out;
+      // Compute the data-flow facts using the respective kind of flows
       if (ICF->isCallStmt(Src)) {
-        // Handle call and call-to-ret flow
-        if (!isIntraEdge(Edge)) {
-          // Handle call flow
-          std::cout << "Handle call flow\n";
+        // Handle call flow(s)
+        if (!isIntraEdge(Src)) {
+          // real call
           for (auto &[Ctx, Facts] : Analysis[Src]) {
-            auto CTXAdd(Ctx);
-            CTXAdd.push_back(Src);
-            Out[CTXAdd] = IMProblem.callFlow(Src, ICF->getFunctionOf(Dst),
-                                             Analysis[Src][Ctx]);
-            bool FlowFactStabilized =
-                IMProblem.equal_to(Out[CTXAdd], Analysis[Dst][CTXAdd]);
-            if (!FlowFactStabilized) {
-              Analysis[Dst][CTXAdd] =
-                  IMProblem.merge(Analysis[Dst][CTXAdd], Out[CTXAdd]);
-              addToWorklist({Src, Dst});
+            if (Cache.hasSummary(Facts)) {
+              // nothing to be done, we don't wish to analyze the function
+            } else if(true /* is primitive function called */) {
+              // if callee target is primitive // TODO: find a better predicate
+              // then summarize!
+              auto Summary = summarize();
+              Cache.addSummary(Summary);
+            } else {
+              processCall(Edge); // TODO: decompose into processCall and processCallToRet
             }
           }
         } else {
-          // Handle call-to-ret flow
-          std::cout << "Handle call to ret flow\n";
+          // call-to-return
+          // special semantics for applying a summary
           for (auto &[Ctx, Facts] : Analysis[Src]) {
-            // call-to-ret flow does not modify contexts
-            Out[Ctx] = IMProblem.callToRetFlow(
-                Src, Dst, ICF->getCalleesOfCallAt(Src), Analysis[Src][Ctx]);
-            bool FlowFactStabilized =
-                IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
-            if (!FlowFactStabilized) {
-              Analysis[Dst][Ctx] =
-                  IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
-              addToWorklist({Src, Dst});
+            if (Cache.hasSummary(Facts)) {
+              auto Summary = Cache.retrieveSummary(Facts);
+              // Anlysis[Ctx] merge in Summary
             }
+            // in addition call the user callToRetFlow and plug it in as well
           }
         }
+        processCall(Edge); // TODO: decompose into processCall and processCallToRet
       } else if (ICF->isExitStmt(Src)) {
         // Handle return flow
-        std::cout << "Handle ret flow\n";
-        for (auto &[Ctx, Facts] : Analysis[Src]) {
-          auto CTXRm(Ctx);
-          // we need to use several call- and retsites if the context is empty
-          std::set<N> CallSites;
-          std::set<N> RetSites;
-          // handle empty context
-          if (Ctx.empty()) {
-            CallSites = ICF->getCallersOf(ICF->getFunctionOf(Src));
-          } else {
-            // handle context containing at least one element
-            CallSites.insert(CTXRm.pop_back());
-          }
-          // retrieve the possible return sites for each call
-          for (auto CallSite : CallSites) {
-            auto RetSitesPerCall = ICF->getReturnSitesOfCallAt(CallSite);
-            RetSites.insert(RetSitesPerCall.begin(), RetSitesPerCall.end());
-          }
-          for (auto CallSite : CallSites) {
-            auto RetFactsPerCall =
-                IMProblem.returnFlow(CallSite, ICF->getFunctionOf(Src), Src,
-                                     Dst, Analysis[Src][Ctx]);
-            Out[CTXRm].insert(RetFactsPerCall.begin(), RetFactsPerCall.end());
-          }
-          // TODO!
-          for (auto RetSite : RetSites) {
-            std::cout << "RetSite: " << llvmIRToString(RetSite) << '\n';
-            std::cout << "Return facts: ";
-            IMProblem.printContainer(std::cout, Out[CTXRm]);
-            std::cout << '\n';
-            std::cout << "RetSite facts: ";
-            IMProblem.printContainer(std::cout, Analysis[RetSite][CTXRm]);
-            std::cout << '\n';
-            bool FlowFactStabilized =
-                IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
-            if (!FlowFactStabilized) {
-              std::cout << "FlowFacts did not stabilize!\n";
-              ContainerTy merge;
-              merge.insert(Analysis[RetSite][CTXRm].begin(), Analysis[RetSite][CTXRm].end());
-              merge.insert(Out[CTXRm].begin(), Out[CTXRm].end());
-              Analysis[RetSite][CTXRm] = merge;
-              Analysis[Dst][CTXRm] = merge;
-                  // IMProblem.merge(Analysis[RetSite][CTXRm], Out[CTXRm]);
-              std::cout << "Merged to: ";
-              IMProblem.printContainer(std::cout, Analysis[Dst][CTXRm]);
-              std::cout << '\n';
-              addToWorklist({Src, RetSite});
-            }
-          }
-        }
+        processExit(Edge);
       } else {
         // Handle normal flow
-        std::cout << "Handle normal flow\n";
-        for (auto &[Ctx, Facts] : Analysis[Src]) {
-          Out[Ctx] = IMProblem.normalFlow(Src, Analysis[Src][Ctx]);
-          // need to merge if Dst is a branch target
-          if (ICF->isBranchTarget(Src, Dst)) {
-            std::cout << "Num preds: " << ICF->getPredsOf(Dst).size() << '\n';
-            for (auto Pred : ICF->getPredsOf(Dst)) {
-              if (Pred != Src) {
-                // we need to compute the out set of Pred and merge it with the
-                // out set of Src on-the-fly as we do not have a dedicated
-                // storage for merge points (otherwise we run into trouble with
-                // merge operator such as set union)
-                auto OtherPredOut =
-                    IMProblem.normalFlow(Pred, Analysis[Pred][Ctx]);
-                Out[Ctx] = IMProblem.merge(Out[Ctx], OtherPredOut);
-              }
-            }
-          }
-          // Check if data-flow facts have changed and if so, add Edge(s) to
-          // worklist again.
-          bool FlowFactStabilized =
-              IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
-          if (!FlowFactStabilized) {
-            Analysis[Dst][Ctx] = Out[Ctx];
-            addToWorklist({Src, Dst});
-          }
-        }
+        processNormal(Edge);
       }
     }
   }
@@ -334,7 +426,7 @@ public:
   virtual void emitTextReport(std::ostream &OS = std::cout) {}
 
   virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
-};
+}; // namespace psr
 
 template <typename Problem, unsigned K>
 using InterMonoSolver_P =

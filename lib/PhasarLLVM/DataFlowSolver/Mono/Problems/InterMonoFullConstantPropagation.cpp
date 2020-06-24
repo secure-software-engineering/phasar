@@ -105,6 +105,7 @@ InterMonoFullConstantPropagation::callFlow(
       // check for integer literals
       if (const auto *ConstInt =
               llvm::dyn_cast<llvm::ConstantInt>(Actuals[idx])) {
+        std::cout << "Found literal!\n";
         Out.insert({Formals[idx], ConstInt->getSExtValue()});
       }
     }
@@ -136,6 +137,7 @@ InterMonoFullConstantPropagation::returnFlow(
         // handle return of integer variable
         auto Search = In.find(Return->getReturnValue());
         if (Search != In.end()) {
+          std::cout << "Found const return variable\n";
           Out.insert({CallSite, Search->second});
         }
       }
