@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 
 #include <memory>
+#include <set>
 
 namespace psr {
 
@@ -30,11 +31,13 @@ namespace psr {
  * implementation. By default, an explicit composition is used. Such a function
  * definition can grow unduly large.
  */
-template <typename L>
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class EdgeFunctionComposer
-    : public EdgeFunction<L> {
+    : public EdgeFunction<AnalysisDomainTy, Container> {
 public:
-  using typename EdgeFunction<L>::EdgeFunctionPtrType;
+  using typename EdgeFunction<AnalysisDomainTy, Container>::EdgeFunctionPtrType;
+  using L = typename AnalysisDomainTy::l_t;
 
 private:
   // For debug purpose only
@@ -68,21 +71,21 @@ public:
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(secondFunction)) {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<AnalysisDomainTy, Container> memManager) override {
+    if (auto *EI = dynamic_cast<EdgeIdentity<AnalysisDomainTy, Container> *>(secondFunction)) {
       return this;
     }
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(secondFunction)) {
+    if (auto *AB = dynamic_cast<AllBottom<AnalysisDomainTy, Container> *>(secondFunction)) {
       return this;
     }
-    return F->composeWith(G->composeWith(secondFunction));
+    return F->composeWith(G->composeWith(secondFunction, memManager),memManager);
   }
 
   // virtual EdgeFunctionPtrType
   // joinWith(EdgeFunctionPtrType otherFunction) = 0;
 
   bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(other)) {
+    if (auto EFC = dynamic_cast<EdgeFunctionComposer<AnalysisDomainTy, Container> *>(other)) {
       return F->equal_to(EFC->F) && G->equal_to(EFC->G);
     }
     return false;

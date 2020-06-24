@@ -32,6 +32,7 @@
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/MemoryManager.h"
 
 using namespace std;
 using namespace psr;
@@ -345,7 +346,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Zero value.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    return new AllBottom<IDELinearConstantAnalysis::l_t>(
+    return new AllBottom<IDELinearConstantAnalysis::IDETabProblemType>(
         IDELinearConstantAnalysis::BOTTOM);
   }
 
@@ -393,7 +394,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     // For non linear constant computation we propagate bottom
     if (CurrNode == ZeroValue && !llvm::isa<llvm::ConstantInt>(Lop) &&
         !llvm::isa<llvm::ConstantInt>(Rop)) {
-      return new AllBottom<IDELinearConstantAnalysis::l_t>(
+      return new AllBottom<IDELinearConstantAnalysis::IDETabProblemType>(
           IDELinearConstantAnalysis::BOTTOM);
     } else {
       return new IDELinearConstantAnalysis::BinOp(OP, Lop, Rop,
@@ -403,7 +404,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Edge identity.");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::IDETabProblemType>::getInstance();
 }
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
@@ -423,7 +424,7 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
       }
     }
   }
-  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::IDETabProblemType>::getInstance();
 }
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
@@ -443,7 +444,7 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
       return new IDELinearConstantAnalysis::GenConstant(IntConst);
     }
   }
-  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::IDETabProblemType>::getInstance();
 }
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
@@ -453,7 +454,7 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     IDELinearConstantAnalysis::n_t RetSite,
     IDELinearConstantAnalysis::d_t RetSiteNode,
     set<IDELinearConstantAnalysis::f_t> Callees) {
-  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::IDETabProblemType>::getInstance();
 }
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
@@ -462,7 +463,7 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::d_t CallNode,
     IDELinearConstantAnalysis::n_t RetSite,
     IDELinearConstantAnalysis::d_t RetSiteNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::IDETabProblemType>::getInstance();
 }
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::topElement() {
@@ -489,12 +490,12 @@ IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::l_t Lhs,
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::allTopFunction() {
-  return new AllTop<IDELinearConstantAnalysis::l_t>(TOP);
+  return new AllTop<IDELinearConstantAnalysis::IDETabProblemType>(TOP);
 }
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
-    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction) {
+    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction, MemoryManager<IDELinearConstantAnalysis::IDETabProblemType> memManager) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
           SecondFunction)) {
     return this;
@@ -506,7 +507,7 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
   if (auto *LCAID = dynamic_cast<LCAIdentity *>(SecondFunction)) {
     return this;
   }
-  return F->composeWith(G->composeWith(SecondFunction));
+  return F->composeWith(G->composeWith(SecondFunction, memManager), memManager);
 }
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
@@ -537,7 +538,7 @@ IDELinearConstantAnalysis::GenConstant::computeTarget(
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::GenConstant::composeWith(
-    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction) {
+    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction, MemoryManager<IDELinearConstantAnalysis::IDETabProblemType> memManager) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
           SecondFunction)) {
     return this;
@@ -593,7 +594,7 @@ IDELinearConstantAnalysis::LCAIdentity::computeTarget(
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::LCAIdentity::composeWith(
-    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction) {
+    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction, MemoryManager<IDELinearConstantAnalysis::IDETabProblemType> memManager) {
   return SecondFunction;
 }
 
@@ -661,7 +662,7 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BinOp::computeTarget(
 
 IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::BinOp::composeWith(
-    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction) {
+    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction, MemoryManager<IDELinearConstantAnalysis::IDETabProblemType> memManager) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
           SecondFunction)) {
     return this;

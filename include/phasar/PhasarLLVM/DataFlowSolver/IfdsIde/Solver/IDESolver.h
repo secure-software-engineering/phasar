@@ -112,7 +112,7 @@ public:
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
         ICF(Problem.getICFG()), SolverConfig(Problem.getIFDSIDESolverConfig()),
-        cachedFlowEdgeFunctions(Problem), allTop(Problem.allTopFunction()),
+        cachedFlowEdgeFunctions(Problem), allTop(cachedFlowEdgeFunctions.manageEdgeFunction(Problem.allTopFunction())),
         jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
             allTop, IDEProblem)),
         initialSeeds(Problem.initialSeeds()) {}
@@ -622,7 +622,7 @@ protected:
                 .push_back(edgeFnE);
           }
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          auto fPrime = fPrime = cachedFlowEdgeFunctions.manageEdgeFunction(
+          auto fPrime = cachedFlowEdgeFunctions.manageEdgeFunction(
               f->composeWith(edgeFnE));
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                             << "Compose: " << edgeFnE->str() << " * "
@@ -1232,7 +1232,7 @@ protected:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Target value  : " << IDEProblem.DtoString(targetVal);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Edge function : " << f.get()->str()
+                  << "Edge function : " << f->str()
                   << " (result of previous compose)";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     EdgeFunctionPtrType jumpFnE = nullptr;
@@ -1248,7 +1248,7 @@ protected:
         jumpFnE->joinWith(f)); // TODO: check before join?
     bool newFunction = !(fPrime->equal_to(jumpFnE));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Join: " << jumpFnE->str() << " & " << f.get()->str()
+                      << "Join: " << jumpFnE->str() << " & " << f->str()
                       << (jumpFnE->equal_to(f) ? " (EF's are equal)" : " ");
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "    = " << fPrime->str()

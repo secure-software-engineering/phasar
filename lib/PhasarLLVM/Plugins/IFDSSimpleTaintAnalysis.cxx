@@ -71,7 +71,7 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
         }
       }
     };
-    return make_shared<STA>(Store);
+    return new STA(Store);
   }
   return Identity<const llvm::Value *>::getInstance();
 }
@@ -81,7 +81,7 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallStmt,
                                              const llvm::Function *DestFun) {
   if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(CallStmt)) {
     if (DestFun->getName().str() == "taint") {
-      return make_shared<Gen<const llvm::Value *>>(Call, getZeroValue());
+      return new Gen<const llvm::Value *>(Call, getZeroValue());
     } else if (DestFun->getName().str() == "leak") {
     } else {
     }

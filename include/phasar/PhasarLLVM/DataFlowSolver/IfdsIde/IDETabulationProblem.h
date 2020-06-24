@@ -51,8 +51,11 @@ public:
 
   static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>, // TODO: fix ICFG
                 "I must implement the ICFG interface!");
+  using EdgeFunctionPtrType = typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
+protected:
+  std::set<EdgeFunctionPtrType> registeredEdgeFunctionSingleton;
 
-  using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
+public:
 
   IDETabulationProblem(const ProjectIRDB *IRDB,
                        const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
@@ -62,6 +65,9 @@ public:
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblem() override = default;
   virtual EdgeFunctionPtrType allTopFunction() = 0;
+  std::set<EdgeFunctionPtrType> getRegisteredEdgeFunctionSingleton() const {
+    return registeredEdgeFunctionSingleton;
+  }
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
   virtual void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,

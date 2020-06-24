@@ -130,23 +130,23 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
                       d_t destNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<f_t> callees) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
                          d_t retSiteNode) override;
 
@@ -164,7 +164,7 @@ public:
    */
   l_t join(l_t lhs, l_t rhs) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
+  EdgeFunctionPtrType allTopFunction() override;
 
   void printNode(std::ostream &os, n_t N) const override;
 
@@ -183,15 +183,14 @@ public:
     l_t botElement;
 
   public:
-    TSEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                           std::shared_ptr<EdgeFunction<l_t>> G, l_t bot)
+    TSEdgeFunctionComposer(EdgeFunctionPtrType F,
+                           EdgeFunctionPtrType G, l_t bot)
         : EdgeFunctionComposer<l_t>(F, G), botElement(bot){};
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    EdgeFunctionPtrType
+    joinWith(EdgeFunctionPtrType otherFunction) override;
   };
 
-  class TSEdgeFunction : public EdgeFunction<l_t>,
-                         public std::enable_shared_from_this<TSEdgeFunction> {
+  class TSEdgeFunction : public EdgeFunction<l_t>{
   protected:
     const TypeStateDescription &TSD;
     // Do not use a reference here, since LLVM's StringRef's (obtained by str())
@@ -207,13 +206,13 @@ public:
 
     l_t computeTarget(l_t source) override;
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
+    EdgeFunctionPtrType
+    composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<AnalysisDomainTy, Container> memManager) override;
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    EdgeFunctionPtrType
+    joinWith(EdgeFunctionPtrType otherFunction) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    bool equal_to(EdgeFunctionPtrType other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
 

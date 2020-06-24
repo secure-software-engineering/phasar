@@ -133,21 +133,20 @@ public:
 
   // Custom EdgeFunction declarations
 
-  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
+  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<IDETabProblemType> {
   public:
     LCAEdgeFunctionComposer(EdgeFunctionPtrType F,
                             EdgeFunctionPtrType G)
-        : EdgeFunctionComposer<l_t>(F, G){};
+        : EdgeFunctionComposer<IDETabProblemType>(F, G){};
 
     EdgeFunctionPtrType
-    composeWith(EdgeFunctionPtrType secondFunction) override;
+    composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<IDETabProblemType, std::set<d_t>> memManager) override;
 
     EdgeFunctionPtrType
     joinWith(EdgeFunctionPtrType otherFunction) override;
   };
 
-  class GenConstant : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<GenConstant> {
+  class GenConstant : public EdgeFunction<IDETabProblemType> {
   private:
     const unsigned GenConstant_Id;
     const l_t IntConst;
@@ -158,7 +157,7 @@ public:
     l_t computeTarget(l_t source) override;
 
     EdgeFunctionPtrType
-    composeWith(EdgeFunctionPtrType secondFunction) override;
+    composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<IDETabProblemType, std::set<d_t>> memManager) override;
 
     EdgeFunctionPtrType
     joinWith(EdgeFunctionPtrType otherFunction) override;
@@ -168,8 +167,7 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  class LCAIdentity : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<LCAIdentity> {
+  class LCAIdentity : public EdgeFunction<IDETabProblemType> {
   private:
     const unsigned LCAID_Id;
 
@@ -179,7 +177,7 @@ public:
     l_t computeTarget(l_t source) override;
 
     EdgeFunctionPtrType
-    composeWith(EdgeFunctionPtrType secondFunction) override;
+    composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<IDETabProblemType, std::set<d_t>> memManager) override;
 
     EdgeFunctionPtrType
     joinWith(EdgeFunctionPtrType otherFunction) override;
@@ -189,8 +187,7 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  class BinOp : public EdgeFunction<l_t>,
-                public std::enable_shared_from_this<BinOp> {
+  class BinOp : public EdgeFunction<IDETabProblemType>{
   private:
     const unsigned EdgeFunctionID, Op;
     d_t lop, rop, currNode;
@@ -201,7 +198,7 @@ public:
     l_t computeTarget(l_t source) override;
 
     EdgeFunctionPtrType
-    composeWith(EdgeFunctionPtrType secondFunction) override;
+    composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<IDETabProblemType, std::set<d_t>> memManager) override;
 
     EdgeFunctionPtrType
     joinWith(EdgeFunctionPtrType otherFunction) override;

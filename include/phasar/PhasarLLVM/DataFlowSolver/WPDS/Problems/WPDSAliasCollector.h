@@ -55,19 +55,19 @@ public:
                                                std::set<f_t> callees) override;
   FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destFun) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
                       d_t destNode) override;
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<f_t> callees) override;
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
                          d_t succNode) override;
 
@@ -79,7 +79,7 @@ public:
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
+  EdgeFunctionPtrType allTopFunction() override;
 
   void printNode(std::ostream &os, n_t n) const override;
   void printDataFlowFact(std::ostream &os, d_t d) const override;

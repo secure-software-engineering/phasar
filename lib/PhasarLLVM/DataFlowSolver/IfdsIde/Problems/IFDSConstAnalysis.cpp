@@ -102,8 +102,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Compute context-relevant points-to "
                          "information for the pointer operand.");
-        return make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
+        return new GenAll<IFDSConstAnalysis::d_t>(/*pointsToSet*/
                                             getContextRelevantPointsToSet(
                                                 PointsToSet,
                                                 Curr->getFunction()),
@@ -141,7 +140,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallStmt,
                   << "Call statement: " << llvmIRToString(CallStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Destination method: " << DestFun->getName().str());
-    return make_shared<MapFactsToCallee<>>(
+    return new MapFactsToCallee<>(
         llvm::ImmutableCallSite(CallStmt), DestFun,
         [](IFDSConstAnalysis::d_t Actual) {
           return Actual->getType()->isPointerTy();
@@ -157,7 +156,7 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
     IFDSConstAnalysis::n_t ExitStmt, IFDSConstAnalysis::n_t RetSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
-  return make_shared<MapFactsToCaller<>>(
+  return new MapFactsToCaller<>(
       llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt,
       [](IFDSConstAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
@@ -184,8 +183,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Compute context-relevant points-to "
                          "information of the pointer operand.");
-        return make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
+        return new GenAll<IFDSConstAnalysis::d_t>(/*pointsToSet*/
                                             getContextRelevantPointsToSet(
                                                 PointsToSet,
                                                 CallSite->getFunction()),

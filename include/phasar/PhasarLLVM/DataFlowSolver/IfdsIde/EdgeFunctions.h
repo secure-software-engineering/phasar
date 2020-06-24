@@ -27,16 +27,22 @@
 
 namespace psr {
 
-template <typename L> class EdgeFunction {
+template <typename AnalysisDomainTy,
+          typename Container>
+class MemoryManager;
+
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>> class EdgeFunction {
 public:
-  using EdgeFunctionPtrType = EdgeFunction<L>*;
+  using EdgeFunctionPtrType = EdgeFunction<AnalysisDomainTy, Container>*;
+  using L = typename AnalysisDomainTy::l_t;
 
   virtual ~EdgeFunction() = default;
 
   virtual L computeTarget(L source) = 0;
 
   virtual EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType secondFunction) = 0;
+  composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<AnalysisDomainTy, Container> memManager) = 0;
 
   virtual EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) = 0;
 
@@ -53,24 +59,27 @@ public:
   }
 };
 
-template <typename L>
-static inline bool operator==(const EdgeFunction<L> &F,
-                              const EdgeFunction<L> &G) {
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+static inline bool operator==(const EdgeFunction<AnalysisDomainTy, Container> &F,
+                              const EdgeFunction<AnalysisDomainTy, Container> &G) {
   return F.equal_to(G);
 }
 
-template <typename L>
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
 static inline std::ostream &operator<<(std::ostream &OS,
-                                       const EdgeFunction<L> &F) {
+                                       const EdgeFunction<AnalysisDomainTy, Container> &F) {
   F.print(OS);
   return OS;
 }
 
-template <typename L>
-class AllTop : public EdgeFunction<L> {
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class AllTop : public EdgeFunction<AnalysisDomainTy, Container> {
 public:
-  using typename EdgeFunction<L>::EdgeFunctionPtrType;
-
+  using typename EdgeFunction<AnalysisDomainTy, Container>::EdgeFunctionPtrType;
+  using typename EdgeFunction<AnalysisDomainTy, Container>::L;
 private:
   const L topElement;
 
@@ -81,7 +90,7 @@ public:
 
   L computeTarget(L source) override { return topElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<AnalysisDomainTy, Container> memManager) override {
     return this;
   }
 
@@ -90,7 +99,7 @@ public:
   }
 
   bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(other)) {
+    if (auto *alltop = dynamic_cast<AllTop<AnalysisDomainTy, Container> *>(other)) {
       return (alltop->topElement == topElement);
     }
     return false;
@@ -101,13 +110,15 @@ public:
   }
 };
 
-template <typename L> class EdgeIdentity;
+template <typename AnalysisDomainTy,
+          typename Container> class EdgeIdentity;
 
-template <typename L>
-class AllBottom : public EdgeFunction<L> {
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class AllBottom : public EdgeFunction<AnalysisDomainTy, Container> {
 public:
-  using typename EdgeFunction<L>::EdgeFunctionPtrType;
-
+  using typename EdgeFunction<AnalysisDomainTy, Container>::EdgeFunctionPtrType;
+  using typename EdgeFunction<AnalysisDomainTy, Container>::L;
 private:
   const L bottomElement;
 
@@ -118,11 +129,11 @@ public:
 
   L computeTarget(L source) override { return bottomElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(secondFunction)) {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<AnalysisDomainTy, Container> memManager) override {
+    if (auto *ab = dynamic_cast<AllBottom<AnalysisDomainTy, Container> *>(secondFunction)) {
       return this;
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(secondFunction)) {
+    if (auto *ei = dynamic_cast<EdgeIdentity<AnalysisDomainTy, Container> *>(secondFunction)) {
       return this;
     }
     return secondFunction->composeWith(this);
@@ -133,17 +144,17 @@ public:
         otherFunction->equal_to(this)) {
       return this;
     }
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(otherFunction)) {
+    if (auto *alltop = dynamic_cast<AllTop<AnalysisDomainTy, Container> *>(otherFunction)) {
       return this;
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(otherFunction)) {
+    if (auto *ei = dynamic_cast<EdgeIdentity<AnalysisDomainTy, Container> *>(otherFunction)) {
       return this;
     }
     return this;
   }
 
   bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *allbottom = dynamic_cast<AllBottom<L> *>(other)) {
+    if (auto *allbottom = dynamic_cast<AllBottom<AnalysisDomainTy, Container> *>(other)) {
       return (allbottom->bottomElement == bottomElement);
     }
     return false;
@@ -154,10 +165,12 @@ public:
   }
 };
 
-template <typename L>
-class EdgeIdentity : public EdgeFunction<L> {
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class EdgeIdentity : public EdgeFunction<AnalysisDomainTy, Container> {
 public:
-  using typename EdgeFunction<L>::EdgeFunctionPtrType;
+  using typename EdgeFunction<AnalysisDomainTy, Container>::EdgeFunctionPtrType;
+  using typename EdgeFunction<AnalysisDomainTy, Container>::L;
 
 private:
   EdgeIdentity() = default;
@@ -171,7 +184,7 @@ public:
 
   L computeTarget(L source) override { return source; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction, MemoryManager<AnalysisDomainTy, Container> memManager) override {
     return secondFunction;
   }
 
@@ -180,10 +193,10 @@ public:
         otherFunction->equal_to(this)) {
       return this;
     }
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(otherFunction)) {
+    if (auto *ab = dynamic_cast<AllBottom<AnalysisDomainTy, Container> *>(otherFunction)) {
       return otherFunction;
     }
-    if (auto *at = dynamic_cast<AllTop<L> *>(otherFunction)) {
+    if (auto *at = dynamic_cast<AllTop<AnalysisDomainTy, Container> *>(otherFunction)) {
       return this;
     }
     // do not know how to join; hence ask other function to decide on this
@@ -196,7 +209,7 @@ public:
 
   static EdgeFunctionPtrType getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
-    static EdgeFunctionPtrType instance(new EdgeIdentity<L>());
+    static EdgeFunctionPtrType instance(new EdgeIdentity<AnalysisDomainTy, Container>());
     return instance;
   }
 
@@ -215,7 +228,7 @@ public:
   using f_t = typename AnalysisDomainTy::f_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
-  using EdgeFunctionType = EdgeFunction<l_t>;
+  using EdgeFunctionType = EdgeFunction<AnalysisDomainTy>;
   using EdgeFunctionPtrType = typename EdgeFunctionType::EdgeFunctionPtrType;
 
   virtual ~EdgeFunctions() = default;

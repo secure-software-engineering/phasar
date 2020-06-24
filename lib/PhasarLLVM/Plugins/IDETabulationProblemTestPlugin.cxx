@@ -38,33 +38,33 @@ IDETabulationProblemTestPlugin::IDETabulationProblemTestPlugin(
     std::set<std::string> EntryPoints)
     : IDETabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getNormalFlowFunction(
     const llvm::Instruction *Curr, const llvm::Instruction *Succ) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getCallFlowFunction(
     const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getRetFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Function *CalleeFun,
     const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getCallToRetFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
     set<const llvm::Function *> Callees) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getSummaryFlowFunction(
     const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
   return nullptr;
@@ -82,18 +82,18 @@ IDETabulationProblemTestPlugin::initialSeeds() {
   return SeedMap;
 }
 
-std::shared_ptr<EdgeFunction<IDETabulationProblemTestPlugin::l_t>>
+IDETabulationProblemTestPlugin::EdgeFunctionPtrType
 IDETabulationProblemTestPlugin::getNormalEdgeFunction(n_t curr, d_t currNode,
                                                       n_t succ, d_t succNode) {
   return EdgeIdentity<l_t>::getInstance();
 }
-std::shared_ptr<EdgeFunction<IDETabulationProblemTestPlugin::l_t>>
+IDETabulationProblemTestPlugin::EdgeFunctionPtrType
 IDETabulationProblemTestPlugin::getCallEdgeFunction(n_t callStmt, d_t srcNode,
                                                     f_t destinationFunction,
                                                     d_t destNode) {
   return EdgeIdentity<l_t>::getInstance();
 }
-std::shared_ptr<EdgeFunction<IDETabulationProblemTestPlugin::l_t>>
+IDETabulationProblemTestPlugin::EdgeFunctionPtrType
 IDETabulationProblemTestPlugin::getReturnEdgeFunction(n_t callSite,
                                                       f_t calleeFunction,
                                                       n_t exitStmt,
@@ -101,13 +101,13 @@ IDETabulationProblemTestPlugin::getReturnEdgeFunction(n_t callSite,
                                                       d_t retNode) {
   return EdgeIdentity<l_t>::getInstance();
 }
-std::shared_ptr<EdgeFunction<IDETabulationProblemTestPlugin::l_t>>
+IDETabulationProblemTestPlugin::EdgeFunctionPtrType
 IDETabulationProblemTestPlugin::getCallToRetEdgeFunction(
     n_t callSite, d_t callNode, n_t retSite, d_t retSiteNode,
     std::set<f_t> callees) {
   return EdgeIdentity<l_t>::getInstance();
 }
-std::shared_ptr<EdgeFunction<IDETabulationProblemTestPlugin::l_t>>
+IDETabulationProblemTestPlugin::EdgeFunctionPtrType
 IDETabulationProblemTestPlugin::getSummaryEdgeFunction(n_t curr, d_t currNode,
                                                        n_t succ, d_t succNode) {
   return nullptr;

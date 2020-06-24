@@ -21,7 +21,7 @@
 namespace psr {
 
 template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+          typename Container>
 class FlowEdgeFunctionCache;
 
 template <typename AnalysisDomainTy,
@@ -38,6 +38,7 @@ class MemoryManager {
     using d_t = typename AnalysisDomainTy::d_t;
     using f_t = typename AnalysisDomainTy::f_t;
     using t_t = typename AnalysisDomainTy::t_t;
+    using l_t = typename AnalysisDomainTy::l_t;
 
     // Caches for the flow functions
     std::map<std::tuple<n_t, n_t>, FlowFunctionPtrType> NormalFlowFunctionCache;
@@ -61,7 +62,7 @@ class MemoryManager {
     // Data for clean up
     std::unordered_set<EdgeFunctionPtrType> managedEdgeFunctions;
     std::unordered_set<EdgeFunctionPtrType> registeredEdgeFunctionSingletons = {
-      EdgeIdentity<L>::getInstance()};
+      EdgeIdentity<l_t>::getInstance()};
     std::unordered_set<FlowFunctionPtrType> registeredFlowFunctionSingletons = {
       Identity<d_t>::getInstance(), KillAll<d_t>::getInstance()};
 

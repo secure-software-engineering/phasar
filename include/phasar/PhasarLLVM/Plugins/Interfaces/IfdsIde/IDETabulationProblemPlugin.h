@@ -80,8 +80,8 @@ public:
     os << llvmIRToString(l);
   }
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
-    return std::make_shared<AllTop<l_t>>(topElement());
+  EdgeFunctionPtrType allTopFunction() override {
+    return new AllTop<l_t>(topElement());
   }
 };
 

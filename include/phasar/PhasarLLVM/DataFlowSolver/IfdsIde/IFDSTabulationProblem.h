@@ -58,6 +58,8 @@ public:
   static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
                 "I must implement the ICFG interface!");
 
+  using typename FlowFunctions<AnalysisDomainTy>::FlowFunctionPtrType;
+
 protected:
   IFDSIDESolverConfig SolverConfig;
   const ProjectIRDB *IRDB;
@@ -67,6 +69,7 @@ protected:
   d_t ZeroValue;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] SoundnessFlag SF = SoundnessFlag::UNUSED;
+  std::set<FlowFunctionPtrType> registeredFlowFunctionSingleton;
 
 public:
   using ConfigurationTy = HasNoConfigurationType;
@@ -90,6 +93,10 @@ public:
 
   [[nodiscard]] std::set<std::string> getEntryPoints() const {
     return EntryPoints;
+  }
+
+  std::set<FlowFunctionPtrType> getRegisteredFlowFunctionSingleton() const {
+    return registeredFlowFunctionSingleton;
   }
 
   const ProjectIRDB *getProjectIRDB() const { return IRDB; }

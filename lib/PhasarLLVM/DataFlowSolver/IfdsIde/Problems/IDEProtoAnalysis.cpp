@@ -97,7 +97,7 @@ bool IDEProtoAnalysis::isZeroValue(IDEProtoAnalysis::d_t D) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t Curr,
                                         IDEProtoAnalysis::d_t CurrNode,
                                         IDEProtoAnalysis::n_t Succ,
@@ -105,7 +105,7 @@ IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t Curr,
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t CallStmt,
                                       IDEProtoAnalysis::d_t SrcNode,
                                       IDEProtoAnalysis::f_t DestinationFunction,
@@ -113,7 +113,7 @@ IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t CallStmt,
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::getReturnEdgeFunction(IDEProtoAnalysis::n_t CallSite,
                                         IDEProtoAnalysis::f_t CalleeFunction,
                                         IDEProtoAnalysis::n_t ExitStmt,
@@ -123,7 +123,7 @@ IDEProtoAnalysis::getReturnEdgeFunction(IDEProtoAnalysis::n_t CallSite,
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::getCallToRetEdgeFunction(IDEProtoAnalysis::n_t CallSite,
                                            IDEProtoAnalysis::d_t CallNode,
                                            IDEProtoAnalysis::n_t RetSite,
@@ -132,7 +132,7 @@ IDEProtoAnalysis::getCallToRetEdgeFunction(IDEProtoAnalysis::n_t CallSite,
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::getSummaryEdgeFunction(IDEProtoAnalysis::n_t CallSite,
                                          IDEProtoAnalysis::d_t CallNode,
                                          IDEProtoAnalysis::n_t RetSite,
@@ -156,10 +156,10 @@ IDEProtoAnalysis::l_t IDEProtoAnalysis::join(IDEProtoAnalysis::l_t Lhs,
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::allTopFunction() {
   cout << "IDEProtoAnalysis::allTopFunction()\n";
-  return make_shared<IDEProtoAnalysisAllTop>();
+  return new IDEProtoAnalysisAllTop();
 }
 
 IDEProtoAnalysis::l_t IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget(
@@ -168,22 +168,22 @@ IDEProtoAnalysis::l_t IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget(
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> SecondFunction) {
+    IDEProtoAnalysis::EdgeFunctionPtrType SecondFunction) {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith()\n";
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+IDEProtoAnalysis::EdgeFunctionPtrType
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> OtherFunction) {
+    IDEProtoAnalysis::EdgeFunctionPtrType OtherFunction) {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith()\n";
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
 bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equal_to(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> Other) const {
+    IDEProtoAnalysis::EdgeFunctionPtrType Other) const {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo()\n";
   return false;
 }

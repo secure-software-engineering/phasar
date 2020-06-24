@@ -42,7 +42,7 @@ IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t Curr,
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
-  return make_shared<TAFF>();
+  return new TAFF();
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
@@ -54,7 +54,7 @@ IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallStmt,
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
-  return make_shared<TAFF>();
+  return new TAFF();
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType IFDSTypeAnalysis::getRetFlowFunction(
@@ -66,7 +66,7 @@ IFDSTypeAnalysis::FlowFunctionPtrType IFDSTypeAnalysis::getRetFlowFunction(
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
-  return make_shared<TAFF>();
+  return new TAFF();
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
@@ -79,7 +79,7 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t CallSite,
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
-  return make_shared<TAFF>();
+  return new TAFF();
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
