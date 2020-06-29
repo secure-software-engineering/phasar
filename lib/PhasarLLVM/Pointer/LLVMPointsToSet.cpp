@@ -42,9 +42,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     for (llvm::Module *M : IRDB.getAllModules()) {
       // compute points-to information for all globals
       for (const auto &G : M->globals()) {
-        if (isInterestingPointer(&G)) {
-          computeValuesPointsToSet(&G);
-        }
+        computeValuesPointsToSet(&G);
       }
       // compute points-to information for all functions
       for (auto &F : *M) {
@@ -57,7 +55,10 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
 }
 
 void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
-  assert(isInterestingPointer(V) && "Expect V to be an interesting pointer!");
+  if (!isInterestingPointer(V)) {
+    // don't need to do anything
+    return;
+  }
   if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     // add set for global variable
     addSingletonPointsToSet(G);
@@ -69,7 +70,9 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
         if (isInterestingPointer(User)) {
           mergePointsToSets(User, G);
         } else if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
-          if (Store->getValueOperand()->getType()->isPointerTy()) {
+          if (isInterestingPointer(Store->getValueOperand())) {
+            // Store->getPointerOperand() doesn't require checking: it is always
+            // an interesting pointer
             mergePointsToSets(Store->getValueOperand(),
                               Store->getPointerOperand());
           }
@@ -324,6 +327,10 @@ void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
                                      const llvm::Value *V2,
                                      const llvm::Instruction *I,
                                      AliasResult Kind) {
+  //  only introduce aliases if both values are interesting pointer
+  if (!isInterestingPointer(V1) || !isInterestingPointer(V2)) {
+    return;
+  }
   // before introducing additional aliases make sure we initially computed
   // the aliases for V1 and V2
   computeValuesPointsToSet(V1);
