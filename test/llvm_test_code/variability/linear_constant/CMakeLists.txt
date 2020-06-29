@@ -1,6 +1,15 @@
-file(GLOB variability_files *.c *.cpp)
 
-foreach(TEST_SRC ${variability_files})
-  get_filename_component(TEST_SRC_FILE ${TEST_SRC} NAME)
-  generate_ll_file(FILE ${TEST_SRC_FILE})
-endforeach(TEST_SRC)
+add_subdirectory(array)
+add_subdirectory(basic)
+add_subdirectory(branching)
+add_subdirectory(call)
+add_subdirectory(global)
+add_subdirectory(heap)
+add_subdirectory(loop)
+add_subdirectory(manually_transformed)
+add_subdirectory(pointer)
+add_subdirectory(struct)
+
+#
+# TODO: add functionalities to compile C programs using XTC
+#
