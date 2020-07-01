@@ -1224,17 +1224,24 @@ protected:
                   << "Edge function : " << f.get()->str()
                   << " (result of previous compose)";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    EdgeFunctionPtrType jumpFnE = nullptr;
-    EdgeFunctionPtrType fPrime;
-    auto revLookupResult = jumpFn->reverseLookup(target, targetVal);
-    if (revLookupResult && !revLookupResult->get().empty()) {
-      jumpFnE = revLookupResult->get()[sourceVal];
-    }
-    if (jumpFnE == nullptr) {
-      jumpFnE = allTop; // jump function is initialized to all-top
-    }
-    fPrime = jumpFnE->joinWith(f); // TODO: check before join?
+
+    EdgeFunctionPtrType jumpFnE = [&]() {
+      const auto revLookupResult = jumpFn->reverseLookup(target, targetVal);
+      if (revLookupResult) {
+        const auto &JumpFnContainer = revLookupResult->get();
+        const auto Find = std::find_if(
+            JumpFnContainer.begin(), JumpFnContainer.end(),
+            [sourceVal](auto &KVpair) { return KVpair.first == sourceVal; });
+        if (Find != JumpFnContainer.end()) {
+          return Find->second;
+        }
+      }
+      // jump function is initialized to all-top if no entry was found
+      return allTop;
+    }();
+    EdgeFunctionPtrType fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equal_to(jumpFnE));
+
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Join: " << jumpFnE->str() << " & " << f.get()->str()
                       << (jumpFnE->equal_to(f) ? " (EF's are equal)" : " ");
