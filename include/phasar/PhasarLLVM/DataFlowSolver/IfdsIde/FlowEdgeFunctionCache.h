@@ -116,16 +116,16 @@ public:
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Normal flow function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Curr Inst : " << problem.NtoString(curr));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Normal flow function factory call";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Curr Inst : " << problem.NtoString(curr);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(N) Succ Inst : " << problem.NtoString(succ));
     auto key = std::tie(curr, succ);
     if (NormalFlowFunctionCache.count(key)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("Normal-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return NormalFlowFunctionCache.at(key);
     } else {
@@ -136,8 +136,8 @@ public:
                     : problem.getNormalFlowFunction(curr, succ);
       NormalFlowFunctionCache.insert(make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ff;
     }
   }
@@ -145,16 +145,16 @@ public:
   FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Call flow function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Stmt : " << problem.NtoString(callStmt));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Call flow function factory call";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Call Stmt : " << problem.NtoString(callStmt);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(F) Dest Fun : " << problem.FtoString(destFun));
     auto key = std::tie(callStmt, destFun);
     if (CallFlowFunctionCache.count(key)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("Call-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return CallFlowFunctionCache.at(key);
     } else {
@@ -166,8 +166,8 @@ public:
               : problem.getCallFlowFunction(callStmt, destFun);
       CallFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ff;
     }
   }
@@ -176,20 +176,20 @@ public:
                                          n_t exitStmt, n_t retSite) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Return flow function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << problem.NtoString(callSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Callee    : " << problem.FtoString(calleeFun));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Exit Stmt : " << problem.NtoString(exitStmt));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Return flow function factory call";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Call Site : " << problem.NtoString(callSite);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(F) Callee    : " << problem.FtoString(calleeFun);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Exit Stmt : " << problem.NtoString(exitStmt);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(N) Ret Site  : " << problem.NtoString(retSite));
     auto key = std::tie(callSite, calleeFun, exitStmt, retSite);
     if (ReturnFlowFunctionCache.count(key)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("Return-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return ReturnFlowFunctionCache.at(key);
     } else {
@@ -203,8 +203,8 @@ public:
                                                  retSite);
       ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ff;
     }
   }
@@ -212,22 +212,22 @@ public:
   FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
                                                std::set<f_t> callees) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Call-to-Return flow function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << problem.NtoString(callSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Ret Site  : " << problem.NtoString(retSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "(F) Callee's  : ");
-    for (auto callee : callees) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "  " << problem.FtoString(callee));
-    }
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "Call-to-Return flow function factory call";
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(N) Call Site : " << problem.NtoString(callSite);
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(N) Ret Site  : " << problem.NtoString(retSite);
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "(F) Callee's  : "; for (auto callee
+                                                                    : callees) {
+          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << problem.FtoString(callee);
+        });
     auto key = std::tie(callSite, retSite, callees);
     if (CallToRetFlowFunctionCache.count(key)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("CallToRet-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return CallToRetFlowFunctionCache.at(key);
     } else {
@@ -241,8 +241,8 @@ public:
               : problem.getCallToRetFlowFunction(callSite, retSite, callees);
       CallToRetFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Flow function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Flow function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ff;
     }
   }
@@ -251,12 +251,12 @@ public:
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Summary flow function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Stmt : " << problem.NtoString(callStmt));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Dest Mthd : " << problem.FtoString(destFun));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                      << "Summary flow function factory call";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Call Stmt : " << problem.NtoString(callStmt);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(F) Dest Mthd : " << problem.FtoString(destFun);
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     auto ff = problem.getSummaryFlowFunction(callStmt, destFun);
     return ff;
   }
@@ -265,29 +265,29 @@ public:
                                             d_t succNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Normal edge function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Curr Inst : " << problem.NtoString(curr));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Curr Node : " << problem.DtoString(currNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Succ Inst : " << problem.NtoString(succ));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Normal edge function factory call";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Curr Inst : " << problem.NtoString(curr);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(D) Curr Node : " << problem.DtoString(currNode);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Succ Inst : " << problem.NtoString(succ);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Succ Node : " << problem.DtoString(succNode));
     auto key = std::tie(curr, currNode, succ, succNode);
     if (NormalEdgeFunctionCache.count(key)) {
       INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return NormalEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
       NormalEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ef;
     }
   }
@@ -296,23 +296,22 @@ public:
                                           f_t destinationFunction,
                                           d_t destNode) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Call edge function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Stmt : " << problem.NtoString(callStmt));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Src Node  : " << problem.DtoString(srcNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Dest Fun : "
-                  << problem.FtoString(destinationFunction));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Dest Node : " << problem.DtoString(destNode));
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "Call edge function factory call";
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(N) Call Stmt : " << problem.NtoString(callStmt);
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(D) Src Node  : " << problem.DtoString(srcNode);
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(F) Dest Fun : " << problem.FtoString(destinationFunction);
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(D) Dest Node : " << problem.DtoString(destNode));
     auto key = std::tie(callStmt, srcNode, destinationFunction, destNode);
     if (CallEdgeFunctionCache.count(key)) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return CallEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -320,8 +319,8 @@ public:
                                             destinationFunction, destNode);
       CallEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ef;
     }
   }
@@ -331,26 +330,26 @@ public:
                                             n_t reSite, d_t retNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Return edge function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << problem.NtoString(callSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Callee    : " << problem.FtoString(calleeFunction));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Exit Stmt : " << problem.NtoString(exitStmt));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Exit Node : " << problem.DtoString(exitNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Ret Site  : " << problem.NtoString(reSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Return edge function factory call";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Call Site : " << problem.NtoString(callSite);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(F) Callee    : " << problem.FtoString(calleeFunction);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Exit Stmt : " << problem.NtoString(exitStmt);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(D) Exit Node : " << problem.DtoString(exitNode);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Ret Site  : " << problem.NtoString(reSite);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Ret Node  : " << problem.DtoString(retNode));
     auto key =
         std::tie(callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
     if (ReturnEdgeFunctionCache.count(key)) {
       INC_COUNTER("Return-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ReturnEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -358,8 +357,8 @@ public:
           callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
       ReturnEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ef;
     }
   }
@@ -368,27 +367,27 @@ public:
                                                n_t retSite, d_t retSiteNode,
                                                std::set<f_t> callees) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Call-to-Return edge function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << problem.NtoString(callSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Call Node : " << problem.DtoString(callNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Ret Site  : " << problem.NtoString(retSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Ret Node  : " << problem.DtoString(retSiteNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "(F) Callee's  : ");
-    for (auto callee : callees) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "  " << problem.FtoString(callee));
-    }
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "Call-to-Return edge function factory call";
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(N) Call Site : " << problem.NtoString(callSite);
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(D) Call Node : " << problem.DtoString(callNode);
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(N) Ret Site  : " << problem.NtoString(retSite);
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "(D) Ret Node  : " << problem.DtoString(retSiteNode);
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "(F) Callee's  : "; for (auto callee
+                                                                    : callees) {
+          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << problem.FtoString(callee);
+        });
     auto key = std::tie(callSite, callNode, retSite, retSiteNode);
     if (CallToRetEdgeFunctionCache.count(key)) {
       INC_COUNTER("CallToRet-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return CallToRetEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("CallToRet-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -396,8 +395,8 @@ public:
                                                  retSiteNode, callees);
       CallToRetEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ef;
     }
   }
@@ -406,22 +405,22 @@ public:
                                              n_t retSite, d_t retSiteNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Summary edge function factory call");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << problem.NtoString(callSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Call Node : " << problem.DtoString(callNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Ret Site  : " << problem.NtoString(retSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Ret Node  : " << problem.DtoString(retSiteNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                      << "Summary edge function factory call";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Call Site : " << problem.NtoString(callSite);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(D) Call Node : " << problem.DtoString(callNode);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(N) Ret Site  : " << problem.NtoString(retSite);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "(D) Ret Node  : " << problem.DtoString(retSiteNode);
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     auto key = std::tie(callSite, callNode, retSite, retSiteNode);
     if (SummaryEdgeFunctionCache.count(key)) {
       INC_COUNTER("Summary-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function fetched from cache");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function fetched from cache";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return SummaryEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Summary-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -429,8 +428,8 @@ public:
                                                retSiteNode);
       SummaryEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Edge function constructed");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                        << "Edge function constructed";
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ef;
     }
   }
