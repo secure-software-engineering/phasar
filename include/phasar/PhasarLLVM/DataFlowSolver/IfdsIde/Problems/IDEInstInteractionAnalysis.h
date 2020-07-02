@@ -37,6 +37,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -69,7 +70,6 @@ struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
   // type of the element contained in the sets of edge functions
   using e_t = EdgeFactType;
   using l_t = LatticeDomain<BitVectorSet<e_t>>;
-  using i_t = LLVMBasedICFG;
 };
 
 ///
@@ -144,27 +144,25 @@ public:
   // start formulating our analysis by specifying the parts required for IFDS
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
-    // generate all global variables (only once)
-    // if (LLVM_UNLIKELY(!GeneratedGlobalVariables)) {
-    //   if (const llvm::Module *M = curr->getModule()) {
-    //     for (const auto &Global : M->globals()) {
-    //       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&Global))
-    //       {
-    //         return std::make_shared<Gen<d_t>>(GV, this->getZeroValue());
-    //       }
-    //     }
-    //   }
-    //   GeneratedGlobalVariables = true;
-    // }
+    // TODO generate global and heap allocated variables
 
-    // generate all local variables as they occur
+    // Generate all local variables
+    //
+    // Flow function:
+    //
+    //                0
+    //                |\
+    // x = alloca y   | \
+    //                v  v
+    //                0  x
+    //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "AllocaInst");
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
     }
 
-    // handle indirect taints (propagate values that depend on branch conditions
-    // whose operands are tainted)
+    // Handle indirect taints, i. e., propagate values that depend on branch
+    // conditions whose operands are tainted.
     if (EnableIndirectTaints) {
       if (auto br = llvm::dyn_cast<llvm::BranchInst>(curr);
           br && br->isConditional()) {
@@ -183,25 +181,38 @@ public:
       }
     }
 
+    // Handle points is the user wishes to conduct a non-syntax-only
+    // inst-interaction analysis.
     if (!SyntacticAnalysisOnly) {
-      // (ii) handle semantic propagation (pointers)
+      // (ii) Handle semantic propagation (pointers) for load instructions.
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-        // if one of the potentially many loaded values holds, the load itself
-        // must also be populated
+        // If one of the potentially many loaded values holds, the load itself
+        // (dereferenced value) must also be generated and populated.
+        //
+        // Flow function:
+        //
+        // Let Y = pts(y), be the points-to set of y.
+        //
+        //              0  Y  x
+        //              |  |\ |
+        // x = load y   |  | \|
+        //              v  v  v
+        //              0  y  x
+        //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::LoadInst *Load;
-          std::unordered_set<d_t> PTS;
+          std::shared_ptr<std::unordered_set<d_t>> PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
               : Problem(Problem), Load(Load),
-                PTS(*Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
+                PTS(Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
             Facts.insert(src);
-            if (PTS.count(src)) {
+            if (PTS->count(src)) {
               Facts.insert(Load);
             }
             return Facts;
@@ -210,36 +221,59 @@ public:
         return std::make_shared<IIAFlowFunction>(*this, Load);
       }
 
-      // (ii) handle semantic propagation (pointers)
+      // (ii) Handle semantic propagation (pointers) for store instructions.
       if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-        // if the value to be stored holds the potentially memory location
-        // that it is stored to must be populated as well
+        // If the value to be stored holds the potentially memory location(s)
+        // that it is stored to must be generated and populated, too.
+        //
+        // Flow function:
+        //
+        // Let X be
+        //    - pts(x), the points-to set of x if x is an intersting pointer.
+        //    - a singleton set containing x, otherwise.
+        // Let Y be pts(y), the points-to set of y.
+        //
+        //             0  X  y
+        //             |  |\ |
+        // store x y   |  | \|
+        //             v  v  v
+        //             0  x  Y
+        //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           IDEInstInteractionAnalysisT &Problem;
           const llvm::StoreInst *Store;
-          std::unordered_set<d_t> ValuePTS;
-          std::unordered_set<d_t> PointerPTS;
+          std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
+          std::shared_ptr<std::unordered_set<d_t>> PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
-              : Problem(Problem), Store(Store),
-                ValuePTS(*Problem.PT->getPointsToSet(Store->getValueOperand())),
+              : Problem(Problem), Store(Store), ValuePTS([&]() {
+                  if (isInterestingPointer(Store->getValueOperand())) {
+                    return Problem.PT->getPointsToSet(Store->getValueOperand());
+                  } else {
+                    return std::make_shared<std::unordered_set<d_t>>(
+                        std::unordered_set<d_t>{Store->getValueOperand()});
+                  }
+                }()),
                 PointerPTS(
-                    *Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
+                    Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
             Facts.insert(src);
-            // if a value is stored that holds we must generate all potential
-            // memory locations the store might write to
-            if (Store->getValueOperand() == src || ValuePTS.count(src)) {
-              Facts.insert(Store->getPointerOperand());
-              Facts.insert(PointerPTS.begin(), PointerPTS.end());
+            if (Problem.isZeroValue(src)) {
+              return Facts;
             }
-            // if the value to be stored does not hold then we must at least add
+            // If a value is stored that holds we must generate all potential
+            // memory locations the store might write to.
+            if (Store->getValueOperand() == src || ValuePTS->count(src)) {
+              Facts.insert(Store->getPointerOperand());
+              Facts.insert(PointerPTS->begin(), PointerPTS->end());
+            }
+            // If the value to be stored does not hold we must at least add
             // the store instruction and the points-to set as the instruction
-            // still interacts with the memory locations pointed to be PTS
-            if (Store->getPointerOperand() == src || PointerPTS.count(src)) {
+            // still interacts with the memory locations pointed to be PTS.
+            if (Store->getPointerOperand() == src || PointerPTS->count(src)) {
               Facts.insert(Store);
               Facts.erase(src);
             }
@@ -250,10 +284,20 @@ public:
       }
     }
 
-    // (i) handle syntactic propagation store instructions
-    // in case store x y, we need to draw the edge x --> y such that we can
+    // (i) Handle syntactic propagation for store instructions
+    // In case store x y, we need to draw the edge x --> y such that we can
     // transfer x's labels to y
+    //
+    // Flow function:
+    //
+    //             0  x
+    //             |  |\
+    // store x y   |  | \
+    //             v  v  v
+    //             0  x  y
+    //
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
+      // Case x is a load instruction
       if (const auto *Load =
               llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
         struct IIAAFlowFunction : FlowFunction<d_t> {
@@ -285,6 +329,7 @@ public:
         };
         return std::make_shared<IIAAFlowFunction>(Store, Load);
       } else {
+        // Otherwise
         struct IIAAFlowFunction : FlowFunction<d_t> {
           const llvm::StoreInst *Store;
           IIAAFlowFunction(const llvm::StoreInst *S) : Store(S) {}
@@ -292,11 +337,9 @@ public:
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
+            Facts.insert(src);
             if (Store->getValueOperand() == src) {
-              Facts.insert(src);
               Facts.insert(Store->getPointerOperand());
-            } else {
-              Facts.insert(src);
             }
             LOG_IF_ENABLE([&]() {
               for (const auto s : Facts) {
@@ -312,7 +355,18 @@ public:
         return std::make_shared<IIAAFlowFunction>(Store);
       }
     }
-    // and now we can handle all other statements
+    // At last, we can handle all other (unary/binary) instructions
+    //
+    // Flow function:
+    //
+    //                       0  x  o  p
+    //                       |  | /| /|
+    // x = instruction o p   |  |/ |/ |
+    //                       |  | /|  |
+    //                       |  |/ |  |
+    //                       v  v  v  v
+    //                       0  x  o  p
+    //
     struct IIAFlowFunction : FlowFunction<d_t> {
       IDEInstInteractionAnalysisT &Problem;
       n_t Inst;
@@ -361,7 +415,14 @@ public:
 
   inline FlowFunctionPtrType getCallFlowFunction(n_t callStmt,
                                                  f_t destMthd) override {
-    // just use the auto mapping
+    if (this->ICF->isHeapAllocatingFunction(destMthd)) {
+      // Kill add facts and model the effects in getCallToRetFlowFunction().
+      return KillAll<d_t>::getInstance();
+    } else if (destMthd->isDeclaration()) {
+      // We don't have anything that we could analyze, kill all facts.
+      return KillAll<d_t>::getInstance();
+    }
+    // Map actual to formal parameters.
     return std::make_shared<MapFactsToCallee<container_type>>(
         llvm::ImmutableCallSite(callStmt), destMthd);
   }
@@ -369,8 +430,8 @@ public:
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
                                                 n_t exitStmt,
                                                 n_t retSite) override {
-    // if pointer parameters hold at the end of a callee function generate all
-    // of the
+    // Map return value back to the caller. If pointer parameters hold at the
+    // end of a callee function generate all of those in the caller context.
     return std::make_shared<MapFactsToCaller<container_type>>(
         llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt);
   }
@@ -378,30 +439,54 @@ public:
   inline FlowFunctionPtrType
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<f_t> callees) override {
-    // just use the auto mapping, pointer parameters are killed and handled by
-    // getCallFlowfunction() and getRetFlowFunction()
+    // Model call to heap allocating functions (new, new[], malloc, etc.) --
+    // only model direct calls, though.
+    if (callees.size() == 1) {
+      for (const auto *Callee : callees) {
+        if (this->ICF->isHeapAllocatingFunction(Callee)) {
+          // In case a heap allocating function is called, generate the pointer
+          // that is returned.
+          //
+          // Flow function:
+          //
+          // Let H be a heap allocating function.
+          //
+          //              0
+          //              |\
+          // x = call H   | \
+          //              v  v
+          //              0  x
+          //
+          return std::make_shared<Gen<d_t>>(callSite, this->getZeroValue());
+        }
+      }
+    }
+    // Just use the auto mapping for values, pointer parameters are killed and
+    // handled by getCallFlowfunction() and getRetFlowFunction().
     return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
         llvm::ImmutableCallSite(callSite));
   }
 
   inline FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
                                                     f_t destMthd) override {
-    // do not use user-crafted summaries
+    // Do not use user-crafted summaries.
     return nullptr;
   }
 
   inline std::map<n_t, container_type> initialSeeds() override {
     std::map<n_t, container_type> SeedMap;
-    for (auto &EntryPoint : this->EntryPoints) {
-      SeedMap.insert(
-          std::make_pair(&this->ICF->getFunction(EntryPoint)->front().front(),
-                         container_type({this->getZeroValue()})));
+    for (const auto &EntryPoint : this->EntryPoints) {
+      for (const auto *StartPoint :
+           this->ICF->getStartPointsOf(this->ICF->getFunction(EntryPoint))) {
+        SeedMap.insert(
+            std::make_pair(StartPoint, container_type({this->getZeroValue()})));
+      }
     }
     return SeedMap;
   }
 
   [[nodiscard]] inline d_t createZeroValue() const override {
-    // create a special value to represent the zero value!
+    // Create a special value to represent the zero value!
     return LLVMZeroValue::getInstance();
   }
 
@@ -409,7 +494,7 @@ public:
     return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
   }
 
-  // in addition provide specifications for the IDE parts
+  // In addition provide specifications for the IDE parts.
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
@@ -419,7 +504,7 @@ public:
                   << llvmIRToShortString(curr) << "--> "
                   << llvmIRToShortString(succNode));
 
-    // propagate zero edges as identity
+    // Propagate zero edges as identity
     if (isZeroValue(currNode) && isZeroValue(succNode)) {
       return EdgeIdentity<l_t>::getInstance();
     }
@@ -585,29 +670,29 @@ public:
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationMethod,
                       d_t destNode) override {
-    // can be passed as identity
+    // Can be passed as identity.
     return EdgeIdentity<l_t>::getInstance();
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override {
-    // can be passed as identity
+    // Can be passed as identity.
     return EdgeIdentity<l_t>::getInstance();
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<f_t> callees) override {
-    // just forward to getNormalEdgeFunction() to check whether a user has
-    // additional labels for this call site
+    // Just forward to getNormalEdgeFunction() to check whether a user has
+    // additional labels for this call site.
     return getNormalEdgeFunction(callSite, callNode, retSite, retSiteNode);
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                          d_t retSiteNode) override {
-    // do not use user-crafted summaries
+    // Do not use user-crafted summaries.
     return nullptr;
   }
 
@@ -634,10 +719,10 @@ public:
     return std::make_shared<AllTop<l_t>>(topElement());
   }
 
-  // provide some handy helper edge functions to improve reuse
+  // Provide some handy helper edge functions to improve reuse.
 
-  // edge function that kills all labels in a set (and may replaces them with
-  // others)
+  // Edge function that kills all labels in a set (and may replaces them with
+  // others).
   class IIAAKillOrReplaceEF
       : public EdgeFunction<l_t>,
         public std::enable_shared_from_this<IIAAKillOrReplaceEF> {
@@ -732,8 +817,8 @@ public:
     }
   };
 
-  // edge function that adds the given labels to existing labels
-  // add all labels provided by 'Data'
+  // Edge function that adds the given labels to existing labels
+  // add all labels provided by Data.
   class IIAAAddLabelsEF : public EdgeFunction<l_t>,
                           public std::enable_shared_from_this<IIAAAddLabelsEF> {
   private:
@@ -816,7 +901,7 @@ public:
     }
   };
 
-  // provide functionalities for printing things and emitting text reports
+  // Provide functionalities for printing things and emitting text reports.
 
   void printNode(std::ostream &os, n_t n) const override {
     os << llvmIRToString(n);

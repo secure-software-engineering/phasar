@@ -63,6 +63,16 @@ ICFGTestPlugin::getAllInstructionsOf(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getStartPointsOf(ICFGTestPlugin::f_t fun) const {
+  return {};
+}
+
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t fun) const {
+  return {};
+}
+
 bool ICFGTestPlugin::isExitStmt(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
@@ -89,11 +99,29 @@ bool ICFGTestPlugin::isBranchTarget(ICFGTestPlugin::n_t Stmt,
   return false;
 }
 
+bool ICFGTestPlugin::isHeapAllocatingFunction(ICFGTestPlugin::f_t fun) const {
+  return false;
+}
+
+bool ICFGTestPlugin::isSpecialMemberFunction(ICFGTestPlugin::f_t fun) const {
+  return false;
+}
+
+SpecialMemberFunctionType
+ICFGTestPlugin::getSpecialMemberFunctionType(ICFGTestPlugin::f_t fun) const {
+  return SpecialMemberFunctionType::None;
+}
+
 std::string ICFGTestPlugin::getStatementId(ICFGTestPlugin::n_t Stmt) const {
   return "";
 }
 
 std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::f_t Fun) const {
+  return "";
+}
+
+std::string
+ICFGTestPlugin::getDemangledFunctionName(ICFGTestPlugin::f_t Fun) const {
   return "";
 }
 
@@ -141,16 +169,6 @@ ICFGTestPlugin::getCallersOf(ICFGTestPlugin::f_t Fun) const {
 
 std::set<ICFGTestPlugin::n_t>
 ICFGTestPlugin::getCallsFromWithin(ICFGTestPlugin::f_t Fun) const {
-  return {};
-}
-
-std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getStartPointsOf(ICFGTestPlugin::f_t Fun) const {
-  return {};
-}
-
-std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 

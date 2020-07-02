@@ -49,10 +49,6 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
   boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
 }
 
-bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *Stmt) const {
-  return ForwardICFG.isCallStmt(Stmt);
-}
-
 bool LLVMBasedBackwardsICFG::isIndirectFunctionCall(
     const llvm::Instruction *Stmt) const {
   return ForwardICFG.isIndirectFunctionCall(Stmt);
@@ -86,16 +82,6 @@ LLVMBasedBackwardsICFG::getCallersOf(const llvm::Function *M) const {
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *M) const {
   return ForwardICFG.getCallsFromWithin(M);
-}
-
-std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *M) const {
-  return ForwardICFG.getExitPointsOf(M);
-}
-
-std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *Fun) const {
-  return ForwardICFG.getStartPointsOf(Fun);
 }
 
 std::set<const llvm::Instruction *>

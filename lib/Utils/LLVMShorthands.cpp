@@ -52,66 +52,6 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
   return false;
 }
 
-SpecialMemberFunctionTy specialMemberFunctionType(const std::string &S) {
-  // test if Codes for Constructors, Destructors or operator= are in string
-  static const std::map<std::string, SpecialMemberFunctionTy> Codes{
-      {"C1", SpecialMemberFunctionTy::CTOR},
-      {"C2", SpecialMemberFunctionTy::CTOR},
-      {"C3", SpecialMemberFunctionTy::CTOR},
-      {"D0", SpecialMemberFunctionTy::DTOR},
-      {"D1", SpecialMemberFunctionTy::DTOR},
-      {"D2", SpecialMemberFunctionTy::DTOR},
-      {"aSERKS_", SpecialMemberFunctionTy::CPASSIGNOP},
-      {"aSEOS_", SpecialMemberFunctionTy::MVASSIGNOP}};
-  std::vector<std::pair<std::size_t, SpecialMemberFunctionTy>> Found;
-  std::size_t Blacklist = 0;
-  auto It = Codes.begin();
-  while (It != Codes.end()) {
-    if (std::size_t Index = S.find(It->first, Blacklist)) {
-      if (Index != std::string::npos) {
-        Found.emplace_back(Index, It->second);
-        Blacklist = Index + 1;
-      } else {
-        ++It;
-        Blacklist = 0;
-      }
-    }
-  }
-  if (Found.empty()) {
-    return SpecialMemberFunctionTy::NONE;
-  }
-
-  // test if codes are in function name or type information
-  bool NoName = true;
-  for (auto Index : Found) {
-    for (auto C = S.begin(); C < S.begin() + Index.first; ++C) {
-      if (isdigit(*C)) {
-        short I = 0;
-        while (isdigit(*(C + I))) {
-          ++I;
-        }
-        std::string ST(C, C + I);
-        if (Index.first <= std::distance(S.begin(), C) + stoul(ST)) {
-          NoName = false;
-          break;
-        } else {
-          C = C + *C;
-        }
-      }
-    }
-    if (NoName) {
-      return Index.second;
-    } else {
-      NoName = true;
-    }
-  }
-  return SpecialMemberFunctionTy::NONE;
-}
-
-SpecialMemberFunctionTy specialMemberFunctionType(const llvm::StringRef &Sr) {
-  return specialMemberFunctionType(Sr.str());
-}
-
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {

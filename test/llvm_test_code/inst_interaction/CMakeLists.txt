@@ -16,7 +16,9 @@ set(Sources
   call_05.cpp
   call_06.cpp
   global_01.cpp
+  heap_01.cpp
   KillTest.cpp
+  struct_01.cpp
 )
 
 foreach(TEST_SRC ${Sources})

@@ -23,6 +23,8 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Utilities.h"
+#include "phasar/Utils/Logger.h"
 
 #include <algorithm>
 #include <cassert>
@@ -99,6 +101,40 @@ LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *Fun) const {
   return Instructions;
 }
 
+std::set<const llvm::Instruction *>
+LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
+  if (!Fun) {
+    return {};
+  }
+  if (!Fun->isDeclaration()) {
+    return {&Fun->front().front()};
+  } else {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Could not get starting points of '"
+                  << Fun->getName().str() << "' because it is a declaration");
+    return {};
+  }
+}
+
+std::set<const llvm::Instruction *>
+LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
+  if (!Fun) {
+    return {};
+  }
+  if (!Fun->isDeclaration()) {
+    return {&Fun->back().back()};
+  } else {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Could not get exit points of '" << Fun->getName().str()
+                  << "' which is declaration!");
+    return {};
+  }
+}
+
+bool LLVMBasedCFG::isCallStmt(const llvm::Instruction *Stmt) const {
+  return llvm::isa<llvm::CallInst>(Stmt) || llvm::isa<llvm::InvokeInst>(Stmt);
+}
+
 bool LLVMBasedCFG::isExitStmt(const llvm::Instruction *Stmt) const {
   return llvm::isa<llvm::ReturnInst>(Stmt);
 }
@@ -152,6 +188,85 @@ bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *Stmt,
   return false;
 }
 
+bool LLVMBasedCFG::isHeapAllocatingFunction(const llvm::Function *Fun) const {
+  static const std::set<std::string> HeapAllocatingFunctions = {
+      "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
+  if (!Fun) {
+    return false;
+  }
+  if (Fun->hasName() && HeapAllocatingFunctions.find(Fun->getName().str()) !=
+                            HeapAllocatingFunctions.end()) {
+    return true;
+  }
+  return false;
+}
+
+bool LLVMBasedCFG::isSpecialMemberFunction(const llvm::Function *Fun) const {
+  return getSpecialMemberFunctionType(Fun) != SpecialMemberFunctionType::None;
+}
+
+SpecialMemberFunctionType
+LLVMBasedCFG::getSpecialMemberFunctionType(const llvm::Function *Fun) const {
+  if (!Fun) {
+    return SpecialMemberFunctionType::None;
+  }
+  auto FunctionName = Fun->getName();
+  // TODO this looks terrible and needs fix
+  static const std::map<std::string, SpecialMemberFunctionType> Codes{
+      {"C1", SpecialMemberFunctionType::Constructor},
+      {"C2", SpecialMemberFunctionType::Constructor},
+      {"C3", SpecialMemberFunctionType::Constructor},
+      {"D0", SpecialMemberFunctionType::Destructor},
+      {"D1", SpecialMemberFunctionType::Destructor},
+      {"D2", SpecialMemberFunctionType::Destructor},
+      {"aSERKS_", SpecialMemberFunctionType::CopyAssignment},
+      {"aSEOS_", SpecialMemberFunctionType::MoveAssignment}};
+  std::vector<std::pair<std::size_t, SpecialMemberFunctionType>> Found;
+  std::size_t Blacklist = 0;
+  auto It = Codes.begin();
+  while (It != Codes.end()) {
+    if (std::size_t Index = FunctionName.find(It->first, Blacklist)) {
+      if (Index != std::string::npos) {
+        Found.emplace_back(Index, It->second);
+        Blacklist = Index + 1;
+      } else {
+        ++It;
+        Blacklist = 0;
+      }
+    }
+  }
+  if (Found.empty()) {
+    return SpecialMemberFunctionType::None;
+  }
+
+  // test if codes are in function name or type information
+  bool NoName = true;
+  for (auto Index : Found) {
+    for (auto C = FunctionName.begin(); C < FunctionName.begin() + Index.first;
+         ++C) {
+      if (isdigit(*C)) {
+        short I = 0;
+        while (isdigit(*(C + I))) {
+          ++I;
+        }
+        std::string ST(C, C + I);
+        if (Index.first <= std::distance(FunctionName.begin(), C) + stoul(ST)) {
+          NoName = false;
+          break;
+        } else {
+          C = C + *C;
+        }
+      }
+    }
+    if (NoName) {
+      return Index.second;
+    } else {
+      NoName = true;
+    }
+  }
+  return SpecialMemberFunctionType::None;
+}
+
 string LLVMBasedCFG::getStatementId(const llvm::Instruction *Stmt) const {
   return llvm::cast<llvm::MDString>(
              Stmt->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
@@ -161,6 +276,11 @@ string LLVMBasedCFG::getStatementId(const llvm::Instruction *Stmt) const {
 
 string LLVMBasedCFG::getFunctionName(const llvm::Function *Fun) const {
   return Fun->getName().str();
+}
+
+std::string
+LLVMBasedCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
+  return cxxDemangle(getFunctionName(Fun));
 }
 
 void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {

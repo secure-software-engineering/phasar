@@ -420,39 +420,6 @@ LLVMBasedICFG::getCallsFromWithin(const llvm::Function *F) const {
 }
 
 /**
- * Returns all start points of a given method. There may be
- * more than one start point in case of a backward analysis.
- */
-set<const llvm::Instruction *>
-LLVMBasedICFG::getStartPointsOf(const llvm::Function *Fun) const {
-  if (!Fun) {
-    return {};
-  }
-  if (!Fun->isDeclaration()) {
-    return {&Fun->front().front()};
-    // } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
-    // return getStartPointsOf(getMethod(m->getName().str()));
-  } else {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Could not get starting points of '"
-                  << Fun->getName().str() << "' because it is a declaration");
-    return {};
-  }
-}
-
-set<const llvm::Instruction *>
-LLVMBasedICFG::getExitPointsOf(const llvm::Function *Fun) const {
-  if (!Fun->isDeclaration()) {
-    return {&Fun->back().back()};
-  } else {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Could not get exit points of '" << Fun->getName().str()
-                  << "' which is declaration!");
-    return {};
-  }
-}
-
-/**
  * Returns all statements to which a call could return.
  * In the RHS paper, for every call there is just one return site.
  * We, however, use as return site the successor statements, of which
@@ -469,11 +436,6 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
     ReturnSites.insert(&Invoke->getUnwindDest()->front());
   }
   return ReturnSites;
-}
-
-bool LLVMBasedICFG::isCallStmt(const llvm::Instruction *Stmt) const {
-  llvm::ImmutableCallSite CS(Stmt);
-  return CS.isCall();
 }
 
 /**
