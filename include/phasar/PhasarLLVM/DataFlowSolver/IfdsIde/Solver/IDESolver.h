@@ -1247,19 +1247,18 @@ protected:
       const PathEdge<n_t, d_t> edge(sourceVal, target, targetVal);
       PathEdgeCount++;
       pathEdgeProcessingTask(edge);
-      if (!IDEProblem.isZeroValue(targetVal)) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "EDGE: <F: "
-                          << target->getFunction()->getName().str()
-                          << ", D: " << IDEProblem.DtoString(sourceVal) << '>';
-                      BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << " ---> <N: " << IDEProblem.NtoString(target) << ',';
-                      BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "       D: " << IDEProblem.DtoString(targetVal) << ',';
-                      BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "      EF: " << fPrime->str() << '>';
-                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      }
+
+      LOG_IF_ENABLE(if (!IDEProblem.isZeroValue(targetVal)) {
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "EDGE: <F: " << target->getFunction()->getName().str()
+            << ", D: " << IDEProblem.DtoString(sourceVal) << '>';
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << " ---> <N: " << IDEProblem.NtoString(target) << ',';
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "       D: " << IDEProblem.DtoString(targetVal) << ',';
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "      EF: " << fPrime->str() << '>';
+        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
+      });
     } else {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "PROPAGATE: No new function!");
