@@ -343,6 +343,11 @@ public:
 
   }
 
+  bool isSensibleToSummarize() {
+    // use a heuristic to check whether we should compute a summary
+    // make use of the call-graph information
+  }
+
   virtual void solve() {
     initialize();
     while (!Worklist.empty()) {
@@ -361,7 +366,7 @@ public:
           for (auto &[Ctx, Facts] : Analysis[Src]) {
             if (Cache.hasSummary(Facts)) {
               // nothing to be done, we don't wish to analyze the function
-            } else if(true /* is primitive function called */) {
+            } else if(true /* use isSensibleToSummarize */) {
               // if callee target is primitive // TODO: find a better predicate
               // then summarize!
               auto Summary = summarize();
