@@ -22,6 +22,9 @@
 #include <optional>
 #include <ostream>
 #include <unordered_map>
+#include <utility>
+
+#include "llvm/ADT/SmallVector.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -52,7 +55,7 @@ protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<n_t, d_t, std::unordered_map<d_t, EdgeFunctionPtrType>>
+  Table<n_t, d_t, llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>
       nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
@@ -97,11 +100,20 @@ public:
     if (function->equal_to(allTop)) {
       return;
     }
-    // it is important that existing values in JumpFunctions are overwritten
-    // (use operator[] instead of insert)
-    std::unordered_map<d_t, EdgeFunctionPtrType> &sourceValToFunc =
-        nonEmptyReverseLookup.get(target, targetVal);
-    sourceValToFunc[sourceVal] = function;
+
+    auto &SourceValToFunc = nonEmptyReverseLookup.get(target, targetVal);
+    if (auto Find = std::find_if(
+            SourceValToFunc.begin(), SourceValToFunc.end(),
+            [sourceVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return sourceVal == Entry.first;
+            });
+        Find != SourceValToFunc.end()) {
+      // it is important that existing values in JumpFunctions are overwritten
+      Find->second = function;
+    } else {
+      SourceValToFunc.emplace_back(sourceVal, function);
+    }
+
     std::unordered_map<d_t, EdgeFunctionPtrType> &targetValToFunc =
         nonEmptyForwardLookup.get(sourceVal, target);
     targetValToFunc[targetVal] = function;
@@ -117,8 +129,8 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  std::optional<
-      std::reference_wrapper<std::unordered_map<d_t, EdgeFunctionPtrType>>>
+  std::optional<std::reference_wrapper<
+      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
   reverseLookup(n_t target, d_t targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal)) {
       return std::nullopt;
@@ -159,7 +171,15 @@ public:
    * there anyway.
    */
   bool removeFunction(d_t sourceVal, n_t target, d_t targetVal) {
-    nonEmptyReverseLookup.get(target, targetVal).erase(sourceVal);
+    auto &SourceValToFunc = nonEmptyReverseLookup.get(target, targetVal);
+    if (auto Find = std::find_if(
+            SourceValToFunc.begin(), SourceValToFunc.end(),
+            [sourceVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return sourceVal == Entry.first;
+            });
+        Find != SourceValToFunc.end()) {
+      SourceValToFunc.erase(Find);
+    }
     nonEmptyForwardLookup.get(sourceVal, target).erase(targetVal);
     return nonEmptyLookupByTargetNode.erase(target);
   }
