@@ -252,25 +252,24 @@ public:
     if (cells.empty()) {
       OS << "No results computed!" << std::endl;
     } else {
-      // FIXME
-      // llvmValueIDLess llvmIDLess;
-      // std::sort(cells.begin(), cells.end(),
-      //           [&llvmIDLess](
-      //               typename Table<const llvm::Instruction *, D, V>::Cell a,
-      //               typename Table<const llvm::Instruction *, D, V>::Cell b)
-      //               {
-      //             if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
-      //               if constexpr (std::is_same<D, const llvm::Value
-      //               *>::value) {
-      //                 return llvmIDLess(a.c, b.c);
-      //               } else {
-      //                 // If D is user defined we should use the user defined
-      //                 // less-than comparison
-      //                 return a.c < b.c;
-      //               }
-      //             }
-      //             return llvmIDLess(a.r, b.r);
-      //           });
+      llvmValueIDLess llvmIDLess;
+      std::sort(cells.begin(), cells.end(),
+                [&llvmIDLess](
+                    auto a,
+                    auto b)
+                    {
+                  if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
+                    if constexpr (std::is_same<D, const llvm::Value
+                    *>::value) {
+                      return llvmIDLess(a.c, b.c);
+                    } else {
+                      // If D is user defined we should use the user defined
+                      // less-than comparison
+                      return a.c < b.c;
+                    }
+                  }
+                  return llvmIDLess(a.r, b.r);
+                });
       n_t prev = n_t{};
       n_t curr = n_t{};
       f_t prevFn = f_t{};
