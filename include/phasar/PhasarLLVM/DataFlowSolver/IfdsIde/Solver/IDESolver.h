@@ -771,18 +771,24 @@ protected:
 
     auto fwdLookupRes =
         jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget());
-    if (!fwdLookupRes || !fwdLookupRes->get().count(edge.factAtTarget())) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "  => EdgeFn: " << allTop->str();
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
-      // JumpFn initialized to all-top, see line [2] in SRH96 paper
-      return allTop;
+    if (fwdLookupRes) {
+      auto &ref = fwdLookupRes->get();
+      if (auto Find = std::find_if(ref.begin(), ref.end(),
+                                   [edge](const auto &Pair) {
+                                     return edge.factAtTarget() == Pair.first;
+                                   });
+          Find != ref.end()) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "  => EdgeFn: " << Find->second->str();
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
+        return Find->second;
+      }
     }
-    auto res = fwdLookupRes->get()[edge.factAtTarget()];
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "  => EdgeFn: " << res->str();
+                      << "  => EdgeFn: " << allTop->str();
                   BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
-    return res;
+    // JumpFn initialized to all-top, see line [2] in SRH96 paper
+    return allTop;
   }
 
   void addEndSummary(n_t sP, d_t d1, n_t eP, d_t d2, EdgeFunctionPtrType f) {

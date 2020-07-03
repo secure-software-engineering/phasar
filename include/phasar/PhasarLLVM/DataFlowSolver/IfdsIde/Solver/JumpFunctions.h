@@ -60,7 +60,7 @@ protected:
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<d_t, n_t, std::unordered_map<d_t, EdgeFunctionPtrType>>
+  Table<d_t, n_t, llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>
       nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
@@ -114,9 +114,19 @@ public:
       SourceValToFunc.emplace_back(sourceVal, function);
     }
 
-    std::unordered_map<d_t, EdgeFunctionPtrType> &targetValToFunc =
-        nonEmptyForwardLookup.get(sourceVal, target);
-    targetValToFunc[targetVal] = function;
+    auto &TargetValToFunc = nonEmptyForwardLookup.get(sourceVal, target);
+    if (auto Find = std::find_if(
+            TargetValToFunc.begin(), TargetValToFunc.end(),
+            [targetVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return targetVal == Entry.first;
+            });
+        Find != TargetValToFunc.end()) {
+      // it is important that existing values in JumpFunctions are overwritten
+      Find->second = function;
+    } else {
+      TargetValToFunc.emplace_back(targetVal, function);
+    }
+
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -144,8 +154,8 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  std::optional<
-      std::reference_wrapper<std::unordered_map<d_t, EdgeFunctionPtrType>>>
+  std::optional<std::reference_wrapper<
+      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
   forwardLookup(d_t sourceVal, n_t target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
       return std::nullopt;
@@ -180,7 +190,15 @@ public:
         Find != SourceValToFunc.end()) {
       SourceValToFunc.erase(Find);
     }
-    nonEmptyForwardLookup.get(sourceVal, target).erase(targetVal);
+    auto &TargetValToFunc = nonEmptyForwardLookup.get(sourceVal, target);
+    if (auto Find = std::find_if(
+            TargetValToFunc.begin(), TargetValToFunc.end(),
+            [targetVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return targetVal == Entry.first;
+            });
+        Find != TargetValToFunc.end()) {
+      TargetValToFunc.erase(Find);
+    }
     return nonEmptyLookupByTargetNode.erase(target);
   }
 
