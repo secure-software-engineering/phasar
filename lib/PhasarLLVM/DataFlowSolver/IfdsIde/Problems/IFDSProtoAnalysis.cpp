@@ -12,11 +12,11 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -31,13 +31,13 @@ namespace psr {
 IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
-                                     const LLVMPointsToInfo *PT,
+                                     LLVMPointsToInfo *PT,
                                      std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSProtoAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
                                          IFDSProtoAnalysis::n_t Succ) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
@@ -47,28 +47,26 @@ IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t CallStmt,
                                        IFDSProtoAnalysis::f_t DestFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
-IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t CallSite,
-                                      IFDSProtoAnalysis::f_t CalleeFun,
-                                      IFDSProtoAnalysis::n_t ExitStmt,
-                                      IFDSProtoAnalysis::n_t RetSite) {
+IFDSProtoAnalysis::FlowFunctionPtrType IFDSProtoAnalysis::getRetFlowFunction(
+    IFDSProtoAnalysis::n_t CallSite, IFDSProtoAnalysis::f_t CalleeFun,
+    IFDSProtoAnalysis::n_t ExitStmt, IFDSProtoAnalysis::n_t RetSite) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getCallToRetFlowFunction(
     IFDSProtoAnalysis::n_t CallSite, IFDSProtoAnalysis::n_t RetSite,
     set<IFDSProtoAnalysis::f_t> Callees) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t CallStmt,
                                           IFDSProtoAnalysis::f_t DestFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();

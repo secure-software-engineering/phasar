@@ -10,9 +10,8 @@
 #include <utility>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -20,6 +19,7 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -35,7 +35,7 @@ namespace psr {
 IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
+                                   LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
@@ -43,34 +43,32 @@ IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
 
 // start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getNormalFlowFunction(IDEProtoAnalysis::n_t Curr,
                                         IDEProtoAnalysis::n_t Succ) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getCallFlowFunction(IDEProtoAnalysis::n_t CallStmt,
                                       IDEProtoAnalysis::f_t DestFun) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
-IDEProtoAnalysis::getRetFlowFunction(IDEProtoAnalysis::n_t CallSite,
-                                     IDEProtoAnalysis::f_t CalleeFun,
-                                     IDEProtoAnalysis::n_t ExitStmt,
-                                     IDEProtoAnalysis::n_t RetSite) {
+IDEProtoAnalysis::FlowFunctionPtrType IDEProtoAnalysis::getRetFlowFunction(
+    IDEProtoAnalysis::n_t CallSite, IDEProtoAnalysis::f_t CalleeFun,
+    IDEProtoAnalysis::n_t ExitStmt, IDEProtoAnalysis::n_t RetSite) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t CallSite,
                                            IDEProtoAnalysis::n_t RetSite,
                                            set<IDEProtoAnalysis::f_t> Callees) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
+IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getSummaryFlowFunction(IDEProtoAnalysis::n_t CallStmt,
                                          IDEProtoAnalysis::f_t DestFun) {
   return nullptr;

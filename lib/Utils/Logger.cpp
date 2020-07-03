@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <array>
-#include <ctime>
 #include <exception>
 
 #include "boost/algorithm/string.hpp"
@@ -73,8 +72,10 @@ bool logFilter(const boost::log::attribute_value_set &Set) {
 void logFormatter(const boost::log::record_view &View,
                   boost::log::formatting_ostream &OS) {
 #ifdef DYNAMIC_LOG
-  OS << View.attribute_values()["LineCounter"].extract<int>() << " "
-     << View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
+  OS << View.attribute_values()["LineCounter"].extract<int>()
+     << " "
+     //  <<
+     //  View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
      << " - [" << View.attribute_values()["Severity"].extract<SeverityLevel>()
      << "] " << View.attribute_values()["Message"].extract<std::string>();
 #endif
@@ -84,27 +85,15 @@ void initializeLogger(bool UseLogger, const string &LogFile) {
 #ifdef DYNAMIC_LOG
   // Using this call, logging can be enabled or disabled
   boost::log::core::get()->set_logging_enabled(UseLogger);
-  // if (LogFile == "") {
-  typedef boost::log::sinks::synchronous_sink<
-      boost::log::sinks::text_ostream_backend>
-      text_sink;
+  using text_sink = boost::log::sinks::synchronous_sink<
+      boost::log::sinks::text_ostream_backend>;
   boost::shared_ptr<text_sink> Sink = boost::make_shared<text_sink>();
-  // the easiest way is to write the logs to std::clog
+  // boost::shared_ptr<std::ostream> Stream = nullptr;
+  // if (LogFile.empty()) {
+  //  // the easiest way is to write the logs to std::clog
   boost::shared_ptr<std::ostream> Stream(&std::clog, boost::null_deleter{});
   // } else {
-  // // get the time and make it into a string for log file nameing
-  // time_t current_time = std::time(nullptr);
-  // string time(asctime(localtime(&current_time)));
-  // transform(time.begin(), time.end(), time.begin(),
-  //           [](char c) { return c == ' ' ? '_' : c; });
-  // boost::trim_right(time);
-  // // check if the log directory exists, otherwise create it
-  // if (!(bfs::exists(LogFileDirectory))) {
-  //   bfs::create_directory(LogFileDirectory);
-  // }
-  // // we could also use a output file stream of course
-  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time +
-  // LogFile);
+  // Stream = boost::make_shared<std::ofstream>(LogFile);
   // }
   Sink->locked_backend()->add_stream(Stream);
   Sink->set_filter(&logFilter);

@@ -6,18 +6,14 @@
 #include "llvm/IR/Instructions.h"
 #include "gtest/gtest.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
-class LLVMGetterTest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMGetterTest, HandlesLLVMStoreInstruction) {
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/global_stmt_cpp.ll"});
+TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/global_stmt_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthStoreInstruction(F, 0), nullptr);
   const auto *I = getNthInstruction(F, 4);
@@ -29,8 +25,9 @@ TEST_F(LLVMGetterTest, HandlesLLVMStoreInstruction) {
   ASSERT_EQ(getNthStoreInstruction(F, 4), nullptr);
 }
 
-TEST_F(LLVMGetterTest, HandlesLLVMTermInstruction) {
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/if_else_cpp.ll"});
+TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/if_else_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthTermInstruction(F, 0), nullptr);
   const auto *I = getNthInstruction(F, 14);
@@ -44,11 +41,12 @@ TEST_F(LLVMGetterTest, HandlesLLVMTermInstruction) {
   ASSERT_EQ(getNthTermInstruction(F, 5), nullptr);
 }
 
-TEST_F(LLVMGetterTest, HandlesCppStandardType) {
-  ProjectIRDB IRDB({PathToLlFiles + "name_mangling/special_members_2_cpp.ll"});
+TEST(LLVMGetterTest, HandlesCppStandardType) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_2_cpp.ll"});
 
-  auto *F =
-      IRDB.getModule(PathToLlFiles + "name_mangling/special_members_2_cpp.ll");
+  auto *F = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_2_cpp.ll");
   auto &M = *F->getFunction("_ZNSt8ios_base4InitC1Ev");
   ASSERT_EQ(specialMemberFunctionType(M.getName()),
             SpecialMemberFunctionTy::CTOR);
@@ -61,11 +59,12 @@ TEST_F(LLVMGetterTest, HandlesCppStandardType) {
             SpecialMemberFunctionTy::DTOR);
 }
 
-TEST_F(LLVMGetterTest, HandlesCppUserDefinedType) {
-  ProjectIRDB IRDB({PathToLlFiles + "name_mangling/special_members_1_cpp.ll"});
+TEST(LLVMGetterTest, HandlesCppUserDefinedType) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_1_cpp.ll"});
 
-  auto *F =
-      IRDB.getModule(PathToLlFiles + "name_mangling/special_members_1_cpp.ll");
+  auto *F = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_1_cpp.ll");
   auto &M = *F->getFunction("_ZN7MyClassC2Ev");
   ASSERT_EQ(specialMemberFunctionType(M.getName()),
             SpecialMemberFunctionTy::CTOR);
@@ -77,21 +76,23 @@ TEST_F(LLVMGetterTest, HandlesCppUserDefinedType) {
             SpecialMemberFunctionTy::MVASSIGNOP);
 }
 
-TEST_F(LLVMGetterTest, HandlesCppNonStandardFunctions) {
-  ProjectIRDB IRDB({PathToLlFiles + "name_mangling/special_members_3_cpp.ll"});
+TEST(LLVMGetterTest, HandlesCppNonStandardFunctions) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_3_cpp.ll"});
 
-  auto *F =
-      IRDB.getModule(PathToLlFiles + "name_mangling/special_members_3_cpp.ll");
+  auto *F = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_3_cpp.ll");
   auto &M = *F->getFunction("_ZN9testspace3foo3barES0_");
   ASSERT_EQ(specialMemberFunctionType(M.getName()),
             SpecialMemberFunctionTy::NONE);
 }
 
-TEST_F(LLVMGetterTest, HandleFunctionsContainingCodesInName) {
-  ProjectIRDB IRDB({PathToLlFiles + "name_mangling/special_members_4_cpp.ll"});
+TEST(LLVMGetterTest, HandleFunctionsContainingCodesInName) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_4_cpp.ll"});
 
-  auto *M =
-      IRDB.getModule(PathToLlFiles + "name_mangling/special_members_4_cpp.ll");
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_4_cpp.ll");
   auto *F = M->getFunction("_ZN8C0C1C2C12D1C2Ev"); // C0C1C2C1::D1::D1()
   std::cout << "VALUE IS: "
             << static_cast<std::underlying_type_t<SpecialMemberFunctionTy>>(

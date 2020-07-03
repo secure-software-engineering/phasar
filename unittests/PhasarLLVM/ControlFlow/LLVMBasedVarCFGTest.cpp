@@ -13,14 +13,13 @@
 #include "gtest/gtest.h"
 
 #include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/Logger.h"
+
+#include "TestConfig.h"
 
 #define DELETE(x)                                                              \
   if (x) {                                                                     \
@@ -33,9 +32,9 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class VariabilityCFGTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/variability/linear_constant/manually_transformed/";
+  const std::string PathToLLFiles =
+      unittest::PathToLLTestFiles +
+      "/variability/linear_constant/manually_transformed/";
   const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB = nullptr;
@@ -47,10 +46,10 @@ protected:
 
   void initialize(const std::string &llvmFilePath) {
 
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+    IRDB = new ProjectIRDB({PathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
+    PT = new LLVMPointsToSet(*IRDB);
     VICFG = new LLVMBasedVarICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints,
                                  TH, PT);
   }

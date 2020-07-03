@@ -29,7 +29,6 @@
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
-#include "boost/log/sources/record_ostream.hpp"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
@@ -48,6 +47,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
@@ -85,9 +85,9 @@ std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
 // set UserTHInfos and UserPTInfos to true here.
 LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
     : IRDB(ICF.IRDB), CGType(ICF.CGType), SF(ICF.SF), TH(ICF.TH), PT(ICF.PT),
-      WholeModulePTG(ICF.WholeModulePTG),
-      VisitedFunctions(ICF.VisitedFunctions), CallGraph(ICF.CallGraph),
-      FunctionVertexMap(ICF.FunctionVertexMap) {}
+      // TODO copy resolver
+      Res(nullptr), VisitedFunctions(ICF.VisitedFunctions),
+      CallGraph(ICF.CallGraph), FunctionVertexMap(ICF.FunctionVertexMap) {}
 
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
@@ -105,50 +105,21 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   if (!PT && (CGType == CallGraphAnalysisType::OTF)) {
     // no pointer information provided by the user,
     // we need to construct a points-to infos ourselfes
-    this->PT = new LLVMPointsToInfo(IRDB);
+    this->PT = new LLVMPointsToSet(IRDB);
     UserPTInfos = false;
   }
+  // instantiate the respective resolver type
+  Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
-  unique_ptr<Resolver> Res([CGType, &IRDB, TH, PT,
-                            this]() -> unique_ptr<Resolver> {
-    switch (CGType) {
-    case (CallGraphAnalysisType::NORESOLVE):
-      return make_unique<NOResolver>(IRDB);
-      break;
-    case (CallGraphAnalysisType::CHA):
-      return make_unique<CHAResolver>(IRDB, *TH);
-      break;
-    case (CallGraphAnalysisType::RTA):
-      return make_unique<RTAResolver>(IRDB, *TH);
-      break;
-    case (CallGraphAnalysisType::DTA):
-      return make_unique<DTAResolver>(IRDB, *TH);
-      break;
-    case (CallGraphAnalysisType::OTF):
-      return make_unique<OTFResolver>(IRDB, *TH, *PT, WholeModulePTG);
-      break;
-    default:
-      llvm::report_fatal_error("Resolver strategy not properly instantiated");
-      break;
-    }
-  }());
   for (const auto &EntryPoint : EntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
       llvm::report_fatal_error("Could not retrieve function for entry point");
     }
-    if (PT && (CGType == CallGraphAnalysisType::OTF)) {
-      LLVMPointsToGraph *PTG = PT->getPointsToGraph(F);
-      WholeModulePTG.mergeWith(PTG, F);
-    }
     constructionWalker(F, *Res);
   }
-  REG_COUNTER("WM-PTG Vertices", WholeModulePTG.getNumOfVertices(),
-              PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("WM-PTG Edges", WholeModulePTG.getNumOfEdges(),
-              PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
@@ -221,7 +192,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "  " << llvmIRToString(CS.getInstruction()));
             // call the resolve routine
-            if (isVirtualFunctionCall(CS.getInstruction())) {
+            if (LLVMBasedICFG::isVirtualFunctionCall(CS.getInstruction())) {
               PossibleTargets = Resolver.resolveVirtualCall(CS);
             } else {
               PossibleTargets = Resolver.resolveFunctionPointer(CS);
@@ -260,6 +231,32 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         Resolver.otherInst(&I);
       }
     }
+  }
+}
+
+std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
+                                                      CallGraphAnalysisType CGT,
+                                                      LLVMTypeHierarchy &TH,
+                                                      LLVMPointsToInfo &PT) {
+  switch (CGType) {
+  case (CallGraphAnalysisType::NORESOLVE):
+    return make_unique<NOResolver>(IRDB);
+    break;
+  case (CallGraphAnalysisType::CHA):
+    return make_unique<CHAResolver>(IRDB, TH);
+    break;
+  case (CallGraphAnalysisType::RTA):
+    return make_unique<RTAResolver>(IRDB, TH);
+    break;
+  case (CallGraphAnalysisType::DTA):
+    return make_unique<DTAResolver>(IRDB, TH);
+    break;
+  case (CallGraphAnalysisType::OTF):
+    return make_unique<OTFResolver>(IRDB, TH, *this, PT);
+    break;
+  default:
+    llvm::report_fatal_error("Resolver strategy not properly instantiated");
+    break;
   }
 }
 
@@ -499,28 +496,8 @@ set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
   return NonCallStartNodes;
 }
 
-vector<const llvm::Instruction *>
-LLVMBasedICFG::getAllInstructionsOfFunction(const string &Name) {
-  const auto *F = IRDB.getFunctionDefinition(Name);
-  if (F) {
-    return getAllInstructionsOf(F);
-  }
-  return {};
-}
-
-const llvm::Instruction *
-LLVMBasedICFG::getLastInstructionOf(const string &Name) {
-  const auto *F = IRDB.getFunctionDefinition(Name);
-  if (!F) {
-    return nullptr;
-  }
-  auto Last = llvm::inst_end(*F);
-  Last--;
-  return &(*Last);
-}
-
 void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
-  typedef bidigraph_t::vertex_descriptor vertex_t;
+  using vertex_t = bidigraph_t::vertex_descriptor;
   using vertex_map_t = std::map<vertex_t, vertex_t>;
   vertex_map_t OldToNewVertexMapping;
   boost::associative_property_map<vertex_map_t> VertexMapWrapper(
@@ -582,21 +559,11 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
   VisitedFunctions.insert(Other.VisitedFunctions.begin(),
                           Other.VisitedFunctions.end());
   // Merge the points-to graphs
-  WholeModulePTG.mergeWith(Other.WholeModulePTG, Calls);
+  // WholeModulePTG.mergeWith(Other.WholeModulePTG, Calls);
 }
 
-bool LLVMBasedICFG::isPrimitiveFunction(const string &Name) {
-  if (!IRDB.getFunctionDefinition(Name)) {
-    return false;
-  }
-  for (const auto &BB : *IRDB.getFunctionDefinition(Name)) {
-    for (const auto &I : BB) {
-      if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
-        return false;
-      }
-    }
-  }
-  return true;
+CallGraphAnalysisType LLVMBasedICFG::getCallGraphAnalysisType() const {
+  return CGType;
 }
 
 void LLVMBasedICFG::print(ostream &OS) const {
@@ -652,13 +619,6 @@ void LLVMBasedICFG::printAsDot(std::ostream &OS, bool PrintEdgeLabels) const {
   }
 }
 
-void LLVMBasedICFG::printInternalPTGAsDot(std::ostream &OS) const {
-  boost::write_graphviz(
-      OS, WholeModulePTG.PAG,
-      LLVMPointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG),
-      LLVMPointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG));
-}
-
 nlohmann::json LLVMBasedICFG::getAsJson() const {
   nlohmann::json J;
   vertex_iterator VIv;
@@ -682,10 +642,6 @@ nlohmann::json LLVMBasedICFG::getAsJson() const {
 }
 
 void LLVMBasedICFG::printAsJson(std::ostream &OS) const { OS << getAsJson(); }
-
-const LLVMPointsToGraph &LLVMBasedICFG::getWholeModulePTG() const {
-  return WholeModulePTG;
-}
 
 vector<const llvm::Function *> LLVMBasedICFG::getDependencyOrderedFunctions() {
   vector<vertex_t> Vertices;

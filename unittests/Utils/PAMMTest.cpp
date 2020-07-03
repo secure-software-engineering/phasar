@@ -26,7 +26,7 @@ TEST_F(PAMMTest, HandleTimer) {
   PAMM::getInstance().startTimer("timer1");
   std::this_thread::sleep_for(std::chrono::milliseconds(1200));
   PAMM::getInstance().stopTimer("timer1");
-  EXPECT_GE(PAMM::getInstance().elapsedTime("timer1"), 1200);
+  EXPECT_GE(PAMM::getInstance().elapsedTime("timer1"), 1200U);
 }
 
 TEST_F(PAMMTest, HandleCounter) {

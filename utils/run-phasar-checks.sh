@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # author: Philipp Schubert
 #
@@ -8,9 +8,11 @@
 #
 
 build_dir=${1}
+num_jobs=${2}
+integer_re="^[0-9]+$"
 
-if [ "$#" -ne 1 ] || ! [ -d "${build_dir}" ]; then
-	echo "usage: <prog> <build dir>" >&2
+if [ "$#" -ne 2 ] || ! [ -d "${build_dir}" ] || ! [[ ${num_jobs} =~ ${integer_re} ]] ; then
+	echo "usage: <prog> <build dir> <# jobs>" >&2
 	exit 1
 fi
 
@@ -22,7 +24,7 @@ cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy
 
 echo "Run clang-tidy ..."
 cd ${build_dir}
-run-clang-tidy.py -p ./ -header-filter='phasar*.h' -fix
+run-clang-tidy.py -j ${num_jobs} -p ./ -header-filter='phasar*.h' -fix
 cd -
 echo "Run clang-format ..."
 ./utils/run-clang-format.py

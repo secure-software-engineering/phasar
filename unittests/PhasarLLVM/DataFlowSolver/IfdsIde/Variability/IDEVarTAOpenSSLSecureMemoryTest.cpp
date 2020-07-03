@@ -23,7 +23,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
@@ -66,17 +66,17 @@ protected:
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo PT(*IRDB);
+    LLVMPointsToSet PT(*IRDB);
     LLVMBasedVarICFG VICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                            &PT);
     OpenSSLSecureMemoryDescription Desc;
     IDETypeStateAnalysis TSAProblem(IRDB, &TH, &VICFG, &PT, Desc, EntryPoints);
 
-    IDEVariabilityTabulationProblem_P<IDETypeStateAnalysis> VARAProblem(
-        TSAProblem, VICFG);
+    IDEVarTabulationProblem_P<IDETypeStateAnalysis> VARAProblem(TSAProblem,
+                                                                VICFG);
 
-    IDESolver_P<IDEVariabilityTabulationProblem_P<IDETypeStateAnalysis>>
-        TSASolver(VARAProblem);
+    IDESolver_P<IDEVarTabulationProblem_P<IDETypeStateAnalysis>> TSASolver(
+        VARAProblem);
 
     TSASolver.solve();
     if (printDump) {

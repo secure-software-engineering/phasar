@@ -14,23 +14,15 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Kill.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillMultiple.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/PropagateLoad.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -47,7 +39,7 @@ namespace psr {
 IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
                                            const LLVMTypeHierarchy *TH,
                                            const LLVMBasedICFG *ICF,
-                                           const LLVMPointsToInfo *PT,
+                                           LLVMPointsToInfo *PT,
                                            const TypeStateDescription &TSD,
                                            std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)), TSD(TSD),
@@ -57,7 +49,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
 
 // Start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
                                             IDETypeStateAnalysis::n_t Succ) {
   // Check if Alloca's type matches the target type. If so, generate from zero
@@ -142,7 +134,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
                                           IDETypeStateAnalysis::f_t DestFun) {
   // Kill all data-flow facts if we hit a function of the target API.
@@ -154,13 +146,13 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
   // standard mapping.
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(CallStmt),
-                                         DestFun);
+    return make_shared<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
+                                           DestFun);
   }
-  assert(false && "callStmt not a CallInst nor a InvokeInst");
+  llvm::report_fatal_error("callStmt not a CallInst nor a InvokeInst");
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
                                          IDETypeStateAnalysis::f_t CalleeFun,
                                          IDETypeStateAnalysis::n_t ExitStmt,
@@ -253,7 +245,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
                                      CalleeFun, ExitStmt, this);
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::n_t RetSite,
     set<IDETypeStateAnalysis::f_t> Callees) {
@@ -307,7 +299,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
+IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getSummaryFlowFunction(
     IDETypeStateAnalysis::n_t CallStmt, IDETypeStateAnalysis::f_t DestFun) {
   return nullptr;
@@ -655,14 +647,17 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
 std::set<IDETypeStateAnalysis::d_t>
 IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
   if (PointsToCache.find(V) != PointsToCache.end()) {
-    return PointsToCache[V];
+    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PointsToCache[V].begin(),
+                                                    PointsToCache[V].end());
+    return PointsToSet;
   } else {
-    auto PointsToSet = ICF->getWholeModulePTG().getPointsToSet(V);
-    for (const auto *Alias : PointsToSet) {
+    const auto PTS = PT->getPointsToSet(V);
+    for (const auto *Alias : *PTS) {
       if (hasMatchingType(Alias)) {
-        PointsToCache[Alias] = PointsToSet;
+        PointsToCache[Alias] = *PTS;
       }
     }
+    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
     return PointsToSet;
   }
 }

@@ -13,27 +13,12 @@ add_executable(myphasartool
   myphasartool.cpp
 )
 
-find_package(Threads REQUIRED)
-find_package(phasar)
+find_package(phasar COMPONENTS ifdside REQUIRED)
 include_directories(${PHASAR_INCLUDE_DIR})
 link_directories(${PHASAR_LIBRARY_DIR})
 
-target_link_libraries(myphasartool
-  LINK_PUBLIC
-  phasar::phasar_config
-  phasar::phasar_controller
-  phasar::phasar_db
-  phasar::phasar_experimental
-  phasar::phasar_controlflow
-  phasar::phasar_ifdside
-  phasar::phasar_mono
-  phasar::phasar_passes
-  phasar::phasar_pointer
-  phasar::phasar_typehierarchy
-  phasar::phasar_phasarllvm_utils
-  phasar::phasar_utils
-  pthread
-)
+phasar_config(myphasartool)
+
 
 install(TARGETS myphasartool
   RUNTIME DESTINATION bin

@@ -10,6 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_PLUGINS_PLUGINFACTORIES_H_
 #define PHASAR_PHASARLLVM_PLUGINS_PLUGINFACTORIES_H_
 
+// Problem constructors
+#include "phasar/PhasarLLVM/Plugins/PluginCtors.h"
+
 // Problem plug-ins
 #include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h"
 #include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h"

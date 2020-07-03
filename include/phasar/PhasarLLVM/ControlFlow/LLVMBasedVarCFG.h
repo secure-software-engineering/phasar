@@ -10,7 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDVARCFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDVARCFG_H_
 
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <z3++.h>
 
@@ -23,6 +25,9 @@ class Instruction;
 class BranchInst;
 class BinaryOperator;
 class LoadInst;
+class CmpInst;
+class Constant;
+class Value;
 class GlobalVariable;
 } // namespace llvm
 

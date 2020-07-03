@@ -9,19 +9,17 @@
 
 #include <utility>
 
+#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Kill.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
@@ -38,13 +36,13 @@ namespace psr {
 
 IFDSUninitializedVariables::IFDSUninitializedVariables(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSUninitializedVariables::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getNormalFlowFunction(
     IFDSUninitializedVariables::n_t Curr,
     IFDSUninitializedVariables::n_t Succ) {
@@ -236,7 +234,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getCallFlowFunction(
     IFDSUninitializedVariables::n_t CallStmt,
     IFDSUninitializedVariables::f_t DestFun) {
@@ -320,7 +318,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t CalleeFun,
@@ -365,7 +363,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getCallToRetFlowFunction(
     IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::n_t RetSite,
@@ -395,7 +393,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
+IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getSummaryFlowFunction(
     IFDSUninitializedVariables::n_t CallStmt,
     IFDSUninitializedVariables::f_t DestFun) {

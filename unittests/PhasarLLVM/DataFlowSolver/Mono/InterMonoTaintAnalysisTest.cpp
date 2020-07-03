@@ -8,10 +8,12 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+
+#include "TestConfig.h"
 
 using namespace psr;
 
@@ -19,8 +21,7 @@ using namespace psr;
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/taint_analysis/";
+      unittest::PathToLLTestFiles + "taint_analysis/";
   const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB = nullptr;
@@ -36,14 +37,11 @@ protected:
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto *PT = new LLVMPointsToInfo(*IRDB);
+    auto *PT = new LLVMPointsToSet(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
-    InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                    InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
-        TaintSolver(TaintProblem);
+    InterMonoSolver<LLVMAnalysisDomainDefault, 3> TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
       TaintSolver.dumpResults();
@@ -64,14 +62,11 @@ protected:
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto *PT = new LLVMPointsToInfo(*IRDB);
+    auto *PT = new LLVMPointsToSet(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
-    InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                    InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
-        TaintSolver(TaintProblem);
+    InterMonoSolver<LLVMAnalysisDomainDefault, 3> TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
       TaintSolver.dumpResults();

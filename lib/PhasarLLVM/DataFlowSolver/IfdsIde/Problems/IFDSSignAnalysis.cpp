@@ -15,7 +15,7 @@
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -30,40 +30,38 @@ namespace psr {
 IFDSSignAnalysis::IFDSSignAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
+                                   LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSSignAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t Curr,
                                         IFDSSignAnalysis::n_t Succ) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t CallStmt,
                                       IFDSSignAnalysis::f_t DestFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
-IFDSSignAnalysis::getRetFlowFunction(IFDSSignAnalysis::n_t CallSite,
-                                     IFDSSignAnalysis::f_t CalleeFun,
-                                     IFDSSignAnalysis::n_t ExitStmt,
-                                     IFDSSignAnalysis::n_t RetSite) {
+IFDSSignAnalysis::FlowFunctionPtrType IFDSSignAnalysis::getRetFlowFunction(
+    IFDSSignAnalysis::n_t CallSite, IFDSSignAnalysis::f_t CalleeFun,
+    IFDSSignAnalysis::n_t ExitStmt, IFDSSignAnalysis::n_t RetSite) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t CallSite,
                                            IFDSSignAnalysis::n_t RetSite,
                                            set<IFDSSignAnalysis::f_t> Callees) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t CallStmt,
                                          IFDSSignAnalysis::f_t DestFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();

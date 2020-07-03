@@ -15,13 +15,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
@@ -39,7 +34,7 @@ namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     const TaintConfiguration<const llvm::Value *> &TSF,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
@@ -47,7 +42,7 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(
   IFDSTaintAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
                                          IFDSTaintAnalysis::n_t Succ) {
   // If a tainted value is stored, the store location must be tainted too
@@ -89,7 +84,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
                                        IFDSTaintAnalysis::f_t DestFun) {
   string FunctionName = cxxDemangle(DestFun->getName().str());
@@ -104,22 +99,20 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(CallStmt),
-                                         DestFun);
+    return make_shared<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
+                                           DestFun);
   }
   // Pass everything else as identity
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
-IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t CallSite,
-                                      IFDSTaintAnalysis::f_t CalleeFun,
-                                      IFDSTaintAnalysis::n_t ExitStmt,
-                                      IFDSTaintAnalysis::n_t RetSite) {
+IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
+    IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t CalleeFun,
+    IFDSTaintAnalysis::n_t ExitStmt, IFDSTaintAnalysis::n_t RetSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
-  return make_shared<MapFactsToCaller>(
+  return make_shared<MapFactsToCaller<>>(
       llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt,
       [](IFDSTaintAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
@@ -127,7 +120,7 @@ IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t CallSite,
   // All other stuff is killed at this point
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::n_t RetSite,
     set<IFDSTaintAnalysis::f_t> Callees) {
@@ -152,8 +145,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
-          auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
-          for (const auto *Alias : PTS) {
+          auto PTS = PT->getPointsToSet(V);
+          for (const auto *Alias : *PTS) {
             ToGenerate.insert(Alias);
           }
         }
@@ -168,8 +161,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
-          auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
-          for (const auto *Alias : PTS) {
+          auto PTS = PT->getPointsToSet(V);
+          for (const auto *Alias : *PTS) {
             ToGenerate.insert(Alias);
           }
         }
@@ -193,11 +186,11 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *TaintAnalysis;
         TAFF(llvm::ImmutableCallSite CS, IFDSTaintAnalysis::f_t CalledMthd,
-             const TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction &S,
+             TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction S,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks,
              const IFDSTaintAnalysis *Ta)
-            : CallSite(CS), CalledMthd(CalledMthd), Sink(S), Leaks(Leaks),
-              TaintAnalysis(Ta) {}
+            : CallSite(CS), CalledMthd(CalledMthd), Sink(std::move(S)),
+              Leaks(Leaks), TaintAnalysis(Ta) {}
         set<IFDSTaintAnalysis::d_t>
         computeTargets(IFDSTaintAnalysis::d_t Source) override {
           // check if a tainted value flows into a sink
@@ -223,7 +216,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
                                           IFDSTaintAnalysis::f_t DestFun) {
   SpecialSummaries<IFDSTaintAnalysis::d_t> &SS =

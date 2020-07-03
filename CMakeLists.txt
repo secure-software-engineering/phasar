@@ -96,12 +96,16 @@ include_directories(
   ${PHASAR_SRC_DIR}/include
 )
 
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 ### Adding external libraries
 # Threads
 find_package(Threads)
 
 # Boost
 find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
+#find_package(Boost 1.72.0 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # JSON library
@@ -287,12 +291,6 @@ install(DIRECTORY config/
   PERMISSIONS OWNER_WRITE OWNER_READ
               GROUP_WRITE GROUP_READ
               WORLD_READ
-)
-
-install(EXPORT phasarTargets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
-  NAMESPACE phasar::
-  FILE phasarTargets.cmake
 )
 
 include(CMakePackageConfigHelpers)

@@ -1,3 +1,8 @@
-#
-# TODO: add functionalities to compile C programs using XTC
-#
+set(StructVarSources
+  struct_01.c
+  struct_02.c
+)
+
+foreach(TEST_SRC ${StructVarSources})
+  xtc_making_plans_for_nigell(FILE ${TEST_SRC} DEBUG)
+endforeach(TEST_SRC)

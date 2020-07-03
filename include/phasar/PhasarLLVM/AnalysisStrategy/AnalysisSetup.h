@@ -11,7 +11,7 @@
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_ANALYSISSETUP_H_
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 namespace psr {
@@ -27,7 +27,7 @@ struct AnalysisSetup {
 };
 
 struct DefaultAnalysisSetup : AnalysisSetup {
-  using PointerAnalysisTy = LLVMPointsToInfo;
+  using PointerAnalysisTy = LLVMPointsToSet;
   using CallGraphAnalysisTy = LLVMBasedICFG;
   using TypeHierarchyTy = LLVMTypeHierarchy;
 };

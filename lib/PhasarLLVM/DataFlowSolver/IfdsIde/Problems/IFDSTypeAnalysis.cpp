@@ -10,7 +10,7 @@
 #include <utility>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -27,13 +27,13 @@ namespace psr {
 IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
+                                   LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSTypeAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::FlowFunctionPtrType
 IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t Curr,
                                         IFDSTypeAnalysis::n_t Succ) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
@@ -45,7 +45,7 @@ IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t Curr,
   return make_shared<TAFF>();
 }
 
-shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::FlowFunctionPtrType
 IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallStmt,
                                       IFDSTypeAnalysis::f_t DestFun) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
@@ -57,11 +57,9 @@ IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallStmt,
   return make_shared<TAFF>();
 }
 
-shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
-IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t CallSite,
-                                     IFDSTypeAnalysis::f_t CalleeFun,
-                                     IFDSTypeAnalysis::n_t ExitStmt,
-                                     IFDSTypeAnalysis::n_t RetSite) {
+IFDSTypeAnalysis::FlowFunctionPtrType IFDSTypeAnalysis::getRetFlowFunction(
+    IFDSTypeAnalysis::n_t CallSite, IFDSTypeAnalysis::f_t CalleeFun,
+    IFDSTypeAnalysis::n_t ExitStmt, IFDSTypeAnalysis::n_t RetSite) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
     computeTargets(IFDSTypeAnalysis::d_t Source) override {
@@ -71,7 +69,7 @@ IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t CallSite,
   return make_shared<TAFF>();
 }
 
-shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::FlowFunctionPtrType
 IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t CallSite,
                                            IFDSTypeAnalysis::n_t RetSite,
                                            set<IFDSTypeAnalysis::f_t> Callees) {
@@ -84,7 +82,7 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t CallSite,
   return make_shared<TAFF>();
 }
 
-shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::FlowFunctionPtrType
 IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t Curr,
                                          IFDSTypeAnalysis::f_t DestFun) {
   return nullptr;

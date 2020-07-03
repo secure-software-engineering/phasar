@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -35,11 +36,8 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     const TaintConfiguration<const llvm::Value *> &TSF,
     std::set<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                       InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                       InterMonoTaintAnalysis::v_t,
-                       InterMonoTaintAnalysis::i_t>(IRDB, TH, ICF, PT,
-                                                    std::move(EntryPoints)),
+    : InterMonoProblem<LLVMAnalysisDomainDefault>(IRDB, TH, ICF, PT,
+                                                  std::move(EntryPoints)),
       TSF(TSF) {}
 
 BitVectorSet<const llvm::Value *>

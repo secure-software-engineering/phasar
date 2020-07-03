@@ -11,8 +11,8 @@
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSAliasCollector.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -28,42 +28,37 @@ namespace psr {
 WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
                                        const LLVMTypeHierarchy *TH,
                                        const LLVMBasedICFG *ICF,
-                                       const LLVMPointsToInfo *PT,
+                                       LLVMPointsToInfo *PT,
                                        std::set<std::string> EntryPoints)
-    : WPDSProblem<WPDSAliasCollector::n_t, WPDSAliasCollector::d_t,
-                  WPDSAliasCollector::f_t, WPDSAliasCollector::t_t,
-                  WPDSAliasCollector::v_t, WPDSAliasCollector::l_t,
-                  WPDSAliasCollector::i_t>(IRDB, TH, ICF, PT,
-                                           std::move(EntryPoints)) {}
+    : WPDSProblem<WPDSAliasCollectorAnalysisDomain>(IRDB, TH, ICF, PT,
+                                                    std::move(EntryPoints)) {}
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+WPDSAliasCollector::FlowFunctionPtrType
 WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t Curr,
                                           WPDSAliasCollector::n_t Succ) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+WPDSAliasCollector::FlowFunctionPtrType
 WPDSAliasCollector::getCallFlowFunction(WPDSAliasCollector::n_t CallStmt,
                                         WPDSAliasCollector::f_t DestFun) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
-WPDSAliasCollector::getRetFlowFunction(WPDSAliasCollector::n_t CallSite,
-                                       WPDSAliasCollector::f_t CalleeFun,
-                                       WPDSAliasCollector::n_t ExitStmt,
-                                       WPDSAliasCollector::n_t RetSite) {
+WPDSAliasCollector::FlowFunctionPtrType WPDSAliasCollector::getRetFlowFunction(
+    WPDSAliasCollector::n_t CallSite, WPDSAliasCollector::f_t CalleeFun,
+    WPDSAliasCollector::n_t ExitStmt, WPDSAliasCollector::n_t RetSite) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+WPDSAliasCollector::FlowFunctionPtrType
 WPDSAliasCollector::getCallToRetFlowFunction(
     WPDSAliasCollector::n_t CallSite, WPDSAliasCollector::n_t RetSite,
     set<WPDSAliasCollector::f_t> Callees) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+WPDSAliasCollector::FlowFunctionPtrType
 WPDSAliasCollector::getSummaryFlowFunction(WPDSAliasCollector::n_t Curr,
                                            WPDSAliasCollector::f_t DestFun) {
   return nullptr;

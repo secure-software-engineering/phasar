@@ -9,7 +9,3 @@ add_subdirectory(loop)
 add_subdirectory(manually_transformed)
 add_subdirectory(pointer)
 add_subdirectory(struct)
-
-#
-# TODO: add functionalities to compile C programs using XTC
-#

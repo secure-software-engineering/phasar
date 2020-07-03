@@ -21,18 +21,21 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+
+#include "TestConfig.h"
 
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class IDEVarTabulationProblemTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/variability/linear_constant/manually_transformed/";
+  const std::string PathToLLFiles =
+      unittest::PathToLLTestFiles +
+      "/variability/linear_constant/manually_transformed/";
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Z3Constraint x Value
@@ -53,20 +56,20 @@ protected:
   doAnalysisAndCompareResults(const std::string &llvmFilePath,
                               std::set<LCAVarCompactResults_t> &GroundTruth,
                               bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+    IRDB = new ProjectIRDB({PathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
     if (printDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo PT(*IRDB);
+    LLVMPointsToSet PT(*IRDB);
     LLVMBasedVarICFG VICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                            &PT);
     IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &VICFG, &PT, EntryPoints);
-    IDEVariabilityTabulationProblem_P<IDELinearConstantAnalysis> VARAProblem(
-        LCAProblem, VICFG);
-    IDESolver_P<IDEVariabilityTabulationProblem_P<IDELinearConstantAnalysis>>
-        LCASolver(VARAProblem);
+    IDEVarTabulationProblem_P<IDELinearConstantAnalysis> VARAProblem(LCAProblem,
+                                                                     VICFG);
+    IDESolver_P<IDEVarTabulationProblem_P<IDELinearConstantAnalysis>> LCASolver(
+        VARAProblem);
     // LCASolver.enableESGAsDot();
     LCASolver.solve();
     if (printDump) {
@@ -201,7 +204,6 @@ TEST_F(IDEVarTabulationProblemTest, HandleRecursion_01) {
   doAnalysisAndCompareResults("recursion_01_c.ll", GroundTruth, true);
 }
 
-// main function for the test case/*  */
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

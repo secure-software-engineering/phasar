@@ -12,24 +12,24 @@ using namespace std;
 TEST(BitVectorSet, ctor) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
 
-  EXPECT_EQ(B.count(10), 1);
-  EXPECT_EQ(B.count(20), 1);
-  EXPECT_EQ(B.count(30), 1);
-  EXPECT_EQ(B.count(40), 1);
-  EXPECT_EQ(B.count(50), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(10), 1U);
+  EXPECT_EQ(B.count(20), 1U);
+  EXPECT_EQ(B.count(30), 1U);
+  EXPECT_EQ(B.count(40), 1U);
+  EXPECT_EQ(B.count(50), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, ctorIter) {
   std::set<int> S({10, 20, 30, 40, 50});
   BitVectorSet<int> B(S.begin(), S.end());
 
-  EXPECT_EQ(B.count(10), 1);
-  EXPECT_EQ(B.count(20), 1);
-  EXPECT_EQ(B.count(30), 1);
-  EXPECT_EQ(B.count(40), 1);
-  EXPECT_EQ(B.count(50), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(10), 1U);
+  EXPECT_EQ(B.count(20), 1U);
+  EXPECT_EQ(B.count(30), 1U);
+  EXPECT_EQ(B.count(40), 1U);
+  EXPECT_EQ(B.count(50), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, copy) {
@@ -42,12 +42,12 @@ TEST(BitVectorSet, copy) {
   B.insert(42);
   B.insert(13);
 
-  EXPECT_EQ(C.count(10), 1);
-  EXPECT_EQ(C.count(20), 1);
-  EXPECT_EQ(C.count(30), 1);
-  EXPECT_EQ(C.count(40), 1);
-  EXPECT_EQ(C.count(50), 1);
-  EXPECT_EQ(C.count(666), 0);
+  EXPECT_EQ(C.count(10), 1U);
+  EXPECT_EQ(C.count(20), 1U);
+  EXPECT_EQ(C.count(30), 1U);
+  EXPECT_EQ(C.count(40), 1U);
+  EXPECT_EQ(C.count(50), 1U);
+  EXPECT_EQ(C.count(666), 0U);
 }
 
 TEST(BitVectorSet, copyAssign) {
@@ -61,28 +61,28 @@ TEST(BitVectorSet, copyAssign) {
   B.insert(42);
   B.insert(13);
 
-  EXPECT_EQ(C.count(10), 1);
-  EXPECT_EQ(C.count(20), 1);
-  EXPECT_EQ(C.count(30), 1);
-  EXPECT_EQ(C.count(40), 1);
-  EXPECT_EQ(C.count(50), 1);
-  EXPECT_EQ(C.count(666), 0);
+  EXPECT_EQ(C.count(10), 1U);
+  EXPECT_EQ(C.count(20), 1U);
+  EXPECT_EQ(C.count(30), 1U);
+  EXPECT_EQ(C.count(40), 1U);
+  EXPECT_EQ(C.count(50), 1U);
+  EXPECT_EQ(C.count(666), 0U);
 }
 
 TEST(BitVectorSet, move) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
   BitVectorSet<int> C(B);
 
-  EXPECT_EQ(C.count(10), 1);
-  EXPECT_EQ(C.count(20), 1);
-  EXPECT_EQ(C.count(30), 1);
-  EXPECT_EQ(C.count(40), 1);
-  EXPECT_EQ(C.count(50), 1);
-  EXPECT_EQ(C.count(666), 0);
+  EXPECT_EQ(C.count(10), 1U);
+  EXPECT_EQ(C.count(20), 1U);
+  EXPECT_EQ(C.count(30), 1U);
+  EXPECT_EQ(C.count(40), 1U);
+  EXPECT_EQ(C.count(50), 1U);
+  EXPECT_EQ(C.count(666), 0U);
 
   C.insert(42);
 
-  EXPECT_EQ(C.count(42), 1);
+  EXPECT_EQ(C.count(42), 1U);
 }
 
 TEST(BitVectorSet, insert) {
@@ -91,10 +91,10 @@ TEST(BitVectorSet, insert) {
   B.insert(42);
   B.insert(13);
 
-  EXPECT_EQ(B.count(1), 1);
-  EXPECT_EQ(B.count(42), 1);
-  EXPECT_EQ(B.count(13), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(1), 1U);
+  EXPECT_EQ(B.count(42), 1U);
+  EXPECT_EQ(B.count(13), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, insertIter) {
@@ -102,10 +102,10 @@ TEST(BitVectorSet, insertIter) {
   BitVectorSet<int> B;
   B.insert(S.begin(), S.end());
 
-  EXPECT_EQ(B.count(1), 1);
-  EXPECT_EQ(B.count(42), 1);
-  EXPECT_EQ(B.count(13), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(1), 1U);
+  EXPECT_EQ(B.count(42), 1U);
+  EXPECT_EQ(B.count(13), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, insertBitVectorSet) {
@@ -135,20 +135,20 @@ TEST(BitVectorSet, twoSets) {
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({5, 6, 42});
 
-  EXPECT_EQ(A.count(1), 1);
-  EXPECT_EQ(A.count(2), 1);
-  EXPECT_EQ(A.count(3), 1);
-  EXPECT_EQ(A.count(4), 1);
-  EXPECT_EQ(A.count(5), 1);
-  EXPECT_EQ(A.count(6), 1);
-  EXPECT_EQ(A.count(42), 0);
+  EXPECT_EQ(A.count(1), 1U);
+  EXPECT_EQ(A.count(2), 1U);
+  EXPECT_EQ(A.count(3), 1U);
+  EXPECT_EQ(A.count(4), 1U);
+  EXPECT_EQ(A.count(5), 1U);
+  EXPECT_EQ(A.count(6), 1U);
+  EXPECT_EQ(A.count(42), 0U);
 
-  EXPECT_EQ(B.count(5), 1);
-  EXPECT_EQ(B.count(6), 1);
-  EXPECT_EQ(B.count(42), 1);
-  EXPECT_EQ(B.count(1), 0);
-  EXPECT_EQ(B.count(2), 0);
-  EXPECT_EQ(B.count(3), 0);
+  EXPECT_EQ(B.count(5), 1U);
+  EXPECT_EQ(B.count(6), 1U);
+  EXPECT_EQ(B.count(42), 1U);
+  EXPECT_EQ(B.count(1), 0U);
+  EXPECT_EQ(B.count(2), 0U);
+  EXPECT_EQ(B.count(3), 0U);
 }
 
 TEST(BitVectorSet, equality) {
@@ -185,12 +185,12 @@ TEST(BitVectorSet, size) {
   BitVectorSet<int> E({1, 2, 3});
   BitVectorSet<int> F;
 
-  EXPECT_EQ(A.size(), 6);
-  EXPECT_EQ(B.size(), 3);
-  EXPECT_EQ(C.size(), 3);
-  EXPECT_EQ(D.size(), 4);
-  EXPECT_EQ(E.size(), 3);
-  EXPECT_EQ(F.size(), 0);
+  EXPECT_EQ(A.size(), 6U);
+  EXPECT_EQ(B.size(), 3U);
+  EXPECT_EQ(C.size(), 3U);
+  EXPECT_EQ(D.size(), 4U);
+  EXPECT_EQ(E.size(), 3U);
+  EXPECT_EQ(F.size(), 0U);
 }
 
 TEST(BitVectorSet, empty) {
@@ -214,13 +214,13 @@ TEST(BitVectorSet, clear) {
   BitVectorSet<int> B({5, 6, 42});
   BitVectorSet<int> C;
 
-  EXPECT_EQ(A.size(), 6);
+  EXPECT_EQ(A.size(), 6U);
   A.clear();
-  EXPECT_EQ(A.size(), 0);
+  EXPECT_EQ(A.size(), 0U);
   B.clear();
-  EXPECT_EQ(B.size(), 0);
+  EXPECT_EQ(B.size(), 0U);
   C.clear();
-  EXPECT_EQ(C.size(), 0);
+  EXPECT_EQ(C.size(), 0U);
 }
 
 TEST(BitVectorSet, setUnion) {
@@ -344,9 +344,9 @@ TEST(BitVectorSet, iterator_movement) {
   IteratorA += 4;
   IteratorB += 2;
   EXPECT_EQ(*IteratorA, *IteratorB);
-  EXPECT_EQ(A.count(*IteratorA), 1);
+  EXPECT_EQ(A.count(*IteratorA), 1U);
   IteratorB++;
-  EXPECT_EQ(A.count(*IteratorB), 0);
+  EXPECT_EQ(A.count(*IteratorB), 0U);
 }
 
 TEST(BitVectorSet, rangeFor) {

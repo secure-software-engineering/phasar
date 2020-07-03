@@ -152,7 +152,6 @@ void LLVMTypeHierarchy::buildLLVMTypeHierarchy(const llvm::Module &M) {
   boost::transitive_closure(TypeGraph, TC);
   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
     for (auto OE : boost::make_iterator_range(boost::out_edges(V, TC))) {
-      auto Source = boost::source(OE, TC);
       auto Target = boost::target(OE, TC);
       TypeGraph[V].ReachableTypes.insert(TypeGraph[Target].Type);
     }
@@ -268,16 +267,6 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
   }
 }
 
-bool LLVMTypeHierarchy::hasType(const llvm::StructType *Type) const {
-  return TypeVertexMap.count(Type);
-}
-
-bool LLVMTypeHierarchy::isSubType(const llvm::StructType *Type,
-                                  const llvm::StructType *SubType) {
-  auto ReachableTypes = getSubTypes(Type);
-  return ReachableTypes.count(SubType);
-}
-
 std::set<const llvm::StructType *>
 LLVMTypeHierarchy::getSubTypes(const llvm::StructType *Type) {
   if (TypeVertexMap.count(Type)) {
@@ -286,14 +275,10 @@ LLVMTypeHierarchy::getSubTypes(const llvm::StructType *Type) {
   return {};
 }
 
-bool LLVMTypeHierarchy::isSuperType(const llvm::StructType *Type,
-                                    const llvm::StructType *SuperType) {
-  return isSubType(SuperType, Type);
-}
-
 std::set<const llvm::StructType *>
 LLVMTypeHierarchy::getSuperTypes(const llvm::StructType *Type) {
   std::set<const llvm::StructType *> ReachableTypes;
+  // TODO (philipp): what does this function do?
   return ReachableTypes;
 }
 
@@ -332,12 +317,6 @@ LLVMTypeHierarchy::getVFTable(const llvm::StructType *Type) const {
   }
   return nullptr;
 }
-
-size_t LLVMTypeHierarchy::size() const {
-  return boost::num_vertices(TypeGraph);
-}
-
-bool LLVMTypeHierarchy::empty() const { return size() == 0; }
 
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "Type Hierarchy:\n";

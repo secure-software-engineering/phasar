@@ -15,16 +15,17 @@
 
 namespace psr {
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
-class IFDSVarTabulationProblem
-    : IDEVarTabulationProblem<N, D, F, T, V, BinaryDomain, I> {
-public:
-  IFDSVarTabulationProblem(IFDSTabulationProblem<N, D, F, T, V, I> &IFDSProblem,
-                           LLVMBasedVarICFG &VarICF)
-      : IDEVarTabulationProblem<N, D, F, T, V, BinaryDomain, I>(IFDSProblem,
-                                                                VarICF) {}
-};
+// template <typename N, typename D, typename F, typename T, typename V,
+//           typename I>
+// class IFDSVarTabulationProblem
+//     : IDEVarTabulationProblem<N, D, F, T, V, BinaryDomain, I> {
+// public:
+//   IFDSVarTabulationProblem(IFDSTabulationProblem<N, D, F, T, V, I>
+//   &IFDSProblem,
+//                            LLVMBasedVarICFG &VarICF)
+//       : IDEVarTabulationProblem<N, D, F, T, V, BinaryDomain, I>(IFDSProblem,
+//                                                                 VarICF) {}
+// };
 
 } // namespace psr
 

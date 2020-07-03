@@ -14,8 +14,7 @@
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -51,27 +50,27 @@ bool operator<(const LCAPair &Lhs, const LCAPair &Rhs) {
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSLinearConstantAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getNormalFlowFunction(
     IFDSLinearConstantAnalysis::n_t Curr,
     IFDSLinearConstantAnalysis::n_t Succ) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getCallFlowFunction(
     IFDSLinearConstantAnalysis::n_t CallStmt,
     IFDSLinearConstantAnalysis::f_t DestFun) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t CallSite,
     IFDSLinearConstantAnalysis::f_t CalleeFun,
@@ -80,7 +79,7 @@ IFDSLinearConstantAnalysis::getRetFlowFunction(
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t CallSite,
     IFDSLinearConstantAnalysis::n_t RetSite,
@@ -88,7 +87,7 @@ IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getSummaryFlowFunction(
     IFDSLinearConstantAnalysis::n_t CallStmt,
     IFDSLinearConstantAnalysis::f_t DestFun) {

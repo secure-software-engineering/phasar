@@ -18,7 +18,7 @@
 
 #include "llvm/Support/ErrorHandling.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/Utils/Logger.h"
 
 namespace psr {

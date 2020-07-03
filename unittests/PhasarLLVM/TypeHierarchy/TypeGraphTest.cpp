@@ -8,21 +8,17 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-class TypeGraphTest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(TypeGraphTest, AddType) {
-  ProjectIRDB IRDB({PathToLlFiles + "basic/two_structs_cpp.ll"});
-  llvm::Module *M = IRDB.getModule(PathToLlFiles + "basic/two_structs_cpp.ll");
+TEST(TypeGraphTest, AddType) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll"});
+  llvm::Module *M =
+      IRDB.getModule(unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll");
 
   unsigned int NbStruct = 0;
 
@@ -49,10 +45,11 @@ TEST_F(TypeGraphTest, AddType) {
   ASSERT_TRUE(NbStruct >= 2);
 }
 
-TEST_F(TypeGraphTest, ReverseTypePropagation) {
-  ProjectIRDB IRDB({PathToLlFiles + "basic/seven_structs_cpp.ll"});
-  llvm::Module *M =
-      IRDB.getModule(PathToLlFiles + "basic/seven_structs_cpp.ll");
+TEST(TypeGraphTest, ReverseTypePropagation) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "basic/seven_structs_cpp.ll"});
+  llvm::Module *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                                   "basic/seven_structs_cpp.ll");
 
   unsigned int NbStruct = 0;
   llvm::StructType *StructA = nullptr;
@@ -194,9 +191,10 @@ TEST_F(TypeGraphTest, ReverseTypePropagation) {
   ASSERT_TRUE(Tg.g[VertexE].types.size() == 3);
 }
 
-TEST_F(TypeGraphTest, AddLinkSimple) {
-  ProjectIRDB IRDB({PathToLlFiles + "basic/two_structs_cpp.ll"});
-  llvm::Module *M = IRDB.getModule(PathToLlFiles + "basic/two_structs_cpp.ll");
+TEST(TypeGraphTest, AddLinkSimple) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll"});
+  llvm::Module *M =
+      IRDB.getModule(unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll");
 
   unsigned int NbStruct = 0;
   llvm::StructType *StructA = nullptr;
@@ -262,10 +260,11 @@ TEST_F(TypeGraphTest, AddLinkSimple) {
   ASSERT_TRUE(NumberEdge == 1);
 }
 
-TEST_F(TypeGraphTest, TypeAggregation) {
-  ProjectIRDB IRDB({PathToLlFiles + "basic/seven_structs_cpp.ll"});
-  llvm::Module *M =
-      IRDB.getModule(PathToLlFiles + "basic/seven_structs_cpp.ll");
+TEST(TypeGraphTest, TypeAggregation) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "basic/seven_structs_cpp.ll"});
+  llvm::Module *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                                   "basic/seven_structs_cpp.ll");
 
   unsigned int NbStruct = 0;
   llvm::StructType *StructA = nullptr;

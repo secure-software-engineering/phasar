@@ -12,38 +12,51 @@
 
 #include <map>
 #include <memory>
+#include <set>
 
 #include <z3++.h>
 
 #include "phasar/PhasarLLVM/ControlFlow/VarICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarEdgeFunctions.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
 namespace psr {
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I>
+template <typename AnalysisDomainTy>
+struct IDEVarProblemAnalysisDomainTransformer : public AnalysisDomainTy {
+  // save user-problem l_t as underlying user_l_t
+  using user_l_t = typename AnalysisDomainTy::l_t;
+  // transform l_t to be a VarL<l_t>
+  using l_t = VarL<typename AnalysisDomainTy::l_t>;
+  // use a variational aware inter-procedural control-flow graph
+  using i_t = VarICFG<typename AnalysisDomainTy::n_t,
+                      typename AnalysisDomainTy::f_t, z3::expr>;
+};
+
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDEVarTabulationProblem
-    : public IDETabulationProblem<N, D, F, T, V, VarL<L>,
-                                  VarICFG<N, F, z3::expr>> {
+    : public IDETabulationProblem<
+          IDEVarProblemAnalysisDomainTransformer<AnalysisDomainTy>, Container> {
 public:
-  using n_t = N;
-  using d_t = D;
-  using f_t = F;
-  using t_t = T;
-  using v_t = V;
-  using user_l_t = L;
-  // override l_t and i_t to capture the variability
-  using l_t = VarL<L>;
-  using i_t = VarICFG<N, F, z3::expr>;
+  using VarAnalysisDomainTy =
+      IDEVarProblemAnalysisDomainTransformer<AnalysisDomainTy>;
+  using d_t = typename VarAnalysisDomainTy::d_t;
+  using n_t = typename VarAnalysisDomainTy::n_t;
+  using f_t = typename VarAnalysisDomainTy::f_t;
+  using t_t = typename VarAnalysisDomainTy::t_t;
+  using v_t = typename VarAnalysisDomainTy::v_t;
+  using l_t = typename VarAnalysisDomainTy::l_t;
+  using user_l_t = typename VarAnalysisDomainTy::user_l_t;
+  using i_t = typename VarAnalysisDomainTy::i_t;
+
+  using typename FlowFunctions<VarAnalysisDomainTy>::FlowFunctionPtrType;
+  using typename EdgeFunctions<VarAnalysisDomainTy>::EdgeFunctionPtrType;
 
 private:
-  IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem;
+  IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
   LLVMBasedVarICFG &VarICF;
 
   const z3::expr TRUE_CONSTRAINT = VarICF.getTrueConstraint();
@@ -51,9 +64,10 @@ private:
   const l_t TOP = {{TRUE_CONSTRAINT, IDEProblem.topElement()}};
 
 public:
-  IDEVarTabulationProblem(IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem,
-                          LLVMBasedVarICFG &VarICF)
-      : IDETabulationProblem<N, D, F, T, V, l_t, VarICFG<N, F, z3::expr>>(
+  IDEVarTabulationProblem(
+      IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem,
+      LLVMBasedVarICFG &VarICF)
+      : IDETabulationProblem<VarAnalysisDomainTy, Container>(
             IDEProblem.getProjectIRDB(), IDEProblem.getTypeHierarchy(), &VarICF,
             IDEProblem.getPointstoInfo(), IDEProblem.getEntryPoints()),
         IDEProblem(IDEProblem), VarICF(VarICF) {
@@ -66,13 +80,12 @@ public:
   ~IDEVarTabulationProblem() override = default;
 
   // Flow functions
-  std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr,
-                                                         N succ) override {
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
     // std::cout << "IDEVarTabulationProblem::getNormalFlowFunction applied to:
     // "
     //           << IDEProblem.NtoString(curr) << '\n';
     // // TODO
-    // // we need some kind of bool isPPrelatedInstruction(N stmt); that
+    // // we need some kind of bool isPPrelatedInstruction(n_t stmt); that
     // triggers
     // // for all preprocessor related instructions
     // // user problem needs to ignore all preprocessor related instructions
@@ -82,41 +95,38 @@ public:
     // //  - br i1 %tobool, label %if.then, label %if.else
     if (VarICF.isPPBranchTarget(curr, succ)) {
       std::cout << "Found PP branch: " << llvmIRToString(curr) << '\n';
-      //   //   return Identity<D>::getInstance();
+      //   //   return Identity<d_t>::getInstance();
     }
     // otherwise just apply the user edge functions
     return IDEProblem.getNormalFlowFunction(curr, succ);
   }
 
-  std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
-                                                       F destMthd) override {
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destMthd) override {
     // std::cout << "IDEVarTabulationProblem::getCallFlowFunction\n";
     return IDEProblem.getCallFlowFunction(callStmt, destMthd);
   }
 
-  std::shared_ptr<FlowFunction<D>>
-  getRetFlowFunction(N callSite, F calleeMthd, N exitStmt, N retSite) override {
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
+                                         n_t exitStmt, n_t retSite) override {
     // std::cout << "IDEVarTabulationProblem::getRetFlowFunction\n";
     return IDEProblem.getRetFlowFunction(callSite, calleeMthd, exitStmt,
                                          retSite);
   }
 
-  std::shared_ptr<FlowFunction<D>>
-  getCallToRetFlowFunction(N callSite, N retSite,
-                           std::set<F> callees) override {
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override {
     // std::cout <<
     // "IDEVarTabulationProblem::getCallToRetFlowFunction\n";
     return IDEProblem.getCallToRetFlowFunction(callSite, retSite, callees);
   }
 
-  std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N curr,
-                                                          F destMthd) override {
+  FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destMthd) override {
     return nullptr;
   }
 
   // Edge functions
-  std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) override {
+  EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                                            d_t succNode) override {
     auto UserEF =
         IDEProblem.getNormalEdgeFunction(curr, currNode, succ, succNode);
     // if curr is a special preprocessor #ifdef instruction, we need to add a
@@ -137,25 +147,25 @@ public:
     return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(N callStmt, D srcNode,
-                                                         F destinationMethod,
-                                                         D destNode) override {
+  EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
+                                          f_t destinationMethod,
+                                          d_t destNode) override {
     auto UserEF = IDEProblem.getCallEdgeFunction(callStmt, srcNode,
                                                  destinationMethod, destNode);
     return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(N callSite, F calleeMethod, N exitStmt, D exitNode,
-                        N reSite, D retNode) override {
+  EdgeFunctionPtrType getReturnEdgeFunction(n_t callSite, f_t calleeMethod,
+                                            n_t exitStmt, d_t exitNode,
+                                            n_t reSite, d_t retNode) override {
     auto UserEF = IDEProblem.getReturnEdgeFunction(
         callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
     return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
-                           std::set<F> callees) override {
+  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t callSite, d_t callNode,
+                                               n_t retSite, d_t retSiteNode,
+                                               std::set<f_t> callees) override {
     auto UserEF = IDEProblem.getCallToRetEdgeFunction(
         callSite, callNode, retSite, retSiteNode, callees);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -164,12 +174,12 @@ public:
     return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(N curr, D currNode, N succ, D succNode) override {
+  EdgeFunctionPtrType getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                                             d_t succNode) override {
     return nullptr;
   }
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
+  EdgeFunctionPtrType allTopFunction() override {
     auto Top = std::make_shared<AllTop<l_t>>(TOP);
     return Top;
   }
@@ -199,28 +209,28 @@ public:
     return Rhs;
   }
 
-  D createZeroValue() const override {
+  d_t createZeroValue() const override {
     // ZeroValue should have been generated by the ctor of the original problem
     // IDEProblem.createZeroValue()
     return IDEProblem.getZeroValue();
   }
 
-  bool isZeroValue(D d) const override { return IDEProblem.isZeroValue(d); }
+  bool isZeroValue(d_t d) const override { return IDEProblem.isZeroValue(d); }
 
-  std::map<N, std::set<D>> initialSeeds() override {
+  std::map<n_t, std::set<d_t>> initialSeeds() override {
     return IDEProblem.initialSeeds();
   }
 
-  void printNode(std::ostream &os, N n) const override {
+  void printNode(std::ostream &os, n_t n) const override {
     IDEProblem.printNode(os, n);
   }
 
-  void printDataFlowFact(std::ostream &os, D d) const override {
+  void printDataFlowFact(std::ostream &os, d_t d) const override {
     IDEProblem.printDataFlowFact(os, d);
   }
 
-  void printFunction(std::ostream &os, F m) const override {
-    IDEProblem.printFunction(os, m);
+  void printFunction(std::ostream &os, f_t fun) const override {
+    IDEProblem.printFunction(os, fun);
   }
 
   void printEdgeFact(std::ostream &os, l_t l) const override {
@@ -233,18 +243,17 @@ public:
 };
 
 template <typename Problem>
-IDEVarTabulationProblem(Problem &)
-    -> IDEVarTabulationProblem<typename Problem::n_t, typename Problem::d_t,
-                               typename Problem::f_t, typename Problem::t_t,
-                               typename Problem::v_t, typename Problem::l_t,
-                               typename Problem::i_t>;
+IDEVarTabulationProblem(
+    Problem &,
+    VarICFG<typename Problem::ProblemAnalysisDomain::n_t,
+            typename Problem::ProblemAnalysisDomain::f_t, z3::expr> &)
+    -> IDEVarTabulationProblem<typename Problem::ProblemAnalysisDomain,
+                               typename Problem::container_type>;
 
 template <typename Problem>
-using IDEVariabilityTabulationProblem_P =
-    IDEVarTabulationProblem<typename Problem::n_t, typename Problem::d_t,
-                            typename Problem::f_t, typename Problem::t_t,
-                            typename Problem::v_t, typename Problem::l_t,
-                            typename Problem::i_t>;
+using IDEVarTabulationProblem_P =
+    IDEVarTabulationProblem<typename Problem::ProblemAnalysisDomain,
+                            typename Problem::container_type>;
 
 } // namespace psr
 

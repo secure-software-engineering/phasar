@@ -1,15 +1,19 @@
-#include "phasar/Utils/LLVMIRToSrc.h"
+#include <iostream>
+
+#include "gtest/gtest.h"
+
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/Support/raw_ostream.h"
-#include "gtest/gtest.h"
-#include <iostream>
 
 using namespace psr;
 
@@ -23,7 +27,7 @@ protected:
 
   ProjectIRDB *IRDB{};
   LLVMTypeHierarchy *TH{};
-  LLVMPointsToInfo *PT{};
+  LLVMPointsToSet *PT{};
   LLVMBasedICFG *ICFG{};
 
   LLVMIRToSrcTest() = default;
@@ -32,7 +36,7 @@ protected:
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
+    PT = new LLVMPointsToSet(*IRDB);
     ICFG =
         new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, {"main"}, TH, PT);
   }

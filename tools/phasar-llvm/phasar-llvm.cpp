@@ -16,8 +16,12 @@
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 
+#include "boost/dll.hpp"
+#include "boost/filesystem.hpp"
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
+#include "phasar/PhasarLLVM/Plugins/AnalysisPluginController.h"
+#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/SoundnessFlag.h"
@@ -76,9 +80,17 @@ void validateParamPammOutputFile(const std::string &Output) {}
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
   for (const auto &Analysis : Analyses) {
-    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
-      throw boost::program_options::error_with_option_name(
-          "'" + Analysis + "' is not a valid data-flow analysis!");
+    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None &&
+        !IDETabulationProblemPluginFactory.count(Analysis) &&
+        !IFDSTabulationProblemPluginFactory.count(Analysis) &&
+        !InterMonoProblemPluginFactory.count(Analysis) &&
+        !IntraMonoProblemPluginFactory.count(Analysis)) {
+      // throw boost::program_options::error_with_option_name(
+      //    "'" + Analysis + "' is not a valid data-flow analysis!");
+      std::cerr << "Error: "
+                << "'" + Analysis + "' is not a valid data-flow analysis!"
+                << std::endl;
+      exit(1);
     }
   }
 }
@@ -164,7 +176,7 @@ int main(int Argc, const char **Argv) {
     Config.add_options()
 			("module,m", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamModule), "Path to the module(s) under analysis")
       ("entry-points,E", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
-			("data-flow-analysis,D", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamDataFlowAnalysis), "Set the analysis to be run")
+			("data-flow-analysis,D", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()/*->notifier(&validateParamDataFlowAnalysis)*/, "Set the analysis to be run")
 			("analysis-strategy", boost::program_options::value<std::string>()->default_value("WPA")->notifier(&validateParamAnalysisStrategy))
       ("analysis-config", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamAnalysisConfig), "Set the analysis's configuration (if required)")
       ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
@@ -195,10 +207,10 @@ int main(int Argc, const char **Argv) {
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("emit-pta-as-json", "Emit the points-to information as JSON")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
-      #ifdef PHASAR_PLUGINS_ENABLED
+      
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
-      #endif
+      
       ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
@@ -238,7 +250,7 @@ int main(int Argc, const char **Argv) {
 #ifdef DYNAMIC_LOG
   initializeLogger(PhasarConfig::VariablesMap().count("log"));
 #endif
-  // print PhASER version
+  // print PhASAR version
   if (PhasarConfig::VariablesMap().count("version")) {
     std::cout << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
     return 0;
@@ -285,16 +297,48 @@ int main(int Argc, const char **Argv) {
   // setup IRDB as source code manager
   ProjectIRDB IRDB(
       PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
+
+  // store enabled data-flow analyses
+  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
+
+  // setup plugins
+  std::vector<boost::dll::shared_library> PluginLibs;
+  if (PhasarConfig::VariablesMap().count("analysis-plugin")) {
+    auto Plugins = PhasarConfig::VariablesMap()["analysis-plugin"]
+                       .as<std::vector<std::string>>();
+    for (auto &Plugin : Plugins) {
+      boost::filesystem::path LibPath(Plugin);
+      boost::system::error_code Err;
+      PluginLibs.emplace_back(LibPath, boost::dll::load_mode::rtld_lazy, Err);
+      if (Err) {
+        llvm::report_fatal_error(Err.message());
+      }
+    }
+    // check what plugins have registed themselves and add those to the vector
+    // of data-flow analyses
+    for (auto &[Name, IFDSFactory] : IFDSTabulationProblemPluginFactory) {
+      DataFlowAnalyses.emplace_back(IFDSFactory);
+    }
+    for (auto &[Name, IDEFactory] : IDETabulationProblemPluginFactory) {
+      DataFlowAnalyses.emplace_back(IDEFactory);
+    }
+    for (auto &[Name, IntraMonoFactory] : IntraMonoProblemPluginFactory) {
+      DataFlowAnalyses.emplace_back(IntraMonoFactory);
+    }
+    for (auto &[Name, InterMonoFactory] : InterMonoProblemPluginFactory) {
+      DataFlowAnalyses.emplace_back(InterMonoFactory);
+    }
+  }
   // setup data-flow analyses
-  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
     auto Analyses = PhasarConfig::VariablesMap()["data-flow-analysis"]
                         .as<std::vector<std::string>>();
+    validateParamDataFlowAnalysis(Analyses);
     for (auto &Analysis : Analyses) {
       DataFlowAnalyses.push_back(toDataFlowAnalysisType(Analysis));
     }
   } else {
-    DataFlowAnalyses.push_back(DataFlowAnalysisType::None);
+    DataFlowAnalyses.emplace_back(DataFlowAnalysisType::None);
   }
   // setup the data-flow analyses's corresponding analysis configs if anay
   std::vector<std::string> AnalysisConfigs;
