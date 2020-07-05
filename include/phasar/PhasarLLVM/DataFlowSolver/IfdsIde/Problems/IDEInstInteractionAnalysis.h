@@ -183,19 +183,18 @@ public:
       }
     }
 
-    if (!SyntacticAnalysisOnly) {
+    if constexpr (!SyntacticAnalysisOnly) {
       // (ii) handle semantic propagation (pointers)
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
         // if one of the potentially many loaded values holds, the load itself
         // must also be populated
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          IDEInstInteractionAnalysisT &Problem;
           const llvm::LoadInst *Load;
           std::unordered_set<d_t> PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
-              : Problem(Problem), Load(Load),
+              : Load(Load),
                 PTS(*Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
 
           container_type computeTargets(d_t src) override {
@@ -215,14 +214,13 @@ public:
         // if the value to be stored holds the potentially memory location
         // that it is stored to must be populated as well
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          IDEInstInteractionAnalysisT &Problem;
           const llvm::StoreInst *Store;
           std::unordered_set<d_t> ValuePTS;
           std::unordered_set<d_t> PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
-              : Problem(Problem), Store(Store),
+              : Store(Store),
                 ValuePTS(*Problem.PT->getPointsToSet(Store->getValueOperand())),
                 PointerPTS(
                     *Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
@@ -259,6 +257,7 @@ public:
         struct IIAAFlowFunction : FlowFunction<d_t> {
           const llvm::StoreInst *Store;
           const llvm::LoadInst *Load;
+
           IIAAFlowFunction(const llvm::StoreInst *S, const llvm::LoadInst *L)
               : Store(S), Load(L) {}
           ~IIAAFlowFunction() override = default;
@@ -287,6 +286,7 @@ public:
       } else {
         struct IIAAFlowFunction : FlowFunction<d_t> {
           const llvm::StoreInst *Store;
+
           IIAAFlowFunction(const llvm::StoreInst *S) : Store(S) {}
           ~IIAAFlowFunction() override = default;
 
@@ -314,17 +314,15 @@ public:
     }
     // and now we can handle all other statements
     struct IIAFlowFunction : FlowFunction<d_t> {
-      IDEInstInteractionAnalysisT &Problem;
       n_t Inst;
 
-      IIAFlowFunction(IDEInstInteractionAnalysisT &Problem, n_t Inst)
-          : Problem(Problem), Inst(Inst) {}
+      IIAFlowFunction(n_t Inst) : Inst(Inst) {}
 
       ~IIAFlowFunction() override = default;
 
       container_type computeTargets(d_t src) override {
         container_type Facts;
-        if (Problem.isZeroValue(src)) {
+        if (IDEInstInteractionAnalysisT::isZeroValueImpl(src)) {
           // keep the zero flow fact
           Facts.insert(src);
           return Facts;
@@ -356,7 +354,7 @@ public:
         return Facts;
       }
     };
-    return std::make_shared<IIAFlowFunction>(*this, curr);
+    return std::make_shared<IIAFlowFunction>(curr);
   }
 
   inline FlowFunctionPtrType getCallFlowFunction(n_t callStmt,
@@ -405,9 +403,7 @@ public:
     return LLVMZeroValue::getInstance();
   }
 
-  inline bool isZeroValue(d_t d) const override {
-    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
-  }
+  inline bool isZeroValue(d_t d) const override { return isZeroValueImpl(d); }
 
   // in addition provide specifications for the IDE parts
 
@@ -452,7 +448,7 @@ public:
               BOOST_LOG_SEV(lg::get(), DFADEBUG)
                   << "at '" << llvmIRToString(curr) << "'\n";
             }());
-            return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
+            return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
           }
         }
         // kill all labels that are propagated along the edge of the value that
@@ -487,7 +483,7 @@ public:
                 UEF->insert(edgeFactGenToBitVectorSet(OrigAlloca));
               }
             }
-            return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
+            return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
           } else {
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
                           << "Kill at '" << llvmIRToString(curr) << "'\n");
@@ -507,7 +503,7 @@ public:
                 UEF->insert(edgeFactGenToBitVectorSet(OrigAlloca));
               }
             }
-            return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
+            return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
           }
         }
       } else {
@@ -523,12 +519,12 @@ public:
              (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
              llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
             PointerPTS->count(Store->getPointerOperand())) {
-          return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
+          return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
         }
         // kill all labels that are propagated along the edge of the
         // value/values that is/are overridden
         if (currNode == succNode && PointerPTS->count(currNode)) {
-          return std::make_shared<IIAAKillOrReplaceEF>(*this);
+          return std::make_shared<IIAAKillOrReplaceEF>();
         }
       }
     }
@@ -615,20 +611,7 @@ public:
 
   inline l_t bottomElement() override { return BottomElement; }
 
-  inline l_t join(l_t Lhs, l_t Rhs) override {
-    if (Lhs == BottomElement || Rhs == BottomElement) {
-      return BottomElement;
-    }
-    if (Lhs == TopElement) {
-      return Rhs;
-    }
-    if (Rhs == TopElement) {
-      return Lhs;
-    }
-    auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
-    auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
-    return LhsSet.setUnion(RhsSet);
-  }
+  inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
   inline std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
     return std::make_shared<AllTop<l_t>>(topElement());
@@ -641,26 +624,15 @@ public:
   class IIAAKillOrReplaceEF
       : public EdgeFunction<l_t>,
         public std::enable_shared_from_this<IIAAKillOrReplaceEF> {
-  private:
-    IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
-                                EnableIndirectTaints> &Analysis;
-
   public:
     l_t Replacement;
 
-    explicit IIAAKillOrReplaceEF(
-        IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
-                                    EnableIndirectTaints> &Analysis)
-        : Analysis(Analysis), Replacement(BitVectorSet<e_t>()) {
+    explicit IIAAKillOrReplaceEF() : Replacement(BitVectorSet<e_t>()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
                     << "IIAAKillOrReplaceEF");
     }
 
-    explicit IIAAKillOrReplaceEF(
-        IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
-                                    EnableIndirectTaints> &Analysis,
-        l_t Replacement)
-        : Analysis(Analysis), Replacement(Replacement) {
+    explicit IIAAKillOrReplaceEF(l_t Replacement) : Replacement(Replacement) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
                     << "IIAAKillOrReplaceEF");
     }
@@ -698,7 +670,8 @@ public:
         return this->shared_from_this();
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(otherFunction.get())) {
-        Replacement = Analysis.join(Replacement, KR->Replacement);
+        Replacement =
+            IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
         return this->shared_from_this();
       }
       llvm::report_fatal_error(
@@ -719,7 +692,7 @@ public:
       if (isKillAll()) {
         OS << "(KillAll";
       } else {
-        Analysis.printEdgeFact(OS, Replacement);
+        IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, Replacement);
       }
       OS << ")";
     }
@@ -830,23 +803,8 @@ public:
     os << m->getName().str();
   }
 
-  void printEdgeFact(std::ostream &os, l_t l) const override {
-    if (std::holds_alternative<Top>(l)) {
-      os << std::get<Top>(l);
-    } else if (std::holds_alternative<Bottom>(l)) {
-      os << std::get<Bottom>(l);
-    } else {
-      auto lset = std::get<BitVectorSet<e_t>>(l);
-      os << "(set size: " << lset.size() << "), values: ";
-      size_t idx = 0;
-      for (const auto &s : lset) {
-        os << s;
-        if (idx != lset.size() - 1) {
-          os << ", ";
-        }
-        ++idx;
-      }
-    }
+  inline void printEdgeFact(std::ostream &os, l_t l) const override {
+    printEdgeFactImpl(os, l);
   }
 
   void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
@@ -891,6 +849,46 @@ public:
     // TODO: implement better report in case debug information are available
     //   }
   }
+
+protected:
+  static inline bool isZeroValueImpl(d_t d) {
+    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+  }
+
+  static void printEdgeFactImpl(std::ostream &os, l_t l) {
+    if (std::holds_alternative<Top>(l)) {
+      os << std::get<Top>(l);
+    } else if (std::holds_alternative<Bottom>(l)) {
+      os << std::get<Bottom>(l);
+    } else {
+      auto lset = std::get<BitVectorSet<e_t>>(l);
+      os << "(set size: " << lset.size() << "), values: ";
+      size_t idx = 0;
+      for (const auto &s : lset) {
+        os << s;
+        if (idx != lset.size() - 1) {
+          os << ", ";
+        }
+        ++idx;
+      }
+    }
+  }
+
+  static inline l_t joinImpl(l_t Lhs, l_t Rhs) {
+    if (Lhs == BottomElement || Rhs == BottomElement) {
+      return BottomElement;
+    }
+    if (Lhs == TopElement) {
+      return Rhs;
+    }
+    if (Rhs == TopElement) {
+      return Lhs;
+    }
+    auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
+    auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
+    return LhsSet.setUnion(RhsSet);
+  }
+
 }; // namespace psr
 
 using IDEInstInteractionAnalysis = IDEInstInteractionAnalysisT<>;
