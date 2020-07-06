@@ -124,11 +124,11 @@ else()
   include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googlemock/include)
 endif()
 
-find_package(Z3 4.8.7 REQUIRED)
+find_package(Z3 4.8 REQUIRED)
 include_directories(${Z3_CXX_INCLUDE_DIRS})
 
 if (NOT Z3_FOUND)
-  message(FATAL_ERROR "Z3 >= 4.8.7 has not been found.")
+  message(FATAL_ERROR "Z3 >= 4.8 has not been found.")
 endif()
 
 # SQL

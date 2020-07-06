@@ -57,8 +57,6 @@ public:
 
   std::set<const llvm::Function *> getAllFunctions() const override;
 
-  bool isCallStmt(const llvm::Instruction *Stmt) const override;
-
   bool isIndirectFunctionCall(const llvm::Instruction *Stmt) const override;
 
   bool isVirtualFunctionCall(const llvm::Instruction *Stmt) const override;
@@ -73,12 +71,6 @@ public:
 
   std::set<const llvm::Instruction *>
   getCallsFromWithin(const llvm::Function *M) const override;
-
-  std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *M) const override;
-
-  std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *N) const override;

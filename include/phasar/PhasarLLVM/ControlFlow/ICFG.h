@@ -48,8 +48,6 @@ public:
 
   virtual F getFunction(const std::string &Fun) const = 0;
 
-  virtual bool isCallStmt(N Stmt) const = 0;
-
   virtual bool isIndirectFunctionCall(N Stmt) const = 0;
 
   virtual bool isVirtualFunctionCall(N Stmt) const = 0;
@@ -61,10 +59,6 @@ public:
   virtual std::set<N> getCallersOf(F Fun) const = 0;
 
   virtual std::set<N> getCallsFromWithin(F Fun) const = 0;
-
-  virtual std::set<N> getStartPointsOf(F Fun) const = 0;
-
-  virtual std::set<N> getExitPointsOf(F Fun) const = 0;
 
   virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
 

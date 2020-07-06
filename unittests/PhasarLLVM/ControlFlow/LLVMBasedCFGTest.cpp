@@ -235,6 +235,85 @@ TEST(LLVMBasedCFGTest, HandleFieldStoreField) {
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
 }
 
+TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_2_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_2_cpp.ll");
+  auto *F = M->getFunction("_ZNSt8ios_base4InitC1Ev");
+  LLVMBasedCFG CFG;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  auto *N = M->getFunction("_ZNSt8ios_base4InitD1Ev");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(N),
+            SpecialMemberFunctionType::Destructor);
+  auto *O = M->getFunction(
+      "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(O),
+            SpecialMemberFunctionType::Destructor);
+}
+
+TEST(LLVMBasedCFGTest, HandlesCppUserDefinedType) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_1_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_1_cpp.ll");
+  auto *F = M->getFunction("_ZN7MyClassC2Ev");
+  LLVMBasedCFG CFG;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  auto *N = M->getFunction("_ZN7MyClassaSERKS_");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(N),
+            SpecialMemberFunctionType::CopyAssignment);
+  auto *O = M->getFunction("_ZN7MyClassaSEOS_");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(O),
+            SpecialMemberFunctionType::MoveAssignment);
+}
+
+TEST(LLVMBasedCFGTest, HandlesCppNonStandardFunctions) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_3_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_3_cpp.ll");
+  auto *F = M->getFunction("_ZN9testspace3foo3barES0_");
+  LLVMBasedCFG CFG;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::None);
+}
+
+TEST(LLVMBasedCFGTest, HandleFunctionsContainingCodesInName) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_4_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_4_cpp.ll");
+  auto *F = M->getFunction("_ZN8C0C1C2C12D1C2Ev"); // C0C1C2C1::D1::D1()
+  LLVMBasedCFG CFG;
+  std::cout << "VALUE IS: "
+            << static_cast<std::underlying_type_t<SpecialMemberFunctionType>>(
+                   CFG.getSpecialMemberFunctionType(F))
+            << std::endl;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  F = M->getFunction(
+      "_ZN8C0C1C2C12D1C2ERKS0_"); // C0C1C2C1::D1::D1(C0C1C2C1::D1 const&)
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  F = M->getFunction(
+      "_ZN8C0C1C2C12D1C2EOS0_"); // C0C1C2C1::D1::D1(C0C1C2C1::D1&&)
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  F = M->getFunction("_ZN8C0C1C2C12D1D2Ev"); // C0C1C2C1::D1::~D1()
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Destructor);
+  F = M->getFunction("_Z12C1C2C3D0D1D2v"); // C1C2C3D0D1D2()
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::None);
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

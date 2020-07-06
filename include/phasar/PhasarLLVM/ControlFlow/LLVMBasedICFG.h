@@ -198,15 +198,7 @@ public:
   getCallsFromWithin(const llvm::Function *Fun) const override;
 
   [[nodiscard]] std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *Fun) const override;
-
-  [[nodiscard]] std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *Fun) const override;
-
-  [[nodiscard]] std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
-
-  [[nodiscard]] bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
   [[nodiscard]] std::set<const llvm::Instruction *>
   allNonCallStartNodes() const override;

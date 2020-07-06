@@ -489,6 +489,26 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
   doAnalysisAndCompareResults("KillTest_cpp.ll", GroundTruth, false);
 }
 
+TEST_F(IDEInstInteractionAnalysisTest, HandleHeap_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 19, "retval", {"0"}));
+  //   GroundTruth.emplace(
+  //   std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+  //   "main", 19, "retval", {"0"}));
+  doAnalysisAndCompareResults("heap_01_cpp.ll", GroundTruth, true);
+}
+
+// TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//       BitVectorSet<std::string>>(
+//           "main", 3, "retval", {"0"}));
+//   doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, false);
+// }
+
 // TEST_F(IDEInstInteractionAnalysisTest, HandleRealWorldProgram_GZipTest) {
 //   doAnalysisAndCompareResults("gzip-gzip-81c9fe4d09.ll", {}, false);
 // }
