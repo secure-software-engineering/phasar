@@ -23,8 +23,8 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include <algorithm>
 #include <cassert>

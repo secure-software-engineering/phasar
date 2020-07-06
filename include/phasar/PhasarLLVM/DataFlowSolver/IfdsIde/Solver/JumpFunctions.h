@@ -22,6 +22,9 @@
 #include <optional>
 #include <ostream>
 #include <unordered_map>
+#include <utility>
+
+#include "llvm/ADT/SmallVector.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -52,12 +55,12 @@ protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<n_t, d_t, std::unordered_map<d_t, EdgeFunctionPtrType>>
+  Table<n_t, d_t, llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>
       nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<d_t, n_t, std::unordered_map<d_t, EdgeFunctionPtrType>>
+  Table<d_t, n_t, llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>
       nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
@@ -97,14 +100,33 @@ public:
     if (function->equal_to(allTop)) {
       return;
     }
-    // it is important that existing values in JumpFunctions are overwritten
-    // (use operator[] instead of insert)
-    std::unordered_map<d_t, EdgeFunctionPtrType> &sourceValToFunc =
-        nonEmptyReverseLookup.get(target, targetVal);
-    sourceValToFunc[sourceVal] = function;
-    std::unordered_map<d_t, EdgeFunctionPtrType> &targetValToFunc =
-        nonEmptyForwardLookup.get(sourceVal, target);
-    targetValToFunc[targetVal] = function;
+
+    auto &SourceValToFunc = nonEmptyReverseLookup.get(target, targetVal);
+    if (auto Find = std::find_if(
+            SourceValToFunc.begin(), SourceValToFunc.end(),
+            [sourceVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return sourceVal == Entry.first;
+            });
+        Find != SourceValToFunc.end()) {
+      // it is important that existing values in JumpFunctions are overwritten
+      Find->second = function;
+    } else {
+      SourceValToFunc.emplace_back(sourceVal, function);
+    }
+
+    auto &TargetValToFunc = nonEmptyForwardLookup.get(sourceVal, target);
+    if (auto Find = std::find_if(
+            TargetValToFunc.begin(), TargetValToFunc.end(),
+            [targetVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return targetVal == Entry.first;
+            });
+        Find != TargetValToFunc.end()) {
+      // it is important that existing values in JumpFunctions are overwritten
+      Find->second = function;
+    } else {
+      TargetValToFunc.emplace_back(targetVal, function);
+    }
+
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -117,8 +139,8 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  std::optional<
-      std::reference_wrapper<std::unordered_map<d_t, EdgeFunctionPtrType>>>
+  std::optional<std::reference_wrapper<
+      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
   reverseLookup(n_t target, d_t targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal)) {
       return std::nullopt;
@@ -132,8 +154,8 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  std::optional<
-      std::reference_wrapper<std::unordered_map<d_t, EdgeFunctionPtrType>>>
+  std::optional<std::reference_wrapper<
+      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
   forwardLookup(d_t sourceVal, n_t target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
       return std::nullopt;
@@ -159,8 +181,24 @@ public:
    * there anyway.
    */
   bool removeFunction(d_t sourceVal, n_t target, d_t targetVal) {
-    nonEmptyReverseLookup.get(target, targetVal).erase(sourceVal);
-    nonEmptyForwardLookup.get(sourceVal, target).erase(targetVal);
+    auto &SourceValToFunc = nonEmptyReverseLookup.get(target, targetVal);
+    if (auto Find = std::find_if(
+            SourceValToFunc.begin(), SourceValToFunc.end(),
+            [sourceVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return sourceVal == Entry.first;
+            });
+        Find != SourceValToFunc.end()) {
+      SourceValToFunc.erase(Find);
+    }
+    auto &TargetValToFunc = nonEmptyForwardLookup.get(sourceVal, target);
+    if (auto Find = std::find_if(
+            TargetValToFunc.begin(), TargetValToFunc.end(),
+            [targetVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+              return targetVal == Entry.first;
+            });
+        Find != TargetValToFunc.end()) {
+      TargetValToFunc.erase(Find);
+    }
     return nonEmptyLookupByTargetNode.erase(target);
   }
 

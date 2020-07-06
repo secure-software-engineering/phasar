@@ -14,6 +14,10 @@
  *      Author: philipp
  */
 
+#include <cstdlib>
+
+#include "boost/algorithm/string/trim.hpp"
+
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
@@ -25,15 +29,10 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "boost/algorithm/string/trim.hpp"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-
 #include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
-
-#include <cstdlib>
 
 using namespace std;
 using namespace psr;

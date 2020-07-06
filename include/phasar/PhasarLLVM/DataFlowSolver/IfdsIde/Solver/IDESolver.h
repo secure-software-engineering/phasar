@@ -79,15 +79,6 @@ template <typename AnalysisDomainTy, typename Container> struct IFDSExtension {
  * Solves the given IDETabulationProblem as described in the 1996 paper by
  * Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
  * can then be queried by using resultAt() and resultsAt().
- *
- * @param <N> The type of nodes in the interprocedural control-flow graph.
- * @param <D> The type of data-flow facts to be computed by the tabulation
- * problem.
- * @param <F> The type of objects used to represent functions.
- * @param <T> The type of user-defined types that the type hierarchy consists of
- * @param <V> The type of values on which points-to information are computed
- * @param <L> The type of values to be computed along flow edges.
- * @param <I> The type of inter-procedural control-flow graph being used.
  */
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>,
@@ -252,25 +243,17 @@ public:
     if (cells.empty()) {
       OS << "No results computed!" << std::endl;
     } else {
-      // FIXME
-      // llvmValueIDLess llvmIDLess;
-      // std::sort(cells.begin(), cells.end(),
-      //           [&llvmIDLess](
-      //               typename Table<const llvm::Instruction *, D, V>::Cell a,
-      //               typename Table<const llvm::Instruction *, D, V>::Cell b)
-      //               {
-      //             if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
-      //               if constexpr (std::is_same<D, const llvm::Value
-      //               *>::value) {
-      //                 return llvmIDLess(a.c, b.c);
-      //               } else {
-      //                 // If D is user defined we should use the user defined
-      //                 // less-than comparison
-      //                 return a.c < b.c;
-      //               }
-      //             }
-      //             return llvmIDLess(a.r, b.r);
-      //           });
+      llvmValueIDLess llvmIDLess;
+      std::sort(
+          cells.begin(), cells.end(),
+          [&llvmIDLess](const auto &a, const auto &b) {
+            if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
+              return llvmIDLess(a.getRowKey(), b.getRowKey());
+            } else {
+              // If non-LLVM IR is used
+              return a.getRowKey() < b.getRowKey();
+            }
+          });
       n_t prev = n_t{};
       n_t curr = n_t{};
       f_t prevFn = f_t{};
@@ -771,18 +754,24 @@ protected:
 
     auto fwdLookupRes =
         jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget());
-    if (!fwdLookupRes || !fwdLookupRes->get().count(edge.factAtTarget())) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "  => EdgeFn: " << allTop->str();
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
-      // JumpFn initialized to all-top, see line [2] in SRH96 paper
-      return allTop;
+    if (fwdLookupRes) {
+      auto &ref = fwdLookupRes->get();
+      if (auto Find = std::find_if(ref.begin(), ref.end(),
+                                   [edge](const auto &Pair) {
+                                     return edge.factAtTarget() == Pair.first;
+                                   });
+          Find != ref.end()) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "  => EdgeFn: " << Find->second->str();
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
+        return Find->second;
+      }
     }
-    auto res = fwdLookupRes->get()[edge.factAtTarget()];
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "  => EdgeFn: " << res->str();
+                      << "  => EdgeFn: " << allTop->str();
                   BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
-    return res;
+    // JumpFn initialized to all-top, see line [2] in SRH96 paper
+    return allTop;
   }
 
   void addEndSummary(n_t sP, d_t d1, n_t eP, d_t d2, EdgeFunctionPtrType f) {
@@ -1224,17 +1213,24 @@ protected:
                   << "Edge function : " << f.get()->str()
                   << " (result of previous compose)";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    EdgeFunctionPtrType jumpFnE = nullptr;
-    EdgeFunctionPtrType fPrime;
-    auto revLookupResult = jumpFn->reverseLookup(target, targetVal);
-    if (revLookupResult && !revLookupResult->get().empty()) {
-      jumpFnE = revLookupResult->get()[sourceVal];
-    }
-    if (jumpFnE == nullptr) {
-      jumpFnE = allTop; // jump function is initialized to all-top
-    }
-    fPrime = jumpFnE->joinWith(f); // TODO: check before join?
+
+    EdgeFunctionPtrType jumpFnE = [&]() {
+      const auto revLookupResult = jumpFn->reverseLookup(target, targetVal);
+      if (revLookupResult) {
+        const auto &JumpFnContainer = revLookupResult->get();
+        const auto Find = std::find_if(
+            JumpFnContainer.begin(), JumpFnContainer.end(),
+            [sourceVal](auto &KVpair) { return KVpair.first == sourceVal; });
+        if (Find != JumpFnContainer.end()) {
+          return Find->second;
+        }
+      }
+      // jump function is initialized to all-top if no entry was found
+      return allTop;
+    }();
+    EdgeFunctionPtrType fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equal_to(jumpFnE));
+
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Join: " << jumpFnE->str() << " & " << f.get()->str()
                       << (jumpFnE->equal_to(f) ? " (EF's are equal)" : " ");
@@ -1247,19 +1243,18 @@ protected:
       const PathEdge<n_t, d_t> edge(sourceVal, target, targetVal);
       PathEdgeCount++;
       pathEdgeProcessingTask(edge);
-      if (!IDEProblem.isZeroValue(targetVal)) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "EDGE: <F: "
-                          << target->getFunction()->getName().str()
-                          << ", D: " << IDEProblem.DtoString(sourceVal) << '>';
-                      BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << " ---> <N: " << IDEProblem.NtoString(target) << ',';
-                      BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "       D: " << IDEProblem.DtoString(targetVal) << ',';
-                      BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "      EF: " << fPrime->str() << '>';
-                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      }
+
+      LOG_IF_ENABLE(if (!IDEProblem.isZeroValue(targetVal)) {
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "EDGE: <F: " << target->getFunction()->getName().str()
+            << ", D: " << IDEProblem.DtoString(sourceVal) << '>';
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << " ---> <N: " << IDEProblem.NtoString(target) << ',';
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "       D: " << IDEProblem.DtoString(targetVal) << ',';
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "      EF: " << fPrime->str() << '>';
+        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
+      });
     } else {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "PROPAGATE: No new function!");

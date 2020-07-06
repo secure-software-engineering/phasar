@@ -17,11 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 
+#include <iostream>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
-#include <iostream>
 
 #include "nlohmann/json.hpp"
 
@@ -36,7 +36,8 @@ std::string toString(const SpecialMemberFunctionType &SMFT);
 
 SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT);
 
-std::ostream &operator<<(std::ostream &os, const SpecialMemberFunctionType &SMFT);
+std::ostream &operator<<(std::ostream &os,
+                         const SpecialMemberFunctionType &SMFT);
 
 template <typename N, typename F> class CFG {
 public:
@@ -74,7 +75,8 @@ public:
 
   virtual bool isSpecialMemberFunction(F Fun) const = 0;
 
-  virtual SpecialMemberFunctionType getSpecialMemberFunctionType(F Fun) const = 0;
+  virtual SpecialMemberFunctionType
+  getSpecialMemberFunctionType(F Fun) const = 0;
 
   virtual std::string getStatementId(N Stmt) const = 0;
 
