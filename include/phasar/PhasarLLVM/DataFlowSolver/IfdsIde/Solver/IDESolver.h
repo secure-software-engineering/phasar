@@ -79,15 +79,6 @@ template <typename AnalysisDomainTy, typename Container> struct IFDSExtension {
  * Solves the given IDETabulationProblem as described in the 1996 paper by
  * Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
  * can then be queried by using resultAt() and resultsAt().
- *
- * @param <N> The type of nodes in the interprocedural control-flow graph.
- * @param <D> The type of data-flow facts to be computed by the tabulation
- * problem.
- * @param <F> The type of objects used to represent functions.
- * @param <T> The type of user-defined types that the type hierarchy consists of
- * @param <V> The type of values on which points-to information are computed
- * @param <L> The type of values to be computed along flow edges.
- * @param <I> The type of inter-procedural control-flow graph being used.
  */
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>,
@@ -253,23 +244,16 @@ public:
       OS << "No results computed!" << std::endl;
     } else {
       llvmValueIDLess llvmIDLess;
-      std::sort(cells.begin(), cells.end(),
-                [&llvmIDLess](
-                    auto a,
-                    auto b)
-                    {
-                  if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
-                    if constexpr (std::is_same<D, const llvm::Value
-                    *>::value) {
-                      return llvmIDLess(a.c, b.c);
-                    } else {
-                      // If D is user defined we should use the user defined
-                      // less-than comparison
-                      return a.c < b.c;
-                    }
-                  }
-                  return llvmIDLess(a.r, b.r);
-                });
+      std::sort(
+          cells.begin(), cells.end(),
+          [&llvmIDLess](const auto &a, const auto &b) {
+            if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
+              return llvmIDLess(a.getRowKey(), b.getRowKey());
+            } else {
+              // If non-LLVM IR is used
+              return a.getRowKey() < b.getRowKey();
+            }
+          });
       n_t prev = n_t{};
       n_t curr = n_t{};
       f_t prevFn = f_t{};
