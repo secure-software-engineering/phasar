@@ -1,7 +1,8 @@
-set(LoopVarSources
-  loop_01.c
-  loop_02.c
-)
+file(GLOB_RECURSE LoopVarSources *.c)
+#set(LoopVarSources
+#  loop_01.c
+#  loop_02.c
+#)
 
 foreach(TEST_SRC ${LoopVarSources})
   xtc_making_plans_for_nigell(FILE ${TEST_SRC} DEBUG)
