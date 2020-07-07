@@ -13,8 +13,10 @@ int main() {
   long long j = i * 2147483650LL;
   int k =
 #ifdef A
-      compress(j)
+      compressor(j)
 #else
       -1
-#endif;
+#endif
+      ;
+  return k;
 }

@@ -10,7 +10,9 @@ bool compute(unsigned int x) { return x & (1 << 31); }
 #endif
 
 int main() {
-  if (compute(2))
+  unsigned y = 2;
+  bool i = compute(y);
+  if (i)
     puts("foo");
   else
     puts("bar");
