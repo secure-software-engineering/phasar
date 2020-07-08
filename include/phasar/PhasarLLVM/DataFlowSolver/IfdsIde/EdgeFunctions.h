@@ -224,15 +224,19 @@ public:
   virtual ~EdgeFunctions() = default;
   virtual EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode,
                                                     n_t succ, d_t succNode) = 0;
+
   virtual EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
                                                   f_t destinationFunction,
                                                   d_t destNode) = 0;
+  
   virtual EdgeFunctionPtrType
   getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) = 0;
+  
   virtual EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<f_t> callees) = 0;
+  
   virtual EdgeFunctionPtrType
   getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ, d_t succNode) = 0;
 };
