@@ -22,6 +22,7 @@
 #include <set>
 #include <type_traits>
 #include <vector>
+#include <functional>
 
 namespace psr {
 
@@ -35,7 +36,7 @@ template <typename D, typename Container = std::set<D>> class FlowFunction {
 
 public:
   using FlowFunctionType = FlowFunction<D, Container>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunctionType>;
+  using FlowFunctionPtrType = std::unique_ptr<FlowFunctionType, std::function<void(FlowFunctionType *)>>;
 
   using container_type = Container;
   using value_type = typename container_type::value_type;
@@ -57,9 +58,9 @@ public:
   Identity &operator=(const Identity &i) = delete;
   // simply return what the user provides
   container_type computeTargets(D source) override { return {source}; }
-  static std::shared_ptr<Identity> getInstance() {
-    static std::shared_ptr<Identity> instance =
-        std::shared_ptr<Identity>(new Identity);
+  static std::unique_ptr<Identity, std::function<void(FlowFunctionType *)>> getInstance() {
+    static std::unique_ptr<Identity, std::function<void(FlowFunctionType *)>> instance =
+        std::unique_ptr<Identity, std::function<void(FlowFunctionType *)>>(new Identity,[](FlowFunctionType *f) {});
     return instance;
   }
 
@@ -118,7 +119,7 @@ public:
     } else if (vec.empty()) {
       return Identity<D, Container>::getInstance();
     }
-    return std::make_shared<Compose>(vec);
+    return std::make_unique<Compose>(vec);
   }
 
 protected:
@@ -272,14 +273,15 @@ template <typename D, typename Container = std::set<D>>
 class KillAll : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
+  using typename FlowFunction<D, Container>::FlowFunctionType;
 
   virtual ~KillAll() = default;
   KillAll(const KillAll &k) = delete;
   KillAll &operator=(const KillAll &k) = delete;
   container_type computeTargets(D source) override { return container_type(); }
-  static std::shared_ptr<KillAll<D>> getInstance() {
-    static std::shared_ptr<KillAll> instance =
-        std::shared_ptr<KillAll>(new KillAll);
+  static std::unique_ptr<KillAll<D>, std::function<void(FlowFunctionType*)>> getInstance() {
+    static std::unique_ptr<KillAll, std::function<void(FlowFunctionType *)>> instance =
+        std::unique_ptr<KillAll, std::function<void(FlowFunctionType *)>>(new KillAll,[](FlowFunctionType *f) {});
     return instance;
   }
 

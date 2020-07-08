@@ -17,6 +17,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowEdgeFunctionMemoryManager.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 
@@ -33,6 +34,7 @@ template <typename AnalysisDomainTy,
 class FlowEdgeFunctionCache {
   using IDEProblemType = IDETabulationProblem<AnalysisDomainTy, Container>;
   using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
+  using FlowFunctionType = typename IDEProblemType::FlowFunctionType;
   using EdgeFunctionPtrType = typename IDEProblemType::EdgeFunctionPtrType;
 
   using n_t = typename AnalysisDomainTy::n_t;
@@ -42,15 +44,16 @@ class FlowEdgeFunctionCache {
 
 private:
   IDETabulationProblem<AnalysisDomainTy, Container> &problem;
+  FlowEdgeFunctionCache<d_t> cache;
   // Auto add zero
   bool autoAddZero;
   d_t zeroValue;
   // Caches for the flow functions
-  std::map<std::tuple<n_t, n_t>, FlowFunctionPtrType> NormalFlowFunctionCache;
-  std::map<std::tuple<n_t, f_t>, FlowFunctionPtrType> CallFlowFunctionCache;
-  std::map<std::tuple<n_t, f_t, n_t, n_t>, FlowFunctionPtrType>
+  std::map<std::tuple<n_t, n_t>, FlowFunctionType*> NormalFlowFunctionCache;
+  std::map<std::tuple<n_t, f_t>, FlowFunctionType*> CallFlowFunctionCache;
+  std::map<std::tuple<n_t, f_t, n_t, n_t>, FlowFunctionType*>
       ReturnFlowFunctionCache;
-  std::map<std::tuple<n_t, n_t, std::set<f_t>>, FlowFunctionPtrType>
+  std::map<std::tuple<n_t, n_t, std::set<f_t>>, FlowFunctionType*>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
   std::map<std::tuple<n_t, d_t, n_t, d_t>, EdgeFunctionPtrType>
