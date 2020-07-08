@@ -29,6 +29,9 @@ namespace psr {
 //                              FlowFunction Class
 //===----------------------------------------------------------------------===//
 
+//
+// This class models a flow function for distributive data-flow problems.
+//
 template <typename D, typename Container = std::set<D>> class FlowFunction {
   static_assert(std::is_same<typename Container::value_type, D>::value,
                 "Container values needs to be the same as D");
@@ -41,7 +44,19 @@ public:
   using value_type = typename container_type::value_type;
 
   virtual ~FlowFunction() = default;
-  virtual container_type computeTargets(D source) = 0;
+
+  //
+  // This function is called for each data-flow fact Source that holds before
+  // the instruction under analysis. The return value is a (potentially empty)
+  // set of data-flow facts that are generated from Source and hold after the
+  // instruction under analysis. In other words: the function describes what
+  // exploded supergraph edges have to be "drawn".
+  //
+  // Please also refer to the various flow function factories of the
+  // FlowFunctions interface: FlowFunctions::get*FlowFunction() for more
+  // details.
+  //
+  virtual container_type computeTargets(D Source) = 0;
 };
 
 template <typename D, typename Container = std::set<D>>
@@ -479,12 +494,12 @@ public:
   // supergraph.
   //
   //                            0  o  p   ...
-  //                            |\  \  \  ...
-  // x = CalleeFun(o, p, ...)   | \  \  +----------------+
+  //                             \  \  \  ...
+  // x = CalleeFun(o, p, ...)     \  \  +----------------+
   //                               \  +----------------  |
-  //                            |    +-------------+  +  |
-  //                            |         ...      |  |  |
-  //                            v         ...      |  |  |
+  //                                 +-------------+  +  |
+  //                                      ...      |  |  |
+  //                                      ...      |  |  |
   //                            0  o  p   ...      |  |  |
   //                                               |  |  |
   //                                               |  |  |
@@ -531,10 +546,10 @@ public:
   // supergraph.
   //
   //                         0  o   ...
-  //                         |
-  // x = CalleeFun(o, ...)   |
-  //                         |     +------------------+
-  //                         |  +--|---------------+  |
+  //
+  // x = CalleeFun(o, ...)
+  //                               +------------------+
+  //                            +--|---------------+  |
   //                         +--|--|------------+  |  |
   //                         v  v  v   ...      |  |  |
   //                         0  o  x   ...      |  |  |
