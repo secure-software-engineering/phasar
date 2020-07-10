@@ -229,8 +229,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     }
   }
   // we no longer need the LLVM representation
-  // TODO
-  // PTA.erase(F);
+  PTA.erase(F);
 }
 
 AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
