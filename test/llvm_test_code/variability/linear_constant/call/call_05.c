@@ -24,7 +24,7 @@ foo() {
 int main() {
   int result =
 #ifdef EXPAND
-      (int)(foo() * 334);
+      (int)(foo() * 334LL);
 #else
       foo();
 #endif
