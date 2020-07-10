@@ -41,6 +41,11 @@ class FlowEdgeFunctionCache {
   using t_t = typename AnalysisDomainTy::t_t;
 
 private:
+  using EdgeFuncInstKey = std::pair<n_t, n_t>;
+  using EdgeFuncNodeKey = std::pair<d_t, d_t>;
+  using InnerEdgeFunctionMapType =
+      std::map<EdgeFuncNodeKey, EdgeFunctionPtrType>;
+
   IDETabulationProblem<AnalysisDomainTy, Container> &problem;
   // Auto add zero
   bool autoAddZero;
@@ -53,8 +58,7 @@ private:
   std::map<std::tuple<n_t, n_t, std::set<f_t>>, FlowFunctionPtrType>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
-  std::map<std::tuple<n_t, d_t, n_t, d_t>, EdgeFunctionPtrType>
-      NormalEdgeFunctionCache;
+  std::map<EdgeFuncInstKey, InnerEdgeFunctionMapType> NormalEdgeFunctionCache;
   std::map<std::tuple<n_t, d_t, f_t, d_t>, EdgeFunctionPtrType>
       CallEdgeFunctionCache;
   std::map<std::tuple<n_t, f_t, n_t, d_t, n_t, d_t>, EdgeFunctionPtrType>
@@ -274,17 +278,42 @@ public:
                   << "(N) Succ Inst : " << problem.NtoString(succ);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Succ Node : " << problem.DtoString(succNode));
-    auto key = std::tie(curr, currNode, succ, succNode);
-    if (NormalEdgeFunctionCache.count(key)) {
+    if (hasNormalEdgeFunction(curr, currNode, succ, succNode)) {
       INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      return NormalEdgeFunctionCache.at(key);
+
+      EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(curr, succ);
+      auto SearchInnerMap = NormalEdgeFunctionCache.find(OuterMapKey);
+      assert(
+          SearchInnerMap != NormalEdgeFunctionCache.end() &&
+          "Outer map did not contain map node, which should be guaranteed by "
+          "hasNormalEdgeFunction.");
+
+      auto SearchEdgeFunc = SearchInnerMap->second.find(
+          createEdgeFunctionNodeKey(currNode, succNode));
+      assert(SearchEdgeFunc != SearchInnerMap->second.end() &&
+             "Inner map did not contain EdgeFunction, which should be "
+             "guaranteed by hasNormalEdgeFunction");
+
+      return SearchEdgeFunc->second;
     } else {
       INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
-      NormalEdgeFunctionCache.insert(std::make_pair(key, ef));
+
+      EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(curr, succ);
+      auto SearchInnerMap = NormalEdgeFunctionCache.find(OuterMapKey);
+      if (SearchInnerMap != NormalEdgeFunctionCache.end()) {
+        SearchInnerMap->second.emplace(
+            createEdgeFunctionNodeKey(currNode, succNode), ef);
+      } else {
+        NormalEdgeFunctionCache.emplace(
+            OuterMapKey,
+            InnerEdgeFunctionMapType{
+                {typename InnerEdgeFunctionMapType::value_type{
+                    createEdgeFunctionNodeKey(currNode, succNode), ef}}});
+      }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -533,6 +562,30 @@ public:
           BOOST_LOG_SEV(lg::get(), INFO)
           << "Cache statistics only recorded on PAMM severity level: Full.");
     }
+  }
+
+private:
+  /// Checks if an EdgeFunction corresponding to the passed n_t/d_t values is
+  /// cached.
+  ///
+  /// \returns true, if a cache entry is present
+  inline bool hasNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                                    d_t succNode) {
+    auto Search = NormalEdgeFunctionCache.find(
+        createEdgeFunctionInstKey(curr, succ));
+    if (Search != NormalEdgeFunctionCache.end()) {
+      return Search->second.count(
+          createEdgeFunctionNodeKey(currNode, succNode));
+    }
+    return false;
+  }
+
+  static inline EdgeFuncInstKey createEdgeFunctionInstKey(n_t n1, n_t n2) {
+    return std::make_pair(n1, n2);
+  }
+
+  static inline EdgeFuncNodeKey createEdgeFunctionNodeKey(d_t d1, d_t d2) {
+    return std::make_pair(d1, d2);
   }
 };
 
