@@ -94,7 +94,7 @@ public:
     // //  - %tobool = icmp ne i32 %0, 0
     // //  - br i1 %tobool, label %if.then, label %if.else
     if (VarICF.isPPBranchTarget(curr, succ)) {
-      std::cout << "Found PP branch: " << llvmIRToString(curr) << '\n';
+      // std::cout << "Found PP branch: " << llvmIRToString(curr) << '\n';
       //   //   return Identity<d_t>::getInstance();
     }
     // otherwise just apply the user edge functions
@@ -132,8 +132,8 @@ public:
     // if curr is a special preprocessor #ifdef instruction, we need to add a
     // preprocessor constraint
     if (VarICF.isPPBranchTarget(curr, succ)) {
-      std::cout << "PP-Edge constaint: "
-                << VarICF.getPPConstraintOrTrue(curr, succ).to_string() << '\n';
+      // std::cout << "PP-Edge constaint: "
+                // << VarICF.getPPConstraintOrTrue(curr, succ).to_string() << '\n';
       // std::cout << "\tD1: " << IDEProblem.DtoString(currNode) << '\n';
       // std::cout << "\tN : " << IDEProblem.NtoString(curr) << '\n';
       // std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
@@ -143,7 +143,7 @@ public:
           UserEF, VarICF.getPPConstraintOrTrue(curr, succ));
     }
     // ordinary instruction, no preprocessor constraints
-    std::cout << "Edge Function: " << *UserEF << '\n';
+    // std::cout << "Edge Function: " << *UserEF << '\n';
     return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 

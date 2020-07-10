@@ -136,24 +136,40 @@ function(xtc_making_plans_for_nigell)
   if(GEN_LL_DEBUG)
     set(ll_file_suffix "${ll_file_suffix}_dbg")
   endif()
+  # create test code LLVM IR file name
   string(REPLACE ${test_code_file_ext}
-    "${ll_file_suffix}.ll" test_code_ll_file
-    ${GEN_LL_FILE}
+         "${ll_file_suffix}.ll" test_code_ll_file
+         ${GEN_LL_FILE}
+  )
+  # create test code XTC transformed file name
+    string(REPLACE ${test_code_file_ext}
+         "${ll_file_suffix}_xtc.c" test_code_xtc_file
+         ${GEN_LL_FILE}
   )
   # get file path
+
   set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${GEN_LL_FILE}")
+
+  message(MESSAGE ": test_code_ll_file: ${test_code_ll_file}")
+  message(MESSAGE ": test_code_xtc_file: ${test_code_xtc_file}")
+  message(MESSAGE ": test_code_file_path: ${test_code_file_path}")
 
   # define custom target name
   # target name = parentdir + test code file name + debug
   get_filename_component(parent_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   get_filename_component(test_code_file_name ${GEN_LL_FILE} NAME_WE)
-  set(test_code_file_target "${parent_dir}_${test_code_file_name}_xtc_${ll_file_suffix}")
+  # define custom target name for the XTC transformation
+  set(test_code_file_xtc_target "${parent_dir}_${test_code_file_name}_xtc${ll_file_suffix}")
+  # define custom target name for the LLVM IR generation of the XTC transformed file
+  set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
-  # define compilation flags
+  message(MESSAGE ": test_code_file_xtc_target: ${test_code_file_xtc_target}")
+  message(MESSAGE ": test_code_file_target: ${test_code_file_target}")
+
+  # define Clang compilation flags for LLVM IR generation
   set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S)
   set(GEN_C_FLAGS -std=c11 -fno-discard-value-names -emit-llvm -S)
   set(GEN_CMD_COMMENT "[XTC][LL]")
-
   if(GEN_LL_DEBUG)
     list(APPEND GEN_CXX_FLAGS -g)
     list(APPEND GEN_C_FLAGS -g)
@@ -161,14 +177,35 @@ function(xtc_making_plans_for_nigell)
   endif()
   set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} ${GEN_LL_FILE}")
 
-  # define .ll file generation command
+  # check source language
   if(${test_code_file_ext} STREQUAL ".cpp")
-    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER})
-    list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
-  else()
-    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
-    list(APPEND GEN_CMD ${GEN_C_FLAGS})
+    message(FATAL_ERROR "XTC only supports C sources!")
   endif()
+
+  # define additional information for XTC transformation
+  set(GEN_XTC_COMMENT "[XTC]")
+
+#  message(MESSAGE ": CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR}")
+#  message(MESSAGE ": CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
+
+  set(test_code_file_output_path "${CMAKE_CURRENT_SOURCE_DIR}")
+  message(MESSAGE ": test_code_file_output_path: ${test_code_file_output_path}")
+  #define XTC transformation command
+  add_custom_command(
+    OUTPUT ${test_code_xtc_file}
+    COMMAND java -cp $ENV{CLASSPATH}:$ENV{XTC_DESUGAR} xtc.lang.cpp.SuperC -silent ${test_code_file_path} > ${test_code_xtc_file}
+    COMMENT ${GEN_XTC_COMMENT}
+    DEPENDS ${GEN_LL_FILE}
+    VERBATIM
+  )
+  add_custom_target(${test_code_file_xtc_target}
+    DEPENDS ${test_code_xtc_file}
+  )
+  add_dependencies(LLFileGeneration ${test_code_file_xtc_target})
+
+  # define .ll file generation command
+  set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
+  list(APPEND GEN_CMD ${GEN_C_FLAGS})
   add_custom_command(
   OUTPUT ${test_code_ll_file}
   COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}

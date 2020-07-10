@@ -126,7 +126,7 @@ TEST_F(IDEVarTabulationProblemTest, HandleBasic_01) {
                           {"A_defined", 42}, {"(not A_defined)", 13}});
   GroundTruth.emplace("main", 11, "retval",
                       std::set<std::pair<std::string, int64_t>>{{"true", 0}});
-  doAnalysisAndCompareResults("basic_01_c.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("basic_01_c.ll", GroundTruth, true);
 }
 
 TEST_F(IDEVarTabulationProblemTest, HandleBasic_02) {
@@ -201,7 +201,7 @@ TEST_F(IDEVarTabulationProblemTest, HandleRecursion_01) {
       "main", 13, "retval",
       std::set<std::pair<std::string, int64_t>>{
           {"true", TOP}, {"A_defined", 0}, {"(not A_defined)", 0}});
-  doAnalysisAndCompareResults("recursion_01_c.ll", GroundTruth, true);
+  doAnalysisAndCompareResults("recursion_01_c.ll", GroundTruth, false);
 }
 
 int main(int argc, char **argv) {
