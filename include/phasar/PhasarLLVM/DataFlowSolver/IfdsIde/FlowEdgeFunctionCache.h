@@ -44,7 +44,7 @@ class FlowEdgeFunctionCache {
 
 private:
   IDETabulationProblem<AnalysisDomainTy, Container> &problem;
-  FlowEdgeFunctionCache<d_t> cache;
+  FlowEdgeFunctionMemoryManager<d_t> memManager;
   // Auto add zero
   bool autoAddZero;
   d_t zeroValue;
@@ -116,7 +116,7 @@ public:
   FlowEdgeFunctionCache &
   operator=(FlowEdgeFunctionCache &&FEFC) noexcept = default;
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) {
+  FlowFunctionType* getNormalFlowFunction(n_t curr, n_t succ) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Normal flow function factory call");
@@ -134,9 +134,9 @@ public:
     } else {
       INC_COUNTER("Normal-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
-                          problem.getNormalFlowFunction(curr, succ), zeroValue)
-                    : problem.getNormalFlowFunction(curr, succ);
+                    ? memManager.manageFlowFunction(std::make_unique<ZeroedFlowFunction<d_t, Container>>(
+                          problem.getNormalFlowFunction(curr, succ), zeroValue))
+                    : memManager.manageFlowFunction(problem.getNormalFlowFunction(curr, succ));
       NormalFlowFunctionCache.insert(make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Flow function constructed");
@@ -145,7 +145,7 @@ public:
     }
   }
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) {
+  FlowFunctionType* getCallFlowFunction(n_t callStmt, f_t destFun) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call flow function factory call");
@@ -164,9 +164,9 @@ public:
       INC_COUNTER("Call-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
-                    problem.getCallFlowFunction(callStmt, destFun), zeroValue)
-              : problem.getCallFlowFunction(callStmt, destFun);
+              ? memManager.manageFlowFunction(std::make_unique<ZeroedFlowFunction<d_t, Container>>(
+                    problem.getCallFlowFunction(callStmt, destFun), zeroValue))
+              : memManager.manageFlowFunction(problem.getCallFlowFunction(callStmt, destFun));
       CallFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Flow function constructed");
@@ -175,7 +175,7 @@ public:
     }
   }
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+  FlowFunctionType* getRetFlowFunction(n_t callSite, f_t calleeFun,
                                          n_t exitStmt, n_t retSite) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -198,12 +198,12 @@ public:
     } else {
       INC_COUNTER("Return-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
+                    ? memManager.manageFlowFunction(std::make_unique<ZeroedFlowFunction<d_t, Container>>(
                           problem.getRetFlowFunction(callSite, calleeFun,
                                                      exitStmt, retSite),
-                          zeroValue)
-                    : problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
-                                                 retSite);
+                          zeroValue))
+                    : memManager.manageFlowFunction(problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
+                                                 retSite));
       ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Flow function constructed");
@@ -212,7 +212,7 @@ public:
     }
   }
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+  FlowFunctionType* getCallToRetFlowFunction(n_t callSite, n_t retSite,
                                                std::set<f_t> callees) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -237,11 +237,11 @@ public:
       INC_COUNTER("CallToRet-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
+              ? memManager.manageFlowFunction(std::make_unique<ZeroedFlowFunction<d_t, Container>>(
                     problem.getCallToRetFlowFunction(callSite, retSite,
                                                      callees),
-                    zeroValue)
-              : problem.getCallToRetFlowFunction(callSite, retSite, callees);
+                    zeroValue))
+              : memManager.manageFlowFunction(problem.getCallToRetFlowFunction(callSite, retSite, callees));
       CallToRetFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Flow function constructed");
@@ -250,7 +250,7 @@ public:
     }
   }
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt, f_t destFun) {
+  FlowFunctionType* getSummaryFlowFunction(n_t callStmt, f_t destFun) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -260,7 +260,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(F) Dest Mthd : " << problem.FtoString(destFun));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    auto ff = problem.getSummaryFlowFunction(callStmt, destFun);
+    auto ff = memManager.manageFlowFunction(problem.getSummaryFlowFunction(callStmt, destFun));
     return ff;
   }
 

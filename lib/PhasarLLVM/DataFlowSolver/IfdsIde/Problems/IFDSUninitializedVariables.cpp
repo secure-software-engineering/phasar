@@ -97,7 +97,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {};
       }
     };
-    return make_shared<UVFF>(func, zerovalue);
+    return make_unique<UVFF>(func, zerovalue);
   }
   */
 
@@ -171,11 +171,11 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {Source};
       }
     };
-    return make_shared<UVFF>(Store, UndefValueUses, ZeroValue);
+    return make_unique<UVFF>(Store, UndefValueUses, ZeroValue);
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
+    return make_unique<LambdaFlow<IFDSUninitializedVariables::d_t>>(
         [Alloc, this](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (isZeroValue(Source)) {
@@ -228,7 +228,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
       return {Source};
     }
   };
-  return make_shared<UVFF>(Curr, UndefValueUses);
+  return make_unique<UVFF>(Curr, UndefValueUses);
 
   // otherwise we do not care and nothing changes
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
@@ -313,7 +313,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(DestFun, CallSite, ZeroValue);
+    return make_unique<UVFF>(DestFun, CallSite, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -357,7 +357,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return make_shared<UVFF>(CS, ExitStmt);
+    return make_unique<UVFF>(CS, ExitStmt);
   }
   // kill everything else
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
@@ -374,7 +374,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
     llvm::ImmutableCallSite CS(CallSite);
-    return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
+    return make_unique<LambdaFlow<IFDSUninitializedVariables::d_t>>(
         [CS](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {

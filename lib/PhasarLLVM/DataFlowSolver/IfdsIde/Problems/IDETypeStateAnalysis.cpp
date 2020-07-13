@@ -56,7 +56,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
   // value.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
-      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
+      return make_unique<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
                                                          getZeroValue());
     }
   }
@@ -80,12 +80,12 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(Load);
+      return make_unique<TSFlowFunction>(Load);
     }
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return make_shared<LambdaFlow<d_t>>([=](d_t Source) -> set<d_t> {
+      return make_unique<LambdaFlow<d_t>>([=](d_t Source) -> set<d_t> {
         // if (Source == Gep->getPointerOperand()) {
         //  return {Source, Gep};
         //}
@@ -128,7 +128,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(Store, RelevantAliasesAndAllocas);
+      return make_unique<TSFlowFunction>(Store, RelevantAliasesAndAllocas);
     }
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
@@ -146,7 +146,7 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
   // standard mapping.
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
+    return make_unique<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
                                            DestFun);
   }
   llvm::report_fatal_error("callStmt not a CallInst nor a InvokeInst");

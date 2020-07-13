@@ -35,7 +35,7 @@ namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {
   using FlowFunctionType = FlowFunction<D>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunction<D>>;
+  using FlowFunctionPtrType = std::unique_ptr<FlowFunctionType, std::function<void(FlowFunctionType *)>>;
 
 private:
   std::map<std::string, FlowFunctionPtrType> SpecialFlowFunctions;

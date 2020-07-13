@@ -59,9 +59,8 @@ public:
   // simply return what the user provides
   container_type computeTargets(D source) override { return {source}; }
   static std::unique_ptr<Identity, std::function<void(FlowFunctionType *)>> getInstance() {
-    static std::unique_ptr<Identity, std::function<void(FlowFunctionType *)>> instance =
-        std::unique_ptr<Identity, std::function<void(FlowFunctionType *)>>(new Identity,[](FlowFunctionType *f) {});
-    return instance;
+    static Identity instance;
+    return std::unique_ptr<Identity, std::function<void(FlowFunctionType *)>>(&instance,[](FlowFunctionType *f) {});
   }
 
 private:
@@ -280,9 +279,8 @@ public:
   KillAll &operator=(const KillAll &k) = delete;
   container_type computeTargets(D source) override { return container_type(); }
   static std::unique_ptr<KillAll<D>, std::function<void(FlowFunctionType*)>> getInstance() {
-    static std::unique_ptr<KillAll, std::function<void(FlowFunctionType *)>> instance =
-        std::unique_ptr<KillAll, std::function<void(FlowFunctionType *)>>(new KillAll,[](FlowFunctionType *f) {});
-    return instance;
+    static KillAll instance;
+    return std::unique_ptr<KillAll, std::function<void(FlowFunctionType *)>>(&instance,[](FlowFunctionType *f) {});
   }
 
 private:
