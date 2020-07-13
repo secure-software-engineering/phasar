@@ -335,7 +335,7 @@ int main(int Argc, const char **Argv) {
                         .as<std::vector<std::string>>();
     validateParamDataFlowAnalysis(Analyses);
     for (auto &Analysis : Analyses) {
-      DataFlowAnalyses.push_back(toDataFlowAnalysisType(Analysis));
+      DataFlowAnalyses.emplace_back(toDataFlowAnalysisType(Analysis));
     }
   } else {
     DataFlowAnalyses.emplace_back(DataFlowAnalysisType::None);

@@ -92,12 +92,11 @@ void LLVMBasedPointsToAnalysis::computePointsToInfo(llvm::Function &Fun) {
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
 
-void LLVMBasedPointsToAnalysis::erase(const llvm::Function *F) {
-  // TODO
+void LLVMBasedPointsToAnalysis::erase(llvm::Function *F) {
   // after we clear all stuff, we need to set it up for the next function-wise
   // analysis
-  // AAInfos.erase(F);
-  // FAM.clear();
+  AAInfos.erase(F);
+  FAM.clear(*F, F->getName());
 }
 
 void LLVMBasedPointsToAnalysis::clear() {
