@@ -58,7 +58,7 @@ public:
     return AAInfos.at(F);
   };
 
-  void erase(const llvm::Function *F);
+  void erase(llvm::Function *F);
 
   void clear();
 
