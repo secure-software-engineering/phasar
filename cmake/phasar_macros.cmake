@@ -149,10 +149,6 @@ function(xtc_making_plans_for_nigell)
   # get file path
   set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${GEN_LL_FILE}")
 
-  message(MESSAGE ": test_code_ll_file: ${test_code_ll_file}")
-  message(MESSAGE ": test_code_xtc_file: ${test_code_xtc_file}")
-  message(MESSAGE ": test_code_file_path: ${test_code_file_path}")
-
   # define custom target name
   # target name = parentdir + test code file name + debug
   get_filename_component(parent_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -161,9 +157,6 @@ function(xtc_making_plans_for_nigell)
   set(test_code_file_xtc_target "${parent_dir}_${test_code_file_name}_xtc${ll_file_suffix}")
   # define custom target name for the LLVM IR generation of the XTC transformed file
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
-
-  message(MESSAGE ": test_code_file_xtc_target: ${test_code_file_xtc_target}")
-  message(MESSAGE ": test_code_file_target: ${test_code_file_target}")
 
   # define Clang compilation flags for LLVM IR generation
   set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S)
@@ -184,15 +177,11 @@ function(xtc_making_plans_for_nigell)
   # define additional information for XTC transformation
   set(GEN_XTC_COMMENT "[XTC] ${GEN_LL_FILE}")
 
-#  message(MESSAGE ": CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR}")
-#  message(MESSAGE ": CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
-
   set(test_code_file_output_path "${CMAKE_CURRENT_SOURCE_DIR}")
-  message(MESSAGE ": test_code_file_output_path: ${test_code_file_output_path}")
   #define XTC transformation command
   add_custom_command(
     OUTPUT ${test_code_xtc_file}
-    COMMAND java -cp $ENV{CLASSPATH}:$ENV{XTC_DESUGAR} xtc.lang.cpp.SuperC -silent ${test_code_file_path} > ${test_code_xtc_file}
+    COMMAND java -cp $ENV{CLASSPATH}:$ENV{XTC_DESUGAR} xtc.lang.cpp.SuperC -silent ${test_code_file_path} > ${test_code_xtc_file} 2> /dev/null
     COMMENT ${GEN_XTC_COMMENT}
     DEPENDS ${GEN_LL_FILE}
     VERBATIM
