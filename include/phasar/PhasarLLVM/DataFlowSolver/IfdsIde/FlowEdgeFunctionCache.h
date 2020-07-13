@@ -571,8 +571,8 @@ private:
   /// \returns true, if a cache entry is present
   inline bool hasNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                                     d_t succNode) {
-    auto Search = NormalEdgeFunctionCache.find(
-        createEdgeFunctionInstKey(curr, succ));
+    auto Search =
+        NormalEdgeFunctionCache.find(createEdgeFunctionInstKey(curr, succ));
     if (Search != NormalEdgeFunctionCache.end()) {
       return Search->second.count(
           createEdgeFunctionNodeKey(currNode, succNode));

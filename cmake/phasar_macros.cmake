@@ -138,7 +138,7 @@ function(xtc_making_plans_for_nigell)
   endif()
   # create test code LLVM IR file name
   string(REPLACE ${test_code_file_ext}
-         "${ll_file_suffix}.ll" test_code_ll_file
+         "${ll_file_suffix}_xtc.ll" test_code_ll_file
          ${GEN_LL_FILE}
   )
   # create test code XTC transformed file name
@@ -147,7 +147,6 @@ function(xtc_making_plans_for_nigell)
          ${GEN_LL_FILE}
   )
   # get file path
-
   set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${GEN_LL_FILE}")
 
   message(MESSAGE ": test_code_ll_file: ${test_code_ll_file}")
@@ -169,7 +168,7 @@ function(xtc_making_plans_for_nigell)
   # define Clang compilation flags for LLVM IR generation
   set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S)
   set(GEN_C_FLAGS -std=c11 -fno-discard-value-names -emit-llvm -S)
-  set(GEN_CMD_COMMENT "[XTC][LL]")
+  set(GEN_CMD_COMMENT "[LL]")
   if(GEN_LL_DEBUG)
     list(APPEND GEN_CXX_FLAGS -g)
     list(APPEND GEN_C_FLAGS -g)
@@ -183,7 +182,7 @@ function(xtc_making_plans_for_nigell)
   endif()
 
   # define additional information for XTC transformation
-  set(GEN_XTC_COMMENT "[XTC]")
+  set(GEN_XTC_COMMENT "[XTC] ${GEN_LL_FILE}")
 
 #  message(MESSAGE ": CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR}")
 #  message(MESSAGE ": CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
@@ -208,9 +207,9 @@ function(xtc_making_plans_for_nigell)
   list(APPEND GEN_CMD ${GEN_C_FLAGS})
   add_custom_command(
   OUTPUT ${test_code_ll_file}
-  COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
+  COMMAND ${GEN_CMD} ${test_code_xtc_file} -o ${test_code_ll_file}
   COMMENT ${GEN_CMD_COMMENT}
-  DEPENDS ${GEN_LL_FILE}
+  DEPENDS ${test_code_xtc_file}
   VERBATIM
   )
   add_custom_target(${test_code_file_target}
