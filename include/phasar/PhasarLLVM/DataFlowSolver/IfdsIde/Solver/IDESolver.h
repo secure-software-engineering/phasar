@@ -330,7 +330,7 @@ protected:
   IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
   d_t ZeroValue;
   const i_t *ICF;
-  IFDSIDESolverConfig SolverConfig;
+  IFDSIDESolverConfig &SolverConfig;
   unsigned PathEdgeCount = 0;
 
   FlowEdgeFunctionCache<AnalysisDomainTy, Container> cachedFlowEdgeFunctions;

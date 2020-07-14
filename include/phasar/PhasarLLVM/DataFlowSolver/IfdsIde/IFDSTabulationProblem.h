@@ -104,7 +104,7 @@ public:
     SolverConfig = Config;
   }
 
-  [[nodiscard]] IFDSIDESolverConfig getIFDSIDESolverConfig() const {
+  [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() {
     return SolverConfig;
   }
 
