@@ -10,12 +10,14 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 
+#include <memory>
+
 using namespace psr;
 using namespace std;
 
 namespace psr {
 
-const shared_ptr<AllBottom<BinaryDomain>> ALLBOTTOM =
-    make_shared<AllBottom<BinaryDomain>>(BinaryDomain::BOTTOM);
+const unique_ptr<AllBottom<BinaryDomain>> ALLBOTTOM =
+    make_unique<AllBottom<BinaryDomain>>(BinaryDomain::BOTTOM);
 
 } // namespace psr

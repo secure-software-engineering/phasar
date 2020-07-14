@@ -62,46 +62,35 @@ WPDSSolverTest::getSummaryFlowFunction(WPDSSolverTest::n_t Curr,
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::getNormalEdgeFunction(WPDSSolverTest::n_t Curr,
-                                      WPDSSolverTest::d_t CurrNode,
-                                      WPDSSolverTest::n_t Succ,
-                                      WPDSSolverTest::d_t SuccNode) {
+WPDSSolverTest::EdgeFunctionPtrType WPDSSolverTest::getNormalEdgeFunction(
+    WPDSSolverTest::n_t Curr, WPDSSolverTest::d_t CurrNode,
+    WPDSSolverTest::n_t Succ, WPDSSolverTest::d_t SuccNode) {
   return EdgeIdentity<WPDSSolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::getCallEdgeFunction(WPDSSolverTest::n_t CallStmt,
-                                    WPDSSolverTest::d_t SrcNode,
-                                    WPDSSolverTest::f_t DestinationFunction,
-                                    WPDSSolverTest::d_t DestNode) {
+WPDSSolverTest::EdgeFunctionPtrType WPDSSolverTest::getCallEdgeFunction(
+    WPDSSolverTest::n_t CallStmt, WPDSSolverTest::d_t SrcNode,
+    WPDSSolverTest::f_t DestinationFunction, WPDSSolverTest::d_t DestNode) {
   return EdgeIdentity<WPDSSolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::getReturnEdgeFunction(WPDSSolverTest::n_t CallSite,
-                                      WPDSSolverTest::f_t CalleeFunction,
-                                      WPDSSolverTest::n_t ExitStmt,
-                                      WPDSSolverTest::d_t ExitNode,
-                                      WPDSSolverTest::n_t ReSite,
-                                      WPDSSolverTest::d_t RetNode) {
+WPDSSolverTest::EdgeFunctionPtrType WPDSSolverTest::getReturnEdgeFunction(
+    WPDSSolverTest::n_t CallSite, WPDSSolverTest::f_t CalleeFunction,
+    WPDSSolverTest::n_t ExitStmt, WPDSSolverTest::d_t ExitNode,
+    WPDSSolverTest::n_t ReSite, WPDSSolverTest::d_t RetNode) {
   return EdgeIdentity<WPDSSolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::getCallToRetEdgeFunction(WPDSSolverTest::n_t CallSite,
-                                         WPDSSolverTest::d_t CallNode,
-                                         WPDSSolverTest::n_t RetSite,
-                                         WPDSSolverTest::d_t RetSiteNode,
-                                         set<WPDSSolverTest::f_t> Callees) {
+WPDSSolverTest::EdgeFunctionPtrType WPDSSolverTest::getCallToRetEdgeFunction(
+    WPDSSolverTest::n_t CallSite, WPDSSolverTest::d_t CallNode,
+    WPDSSolverTest::n_t RetSite, WPDSSolverTest::d_t RetSiteNode,
+    set<WPDSSolverTest::f_t> Callees) {
   return EdgeIdentity<WPDSSolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::getSummaryEdgeFunction(WPDSSolverTest::n_t Curr,
-                                       WPDSSolverTest::d_t CurrNode,
-                                       WPDSSolverTest::n_t Succ,
-                                       WPDSSolverTest::d_t SuccNode) {
+WPDSSolverTest::EdgeFunctionPtrType WPDSSolverTest::getSummaryEdgeFunction(
+    WPDSSolverTest::n_t Curr, WPDSSolverTest::d_t CurrNode,
+    WPDSSolverTest::n_t Succ, WPDSSolverTest::d_t SuccNode) {
   return nullptr;
 }
 
@@ -131,9 +120,9 @@ WPDSSolverTest::initialSeeds() {
   return {{&ICF->getFunction("main")->front().front(), {getZeroValue()}}};
 }
 
-std::shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::allTopFunction() {
-  return make_shared<AllTop<WPDSSolverTest::l_t>>(BinaryDomain::TOP);
+WPDSSolverTest::EdgeFunctionPtrType WPDSSolverTest::allTopFunction() {
+  return getEFMM().make_edge_function<AllTop<WPDSSolverTest::l_t>>(
+      BinaryDomain::TOP);
 }
 
 void WPDSSolverTest::printNode(std::ostream &OS, WPDSSolverTest::n_t N) const {

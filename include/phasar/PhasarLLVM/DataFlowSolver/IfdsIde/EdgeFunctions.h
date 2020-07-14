@@ -24,8 +24,31 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace psr {
+
+template <typename EdgeFunctionPtrTy> class EdgeFunctionMemoryManager {
+public:
+  using EdgeFunctionType = std::remove_pointer_t<EdgeFunctionPtrTy>;
+
+  // Allocate a new \a EdgeFunction of type \a EdgeFunctionImplTy with the
+  // memory manager.
+  //
+  // \returns a ptr to the newly allocated \a EdgeFunction
+  template <typename EdgeFunctionImplTy, typename... Args>
+  EdgeFunctionPtrTy make_edge_function(Args &&... args) {
+    storage.push_back(
+        std::make_unique<EdgeFunctionImplTy>(std::forward<Args>(args)...));
+    return storage.back().get();
+  }
+
+private:
+  using EdgeFunctionStorageType = std::unique_ptr<EdgeFunctionType>;
+  std::vector<EdgeFunctionStorageType> storage;
+};
 
 //
 // This class models an edge function for distributive data-flow problems.
@@ -35,7 +58,8 @@ namespace psr {
 //
 template <typename L> class EdgeFunction {
 public:
-  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunction<L>>;
+  using EdgeFunctionPtrType = EdgeFunction<L> *;
+  using EFMemoryManager = EdgeFunctionMemoryManager<EdgeFunctionPtrType>;
 
   virtual ~EdgeFunction() = default;
 
@@ -57,8 +81,8 @@ public:
   // function is used to extend an edge function in order to construct so-called
   // jump functions that describe the effects of everlonger sequences of code.
   //
-  virtual EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType secondFunction) = 0;
+  virtual EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,
+                                          EFMemoryManager &MemoryManager) = 0;
 
   //
   // This function describes the join of the two edge functions this and
@@ -66,7 +90,8 @@ public:
   // be joined, for instance, when two branches lead to a common successor
   // instruction.
   //
-  virtual EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) = 0;
+  virtual EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction,
+                                       EFMemoryManager &MemoryManager) = 0;
 
   virtual bool equal_to(EdgeFunctionPtrType OtherFunction) const = 0;
 
@@ -99,6 +124,7 @@ class AllTop : public EdgeFunction<L>,
                public std::enable_shared_from_this<AllTop<L>> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
+  using EFMemoryManager = EdgeFunctionMemoryManager<EdgeFunctionPtrType>;
 
 private:
   const L topElement;
@@ -110,16 +136,18 @@ public:
 
   L computeTarget(L source) override { return topElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    return this->shared_from_this();
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,
+                                  EFMemoryManager &MemoryManager) override {
+    return this;
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    return otherFunction;
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction,
+                               EFMemoryManager &MemoryManager) override {
+    return OtherFunction;
   }
 
-  bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(other.get())) {
+  bool equal_to(EdgeFunctionPtrType Other) const override {
+    if (auto *alltop = dynamic_cast<AllTop<L> *>(Other)) {
       return (alltop->topElement == topElement);
     }
     return false;
@@ -137,6 +165,7 @@ class AllBottom : public EdgeFunction<L>,
                   public std::enable_shared_from_this<AllBottom<L>> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
+  using EFMemoryManager = EdgeFunctionMemoryManager<EdgeFunctionPtrType>;
 
 private:
   const L bottomElement;
@@ -148,32 +177,33 @@ public:
 
   L computeTarget(L source) override { return bottomElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
-      return this->shared_from_this();
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,
+                                  EFMemoryManager &MemoryManager) override {
+    if (auto *ab = dynamic_cast<AllBottom<L> *>(SecondFunction)) {
+      return this;
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
-      return this->shared_from_this();
+    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(SecondFunction)) {
+      return this;
     }
-    return secondFunction->composeWith(this->shared_from_this());
+    return SecondFunction->composeWith(this, MemoryManager);
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    if (otherFunction.get() == this ||
-        otherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction,
+                               EFMemoryManager &MemoryManager) override {
+    if (OtherFunction == this || OtherFunction->equal_to(this)) {
+      return this;
     }
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
-      return this->shared_from_this();
+    if (auto *alltop = dynamic_cast<AllTop<L> *>(OtherFunction)) {
+      return this;
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(otherFunction.get())) {
-      return this->shared_from_this();
+    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(OtherFunction)) {
+      return this;
     }
-    return this->shared_from_this();
+    return this;
   }
 
-  bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *allbottom = dynamic_cast<AllBottom<L> *>(other.get())) {
+  bool equal_to(EdgeFunctionPtrType Other) const override {
+    if (auto *allbottom = dynamic_cast<AllBottom<L> *>(Other)) {
       return (allbottom->bottomElement == bottomElement);
     }
     return false;
@@ -189,40 +219,42 @@ class EdgeIdentity : public EdgeFunction<L>,
                      public std::enable_shared_from_this<EdgeIdentity<L>> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
+  using EFMemoryManager = EdgeFunctionMemoryManager<EdgeFunctionPtrType>;
 
 private:
   EdgeIdentity() = default;
 
 public:
-  EdgeIdentity(const EdgeIdentity &ei) = delete;
+  EdgeIdentity(const EdgeIdentity &EI) = delete;
 
-  EdgeIdentity &operator=(const EdgeIdentity &ei) = delete;
+  EdgeIdentity &operator=(const EdgeIdentity &EI) = delete;
 
   ~EdgeIdentity() override = default;
 
   L computeTarget(L source) override { return source; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    return secondFunction;
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,
+                                  EFMemoryManager &) override {
+    return SecondFunction;
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    if ((otherFunction.get() == this) ||
-        otherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction,
+                               EFMemoryManager &MemoryManager) override {
+    if ((otherFunction == this) || otherFunction->equal_to(this)) {
+      return this;
     }
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(otherFunction.get())) {
+    if (auto *ab = dynamic_cast<AllBottom<L> *>(otherFunction)) {
       return otherFunction;
     }
-    if (auto *at = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
-      return this->shared_from_this();
+    if (auto *at = dynamic_cast<AllTop<L> *>(otherFunction)) {
+      return this;
     }
     // do not know how to join; hence ask other function to decide on this
-    return otherFunction->joinWith(this->shared_from_this());
+    return otherFunction->joinWith(this, MemoryManager);
   }
 
-  bool equal_to(EdgeFunctionPtrType other) const override {
-    return this == other.get();
+  bool equal_to(EdgeFunctionPtrType Other) const override {
+    return this == Other;
   }
 
   static EdgeFunctionPtrType getInstance() {

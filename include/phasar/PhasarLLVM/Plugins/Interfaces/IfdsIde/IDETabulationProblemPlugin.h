@@ -56,10 +56,12 @@ public:
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {}
+      : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblemPlugin() override = default;
 
-  bool isZeroValue(d_t d) const override { return d == getZeroValue(); }
+  [[nodiscard]] bool isZeroValue(d_t d) const override {
+    return d == getZeroValue();
+  }
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override {
     os << llvmIRToString(n);
@@ -79,8 +81,8 @@ public:
     l->print(os);
   }
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
-    return std::make_shared<AllTop<l_t>>(topElement());
+  EdgeFunctionPtrType allTopFunction() override {
+    return getEFMM().make_edge_function<AllTop<l_t>>(topElement());
   }
 };
 

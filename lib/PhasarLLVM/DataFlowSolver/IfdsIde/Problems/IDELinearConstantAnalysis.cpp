@@ -321,7 +321,7 @@ bool IDELinearConstantAnalysis::isZeroValue(
 
 // In addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::n_t Curr,
     IDELinearConstantAnalysis::d_t CurrNode,
@@ -337,7 +337,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(CurrNode);
     const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer());
     auto IntConst = CI->getSExtValue();
-    return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
+    return getEFMM().make_edge_function<GenConstant>(IntConst);
   }
 
   // ALL_BOTTOM for zero value
@@ -345,8 +345,9 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Zero value.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
-        IDELinearConstantAnalysis::BOTTOM);
+    return getEFMM()
+        .make_edge_function<AllBottom<IDELinearConstantAnalysis::l_t>>(
+            IDELinearConstantAnalysis::BOTTOM);
   }
 
   // Check store instruction
@@ -361,14 +362,14 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ValueOperand);
         auto IntConst = CI->getSExtValue();
-        return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
+        return getEFMM().make_edge_function<GenConstant>(IntConst);
       }
       // Case II: Storing an integer typed value.
       if (CurrNode != SuccNode && ValueOperand->getType()->isIntegerTy()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Case: Storing an integer typed value.");
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-        return make_shared<IDELinearConstantAnalysis::LCAIdentity>();
+        return getEFMM().make_edge_function<LCAIdentity>();
       }
     }
   }
@@ -379,7 +380,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Case: Loading an integer typed value.");
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      return make_shared<IDELinearConstantAnalysis::LCAIdentity>();
+      return getEFMM().make_edge_function<LCAIdentity>();
     }
   }
 
@@ -393,11 +394,12 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     // For non linear constant computation we propagate bottom
     if (CurrNode == ZeroValue && !llvm::isa<llvm::ConstantInt>(Lop) &&
         !llvm::isa<llvm::ConstantInt>(Rop)) {
-      return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
-          IDELinearConstantAnalysis::BOTTOM);
+      return getEFMM()
+          .make_edge_function<AllBottom<IDELinearConstantAnalysis::l_t>>(
+              BOTTOM);
     } else {
-      return make_shared<IDELinearConstantAnalysis::BinOp>(OP, Lop, Rop,
-                                                           CurrNode);
+      return getEFMM().make_edge_function<IDELinearConstantAnalysis::BinOp>(
+          OP, Lop, Rop, CurrNode);
     }
   }
 
@@ -406,7 +408,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::n_t CallStmt,
     IDELinearConstantAnalysis::d_t SrcNode,
@@ -419,14 +421,16 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
       const auto *Actual = CS.getArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
-        return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
+        return getEFMM()
+            .make_edge_function<IDELinearConstantAnalysis::GenConstant>(
+                IntConst);
       }
     }
   }
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t CalleeFunction,
@@ -440,13 +444,13 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
     auto *ReturnValue = Return->getReturnValue();
     if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
       auto IntConst = CI->getSExtValue();
-      return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
+      return getEFMM().make_edge_function<GenConstant>(IntConst);
     }
   }
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::d_t CallNode,
@@ -456,7 +460,7 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::n_t CallStmt,
     IDELinearConstantAnalysis::d_t CallNode,
@@ -487,41 +491,45 @@ IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::l_t Lhs,
   }
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::allTopFunction() {
-  return make_shared<AllTop<IDELinearConstantAnalysis::l_t>>(TOP);
+  return getEFMM().make_edge_function<AllTop<IDELinearConstantAnalysis::l_t>>(
+      TOP);
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> SecondFunction) {
+    IDELinearConstantAnalysis::EdgeFunctionPtrType SecondFunction,
+    EFMemoryManager &MemoryManager) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+          SecondFunction)) {
+    return this;
   }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::l_t> *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+          SecondFunction)) {
+    return this;
   }
-  if (auto *LCAID = dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
-    return this->shared_from_this();
+  if (auto *LCAID = dynamic_cast<LCAIdentity *>(SecondFunction)) {
+    return this;
   }
-  return F->composeWith(G->composeWith(SecondFunction));
+  return F->composeWith(G->composeWith(SecondFunction, MemoryManager),
+                        MemoryManager);
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> OtherFunction) {
-  if (OtherFunction.get() == this ||
-      OtherFunction->equal_to(this->shared_from_this())) {
-    return this->shared_from_this();
+    IDELinearConstantAnalysis::EdgeFunctionPtrType OtherFunction,
+    EFMemoryManager &MemoryManager) {
+  if (OtherFunction == this || OtherFunction->equal_to(this)) {
+    return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
-          OtherFunction.get())) {
-    return this->shared_from_this();
+          OtherFunction)) {
+    return this;
   }
-  return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
-      IDELinearConstantAnalysis::BOTTOM);
+  return MemoryManager
+      .make_edge_function<AllBottom<IDELinearConstantAnalysis::l_t>>(
+          IDELinearConstantAnalysis::BOTTOM);
 }
 
 IDELinearConstantAnalysis::GenConstant::GenConstant(
@@ -535,46 +543,47 @@ IDELinearConstantAnalysis::GenConstant::computeTarget(
   return IntConst;
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::GenConstant::composeWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> SecondFunction) {
+    EdgeFunctionPtrType SecondFunction, EFMemoryManager &MemoryManager) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+          SecondFunction)) {
+    return this;
   }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::l_t> *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+          SecondFunction)) {
+    return this;
   }
-  if (auto *LSVI = dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
-    return this->shared_from_this();
+  if (auto *LSVI = dynamic_cast<LCAIdentity *>(SecondFunction)) {
+    return this;
   }
-  return make_shared<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
-      this->shared_from_this(), SecondFunction);
+  return MemoryManager
+      .make_edge_function<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
+          this, SecondFunction);
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::GenConstant::joinWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> OtherFunction) {
-  if (OtherFunction.get() == this ||
-      OtherFunction->equal_to(this->shared_from_this())) {
-    return this->shared_from_this();
+    EdgeFunctionPtrType OtherFunction, EFMemoryManager &MemoryManager) {
+  if (OtherFunction == this || OtherFunction->equal_to(this)) {
+    return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
-          OtherFunction.get())) {
-    return this->shared_from_this();
+          OtherFunction)) {
+    return this;
   }
-  return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
-      IDELinearConstantAnalysis::BOTTOM);
+  return MemoryManager
+      .make_edge_function<AllBottom<IDELinearConstantAnalysis::l_t>>(
+          IDELinearConstantAnalysis::BOTTOM);
 }
 
 bool IDELinearConstantAnalysis::GenConstant::equal_to(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> Other) const {
+    EdgeFunctionPtrType Other) const {
   if (auto *GC =
-          dynamic_cast<IDELinearConstantAnalysis::GenConstant *>(Other.get())) {
+          dynamic_cast<IDELinearConstantAnalysis::GenConstant *>(Other)) {
     return (GC->IntConst == this->IntConst);
   }
-  return this == Other.get();
+  return this == Other;
 }
 
 void IDELinearConstantAnalysis::GenConstant::print(ostream &OS,
@@ -591,30 +600,30 @@ IDELinearConstantAnalysis::LCAIdentity::computeTarget(
   return Source;
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::LCAIdentity::composeWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> SecondFunction) {
+    EdgeFunctionPtrType SecondFunction, EFMemoryManager &MemoryManager) {
   return SecondFunction;
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::LCAIdentity::joinWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> OtherFunction) {
-  if (OtherFunction.get() == this ||
-      OtherFunction->equal_to(this->shared_from_this())) {
-    return this->shared_from_this();
+    EdgeFunctionPtrType OtherFunction, EFMemoryManager &MemoryManager) {
+  if (OtherFunction == this || OtherFunction->equal_to(this)) {
+    return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
-          OtherFunction.get())) {
-    return this->shared_from_this();
+          OtherFunction)) {
+    return this;
   }
-  return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
-      IDELinearConstantAnalysis::BOTTOM);
+  return MemoryManager
+      .make_edge_function<AllBottom<IDELinearConstantAnalysis::l_t>>(
+          IDELinearConstantAnalysis::BOTTOM);
 }
 
 bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> Other) const {
-  return this == Other.get();
+    EdgeFunctionPtrType Other) const {
+  return this == Other;
 }
 
 void IDELinearConstantAnalysis::LCAIdentity::print(ostream &OS,
@@ -659,48 +668,48 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BinOp::computeTarget(
   throw runtime_error("Only linear constant propagation can be specified!");
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::EdgeFunctionPtrType
 IDELinearConstantAnalysis::BinOp::composeWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> SecondFunction) {
+    EdgeFunctionPtrType SecondFunction, EFMemoryManager &MemoryManager) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+          SecondFunction)) {
+    return this;
   }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::l_t> *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+          SecondFunction)) {
+    return this;
   }
   if (auto *LSVI = dynamic_cast<IDELinearConstantAnalysis::LCAIdentity *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+          SecondFunction)) {
+    return this;
   }
-  return make_shared<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
-      this->shared_from_this(), SecondFunction);
+  return MemoryManager
+      .make_edge_function<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
+          this, SecondFunction);
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
-IDELinearConstantAnalysis::BinOp::joinWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> OtherFunction) {
-  if (OtherFunction.get() == this ||
-      OtherFunction->equal_to(this->shared_from_this())) {
-    return this->shared_from_this();
+IDELinearConstantAnalysis::EdgeFunctionPtrType
+IDELinearConstantAnalysis::BinOp::joinWith(EdgeFunctionPtrType OtherFunction,
+                                           EFMemoryManager &MemoryManager) {
+  if (OtherFunction == this || OtherFunction->equal_to(this)) {
+    return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
-          OtherFunction.get())) {
-    return this->shared_from_this();
+          OtherFunction)) {
+    return this;
   }
-  return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
-      IDELinearConstantAnalysis::BOTTOM);
+  return MemoryManager
+      .make_edge_function<AllBottom<IDELinearConstantAnalysis::l_t>>(
+          IDELinearConstantAnalysis::BOTTOM);
 }
 
 bool IDELinearConstantAnalysis::BinOp::equal_to(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> Other) const {
-  if (auto *BOP =
-          dynamic_cast<IDELinearConstantAnalysis::BinOp *>(Other.get())) {
+    EdgeFunctionPtrType Other) const {
+  if (auto *BOP = dynamic_cast<IDELinearConstantAnalysis::BinOp *>(Other)) {
     return BOP->Op == this->Op && BOP->lop == this->lop &&
            BOP->rop == this->rop;
   }
-  return this == Other.get();
+  return this == Other;
 }
 
 void IDELinearConstantAnalysis::BinOp::print(ostream &OS,

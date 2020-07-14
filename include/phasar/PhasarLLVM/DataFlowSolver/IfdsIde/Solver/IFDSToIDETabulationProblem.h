@@ -22,7 +22,7 @@
 
 namespace psr {
 
-extern const std::shared_ptr<AllBottom<BinaryDomain>> ALLBOTTOM;
+extern const std::unique_ptr<AllBottom<BinaryDomain>> ALLBOTTOM;
 
 template <typename OriginalAnalysisDomain>
 struct AnalysisDomainExtender : public OriginalAnalysisDomain {
@@ -56,6 +56,8 @@ class IFDSToIDETabulationProblem
                                   Container> {
   using typename IDETabulationProblem<AnalysisDomainExtender<AnalysisDomainTy>,
                                       Container>::FlowFunctionPtrType;
+  using typename IDETabulationProblem<AnalysisDomainExtender<AnalysisDomainTy>,
+                                      Container>::EdgeFunctionPtrType;
 
   using n_t = typename AnalysisDomainExtender<AnalysisDomainTy>::n_t;
   using f_t = typename AnalysisDomainExtender<AnalysisDomainTy>::f_t;
@@ -117,48 +119,51 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<BinaryDomain>> allTopFunction() override {
-    return std::make_shared<AllTop<BinaryDomain>>(BinaryDomain::TOP);
+  EdgeFunctionPtrType allTopFunction() override {
+    return this->getEFMM().template make_edge_function<AllTop<BinaryDomain>>(
+        BinaryDomain::TOP);
   }
 
-  std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getNormalEdgeFunction(n_t src, d_t srcNode, n_t tgt, d_t tgtNode) override {
+  EdgeFunctionPtrType getNormalEdgeFunction(n_t src, d_t srcNode, n_t tgt,
+                                            d_t tgtNode) override {
     if (Problem.isZeroValue(srcNode)) {
-      return ALLBOTTOM;
+      return ALLBOTTOM.get();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
-                      d_t destNode) override {
+  EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
+                                          f_t destinationFunction,
+                                          d_t destNode) override {
     if (Problem.isZeroValue(srcNode)) {
-      return ALLBOTTOM;
+      return ALLBOTTOM.get();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
-                        d_t exitNode, n_t returnSite, d_t retNode) override {
+  EdgeFunctionPtrType getReturnEdgeFunction(n_t callSite, f_t calleeFunction,
+                                            n_t exitStmt, d_t exitNode,
+                                            n_t returnSite,
+                                            d_t retNode) override {
     if (Problem.isZeroValue(exitNode)) {
-      return ALLBOTTOM;
+      return ALLBOTTOM.get();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallToRetEdgeFunction(n_t callStmt, d_t callNode, n_t returnSite,
-                           d_t returnSideNode, std::set<f_t> callees) override {
+  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t callStmt, d_t callNode,
+                                               n_t returnSite,
+                                               d_t returnSideNode,
+                                               std::set<f_t> callees) override {
     if (Problem.isZeroValue(callNode)) {
-      return ALLBOTTOM;
+      return ALLBOTTOM.get();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
-                         d_t retSiteNode) override {
+  EdgeFunctionPtrType getSummaryEdgeFunction(n_t callStmt, d_t callNode,
+                                             n_t retSite,
+                                             d_t retSiteNode) override {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 

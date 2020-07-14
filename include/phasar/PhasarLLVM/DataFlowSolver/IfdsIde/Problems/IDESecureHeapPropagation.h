@@ -85,26 +85,24 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                        d_t succNode) override;
+  EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                                            d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
-                                                         d_t srcNode,
-                                                         f_t destinationMethod,
-                                                         d_t destNode) override;
+  EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
+                                          f_t destinationMethod,
+                                          d_t destNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
-                        d_t exitNode, n_t reSite, d_t retNode) override;
+  EdgeFunctionPtrType getReturnEdgeFunction(n_t callSite, f_t calleeMethod,
+                                            n_t exitStmt, d_t exitNode,
+                                            n_t reSite, d_t retNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<f_t> callees) override;
+  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t callSite, d_t callNode,
+                                               n_t retSite, d_t retSiteNode,
+                                               std::set<f_t> callees) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
-                         d_t retSiteNode) override;
+  EdgeFunctionPtrType getSummaryEdgeFunction(n_t callStmt, d_t callNode,
+                                             n_t retSite,
+                                             d_t retSiteNode) override;
 
   l_t topElement() override;
 
@@ -112,7 +110,7 @@ public:
 
   l_t join(l_t lhs, l_t rhs) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
+  EdgeFunctionPtrType allTopFunction() override;
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 
@@ -123,16 +121,16 @@ public:
                      public std::enable_shared_from_this<SHPEdgeFn> {
     virtual ~SHPEdgeFn() = default;
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction,
+                                 EFMemoryManager &MemoryManager) override;
   };
 
   struct SHPEdgeFunctionComposer
       : public EdgeFunctionComposer<l_t>,
         public std::enable_shared_from_this<SHPEdgeFn> {
     virtual ~SHPEdgeFunctionComposer() = default;
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction,
+                                 EFMemoryManager &MemoryManager) override;
   };
   struct SHPGenEdgeFn : public SHPEdgeFn {
     SHPGenEdgeFn(l_t val);
@@ -140,11 +138,11 @@ public:
 
     l_t computeTarget(l_t source) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
+    [[nodiscard]] bool equal_to(EdgeFunctionPtrType other) const override;
+    EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,
+                                    EFMemoryManager &MemoryManager) override;
     void print(std::ostream &OS, bool isForDebug = false) const override;
-    static std::shared_ptr<SHPGenEdgeFn> getInstance(l_t val);
+    static EdgeFunctionPtrType getInstance(l_t val);
 
   private:
     l_t value;
@@ -154,13 +152,13 @@ public:
     virtual ~IdentityEdgeFunction() = default;
 
     l_t computeTarget(l_t source) override;
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,
+                                    EFMemoryManager &MemoryManager) override;
+    [[nodiscard]] bool equal_to(EdgeFunctionPtrType other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
 
-    static std::shared_ptr<IdentityEdgeFunction> getInstance();
+    static EdgeFunctionPtrType getInstance();
   };
 };
 } // namespace psr

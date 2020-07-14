@@ -36,6 +36,7 @@ class EdgeFunctionComposer
       public std::enable_shared_from_this<EdgeFunctionComposer<L>> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
+  using EFMemoryManager = typename EdgeFunction<L>::EFMemoryManager;
 
 private:
   // For debug purpose only
@@ -69,28 +70,30 @@ public:
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
-      return this->shared_from_this();
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,
+                                  EFMemoryManager &MemoryManager) override {
+    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(SecondFunction)) {
+      return this;
     }
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
-      return this->shared_from_this();
+    if (auto *AB = dynamic_cast<AllBottom<L> *>(SecondFunction)) {
+      return this;
     }
-    return F->composeWith(G->composeWith(secondFunction));
+    return F->composeWith(G->composeWith(SecondFunction, MemoryManager),
+                          MemoryManager);
   }
 
   // virtual EdgeFunctionPtrType
   // joinWith(EdgeFunctionPtrType otherFunction) = 0;
 
   bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(other.get())) {
+    if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(other)) {
       return F->equal_to(EFC->F) && G->equal_to(EFC->G);
     }
     return false;
   }
 
   void print(std::ostream &OS, bool isForDebug = false) const override {
-    OS << "COMP[ " << F.get()->str() << " , " << G.get()->str()
+    OS << "COMP[ " << F->str() << " , " << G->str()
        << " ] (EF:" << EFComposer_Id << ')';
   }
 };

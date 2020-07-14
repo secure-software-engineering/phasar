@@ -95,44 +95,35 @@ bool IDESolverTest::isZeroValue(IDESolverTest::d_t D) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t Curr,
-                                     IDESolverTest::d_t CurrNode,
-                                     IDESolverTest::n_t Succ,
-                                     IDESolverTest::d_t SuccNode) {
+IDESolverTest::EdgeFunctionPtrType IDESolverTest::getNormalEdgeFunction(
+    IDESolverTest::n_t Curr, IDESolverTest::d_t CurrNode,
+    IDESolverTest::n_t Succ, IDESolverTest::d_t SuccNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::getCallEdgeFunction(
+IDESolverTest::EdgeFunctionPtrType IDESolverTest::getCallEdgeFunction(
     IDESolverTest::n_t CallStmt, IDESolverTest::d_t SrcNode,
     IDESolverTest::f_t DestinationFunction, IDESolverTest::d_t DestNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t CallSite,
-                                     IDESolverTest::f_t CalleeFunction,
-                                     IDESolverTest::n_t ExitStmt,
-                                     IDESolverTest::d_t ExitNode,
-                                     IDESolverTest::n_t ReSite,
-                                     IDESolverTest::d_t RetNode) {
+IDESolverTest::EdgeFunctionPtrType IDESolverTest::getReturnEdgeFunction(
+    IDESolverTest::n_t CallSite, IDESolverTest::f_t CalleeFunction,
+    IDESolverTest::n_t ExitStmt, IDESolverTest::d_t ExitNode,
+    IDESolverTest::n_t ReSite, IDESolverTest::d_t RetNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t CallSite,
-                                        IDESolverTest::d_t CallNode,
-                                        IDESolverTest::n_t RetSite,
-                                        IDESolverTest::d_t RetSiteNode,
-                                        set<IDESolverTest::f_t> Callees) {
+IDESolverTest::EdgeFunctionPtrType IDESolverTest::getCallToRetEdgeFunction(
+    IDESolverTest::n_t CallSite, IDESolverTest::d_t CallNode,
+    IDESolverTest::n_t RetSite, IDESolverTest::d_t RetSiteNode,
+    set<IDESolverTest::f_t> Callees) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getSummaryEdgeFunction(IDESolverTest::n_t CallStmt,
-                                      IDESolverTest::d_t CallNode,
-                                      IDESolverTest::n_t RetSite,
-                                      IDESolverTest::d_t RetSiteNode) {
+IDESolverTest::EdgeFunctionPtrType IDESolverTest::getSummaryEdgeFunction(
+    IDESolverTest::n_t CallStmt, IDESolverTest::d_t CallNode,
+    IDESolverTest::n_t RetSite, IDESolverTest::d_t RetSiteNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
@@ -152,9 +143,9 @@ IDESolverTest::l_t IDESolverTest::join(IDESolverTest::l_t Lhs,
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::allTopFunction() {
+IDESolverTest::EdgeFunctionPtrType IDESolverTest::allTopFunction() {
   cout << "IDESolverTest::allTopFunction()\n";
-  return make_shared<IDESolverTestAllTop>();
+  return getEFMM().make_edge_function<IDESolverTestAllTop>();
 }
 
 IDESolverTest::l_t
@@ -163,22 +154,23 @@ IDESolverTest::IDESolverTestAllTop::computeTarget(IDESolverTest::l_t Source) {
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
+IDESolverTest::EdgeFunctionPtrType
 IDESolverTest::IDESolverTestAllTop::composeWith(
-    shared_ptr<EdgeFunction<IDESolverTest::l_t>> SecondFunction) {
+    IDESolverTest::EdgeFunctionPtrType SecondFunction,
+    EFMemoryManager &MemoryManager) {
   cout << "IDESolverTest::IDESolverTestAllTop::composeWith()\n";
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::IDESolverTestAllTop::joinWith(
-    shared_ptr<EdgeFunction<IDESolverTest::l_t>> OtherFunction) {
+IDESolverTest::EdgeFunctionPtrType IDESolverTest::IDESolverTestAllTop::joinWith(
+    IDESolverTest::EdgeFunctionPtrType OtherFunction,
+    EFMemoryManager &MemoryManager) {
   cout << "IDESolverTest::IDESolverTestAllTop::joinWith()\n";
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 bool IDESolverTest::IDESolverTestAllTop::equal_to(
-    shared_ptr<EdgeFunction<IDESolverTest::l_t>> Other) const {
+    IDESolverTest::EdgeFunctionPtrType Other) const {
   cout << "IDESolverTest::IDESolverTestAllTop::equalTo()\n";
   return false;
 }

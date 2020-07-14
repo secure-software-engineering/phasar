@@ -53,6 +53,8 @@ public:
                 "I must implement the ICFG interface!");
 
   using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
+  using EdgeFunctionMemoryManagerTy =
+      EdgeFunctionMemoryManager<EdgeFunctionPtrType>;
 
   IDETabulationProblem(const ProjectIRDB *IRDB,
                        const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
@@ -61,6 +63,9 @@ public:
       : IFDSTabulationProblem<AnalysisDomainTy, Container>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblem() override = default;
+
+  EdgeFunctionMemoryManagerTy &getEFMM() { return emem; }
+
   virtual EdgeFunctionPtrType allTopFunction() = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
@@ -80,6 +85,8 @@ public:
 private:
   using IFDSTabulationProblem<AnalysisDomainTy, Container>::emitTextReport;
   using IFDSTabulationProblem<AnalysisDomainTy, Container>::emitGraphicalReport;
+
+  EdgeFunctionMemoryManagerTy emem;
 };
 
 } // namespace psr

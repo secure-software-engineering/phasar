@@ -96,33 +96,26 @@ bool IDETaintAnalysis::isZeroValue(IDETaintAnalysis::d_t D) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
-IDETaintAnalysis::getNormalEdgeFunction(IDETaintAnalysis::n_t Curr,
-                                        IDETaintAnalysis::d_t CurrNode,
-                                        IDETaintAnalysis::n_t Succ,
-                                        IDETaintAnalysis::d_t SuccNode) {
+IDETaintAnalysis::EdgeFunctionPtrType IDETaintAnalysis::getNormalEdgeFunction(
+    IDETaintAnalysis::n_t Curr, IDETaintAnalysis::d_t CurrNode,
+    IDETaintAnalysis::n_t Succ, IDETaintAnalysis::d_t SuccNode) {
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
-IDETaintAnalysis::getCallEdgeFunction(IDETaintAnalysis::n_t CallStmt,
-                                      IDETaintAnalysis::d_t SrcNode,
-                                      IDETaintAnalysis::f_t DestinationFunction,
-                                      IDETaintAnalysis::d_t DestNode) {
+IDETaintAnalysis::EdgeFunctionPtrType IDETaintAnalysis::getCallEdgeFunction(
+    IDETaintAnalysis::n_t CallStmt, IDETaintAnalysis::d_t SrcNode,
+    IDETaintAnalysis::f_t DestinationFunction, IDETaintAnalysis::d_t DestNode) {
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
-IDETaintAnalysis::getReturnEdgeFunction(IDETaintAnalysis::n_t CallSite,
-                                        IDETaintAnalysis::f_t CalleeFunction,
-                                        IDETaintAnalysis::n_t ExitStmt,
-                                        IDETaintAnalysis::d_t ExitNode,
-                                        IDETaintAnalysis::n_t ReSite,
-                                        IDETaintAnalysis::d_t RetNode) {
+IDETaintAnalysis::EdgeFunctionPtrType IDETaintAnalysis::getReturnEdgeFunction(
+    IDETaintAnalysis::n_t CallSite, IDETaintAnalysis::f_t CalleeFunction,
+    IDETaintAnalysis::n_t ExitStmt, IDETaintAnalysis::d_t ExitNode,
+    IDETaintAnalysis::n_t ReSite, IDETaintAnalysis::d_t RetNode) {
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
+IDETaintAnalysis::EdgeFunctionPtrType
 IDETaintAnalysis::getCallToRetEdgeFunction(IDETaintAnalysis::n_t CallSite,
                                            IDETaintAnalysis::d_t CallNode,
                                            IDETaintAnalysis::n_t RetSite,
@@ -131,11 +124,9 @@ IDETaintAnalysis::getCallToRetEdgeFunction(IDETaintAnalysis::n_t CallSite,
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
-IDETaintAnalysis::getSummaryEdgeFunction(IDETaintAnalysis::n_t CallStmt,
-                                         IDETaintAnalysis::d_t CallNode,
-                                         IDETaintAnalysis::n_t RetSite,
-                                         IDETaintAnalysis::d_t RetSiteNode) {
+IDETaintAnalysis::EdgeFunctionPtrType IDETaintAnalysis::getSummaryEdgeFunction(
+    IDETaintAnalysis::n_t CallStmt, IDETaintAnalysis::d_t CallNode,
+    IDETaintAnalysis::n_t RetSite, IDETaintAnalysis::d_t RetSiteNode) {
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 
@@ -148,9 +139,8 @@ IDETaintAnalysis::l_t IDETaintAnalysis::join(IDETaintAnalysis::l_t Lhs,
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
-IDETaintAnalysis::allTopFunction() {
-  return make_shared<IDETainAnalysisAllTop>();
+IDETaintAnalysis::EdgeFunctionPtrType IDETaintAnalysis::allTopFunction() {
+  return getEFMM().make_edge_function<IDETainAnalysisAllTop>();
 }
 
 IDETaintAnalysis::l_t IDETaintAnalysis::IDETainAnalysisAllTop::computeTarget(
@@ -158,20 +148,20 @@ IDETaintAnalysis::l_t IDETaintAnalysis::IDETainAnalysisAllTop::computeTarget(
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
+IDETaintAnalysis::EdgeFunctionPtrType
 IDETaintAnalysis::IDETainAnalysisAllTop::composeWith(
-    shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>> SecondFunction) {
+    EdgeFunctionPtrType SecondFunction, EFMemoryManager &MemoryManager) {
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
+IDETaintAnalysis::EdgeFunctionPtrType
 IDETaintAnalysis::IDETainAnalysisAllTop::joinWith(
-    shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>> OtherFunction) {
+    EdgeFunctionPtrType OtherFunction, EFMemoryManager &MemoryManager) {
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 
 bool IDETaintAnalysis::IDETainAnalysisAllTop::equal_to(
-    shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>> Other) const {
+    EdgeFunctionPtrType Other) const {
   return false;
 }
 

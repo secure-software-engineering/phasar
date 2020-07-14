@@ -45,7 +45,7 @@ public:
   using n_t = typename AnalysisDomainTy::n_t;
 
   using EdgeFunctionType = EdgeFunction<l_t>;
-  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunctionType>;
+  using EdgeFunctionPtrType = EdgeFunctionType *;
 
 private:
   EdgeFunctionPtrType allTop;
