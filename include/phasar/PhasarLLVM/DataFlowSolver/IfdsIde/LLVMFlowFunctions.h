@@ -106,6 +106,10 @@ public:
     if (!Predicate(CallSite, Source)) {
       return {Source};
     }
+    // Pass ZeroValue as is
+    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+      return {Source};
+    }
     // otherwise kill fact
     return {};
   }
@@ -298,6 +302,7 @@ public:
       }
       return Res;
     } else {
+      // Pass ZeroValue as is
       return {Source};
     }
   }

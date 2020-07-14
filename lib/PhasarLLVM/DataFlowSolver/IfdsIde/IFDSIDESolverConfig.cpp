@@ -15,6 +15,7 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
+
 IFDSIDESolverConfig::IFDSIDESolverConfig() {
   setFlag(
       Options, SolverConfigOptions::EmitESG,
