@@ -39,7 +39,7 @@ public:
   //
   // \returns a ptr to the newly allocated \a EdgeFunction
   template <typename EdgeFunctionImplTy, typename... Args>
-  EdgeFunctionPtrTy make_edge_function(Args &&... args) {
+  inline EdgeFunctionPtrTy make_edge_function(Args &&... args) {
     storage.push_back(
         std::make_unique<EdgeFunctionImplTy>(std::forward<Args>(args)...));
     return storage.back().get();
