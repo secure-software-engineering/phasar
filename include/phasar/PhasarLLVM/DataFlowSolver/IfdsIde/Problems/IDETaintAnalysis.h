@@ -108,9 +108,7 @@ public:
 
   EdgeFunctionPtrType allTopFunction() override;
 
-  class IDETainAnalysisAllTop
-      : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IDETainAnalysisAllTop> {
+  class IDETainAnalysisAllTop : public EdgeFunction<l_t> {
     l_t computeTarget(l_t source) override;
 
     EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,

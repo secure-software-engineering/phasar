@@ -23,7 +23,7 @@ struct MyEFC : EdgeFunctionComposer<int> {
   };
 };
 
-struct MulTwoEF : EdgeFunction<int>, std::enable_shared_from_this<MulTwoEF> {
+struct MulTwoEF : EdgeFunction<int> {
 private:
   const unsigned MulTwoEfId;
 
@@ -46,7 +46,7 @@ public:
   }
 };
 
-struct AddTwoEF : EdgeFunction<int>, std::enable_shared_from_this<AddTwoEF> {
+struct AddTwoEF : EdgeFunction<int> {
 private:
   const unsigned AddTwoEfId;
 

@@ -144,8 +144,7 @@ public:
                                  EFMemoryManager &MemoryManager) override;
   };
 
-  class GenConstant : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<GenConstant> {
+  class GenConstant : public EdgeFunction<l_t> {
   private:
     const unsigned GenConstant_Id;
     const l_t IntConst;
@@ -166,8 +165,7 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  class LCAIdentity : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<LCAIdentity> {
+  class LCAIdentity : public EdgeFunction<l_t> {
   private:
     const unsigned LCAID_Id;
 
@@ -187,8 +185,7 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  class BinOp : public EdgeFunction<l_t>,
-                public std::enable_shared_from_this<BinOp> {
+  class BinOp : public EdgeFunction<l_t> {
   private:
     const unsigned EdgeFunctionID, Op;
     d_t lop, rop, currNode;

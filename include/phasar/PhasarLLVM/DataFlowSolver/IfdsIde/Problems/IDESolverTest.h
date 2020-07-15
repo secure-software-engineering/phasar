@@ -106,9 +106,7 @@ public:
 
   EdgeFunctionPtrType allTopFunction() override;
 
-  class IDESolverTestAllTop
-      : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IDESolverTestAllTop> {
+  class IDESolverTestAllTop : public EdgeFunction<l_t> {
     l_t computeTarget(l_t source) override;
 
     EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction,

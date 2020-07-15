@@ -336,8 +336,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
       if (CurrNode == getZeroValue() && SuccNode == Alloca) {
-        struct TSAllocaEF : public EdgeFunction<l_t>,
-                            public std::enable_shared_from_this<TSAllocaEF> {
+        struct TSAllocaEF : public EdgeFunction<l_t> {
           const TypeStateDescription &TSD;
           l_t CurrentState;
           const llvm::AllocaInst *Alloca;

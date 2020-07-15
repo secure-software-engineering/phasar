@@ -64,7 +64,7 @@ public:
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblem() override = default;
 
-  EdgeFunctionMemoryManagerTy &getEFMM() { return emem; }
+  [[nodiscard]] EdgeFunctionMemoryManagerTy &getEFMM() { return emem; }
 
   virtual EdgeFunctionPtrType allTopFunction() = 0;
 #pragma clang diagnostic push
