@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <ostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -33,13 +34,18 @@
 
 namespace psr {
 
-template <typename D, typename V = BinaryDomain> class SpecialSummaries {
-  using FlowFunctionType = FlowFunction<D>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunction<D>>;
+template <typename D, typename L = BinaryDomain,
+          typename Container = std::set<D>>
+class SpecialSummaries {
+  using FlowFunctionType =
+      typename FlowFunction<D, Container>::FlowFunctionType;
+  using FlowFunctionPtrType =
+      typename FlowFunction<D, Container>::FlowFunctionPtrType;
+  using EdgeFunctionPtrType = typename EdgeFunction<L>::EdgeFunctionPtrType;
 
 private:
   std::map<std::string, FlowFunctionPtrType> SpecialFlowFunctions;
-  std::map<std::string, std::shared_ptr<EdgeFunction<V>>> SpecialEdgeFunctions;
+  std::map<std::string, EdgeFunctionPtrType> SpecialEdgeFunctions;
   std::vector<std::string> SpecialFunctionNames;
 
   // Constructs the SpecialSummaryMap such that it contains all glibc,
@@ -52,7 +58,7 @@ private:
       SpecialFlowFunctions.insert(
           std::make_pair(function_name, Identity<D>::getInstance()));
       SpecialEdgeFunctions.insert(
-          std::make_pair(function_name, EdgeIdentity<V>::getInstance()));
+          std::make_pair(function_name, EdgeIdentity<L>::getInstance()));
     }
   }
 
@@ -63,8 +69,8 @@ public:
   SpecialSummaries &operator=(SpecialSummaries &&) = delete;
   ~SpecialSummaries() = default;
 
-  static SpecialSummaries<D, V> &getInstance() {
-    static SpecialSummaries<D, V> instance;
+  static SpecialSummaries<D, L> &getInstance() {
+    static SpecialSummaries<D, L> instance;
     return instance;
   }
 
@@ -79,7 +85,7 @@ public:
   // Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &name,
                              FlowFunctionPtrType flowfunction,
-                             std::shared_ptr<EdgeFunction<V>> edgefunction) {
+                             EdgeFunctionPtrType edgefunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
     SpecialEdgeFunctions[name] = edgefunction;
@@ -103,13 +109,12 @@ public:
     return SpecialFlowFunctions[name];
   }
 
-  std::shared_ptr<EdgeFunction<V>>
+  EdgeFunctionPtrType
   getSpecialEdgeFunctionSummary(const llvm::Function *function) {
     return getSpecialEdgeFunctionSummary(function->getName().str());
   }
 
-  std::shared_ptr<EdgeFunction<V>>
-  getSpecialEdgeFunctionSummary(const std::string &name) {
+  EdgeFunctionPtrType getSpecialEdgeFunctionSummary(const std::string &name) {
     return SpecialEdgeFunctions[name];
   }
 

@@ -259,8 +259,8 @@ public:
 
   static EdgeFunctionPtrType getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
-    static EdgeFunctionPtrType instance(new EdgeIdentity<L>());
-    return instance;
+    static EdgeIdentity<L> Instance;
+    return &Instance;
   }
 
   void print(std::ostream &OS, bool isForDebug = false) const override {
