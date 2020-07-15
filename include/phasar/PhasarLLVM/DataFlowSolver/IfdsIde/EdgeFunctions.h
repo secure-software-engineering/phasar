@@ -119,9 +119,7 @@ static inline std::ostream &operator<<(std::ostream &OS,
   return OS;
 }
 
-template <typename L>
-class AllTop : public EdgeFunction<L>,
-               public std::enable_shared_from_this<AllTop<L>> {
+template <typename L> class AllTop : public EdgeFunction<L> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
   using EFMemoryManager = EdgeFunctionMemoryManager<EdgeFunctionPtrType>;
@@ -160,9 +158,7 @@ public:
 
 template <typename L> class EdgeIdentity;
 
-template <typename L>
-class AllBottom : public EdgeFunction<L>,
-                  public std::enable_shared_from_this<AllBottom<L>> {
+template <typename L> class AllBottom : public EdgeFunction<L> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
   using EFMemoryManager = EdgeFunctionMemoryManager<EdgeFunctionPtrType>;
@@ -214,9 +210,7 @@ public:
   }
 };
 
-template <typename L>
-class EdgeIdentity : public EdgeFunction<L>,
-                     public std::enable_shared_from_this<EdgeIdentity<L>> {
+template <typename L> class EdgeIdentity : public EdgeFunction<L> {
 public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
   using EFMemoryManager = EdgeFunctionMemoryManager<EdgeFunctionPtrType>;

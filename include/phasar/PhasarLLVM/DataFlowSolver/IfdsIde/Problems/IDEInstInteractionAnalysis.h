@@ -723,9 +723,7 @@ public:
 
   // Edge function that kills all labels in a set (and may replaces them with
   // others).
-  class IIAAKillOrReplaceEF
-      : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IIAAKillOrReplaceEF> {
+  class IIAAKillOrReplaceEF : public EdgeFunction<l_t> {
   public:
     l_t Replacement;
 
@@ -808,8 +806,7 @@ public:
 
   // Edge function that adds the given labels to existing labels
   // add all labels provided by Data.
-  class IIAAAddLabelsEF : public EdgeFunction<l_t>,
-                          public std::enable_shared_from_this<IIAAAddLabelsEF> {
+  class IIAAAddLabelsEF : public EdgeFunction<l_t> {
   private:
     IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
                                 EnableIndirectTaints> &Analysis;
