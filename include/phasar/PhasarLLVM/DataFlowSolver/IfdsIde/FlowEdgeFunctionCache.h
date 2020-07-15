@@ -134,10 +134,13 @@ public:
       return NormalFlowFunctionCache.at(key);
     } else {
       INC_COUNTER("Normal-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
-                          problem.getNormalFlowFunction(curr, succ), zeroValue)
-                    : problem.getNormalFlowFunction(curr, succ);
+      auto ff =
+          (autoAddZero)
+              ? problem.getFFMM()
+                    .template make_flow_function<
+                        ZeroedFlowFunction<d_t, Container>>(
+                        problem.getNormalFlowFunction(curr, succ), zeroValue)
+              : problem.getNormalFlowFunction(curr, succ);
       NormalFlowFunctionCache.insert(make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function constructed";
@@ -163,11 +166,13 @@ public:
       return CallFlowFunctionCache.at(key);
     } else {
       INC_COUNTER("Call-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ff =
-          (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
-                    problem.getCallFlowFunction(callStmt, destFun), zeroValue)
-              : problem.getCallFlowFunction(callStmt, destFun);
+      auto ff = (autoAddZero)
+                    ? problem.getFFMM()
+                          .template make_flow_function<
+                              ZeroedFlowFunction<d_t, Container>>(
+                              problem.getCallFlowFunction(callStmt, destFun),
+                              zeroValue)
+                    : problem.getCallFlowFunction(callStmt, destFun);
       CallFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function constructed";
@@ -199,10 +204,12 @@ public:
     } else {
       INC_COUNTER("Return-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
-                          problem.getRetFlowFunction(callSite, calleeFun,
-                                                     exitStmt, retSite),
-                          zeroValue)
+                    ? problem.getFFMM()
+                          .template make_flow_function<
+                              ZeroedFlowFunction<d_t, Container>>(
+                              problem.getRetFlowFunction(callSite, calleeFun,
+                                                         exitStmt, retSite),
+                              zeroValue)
                     : problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
                                                  retSite);
       ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
@@ -238,10 +245,12 @@ public:
       INC_COUNTER("CallToRet-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
-                    problem.getCallToRetFlowFunction(callSite, retSite,
-                                                     callees),
-                    zeroValue)
+              ? problem.getFFMM()
+                    .template make_flow_function<
+                        ZeroedFlowFunction<d_t, Container>>(
+                        problem.getCallToRetFlowFunction(callSite, retSite,
+                                                         callees),
+                        zeroValue)
               : problem.getCallToRetFlowFunction(callSite, retSite, callees);
       CallToRetFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

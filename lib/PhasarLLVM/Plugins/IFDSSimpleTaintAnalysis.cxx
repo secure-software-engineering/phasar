@@ -69,7 +69,7 @@ IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
                                                const llvm::Instruction *Succ) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    return make_shared<LambdaFlow<const FlowFact *>>(
+    return getFFMM().make_flow_function<LambdaFlow<const FlowFact *>>(
         [this, Store](const FlowFact *source) -> set<const FlowFact *> {
           // auto VFW = static_cast<const ValueFlowFactWrapper *>(source);
           if (Store->getValueOperand() ==
@@ -89,7 +89,7 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallStmt,
                                              const llvm::Function *DestFun) {
   if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(CallStmt)) {
     if (DestFun->getName().str() == "taint") {
-      return make_shared<Gen<const FlowFact *>>(
+      return getFFMM().make_flow_function<Gen<const FlowFact *>>(
           ffManager.getOrCreateFlowFact(Call), getZeroValue());
     } else if (DestFun->getName().str() == "leak") {
     } else {

@@ -63,11 +63,11 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
         }
       }
     };
-    return make_shared<TAFF>(Store);
+    return getFFMM().make_flow_function<TAFF>(Store);
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
+    return getFFMM().make_flow_function<GenIf<IFDSTaintAnalysis::d_t>>(
         Load, [Load](IFDSTaintAnalysis::d_t Source) {
           return Source == Load->getPointerOperand();
         });
@@ -75,7 +75,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
+    return getFFMM().make_flow_function<GenIf<IFDSTaintAnalysis::d_t>>(
         GEP, [GEP](IFDSTaintAnalysis::d_t Source) {
           return Source == GEP->getPointerOperand();
         });
@@ -99,8 +99,8 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
-                                           DestFun);
+    return getFFMM().make_flow_function<MapFactsToCallee<>>(
+        llvm::ImmutableCallSite(CallStmt), DestFun);
   }
   // Pass everything else as identity
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
@@ -112,7 +112,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
-  return make_shared<MapFactsToCaller<>>(
+  return getFFMM().make_flow_function<MapFactsToCaller<>>(
       llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt,
       [](IFDSTaintAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
@@ -173,8 +173,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       if (Source.TaintsReturn) {
         ToGenerate.insert(CallSite);
       }
-      return make_shared<GenAll<IFDSTaintAnalysis::d_t>>(ToGenerate,
-                                                         getZeroValue());
+      return getFFMM().make_flow_function<GenAll<IFDSTaintAnalysis::d_t>>(
+          ToGenerate, getZeroValue());
     }
     if (SourceSinkFunctions.isSink(FunctionName)) {
       // process leaks
@@ -207,9 +207,9 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           return {Source};
         }
       };
-      return make_shared<TAFF>(llvm::ImmutableCallSite(CallSite), Callee,
-                               SourceSinkFunctions.getSink(FunctionName), Leaks,
-                               this);
+      return getFFMM().make_flow_function<TAFF>(
+          llvm::ImmutableCallSite(CallSite), Callee,
+          SourceSinkFunctions.getSink(FunctionName), Leaks, this);
     }
   }
   // Otherwise pass everything as it is

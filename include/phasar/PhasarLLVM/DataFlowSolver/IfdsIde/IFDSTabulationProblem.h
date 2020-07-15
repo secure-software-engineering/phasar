@@ -58,6 +58,10 @@ public:
   static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
                 "I must implement the ICFG interface!");
 
+  using typename FlowFunctions<AnalysisDomainTy>::FlowFunctionPtrType;
+  using FlowFunctionMemoryManagerTy =
+      FlowFunctionMemoryManager<FlowFunctionPtrType>;
+
 protected:
   IFDSIDESolverConfig SolverConfig;
   const ProjectIRDB *IRDB;
@@ -80,6 +84,8 @@ public:
 
   ~IFDSTabulationProblem() override = default;
 
+  [[nodiscard]] FlowFunctionMemoryManagerTy &getFFMM() { return emem; }
+
   virtual d_t createZeroValue() const = 0;
 
   virtual bool isZeroValue(d_t d) const = 0;
@@ -92,7 +98,7 @@ public:
     return EntryPoints;
   }
 
-  const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
   const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const { return TH; }
 
@@ -120,6 +126,9 @@ public:
   }
 
   virtual bool setSoundnessFlag(SoundnessFlag SF) { return false; }
+
+private:
+  FlowFunctionMemoryManagerTy emem;
 };
 } // namespace psr
 

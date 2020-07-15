@@ -171,30 +171,31 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {Source};
       }
     };
-    return make_shared<UVFF>(Store, UndefValueUses, ZeroValue);
+    return getFFMM().make_flow_function<UVFF>(Store, UndefValueUses, ZeroValue);
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
-        [Alloc, this](IFDSUninitializedVariables::d_t Source)
-            -> set<IFDSUninitializedVariables::d_t> {
-          if (isZeroValue(Source)) {
-            if (Alloc->getAllocatedType()->isIntegerTy() ||
-                Alloc->getAllocatedType()->isFloatingPointTy() ||
-                Alloc->getAllocatedType()->isPointerTy() ||
-                Alloc->getAllocatedType()->isArrayTy()) {
-              //------------------------------------------------------------
-              // Why not generate for structs, but for arrays? (would be
-              // consistent to generate either both or none of them)
-              //------------------------------------------------------------
+    return getFFMM()
+        .make_flow_function<LambdaFlow<IFDSUninitializedVariables::d_t>>(
+            [Alloc, this](IFDSUninitializedVariables::d_t Source)
+                -> set<IFDSUninitializedVariables::d_t> {
+              if (isZeroValue(Source)) {
+                if (Alloc->getAllocatedType()->isIntegerTy() ||
+                    Alloc->getAllocatedType()->isFloatingPointTy() ||
+                    Alloc->getAllocatedType()->isPointerTy() ||
+                    Alloc->getAllocatedType()->isArrayTy()) {
+                  //------------------------------------------------------------
+                  // Why not generate for structs, but for arrays? (would be
+                  // consistent to generate either both or none of them)
+                  //------------------------------------------------------------
 
-              // generate the alloca
-              return {Source, Alloc};
-            }
-          }
-          // otherwise propagate all facts
-          return {Source};
-        });
+                  // generate the alloca
+                  return {Source, Alloc};
+                }
+              }
+              // otherwise propagate all facts
+              return {Source};
+            });
   }
   // check if some instruction is using an undefined value (in)directly
   struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
@@ -228,7 +229,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
       return {Source};
     }
   };
-  return make_shared<UVFF>(Curr, UndefValueUses);
+  return getFFMM().make_flow_function<UVFF>(Curr, UndefValueUses);
 
   // otherwise we do not care and nothing changes
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
@@ -313,7 +314,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(DestFun, CallSite, ZeroValue);
+    return getFFMM().make_flow_function<UVFF>(DestFun, CallSite, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -357,7 +358,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return make_shared<UVFF>(CS, ExitStmt);
+    return getFFMM().make_flow_function<UVFF>(CS, ExitStmt);
   }
   // kill everything else
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
@@ -374,21 +375,22 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
     llvm::ImmutableCallSite CS(CallSite);
-    return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
-        [CS](IFDSUninitializedVariables::d_t Source)
-            -> set<IFDSUninitializedVariables::d_t> {
-          if (Source->getType()->isPointerTy()) {
-            for (const auto &Arg : CS.args()) {
-              if (Arg.get() == Source) {
-                // do not propagate pointer arguments, since the function may
-                // initialize them (would be much more precise with
-                // field-sensitivity)
-                return {};
+    return getFFMM()
+        .make_flow_function<LambdaFlow<IFDSUninitializedVariables::d_t>>(
+            [CS](IFDSUninitializedVariables::d_t Source)
+                -> set<IFDSUninitializedVariables::d_t> {
+              if (Source->getType()->isPointerTy()) {
+                for (const auto &Arg : CS.args()) {
+                  if (Arg.get() == Source) {
+                    // do not propagate pointer arguments, since the function
+                    // may initialize them (would be much more precise with
+                    // field-sensitivity)
+                    return {};
+                  }
+                }
               }
-            }
-          }
-          return {Source};
-        });
+              return {Source};
+            });
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }

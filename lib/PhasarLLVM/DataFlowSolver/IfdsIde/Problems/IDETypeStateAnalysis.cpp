@@ -57,8 +57,8 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
   // value.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
-      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
-                                                         getZeroValue());
+      return getFFMM().make_flow_function<Gen<IDETypeStateAnalysis::d_t>>(
+          Alloca, getZeroValue());
     }
   }
   // Check load instructions for target type. Generate from the loaded value and
@@ -81,17 +81,18 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(Load);
+      return getFFMM().make_flow_function<TSFlowFunction>(Load);
     }
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return make_shared<LambdaFlow<d_t>>([=](d_t Source) -> set<d_t> {
-        // if (Source == Gep->getPointerOperand()) {
-        //  return {Source, Gep};
-        //}
-        return {Source};
-      });
+      return getFFMM().make_flow_function<LambdaFlow<d_t>>(
+          [=](d_t Source) -> set<d_t> {
+            // if (Source == Gep->getPointerOperand()) {
+            //  return {Source, Gep};
+            //}
+            return {Source};
+          });
     }
   }
   // Check store instructions for target type. Perform a strong update, i.e.
@@ -129,7 +130,8 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(Store, RelevantAliasesAndAllocas);
+      return getFFMM().make_flow_function<TSFlowFunction>(
+          Store, RelevantAliasesAndAllocas);
     }
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
@@ -147,8 +149,8 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
   // standard mapping.
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
-                                           DestFun);
+    return getFFMM().make_flow_function<MapFactsToCallee<>>(
+        llvm::ImmutableCallSite(CallStmt), DestFun);
   }
   llvm::report_fatal_error("callStmt not a CallInst nor a InvokeInst");
 }
@@ -242,8 +244,8 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
       }
     }
   };
-  return make_shared<TSFlowFunction>(llvm::ImmutableCallSite(CallSite),
-                                     CalleeFun, ExitStmt, this);
+  return getFFMM().make_flow_function<TSFlowFunction>(
+      llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt, this);
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
@@ -273,7 +275,8 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(CallSite, getZeroValue());
+      return getFFMM().make_flow_function<TSFlowFunction>(CallSite,
+                                                          getZeroValue());
     }
 
     // Handle all functions that are not modeld with special semantics.
@@ -291,8 +294,9 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
         if (hasMatchingType(Arg)) {
           std::set<IDETypeStateAnalysis::d_t> FactsToKill =
               getWMAliasesAndAllocas(Arg.get());
-          return make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
-              FactsToKill);
+          return getFFMM()
+              .make_flow_function<KillMultiple<IDETypeStateAnalysis::d_t>>(
+                  FactsToKill);
         }
       }
     }

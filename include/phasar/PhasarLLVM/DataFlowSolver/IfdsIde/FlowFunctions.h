@@ -25,6 +25,26 @@
 
 namespace psr {
 
+template <typename FlowFunctionPtrTy> class FlowFunctionMemoryManager {
+public:
+  using FlowFunctionType = std::remove_pointer_t<FlowFunctionPtrTy>;
+
+  // Allocate a new \a FlowFunction of type \a FlowFunctionImplTy with the
+  // memory manager.
+  //
+  // \returns a ptr to the newly allocated \a FlowFunction
+  template <typename FlowFunctionImplTy, typename... Args>
+  inline FlowFunctionPtrTy make_flow_function(Args &&... args) {
+    storage.push_back(
+        std::make_unique<FlowFunctionImplTy>(std::forward<Args>(args)...));
+    return storage.back().get();
+  }
+
+private:
+  using FlowFunctionStorageType = std::unique_ptr<FlowFunctionType>;
+  std::vector<FlowFunctionStorageType> storage;
+};
+
 //===----------------------------------------------------------------------===//
 //                              FlowFunction Class
 //===----------------------------------------------------------------------===//
@@ -38,7 +58,8 @@ template <typename D, typename Container = std::set<D>> class FlowFunction {
 
 public:
   using FlowFunctionType = FlowFunction<D, Container>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunctionType>;
+  using FlowFunctionPtrType = FlowFunctionType *;
+  using FFMemoryManager = FlowFunctionMemoryManager<FlowFunctionPtrType>;
 
   using container_type = Container;
   using value_type = typename container_type::value_type;
@@ -72,10 +93,9 @@ public:
   Identity &operator=(const Identity &i) = delete;
   // simply return what the user provides
   container_type computeTargets(D source) override { return {source}; }
-  static std::shared_ptr<Identity> getInstance() {
-    static std::shared_ptr<Identity> instance =
-        std::shared_ptr<Identity>(new Identity);
-    return instance;
+  static Identity *getInstance() {
+    static Identity instance{};
+    return &instance;
   }
 
 private:
@@ -100,6 +120,7 @@ class Compose : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::FlowFunctionType;
   using typename FlowFunction<D, Container>::FlowFunctionPtrType;
+  using typename FlowFunction<D, Container>::FFMemoryManager;
 
   using typename FlowFunction<D, Container>::container_type;
 
@@ -120,10 +141,10 @@ public:
     return current;
   }
 
-  static FlowFunctionPtrType
-  compose(const std::vector<FlowFunctionType> &funcs) {
+  static FlowFunctionPtrType compose(const std::vector<FlowFunctionType> &Funcs,
+                                     FFMemoryManager &MemoryManager) {
     std::vector<FlowFunctionType> vec;
-    for (const FlowFunctionType &func : funcs) {
+    for (const FlowFunctionType &func : Funcs) {
       if (func != Identity<D, Container>::getInstance()) {
         vec.insert(func);
       }
@@ -133,7 +154,7 @@ public:
     } else if (vec.empty()) {
       return Identity<D, Container>::getInstance();
     }
-    return std::make_shared<Compose>(vec);
+    return MemoryManager.template make_flow_function<Compose>(vec);
   }
 
 protected:
@@ -292,10 +313,9 @@ public:
   KillAll(const KillAll &k) = delete;
   KillAll &operator=(const KillAll &k) = delete;
   container_type computeTargets(D source) override { return container_type(); }
-  static std::shared_ptr<KillAll<D>> getInstance() {
-    static std::shared_ptr<KillAll> instance =
-        std::shared_ptr<KillAll>(new KillAll);
-    return instance;
+  static KillAll *getInstance() {
+    static KillAll instance{};
+    return &instance;
   }
 
 private:

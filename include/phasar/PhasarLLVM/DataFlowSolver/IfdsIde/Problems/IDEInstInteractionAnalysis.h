@@ -161,7 +161,8 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "AllocaInst");
-      return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
+      return this->getFFMM().template make_flow_function<Gen<d_t>>(
+          Alloca, this->getZeroValue());
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -169,18 +170,19 @@ public:
     if (EnableIndirectTaints) {
       if (auto br = llvm::dyn_cast<llvm::BranchInst>(curr);
           br && br->isConditional()) {
-        return std::make_shared<LambdaFlow<d_t>>([=](d_t src) {
-          container_type ret = {src, br};
-          if (src == br->getCondition()) {
-            for (auto succ : br->successors()) {
-              // this->indirecrTaints[succ].insert(src);
-              for (auto &inst : succ->instructionsWithoutDebug()) {
-                ret.insert(&inst);
+        return this->getFFMM().template make_flow_function<LambdaFlow<d_t>>(
+            [=](d_t src) {
+              container_type ret = {src, br};
+              if (src == br->getCondition()) {
+                for (auto succ : br->successors()) {
+                  // this->indirecrTaints[succ].insert(src);
+                  for (auto &inst : succ->instructionsWithoutDebug()) {
+                    ret.insert(&inst);
+                  }
+                }
               }
-            }
-          }
-          return ret;
-        });
+              return ret;
+            });
       }
     }
 
@@ -220,7 +222,8 @@ public:
             return Facts;
           }
         };
-        return std::make_shared<IIAFlowFunction>(*this, Load);
+        return this->getFFMM().template make_flow_function<IIAFlowFunction>(
+            *this, Load);
       }
 
       // (ii) Handle semantic propagation (pointers) for store instructions.
@@ -281,7 +284,8 @@ public:
             return Facts;
           }
         };
-        return std::make_shared<IIAFlowFunction>(*this, Store);
+        return this->getFFMM().template make_flow_function<IIAFlowFunction>(
+            *this, Store);
       }
     }
 
@@ -329,7 +333,8 @@ public:
             return Facts;
           }
         };
-        return std::make_shared<IIAAFlowFunction>(Store, Load);
+        return this->getFFMM().template make_flow_function<IIAAFlowFunction>(
+            Store, Load);
       } else {
         // Otherwise
         struct IIAAFlowFunction : FlowFunction<d_t> {
@@ -355,7 +360,8 @@ public:
             return Facts;
           }
         };
-        return std::make_shared<IIAAFlowFunction>(Store);
+        return this->getFFMM().template make_flow_function<IIAAFlowFunction>(
+            Store);
       }
     }
     // At last, we can handle all other (unary/binary) instructions
@@ -411,7 +417,7 @@ public:
         return Facts;
       }
     };
-    return std::make_shared<IIAFlowFunction>(curr);
+    return this->getFFMM().template make_flow_function<IIAFlowFunction>(curr);
   }
 
   inline FlowFunctionPtrType getCallFlowFunction(n_t callStmt,
@@ -424,8 +430,9 @@ public:
       return KillAll<d_t>::getInstance();
     }
     // Map actual to formal parameters.
-    return std::make_shared<MapFactsToCallee<container_type>>(
-        llvm::ImmutableCallSite(callStmt), destMthd);
+    return this->getFFMM()
+        .template make_flow_function<MapFactsToCallee<container_type>>(
+            llvm::ImmutableCallSite(callStmt), destMthd);
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
@@ -433,8 +440,9 @@ public:
                                                 n_t retSite) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
-    return std::make_shared<MapFactsToCaller<container_type>>(
-        llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt);
+    return this->getFFMM()
+        .template make_flow_function<MapFactsToCaller<container_type>>(
+            llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt);
   }
 
   inline FlowFunctionPtrType
@@ -458,14 +466,16 @@ public:
           //              v  v
           //              0  x
           //
-          return std::make_shared<Gen<d_t>>(callSite, this->getZeroValue());
+          return this->getFFMM().template make_flow_function<Gen<d_t>>(
+              callSite, this->getZeroValue());
         }
       }
     }
     // Just use the auto mapping for values, pointer parameters are killed and
     // handled by getCallFlowfunction() and getRetFlowFunction().
-    return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        llvm::ImmutableCallSite(callSite));
+    return this->getFFMM()
+        .template make_flow_function<MapFactsAlongsideCallSite<container_type>>(
+            llvm::ImmutableCallSite(callSite));
   }
 
   inline FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,

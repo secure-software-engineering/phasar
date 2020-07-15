@@ -69,8 +69,8 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t Curr, IDELinearConstantAnalysis::n_t Succ) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
-      return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
-                                                              getZeroValue());
+      return getFFMM().make_flow_function<Gen<IDELinearConstantAnalysis::d_t>>(
+          Alloca, getZeroValue());
     }
   }
   // Check store instructions. Store instructions override previous value
@@ -80,34 +80,39 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
-      return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
-          Store, [this](IDELinearConstantAnalysis::d_t Source) {
-            return Source == getZeroValue();
-          });
+      return getFFMM()
+          .make_flow_function<
+              StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
+              Store, [this](IDELinearConstantAnalysis::d_t Source) {
+                return Source == getZeroValue();
+              });
     }
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
-      return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
-          Store, [Store](IDELinearConstantAnalysis::d_t Source) {
-            return Source == Store->getValueOperand();
-          });
+      return getFFMM()
+          .make_flow_function<
+              StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
+              Store, [Store](IDELinearConstantAnalysis::d_t Source) {
+                return Source == Store->getValueOperand();
+              });
     }
   }
   // check load instructions
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
     if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
-      return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
-          Load, [Load](IDELinearConstantAnalysis::d_t Source) {
-            return Source == Load->getPointerOperand();
-          });
+      return getFFMM()
+          .make_flow_function<GenIf<IDELinearConstantAnalysis::d_t>>(
+              Load, [Load](IDELinearConstantAnalysis::d_t Source) {
+                return Source == Load->getPointerOperand();
+              });
     }
   }
   // check for binary operations: add, sub, mul, udiv/sdiv, urem/srem
   if (llvm::isa<llvm::BinaryOperator>(Curr)) {
     auto *Lop = Curr->getOperand(0);
     auto *Rop = Curr->getOperand(1);
-    return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
+    return getFFMM().make_flow_function<GenIf<IDELinearConstantAnalysis::d_t>>(
         Curr, [this, Lop, Rop](IDELinearConstantAnalysis::d_t Source) {
           return (Lop == Source && llvm::isa<llvm::ConstantInt>(Rop)) ||
                  (Rop == Source && llvm::isa<llvm::ConstantInt>(Lop)) ||
@@ -190,7 +195,8 @@ IDELinearConstantAnalysis::getCallFlowFunction(
         return Res;
       }
     };
-    return make_shared<LCAFF>(llvm::ImmutableCallSite(CallStmt), DestFun);
+    return getFFMM().make_flow_function<LCAFF>(
+        llvm::ImmutableCallSite(CallStmt), DestFun);
   }
   // Pass everything else as identity
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -231,10 +237,10 @@ IDELinearConstantAnalysis::getRetFlowFunction(
         return Res;
       }
     };
-    return make_shared<LCAFF>(CallSite, ReturnValue);
+    return getFFMM().make_flow_function<LCAFF>(CallSite, ReturnValue);
   }
   // All other facts except GlobalVariables are killed at this point
-  return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
+  return getFFMM().make_flow_function<KillIf<IDELinearConstantAnalysis::d_t>>(
       [](IDELinearConstantAnalysis::d_t Source) {
         return !llvm::isa<llvm::GlobalVariable>(Source);
       });
@@ -246,11 +252,12 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t RetSite, set<f_t> Callees) {
   for (const auto *Callee : Callees) {
     if (!ICF->getStartPointsOf(Callee).empty()) {
-      return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
-          [this](IDELinearConstantAnalysis::d_t Source) {
-            return !isZeroValue(Source) &&
-                   llvm::isa<llvm::GlobalVariable>(Source);
-          });
+      return getFFMM()
+          .make_flow_function<KillIf<IDELinearConstantAnalysis::d_t>>(
+              [this](IDELinearConstantAnalysis::d_t Source) {
+                return !isZeroValue(Source) &&
+                       llvm::isa<llvm::GlobalVariable>(Source);
+              });
     } else {
       return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
     }
