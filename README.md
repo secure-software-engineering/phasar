@@ -177,7 +177,7 @@ C++'s long compile times are always a pain. As shown in the above, when using cm
 ### Running a test solver
 To test if everything works as expected please run the following command:
 
-`$ phasar-llvm --module test/build_systems_tests/installation_tests/module.ll -D IFDS_SolverTest`
+`$ phasar-llvm --module test/build_systems_tests/installation_tests/module.ll -D ifds-solvertest`
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 
