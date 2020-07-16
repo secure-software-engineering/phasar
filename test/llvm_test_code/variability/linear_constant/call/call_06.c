@@ -38,8 +38,8 @@ int main() {
   int x = 5;
   int j = compute(x
 #ifdef A
-                  (long long) x |
-                  (((long long)x + 3) << 32)
+                  ,
+                  (long long)x | (((long long)x + 3) << 32)
 #endif
   );
   int k = j - 1;
