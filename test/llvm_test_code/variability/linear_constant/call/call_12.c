@@ -1,4 +1,4 @@
-int bar(int x) { return x + x; }
+int bar(int x) { return x * 2; }
 
 int foo(int x) {
   switch (x) {
