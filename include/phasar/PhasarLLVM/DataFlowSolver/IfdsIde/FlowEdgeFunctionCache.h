@@ -472,6 +472,49 @@ public:
     }
   }
 
+  void cleanUnusedEdgeFunctions(
+      EdgeFunctionMemoryManager<EdgeFunctionPtrType> &MemoryManager) {
+    const size_t CleanupThreshold = 32;
+    if (MemoryManager.num_unused() < CleanupThreshold) {
+      // Cleaning up old EdgeFunctions is time consuming, so we wait until we
+      // have enough unused functions before we clean them up.
+      return;
+    }
+
+    for (auto Iter = NormalFlowFunctionCache.begin();
+         Iter != NormalFlowFunctionCache.end(); ++Iter) {
+      if (MemoryManager.is_unused(Iter->second)) {
+        NormalFlowFunctionCache.erase(Iter);
+      }
+    }
+    for (auto Iter = CallFlowFunctionCache.begin();
+         Iter != CallFlowFunctionCache.end(); ++Iter) {
+      if (MemoryManager.is_unused(Iter->second)) {
+        CallFlowFunctionCache.erase(Iter);
+      }
+    }
+    for (auto Iter = ReturnEdgeFunctionCache.begin();
+         Iter != ReturnEdgeFunctionCache.end(); ++Iter) {
+      if (MemoryManager.is_unused(Iter->second)) {
+        ReturnEdgeFunctionCache.erase(Iter);
+      }
+    }
+    for (auto Iter = CallToRetEdgeFunctionCache.begin();
+         Iter != CallToRetEdgeFunctionCache.end(); ++Iter) {
+      if (MemoryManager.is_unused(Iter->second)) {
+        CallToRetEdgeFunctionCache.erase(Iter);
+      }
+    }
+    for (auto Iter = SummaryEdgeFunctionCache.begin();
+         Iter != SummaryEdgeFunctionCache.end(); ++Iter) {
+      if (MemoryManager.is_unused(Iter->second)) {
+        SummaryEdgeFunctionCache.erase(Iter);
+      }
+    }
+
+    MemoryManager.clean();
+  }
+
   void print() {
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Full) {
       PAMM_GET_INSTANCE;

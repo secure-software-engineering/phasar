@@ -17,6 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
 
+#include "llvm/ADT/iterator_range.h"
+
+#include <algorithm>
 #include <iosfwd>
 #include <iostream>
 #include <memory>
@@ -45,9 +48,51 @@ public:
     return storage.back().get();
   }
 
+  // Mark a EdgeFunction as unused so it can later be removed during a clean up
+  // cycle. This should be used to reduce memory consumption of an analysis.
+  //
+  // \param EdgeFunction that is no longer needed
+  template <typename EdgeFunctionImplTy>
+  void mark_unused(EdgeFunctionImplTy *EdgeFunction) {
+    unused.push_back(EdgeFunction);
+  }
+
+  llvm::iterator_range<typename std::vector<EdgeFunctionType *>::iterator>
+  unused_edge_functions() {
+    return llvm::make_range(unused.begin(), unused.end());
+  }
+
+  // Checks if a EdgeFunction is marked as unused.
+  //
+  // \param EdgeFunction to check
+  //
+  // \returns true, if the \a EdgeFunction is currently marked as unused
+  template <typename EdgeFunctionImplTy>
+  inline bool is_unused(EdgeFunctionImplTy *EdgeFunction) {
+    return std::find(unused.begin(), unused.end(), EdgeFunction);
+  }
+
+  [[nodiscard]] size_t num_unused() const { return unused.size(); }
+
+  void clean() {
+    storage.erase(
+        remove_if(storage.begin(), storage.end(),
+                  [this](const auto &StoredEdgeFunction) {
+                    return std::find_if(
+                               unused.begin(), unused.end(),
+                               [&StoredEdgeFunction](
+                                   EdgeFunctionType *UnusedEdgeFunction) {
+                                 return UnusedEdgeFunction ==
+                                        StoredEdgeFunction.get();
+                               }) != unused.end();
+                  }),
+        storage.end());
+  }
+
 private:
   using EdgeFunctionStorageType = std::unique_ptr<EdgeFunctionType>;
   std::vector<EdgeFunctionStorageType> storage;
+  std::vector<EdgeFunctionType *> unused;
 };
 
 //
