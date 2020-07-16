@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
 
+#include <cstdint>
 #include <iosfwd>
 
 #include "phasar/Config/Configuration.h"
@@ -35,7 +36,7 @@ enum class SolverConfigOptions : uint32_t {
   EmitESG = 16,
   ComputePersistedSummaries = 32,
 
-  All = ~0u
+  All = ~0U
 };
 
 struct IFDSIDESolverConfig {
