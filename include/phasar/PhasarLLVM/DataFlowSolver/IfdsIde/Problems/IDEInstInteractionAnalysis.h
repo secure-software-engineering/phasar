@@ -779,9 +779,10 @@ public:
         return this;
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction)) {
-        Replacement =
+        auto ReplacementResult =
             IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
-        return this;
+        return MemoryManager.template make_edge_function<IIAAKillOrReplaceEF>(
+            ReplacementResult);
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");

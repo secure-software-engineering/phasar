@@ -49,7 +49,7 @@ public:
 
 private:
   EdgeFunctionPtrType allTop;
-  const IDETabulationProblem<AnalysisDomainTy, Container> &problem;
+  IDETabulationProblem<AnalysisDomainTy, Container> &problem;
 
 protected:
   // mapping from target node and value to a list of all source values and
@@ -70,7 +70,7 @@ protected:
 
 public:
   JumpFunctions(EdgeFunctionPtrType allTop,
-                const IDETabulationProblem<AnalysisDomainTy, Container> &p)
+                IDETabulationProblem<AnalysisDomainTy, Container> &p)
       : allTop(std::move(allTop)), problem(p) {}
 
   ~JumpFunctions() = default;
@@ -101,6 +101,8 @@ public:
       return;
     }
 
+    EdgeFunctionPtrType toBeOverwritten = nullptr;
+
     auto &SourceValToFunc = nonEmptyReverseLookup.get(target, targetVal);
     if (auto Find = std::find_if(
             SourceValToFunc.begin(), SourceValToFunc.end(),
@@ -109,6 +111,7 @@ public:
             });
         Find != SourceValToFunc.end()) {
       // it is important that existing values in JumpFunctions are overwritten
+      toBeOverwritten = Find->second;
       Find->second = function;
     } else {
       SourceValToFunc.emplace_back(sourceVal, function);
@@ -132,6 +135,11 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "End adding new jump function";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+
+    if (!toBeOverwritten) {
+      problem.getEFMM().mark_unused(toBeOverwritten);
+      problem.getEFMM().clean();
+    }
   }
 
   /**

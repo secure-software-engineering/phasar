@@ -105,8 +105,7 @@ public:
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
         ICF(Problem.getICFG()), SolverConfig(Problem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(Problem), allTop(Problem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
-            allTop, IDEProblem)),
+        jumpFn(allTop, IDEProblem),
         initialSeeds(Problem.initialSeeds()) {}
 
   IDESolver(const IDESolver &) = delete;
@@ -341,7 +340,7 @@ protected:
 
   EdgeFunctionPtrType allTop;
 
-  std::shared_ptr<JumpFunctions<AnalysisDomainTy, Container>> jumpFn;
+  JumpFunctions<AnalysisDomainTy, Container> jumpFn;
 
   std::map<std::tuple<n_t, d_t, n_t, d_t>, std::vector<EdgeFunctionPtrType>>
       intermediateEdgeFunctions;
@@ -381,8 +380,7 @@ protected:
         SolverConfig(IDEProblem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(IDEProblem),
         allTop(IDEProblem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
-            allTop, IDEProblem)),
+        jumpFn(allTop, IDEProblem),
         initialSeeds(IDEProblem.initialSeeds()) {}
 
   /**
@@ -664,7 +662,7 @@ protected:
     d_t d = nAndD.second;
     f_t p = ICF->getFunctionOf(n);
     for (const n_t c : ICF->getCallsFromWithin(p)) {
-      auto lookupResults = jumpFn->forwardLookup(d, c);
+      auto lookupResults = jumpFn.forwardLookup(d, c);
       if (!lookupResults) {
         continue;
       }
@@ -757,7 +755,7 @@ protected:
         << "   Target D: " << IDEProblem.DtoString(edge.factAtTarget()));
 
     auto fwdLookupRes =
-        jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget());
+        jumpFn.forwardLookup(edge.factAtSource(), edge.getTarget());
     if (fwdLookupRes) {
       auto &ref = fwdLookupRes->get();
       if (auto Find = std::find_if(ref.begin(), ref.end(),
@@ -838,7 +836,7 @@ protected:
       for (n_t sP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
         using TableCell = typename Table<d_t, d_t, EdgeFunctionPtrType>::Cell;
         Table<d_t, d_t, EdgeFunctionPtrType> lookupByTarget;
-        lookupByTarget = jumpFn->lookupByTarget(n);
+        lookupByTarget = jumpFn.lookupByTarget(n);
         for (const TableCell &sourceValTargetValAndFunction :
              lookupByTarget.cellSet()) {
           d_t dPrime = sourceValTargetValAndFunction.getRowKey();
@@ -916,7 +914,7 @@ protected:
         propagate(ZeroValue, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
                   nullptr, false);
       }
-      jumpFn->addFunction(ZeroValue, StartPoint, ZeroValue,
+      jumpFn.addFunction(ZeroValue, StartPoint, ZeroValue,
                           EdgeIdentity<l_t>::getInstance());
     }
   }
@@ -1013,7 +1011,7 @@ protected:
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to
             // return site using the composed function
-            auto revLookupResult = jumpFn->reverseLookup(c, d4);
+            auto revLookupResult = jumpFn.reverseLookup(c, d4);
             if (revLookupResult) {
               for (auto valAndFunc : revLookupResult->get()) {
                 EdgeFunctionPtrType f3 = valAndFunc.second;
@@ -1207,7 +1205,7 @@ protected:
    */
   void
   propagate(d_t sourceVal, n_t target, d_t targetVal,
-            const EdgeFunctionPtrType &f,
+            const EdgeFunctionPtrType f,
             /* deliberately exposed to clients */ n_t relatedCallSite,
             /* deliberately exposed to clients */ bool isUnbalancedReturn) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Propagate flow";
@@ -1223,7 +1221,7 @@ protected:
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
     EdgeFunctionPtrType jumpFnE = [&]() {
-      const auto revLookupResult = jumpFn->reverseLookup(target, targetVal);
+      const auto revLookupResult = jumpFn.reverseLookup(target, targetVal);
       if (revLookupResult) {
         const auto &JumpFnContainer = revLookupResult->get();
         const auto Find = std::find_if(
@@ -1247,11 +1245,6 @@ protected:
                   << (newFunction ? " (new jump func)" : " ");
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     if (newFunction) {
-      jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
-      const PathEdge<n_t, d_t> edge(sourceVal, target, targetVal);
-      PathEdgeCount++;
-      pathEdgeProcessingTask(edge);
-
       LOG_IF_ENABLE(if (!IDEProblem.isZeroValue(targetVal)) {
         BOOST_LOG_SEV(lg::get(), DEBUG)
             << "EDGE: <F: " << target->getFunction()->getName().str()
@@ -1263,6 +1256,11 @@ protected:
         BOOST_LOG_SEV(lg::get(), DEBUG) << "      EF: " << fPrime->str() << '>';
         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
       });
+
+      jumpFn.addFunction(sourceVal, target, targetVal, fPrime);
+      const PathEdge<n_t, d_t> edge(sourceVal, target, targetVal);
+      PathEdgeCount++;
+      pathEdgeProcessingTask(edge);
     } else {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "PROPAGATE: No new function!");
