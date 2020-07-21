@@ -24,5 +24,6 @@ int foo(int x) {
 int main() {
   int i = 3;
   int j = foo(i);
+  // ~WIDE => 6; WIDE => 16
   return j;
 }
