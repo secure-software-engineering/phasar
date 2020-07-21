@@ -24,7 +24,7 @@ int coro(state_t *s, int n) {
 }
 
 int main() {
-  state_t s;
+  state_t s = {0};
   int n = 3;
   // 0
   int i = coro(&s, n);
