@@ -10,6 +10,7 @@ typedef struct _state {
 
 // A simple stackless coroutine
 int coro(state_t *s, int n) {
+#ifdef CORO
   switch (s->state) {
   case 0:
     for (s->i = 0; s->i < n; ++s->i) {
@@ -17,6 +18,9 @@ int coro(state_t *s, int n) {
     }
     yield(2, n * 2);
   }
+#else
+  return n * 2;
+#endif
 }
 
 int main() {
