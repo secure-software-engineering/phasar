@@ -136,7 +136,10 @@ public:
                       << "End adding new jump function";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-    if (!toBeOverwritten) {
+    if (toBeOverwritten) {
+      std::cout << "deleting: ";
+      toBeOverwritten->print(std::cout);
+      std::cout << std::endl;
       problem.getEFMM().mark_unused(toBeOverwritten);
       problem.getEFMM().clean();
     }
