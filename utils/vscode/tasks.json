@@ -1,0 +1,37 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "build phasar-llvm",
+			"options": {
+				"cwd": "${workspaceFolder}/build"
+			},
+			"command": "cmake",
+			"args": [
+				"--build",
+				".",
+				"--",
+				"-j8"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "build main ir",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"command": "/usr/local/llvm-10/bin/clang",
+			"args": [
+				"-S",
+				"-emit-llvm",
+				"main.cpp",
+				"-o",
+				"build/main.ll"
+			],
+			"dependsOn": [
+				"build phasar-llvm"
+			]
+		}		
+	]
+}
