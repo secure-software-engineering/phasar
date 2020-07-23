@@ -4,6 +4,7 @@
 #  struct_01.c
 #  struct_02.c
 #  struct_03.c
+#  struct_04.c
 #)
 #
 #foreach(TEST_SRC ${StructVarSources})

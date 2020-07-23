@@ -5,6 +5,7 @@ set(GlobalVarSources
   # global_03.c
   # TODO XTC unsupported feature
   # global_04.c
+  global_05.c
 )
 
 foreach(TEST_SRC ${GlobalVarSources})

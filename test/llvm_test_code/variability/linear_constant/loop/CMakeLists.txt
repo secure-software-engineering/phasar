@@ -2,6 +2,7 @@ set(LoopVarSources
   loop_01.c
   loop_02.c
   loop_03.c
+  loop_04.c
 )
 
 foreach(TEST_SRC ${LoopVarSources})

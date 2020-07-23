@@ -2,6 +2,8 @@ set(PointerVarSources
   pointer_01.c
   # TODO XTC unsupported feature
   # pointer_02.c
+  # TODO XTC unsupported feature
+  # pointer_03.c
 )
 
 foreach(TEST_SRC ${PointerVarSources})
