@@ -59,10 +59,12 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
     // don't need to do anything
     return;
   }
-  if (const auto *G = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    // add set for global variable
+  if (const auto *G = llvm::dyn_cast<llvm::GlobalObject>(V)) {
+    // A global object can be a function or a global variable. We need to
+    // consider functions here, too, because function pointer magic may be
+    // used by the target program. Add a set for global object.
     addSingletonPointsToSet(G);
-    // a global variable may be used in multiple functions
+    // A global object may be used in multiple functions.
     for (const auto *User : G->users()) {
       if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(User)) {
         computeFunctionsPointsToSet(
@@ -71,8 +73,8 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
           mergePointsToSets(User, G);
         } else if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
           if (isInterestingPointer(Store->getValueOperand())) {
-            // Store->getPointerOperand() doesn't require checking: it is always
-            // an interesting pointer
+            // Store->getPointerOperand() doesn't require checking: it is
+            // always an interesting pointer
             mergePointsToSets(Store->getValueOperand(),
                               Store->getPointerOperand());
           }
@@ -215,7 +217,8 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
                                   : llvm::MemoryLocation::UnknownSize;
       switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
       case llvm::NoAlias:
-        // both pointers already have corresponding points-to sets, we are fine
+        // both pointers already have corresponding points-to sets, we are
+        // fine
         break;
       case llvm::MayAlias: // NOLINT
         [[fallthrough]];
