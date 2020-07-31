@@ -33,6 +33,9 @@
 #include <utility>
 
 namespace psr {
+namespace internal {
+struct TestEdgeFunction;
+} // namespace internal
 
 //
 // This class models an edge function for distributive data-flow problems.
@@ -619,6 +622,8 @@ private:
     static EdgeFactoryStorageCleaner EdgeFunctionCleaner{};
     return EdgeFunctionCleaner;
   }
+
+  friend internal::TestEdgeFunction;
 };
 
 } // namespace psr
