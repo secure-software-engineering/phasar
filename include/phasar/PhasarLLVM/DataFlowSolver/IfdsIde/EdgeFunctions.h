@@ -607,7 +607,6 @@ private:
     void runCleaner(EFStorageData &CData) {
       while (KeepRunning) {
         std::this_thread::sleep_for(CleaningPauseTime);
-        // std::cout << "Cleaning...\n";
         cleanExpiredMapEntries(CData);
       }
     }
