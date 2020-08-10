@@ -795,9 +795,10 @@ public:
 
   // Edge function that adds the given labels to existing labels
   // add all labels provided by Data.
-  class IIAAAddLabelsEF : public EdgeFunction<l_t>,
-                          public std::enable_shared_from_this<IIAAAddLabelsEF>,
-                          public EdgeFunctionSingletonFactory<IIAAAddLabelsEF, l_t> {
+  class IIAAAddLabelsEF
+      : public EdgeFunction<l_t>,
+        public std::enable_shared_from_this<IIAAAddLabelsEF>,
+        public EdgeFunctionSingletonFactory<IIAAAddLabelsEF, l_t> {
   public:
     const l_t Data;
 
@@ -850,10 +851,12 @@ public:
         return IIAAAddLabelsEF::createEdgeFunction(Union);
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(otherFunction.get())) {
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, KR->Replacement);
+        auto Union =
+            IDEInstInteractionAnalysisT::joinImpl(Data, KR->Replacement);
         return IIAAAddLabelsEF::createEdgeFunction(Union);
       }
-      return std::make_shared<AllBottom<l_t>>(IDEInstInteractionAnalysisT::BottomElement);
+      return std::make_shared<AllBottom<l_t>>(
+          IDEInstInteractionAnalysisT::BottomElement);
     }
 
     [[nodiscard]] bool

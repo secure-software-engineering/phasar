@@ -59,11 +59,12 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
     // don't need to do anything
     return;
   }
+  // Add set for the queried value if none exists, yet
+  addSingletonPointsToSet(V);
   if (const auto *G = llvm::dyn_cast<llvm::GlobalObject>(V)) {
     // A global object can be a function or a global variable. We need to
     // consider functions here, too, because function pointer magic may be
     // used by the target program. Add a set for global object.
-    addSingletonPointsToSet(G);
     // A global object may be used in multiple functions.
     for (const auto *User : G->users()) {
       if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(User)) {
