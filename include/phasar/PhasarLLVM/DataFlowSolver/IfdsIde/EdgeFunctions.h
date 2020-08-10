@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
 
-#include "llvm/Config/llvm-config.h"
 #include "llvm/Support/Compiler.h"
 
 #include <atomic>
@@ -586,7 +585,7 @@ private:
         : CleanerThread(&EdgeFactoryStorageCleaner::runCleaner, this,
                         std::reference_wrapper<EFStorageData>(
                             EdgeFunctionSingletonFactory::getCacheData())) {
-#ifdef LLVM_ON_UNIX
+#ifdef __linux__
       pthread_setname_np(CleanerThread.native_handle(),
                          "EdgeFactoryStorageCleanerThread");
 #endif

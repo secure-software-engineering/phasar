@@ -12,7 +12,7 @@ set(ThreadedIfdsIdeSources
   EdgeFunctionSingletonFactoryTest.cpp
 )
 
-if(LLVM_ON_UNIX)
+if(UNIX)
   # Append -fno-omit-frame-pointer to get better stack traces.
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=thread")
 endif()
