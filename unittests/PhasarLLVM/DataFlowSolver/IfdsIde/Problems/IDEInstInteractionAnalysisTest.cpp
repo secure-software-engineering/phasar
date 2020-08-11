@@ -493,11 +493,14 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeap_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "retval", {"0"}));
-  //   GroundTruth.emplace(
-  //   std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-  //   "main", 19, "retval", {"0"}));
-  doAnalysisAndCompareResults("heap_01_cpp.ll", GroundTruth, true);
+          "main", 19, "retval", {"0", "3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 19, "i", {"1", "6", "7", "8", "11"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 19, "j", {"1", "2", "6", "7", "8", "10", "9", "17"}));
+  doAnalysisAndCompareResults("heap_01_cpp.ll", GroundTruth, false);
 }
 
 // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
