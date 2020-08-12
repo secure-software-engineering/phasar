@@ -196,6 +196,8 @@ public:
         // Map actual parameter into corresponding formal parameter.
         for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
           if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
+            assert(Idx < Formals.size() &&
+                   "Out of bound access to formal parameters!");
             Res.insert(Formals[Idx]); // corresponding formal
           }
         }
