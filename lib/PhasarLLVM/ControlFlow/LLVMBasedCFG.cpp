@@ -43,13 +43,17 @@ LLVMBasedCFG::getFunctionOf(const llvm::Instruction *Stmt) const {
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
   vector<const llvm::Instruction *> Preds;
-  if (I->getPrevNode()) {
-    Preds.push_back(I->getPrevNode());
+  if (!IgnoreDbgInstructions) {
+    if (I->getPrevNode()) {
+      Preds.push_back(I->getPrevNode());
+    }
+  } else {
+    if (I->getPrevNonDebugInstruction()) {
+      Preds.push_back(I->getPrevNonDebugInstruction());
+    }
   }
-  /*
-   * If we do not have a predecessor yet, look for basic blocks which
-   * lead to our instruction in question!
-   */
+  // If we do not have a predecessor yet, look for basic blocks which
+  // lead to our instruction in question!
   if (Preds.empty()) {
     std::transform(llvm::pred_begin(I->getParent()),
                    llvm::pred_end(I->getParent()), back_inserter(Preds),
@@ -64,8 +68,15 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
   vector<const llvm::Instruction *> Successors;
-  if (I->getNextNode()) {
-    Successors.push_back(I->getNextNode());
+  // case we wish to consider LLVM's debug instructions
+  if (!IgnoreDbgInstructions) {
+    if (I->getNextNode()) {
+      Successors.push_back(I->getNextNode());
+    }
+  } else {
+    if (I->getNextNonDebugInstruction()) {
+      Successors.push_back(I->getNextNonDebugInstruction());
+    }
   }
   if (I->isTerminator()) {
     Successors.reserve(I->getNumSuccessors() + Successors.size());
@@ -74,13 +85,24 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
                    [](const llvm::BasicBlock *BB) { return &BB->front(); });
   }
   return Successors;
-} // namespace psr
+}
 
 vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
   vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
   for (const auto &BB : *Fun) {
     for (const auto &I : BB) {
+      if (IgnoreDbgInstructions) {
+        // Check for call to intrinsic debug function
+        if (const auto *DbgCallInst = llvm::dyn_cast<llvm::CallInst>(&I)) {
+          if (DbgCallInst->getCalledFunction() &&
+              DbgCallInst->getCalledFunction()->isIntrinsic() &&
+              (DbgCallInst->getCalledFunction()->getName() ==
+               "llvm.dbg.declare")) {
+            continue;
+          }
+        }
+      }
       auto Successors = getSuccsOf(&I);
       for (const auto *Successor : Successors) {
         Edges.emplace_back(&I, Successor);

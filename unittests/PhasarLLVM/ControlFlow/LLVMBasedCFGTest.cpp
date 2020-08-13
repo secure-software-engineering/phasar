@@ -314,6 +314,120 @@ TEST(LLVMBasedCFGTest, HandleFunctionsContainingCodesInName) {
             SpecialMemberFunctionType::None);
 }
 
+TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInSuccessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_1_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 4);
+  // Ask a non-debug instructions for its successors
+  auto Succs1 = Cfg.getSuccsOf(I1);
+  const auto I2 = getNthInstruction(F, 6);
+  ASSERT_EQ(Succs1.size(), 1);
+  ASSERT_EQ(Succs1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 7);
+  auto Succs2 = Cfg.getSuccsOf(I3);
+  const auto I4 = getNthInstruction(F, 8);
+  ASSERT_EQ(Succs2.size(), 1);
+  ASSERT_EQ(Succs2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInSuccessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_4_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 5);
+  // Ask a non-debug instructions for its successors
+  auto Succs1 = Cfg.getSuccsOf(I1);
+  const auto I2 = getNthInstruction(F, 9);
+  ASSERT_EQ(Succs1.size(), 1);
+  ASSERT_EQ(Succs1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 6);
+  auto Succs2 = Cfg.getSuccsOf(I3);
+  const auto I4 = getNthInstruction(F, 9);
+  ASSERT_EQ(Succs2.size(), 1);
+  ASSERT_EQ(Succs2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInPredecessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_1_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 6);
+  // Ask a non-debug instructions for its successors
+  auto Preds1 = Cfg.getPredsOf(I1);
+  const auto I2 = getNthInstruction(F, 4);
+  ASSERT_EQ(Preds1.size(), 1);
+  ASSERT_EQ(Preds1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 5);
+  auto Preds2 = Cfg.getPredsOf(I3);
+  const auto I4 = getNthInstruction(F, 4);
+  ASSERT_EQ(Preds2.size(), 1);
+  ASSERT_EQ(Preds2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInPredecessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_4_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 9);
+  // Ask a non-debug instructions for its successors
+  auto Preds1 = Cfg.getPredsOf(I1);
+  const auto I2 = getNthInstruction(F, 5);
+  ASSERT_EQ(Preds1.size(), 1);
+  ASSERT_EQ(Preds1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 7);
+  auto Preds2 = Cfg.getPredsOf(I3);
+  const auto I4 = getNthInstruction(F, 5);
+  ASSERT_EQ(Preds2.size(), 1);
+  ASSERT_EQ(Preds2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInControlFlowEdges) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_1_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  auto ControlFlowEdges = Cfg.getAllControlFlowEdges(F);
+  for (const auto &[Src, Dst] : ControlFlowEdges) {
+    // Calls to the intrinsic debug functions are disallowed here
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Src)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Dst)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+  }
+}
+
+TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInControlFlowEdges) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_4_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  auto ControlFlowEdges = Cfg.getAllControlFlowEdges(F);
+  for (const auto &[Src, Dst] : ControlFlowEdges) {
+    // Calls to the intrinsic debug functions are disallowed here
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Src)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Dst)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+  }
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

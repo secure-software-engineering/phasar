@@ -11,6 +11,17 @@ set(NoMem2regSources
   switch.cpp
 )
 
+set(DbgSources
+  ignore_dbg_insts_1.cpp
+  ignore_dbg_insts_2.cpp
+  ignore_dbg_insts_3.cpp
+  ignore_dbg_insts_4.cpp
+)
+
 foreach(TEST_SRC ${NoMem2regSources})
   generate_ll_file(FILE ${TEST_SRC})
 endforeach(TEST_SRC)
+
+foreach(TEST_DBG_SRC ${DbgSources})
+  generate_ll_file(FILE ${TEST_DBG_SRC} DEBUG)
+endforeach(TEST_DBG_SRC)

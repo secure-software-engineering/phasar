@@ -158,7 +158,7 @@ public:
       container_type Res;
       // Handle C-style varargs functions
       if (DestFun->isVarArg()) {
-        // Map actual parameter into corresponding formal parameter.
+        // Map actual parameters to corresponding formal parameters.
         for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
           if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
             if (Idx >= DestFun->arg_size()) {
@@ -193,7 +193,7 @@ public:
         return Res;
       } else {
         // Handle ordinary case
-        // Map actual parameter into corresponding formal parameter.
+        // Map actual parameters to corresponding formal parameters.
         for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
           if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
             assert(Idx < Formals.size() &&

@@ -34,11 +34,12 @@ namespace psr {
 class LLVMBasedCFG
     : public virtual CFG<const llvm::Instruction *, const llvm::Function *> {
 public:
-  LLVMBasedCFG() = default;
+  LLVMBasedCFG(bool IgnoreDbgInstructions = true)
+      : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
 
   ~LLVMBasedCFG() override = default;
 
-  const llvm::Function *
+  [[nodiscard]] const llvm::Function *
   getFunctionOf(const llvm::Instruction *Stmt) const override;
 
   [[nodiscard]] std::vector<const llvm::Instruction *>
@@ -101,6 +102,10 @@ public:
 
   [[nodiscard]] nlohmann::json
   getAsJson(const llvm::Function *Fun) const override;
+
+private:
+  // Ignores debug instructions in control flow if set to true.
+  const bool IgnoreDbgInstructions;
 };
 
 } // namespace psr
