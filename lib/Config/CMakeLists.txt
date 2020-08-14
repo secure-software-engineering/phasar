@@ -16,8 +16,11 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS filesystem REQUIRED)
+
 target_link_libraries(phasar_config
   LINK_PUBLIC
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_config
