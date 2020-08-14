@@ -43,7 +43,6 @@ endif()
 
 target_link_libraries(phasar_db
   LINK_PUBLIC
-  ${Boost_LIBRARIES}
   ${SQLITE3_LIBRARY}
 )
 
