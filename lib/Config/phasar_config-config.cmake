@@ -4,4 +4,4 @@ list(APPEND
   PHASAR_LLVM_DEPS
   Support)
 
-find_package(Boost COMPONENTS filesystem REQUIRED)
+find_package(Boost COMPONENTS filesystem program_options REQUIRED)
