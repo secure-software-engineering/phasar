@@ -45,7 +45,7 @@ TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctions) {
   auto EF1 = TestEdgeFunction::createEdgeFunction(42);
   auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
 
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2);
+  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
 }
 
 TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsWithCorrectData) {
@@ -61,7 +61,7 @@ TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsTwice) {
   auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
   auto EF3 = TestEdgeFunction::createEdgeFunction(42);
 
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2);
+  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
   EXPECT_EQ(EF1.get(), EF3.get());
 }
 
@@ -73,7 +73,7 @@ TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctions) {
 
   TestEdgeFunction::cleanExpiredEdgeFunctions();
 
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1);
+  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1U);
 }
 
 //===----------------------------------------------------------------------===//
@@ -87,7 +87,7 @@ TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsThreaded) {
 
   std::lock_guard<std::mutex> DataLock(
       TestEdgeFunction::getTestCacheData().DataMutex);
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2);
+  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
 }
 
 TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsTwiceThreaded) {
@@ -99,7 +99,7 @@ TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsTwiceThreaded) {
 
   std::lock_guard<std::mutex> DataLock(
       TestEdgeFunction::getTestCacheData().DataMutex);
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2);
+  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
   EXPECT_EQ(EF1.get(), EF3.get());
 }
 
@@ -115,7 +115,7 @@ TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctionsThreaded) {
 
   std::lock_guard<std::mutex> DataLock(
       TestEdgeFunction::getTestCacheData().DataMutex);
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1);
+  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1U);
 }
 
 // main function for the test case
