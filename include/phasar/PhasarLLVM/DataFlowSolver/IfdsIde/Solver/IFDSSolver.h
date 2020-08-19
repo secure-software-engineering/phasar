@@ -20,19 +20,25 @@
 #include <memory>
 #include <set>
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
 namespace psr {
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
-class IFDSSolver : public IDESolver<N, D, F, T, V, BinaryDomain, I> {
-public:
-  using ProblemTy = IFDSTabulationProblem<N, D, F, T, V, I>;
+template <typename OriginalAnalysisDomain> struct AnalysisDomainExtender;
 
-  IFDSSolver(IFDSTabulationProblem<N, D, F, T, V, I> &ifdsProblem)
-      : IDESolver<N, D, F, T, V, BinaryDomain, I>(ifdsProblem) {}
+template <typename AnalysisDomainTy>
+class IFDSSolver : public IDESolver<AnalysisDomainExtender<AnalysisDomainTy>> {
+public:
+  using ProblemTy = IFDSTabulationProblem<AnalysisDomainTy>;
+  using D = typename AnalysisDomainTy::d_t;
+  using N = typename AnalysisDomainTy::n_t;
+
+  IFDSSolver(IFDSTabulationProblem<AnalysisDomainTy> &ifdsProblem)
+      : IDESolver<AnalysisDomainExtender<AnalysisDomainTy>>(ifdsProblem) {}
 
   ~IFDSSolver() override = default;
 
@@ -47,15 +53,10 @@ public:
 };
 
 template <typename Problem>
-IFDSSolver(Problem &)
-    ->IFDSSolver<typename Problem::n_t, typename Problem::d_t,
-                 typename Problem::f_t, typename Problem::t_t,
-                 typename Problem::v_t, typename Problem::i_t>;
+IFDSSolver(Problem &) -> IFDSSolver<typename Problem::ProblemAnalysisDomain>;
 
 template <typename Problem>
-using IFDSSolver_P = IFDSSolver<typename Problem::n_t, typename Problem::d_t,
-                                typename Problem::f_t, typename Problem::t_t,
-                                typename Problem::v_t, typename Problem::i_t>;
+using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain>;
 
 } // namespace psr
 

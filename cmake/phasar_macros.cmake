@@ -4,6 +4,13 @@ function(add_phasar_unittest test_name)
   add_executable(${test}
     ${test_name}
   )
+  add_dependencies(PhasarUnitTests ${test})
+
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(${test} USE_SHARED ${LLVM_LINK_COMPONENTS})
+  else()
+    llvm_config(${test} ${LLVM_LINK_COMPONENTS})
+  endif()
 
   target_link_libraries(${test}
     LINK_PUBLIC
@@ -28,14 +35,13 @@ function(add_phasar_unittest test_name)
     ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
-    # ${CLANG_LIBRARIES}
-    ${llvm_libs}
     curl
     gtest
   )
 
   add_test(NAME "${test}"
     COMMAND ${test} ${CATCH_TEST_FILTER}
+    WORKING_DIRECTORY ${PHASAR_UNITTEST_DIR}
   )
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
@@ -159,7 +165,6 @@ macro(add_phasar_library name)
 
   if(PHASAR_LINK_LIBS)
     foreach(lib ${PHASAR_LINK_LIBS})
-      target_link_libraries(${name} LINK_PRIVATE ${lib})
       if(PHASAR_DEBUG_LIBDEPS)
         target_link_libraries(${name} LINK_PRIVATE ${lib})
       else()
@@ -169,7 +174,11 @@ macro(add_phasar_library name)
   endif(PHASAR_LINK_LIBS)
 
   if( LLVM_LINK_COMPONENTS )
-    llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    if( USE_LLVM_FAT_LIB )
+      llvm_config(${name} USE_SHARED ${LLVM_LINK_COMPONENTS})
+    else()
+      llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    endif()
   endif( LLVM_LINK_COMPONENTS )
   if(MSVC)
     get_target_property(cflag ${name} COMPILE_FLAGS)
@@ -179,14 +188,32 @@ macro(add_phasar_library name)
     set(cflag "${cflag} /Za")
     set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${cflag})
   endif(MSVC)
-  install(TARGETS ${name}
-    EXPORT LLVMExports
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
-  install(TARGETS ${name}
-    EXPORT phasarTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+  #cut off prefix phasar_ for convenient component names
+  string(REGEX REPLACE phasar_ "" name component_name)
+  if(PHASAR_IN_TREE)
+    install(TARGETS ${name}
+      EXPORT LLVMExports
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+  else()
+    install(TARGETS ${name}
+      EXPORT phasarTargets
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+    install(TARGETS ${name}
+      EXPORT ${name}-targets
+      COMPONENT ${component_name}
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+    install(EXPORT ${name}-targets
+      FILE ${name}-targets.cmake
+      NAMESPACE phasar::
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+      COMPONENT ${component_name})
+    install(FILES ${name}-config.cmake
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar)
+  endif()
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
 endmacro(add_phasar_library)
 

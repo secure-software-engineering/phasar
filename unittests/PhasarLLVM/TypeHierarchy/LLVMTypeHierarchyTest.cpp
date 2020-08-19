@@ -12,25 +12,21 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
 namespace psr {
-class LTHTest : public ::testing::Test {
-protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
 
 // Check basic type hierarchy construction
-TEST_F(LTHTest, BasicTHReconstruction_1) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
+TEST(LTHTest, BasicTHReconstruction_1) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_1_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(LTH.getAllTypes().size(), 2);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
@@ -45,10 +41,10 @@ TEST_F(LTHTest, BasicTHReconstruction_1) {
   EXPECT_EQ(
       LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
       "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Base")), true);
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Child")), true);
@@ -56,13 +52,13 @@ TEST_F(LTHTest, BasicTHReconstruction_1) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
-TEST_F(LTHTest, BasicTHReconstruction_2) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_2_cpp.ll"});
+TEST(LTHTest, BasicTHReconstruction_2) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_2_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(LTH.getAllTypes().size(), 2);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
@@ -77,10 +73,10 @@ TEST_F(LTHTest, BasicTHReconstruction_2) {
   EXPECT_EQ(
       LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
       "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Base")), true);
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Child")), true);
@@ -88,13 +84,13 @@ TEST_F(LTHTest, BasicTHReconstruction_2) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
-TEST_F(LTHTest, BasicTHReconstruction_3) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_3_cpp.ll"});
+TEST(LTHTest, BasicTHReconstruction_3) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_3_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(LTH.getAllTypes().size(), 2);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
@@ -115,10 +111,10 @@ TEST_F(LTHTest, BasicTHReconstruction_3) {
   EXPECT_EQ(
       LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(1)->getName(),
       "_ZN4Base3barEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Base")), true);
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Child")), true);
@@ -126,13 +122,13 @@ TEST_F(LTHTest, BasicTHReconstruction_3) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
-TEST_F(LTHTest, BasicTHReconstruction_4) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_4_cpp.ll"});
+TEST(LTHTest, BasicTHReconstruction_4) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_4_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(LTH.getAllTypes().size(), 2);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
@@ -156,10 +152,10 @@ TEST_F(LTHTest, BasicTHReconstruction_4) {
   EXPECT_EQ(
       LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(2)->getName(),
       "_ZN5Child3tarEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 3);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 3U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Base")), true);
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Child")), true);
@@ -167,14 +163,14 @@ TEST_F(LTHTest, BasicTHReconstruction_4) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
-TEST_F(LTHTest, BasicTHReconstruction_5) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_5_cpp.ll"});
+TEST(LTHTest, BasicTHReconstruction_5) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_5_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.OtherBase")), true);
-  EXPECT_EQ(LTH.getAllTypes().size(), 3);
+  EXPECT_EQ(LTH.getAllTypes().size(), 3U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
@@ -215,12 +211,12 @@ TEST_F(LTHTest, BasicTHReconstruction_5) {
   EXPECT_EQ(
       LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(4)->getName(),
       "_ZThn8_N5Child3bazEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.OtherBase"))->size(), 1);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 5);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.OtherBase")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.OtherBase"))->size(), 1U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 5U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.OtherBase")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Base")), true);
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Child")), true);
@@ -231,13 +227,13 @@ TEST_F(LTHTest, BasicTHReconstruction_5) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
-TEST_F(LTHTest, BasicTHReconstruction_6) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_12_cpp.ll"});
+TEST(LTHTest, BasicTHReconstruction_6) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_12_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("class.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(LTH.getAllTypes().size(), 2);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("class.Base"), LTH.getType("struct.Child")),
       true);
@@ -252,10 +248,10 @@ TEST_F(LTHTest, BasicTHReconstruction_6) {
   EXPECT_EQ(
       LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
       "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("class.Base"))->size(), 1);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("class.Base")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("class.Base"))->size(), 1U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("class.Base")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("class.Base"));
   EXPECT_EQ(BaseReachable.count(LTH.getType("class.Base")), true);
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Child")), true);
@@ -263,14 +259,14 @@ TEST_F(LTHTest, BasicTHReconstruction_6) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
-TEST_F(LTHTest, BasicTHReconstruction_7) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_11_cpp.ll"});
+TEST(LTHTest, BasicTHReconstruction_7) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_11_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
   // has three types because of padding (introduction of intermediate type)
-  EXPECT_EQ(LTH.getAllTypes().size(), 3);
+  EXPECT_EQ(LTH.getAllTypes().size(), 3U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
@@ -285,10 +281,10 @@ TEST_F(LTHTest, BasicTHReconstruction_7) {
   EXPECT_EQ(
       LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
       "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2);
-  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1U);
+  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
+  EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Base")), true);
   EXPECT_EQ(BaseReachable.count(LTH.getType("struct.Child")), true);
@@ -297,17 +293,17 @@ TEST_F(LTHTest, BasicTHReconstruction_7) {
 }
 
 // check if the vtables are constructed correctly in more complex scenarios
-TEST_F(LTHTest, VTableConstruction) {
-  ProjectIRDB IRDB1(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
-  ProjectIRDB IRDB2(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
-  ProjectIRDB IRDB3(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
-  ProjectIRDB IRDB4(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
-  ProjectIRDB IRDB5(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
+TEST(LTHTest, VTableConstruction) {
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_1_cpp.ll"});
+  ProjectIRDB IRDB2({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_7_cpp.ll"});
+  ProjectIRDB IRDB3({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_8_cpp.ll"});
+  ProjectIRDB IRDB4({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_9_cpp.ll"});
+  ProjectIRDB IRDB5({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_10_cpp.ll"});
 
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
@@ -339,127 +335,127 @@ TEST_F(LTHTest, VTableConstruction) {
   ASSERT_TRUE(TH5.hasVFTable(TH5.getType("struct.Base")));
   ASSERT_TRUE(TH5.hasVFTable(TH5.getType("struct.Child")));
 
-  ASSERT_TRUE(cxx_demangle(TH1.getVFTable(TH1.getType("struct.Base"))
-                               ->getFunction(0)
-                               ->getName()) == "Base::foo()");
-  ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Base"))->size() == 1);
-  ASSERT_TRUE(cxx_demangle(TH1.getVFTable(TH1.getType("struct.Child"))
-                               ->getFunction(0)
-                               ->getName()) == "Child::foo()");
-  ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Child"))->size() == 1);
+  ASSERT_TRUE(cxxDemangle(TH1.getVFTable(TH1.getType("struct.Base"))
+                              ->getFunction(0)
+                              ->getName()) == "Base::foo()");
+  ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Base"))->size() == 1U);
+  ASSERT_TRUE(cxxDemangle(TH1.getVFTable(TH1.getType("struct.Child"))
+                              ->getFunction(0)
+                              ->getName()) == "Child::foo()");
+  ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Child"))->size() == 1U);
 
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.A"))->getFunction(0)->getName()) ==
       "A::f()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.A"))->size() == 1);
+  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.A"))->size() == 1U);
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.B"))->getFunction(0)->getName()) ==
       "A::f()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.B"))->size() == 1);
+  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.B"))->size() == 1U);
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.C"))->getFunction(0)->getName()) ==
       "A::f()");
   ASSERT_TRUE(
 
-      TH2.getVFTable(TH2.getType("struct.C"))->size() == 1);
+      TH2.getVFTable(TH2.getType("struct.C"))->size() == 1U);
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.D"))->getFunction(0)->getName()) ==
       "A::f()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.D"))->size() == 1);
+  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.D"))->size() == 1U);
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.X"))->getFunction(0)->getName()) ==
       "X::g()");
   ASSERT_TRUE(
 
-      TH2.getVFTable(TH2.getType("struct.X"))->size() == 1);
+      TH2.getVFTable(TH2.getType("struct.X"))->size() == 1U);
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.Y"))->getFunction(0)->getName()) ==
       "X::g()");
   ASSERT_TRUE(
 
-      TH2.getVFTable(TH2.getType("struct.Y"))->size() == 1);
+      TH2.getVFTable(TH2.getType("struct.Y"))->size() == 1U);
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.Z"))->getFunction(0)->getName()) ==
       "A::f()");
   ASSERT_TRUE(
-      cxx_demangle(
+      cxxDemangle(
           TH2.getVFTable(TH2.getType("struct.Z"))->getFunction(1)->getName()) ==
       "X::g()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.Z"))->size() == 2);
+  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.Z"))->size() == 2U);
 
-  ASSERT_TRUE(cxx_demangle(TH3.getVFTable(TH3.getType("struct.Base"))
-                               ->getFunction(0)
-                               ->getName()) == "Base::foo()");
-  ASSERT_TRUE(cxx_demangle(TH3.getVFTable(TH3.getType("struct.Base"))
-                               ->getFunction(1)
-                               ->getName()) == "Base::bar()");
-  ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Base"))->size() == 2);
-  ASSERT_TRUE(cxx_demangle(TH3.getVFTable(TH3.getType("struct.Child"))
-                               ->getFunction(0)
-                               ->getName()) == "Child::foo()");
-  ASSERT_TRUE(cxx_demangle(TH3.getVFTable(TH3.getType("struct.Child"))
-                               ->getFunction(1)
-                               ->getName()) == "Base::bar()");
-  ASSERT_TRUE(cxx_demangle(TH3.getVFTable(TH3.getType("struct.Child"))
-                               ->getFunction(2)
-                               ->getName()) == "Child::baz()");
-  ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Child"))->size() == 3);
+  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Base"))
+                              ->getFunction(0)
+                              ->getName()) == "Base::foo()");
+  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Base"))
+                              ->getFunction(1)
+                              ->getName()) == "Base::bar()");
+  ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Base"))->size() == 2U);
+  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Child"))
+                              ->getFunction(0)
+                              ->getName()) == "Child::foo()");
+  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Child"))
+                              ->getFunction(1)
+                              ->getName()) == "Base::bar()");
+  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Child"))
+                              ->getFunction(2)
+                              ->getName()) == "Child::baz()");
+  ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Child"))->size() == 3U);
 
-  ASSERT_TRUE(cxx_demangle(TH4.getVFTable(TH4.getType("struct.Base"))
-                               ->getFunction(0)
-                               ->getName()) == "Base::foo()");
-  ASSERT_TRUE(cxx_demangle(TH4.getVFTable(TH4.getType("struct.Base"))
-                               ->getFunction(1)
-                               ->getName()) == "Base::bar()");
-  ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Base"))->size() == 2);
-  ASSERT_TRUE(cxx_demangle(TH4.getVFTable(TH4.getType("struct.Child"))
-                               ->getFunction(0)
-                               ->getName()) == "Child::foo()");
-  ASSERT_TRUE(cxx_demangle(TH4.getVFTable(TH4.getType("struct.Child"))
-                               ->getFunction(1)
-                               ->getName()) == "Base::bar()");
-  ASSERT_TRUE(cxx_demangle(TH4.getVFTable(TH4.getType("struct.Child"))
-                               ->getFunction(2)
-                               ->getName()) == "Child::baz()");
-  ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Child"))->size() == 3);
+  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Base"))
+                              ->getFunction(0)
+                              ->getName()) == "Base::foo()");
+  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Base"))
+                              ->getFunction(1)
+                              ->getName()) == "Base::bar()");
+  ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Base"))->size() == 2U);
+  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Child"))
+                              ->getFunction(0)
+                              ->getName()) == "Child::foo()");
+  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Child"))
+                              ->getFunction(1)
+                              ->getName()) == "Base::bar()");
+  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Child"))
+                              ->getFunction(2)
+                              ->getName()) == "Child::baz()");
+  ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Child"))->size() == 3U);
 
-  ASSERT_TRUE(cxx_demangle(TH5.getVFTable(TH5.getType("struct.Base"))
-                               ->getFunction(0)
-                               ->getName()) == "__cxa_pure_virtual");
-  ASSERT_TRUE(cxx_demangle(TH5.getVFTable(TH5.getType("struct.Base"))
-                               ->getFunction(1)
-                               ->getName()) == "Base::bar()");
-  ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Base"))->size() == 2);
-  ASSERT_TRUE(cxx_demangle(TH5.getVFTable(TH5.getType("struct.Child"))
-                               ->getFunction(0)
-                               ->getName()) == "Child::foo()");
-  ASSERT_TRUE(cxx_demangle(TH5.getVFTable(TH5.getType("struct.Child"))
-                               ->getFunction(1)
-                               ->getName()) == "Base::bar()");
-  ASSERT_TRUE(cxx_demangle(TH5.getVFTable(TH5.getType("struct.Child"))
-                               ->getFunction(2)
-                               ->getName()) == "Child::baz()");
-  ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Child"))->size() == 3);
+  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Base"))
+                              ->getFunction(0)
+                              ->getName()) == "__cxa_pure_virtual");
+  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Base"))
+                              ->getFunction(1)
+                              ->getName()) == "Base::bar()");
+  ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Base"))->size() == 2U);
+  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Child"))
+                              ->getFunction(0)
+                              ->getName()) == "Child::foo()");
+  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Child"))
+                              ->getFunction(1)
+                              ->getName()) == "Base::bar()");
+  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Child"))
+                              ->getFunction(2)
+                              ->getName()) == "Child::baz()");
+  ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Child"))->size() == 3U);
 }
 
-TEST_F(LTHTest, TransitivelyReachableTypes) {
-  ProjectIRDB IRDB1(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
-  ProjectIRDB IRDB2(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
-  ProjectIRDB IRDB3(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
-  ProjectIRDB IRDB4(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
-  ProjectIRDB IRDB5(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
+TEST(LTHTest, TransitivelyReachableTypes) {
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_1_cpp.ll"});
+  ProjectIRDB IRDB2({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_7_cpp.ll"});
+  ProjectIRDB IRDB3({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_8_cpp.ll"});
+  ProjectIRDB IRDB4({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_9_cpp.ll"});
+  ProjectIRDB IRDB5({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_10_cpp.ll"});
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
   LLVMTypeHierarchy TH2(IRDB2);
@@ -467,92 +463,92 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
   LLVMTypeHierarchy TH4(IRDB4);
   LLVMTypeHierarchy TH5(IRDB5);
 
-  auto reachable_types_base_1 = TH1.getSubTypes(TH1.getType("struct.Base"));
-  auto reachable_types_child_1 = TH1.getSubTypes(TH1.getType("struct.Child"));
+  auto ReachableTypesBase1 = TH1.getSubTypes(TH1.getType("struct.Base"));
+  auto ReachableTypesChild1 = TH1.getSubTypes(TH1.getType("struct.Child"));
 
-  auto reachable_types_A_2 = TH2.getSubTypes(TH2.getType("struct.A"));
-  auto reachable_types_B_2 = TH2.getSubTypes(TH2.getType("struct.B"));
-  auto reachable_types_C_2 = TH2.getSubTypes(TH2.getType("struct.C"));
-  auto reachable_types_D_2 = TH2.getSubTypes(TH2.getType("struct.D"));
-  auto reachable_types_X_2 = TH2.getSubTypes(TH2.getType("struct.X"));
-  auto reachable_types_Y_2 = TH2.getSubTypes(TH2.getType("struct.Y"));
-  auto reachable_types_Z_2 = TH2.getSubTypes(TH2.getType("struct.Z"));
+  auto ReachableTypesA2 = TH2.getSubTypes(TH2.getType("struct.A"));
+  auto ReachableTypesB2 = TH2.getSubTypes(TH2.getType("struct.B"));
+  auto ReachableTypesC2 = TH2.getSubTypes(TH2.getType("struct.C"));
+  auto ReachableTypesD2 = TH2.getSubTypes(TH2.getType("struct.D"));
+  auto ReachableTypesX2 = TH2.getSubTypes(TH2.getType("struct.X"));
+  auto ReachableTypesY2 = TH2.getSubTypes(TH2.getType("struct.Y"));
+  auto ReachableTypesZ2 = TH2.getSubTypes(TH2.getType("struct.Z"));
 
-  auto reachable_types_base_3 = TH3.getSubTypes(TH3.getType("struct.Base"));
-  auto reachable_types_child_3 = TH3.getSubTypes(TH3.getType("struct.Child"));
-  auto reachable_types_nonvirtualclass_3 =
+  auto ReachableTypesBase3 = TH3.getSubTypes(TH3.getType("struct.Base"));
+  auto ReachableTypesChild3 = TH3.getSubTypes(TH3.getType("struct.Child"));
+  auto ReachableTypesNonvirtualclass3 =
       TH3.getSubTypes(TH3.getType("class.NonvirtualClass"));
-  auto reachable_types_nonvirtualstruct_3 =
+  auto ReachableTypesNonvirtualstruct3 =
       TH3.getSubTypes(TH3.getType("struct.NonvirtualStruct"));
 
-  auto reachable_types_base_4 = TH4.getSubTypes(TH4.getType("struct.Base"));
-  auto reachable_types_child_4 = TH4.getSubTypes(TH4.getType("struct.Child"));
+  auto ReachableTypesBase4 = TH4.getSubTypes(TH4.getType("struct.Base"));
+  auto ReachableTypesChild4 = TH4.getSubTypes(TH4.getType("struct.Child"));
 
-  auto reachable_types_base_5 = TH5.getSubTypes(TH5.getType("struct.Base"));
-  auto reachable_types_child_5 = TH5.getSubTypes(TH5.getType("struct.Child"));
+  auto ReachableTypesBase5 = TH5.getSubTypes(TH5.getType("struct.Base"));
+  auto ReachableTypesChild5 = TH5.getSubTypes(TH5.getType("struct.Child"));
 
   // Will be way less dangerous to have an interface (like a map) between the
   // llvm given name of class & struct (i.e. struct.Base.base ...) and the name
   // inside phasar (i.e. just Base) and never work with the llvm name inside
   // phasar
-  ASSERT_TRUE(reachable_types_base_1.count(TH1.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_base_1.count(TH1.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_1.size() == 2);
-  ASSERT_FALSE(reachable_types_child_1.count(TH1.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_child_1.count(TH1.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_1.size() == 1);
+  ASSERT_TRUE(ReachableTypesBase1.count(TH1.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesBase1.count(TH1.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase1.size() == 2U);
+  ASSERT_FALSE(ReachableTypesChild1.count(TH1.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesChild1.count(TH1.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild1.size() == 1U);
 
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.A")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.B")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.C")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.D")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_A_2.size() == 5);
-  ASSERT_TRUE(reachable_types_B_2.count(TH2.getType("struct.B")));
-  ASSERT_TRUE(reachable_types_B_2.count(TH2.getType("struct.D")));
-  ASSERT_TRUE(reachable_types_B_2.size() == 2);
-  ASSERT_TRUE(reachable_types_C_2.count(TH2.getType("struct.C")));
-  ASSERT_TRUE(reachable_types_C_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_C_2.size() == 2);
-  ASSERT_TRUE(reachable_types_D_2.count(TH2.getType("struct.D")));
-  ASSERT_TRUE(reachable_types_D_2.size() == 1);
-  ASSERT_TRUE(reachable_types_X_2.count(TH2.getType("struct.X")));
-  ASSERT_TRUE(reachable_types_X_2.count(TH2.getType("struct.Y")));
-  ASSERT_TRUE(reachable_types_X_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_X_2.size() == 3);
-  ASSERT_TRUE(reachable_types_Y_2.count(TH2.getType("struct.Y")));
-  ASSERT_TRUE(reachable_types_Y_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_Y_2.size() == 2);
-  ASSERT_TRUE(reachable_types_Z_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_Z_2.size() == 1);
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.A")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.B")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.C")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.D")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesA2.size() == 5U);
+  ASSERT_TRUE(ReachableTypesB2.count(TH2.getType("struct.B")));
+  ASSERT_TRUE(ReachableTypesB2.count(TH2.getType("struct.D")));
+  ASSERT_TRUE(ReachableTypesB2.size() == 2U);
+  ASSERT_TRUE(ReachableTypesC2.count(TH2.getType("struct.C")));
+  ASSERT_TRUE(ReachableTypesC2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesC2.size() == 2U);
+  ASSERT_TRUE(ReachableTypesD2.count(TH2.getType("struct.D")));
+  ASSERT_TRUE(ReachableTypesD2.size() == 1U);
+  ASSERT_TRUE(ReachableTypesX2.count(TH2.getType("struct.X")));
+  ASSERT_TRUE(ReachableTypesX2.count(TH2.getType("struct.Y")));
+  ASSERT_TRUE(ReachableTypesX2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesX2.size() == 3U);
+  ASSERT_TRUE(ReachableTypesY2.count(TH2.getType("struct.Y")));
+  ASSERT_TRUE(ReachableTypesY2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesY2.size() == 2U);
+  ASSERT_TRUE(ReachableTypesZ2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesZ2.size() == 1U);
 
-  ASSERT_TRUE(reachable_types_base_3.count(TH3.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_base_3.count(TH3.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_3.size() == 2);
-  ASSERT_TRUE(reachable_types_child_3.count(TH3.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_3.size() == 1);
-  ASSERT_TRUE(reachable_types_nonvirtualclass_3.count(
+  ASSERT_TRUE(ReachableTypesBase3.count(TH3.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesBase3.count(TH3.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase3.size() == 2U);
+  ASSERT_TRUE(ReachableTypesChild3.count(TH3.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild3.size() == 1U);
+  ASSERT_TRUE(ReachableTypesNonvirtualclass3.count(
       TH3.getType("class.NonvirtualClass")));
-  ASSERT_TRUE(reachable_types_nonvirtualclass_3.size() == 1);
-  ASSERT_TRUE(reachable_types_nonvirtualstruct_3.count(
+  ASSERT_TRUE(ReachableTypesNonvirtualclass3.size() == 1U);
+  ASSERT_TRUE(ReachableTypesNonvirtualstruct3.count(
       TH3.getType("struct.NonvirtualStruct")));
-  ASSERT_TRUE(reachable_types_nonvirtualstruct_3.size() == 1);
+  ASSERT_TRUE(ReachableTypesNonvirtualstruct3.size() == 1U);
 
-  ASSERT_TRUE(reachable_types_base_4.count(TH4.getType("struct.Base")));
-  ASSERT_FALSE(reachable_types_base_4.count(TH4.getType("struct.Base.base")));
-  ASSERT_TRUE(reachable_types_base_4.count(TH4.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_4.size() == 2);
-  ASSERT_TRUE(reachable_types_child_4.count(TH4.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_4.size() == 1);
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base")));
+  ASSERT_FALSE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase4.size() == 2U);
+  ASSERT_TRUE(ReachableTypesChild4.count(TH4.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild4.size() == 1U);
 
-  ASSERT_TRUE(reachable_types_base_5.count(TH5.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_base_5.count(TH5.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_5.size() == 2);
-  ASSERT_TRUE(reachable_types_child_5.count(TH5.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_5.size() == 1);
+  ASSERT_TRUE(ReachableTypesBase5.count(TH5.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesBase5.count(TH5.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase5.size() == 2U);
+  ASSERT_TRUE(ReachableTypesChild5.count(TH5.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild5.size() == 1U);
 }
 
-// TEST_F(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
+// TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
 //   ProjectIRDB IRDB(
 //       {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
 //   LLVMTypeHierarchy TH(IRDB);
@@ -575,7 +571,7 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
 //   //   ASSERT_TRUE(boost::isomorphism(G, TH.TypeGraph));
 // }
 
-// // TEST_F(LTHTest, HandleLoadAndPrintOfEmptyGraph) {
+// // TEST(LTHTest, HandleLoadAndPrintOfEmptyGraph) {
 // //   ProjectIRDB IRDB({pathToLLFiles +
 // //   "taint_analysis/growing_example_cpp.ll"}); LLVMTypeHierarchy TH(IRDB);
 // //   std::ostringstream oss;
@@ -595,7 +591,7 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
 // //   ASSERT_EQ(oss.str(), oss2.str());
 // // }
 
-// // TEST_F(LTHTest, HandleMerge_1) {
+// // TEST(LTHTest, HandleMerge_1) {
 // //   ProjectIRDB IRDB(
 // //       {pathToLLFiles + "type_hierarchies/type_hierarchy_12_cpp.ll",
 // //        pathToLLFiles + "type_hierarchies/type_hierarchy_12_b_cpp.ll"});
@@ -635,10 +631,10 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
 // //   EXPECT_EQ(TH1.getNumVTableEntries(LTH.getType("struct.Child")), 1);
 // //   EXPECT_EQ(TH1.getNumVTableEntries("struct.ChildsChild"), 1);
 // //   EXPECT_EQ(TH1.getReachableSuperTypes(LTH.getType("class.Base")).size(),
-// 3);
+// 3U);
 // // EXPECT_EQ(TH1.getReachableSuperTypes(LTH.getType("struct.Child")).size(),
-// //   2); EXPECT_EQ(TH1.getReachableSuperTypes("struct.ChildsChild").size(),
-// 1);
+// //   2U); EXPECT_EQ(TH1.getReachableSuperTypes("struct.ChildsChild").size(),
+// 1U);
 // //   auto BaseReachable =
 // TH1.getReachableSuperTypes(LTH.getType("class.Base"));
 // //   EXPECT_TRUE(BaseReachable.count(LTH.getType("class.Base")));
@@ -653,11 +649,11 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
 // //   EXPECT_TRUE(ChildsChildReachable.count("struct.ChildsChild"));
 // // }
 
-TEST_F(LTHTest, HandleSTLString) {
-  ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_13_cpp.ll"});
+TEST(LTHTest, HandleSTLString) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                    "type_hierarchies/type_hierarchy_13_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  EXPECT_EQ(TH.getAllTypes().size(), 4);
+  EXPECT_EQ(TH.getAllTypes().size(), 4U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
   EXPECT_TRUE(
       TH.hasType(TH.getType("struct.std::__cxx11::basic_string<char, "
@@ -684,9 +680,9 @@ TEST_F(LTHTest, HandleSTLString) {
 
 } // namespace psr
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  auto res = RUN_ALL_TESTS();
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
+  auto Res = RUN_ALL_TESTS();
   llvm::llvm_shutdown();
-  return res;
+  return Res;
 }

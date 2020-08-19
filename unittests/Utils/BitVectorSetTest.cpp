@@ -1,10 +1,12 @@
 #include "gtest/gtest.h"
 
+#include "phasar/Utils/BitVectorSet.h"
+
+#include "llvm/ADT/BitVector.h"
+
 #include <iostream>
 #include <set>
 #include <utility>
-
-#include "phasar/Utils/BitVectorSet.h"
 
 using namespace psr;
 using namespace std;
@@ -12,24 +14,24 @@ using namespace std;
 TEST(BitVectorSet, ctor) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
 
-  EXPECT_EQ(B.count(10), 1);
-  EXPECT_EQ(B.count(20), 1);
-  EXPECT_EQ(B.count(30), 1);
-  EXPECT_EQ(B.count(40), 1);
-  EXPECT_EQ(B.count(50), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(10), 1U);
+  EXPECT_EQ(B.count(20), 1U);
+  EXPECT_EQ(B.count(30), 1U);
+  EXPECT_EQ(B.count(40), 1U);
+  EXPECT_EQ(B.count(50), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, ctorIter) {
   std::set<int> S({10, 20, 30, 40, 50});
   BitVectorSet<int> B(S.begin(), S.end());
 
-  EXPECT_EQ(B.count(10), 1);
-  EXPECT_EQ(B.count(20), 1);
-  EXPECT_EQ(B.count(30), 1);
-  EXPECT_EQ(B.count(40), 1);
-  EXPECT_EQ(B.count(50), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(10), 1U);
+  EXPECT_EQ(B.count(20), 1U);
+  EXPECT_EQ(B.count(30), 1U);
+  EXPECT_EQ(B.count(40), 1U);
+  EXPECT_EQ(B.count(50), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, copy) {
@@ -42,12 +44,12 @@ TEST(BitVectorSet, copy) {
   B.insert(42);
   B.insert(13);
 
-  EXPECT_EQ(C.count(10), 1);
-  EXPECT_EQ(C.count(20), 1);
-  EXPECT_EQ(C.count(30), 1);
-  EXPECT_EQ(C.count(40), 1);
-  EXPECT_EQ(C.count(50), 1);
-  EXPECT_EQ(C.count(666), 0);
+  EXPECT_EQ(C.count(10), 1U);
+  EXPECT_EQ(C.count(20), 1U);
+  EXPECT_EQ(C.count(30), 1U);
+  EXPECT_EQ(C.count(40), 1U);
+  EXPECT_EQ(C.count(50), 1U);
+  EXPECT_EQ(C.count(666), 0U);
 }
 
 TEST(BitVectorSet, copyAssign) {
@@ -61,28 +63,28 @@ TEST(BitVectorSet, copyAssign) {
   B.insert(42);
   B.insert(13);
 
-  EXPECT_EQ(C.count(10), 1);
-  EXPECT_EQ(C.count(20), 1);
-  EXPECT_EQ(C.count(30), 1);
-  EXPECT_EQ(C.count(40), 1);
-  EXPECT_EQ(C.count(50), 1);
-  EXPECT_EQ(C.count(666), 0);
+  EXPECT_EQ(C.count(10), 1U);
+  EXPECT_EQ(C.count(20), 1U);
+  EXPECT_EQ(C.count(30), 1U);
+  EXPECT_EQ(C.count(40), 1U);
+  EXPECT_EQ(C.count(50), 1U);
+  EXPECT_EQ(C.count(666), 0U);
 }
 
 TEST(BitVectorSet, move) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
-  BitVectorSet<int> C(std::move(B));
+  BitVectorSet<int> C(B);
 
-  EXPECT_EQ(C.count(10), 1);
-  EXPECT_EQ(C.count(20), 1);
-  EXPECT_EQ(C.count(30), 1);
-  EXPECT_EQ(C.count(40), 1);
-  EXPECT_EQ(C.count(50), 1);
-  EXPECT_EQ(C.count(666), 0);
+  EXPECT_EQ(C.count(10), 1U);
+  EXPECT_EQ(C.count(20), 1U);
+  EXPECT_EQ(C.count(30), 1U);
+  EXPECT_EQ(C.count(40), 1U);
+  EXPECT_EQ(C.count(50), 1U);
+  EXPECT_EQ(C.count(666), 0U);
 
   C.insert(42);
 
-  EXPECT_EQ(C.count(42), 1);
+  EXPECT_EQ(C.count(42), 1U);
 }
 
 TEST(BitVectorSet, insert) {
@@ -91,10 +93,10 @@ TEST(BitVectorSet, insert) {
   B.insert(42);
   B.insert(13);
 
-  EXPECT_EQ(B.count(1), 1);
-  EXPECT_EQ(B.count(42), 1);
-  EXPECT_EQ(B.count(13), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(1), 1U);
+  EXPECT_EQ(B.count(42), 1U);
+  EXPECT_EQ(B.count(13), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, insertIter) {
@@ -102,10 +104,10 @@ TEST(BitVectorSet, insertIter) {
   BitVectorSet<int> B;
   B.insert(S.begin(), S.end());
 
-  EXPECT_EQ(B.count(1), 1);
-  EXPECT_EQ(B.count(42), 1);
-  EXPECT_EQ(B.count(13), 1);
-  EXPECT_EQ(B.count(666), 0);
+  EXPECT_EQ(B.count(1), 1U);
+  EXPECT_EQ(B.count(42), 1U);
+  EXPECT_EQ(B.count(13), 1U);
+  EXPECT_EQ(B.count(666), 0U);
 }
 
 TEST(BitVectorSet, insertBitVectorSet) {
@@ -135,20 +137,20 @@ TEST(BitVectorSet, twoSets) {
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({5, 6, 42});
 
-  EXPECT_EQ(A.count(1), 1);
-  EXPECT_EQ(A.count(2), 1);
-  EXPECT_EQ(A.count(3), 1);
-  EXPECT_EQ(A.count(4), 1);
-  EXPECT_EQ(A.count(5), 1);
-  EXPECT_EQ(A.count(6), 1);
-  EXPECT_EQ(A.count(42), 0);
+  EXPECT_EQ(A.count(1), 1U);
+  EXPECT_EQ(A.count(2), 1U);
+  EXPECT_EQ(A.count(3), 1U);
+  EXPECT_EQ(A.count(4), 1U);
+  EXPECT_EQ(A.count(5), 1U);
+  EXPECT_EQ(A.count(6), 1U);
+  EXPECT_EQ(A.count(42), 0U);
 
-  EXPECT_EQ(B.count(5), 1);
-  EXPECT_EQ(B.count(6), 1);
-  EXPECT_EQ(B.count(42), 1);
-  EXPECT_EQ(B.count(1), 0);
-  EXPECT_EQ(B.count(2), 0);
-  EXPECT_EQ(B.count(3), 0);
+  EXPECT_EQ(B.count(5), 1U);
+  EXPECT_EQ(B.count(6), 1U);
+  EXPECT_EQ(B.count(42), 1U);
+  EXPECT_EQ(B.count(1), 0U);
+  EXPECT_EQ(B.count(2), 0U);
+  EXPECT_EQ(B.count(3), 0U);
 }
 
 TEST(BitVectorSet, equality) {
@@ -185,12 +187,12 @@ TEST(BitVectorSet, size) {
   BitVectorSet<int> E({1, 2, 3});
   BitVectorSet<int> F;
 
-  EXPECT_EQ(A.size(), 6);
-  EXPECT_EQ(B.size(), 3);
-  EXPECT_EQ(C.size(), 3);
-  EXPECT_EQ(D.size(), 4);
-  EXPECT_EQ(E.size(), 3);
-  EXPECT_EQ(F.size(), 0);
+  EXPECT_EQ(A.size(), 6U);
+  EXPECT_EQ(B.size(), 3U);
+  EXPECT_EQ(C.size(), 3U);
+  EXPECT_EQ(D.size(), 4U);
+  EXPECT_EQ(E.size(), 3U);
+  EXPECT_EQ(F.size(), 0U);
 }
 
 TEST(BitVectorSet, empty) {
@@ -214,13 +216,13 @@ TEST(BitVectorSet, clear) {
   BitVectorSet<int> B({5, 6, 42});
   BitVectorSet<int> C;
 
-  EXPECT_EQ(A.size(), 6);
+  EXPECT_EQ(A.size(), 6U);
   A.clear();
-  EXPECT_EQ(A.size(), 0);
+  EXPECT_EQ(A.size(), 0U);
   B.clear();
-  EXPECT_EQ(B.size(), 0);
+  EXPECT_EQ(B.size(), 0U);
   C.clear();
-  EXPECT_EQ(C.size(), 0);
+  EXPECT_EQ(C.size(), 0U);
 }
 
 TEST(BitVectorSet, setUnion) {
@@ -257,14 +259,14 @@ TEST(BitVectorSet, setIntersect) {
 namespace std {
 
 template <> struct hash<pair<int, int>> {
-  size_t operator()(const pair<int, int> &p) const {
-    return std::hash<int>()(p.first + p.second);
+  size_t operator()(const pair<int, int> &P) const {
+    return std::hash<int>()(P.first + P.second);
   }
 };
 
 } // namespace std
 
-TEST(BitVectorSet, includes) {
+TEST(BitVectorSet, includesForIntegers) {
 
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({1, 2, 3});
@@ -281,25 +283,34 @@ TEST(BitVectorSet, includes) {
   EXPECT_TRUE(B.includes(E));
   EXPECT_TRUE(E.includes(B));
 
-  BitVectorSet<std::pair<int, int>> a(
+  BitVectorSet<int> X({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> Y({7});
+
+  EXPECT_TRUE(X.includes(Y));
+}
+
+TEST(BitVectorSet, includesForPairsOfIntegers) {
+  BitVectorSet<std::pair<int, int>> A(
       {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}});
-  BitVectorSet<std::pair<int, int>> b({{1, 1}, {2, 2}, {3, 3}});
-  BitVectorSet<std::pair<int, int>> c({{1, 1}, {2, 2}, {42, 42}});
-  BitVectorSet<std::pair<int, int>> d(
+  BitVectorSet<std::pair<int, int>> B({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> C({{1, 1}, {2, 2}, {42, 42}});
+  BitVectorSet<std::pair<int, int>> D(
       {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}});
-  BitVectorSet<std::pair<int, int>> e({{1, 1}, {2, 2}, {3, 3}});
-  BitVectorSet<std::pair<int, int>> f({{1, 2}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> E({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> F({{1, 2}, {2, 2}, {3, 3}});
 
-  EXPECT_TRUE(a.includes(b));
-  EXPECT_FALSE(b.includes(a));
-  EXPECT_FALSE(a.includes(c));
-  EXPECT_FALSE(b.includes(c));
-  EXPECT_FALSE(a.includes(d));
-  EXPECT_TRUE(d.includes(a));
-  EXPECT_TRUE(b.includes(e));
-  EXPECT_TRUE(e.includes(b));
-  EXPECT_FALSE(f.includes(b));
+  EXPECT_TRUE(A.includes(B));
+  EXPECT_FALSE(B.includes(A));
+  EXPECT_FALSE(A.includes(C));
+  EXPECT_FALSE(B.includes(C));
+  EXPECT_FALSE(A.includes(D));
+  EXPECT_TRUE(D.includes(A));
+  EXPECT_TRUE(B.includes(E));
+  EXPECT_TRUE(E.includes(B));
+  EXPECT_FALSE(F.includes(B));
+}
 
+TEST(BitVectorSet, includesForIntegersTakeTwo) {
   BitVectorSet<int> X({1, 2, 3, 4, 5, 6, 7});
   BitVectorSet<int> Y({7});
 
@@ -310,18 +321,18 @@ TEST(BitVectorSet, iterator) {
   BitVectorSet<int> A({10, 20, 30, 40, 50});
   BitVectorSet<int> D({10, 20, 30, 40, 50});
 
-  auto iteratorD = D.begin();
-  for (auto it = A.begin(); it != A.end(); it++) {
-    EXPECT_EQ(*it, *iteratorD);
-    iteratorD++;
+  auto IteratorD = D.begin();
+  for (auto It = A.begin(); It != A.end(); It++) {
+    EXPECT_EQ(*It, *IteratorD);
+    IteratorD++;
   }
 
   BitVectorSet<int> E({25, 32, 40, 57});
   std::set<int> ES;
   std::set<int> ESGT = {25, 32, 40, 57};
-  for (auto it = E.begin(); it != E.end(); it++) {
+  for (auto It = E.begin(); It != E.end(); It++) {
     // EXPECT_TRUE(ESGT.find(*it)!=ESGT.end()); //Extra check
-    ES.insert(*it);
+    ES.insert(*It);
   }
   EXPECT_EQ(ES, ESGT);
 }
@@ -329,15 +340,15 @@ TEST(BitVectorSet, iterator) {
 TEST(BitVectorSet, iterator_movement) {
   BitVectorSet<int> A({10, 20, 30, 40, 50});
   BitVectorSet<int> B({30, 40, 50, 60});
-  auto iteratorA = A.begin();
-  auto iteratorB = B.begin();
+  auto IteratorA = A.begin();
+  auto IteratorB = B.begin();
 
-  iteratorA += 4;
-  iteratorB += 2;
-  EXPECT_EQ(*iteratorA, *iteratorB);
-  EXPECT_EQ(A.count(*iteratorA), 1);
-  iteratorB++;
-  EXPECT_EQ(A.count(*iteratorB), 0);
+  IteratorA += 4;
+  IteratorB += 2;
+  EXPECT_EQ(*IteratorA, *IteratorB);
+  EXPECT_EQ(A.count(*IteratorA), 1U);
+  IteratorB++;
+  EXPECT_EQ(A.count(*IteratorB), 0U);
 }
 
 TEST(BitVectorSet, rangeFor) {
@@ -345,38 +356,129 @@ TEST(BitVectorSet, rangeFor) {
   std::set<int> AS;
   std::set<int> ASGT = {1, 2, 3, 4, 5, 6};
 
-  for (auto i : A) {
-    AS.insert(i);
+  for (auto I : A) {
+    AS.insert(I);
   }
   EXPECT_EQ(AS, ASGT);
 
   BitVectorSet<int> B({6, 5, 4, 3, 2, 1});
   std::set<int> BS;
   std::set<int> BSGT = {6, 5, 4, 3, 2, 1};
-  for (auto i : B) {
-    BS.insert(i);
+  for (auto I : B) {
+    BS.insert(I);
   }
   EXPECT_EQ(BS, BSGT);
 
   BitVectorSet<int> C({5, 6, 7, 8, 42, 13});
   std::set<int> CS;
   std::set<int> CSGT = {5, 6, 7, 8, 42, 13};
-  for (auto i : C) {
-    CS.insert(i);
+  for (auto I : C) {
+    CS.insert(I);
   }
   EXPECT_EQ(CS, CSGT);
 
   const BitVectorSet<int> D({5, 6, 7, 8, 42, 13});
   std::set<int> DS;
   std::set<int> DSGT = {5, 6, 7, 8, 42, 13};
-  auto i = D.begin();
-  for (auto i : D) {
-    DS.insert(i);
+  auto I = D.begin();
+  for (auto I : D) {
+    DS.insert(I);
   }
   EXPECT_EQ(DS, DSGT);
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+TEST(BitVectorSet, lessThan) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({1, 2, 3, 4, 5});
+
+  EXPECT_TRUE(B < A);
+  EXPECT_FALSE(A < B);
+  EXPECT_FALSE(A < A);
+}
+
+//===----------------------------------------------------------------------===//
+// llvm::BitVector
+
+TEST(BitVector, emptyVectorsShouldNotBeLess) {
+  llvm::BitVector A(5);
+  llvm::BitVector B(5);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, emptyVectorsWithDifferentSizeShouldNotBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(5);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, equalVectorsShouldNotBeLess) {
+  llvm::BitVector A(10);
+  llvm::BitVector B(10);
+
+  A.set(3);
+  B.set(3);
+  A.set(5);
+  B.set(5);
+  A.set(8);
+  B.set(8);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, equalSizedVectorsWithBitDifference) {
+  llvm::BitVector A(10);
+  llvm::BitVector B(10);
+
+  A.set(3);
+  B.set(3);
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+  A.set(8);
+  B.set(8);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
+
+  // Switching the bits shoud invert the lesser relationship
+  A.set(4);
+  A.reset(5);
+  B.set(5);
+  B.reset(4);
+
+  EXPECT_TRUE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, biggerVecWithoutUpperBitsSetShouldNotBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(10);
+
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
+}
+
+TEST(BitVector, biggerVecWithUpperBitsSetShouldBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(10);
+
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+
+  A.set(40);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
+}
+
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

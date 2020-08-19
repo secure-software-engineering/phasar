@@ -20,9 +20,9 @@ enum class IOFormat {
 #include "phasar/PhasarLLVM/Utils/IOFormat.def"
 };
 
-std::string to_string(const IOFormat &D);
+std::string toString(const IOFormat &D);
 
-IOFormat to_IOFormat(const std::string &S);
+IOFormat toIOFormat(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const IOFormat &D);
 

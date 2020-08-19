@@ -1,50 +1,50 @@
+#include "gtest/gtest.h"
+
+#include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
-#include "gtest/gtest.h"
+
+#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
 
-class LLVMBasedICFG_OTFTest : public ::testing::Test {
-protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_7_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_7_cpp.ll"},
+      IRDBOptions::WPA);
+  IRDB.emitPreprocessedIR();
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToInfo PT(IRDB);
+  LLVMPointsToSet PT(IRDB, false);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
+
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
   const llvm::Function *VFuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");
+
   ASSERT_TRUE(F);
   ASSERT_TRUE(VFuncA);
   ASSERT_TRUE(VFuncB);
 
-  set<const llvm::Instruction *> Insts;
-  Insts.insert(getNthInstruction(F, 19));
-  Insts.insert(getNthInstruction(F, 25));
-  for (auto *I : Insts) {
-    if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-      set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
-      ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
-      ASSERT_EQ(Callees.size(), 2);
-      ASSERT_TRUE(Callees.count(VFuncB));
-      ASSERT_TRUE(Callees.count(VFuncA));
-      ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(I));
-      ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(I));
-    }
-  }
+  const auto *CallToAFunc = getNthInstruction(F, 19);
+  ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
+  auto AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
+  ASSERT_EQ(AsCallees.size(), 2U);
+  ASSERT_TRUE(AsCallees.count(VFuncA));
+  ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(CallToAFunc));
+
+  const auto *CallToBFunc = getNthInstruction(F, 25);
+  ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
+  auto BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
+  ASSERT_EQ(BsCallees.size(), 2U);
+  ASSERT_TRUE(BsCallees.count(VFuncB));
+  ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(CallToBFunc));
 }
 
-// TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
+// TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
 //   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_8_cpp.ll"},
 //                    IRDBOptions::WPA);
 //   LLVMTypeHierarchy TH(IRDB);
@@ -65,7 +65,7 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 //   ASSERT_TRUE(Callees2.count(FooC));
 // }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

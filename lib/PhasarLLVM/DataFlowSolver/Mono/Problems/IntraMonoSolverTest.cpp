@@ -16,17 +16,18 @@
 
 #include <algorithm>
 #include <iostream>
+#include <utility>
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
 using namespace std;
 using namespace psr;
 
@@ -37,10 +38,8 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMBasedCFG *CF,
                                          const LLVMPointsToInfo *PT,
                                          std::set<std::string> EntryPoints)
-    : IntraMonoProblem<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
-                       IntraMonoSolverTest::f_t, IntraMonoSolverTest::t_t,
-                       IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>(
-          IRDB, TH, CF, PT, EntryPoints) {}
+    : IntraMonoProblem<IntraMonoSolverTestAnalysisDomain>(
+          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<const llvm::Value *>
 IntraMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
@@ -62,7 +61,7 @@ IntraMonoSolverTest::normalFlow(const llvm::Instruction *S,
   cout << "IntraMonoSolverTest::normalFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
   Result.insert(In);
-  if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
+  if (const auto *const Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     Result.insert(Store);
   }
   return Result;
@@ -74,19 +73,19 @@ IntraMonoSolverTest::initialSeeds() {
   return {};
 }
 
-void IntraMonoSolverTest::printNode(ostream &os,
-                                    const llvm::Instruction *n) const {
-  os << llvmIRToString(n);
+void IntraMonoSolverTest::printNode(ostream &OS,
+                                    const llvm::Instruction *N) const {
+  OS << llvmIRToString(N);
 }
 
-void IntraMonoSolverTest::printDataFlowFact(ostream &os,
-                                            const llvm::Value *d) const {
-  os << llvmIRToString(d);
+void IntraMonoSolverTest::printDataFlowFact(ostream &OS,
+                                            const llvm::Value *D) const {
+  OS << llvmIRToString(D);
 }
 
-void IntraMonoSolverTest::printFunction(ostream &os,
-                                        const llvm::Function *m) const {
-  os << m->getName().str();
+void IntraMonoSolverTest::printFunction(ostream &OS,
+                                        const llvm::Function *M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

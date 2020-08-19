@@ -36,14 +36,14 @@ namespace psr {
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key;
 
-GeneralStatisticsAnalysis::GeneralStatisticsAnalysis() {}
+GeneralStatisticsAnalysis::GeneralStatisticsAnalysis() = default;
 
 GeneralStatistics
 GeneralStatisticsAnalysis::run(llvm::Module &M,
                                llvm::ModuleAnalysisManager &AM) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsAnalysis");
-  static const std::set<std::string> mem_allocating_functions = {
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                << "Running GeneralStatisticsAnalysis");
+  static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
   for (auto &F : M) {
@@ -54,17 +54,17 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         // found one more instruction
         ++Stats.instructions;
         // check for alloca instruction for possible types
-        if (const llvm::AllocaInst *alloc =
+        if (const llvm::AllocaInst *Alloc =
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-          Stats.allocatedTypes.insert(alloc->getAllocatedType());
+          Stats.allocatedTypes.insert(Alloc->getAllocatedType());
           // do not add allocas from llvm internal functions
           Stats.allocaInstructions.insert(&I);
           ++Stats.allocationsites;
         } // check bitcast instructions for possible types
         else {
-          for (auto user : I.users()) {
-            if (const llvm::BitCastInst *cast =
-                    llvm::dyn_cast<llvm::BitCastInst>(user)) {
+          for (auto *User : I.users()) {
+            if (const llvm::BitCastInst *Cast =
+                    llvm::dyn_cast<llvm::BitCastInst>(User)) {
               // types.insert(cast->getDestTy());
             }
           }
@@ -90,20 +90,20 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           ++Stats.callsites;
           llvm::ImmutableCallSite CS(&I);
           if (CS.getCalledFunction()) {
-            if (mem_allocating_functions.count(
-                    cxx_demangle(CS.getCalledFunction()->getName().str()))) {
+            if (MemAllocatingFunctions.count(
+                    cxxDemangle(CS.getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
               Stats.allocaInstructions.insert(&I);
               ++Stats.allocationsites;
               // check if an instance of a user-defined type is allocated on the
               // heap
-              for (auto User : I.users()) {
-                if (auto Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+              for (auto *User : I.users()) {
+                if (auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
                   if (Cast->getDestTy()
                           ->getPointerElementType()
                           ->isStructTy()) {
                     // finally check for ctor call
-                    for (auto User : Cast->users()) {
+                    for (auto *User : Cast->users()) {
                       if (llvm::isa<llvm::CallInst>(User) ||
                           llvm::isa<llvm::InvokeInst>(User)) {
                         // potential call to the structures ctor
@@ -126,8 +126,8 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
     }
   }
   // check for global pointers
-  for (auto &global : M.globals()) {
-    if (global.getType()->isPointerTy()) {
+  for (auto &Global : M.globals()) {
+    if (Global.getType()->isPointerTy()) {
       ++Stats.globalPointers;
     }
     ++Stats.globals;
@@ -155,27 +155,34 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   // Using the logging guard explicitly since we are printing allocated types
   // manually
   if (boost::log::core::get()->get_logging_enabled()) {
-    auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, INFO) << "GeneralStatisticsAnalysis summary for module: '"
-                            << M.getName().str() << "'";
-    BOOST_LOG_SEV(lg, INFO) << "Instructions       : " << Stats.instructions;
-    BOOST_LOG_SEV(lg, INFO)
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "GeneralStatisticsAnalysis summary for module: '"
+        << M.getName().str() << "'";
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Instructions       : " << Stats.instructions;
+    BOOST_LOG_SEV(lg::get(), INFO)
         << "Allocated Types    : " << Stats.allocatedTypes.size();
-    BOOST_LOG_SEV(lg, INFO) << "Allocation Sites   : " << Stats.allocationsites;
-    BOOST_LOG_SEV(lg, INFO) << "Basic Blocks       : " << Stats.basicblocks;
-    BOOST_LOG_SEV(lg, INFO) << "Calls Sites        : " << Stats.callsites;
-    BOOST_LOG_SEV(lg, INFO) << "Functions          : " << Stats.functions;
-    BOOST_LOG_SEV(lg, INFO) << "Globals            : " << Stats.globals;
-    BOOST_LOG_SEV(lg, INFO) << "Global Pointer     : " << Stats.globalPointers;
-    BOOST_LOG_SEV(lg, INFO) << "Memory Intrinsics  : " << Stats.memIntrinsic;
-    BOOST_LOG_SEV(lg, INFO)
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Allocation Sites   : " << Stats.allocationsites;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Basic Blocks       : " << Stats.basicblocks;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Calls Sites        : " << Stats.callsites;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Functions          : " << Stats.functions;
+    BOOST_LOG_SEV(lg::get(), INFO) << "Globals            : " << Stats.globals;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Global Pointer     : " << Stats.globalPointers;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Memory Intrinsics  : " << Stats.memIntrinsic;
+    BOOST_LOG_SEV(lg::get(), INFO)
         << "Store Instructions : " << Stats.storeInstructions;
-    BOOST_LOG_SEV(lg, INFO) << ' ';
-    for (auto type : Stats.allocatedTypes) {
-      std::string type_str;
-      llvm::raw_string_ostream rso(type_str);
-      type->print(rso);
-      BOOST_LOG_SEV(lg, INFO) << "  " << rso.str();
+    BOOST_LOG_SEV(lg::get(), INFO) << ' ';
+    for (const auto *Type : Stats.allocatedTypes) {
+      std::string TypeStr;
+      llvm::raw_string_ostream Rso(TypeStr);
+      Type->print(Rso);
+      BOOST_LOG_SEV(lg::get(), INFO) << "  " << Rso.str();
     }
   }
   // now we are done and can return the results

@@ -21,7 +21,9 @@
 #include <string>
 #include <unordered_map>
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
@@ -33,23 +35,17 @@ class Function;
 
 namespace psr {
 
-class LLVMBasedCFG;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
-class IntraMonoSolverTest
-    : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedCFG> {
-public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedCFG i_t;
+struct IntraMonoSolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using i_t = LLVMBasedCFG;
+};
 
+class IntraMonoSolverTest
+    : public IntraMonoProblem<IntraMonoSolverTestAnalysisDomain> {
+public:
   IntraMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                       const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
                       std::set<std::string> EntryPoints = {});

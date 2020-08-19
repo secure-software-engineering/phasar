@@ -14,6 +14,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 
@@ -31,36 +32,23 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
-class WPDSSolverTest
-    : public WPDSProblem<const llvm::Instruction *, const llvm::Value *,
-                         const llvm::Function *, const llvm::StructType *,
-                         const llvm::Value *, BinaryDomain, LLVMBasedICFG> {
-public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef BinaryDomain l_t;
-  typedef LLVMBasedICFG i_t;
+struct WPDSSolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using l_t = BinaryDomain;
+};
 
+class WPDSSolverTest : public WPDSProblem<WPDSSolverTestAnalysisDomain> {
+public:
   WPDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                 const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                 const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                  std::set<std::string> EntryPoints = {"main"});
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         f_t destFun) override;
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        f_t calleeFun,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<f_t> callees) override;
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t curr, f_t destFun) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+                                         n_t exitStmt, n_t retSite) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destFun) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,

@@ -18,6 +18,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -28,38 +29,40 @@ class Value;
 
 namespace psr {
 
+struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
+  // int64_t corresponds to llvm's type of constant integer
+  using l_t = int64_t;
+};
+
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
 class IDELinearConstantAnalysis
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  int64_t, LLVMBasedICFG> {
+    : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
 private:
   // For debug purpose only
-  static unsigned CurrGenConstant_Id;
-  static unsigned CurrLCAID_Id;
-  static unsigned CurrBinary_Id;
+  static unsigned CurrGenConstantId;
+  static unsigned CurrLCAIDId;
+  static unsigned CurrBinaryId;
 
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
-  // int64_t corresponds to llvm's type of constant integer
-  typedef int64_t l_t;
+  using IDETabProblemType =
+      IDETabulationProblem<IDELinearConstantAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
 
   static const l_t TOP;
   static const l_t BOTTOM;
 
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
                             const LLVMTypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF,
-                            const LLVMPointsToInfo *PT,
+                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                             std::set<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
@@ -73,29 +76,24 @@ public:
     void print(std::ostream &os);
   };
 
-  typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_results_t;
+  using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
 
-  void stripBottomResults(std::unordered_map<d_t, l_t> &res);
+  static void stripBottomResults(std::unordered_map<d_t, l_t> &Res);
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        f_t calleeFun,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+                                         n_t exitStmt, n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+                                             f_t destFun) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -233,7 +231,7 @@ public:
 
   static char opToChar(const unsigned op);
 
-  bool isEntryPoint(std::string FunctionName) const;
+  bool isEntryPoint(const std::string &FunctionName) const;
 
   void printNode(std::ostream &os, n_t n) const override;
 

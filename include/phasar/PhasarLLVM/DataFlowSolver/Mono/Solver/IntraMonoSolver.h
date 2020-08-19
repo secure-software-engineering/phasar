@@ -28,17 +28,22 @@
 
 namespace psr {
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename C>
-class IntraMonoSolver {
+template <typename AnalysisDomainTy> class IntraMonoSolver {
 public:
-  using ProblemTy = IntraMonoProblem<N, D, F, T, V, C>;
+  using ProblemTy = IntraMonoProblem<AnalysisDomainTy>;
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using v_t = typename AnalysisDomainTy::v_t;
+  using i_t = typename AnalysisDomainTy::i_t;
+  using c_t = typename AnalysisDomainTy::c_t;
 
 protected:
   ProblemTy &IMProblem;
-  std::deque<std::pair<N, N>> Worklist;
-  std::unordered_map<N, BitVectorSet<D>> Analysis;
-  const C *CFG;
+  std::deque<std::pair<n_t, n_t>> Worklist;
+  std::unordered_map<n_t, BitVectorSet<d_t>> Analysis;
+  const c_t *CFG;
 
   void initialize() {
     auto EntryPoints = IMProblem.getEntryPoints();
@@ -51,7 +56,7 @@ protected:
                       ControlFlowEdges.end());
       // set all analysis information to the empty set
       for (auto s : CFG->getAllInstructionsOf(Function)) {
-        Analysis.insert(std::make_pair(s, BitVectorSet<D>()));
+        Analysis.insert(std::make_pair(s, BitVectorSet<d_t>()));
       }
     }
     // insert initial seeds
@@ -61,8 +66,7 @@ protected:
   }
 
 public:
-  IntraMonoSolver(IntraMonoProblem<N, D, F, T, V, C> &IMP)
-      : IMProblem(IMP), CFG(IMP.getCFG()) {}
+  IntraMonoSolver(ProblemTy &IMP) : IMProblem(IMP), CFG(IMP.getCFG()) {}
   virtual ~IntraMonoSolver() = default;
   virtual void solve() {
     // step 1: Initalization (of Worklist and Analysis)
@@ -70,11 +74,11 @@ public:
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
       // std::cout << "worklist size: " << Worklist.size() << "\n";
-      std::pair<N, N> path = Worklist.front();
+      std::pair<n_t, n_t> path = Worklist.front();
       Worklist.pop_front();
-      N src = path.first;
-      N dst = path.second;
-      BitVectorSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
+      n_t src = path.first;
+      n_t dst = path.second;
+      BitVectorSet<d_t> Out = IMProblem.normalFlow(src, Analysis[src]);
       if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         for (auto nprimeprime : CFG->getSuccsOf(dst)) {
@@ -90,7 +94,7 @@ public:
     }
   }
 
-  BitVectorSet<D> getResultsAt(N n) { return Analysis[n]; }
+  BitVectorSet<d_t> getResultsAt(n_t n) { return Analysis[n]; }
 
   virtual void dumpResults(std::ostream &OS = std::cout) {
     OS << "Intra-Monotone solver results:\n"
@@ -116,15 +120,11 @@ public:
 
 template <typename Problem>
 IntraMonoSolver(Problem &)
-    ->IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
-                      typename Problem::f_t, typename Problem::t_t,
-                      typename Problem::v_t, typename Problem::i_t>;
+    -> IntraMonoSolver<typename Problem::ProblemAnalysisDomain>;
 
 template <typename Problem>
 using IntraMonoSolver_P =
-    IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
-                    typename Problem::f_t, typename Problem::t_t,
-                    typename Problem::v_t, typename Problem::i_t>;
+    IntraMonoSolver<typename Problem::ProblemAnalysisDomain>;
 
 } // namespace psr
 

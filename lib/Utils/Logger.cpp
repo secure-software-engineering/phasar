@@ -16,90 +16,89 @@
 
 #include <algorithm>
 #include <array>
-#include <ctime>
 #include <exception>
 
 #include "boost/algorithm/string.hpp"
 #include "boost/core/null_deleter.hpp"
 #include "boost/filesystem.hpp"
-#include "boost/shared_ptr.hpp"
-
 #include "boost/log/attributes.hpp"
 #include "boost/log/utility/exception_handler.hpp"
+#include "boost/shared_ptr.hpp"
+
+#include "llvm/ADT/StringSwitch.h"
 
 #include "phasar/Utils/Logger.h"
+
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-const map<string, severity_level> StringToSeverityLevel = {
-    {"DEBUG", DEBUG},
-    {"INFO", INFO},
-    {"WARNING", WARNING},
-    {"ERROR", ERROR},
-    {"CRITICAL", CRITICAL}};
+SeverityLevel LogFilterLevel = DEBUG;
 
-const map<severity_level, string> SeverityLevelToString = {
-    {DEBUG, "DEBUG"},
-    {INFO, "INFO"},
-    {WARNING, "WARNING"},
-    {ERROR, "ERROR"},
-    {CRITICAL, "CRITICAL"}};
-
-severity_level logFilterLevel = DEBUG;
-
-void setLoggerFilterLevel(severity_level level) { logFilterLevel = level; }
-
-ostream &operator<<(ostream &os, enum severity_level l) {
-  return os << SeverityLevelToString.at(l);
+std::string toString(const SeverityLevel &Level) {
+  switch (Level) {
+  default:
+#define SEVERITY_LEVEL(NAME, TYPE)                                             \
+  case SeverityLevel::TYPE:                                                    \
+    return NAME;                                                               \
+    break;
+#include "phasar/Utils/SeverityLevel.def"
+  }
 }
 
-bool LogFilter(const boost::log::attribute_value_set &set) {
-  return set["Severity"].extract<severity_level>() >= logFilterLevel;
+SeverityLevel toSeverityLevel(const std::string &S) {
+  SeverityLevel Type = llvm::StringSwitch<SeverityLevel>(S)
+#define SEVERITY_LEVEL(NAME, TYPE) .Case(NAME, SeverityLevel::TYPE)
+#include "phasar/Utils/SeverityLevel.def"
+                           .Default(SeverityLevel::INVALID);
+  return Type;
 }
 
-void LogFormatter(const boost::log::record_view &view,
-                  boost::log::formatting_ostream &os) {
-  os << view.attribute_values()["LineCounter"].extract<int>() << " "
-     << view.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
-     << " - [" << view.attribute_values()["Severity"].extract<severity_level>()
-     << "] " << view.attribute_values()["Message"].extract<std::string>();
+std::ostream &operator<<(std::ostream &OS, const SeverityLevel &Level) {
+  return OS << toString(Level);
 }
 
-void LoggerExceptionHandler::operator()(const std::exception &ex) const {
-  std::cerr << "std::exception: " << ex.what() << '\n';
+void setLoggerFilterLevel(SeverityLevel Level) { LogFilterLevel = Level; }
+
+bool logFilter(const boost::log::attribute_value_set &Set) {
+#ifdef DYNAMIC_LOG
+  return Set["Severity"].extract<SeverityLevel>() >= LogFilterLevel;
+#else
+  return false;
+#endif
 }
 
-void initializeLogger(bool use_logger, string log_file) {
+void logFormatter(const boost::log::record_view &View,
+                  boost::log::formatting_ostream &OS) {
+#ifdef DYNAMIC_LOG
+  OS << View.attribute_values()["LineCounter"].extract<int>()
+     << " "
+     //  <<
+     //  View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
+     << " - [" << View.attribute_values()["Severity"].extract<SeverityLevel>()
+     << "] " << View.attribute_values()["Message"].extract<std::string>();
+#endif
+}
+
+void initializeLogger(bool UseLogger, const string &LogFile) {
+#ifdef DYNAMIC_LOG
   // Using this call, logging can be enabled or disabled
-  boost::log::core::get()->set_logging_enabled(use_logger);
-  // if (log_file == "") {
-  typedef boost::log::sinks::synchronous_sink<
-      boost::log::sinks::text_ostream_backend>
-      text_sink;
-  boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
-  // the easiest way is to write the logs to std::clog
-  boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter{});
+  boost::log::core::get()->set_logging_enabled(UseLogger);
+  using text_sink = boost::log::sinks::synchronous_sink<
+      boost::log::sinks::text_ostream_backend>;
+  boost::shared_ptr<text_sink> Sink = boost::make_shared<text_sink>();
+  // boost::shared_ptr<std::ostream> Stream = nullptr;
+  // if (LogFile.empty()) {
+  //  // the easiest way is to write the logs to std::clog
+  boost::shared_ptr<std::ostream> Stream(&std::clog, boost::null_deleter{});
   // } else {
-  // // get the time and make it into a string for log file nameing
-  // time_t current_time = std::time(nullptr);
-  // string time(asctime(localtime(&current_time)));
-  // transform(time.begin(), time.end(), time.begin(),
-  //           [](char c) { return c == ' ' ? '_' : c; });
-  // boost::trim_right(time);
-  // // check if the log directory exists, otherwise create it
-  // if (!(bfs::exists(LogFileDirectory))) {
-  //   bfs::create_directory(LogFileDirectory);
+  // Stream = boost::make_shared<std::ofstream>(LogFile);
   // }
-  // // we could also use a output file stream of course
-  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time +
-  // log_file);
-  // }
-  sink->locked_backend()->add_stream(stream);
-  sink->set_filter(&LogFilter);
-  sink->set_formatter(&LogFormatter);
-  boost::log::core::get()->add_sink(sink);
+  Sink->locked_backend()->add_stream(Stream);
+  Sink->set_filter(&logFilter);
+  Sink->set_formatter(&logFormatter);
+  boost::log::core::get()->add_sink(Sink);
   boost::log::core::get()->add_global_attribute(
       "LineCounter", boost::log::attributes::counter<int>{});
   boost::log::core::get()->add_global_attribute(
@@ -107,5 +106,11 @@ void initializeLogger(bool use_logger, string log_file) {
   boost::log::core::get()->set_exception_handler(
       boost::log::make_exception_handler<std::exception>(
           LoggerExceptionHandler()));
+#endif
 }
+
+void LoggerExceptionHandler::operator()(const std::exception &Ex) const {
+  std::cerr << "std::exception: " << Ex.what() << '\n';
+}
+
 } // namespace psr

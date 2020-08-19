@@ -38,66 +38,84 @@ class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
-class IFDSTabulationProblem : public virtual FlowFunctions<N, D, F>,
-                              public virtual NodePrinter<N>,
-                              public virtual DataFlowFactPrinter<D>,
-                              public virtual FunctionPrinter<F> {
-  static_assert(std::is_base_of_v<ICFG<N, F>, I>,
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class IFDSTabulationProblem
+    : public virtual FlowFunctions<AnalysisDomainTy, Container>,
+      public virtual NodePrinter<AnalysisDomainTy>,
+      public virtual DataFlowFactPrinter<AnalysisDomainTy>,
+      public virtual FunctionPrinter<AnalysisDomainTy> {
+public:
+  using ProblemAnalysisDomain = AnalysisDomainTy;
+
+  using d_t = typename AnalysisDomainTy::d_t;
+  using n_t = typename AnalysisDomainTy::n_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using v_t = typename AnalysisDomainTy::v_t;
+  using i_t = typename AnalysisDomainTy::i_t;
+
+  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
                 "I must implement the ICFG interface!");
 
 protected:
   IFDSIDESolverConfig SolverConfig;
   const ProjectIRDB *IRDB;
-  const TypeHierarchy<T, F> *TH;
-  const I *ICF;
-  const PointsToInfo<V, N> *PT;
-  D ZeroValue;
+  const TypeHierarchy<t_t, f_t> *TH;
+  const i_t *ICF;
+  PointsToInfo<v_t, n_t> *PT;
+  d_t ZeroValue;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] SoundnessFlag SF = SoundnessFlag::UNUSED;
 
 public:
   using ConfigurationTy = HasNoConfigurationType;
 
-  IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
-                        const I *ICF, const PointsToInfo<V, N> *PT,
+  IFDSTabulationProblem(const ProjectIRDB *IRDB,
+                        const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
+                        PointsToInfo<v_t, n_t> *PT,
                         std::set<std::string> EntryPoints = {})
-      : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT), EntryPoints(EntryPoints) {}
+      : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT),
+        EntryPoints(std::move(EntryPoints)) {}
 
   ~IFDSTabulationProblem() override = default;
 
-  virtual D createZeroValue() const = 0;
+  virtual d_t createZeroValue() const = 0;
 
-  virtual bool isZeroValue(D d) const = 0;
+  virtual bool isZeroValue(d_t d) const = 0;
 
-  virtual std::map<N, std::set<D>> initialSeeds() = 0;
+  virtual std::map<n_t, std::set<d_t>> initialSeeds() = 0;
 
-  D getZeroValue() const { return ZeroValue; }
+  d_t getZeroValue() const { return ZeroValue; }
 
-  std::set<std::string> getEntryPoints() const { return EntryPoints; }
+  [[nodiscard]] std::set<std::string> getEntryPoints() const {
+    return EntryPoints;
+  }
 
   const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
-  const TypeHierarchy<T, F> *getTypeHierarchy() const { return TH; }
+  const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const { return TH; }
 
-  const I *getICFG() const { return ICF; }
+  const i_t *getICFG() const { return ICF; }
 
-  const PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
+  PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
 
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
     SolverConfig = Config;
   }
 
-  IFDSIDESolverConfig getIFDSIDESolverConfig() const { return SolverConfig; }
+  [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() {
+    return SolverConfig;
+  }
 
-  virtual void emitTextReport(const SolverResults<N, D, BinaryDomain> &SR,
+  virtual void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                               std::ostream &OS = std::cout) {
     OS << "No text report available!\n";
   }
 
-  virtual void emitGraphicalReport(const SolverResults<N, D, BinaryDomain> &SR,
-                                   std::ostream &OS = std::cout) {
+  virtual void
+  emitGraphicalReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+                      std::ostream &OS = std::cout) {
     OS << "No graphical report available!\n";
   }
 

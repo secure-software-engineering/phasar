@@ -19,7 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
@@ -30,8 +30,6 @@ class Value;
 using namespace psr;
 
 int main(int argc, const char **argv) {
-  initializeLogger(false);
-  auto &lg = lg::get();
   if (argc < 2 || !boost::filesystem::exists(argv[1]) ||
       boost::filesystem::is_directory(argv[1])) {
     std::cerr << "myphasartool\n"
@@ -45,7 +43,7 @@ int main(int argc, const char **argv) {
     LLVMTypeHierarchy H(DB);
     // print type hierarchy
     H.print();
-    LLVMPointsToInfo P(DB);
+    LLVMPointsToSet P(DB);
     // print points-to information
     P.print();
     LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);

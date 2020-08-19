@@ -14,7 +14,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace psr;
@@ -22,21 +22,18 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureMemoryTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/openssl/secure_memory/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  OpenSSLSecureMemoryDescription *desc;
-  IDETypeStateAnalysis *TSProblem;
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t> *llvmtssolver = 0;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  OpenSSLSecureMemoryDescription *Desc{};
+  IDETypeStateAnalysis *TSProblem{};
+  IDESolver_P<IDETypeStateAnalysis> *Llvmtssolver = nullptr;
 
   enum OpenSSLSecureMemoryState {
     TOP = 42,
@@ -47,24 +44,20 @@ protected:
     ALLOCATED = 4
   };
   IDETSAnalysisOpenSSLSecureMemoryTest() = default;
-  virtual ~IDETSAnalysisOpenSSLSecureMemoryTest() = default;
+  ~IDETSAnalysisOpenSSLSecureMemoryTest() override = default;
 
-  void Initialize(const std::vector<std::string> &IRFiles) {
+  void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
+    PT = new LLVMPointsToSet(*IRDB);
     ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
                              PT);
-    desc = new OpenSSLSecureMemoryDescription();
+    Desc = new OpenSSLSecureMemoryDescription();
     TSProblem =
-        new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *desc, EntryPoints);
-    llvmtssolver =
-        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                      IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                      IDETypeStateAnalysis::i_t>(*TSProblem);
+        new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *Desc, EntryPoints);
+    Llvmtssolver = new IDESolver_P<IDETypeStateAnalysis>(*TSProblem);
 
-    llvmtssolver->solve();
+    Llvmtssolver->solve();
   }
 
   void SetUp() override {
@@ -77,7 +70,7 @@ protected:
     delete TH;
     delete ICFG;
     delete TSProblem;
-    delete llvmtssolver;
+    delete Llvmtssolver;
   }
 
   /**
@@ -88,14 +81,14 @@ protected:
    * @param solver provides the results
    */
   void compareResults(
-      const std::map<std::size_t, std::map<std::string, int>> &groundTruth) {
-    for (auto InstToGroundTruth : groundTruth) {
-      auto Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      const std::map<std::size_t, std::map<std::string, int>> &GroundTruth) {
+    for (const auto &InstToGroundTruth : GroundTruth) {
+      auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
-      std::map<std::string, int> results;
-      for (auto Result : llvmtssolver->resultsAt(Inst, true)) {
+      std::map<std::string, int> Results;
+      for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
-          results.insert(std::pair<std::string, int>(
+          Results.insert(std::pair<std::string, int>(
               getMetaDataID(Result.first), Result.second));
         } // else {
         //   std::cout << "Unused result at " << InstToGroundTruth.first << ": "
@@ -103,45 +96,45 @@ protected:
         //             << Result.second << std::endl;
         // }
       }
-      EXPECT_EQ(results, GT) << "at inst " << llvmIRToShortString(Inst);
+      EXPECT_EQ(Results, GT) << "at inst " << llvmIRToShortString(Inst);
     }
   }
 }; // Test Fixture
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory1) {
-  Initialize({pathToLLFiles + "memory1_c.ll"});
+  initialize({PathToLlFiles + "memory1_c.ll"});
   // llvmtssolver->printReport();
-  std::map<std::size_t, std::map<std::string, int>> gt;
+  std::map<std::size_t, std::map<std::string, int>> Gt;
   // TODO add GT values
-  gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
+  Gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
             {"3", OpenSSLSecureMemoryState::ALLOCATED}};
-  gt[20] = gt[10];
-  gt[29] = {{"3", OpenSSLSecureMemoryState::ERROR}};
-  compareResults(gt);
+  Gt[20] = Gt[10];
+  Gt[29] = {{"3", OpenSSLSecureMemoryState::ERROR}};
+  compareResults(Gt);
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory2) {
-  Initialize({pathToLLFiles + "memory2_c.ll"});
-  std::map<size_t, std::map<std::string, int>> gt;
-  gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
+  initialize({PathToLlFiles + "memory2_c.ll"});
+  std::map<size_t, std::map<std::string, int>> Gt;
+  Gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
             {"3", OpenSSLSecureMemoryState::ALLOCATED}};
-  gt[20] = gt[10];
-  gt[30] = {{"8", OpenSSLSecureMemoryState::ZEROED},
+  Gt[20] = Gt[10];
+  Gt[30] = {{"8", OpenSSLSecureMemoryState::ZEROED},
             {"3", OpenSSLSecureMemoryState::ZEROED},
             {"27", OpenSSLSecureMemoryState::ZEROED}};
-  gt[32] = {{"8", OpenSSLSecureMemoryState::FREED},
+  Gt[32] = {{"8", OpenSSLSecureMemoryState::FREED},
             {"3", OpenSSLSecureMemoryState::FREED},
             {"27", OpenSSLSecureMemoryState::FREED},
             {"30", OpenSSLSecureMemoryState::FREED}};
-  compareResults(gt);
+  compareResults(Gt);
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory3) {
   // boost::log::core::get()->set_logging_enabled(true);
-  Initialize({pathToLLFiles + "memory3_c.ll"});
+  initialize({PathToLlFiles + "memory3_c.ll"});
   // llvmtssolver->printReport();
-  std::map<size_t, std::map<std::string, int>> gt;
-  gt[15] = {{"13", OpenSSLSecureMemoryState::ZEROED},
+  std::map<size_t, std::map<std::string, int>> Gt;
+  Gt[15] = {{"13", OpenSSLSecureMemoryState::ZEROED},
             {"6", OpenSSLSecureMemoryState::ZEROED}};
 
   // Imprecision of the analysis => write into buffer kills it permanently
@@ -152,13 +145,13 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory3) {
   //          {"48", OpenSSLSecureMemoryState::ALLOCATED}};
   // gt[50] = {{"6", OpenSSLSecureMemoryState::ERROR},
   //          {"48", OpenSSLSecureMemoryState::ERROR}};
-  compareResults(gt);
+  compareResults(Gt);
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory4) {
-  Initialize({pathToLLFiles + "memory4_c.ll"});
-  std::map<size_t, std::map<std::string, int>> gt;
-  gt[15] = {{"13", OpenSSLSecureMemoryState::ZEROED},
+  initialize({PathToLlFiles + "memory4_c.ll"});
+  std::map<size_t, std::map<std::string, int>> Gt;
+  Gt[15] = {{"13", OpenSSLSecureMemoryState::ZEROED},
             {"6", OpenSSLSecureMemoryState::ZEROED}};
 
   // Imprecision of the analysis => write into buffer kills it permanently
@@ -169,29 +162,29 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory4) {
   //           {"48", OpenSSLSecureMemoryState::ZEROED}};
   // gt[50] = {{"6", OpenSSLSecureMemoryState::FREED},
   //           {"48", OpenSSLSecureMemoryState::FREED}};
-  compareResults(gt);
+  compareResults(Gt);
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory5) {
-  Initialize({pathToLLFiles + "memory5_c.ll"});
-  std::map<size_t, std::map<std::string, int>> gt;
-  gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
+  initialize({PathToLlFiles + "memory5_c.ll"});
+  std::map<size_t, std::map<std::string, int>> Gt;
+  Gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
             {"3", OpenSSLSecureMemoryState::ALLOCATED}};
 
   // Imprecision of the analysis => write into buffer kills it permanently
   // instead of degrading the typestate (as for Memory3)
   // For whatever reason it nevertheless works
 
-  gt[22] = {{"3", OpenSSLSecureMemoryState::ALLOCATED}};
-  gt[31] = {{"3", OpenSSLSecureMemoryState::ALLOCATED},
+  Gt[22] = {{"3", OpenSSLSecureMemoryState::ALLOCATED}};
+  Gt[31] = {{"3", OpenSSLSecureMemoryState::ALLOCATED},
             {"30", OpenSSLSecureMemoryState::ALLOCATED}};
-  gt[32] = {{"3", OpenSSLSecureMemoryState::ERROR},
+  Gt[32] = {{"3", OpenSSLSecureMemoryState::ERROR},
             {"30", OpenSSLSecureMemoryState::ERROR}};
-  compareResults(gt);
+  compareResults(Gt);
 }
 
 // main function for the test case
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

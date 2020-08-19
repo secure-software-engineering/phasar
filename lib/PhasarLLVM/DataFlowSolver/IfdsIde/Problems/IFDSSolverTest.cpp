@@ -7,12 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <utility>
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -28,52 +30,49 @@ namespace psr {
 
 IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF,
-                               const LLVMPointsToInfo *PT,
+                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSSolverTest::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
-IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t curr,
-                                      IFDSSolverTest::n_t succ) {
+IFDSSolverTest::FlowFunctionPtrType
+IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t Curr,
+                                      IFDSSolverTest::n_t Succ) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
-IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t callStmt,
-                                    IFDSSolverTest::f_t destFun) {
+IFDSSolverTest::FlowFunctionPtrType
+IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t CallStmt,
+                                    IFDSSolverTest::f_t DestFun) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
-IFDSSolverTest::getRetFlowFunction(IFDSSolverTest::n_t callSite,
-                                   IFDSSolverTest::f_t calleeFun,
-                                   IFDSSolverTest::n_t exitStmt,
-                                   IFDSSolverTest::n_t retSite) {
+IFDSSolverTest::FlowFunctionPtrType IFDSSolverTest::getRetFlowFunction(
+    IFDSSolverTest::n_t CallSite, IFDSSolverTest::f_t CalleeFun,
+    IFDSSolverTest::n_t ExitStmt, IFDSSolverTest::n_t RetSite) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
-IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t callSite,
-                                         IFDSSolverTest::n_t retSite,
-                                         set<IFDSSolverTest::f_t> callees) {
+IFDSSolverTest::FlowFunctionPtrType
+IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t CallSite,
+                                         IFDSSolverTest::n_t RetSite,
+                                         set<IFDSSolverTest::f_t> Callees) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
-IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t callStmt,
-                                       IFDSSolverTest::f_t destFun) {
+IFDSSolverTest::FlowFunctionPtrType
+IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t CallStmt,
+                                       IFDSSolverTest::f_t DestFun) {
   return nullptr;
 }
 
 map<IFDSSolverTest::n_t, set<IFDSSolverTest::d_t>>
 IFDSSolverTest::initialSeeds() {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::initialSeeds()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "IFDSSolverTest::initialSeeds()");
   map<IFDSSolverTest::n_t, set<IFDSSolverTest::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IFDSSolverTest::d_t>({getZeroValue()})));
   }
@@ -85,21 +84,21 @@ IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t d) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t D) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
 }
 
-void IFDSSolverTest::printNode(ostream &os, IFDSSolverTest::n_t n) const {
-  os << llvmIRToString(n);
+void IFDSSolverTest::printNode(ostream &OS, IFDSSolverTest::n_t N) const {
+  OS << llvmIRToString(N);
 }
 
-void IFDSSolverTest::printDataFlowFact(ostream &os,
-                                       IFDSSolverTest::d_t d) const {
-  os << llvmIRToString(d);
+void IFDSSolverTest::printDataFlowFact(ostream &OS,
+                                       IFDSSolverTest::d_t D) const {
+  OS << llvmIRToString(D);
 }
 
-void IFDSSolverTest::printFunction(ostream &os, IFDSSolverTest::f_t m) const {
-  os << m->getName().str();
+void IFDSSolverTest::printFunction(ostream &OS, IFDSSolverTest::f_t M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

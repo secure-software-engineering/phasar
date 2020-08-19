@@ -31,7 +31,7 @@ const std::map<std::string, std::set<int>>
 //
 // States: BOT = 0, UNINIT = 1, ALLOCATED = 2, ZEROED = 3, FREED = 4, ERROR = 5
 const OpenSSLSecureHeapDescription::OpenSSLSecureHeapState
-    OpenSSLSecureHeapDescription::delta[5][6] = {
+    OpenSSLSecureHeapDescription::Delta[5][6] = {
         // SECURE_MALLOC
         {OpenSSLSecureHeapState::ALLOCATED, OpenSSLSecureHeapState::ALLOCATED,
          OpenSSLSecureHeapState::ALLOCATED, OpenSSLSecureHeapState::ALLOCATED,
@@ -54,10 +54,9 @@ const OpenSSLSecureHeapDescription::OpenSSLSecureHeapState
          OpenSSLSecureHeapState::FREED, OpenSSLSecureHeapState::ERROR},
 };
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapDescription(
-    IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
-              const llvm::StructType *, const llvm::Value *, SecureHeapValue,
-              LLVMBasedICFG> &secureHeapPropagationResults)
-    : secureHeapPropagationResults(secureHeapPropagationResults) {}
+    IDESolver<IDESecureHeapPropagationAnalysisDomain>
+        &SecureHeapPropagationResults)
+    : secureHeapPropagationResults(SecureHeapPropagationResults) {}
 
 bool OpenSSLSecureHeapDescription::isFactoryFunction(
     const std::string &F) const {
@@ -84,10 +83,10 @@ bool OpenSSLSecureHeapDescription::isAPIFunction(const std::string &F) const {
 TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
     std::string Tok, TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    auto ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
+    auto Ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
         funcNameToToken(Tok));
 
-    return delta[ftok][S];
+    return Delta[Ftok][S];
   } else {
     return OpenSSLSecureHeapState::BOT;
   }
@@ -98,16 +97,16 @@ OpenSSLSecureHeapDescription::getNextState(const std::string &Tok,
                                            TypeStateDescription::State S,
                                            llvm::ImmutableCallSite CS) const {
   if (isAPIFunction(Tok)) {
-    auto ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
+    auto Ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
         funcNameToToken(Tok));
-    auto results = secureHeapPropagationResults.resultAt(
+    auto Results = secureHeapPropagationResults.resultAt(
         CS.getInstruction(), SecureHeapFact::INITIALIZED);
-    if (results != SecureHeapValue::INITIALIZED) {
+    if (Results != SecureHeapValue::INITIALIZED) {
       // std::cerr << "ERROR: SecureHeap not initialized at "
       //          << llvmIRToShortString(CS.getInstruction()) << std::endl;
       return error();
     }
-    return delta[ftok][S];
+    return Delta[Ftok][S];
   } else {
     return error();
   }
@@ -177,7 +176,7 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::error() const {
 }
 
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapToken
-OpenSSLSecureHeapDescription::funcNameToToken(const std::string &F) const {
+OpenSSLSecureHeapDescription::funcNameToToken(const std::string &F) {
   return llvm::StringSwitch<OpenSSLSecureHeapToken>(F)
       .Case("CRYPTO_secure_malloc", OpenSSLSecureHeapToken::SECURE_MALLOC)
       .Case("CRYPTO_secure_zalloc", OpenSSLSecureHeapToken::SECURE_ZALLOC)

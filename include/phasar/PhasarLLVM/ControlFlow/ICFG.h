@@ -34,9 +34,9 @@ enum class CallGraphAnalysisType {
   Invalid
 };
 
-std::string to_string(const CallGraphAnalysisType &CGA);
+std::string toString(const CallGraphAnalysisType &CGA);
 
-CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S);
+CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 
@@ -46,27 +46,21 @@ public:
 
   virtual std::set<F> getAllFunctions() const = 0;
 
-  virtual F getFunction(const std::string &fun) const = 0;
+  virtual F getFunction(const std::string &Fun) const = 0;
 
-  virtual bool isCallStmt(N stmt) const = 0;
+  virtual bool isIndirectFunctionCall(N Stmt) const = 0;
 
-  virtual bool isIndirectFunctionCall(N stmt) const = 0;
-
-  virtual bool isVirtualFunctionCall(N stmt) const = 0;
+  virtual bool isVirtualFunctionCall(N Stmt) const = 0;
 
   virtual std::set<N> allNonCallStartNodes() const = 0;
 
-  virtual std::set<F> getCalleesOfCallAt(N stmt) const = 0;
+  virtual std::set<F> getCalleesOfCallAt(N Stmt) const = 0;
 
-  virtual std::set<N> getCallersOf(F fun) const = 0;
+  virtual std::set<N> getCallersOf(F Fun) const = 0;
 
-  virtual std::set<N> getCallsFromWithin(F fun) const = 0;
+  virtual std::set<N> getCallsFromWithin(F Fun) const = 0;
 
-  virtual std::set<N> getStartPointsOf(F fun) const = 0;
-
-  virtual std::set<N> getExitPointsOf(F fun) const = 0;
-
-  virtual std::set<N> getReturnSitesOfCallAt(N stmt) const = 0;
+  virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
 
   using CFG<N, F>::print; // tell the compiler we wish to have both prints
   virtual void print(std::ostream &OS = std::cout) const = 0;

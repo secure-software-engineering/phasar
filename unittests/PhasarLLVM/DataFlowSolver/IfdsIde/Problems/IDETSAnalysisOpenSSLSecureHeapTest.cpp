@@ -16,7 +16,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureHeapDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 using namespace psr;
@@ -24,25 +24,21 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureHeapTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/openssl/secure_heap/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  OpenSSLSecureHeapDescription *desc;
-  IDETypeStateAnalysis *TSProblem;
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t> *llvmtssolver = 0;
-  IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
-            const llvm::StructType *, const llvm::Value *, SecureHeapValue,
-            LLVMBasedICFG> *secureHeapPropagationResults;
-  IDESecureHeapPropagation *secureHeapPropagationProblem;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  OpenSSLSecureHeapDescription *Desc{};
+  IDETypeStateAnalysis *TSProblem{};
+  IDESolver<IDETypeStateAnalysisDomain> *Llvmtssolver{};
+  IDESolver<IDESecureHeapPropagationAnalysisDomain>
+      *SecureHeapPropagationResults{};
+  IDESecureHeapPropagation *SecureHeapPropagationProblem{};
   enum OpenSSLSecureHeapState {
     TOP = 42,
     BOT = 0,
@@ -53,34 +49,28 @@ protected:
     ERROR = 5
   };
   IDETSAnalysisOpenSSLSecureHeapTest() = default;
-  virtual ~IDETSAnalysisOpenSSLSecureHeapTest() = default;
+  ~IDETSAnalysisOpenSSLSecureHeapTest() override = default;
 
-  void Initialize(const std::vector<std::string> &IRFiles) {
+  void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
+    PT = new LLVMPointsToSet(*IRDB);
     ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
                              PT);
 
-    secureHeapPropagationProblem =
+    SecureHeapPropagationProblem =
         new IDESecureHeapPropagation(IRDB, TH, ICFG, PT, EntryPoints);
-    secureHeapPropagationResults =
-        new IDESolver<const llvm::Instruction *, SecureHeapFact,
-                      const llvm::Function *, const llvm::StructType *,
-                      const llvm::Value *, SecureHeapValue, LLVMBasedICFG>(
-            *secureHeapPropagationProblem);
+    SecureHeapPropagationResults =
+        new IDESolver<IDESecureHeapPropagationAnalysisDomain>(
+            *SecureHeapPropagationProblem);
 
-    desc = new OpenSSLSecureHeapDescription(*secureHeapPropagationResults);
+    Desc = new OpenSSLSecureHeapDescription(*SecureHeapPropagationResults);
     TSProblem =
-        new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *desc, EntryPoints);
-    llvmtssolver =
-        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                      IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                      IDETypeStateAnalysis::i_t>(*TSProblem);
+        new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *Desc, EntryPoints);
+    Llvmtssolver = new IDESolver<IDETypeStateAnalysisDomain>(*TSProblem);
 
-    secureHeapPropagationResults->solve();
-    llvmtssolver->solve();
+    SecureHeapPropagationResults->solve();
+    Llvmtssolver->solve();
   }
 
   void SetUp() override {
@@ -93,7 +83,7 @@ protected:
     delete TH;
     delete ICFG;
     delete TSProblem;
-    delete llvmtssolver;
+    delete Llvmtssolver;
   }
 
   /**
@@ -104,14 +94,14 @@ protected:
    * @param solver provides the results
    */
   void compareResults(
-      const std::map<std::size_t, std::map<std::string, int>> &groundTruth) {
-    for (auto InstToGroundTruth : groundTruth) {
-      auto Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      const std::map<std::size_t, std::map<std::string, int>> &GroundTruth) {
+    for (const auto &InstToGroundTruth : GroundTruth) {
+      auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
-      std::map<std::string, int> results;
-      for (auto Result : llvmtssolver->resultsAt(Inst, true)) {
+      std::map<std::string, int> Results;
+      for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
-          results.insert(std::pair<std::string, int>(
+          Results.insert(std::pair<std::string, int>(
               getMetaDataID(Result.first), Result.second));
         } // else {
         //   std::cout << "Unused result at " << InstToGroundTruth.first << ": "
@@ -119,43 +109,43 @@ protected:
         //             << Result.second << std::endl;
         // }
       }
-      EXPECT_EQ(results, GT) << "at inst " << llvmIRToShortString(Inst);
+      EXPECT_EQ(Results, GT) << "at inst " << llvmIRToShortString(Inst);
     }
   }
 }; // Test Fixture
 
 TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory6) {
-  Initialize({pathToLLFiles + "memory6_c.ll"});
+  initialize({PathToLlFiles + "memory6_c.ll"});
 
   // secureHeapPropagationResults->printReport();
 
-  std::map<std::size_t, std::map<std::string, int>> gt;
-  gt[25] = {{"9", OpenSSLSecureHeapState::ZEROED},
+  std::map<std::size_t, std::map<std::string, int>> Gt;
+  Gt[25] = {{"9", OpenSSLSecureHeapState::ZEROED},
             {"23", OpenSSLSecureHeapState::ZEROED}};
 
   // the analysis ignores strcpy, so we are getting FREED instead of ERROR
-  gt[31] = {{"9", OpenSSLSecureHeapState::FREED},
+  Gt[31] = {{"9", OpenSSLSecureHeapState::FREED},
             {"23", OpenSSLSecureHeapState::FREED},
             {"29", OpenSSLSecureHeapState::FREED}};
-  compareResults(gt);
+  compareResults(Gt);
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory7) {
-  Initialize({pathToLLFiles + "memory7_c.ll"});
+  initialize({PathToLlFiles + "memory7_c.ll"});
 
   // secureHeapPropagationResults->printReport();
 
-  std::map<std::size_t, std::map<std::string, int>> gt;
-  gt[25] = {{"9", OpenSSLSecureHeapState::ZEROED},
+  std::map<std::size_t, std::map<std::string, int>> Gt;
+  Gt[25] = {{"9", OpenSSLSecureHeapState::ZEROED},
             {"23", OpenSSLSecureHeapState::ZEROED}};
   // here FREED is correct
-  gt[32] = {{"9", OpenSSLSecureHeapState::FREED},
+  Gt[32] = {{"9", OpenSSLSecureHeapState::FREED},
             {"23", OpenSSLSecureHeapState::FREED},
             {"29", OpenSSLSecureHeapState::FREED}};
-  compareResults(gt);
+  compareResults(Gt);
 }
 
-int main(int argc, char *argv[]) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char *Argv[]) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

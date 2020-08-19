@@ -9,15 +9,15 @@ using namespace psr;
 class PAMMTest : public ::testing::Test {
 protected:
   typedef std::chrono::high_resolution_clock::time_point time_point;
-  PAMMTest() {}
-  virtual ~PAMMTest() {}
+  PAMMTest() = default;
+  ~PAMMTest() override = default;
 
-  virtual void SetUp() {}
+  void SetUp() override {}
 
-  virtual void TearDown() {
-    PAMM &pamm = PAMM::getInstance();
-    pamm.printMeasuredData(std::cout);
-    pamm.reset();
+  void TearDown() override {
+    PAMM &Pamm = PAMM::getInstance();
+    Pamm.printMeasuredData(std::cout);
+    Pamm.reset();
   }
 };
 
@@ -26,177 +26,177 @@ TEST_F(PAMMTest, HandleTimer) {
   PAMM::getInstance().startTimer("timer1");
   std::this_thread::sleep_for(std::chrono::milliseconds(1200));
   PAMM::getInstance().stopTimer("timer1");
-  EXPECT_GE(PAMM::getInstance().elapsedTime("timer1"), 1200);
+  EXPECT_GE(PAMM::getInstance().elapsedTime("timer1"), 1200U);
 }
 
 TEST_F(PAMMTest, HandleCounter) {
-  PAMM &pamm = PAMM::getInstance();
-  pamm.regCounter("first");
-  pamm.regCounter("second");
-  pamm.regCounter("third");
-  pamm.incCounter("first", 42);
-  pamm.incCounter("second");
-  pamm.incCounter("second");
-  pamm.incCounter("third", 2);
-  pamm.decCounter("third", 2);
-  EXPECT_EQ(pamm.getCounter("first"), 42);
-  EXPECT_EQ(pamm.getCounter("second"), 2);
-  EXPECT_EQ(pamm.getCounter("third"), 0);
+  PAMM &Pamm = PAMM::getInstance();
+  Pamm.regCounter("first");
+  Pamm.regCounter("second");
+  Pamm.regCounter("third");
+  Pamm.incCounter("first", 42);
+  Pamm.incCounter("second");
+  Pamm.incCounter("second");
+  Pamm.incCounter("third", 2);
+  Pamm.decCounter("third", 2);
+  EXPECT_EQ(Pamm.getCounter("first"), 42);
+  EXPECT_EQ(Pamm.getCounter("second"), 2);
+  EXPECT_EQ(Pamm.getCounter("third"), 0);
 }
 
 TEST_F(PAMMTest, HandleJSONOutput) {
-  PAMM &pamm = PAMM::getInstance();
-  pamm.regCounter("timerCount");
-  pamm.regCounter("setOpCount");
-  pamm.startTimer("timer1");
-  pamm.incCounter("timerCount");
-  pamm.startTimer("timer2");
-  pamm.incCounter("timerCount");
-  pamm.regHistogram("Test-Set");
-  pamm.addToHistogram("Test-Set", "13");
-  pamm.addToHistogram("Test-Set", "13");
-  pamm.addToHistogram("Test-Set", "13");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "54");
-  pamm.addToHistogram("Test-Set", "54");
-  pamm.addToHistogram("Test-Set", "54");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.incCounter("setOpCount", 11);
+  PAMM &Pamm = PAMM::getInstance();
+  Pamm.regCounter("timerCount");
+  Pamm.regCounter("setOpCount");
+  Pamm.startTimer("timer1");
+  Pamm.incCounter("timerCount");
+  Pamm.startTimer("timer2");
+  Pamm.incCounter("timerCount");
+  Pamm.regHistogram("Test-Set");
+  Pamm.addToHistogram("Test-Set", "13");
+  Pamm.addToHistogram("Test-Set", "13");
+  Pamm.addToHistogram("Test-Set", "13");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "54");
+  Pamm.addToHistogram("Test-Set", "54");
+  Pamm.addToHistogram("Test-Set", "54");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.incCounter("setOpCount", 11);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1800));
-  pamm.stopTimer("timer2");
+  Pamm.stopTimer("timer2");
 
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "42");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.incCounter("setOpCount", 10);
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "42");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.incCounter("setOpCount", 10);
 
-  pamm.startTimer("timer3");
-  pamm.incCounter("timerCount");
+  Pamm.startTimer("timer3");
+  Pamm.incCounter("timerCount");
   std::this_thread::sleep_for(std::chrono::milliseconds(2300));
 
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "1");
-  pamm.addToHistogram("Test-Set", "2");
-  pamm.addToHistogram("Test-Set", "2");
-  pamm.addToHistogram("Test-Set", "2");
-  pamm.addToHistogram("Test-Set", "2");
-  pamm.incCounter("setOpCount", 9);
-  pamm.stopTimer("timer3");
-  pamm.exportMeasuredData("HandleJSONOutputTest");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "1");
+  Pamm.addToHistogram("Test-Set", "2");
+  Pamm.addToHistogram("Test-Set", "2");
+  Pamm.addToHistogram("Test-Set", "2");
+  Pamm.addToHistogram("Test-Set", "2");
+  Pamm.incCounter("setOpCount", 9);
+  Pamm.stopTimer("timer3");
+  Pamm.exportMeasuredData("HandleJSONOutputTest");
 }
 
 TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
-  time_point start_1 = std::chrono::high_resolution_clock::now();
+  time_point Start1 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  time_point end_1 = std::chrono::high_resolution_clock::now();
-  time_point start_2 = std::chrono::high_resolution_clock::now();
+  time_point End1 = std::chrono::high_resolution_clock::now();
+  time_point Start2 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
-  time_point end_2 = std::chrono::high_resolution_clock::now();
-  time_point start_3 = std::chrono::high_resolution_clock::now();
+  time_point End2 = std::chrono::high_resolution_clock::now();
+  time_point Start3 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-  time_point end_3 = std::chrono::high_resolution_clock::now();
-  time_point start_4 = std::chrono::high_resolution_clock::now();
+  time_point End3 = std::chrono::high_resolution_clock::now();
+  time_point Start4 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(40));
-  time_point end_4 = std::chrono::high_resolution_clock::now();
-  time_point start_5 = std::chrono::high_resolution_clock::now();
+  time_point End4 = std::chrono::high_resolution_clock::now();
+  time_point Start5 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  time_point end_5 = std::chrono::high_resolution_clock::now();
-  time_point start_6 = std::chrono::high_resolution_clock::now();
+  time_point End5 = std::chrono::high_resolution_clock::now();
+  time_point Start6 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  time_point end_6 = std::chrono::high_resolution_clock::now();
-  time_point start_7 = std::chrono::high_resolution_clock::now();
+  time_point End6 = std::chrono::high_resolution_clock::now();
+  time_point Start7 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
-  time_point end_7 = std::chrono::high_resolution_clock::now();
-  time_point start_8 = std::chrono::high_resolution_clock::now();
+  time_point End7 = std::chrono::high_resolution_clock::now();
+  time_point Start8 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  time_point end_8 = std::chrono::high_resolution_clock::now();
-  time_point start_9 = std::chrono::high_resolution_clock::now();
+  time_point End8 = std::chrono::high_resolution_clock::now();
+  time_point Start9 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  time_point end_9 = std::chrono::high_resolution_clock::now();
-  time_point start_10 = std::chrono::high_resolution_clock::now();
+  time_point End9 = std::chrono::high_resolution_clock::now();
+  time_point Start10 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  time_point end_10 = std::chrono::high_resolution_clock::now();
-  time_point start_11 = std::chrono::high_resolution_clock::now();
+  time_point End10 = std::chrono::high_resolution_clock::now();
+  time_point Start11 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  time_point end_11 = std::chrono::high_resolution_clock::now();
-  time_point start_12 = std::chrono::high_resolution_clock::now();
+  time_point End11 = std::chrono::high_resolution_clock::now();
+  time_point Start12 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-  time_point end_12 = std::chrono::high_resolution_clock::now();
-  time_point start_13 = std::chrono::high_resolution_clock::now();
+  time_point End12 = std::chrono::high_resolution_clock::now();
+  time_point Start13 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-  time_point end_13 = std::chrono::high_resolution_clock::now();
-  time_point start_14 = std::chrono::high_resolution_clock::now();
+  time_point End13 = std::chrono::high_resolution_clock::now();
+  time_point Start14 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-  time_point end_14 = std::chrono::high_resolution_clock::now();
-  time_point start_15 = std::chrono::high_resolution_clock::now();
+  time_point End14 = std::chrono::high_resolution_clock::now();
+  time_point Start15 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(20000));
-  time_point end_15 = std::chrono::high_resolution_clock::now();
-  auto duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - start_1);
-  std::cout << "timer_1 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_2 - start_2);
-  std::cout << "timer_2 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_3 - start_3);
-  std::cout << "timer_3 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_4 - start_4);
-  std::cout << "timer_4 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_5 - start_5);
-  std::cout << "timer_5 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_6 - start_6);
-  std::cout << "timer_6 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_7 - start_7);
-  std::cout << "timer_7 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_8 - start_8);
-  std::cout << "timer_8 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_9 - start_9);
-  std::cout << "timer_9 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_10 - start_10);
-  std::cout << "timer_10 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_11 - start_11);
-  std::cout << "timer_11 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_12 - start_12);
-  std::cout << "timer_12 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_13 - start_13);
-  std::cout << "timer_13 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_14 - start_14);
-  std::cout << "timer_14 : " << duration.count() << std::endl;
-  duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_15 - start_15);
-  std::cout << "timer_15 : " << duration.count() << std::endl;
+  time_point End15 = std::chrono::high_resolution_clock::now();
+  auto Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End1 - Start1);
+  std::cout << "timer_1 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End2 - Start2);
+  std::cout << "timer_2 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End3 - Start3);
+  std::cout << "timer_3 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End4 - Start4);
+  std::cout << "timer_4 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End5 - Start5);
+  std::cout << "timer_5 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End6 - Start6);
+  std::cout << "timer_6 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End7 - Start7);
+  std::cout << "timer_7 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End8 - Start8);
+  std::cout << "timer_8 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End9 - Start9);
+  std::cout << "timer_9 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End10 - Start10);
+  std::cout << "timer_10 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End11 - Start11);
+  std::cout << "timer_11 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End12 - Start12);
+  std::cout << "timer_12 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End13 - Start13);
+  std::cout << "timer_13 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End14 - Start14);
+  std::cout << "timer_14 : " << Duration.count() << std::endl;
+  Duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(End15 - Start15);
+  std::cout << "timer_15 : " << Duration.count() << std::endl;
 }
 
 // main function for the test case
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

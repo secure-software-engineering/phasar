@@ -1,22 +1,19 @@
+#include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "gtest/gtest.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
-class LLVMBasedICFG_DTATest : public ::testing::Test {
-protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_5_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_5_cpp.ll"},
+      IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -33,7 +30,7 @@ TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
     set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
 
     ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
-    ASSERT_EQ(Callees.size(), 2);
+    ASSERT_EQ(Callees.size(), 2U);
     ASSERT_TRUE(Callees.count(VFuncB));
     ASSERT_TRUE(Callees.count(VFuncA));
     ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(I));
@@ -41,9 +38,10 @@ TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
   }
 }
 
-TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_6_cpp.ll"},
-                   IRDBOptions::WPA);
+TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_6_cpp.ll"},
+      IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -56,11 +54,11 @@ TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
   const llvm::Instruction *I = getNthInstruction(F, 6);
   set<const llvm::Instruction *> Callers = ICFG.getCallersOf(VFuncA);
   llvm::ImmutableCallSite CS(I);
-  ASSERT_EQ(Callers.size(), 1);
+  ASSERT_EQ(Callers.size(), 1U);
   ASSERT_TRUE(Callers.count(I));
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

@@ -7,15 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * PointsToGraph.h
- *
- *  Created on: 08.02.2017
- *      Author: pdschbrt
- */
-
-#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
-#define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 
 #include <iostream>
 #include <unordered_map>
@@ -29,6 +22,8 @@
 #include "nlohmann/json.hpp"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 namespace llvm {
 class Value;
@@ -42,16 +37,6 @@ class Type;
 namespace psr {
 
 /**
- * @brief Returns true if the given pointer is an interesting pointer,
- *        i.e. not a constant null pointer.
- */
-static inline bool isInterestingPointer(llvm::Value *V) {
-  return V->getType()->isPointerTy() &&
-         !llvm::isa<llvm::ConstantPointerNull>(V);
-}
-
-// TODO: add a more high level description.
-/**
  * 	This class is a representation of a points-to graph. It is possible to
  * 	construct a points-to graph for a single function using the results of
  *  the llvm alias analysis or merge several points-to graphs into a single
@@ -61,7 +46,7 @@ static inline bool isInterestingPointer(llvm::Value *V) {
  *
  *	@brief Represents the points-to graph of a function.
  */
-class PointsToGraph {
+class LLVMPointsToGraph : public LLVMPointsToInfo {
 public:
   // Call-graph firends
   friend class LLVMBasedICFG;
@@ -95,24 +80,20 @@ public:
   };
 
   /// Data structure for holding the points-to graph.
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-                                VertexProperties, EdgeProperties>
-      graph_t;
+  using graph_t =
+      boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+                            VertexProperties, EdgeProperties>;
 
   /// The type for vertex representative objects.
-  typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
+  using vertex_t = boost::graph_traits<graph_t>::vertex_descriptor;
 
   /// The type for edge representative objects.
-  typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
+  using edge_t = boost::graph_traits<graph_t>::edge_descriptor;
 
   /// The type for a vertex iterator.
-  typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator;
-  typedef boost::graph_traits<graph_t>::out_edge_iterator out_edge_iterator;
-  typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator;
-
-  /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
-  inline const static std::set<std::string> HeapAllocationFunctions = {
-      "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
+  using vertex_iterator = boost::graph_traits<graph_t>::vertex_iterator;
+  using out_edge_iterator = boost::graph_traits<graph_t>::out_edge_iterator;
+  using in_edge_iterator = boost::graph_traits<graph_t>::in_edge_iterator;
 
 private:
   struct AllocationSiteDFSVisitor;
@@ -120,12 +101,17 @@ private:
 
   /// The points to graph.
   graph_t PAG;
-  typedef std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMapT;
+  using ValueVertexMapT = std::unordered_map<const llvm::Value *, vertex_t>;
   ValueVertexMapT ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
-  std::unordered_set<const llvm::Function *> ContainedFunctions;
+  std::unordered_set<const llvm::Function *> AnalyzedFunctions;
+  LLVMBasedPointsToAnalysis PTA;
 
-  void mergeGraph(const PointsToGraph &Other);
+  // void mergeGraph(const LLVMPointsToGraph &Other);
+
+  void computePointsToGraph(const llvm::Value *V);
+
+  void computePointsToGraph(llvm::Function *F);
 
 public:
   /**
@@ -135,19 +121,41 @@ public:
    * @param AA Contains the computed Alias Results.
    * @param F Points-to graph is created for this particular function.
    * @param onlyConsiderMustAlias True, if only Must Aliases should be
-   * considered.
-   *                              False, if May and Must Aliases should be
+   * considered. False, if May and Must Aliases should be
    * considered.
    */
-  PointsToGraph(llvm::Function *F, llvm::AAResults &AA);
+  LLVMPointsToGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+                    PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
 
-  /**
-   * @brief This will create an empty points-to graph. It is used when points-to
-   * graphs are merged.
-   */
-  PointsToGraph() = default;
+  ~LLVMPointsToGraph() override = default;
 
-  virtual ~PointsToGraph() = default;
+  bool isInterProcedural() const override;
+
+  PointerAnalysisType getPointerAnalysistype() const override;
+
+  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
+                    const llvm::Instruction *I = nullptr) override;
+
+  std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  getPointsToSet(const llvm::Value *V,
+                 const llvm::Instruction *I = nullptr) override;
+
+  std::unordered_set<const llvm::Value *>
+  getReachableAllocationSites(const llvm::Value *V,
+                              const llvm::Instruction *I = nullptr) override;
+
+  void mergeWith(const PointsToInfo<const llvm::Value *,
+                                    const llvm::Instruction *> &PTI) override;
+
+  void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
+                      const llvm::Instruction *I = nullptr,
+                      AliasResult Kind = AliasResult::MustAlias) override;
+
+  void print(std::ostream &OS = std::cout) const override;
+
+  nlohmann::json getAsJson() const override;
+
+  void printAsJson(std::ostream &OS = std::cout) const override;
 
   /**
    * @brief Returns true if graph contains 0 nodes.
@@ -185,48 +193,11 @@ public:
   getPointersEscapingThroughReturnsForFunction(const llvm::Function *Fd) const;
 
   /**
-   * @brief Returns all reachable allocation sites from a given pointer.
-   * @note An allocation site can either be an Alloca Instruction or a call to
-   * an allocating function.
-   * @return Set of Allocation sites.
-   */
-  std::set<const llvm::Value *>
-  getReachableAllocationSites(const llvm::Value *V,
-                              std::vector<const llvm::Instruction *> CallStack);
-
-  /**
-   * @brief Computes all possible types from a given std::set of allocation
-   * sites.
-   * @note An allocation site can either be an Alloca Instruction or a call to
-   * an allocating function.
-   * @param AS Set of Allocation site.
-   * @return Set of Types.
-   */
-  std::set<const llvm::Type *>
-  computeTypesFromAllocationSites(std::set<const llvm::Value *> AS);
-
-  /**
    * @brief Checks if a given value is represented by a vertex in the points-to
    * graph.
    * @return True, the points-to graph contains the given value.
    */
   bool containsValue(llvm::Value *V);
-
-  /**
-   * @brief Computes the Points-to set for a given pointer.
-   */
-  std::set<const llvm::Value *> getPointsToSet(const llvm::Value *V) const;
-
-  // TODO add more detailed description
-  inline bool representsSingleFunction();
-  void mergeWith(const PointsToGraph *Other, const llvm::Function *F);
-
-  void mergeCallSite(const llvm::ImmutableCallSite &CS,
-                     const llvm::Function *F);
-
-  void mergeWith(const PointsToGraph &Other,
-                 const std::vector<std::pair<llvm::ImmutableCallSite,
-                                             const llvm::Function *>> &Calls);
 
   /**
    * The value-vertex-map maps each Value of the points-to graph to
@@ -235,11 +206,6 @@ public:
    * @brief Prints the value-vertex-map to the command-line.
    */
   void printValueVertexMap();
-
-  /**
-   * @brief Prints the points-to graph to the command-line.
-   */
-  void print(std::ostream &OS = std::cout) const;
 
   class PointerVertexOrEdgePrinter {
   public:
@@ -268,15 +234,6 @@ public:
   size_t getNumVertices() const;
 
   size_t getNumEdges() const;
-
-  nlohmann::json getAsJson()const ;
-
-  /**
-   * @brief Prints the points-to graph in .json format to the given output
-   * stream.
-   * @param outputstream.
-   */
-  void printAsJson(std::ostream &OS = std::cout) const;
 };
 
 } // namespace psr

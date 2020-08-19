@@ -19,6 +19,8 @@
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Passes/PassBuilder.h"
 
 #include "phasar/Utils/EnumFlags.h"
 
@@ -44,6 +46,9 @@ class ProjectIRDB {
 private:
   llvm::Module *WPAModule = nullptr;
   IRDBOptions Options;
+  llvm::PassBuilder PB;
+  llvm::ModuleAnalysisManager MAM;
+  llvm::ModulePassManager MPM;
   // Stores all allocation instructions
   std::set<const llvm::Instruction *> AllocaInstructions;
   // Stores all allocated types
@@ -60,7 +65,9 @@ private:
   void buildIDModuleMapping(llvm::Module *M);
 
   void preprocessModule(llvm::Module *M);
-  bool wasCompiledWithDebugInfo(llvm::Module *M) const;
+  static bool wasCompiledWithDebugInfo(llvm::Module *M) {
+    return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
+  };
 
   void preprocessAllModules();
 
@@ -89,64 +96,78 @@ public:
   // get a completely linked module for the WPA_MODE
   llvm::Module *getWPAModule();
 
-  bool containsSourceFile(const std::string &File) const;
+  [[nodiscard]] inline bool containsSourceFile(const std::string &File) const {
+    return Modules.find(File) != Modules.end();
+  };
 
-  bool empty() const;
+  [[nodiscard]] inline bool empty() const { return Modules.empty(); };
 
-  bool debugInfoAvailable() const;
+  [[nodiscard]] bool debugInfoAvailable() const;
 
   llvm::Module *getModule(const std::string &ModuleName);
 
-  inline std::set<llvm::Module *> getAllModules() const {
+  [[nodiscard]] inline std::set<llvm::Module *> getAllModules() const {
     std::set<llvm::Module *> ModuleSet;
-    for (auto &[File, Module] : Modules) {
+    for (const auto &[File, Module] : Modules) {
       ModuleSet.insert(Module.get());
     }
     return ModuleSet;
   }
 
-  std::set<const llvm::Function *> getAllFunctions() const;
+  [[nodiscard]] std::set<const llvm::Function *> getAllFunctions() const;
 
-  const llvm::Function *
+  [[nodiscard]] const llvm::Function *
   getFunctionDefinition(const std::string &FunctionName) const;
 
-  const llvm::Function *getFunction(const std::string &FunctionName) const;
+  [[nodiscard]] const llvm::Function *
+  getFunction(const std::string &FunctionName) const;
 
-  const llvm::GlobalVariable *
+  [[nodiscard]] const llvm::GlobalVariable *
   getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
 
   llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
 
-  const llvm::Module *
+  [[nodiscard]] const llvm::Module *
   getModuleDefiningFunction(const std::string &FunctionName) const;
 
-  std::set<const llvm::Instruction *> getAllocaInstructions() const;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getAllocaInstructions() const {
+    return AllocaInstructions;
+  };
 
   /**
    * LLVM's intrinsic global variables are excluded.
    *
    * @brief Returns all stack and heap allocations, including global variables.
    */
-  std::set<const llvm::Value *> getAllMemoryLocations() const;
+  [[nodiscard]] std::set<const llvm::Value *> getAllMemoryLocations() const;
 
-  std::set<std::string> getAllSourceFiles() const;
+  [[nodiscard]] std::set<std::string> getAllSourceFiles() const;
 
-  std::set<const llvm::Type *> getAllocatedTypes() const;
+  [[nodiscard]] std::set<const llvm::Type *> getAllocatedTypes() const {
+    return AllocatedTypes;
+  };
 
-  std::set<const llvm::StructType *> getAllocatedStructTypes() const;
+  [[nodiscard]] std::set<const llvm::StructType *>
+  getAllocatedStructTypes() const;
 
-  std::set<const llvm::Instruction *> getRetOrResInstructions() const;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getRetOrResInstructions() const {
+    return RetOrResInstructions;
+  };
 
-  std::size_t getNumberOfModules() const;
+  [[nodiscard]] std::size_t getNumberOfModules() const {
+    return Modules.size();
+  };
 
-  llvm::Instruction *getInstruction(std::size_t id);
+  [[nodiscard]] llvm::Instruction *getInstruction(std::size_t id);
 
-  std::size_t getInstructionID(const llvm::Instruction *I) const;
+  [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
 
   void print() const;
 
   void emitPreprocessedIR(std::ostream &os = std::cout,
-                          bool shortendIR = true) const;
+                          bool ShortenIR = true) const;
 
   /**
    * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
@@ -177,12 +198,13 @@ public:
    * @brief Creates a unique string representation for any given
    * llvm::Value.
    */
-  std::string valueToPersistedString(const llvm::Value *V);
+  [[nodiscard]] static std::string valueToPersistedString(const llvm::Value *V);
   /**
    * @brief Convertes the given string back into the llvm::Value it represents.
    * @return Pointer to the converted llvm::Value.
    */
-  const llvm::Value *persistedStringToValue(const std::string &StringRep);
+  [[nodiscard]] const llvm::Value *
+  persistedStringToValue(const std::string &StringRep) const;
 };
 
 } // namespace psr

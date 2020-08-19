@@ -4,6 +4,7 @@ if(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)
 	IFDSTaintAnalysisTest.cpp
 	IDEInstInteractionAnalysisTest.cpp
 	IDELinearConstantAnalysisTest.cpp
+	IDELinearConstantAnalysis_DotTest.cpp
 	IDETSAnalysisFileIOTest.cpp
 	IDETSAnalysisOpenSSLEVPKDFTest.cpp
 	IDETSAnalysisOpenSSLSecureHeapTest.cpp
@@ -16,10 +17,12 @@ else()
 	IFDSTaintAnalysisTest.cpp
 	IDEInstInteractionAnalysisTest.cpp
 	IDELinearConstantAnalysisTest.cpp
+	IDELinearConstantAnalysis_DotTest.cpp
 	IFDSUninitializedVariablesTest.cpp
   )
 endif(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)
 
+test_require_config_file("DOTGraphConfig.json")
 
 foreach(TEST_SRC ${IfdsIdeProblemSources})
 	add_phasar_unittest(${TEST_SRC})

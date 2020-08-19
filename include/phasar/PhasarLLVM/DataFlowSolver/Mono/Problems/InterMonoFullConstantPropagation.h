@@ -15,7 +15,9 @@
 #include <unordered_map>
 #include <utility>
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 
@@ -31,22 +33,19 @@ namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
-class LLVMBasedICFG;
 
-class InterMonoFullConstantPropagation
-    : public InterMonoProblem<
-          const llvm::Instruction *,
-          std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
-          const llvm::Function *, const llvm::StructType *, const llvm::Value *,
-          LLVMBasedICFG> {
-public:
-  using n_t = const llvm::Instruction *;
+struct InterMonoFullConstantPropagationAnalysisDomain
+    : public LLVMAnalysisDomainDefault {
   using plain_d_t = int64_t;
   using d_t = std::pair<const llvm::Value *, LatticeDomain<plain_d_t>>;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
   using i_t = LLVMBasedICFG;
+};
+
+class InterMonoFullConstantPropagation
+    : public InterMonoProblem<InterMonoFullConstantPropagationAnalysisDomain> {
+public:
+  using plain_d_t =
+      typename InterMonoFullConstantPropagationAnalysisDomain::plain_d_t;
 
   InterMonoFullConstantPropagation(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
@@ -99,7 +98,7 @@ struct hash<std::pair<
     size_t hp = hash_ptr(P.first);
     size_t hu = 0;
     // returns nullptr if P.second is Top or Bottom, a valid pointer otherwise
-    if (auto Ptr =
+    if (const auto *Ptr =
             std::get_if<psr::InterMonoFullConstantPropagation::plain_d_t>(
                 &P.second)) {
       hu = *Ptr;

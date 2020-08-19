@@ -13,9 +13,10 @@
 #include "llvm/ADT/StringRef.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
@@ -29,44 +30,46 @@ class Function;
 namespace psr {
 enum class SecureHeapFact { ZERO, INITIALIZED };
 enum class SecureHeapValue { TOP, INITIALIZED, BOT };
+
+struct IDESecureHeapPropagationAnalysisDomain : LLVMAnalysisDomainDefault {
+  using d_t = SecureHeapFact;
+  using l_t = SecureHeapValue;
+};
+
 class IDESecureHeapPropagation
-    : public IDETabulationProblem<const llvm::Instruction *, SecureHeapFact,
-                                  const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  SecureHeapValue, LLVMBasedICFG> {
+    : public IDETabulationProblem<IDESecureHeapPropagationAnalysisDomain> {
+
   const llvm::StringLiteral initializerFn = "CRYPTO_secure_malloc_init";
   const llvm::StringLiteral shutdownFn = "CRYPTO_secure_malloc_done";
 
 public:
-  typedef SecureHeapFact d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef SecureHeapValue l_t;
-  typedef LLVMBasedICFG i_t;
+  using IDETabProblemType =
+      IDETabulationProblem<IDESecureHeapPropagationAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
+
   IDESecureHeapPropagation(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            std::set<std::string> EntryPoints = {"main"});
   ~IDESecureHeapPropagation() override = default;
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         m_t destMthd) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destMthd) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        m_t calleeMthd,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
+                                         n_t exitStmt, n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+                                             f_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -78,7 +81,7 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printFunction(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, f_t f) const override;
 
   // in addition provide specifications for the IDE parts
 
@@ -88,16 +91,16 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
-                                                         m_t destinationMethod,
+                                                         f_t destinationMethod,
                                                          d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<m_t> callees) override;
+                           d_t retSiteNode, std::set<f_t> callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,

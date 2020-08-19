@@ -23,6 +23,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
 #include "phasar/Utils/BitVectorSet.h"
 
@@ -39,21 +40,12 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 
 class InterMonoTaintAnalysis
-    : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedICFG> {
+    : public InterMonoProblem<LLVMAnalysisDomainDefault> {
 private:
   const TaintConfiguration<const llvm::Value *> &TSF;
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
 
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
-
   using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
 
   InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,

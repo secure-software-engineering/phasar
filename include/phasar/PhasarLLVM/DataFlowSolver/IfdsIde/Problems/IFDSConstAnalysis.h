@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -43,20 +44,8 @@ class LLVMTypeHierarchy;
  * @brief Computes all possibly mutable memory locations.
  */
 class IFDSConstAnalysis
-    : public IFDSTabulationProblem<const llvm::Instruction *,
-                                   const llvm::Value *, const llvm::Function *,
-                                   const llvm::StructType *,
-                                   const llvm::Value *, LLVMBasedICFG> {
-public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
-
+    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
 private:
-  const PointsToGraph &ptg;
   // Holds all allocated memory locations, including global variables
   std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
   // Holds all initialized variables and objects.
@@ -64,7 +53,7 @@ private:
 
 public:
   IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;
@@ -91,8 +80,7 @@ public:
    * @param curr Currently analyzed program statement.
    * @param succ Successor statement.
    */
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
   /**
    * The following llvm intrinsics
@@ -114,8 +102,7 @@ public:
    * @param callStmt Call statement.
    * @param destFun Callee function.
    */
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
 
   /**
    * Maps formal parameters back into actual parameters. Data-flow fact(s)
@@ -126,10 +113,8 @@ public:
    * @param exitStmt Exit statement in callee.
    * @param retSite Return site.
    */
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        f_t calleeFun,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+                                         n_t exitStmt, n_t retSite) override;
 
   /**
    * If the called function is a llvm memory intrinsic function, appropriate
@@ -142,15 +127,14 @@ public:
    * @param callSite Call site.
    * @param retSite Return site.
    */
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override;
 
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.
    */
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+                                             f_t destFun) override;
 
   /**
    * Only the zero value is valid at the first program statement, i.e.
@@ -228,8 +212,8 @@ public:
    * @param PointsToSet that is refined.
    * @param Context dictates which points-to information is relevant.
    */ // clang-format on
-  std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
-                                              f_t Context);
+  static std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
+                                                     f_t Context);
 };
 
 } // namespace psr

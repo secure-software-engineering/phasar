@@ -22,7 +22,10 @@
 #include <unordered_map>
 #include <utility>
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
@@ -36,22 +39,16 @@ namespace psr {
 
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
-class LLVMBasedCFG;
-class LLVMBasedICFG;
+
+struct IntraMonoFullConstantPropagationAnalysisDomain
+    : public LLVMAnalysisDomainDefault {
+  using d_t = std::pair<const llvm::Value *, unsigned>;
+  using i_t = LLVMBasedCFG;
+};
 
 class IntraMonoFullConstantPropagation
-    : public IntraMonoProblem<const llvm::Instruction *,
-                              std::pair<const llvm::Value *, unsigned>,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedCFG> {
+    : public IntraMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef std::pair<const llvm::Value *, unsigned> d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedCFG i_t;
-
   IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedCFG *CF,

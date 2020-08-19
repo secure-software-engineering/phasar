@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "gtest/gtest.h"
@@ -23,17 +23,17 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisFileIOTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/typestate_analysis_fileio/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  CSTDFILEIOTypeStateDescription *CSTDFILEIODesc;
-  IDETypeStateAnalysis *TSProblem;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  CSTDFILEIOTypeStateDescription *CSTDFILEIODesc{};
+  IDETypeStateAnalysis *TSProblem{};
   enum IOSTATE {
     TOP = 42,
     UNINIT = 0,
@@ -44,12 +44,12 @@ protected:
   };
 
   IDETSAnalysisFileIOTest() = default;
-  virtual ~IDETSAnalysisFileIOTest() = default;
+  ~IDETSAnalysisFileIOTest() override = default;
 
-  void Initialize(const std::vector<std::string> &IRFiles) {
+  void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
+    PT = new LLVMPointsToSet(*IRDB);
     ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
                              PT);
     CSTDFILEIODesc = new CSTDFILEIOTypeStateDescription();
@@ -76,68 +76,53 @@ protected:
    * @param solver provides the results
    */
   void compareResults(
-      const std::map<std::size_t, std::map<std::string, int>> &groundTruth,
-      IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                IDETypeStateAnalysis::i_t> &solver) {
-    for (auto InstToGroundTruth : groundTruth) {
-      auto Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      const std::map<std::size_t, std::map<std::string, int>> &GroundTruth,
+      IDESolver_P<IDETypeStateAnalysis> &Solver) {
+    for (const auto &InstToGroundTruth : GroundTruth) {
+      auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
       // std::cout << "Handle results at " << InstToGroundTruth.first <<
       // std::endl;
       auto GT = InstToGroundTruth.second;
-      std::map<std::string, int> results;
-      for (auto Result : solver.resultsAt(Inst, true)) {
+      std::map<std::string, int> Results;
+      for (auto Result : Solver.resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
-          results.insert(std::pair<std::string, int>(
+          Results.insert(std::pair<std::string, int>(
               getMetaDataID(Result.first), Result.second));
         }
       }
-      EXPECT_EQ(results, GT) << "At " << llvmIRToShortString(Inst);
+      EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(Inst);
     }
   }
 }; // Test Fixture
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
-  Initialize({pathToLLFiles + "typestate_01_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  initialize({PathToLlFiles + "typestate_01_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       {5, {{"3", IOSTATE::UNINIT}}},
       {9, {{"3", IOSTATE::CLOSED}}},
       {7, {{"3", IOSTATE::OPENED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
-  Initialize({pathToLLFiles + "typestate_02_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_02_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       {7, {{"3", IOSTATE::OPENED}, {"5", IOSTATE::OPENED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
-  Initialize({pathToLLFiles + "typestate_03_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_03_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
+  Llvmtssolver.solve();
   // llvmtssolver.printReport();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Entry in foo()
       {2, {{"foo.0", IOSTATE::OPENED}}},
       // Exit in foo()
@@ -154,20 +139,16 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
        {{"2", IOSTATE::CLOSED},
         {"8", IOSTATE::CLOSED},
         {"12", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
-  Initialize({pathToLLFiles + "typestate_04_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_04_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
+  Llvmtssolver.solve();
 
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {6,
        {
@@ -180,19 +161,15 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
       // At exit in main()
       {14, {{"2", IOSTATE::ERROR}, {"8", IOSTATE::ERROR}}}};
 
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
-  Initialize({pathToLLFiles + "typestate_05_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_05_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before if statement
       {10, {{"4", IOSTATE::OPENED}, {"6", IOSTATE::OPENED}}},
       // Inside if statement at last instruction
@@ -202,20 +179,16 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
         {"11", IOSTATE::CLOSED}}},
       // After if statement
       {14, {{"4", IOSTATE::BOT}, {"6", IOSTATE::BOT}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
   // This test fails due to imprecise points-to information
-  Initialize({pathToLLFiles + "typestate_06_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_06_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before first fopen()
       {8, {{"5", IOSTATE::UNINIT}, {"6", IOSTATE::UNINIT}}},
       // Before storing the result of the first fopen()
@@ -242,19 +215,15 @@ TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
         {"12", IOSTATE::OPENED}}},
       // After if statement
       {14, {{"5", IOSTATE::CLOSED}, {"6", IOSTATE::OPENED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
-  Initialize({pathToLLFiles + "typestate_07_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_07_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // In foo()
       {6,
        {
@@ -278,36 +247,28 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
         {"12", IOSTATE::OPENED}}},
       // At exit in main()
       {16, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
-  Initialize({pathToLLFiles + "typestate_08_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_08_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {6, {{"2", IOSTATE::OPENED}}},
       // At exit in main()
       {11, {{"2", IOSTATE::OPENED}, {"8", IOSTATE::UNINIT}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
-  Initialize({pathToLLFiles + "typestate_09_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_09_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {8,
        {
@@ -317,19 +278,15 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
        }},
       // At exit in main()
       {18, {{"4", IOSTATE::CLOSED}, {"10", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
-  Initialize({pathToLLFiles + "typestate_10_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_10_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in bar()
       {4, {{"2", IOSTATE::UNINIT}}},
       // At exit in foo()
@@ -343,19 +300,15 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
        {{"2", IOSTATE::CLOSED},
         {"5", IOSTATE::CLOSED},
         {"13", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
-  Initialize({pathToLLFiles + "typestate_11_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_11_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in bar(): closing uninitialized file-handle gives error-state
       {6,
        {
@@ -374,19 +327,15 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
       // propagated back to main
       {19,
        {{"2", IOSTATE::ERROR}, {"7", IOSTATE::ERROR}, {"13", IOSTATE::ERROR}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
-  Initialize({pathToLLFiles + "typestate_12_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_12_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in bar()
       {6,
        {
@@ -398,38 +347,30 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
       {8, {{"2", IOSTATE::OPENED}, {"10", IOSTATE::OPENED}}},
       // At exit in main()
       {16, {{"2", IOSTATE::CLOSED}, {"10", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
-  Initialize({pathToLLFiles + "typestate_13_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_13_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before first fclose()
       {8, {{"3", IOSTATE::OPENED}}},
       // Before second fclose()
       {10, {{"3", IOSTATE::CLOSED}}},
       // At exit in main()
       {11, {{"3", IOSTATE::ERROR}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
-  Initialize({pathToLLFiles + "typestate_14_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_14_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before first fopen()
       {7, {{"5", IOSTATE::UNINIT}}},
       // Before second fopen()
@@ -444,19 +385,15 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
        {{"5", IOSTATE::CLOSED},
         {"7", IOSTATE::CLOSED},
         {"9", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
-  Initialize({pathToLLFiles + "typestate_15_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_15_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // After store of ret val of first fopen()
       {9,
        {
@@ -507,32 +444,29 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
         {"9", IOSTATE::ERROR},
         {"11", IOSTATE::CLOSED},
         {"13", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
-  Initialize({pathToLLFiles + "typestate_16_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_16_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
+  Llvmtssolver.solve();
 
-  auto pts = ICFG->getWholeModulePTG().getPointsToSet(IRDB->getInstruction(2));
+  auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
   std::cout << "PointsTo(2) = {";
-  bool frst = true;
-  for (auto p : pts) {
-    if (frst)
-      frst = false;
-    else
+  bool Frst = true;
+  for (const auto *P : *Pts) {
+    if (Frst) {
+      Frst = false;
+    } else {
       std::cout << ", ";
-    std::cout << llvmIRToShortString(p);
+    }
+    std::cout << llvmIRToShortString(P);
   }
   std::cout << "}" << std::endl;
 
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {16,
        {
@@ -541,20 +475,16 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
        }},
       // At exit in main()
       {24, {{"2", IOSTATE::CLOSED}, {"18", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
-  Initialize({pathToLLFiles + "typestate_17_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_17_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before fgetc()
       {17,
        {{"2", IOSTATE::BOT},
@@ -573,19 +503,15 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
         {"9", IOSTATE::BOT},
         {"13", IOSTATE::BOT},
         {"16", IOSTATE::BOT}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
-  Initialize({pathToLLFiles + "typestate_18_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_18_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {17,
        {
@@ -594,29 +520,25 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
        }},
       // At exit in main()
       {25, {{"2", IOSTATE::CLOSED}, {"19", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
-  Initialize({pathToLLFiles + "typestate_19_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+  initialize({PathToLlFiles + "typestate_19_c.ll"});
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
+  Llvmtssolver.solve();
+  const std::map<std::size_t, std::map<std::string, int>> Gt = {
       {11, {{"8", IOSTATE::UNINIT}}},
       {14, {{"8", IOSTATE::BOT}}},
       // At exit in main()
       {25, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
-  compareResults(gt, llvmtssolver);
+  compareResults(Gt, Llvmtssolver);
 }
 
 // main function for the test case
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

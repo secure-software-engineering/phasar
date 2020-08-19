@@ -26,42 +26,42 @@ public:
   static bool isMemoryLocationTainted(const llvm::Value *memLocationMatr,
                                       const ExtendedValue &fact);
 
-  static const std::vector<const llvm::Value *>
+  static std::vector<const llvm::Value *>
   getMemoryLocationSeqFromMatr(const llvm::Value *memLocationMatr);
-  static const std::vector<const llvm::Value *>
+  static std::vector<const llvm::Value *>
   getMemoryLocationSeqFromFact(const ExtendedValue &memLocationFact);
-  static const std::vector<const llvm::Value *>
+  static std::vector<const llvm::Value *>
   getVaListMemoryLocationSeqFromFact(const ExtendedValue &vaListFact);
 
   static bool isMemoryLocationSeqsEqual(
-      const std::vector<const llvm::Value *> memLocationSeq1,
-      const std::vector<const llvm::Value *> memLocationSeq2);
+      const std::vector<const llvm::Value *> &memLocationSeq1,
+      const std::vector<const llvm::Value *> &memLocationSeq2);
 
   static bool isSubsetMemoryLocationSeq(
-      const std::vector<const llvm::Value *> memLocationSeqInst,
-      const std::vector<const llvm::Value *> memLocationSeqFact);
-  static const std::vector<const llvm::Value *> getRelocatableMemoryLocationSeq(
-      const std::vector<const llvm::Value *> taintedMemLocationSeq,
-      const std::vector<const llvm::Value *> srcMemLocationSeq);
-  static const std::vector<const llvm::Value *> joinMemoryLocationSeqs(
-      const std::vector<const llvm::Value *> memLocationSeq1,
-      const std::vector<const llvm::Value *> memLocationSeq2);
+      const std::vector<const llvm::Value *> &memLocationSeqInst,
+      const std::vector<const llvm::Value *> &memLocationSeqFact);
+  static std::vector<const llvm::Value *> getRelocatableMemoryLocationSeq(
+      const std::vector<const llvm::Value *> &taintedMemLocationSeq,
+      const std::vector<const llvm::Value *> &srcMemLocationSeq);
+  static std::vector<const llvm::Value *> joinMemoryLocationSeqs(
+      const std::vector<const llvm::Value *> &memLocationSeq1,
+      const std::vector<const llvm::Value *> &memLocationSeq2);
 
   static bool isPatchableArgumentStore(const llvm::Value *srcValue,
                                        const ExtendedValue &fact);
   static bool isPatchableArgumentMemcpy(
       const llvm::Value *srcValue,
-      const std::vector<const llvm::Value *> srcMemLocationSeq,
+      const std::vector<const llvm::Value *> &srcMemLocationSeq,
       const ExtendedValue &fact);
   static bool isPatchableVaListArgument(const llvm::Value *srcValue,
                                         const ExtendedValue &fact);
   static bool isPatchableReturnValue(const llvm::Value *srcValue,
                                      const ExtendedValue &fact);
-  static const std::vector<const llvm::Value *> patchMemoryLocationFrame(
-      const std::vector<const llvm::Value *> patchableMemLocationSeq,
-      const std::vector<const llvm::Value *> patchMemLocationSeq);
+  static std::vector<const llvm::Value *> patchMemoryLocationFrame(
+      const std::vector<const llvm::Value *> &patchableMemLocationSeq,
+      const std::vector<const llvm::Value *> &patchMemLocationSeq);
 
-  static const std::vector<
+  static std::vector<
       std::tuple<const llvm::Value *, const std::vector<const llvm::Value *>,
                  const llvm::Value *>>
   getSanitizedArgList(const llvm::CallInst *callInst,
@@ -86,14 +86,14 @@ public:
                             const llvm::Instruction *successorInst);
   static bool isArrayDecay(const llvm::Value *memLocationMatr);
   static bool isGlobalMemoryLocationSeq(
-      const std::vector<const llvm::Value *> memLocationSeq);
+      const std::vector<const llvm::Value *> &memLocationSeq);
 
   static void dumpFact(const ExtendedValue &ev);
 
-  static const std::set<std::string> getTaintedFunctions();
-  static const std::set<std::string> getBlacklistedFunctions();
+  static std::set<std::string> getTaintedFunctions();
+  static std::set<std::string> getBlacklistedFunctions();
 
-  static const std::string getTraceFilenamePrefix(std::string entryPoint);
+  static std::string getTraceFilenamePrefix(const std::string &entryPoint);
 };
 
 } // namespace psr

@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 
+#include "phasar/Config/Configuration.h"
 #include "phasar/Utils/Utilities.h"
 
 namespace psr {
@@ -41,7 +42,8 @@ public:
   static const std::string LambdaIDEdgeAttr() { return LambdaIDEdge; }
   static const std::string LambdaInterEdgeAttr() { return LambdaInterEdge; }
 
-  static void importDOTConfig();
+  static void
+  importDOTConfig(std::string ConfigPath = PhasarConfig::PhasarDirectory());
 
   static DOTConfig &getDOTConfig();
   ~DOTConfig() = default;
@@ -92,7 +94,7 @@ struct DOTNode {
   DOTNode() = default;
   DOTNode(std::string fName, std::string l, std::string sId, unsigned fId = 0,
           bool isStmt = true, bool isv = true);
-  std::string str(std::string indent = "") const;
+  std::string str(const std::string &indent = "") const;
 };
 
 bool operator<(const DOTNode &lhs, const DOTNode &rhs);
@@ -108,7 +110,7 @@ struct DOTEdge {
 
   DOTEdge(DOTNode src, DOTNode tar, bool isv = true, std::string efl = "",
           std::string vl = "");
-  std::string str(std::string indent = "") const;
+  std::string str(const std::string &indent = "") const;
 };
 
 bool operator<(const DOTEdge &lhs, const DOTEdge &rhs);
@@ -123,7 +125,7 @@ struct DOTFactSubGraph {
   std::map<std::string, DOTNode, stringIDLess> nodes;
   std::set<DOTEdge> edges;
 
-  std::string str(std::string indent = "") const;
+  std::string str(const std::string &indent = "") const;
 };
 
 std::ostream &operator<<(std::ostream &os, const DOTFactSubGraph &factSG);
@@ -138,10 +140,10 @@ struct DOTFunctionSubGraph {
   /// d1 -> d2 where d1 != d2
   std::set<DOTEdge> crossFactEdges;
 
-  std::string str(std::string indent = "") const;
+  std::string str(const std::string &indent = "") const;
   DOTFactSubGraph *getOrCreateFactSG(unsigned factID, std::string &label);
   // TODO: pass the actual lambda EF name and value as parameter from DOTGraph
-  std::string generateLambdaSG(std::string indent = "") const;
+  std::string generateLambdaSG(const std::string &indent = "") const;
   void createLayoutCFNodes();
   void createLayoutFactNodes();
   void createLayoutFactEdges();

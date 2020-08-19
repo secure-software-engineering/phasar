@@ -20,7 +20,7 @@
 #include <set>
 #include <vector>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 
 namespace psr {
 
@@ -34,7 +34,7 @@ private:
 
 public:
   IFDSSummary(N Start, N End, std::vector<bool> C, std::set<D> Gen, D ZV)
-      : StartNode(Start), EndNode(End), Context(C), Outputs(Gen),
+      : StartNode(Start), EndNode(End), Context(std::move(C)), Outputs(Gen),
         ZeroValue(ZV) {}
   virtual ~IFDSSummary() = default;
   std::set<D> computeTargets(D source) override {

@@ -30,70 +30,98 @@ __attribute__((constructor)) void init() {
 __attribute__((destructor)) void fini() { cout << "fini - ICFGTestPlugin\n"; }
 
 unique_ptr<ICFGPlugin> makeICFGTestPlugin(ProjectIRDB &IRDB,
-                                          const vector<string> EntryPoints) {
+                                          const vector<string> &EntryPoints) {
   return unique_ptr<ICFGPlugin>(new ICFGTestPlugin(IRDB, EntryPoints));
 }
 
 ICFGTestPlugin::ICFGTestPlugin(ProjectIRDB &IRDB,
-                               const vector<string> EntryPoints)
+                               const vector<string> &EntryPoints)
     : ICFGPlugin(IRDB, EntryPoints) {}
 
 ICFGTestPlugin::f_t
-ICFGTestPlugin::getFunctionOf(ICFGTestPlugin::n_t stmt) const {
+ICFGTestPlugin::getFunctionOf(ICFGTestPlugin::n_t Stmt) const {
   return nullptr;
 }
 
 std::vector<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getPredsOf(ICFGTestPlugin::n_t stmt) const {
+ICFGTestPlugin::getPredsOf(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 
 std::vector<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getSuccsOf(ICFGTestPlugin::n_t stmt) const {
+ICFGTestPlugin::getSuccsOf(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 
 std::vector<std::pair<ICFGTestPlugin::n_t, ICFGTestPlugin::n_t>>
-ICFGTestPlugin::getAllControlFlowEdges(ICFGTestPlugin::f_t fun) const {
+ICFGTestPlugin::getAllControlFlowEdges(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
 std::vector<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getAllInstructionsOf(ICFGTestPlugin::f_t fun) const {
+ICFGTestPlugin::getAllInstructionsOf(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
-bool ICFGTestPlugin::isExitStmt(ICFGTestPlugin::n_t stmt) const {
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getStartPointsOf(ICFGTestPlugin::f_t fun) const {
+  return {};
+}
+
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t fun) const {
+  return {};
+}
+
+bool ICFGTestPlugin::isExitStmt(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isStartPoint(ICFGTestPlugin::n_t stmt) const {
+bool ICFGTestPlugin::isStartPoint(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isFieldLoad(ICFGTestPlugin::n_t stmt) const {
+bool ICFGTestPlugin::isFieldLoad(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isFieldStore(ICFGTestPlugin::n_t stmt) const {
+bool ICFGTestPlugin::isFieldStore(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isFallThroughSuccessor(ICFGTestPlugin::n_t stmt,
-                                            ICFGTestPlugin::n_t succ) const {
+bool ICFGTestPlugin::isFallThroughSuccessor(ICFGTestPlugin::n_t Stmt,
+                                            ICFGTestPlugin::n_t Succ) const {
   return false;
 }
 
-bool ICFGTestPlugin::isBranchTarget(ICFGTestPlugin::n_t stmt,
-                                    ICFGTestPlugin::n_t succ) const {
+bool ICFGTestPlugin::isBranchTarget(ICFGTestPlugin::n_t Stmt,
+                                    ICFGTestPlugin::n_t Succ) const {
   return false;
 }
 
-std::string ICFGTestPlugin::getStatementId(ICFGTestPlugin::n_t stmt) const {
+bool ICFGTestPlugin::isHeapAllocatingFunction(ICFGTestPlugin::f_t fun) const {
+  return false;
+}
+
+bool ICFGTestPlugin::isSpecialMemberFunction(ICFGTestPlugin::f_t fun) const {
+  return false;
+}
+
+SpecialMemberFunctionType
+ICFGTestPlugin::getSpecialMemberFunctionType(ICFGTestPlugin::f_t fun) const {
+  return SpecialMemberFunctionType::None;
+}
+
+std::string ICFGTestPlugin::getStatementId(ICFGTestPlugin::n_t Stmt) const {
   return "";
 }
 
-std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::f_t fun) const {
+std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::f_t Fun) const {
+  return "";
+}
+
+std::string
+ICFGTestPlugin::getDemangledFunctionName(ICFGTestPlugin::f_t Fun) const {
   return "";
 }
 
@@ -109,19 +137,19 @@ std::set<ICFGTestPlugin::f_t> ICFGTestPlugin::getAllFunctions() const {
   return {};
 }
 
-ICFGTestPlugin::f_t ICFGTestPlugin::getFunction(const std::string &fun) const {
+ICFGTestPlugin::f_t ICFGTestPlugin::getFunction(const std::string &Fun) const {
   return nullptr;
 }
 
-bool ICFGTestPlugin::isCallStmt(ICFGTestPlugin::n_t stmt) const {
+bool ICFGTestPlugin::isCallStmt(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isIndirectFunctionCall(ICFGTestPlugin::n_t stmt) const {
+bool ICFGTestPlugin::isIndirectFunctionCall(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isVirtualFunctionCall(ICFGTestPlugin::n_t stmt) const {
+bool ICFGTestPlugin::isVirtualFunctionCall(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
@@ -130,32 +158,22 @@ std::set<ICFGTestPlugin::n_t> ICFGTestPlugin::allNonCallStartNodes() const {
 }
 
 std::set<ICFGTestPlugin::f_t>
-ICFGTestPlugin::getCalleesOfCallAt(ICFGTestPlugin::n_t stmt) const {
+ICFGTestPlugin::getCalleesOfCallAt(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 
 std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getCallersOf(ICFGTestPlugin::f_t fun) const {
+ICFGTestPlugin::getCallersOf(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
 std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getCallsFromWithin(ICFGTestPlugin::f_t fun) const {
+ICFGTestPlugin::getCallsFromWithin(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
 std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getStartPointsOf(ICFGTestPlugin::f_t fun) const {
-  return {};
-}
-
-std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t fun) const {
-  return {};
-}
-
-std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getReturnSitesOfCallAt(ICFGTestPlugin::n_t stmt) const {
+ICFGTestPlugin::getReturnSitesOfCallAt(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 

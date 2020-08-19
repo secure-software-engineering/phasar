@@ -8,13 +8,14 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <utility>
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -29,42 +30,40 @@ namespace psr {
 IFDSSignAnalysis::IFDSSignAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
+                                   LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSSignAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
-IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t curr,
-                                        IFDSSignAnalysis::n_t succ) {
+IFDSSignAnalysis::FlowFunctionPtrType
+IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t Curr,
+                                        IFDSSignAnalysis::n_t Succ) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
-IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t callStmt,
-                                      IFDSSignAnalysis::f_t destFun) {
+IFDSSignAnalysis::FlowFunctionPtrType
+IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t CallStmt,
+                                      IFDSSignAnalysis::f_t DestFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
-IFDSSignAnalysis::getRetFlowFunction(IFDSSignAnalysis::n_t callSite,
-                                     IFDSSignAnalysis::f_t calleeFun,
-                                     IFDSSignAnalysis::n_t exitStmt,
-                                     IFDSSignAnalysis::n_t retSite) {
+IFDSSignAnalysis::FlowFunctionPtrType IFDSSignAnalysis::getRetFlowFunction(
+    IFDSSignAnalysis::n_t CallSite, IFDSSignAnalysis::f_t CalleeFun,
+    IFDSSignAnalysis::n_t ExitStmt, IFDSSignAnalysis::n_t RetSite) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
-IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t callSite,
-                                           IFDSSignAnalysis::n_t retSite,
-                                           set<IFDSSignAnalysis::f_t> callees) {
+IFDSSignAnalysis::FlowFunctionPtrType
+IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t CallSite,
+                                           IFDSSignAnalysis::n_t RetSite,
+                                           set<IFDSSignAnalysis::f_t> Callees) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
-IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t callStmt,
-                                         IFDSSignAnalysis::f_t destFun) {
+IFDSSignAnalysis::FlowFunctionPtrType
+IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t CallStmt,
+                                         IFDSSignAnalysis::f_t DestFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
@@ -72,7 +71,7 @@ map<IFDSSignAnalysis::n_t, set<IFDSSignAnalysis::d_t>>
 IFDSSignAnalysis::initialSeeds() {
   cout << "IFDSSignAnalysis::initialSeeds()\n";
   map<IFDSSignAnalysis::n_t, set<IFDSSignAnalysis::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IFDSSignAnalysis::d_t>({getZeroValue()})));
   }
@@ -84,22 +83,22 @@ IFDSSignAnalysis::d_t IFDSSignAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t d) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t D) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
 }
 
-void IFDSSignAnalysis::printNode(ostream &os, IFDSSignAnalysis::n_t n) const {
-  os << llvmIRToString(n);
+void IFDSSignAnalysis::printNode(ostream &OS, IFDSSignAnalysis::n_t N) const {
+  OS << llvmIRToString(N);
 }
 
-void IFDSSignAnalysis::printDataFlowFact(ostream &os,
-                                         IFDSSignAnalysis::d_t d) const {
-  os << llvmIRToString(d);
+void IFDSSignAnalysis::printDataFlowFact(ostream &OS,
+                                         IFDSSignAnalysis::d_t D) const {
+  OS << llvmIRToString(D);
 }
 
-void IFDSSignAnalysis::printFunction(ostream &os,
-                                     IFDSSignAnalysis::f_t m) const {
-  os << m->getName().str();
+void IFDSSignAnalysis::printFunction(ostream &OS,
+                                     IFDSSignAnalysis::f_t M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

@@ -19,7 +19,7 @@ using namespace std;
 
 namespace psr {
 
-std::string to_string(const DataFlowAnalysisType &D) {
+std::string toString(const DataFlowAnalysisType &D) {
   switch (D) {
   default:
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
@@ -30,7 +30,23 @@ std::string to_string(const DataFlowAnalysisType &D) {
   }
 }
 
-DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S) {
+std::string toString(const DataFlowAnalysisKind &D) {
+  if (std::holds_alternative<DataFlowAnalysisType>(D)) {
+    return toString(std::get<DataFlowAnalysisType>(D));
+  } else if (std::holds_alternative<IFDSPluginConstructor>(D)) {
+    return "IFDS Plugin";
+  } else if (std::holds_alternative<IDEPluginConstructor>(D)) {
+    return "IDE Plugin";
+  } else if (std::holds_alternative<IntraMonoPluginConstructor>(D)) {
+    return "IntraMono Plugin";
+  } else if (std::holds_alternative<InterMonoPluginConstructor>(D)) {
+    return "InterMono Plugin";
+  } else {
+    return "None";
+  }
+}
+
+DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
   DataFlowAnalysisType Type = llvm::StringSwitch<DataFlowAnalysisType>(S)
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
   .Case(NAME, DataFlowAnalysisType::TYPE)
@@ -46,7 +62,8 @@ DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &os, const DataFlowAnalysisType &D) {
-  return os << to_string(D);
+ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
+  return OS << toString(D);
 }
+
 } // namespace psr

@@ -35,31 +35,6 @@ class StringRef;
 } // namespace llvm
 
 namespace psr {
-/**
- * @brief Return type of SpecialMemberFunctionType.
- */
-enum class SpecialMemberFunctionTy {
-  NONE = 0,
-  CTOR,
-  DTOR,
-  CPASSIGNOP,
-  MVASSIGNOP
-};
-
-/**
- * @brief Hashes a string to an int so that strings can be used in switches.
- * @note In rare conditions the hash values of two strings can collide.
- */
-constexpr unsigned int str2int(const char *str, int h);
-
-/**
- * @brief checks if a function name is the name of a special member function.
- * @param s Mangled function name.
- * @return Returns an enum element of SpecialMemberFunctionTy.
- */
-SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s);
-
-SpecialMemberFunctionTy specialMemberFunctionType(const llvm::StringRef &sr);
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -156,7 +131,9 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
  * @return LLVM Instruction or nullptr, if instNo invalid.
  */
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
-                                           unsigned instNo);
+                                           unsigned Idx);
+
+const llvm::Instruction *getLastInstructionOf(const llvm::Function *F);
 
 /**
  * The Termination Instruction count starts with one (not zero, as in Function
@@ -196,7 +173,7 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V);
  * @param V LLVM Value.
  * @return Module name or empty string.
  */
-const std::string getModuleNameFromVal(const llvm::Value *V);
+std::string getModuleNameFromVal(const llvm::Value *V);
 
 /**
  * @brief Computes a hash value for a given LLVM Module.

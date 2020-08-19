@@ -37,35 +37,35 @@ namespace psr {
 
 llvm::AnalysisKey ValueAnnotationPass::Key;
 
-size_t ValueAnnotationPass::unique_value_id = 0;
+size_t ValueAnnotationPass::UniqueValueId = 0;
 
-ValueAnnotationPass::ValueAnnotationPass() {}
+ValueAnnotationPass::ValueAnnotationPass() = default;
 
 llvm::PreservedAnalyses
 ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Running ValueAnnotationPass");
-  auto &context = M.getContext();
-  for (auto &global : M.globals()) {
-    llvm::MDNode *node = llvm::MDNode::get(
-        context, llvm::MDString::get(context, std::to_string(unique_value_id)));
-    global.setMetadata(PhasarConfig::MetaDataKind(), node);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                << "Running ValueAnnotationPass");
+  auto &Context = M.getContext();
+  for (auto &Global : M.globals()) {
+    llvm::MDNode *Node = llvm::MDNode::get(
+        Context, llvm::MDString::get(Context, std::to_string(UniqueValueId)));
+    Global.setMetadata(PhasarConfig::MetaDataKind(), Node);
     //		std::cout <<
     // llvm::cast<llvm::MDString>(global.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
     //<< std::endl;
-    ++unique_value_id;
+    ++UniqueValueId;
   }
   for (auto &F : M) {
     for (auto &BB : F) {
       for (auto &I : BB) {
-        llvm::MDNode *node = llvm::MDNode::get(
-            context,
-            llvm::MDString::get(context, std::to_string(unique_value_id)));
-        I.setMetadata(PhasarConfig::MetaDataKind(), node);
+        llvm::MDNode *Node = llvm::MDNode::get(
+            Context,
+            llvm::MDString::get(Context, std::to_string(UniqueValueId)));
+        I.setMetadata(PhasarConfig::MetaDataKind(), Node);
         //		    	std::cout <<
         // llvm::cast<llvm::MDString>(I.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
         //<< std::endl;
-        ++unique_value_id;
+        ++UniqueValueId;
       }
     }
   }
@@ -74,7 +74,7 @@ ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {
 
 void ValueAnnotationPass::resetValueID() {
   cout << "Reset ID" << endl;
-  unique_value_id = 0;
+  UniqueValueId = 0;
 }
 
 } // namespace psr

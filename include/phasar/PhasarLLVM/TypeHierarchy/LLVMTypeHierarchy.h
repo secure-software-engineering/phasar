@@ -60,10 +60,12 @@ public:
   struct VertexProperties {
     VertexProperties() = default;
     VertexProperties(const llvm::StructType *Type);
+
+    [[nodiscard]] std::string getTypeName() const;
+
     const llvm::StructType *Type = nullptr;
-    std::optional<LLVMVFTable> VFT;
+    std::optional<LLVMVFTable> VFT = std::nullopt;
     std::set<const llvm::StructType *> ReachableTypes;
-    std::string getTypeName() const;
   };
 
   /// Edges in the class hierarchy graph doesn't hold any additional
@@ -73,18 +75,18 @@ public:
   };
 
   /// Data structure holding the class hierarchy graph.
-  typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS,
-                                VertexProperties, EdgeProperties>
-      bidigraph_t;
+  using bidigraph_t =
+      boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS,
+                            VertexProperties, EdgeProperties>;
 
   /// The type for vertex representative objects.
-  typedef boost::graph_traits<bidigraph_t>::vertex_descriptor vertex_t;
+  using vertex_t = boost::graph_traits<bidigraph_t>::vertex_descriptor;
   /// The type for edge representative objects.
-  typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
+  using edge_t = boost::graph_traits<bidigraph_t>::edge_descriptor;
   // Let us have some further handy typedefs.
-  typedef boost::graph_traits<bidigraph_t>::vertex_iterator vertex_iterator;
-  typedef boost::graph_traits<bidigraph_t>::out_edge_iterator out_edge_iterator;
-  typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
+  using vertex_iterator = boost::graph_traits<bidigraph_t>::vertex_iterator;
+  using out_edge_iterator = boost::graph_traits<bidigraph_t>::out_edge_iterator;
+  using in_edge_iterator = boost::graph_traits<bidigraph_t>::in_edge_iterator;
 
 private:
   bidigraph_t TypeGraph;
@@ -112,21 +114,21 @@ private:
 
   static const std::string TypeInfoPrefixDemang;
 
-  std::string removeStructOrClassPrefix(const llvm::StructType &T);
+  static std::string removeStructOrClassPrefix(const llvm::StructType &T);
 
-  std::string removeStructOrClassPrefix(const std::string &TypeName);
+  static std::string removeStructOrClassPrefix(const std::string &TypeName);
 
-  std::string removeTypeInfoPrefix(std::string VarName);
+  static std::string removeTypeInfoPrefix(std::string VarName);
 
-  std::string removeVTablePrefix(std::string VarName);
+  static std::string removeVTablePrefix(std::string VarName);
 
-  bool isTypeInfo(std::string VarName);
+  static bool isTypeInfo(const std::string &VarName);
 
-  bool isVTable(std::string VarName);
+  static bool isVTable(const std::string &VarName);
 
-  bool isStruct(const llvm::StructType &T);
+  static bool isStruct(const llvm::StructType &T);
 
-  bool isStruct(llvm::StringRef TypeName);
+  static bool isStruct(llvm::StringRef TypeName);
 
   std::vector<const llvm::StructType *>
   getSubTypes(const llvm::Module &M, const llvm::StructType &Type);
@@ -167,37 +169,52 @@ public:
    */
   void constructHierarchy(const llvm::Module &M);
 
-  bool hasType(const llvm::StructType *Type) const override;
+  [[nodiscard]] inline bool
+  hasType(const llvm::StructType *Type) const override {
+    return TypeVertexMap.count(Type);
+  }
 
-  bool isSubType(const llvm::StructType *Type,
-                 const llvm::StructType *SubType) override;
+  [[nodiscard]] inline bool
+  isSubType(const llvm::StructType *Type,
+            const llvm::StructType *SubType) override {
+    auto ReachableTypes = getSubTypes(Type);
+    return ReachableTypes.count(SubType);
+  }
 
   std::set<const llvm::StructType *>
   getSubTypes(const llvm::StructType *Type) override;
 
-  bool isSuperType(const llvm::StructType *Type,
-                   const llvm::StructType *SuperType) override;
+  [[nodiscard]] inline bool
+  isSuperType(const llvm::StructType *Type,
+              const llvm::StructType *SuperType) override {
+    return isSubType(SuperType, Type);
+  }
 
   std::set<const llvm::StructType *>
   getSuperTypes(const llvm::StructType *Type) override;
 
-  const llvm::StructType *getType(std::string TypeName) const override;
+  [[nodiscard]] const llvm::StructType *
+  getType(std::string TypeName) const override;
 
-  std::set<const llvm::StructType *> getAllTypes() const override;
+  [[nodiscard]] std::set<const llvm::StructType *> getAllTypes() const override;
 
-  std::string getTypeName(const llvm::StructType *Type) const override;
+  [[nodiscard]] std::string
+  getTypeName(const llvm::StructType *Type) const override;
 
-  bool hasVFTable(const llvm::StructType *Type) const override;
+  [[nodiscard]] bool hasVFTable(const llvm::StructType *Type) const override;
 
-  const LLVMVFTable *getVFTable(const llvm::StructType *Type) const override;
+  [[nodiscard]] const LLVMVFTable *
+  getVFTable(const llvm::StructType *Type) const override;
 
-  size_t size() const override;
+  [[nodiscard]] inline size_t size() const override {
+    return boost::num_vertices(TypeGraph);
+  };
 
-  bool empty() const override;
+  [[nodiscard]] inline bool empty() const override { return size() == 0; };
 
   void print(std::ostream &OS = std::cout) const override;
 
-  nlohmann::json getAsJson() const override;
+  [[nodiscard]] nlohmann::json getAsJson() const override;
 
   // void mergeWith(LLVMTypeHierarchy &Other);
 
@@ -220,7 +237,7 @@ public:
   };
 
   // a function to conveniently create this writer
-  TypeHierarchyVertexWriter
+  [[nodiscard]] TypeHierarchyVertexWriter
   makeTypeHierarchyVertexWriter(const bidigraph_t &TyGraph) const {
     return TypeHierarchyVertexWriter(TyGraph);
   }

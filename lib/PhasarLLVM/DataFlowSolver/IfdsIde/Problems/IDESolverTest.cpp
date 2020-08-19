@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <utility>
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -16,9 +18,8 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultSeeds.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -33,43 +34,42 @@ namespace psr {
 
 IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF,
-                             const LLVMPointsToInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
 // start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
-IDESolverTest::getNormalFlowFunction(IDESolverTest::n_t curr,
-                                     IDESolverTest::n_t succ) {
+IDESolverTest::FlowFunctionPtrType
+IDESolverTest::getNormalFlowFunction(IDESolverTest::n_t Curr,
+                                     IDESolverTest::n_t Succ) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
-IDESolverTest::getCallFlowFunction(IDESolverTest::n_t callStmt,
-                                   IDESolverTest::f_t destFun) {
+IDESolverTest::FlowFunctionPtrType
+IDESolverTest::getCallFlowFunction(IDESolverTest::n_t CallStmt,
+                                   IDESolverTest::f_t DestFun) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>> IDESolverTest::getRetFlowFunction(
-    IDESolverTest::n_t callSite, IDESolverTest::f_t calleeFun,
-    IDESolverTest::n_t exitStmt, IDESolverTest::n_t retSite) {
+IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
+    IDESolverTest::n_t CallSite, IDESolverTest::f_t CalleeFun,
+    IDESolverTest::n_t ExitStmt, IDESolverTest::n_t RetSite) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
-IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t callSite,
-                                        IDESolverTest::n_t retSite,
-                                        set<IDESolverTest::f_t> callees) {
+IDESolverTest::FlowFunctionPtrType
+IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t CallSite,
+                                        IDESolverTest::n_t RetSite,
+                                        set<IDESolverTest::f_t> Callees) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
-IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t callStmt,
-                                      IDESolverTest::f_t destFun) {
+IDESolverTest::FlowFunctionPtrType
+IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t CallStmt,
+                                      IDESolverTest::f_t DestFun) {
   return nullptr;
 }
 
@@ -89,50 +89,50 @@ IDESolverTest::d_t IDESolverTest::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDESolverTest::isZeroValue(IDESolverTest::d_t d) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+bool IDESolverTest::isZeroValue(IDESolverTest::d_t D) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
 }
 
 // in addition provide specifications for the IDE parts
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t curr,
-                                     IDESolverTest::d_t currNode,
-                                     IDESolverTest::n_t succ,
-                                     IDESolverTest::d_t succNode) {
+IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t Curr,
+                                     IDESolverTest::d_t CurrNode,
+                                     IDESolverTest::n_t Succ,
+                                     IDESolverTest::d_t SuccNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::getCallEdgeFunction(
-    IDESolverTest::n_t callStmt, IDESolverTest::d_t srcNode,
-    IDESolverTest::f_t destinationFunction, IDESolverTest::d_t destNode) {
+    IDESolverTest::n_t CallStmt, IDESolverTest::d_t SrcNode,
+    IDESolverTest::f_t DestinationFunction, IDESolverTest::d_t DestNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t callSite,
-                                     IDESolverTest::f_t calleeFunction,
-                                     IDESolverTest::n_t exitStmt,
-                                     IDESolverTest::d_t exitNode,
-                                     IDESolverTest::n_t reSite,
-                                     IDESolverTest::d_t retNode) {
+IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t CallSite,
+                                     IDESolverTest::f_t CalleeFunction,
+                                     IDESolverTest::n_t ExitStmt,
+                                     IDESolverTest::d_t ExitNode,
+                                     IDESolverTest::n_t ReSite,
+                                     IDESolverTest::d_t RetNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t callSite,
-                                        IDESolverTest::d_t callNode,
-                                        IDESolverTest::n_t retSite,
-                                        IDESolverTest::d_t retSiteNode,
-                                        set<IDESolverTest::f_t> callees) {
+IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t CallSite,
+                                        IDESolverTest::d_t CallNode,
+                                        IDESolverTest::n_t RetSite,
+                                        IDESolverTest::d_t RetSiteNode,
+                                        set<IDESolverTest::f_t> Callees) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getSummaryEdgeFunction(IDESolverTest::n_t callStmt,
-                                      IDESolverTest::d_t callNode,
-                                      IDESolverTest::n_t retSite,
-                                      IDESolverTest::d_t retSiteNode) {
+IDESolverTest::getSummaryEdgeFunction(IDESolverTest::n_t CallStmt,
+                                      IDESolverTest::d_t CallNode,
+                                      IDESolverTest::n_t RetSite,
+                                      IDESolverTest::d_t RetSiteNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
@@ -146,8 +146,8 @@ IDESolverTest::l_t IDESolverTest::bottomElement() {
   return nullptr;
 }
 
-IDESolverTest::l_t IDESolverTest::join(IDESolverTest::l_t lhs,
-                                       IDESolverTest::l_t rhs) {
+IDESolverTest::l_t IDESolverTest::join(IDESolverTest::l_t Lhs,
+                                       IDESolverTest::l_t Rhs) {
   cout << "IDESolverTest::join()\n";
   return nullptr;
 }
@@ -158,45 +158,45 @@ shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::allTopFunction() {
 }
 
 IDESolverTest::l_t
-IDESolverTest::IDESolverTestAllTop::computeTarget(IDESolverTest::l_t source) {
+IDESolverTest::IDESolverTestAllTop::computeTarget(IDESolverTest::l_t Source) {
   cout << "IDESolverTest::IDESolverTestAllTop::computeTarget()\n";
   return nullptr;
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::IDESolverTestAllTop::composeWith(
-    shared_ptr<EdgeFunction<IDESolverTest::l_t>> secondFunction) {
+    shared_ptr<EdgeFunction<IDESolverTest::l_t>> SecondFunction) {
   cout << "IDESolverTest::IDESolverTestAllTop::composeWith()\n";
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::IDESolverTestAllTop::joinWith(
-    shared_ptr<EdgeFunction<IDESolverTest::l_t>> otherFunction) {
+    shared_ptr<EdgeFunction<IDESolverTest::l_t>> OtherFunction) {
   cout << "IDESolverTest::IDESolverTestAllTop::joinWith()\n";
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 bool IDESolverTest::IDESolverTestAllTop::equal_to(
-    shared_ptr<EdgeFunction<IDESolverTest::l_t>> other) const {
+    shared_ptr<EdgeFunction<IDESolverTest::l_t>> Other) const {
   cout << "IDESolverTest::IDESolverTestAllTop::equalTo()\n";
   return false;
 }
 
-void IDESolverTest::printNode(ostream &os, IDESolverTest::n_t n) const {
-  os << llvmIRToString(n);
+void IDESolverTest::printNode(ostream &OS, IDESolverTest::n_t N) const {
+  OS << llvmIRToString(N);
 }
 
-void IDESolverTest::printDataFlowFact(ostream &os, IDESolverTest::d_t d) const {
-  os << llvmIRToString(d);
+void IDESolverTest::printDataFlowFact(ostream &OS, IDESolverTest::d_t D) const {
+  OS << llvmIRToString(D);
 }
 
-void IDESolverTest::printFunction(ostream &os, IDESolverTest::f_t m) const {
-  os << m->getName().str();
+void IDESolverTest::printFunction(ostream &OS, IDESolverTest::f_t M) const {
+  OS << M->getName().str();
 }
 
-void IDESolverTest::printEdgeFact(ostream &os, IDESolverTest::l_t l) const {
-  os << "empty V test";
+void IDESolverTest::printEdgeFact(ostream &OS, IDESolverTest::l_t L) const {
+  OS << "empty V test";
 }
 
 } // namespace psr

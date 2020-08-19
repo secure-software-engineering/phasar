@@ -9,11 +9,13 @@
 
 #include <string>
 
+#include "llvm/ADT/StringSwitch.h"
+
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 namespace psr {
 
-std::string to_string(AliasResult AR) {
+std::string toString(AliasResult AR) {
   switch (AR) {
   case AliasResult::NoAlias:
     return "NoAlias";
@@ -30,7 +32,7 @@ std::string to_string(AliasResult AR) {
   }
 }
 
-AliasResult to_AliasResult(const std::string &S) {
+AliasResult toAliasResult(const std::string &S) {
   if (S == "NoAlias") {
     return AliasResult::NoAlias;
   } else if (S == "MayAlias") {
@@ -43,7 +45,38 @@ AliasResult to_AliasResult(const std::string &S) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const AliasResult &AR) {
-  return OS << to_string(AR);
+  return OS << toString(AR);
+}
+
+std::string tostring(const PointerAnalysisType &PA) {
+  switch (PA) {
+  default:
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  case PointerAnalysisType::TYPE:                                              \
+    return NAME;                                                               \
+    break;
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+  }
+}
+
+PointerAnalysisType toPointerAnalysisType(const std::string &S) {
+  PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(NAME, PointerAnalysisType::TYPE)
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+                                 .Default(PointerAnalysisType::Invalid);
+  if (Type == PointerAnalysisType::Invalid) {
+    Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(CMDFLAG, PointerAnalysisType::TYPE)
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+               .Default(PointerAnalysisType::Invalid);
+  }
+  return Type;
+}
+
+std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA) {
+  return os << tostring(PA);
 }
 
 } // namespace psr

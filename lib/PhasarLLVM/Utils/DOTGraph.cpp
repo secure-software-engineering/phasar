@@ -17,226 +17,228 @@
 #include <algorithm>
 #include <iterator>
 #include <ostream>
+#include <utility>
 
 #include "boost/filesystem.hpp"
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/Utils/DOTGraph.h"
 
 namespace psr {
 
-DOTNode::DOTNode(std::string fName, std::string l, std::string sId,
-                 unsigned fId, bool isStmt, bool isv)
-    : funcName(fName), label(l), stmtId(sId), factId(fId), isVisible(isv) {
-  if (isStmt) {
+DOTNode::DOTNode(std::string FName, std::string L, std::string SId,
+                 unsigned FId, bool IsStmt, bool IsV)
+    : funcName(std::move(FName)), label(std::move(L)), stmtId(std::move(SId)),
+      factId(FId), isVisible(IsV) {
+  if (IsStmt) {
     id = funcName + '_' + stmtId;
   } else {
     id = funcName + '_' + std::to_string(factId) + '_' + stmtId;
   }
 }
 
-std::string DOTNode::str(std::string indent) const {
-  std::string str = indent + id + " [label=\"" + label;
+std::string DOTNode::str(const std::string &Indent) const {
+  std::string Str = Indent + id + " [label=\"" + label;
   if (factId) {
-    str += " | SID: " + stmtId;
+    Str += " | SID: " + stmtId;
   }
-  str += "\"";
+  Str += "\"";
   if (!isVisible) {
-    str += ", style=invis";
+    Str += ", style=invis";
   }
-  return str + ']';
+  return Str + ']';
 }
 
-DOTEdge::DOTEdge(DOTNode src, DOTNode tar, bool isv, std::string efl,
-                 std::string vl)
-    : source(src), target(tar), isVisible(isv), edgeFnLabel(efl),
-      valueLabel(vl) {}
+DOTEdge::DOTEdge(DOTNode Src, DOTNode Tar, bool IsV, std::string Efl,
+                 std::string Vl)
+    : source(std::move(Src)), target(std::move(Tar)), isVisible(IsV),
+      edgeFnLabel(std::move(Efl)), valueLabel(std::move(Vl)) {}
 
-std::string DOTEdge::str(std::string indent) const {
-  std::string str = indent + source.id + " -> " + target.id;
+std::string DOTEdge::str(const std::string &Indent) const {
+  std::string Str = Indent + source.id + " -> " + target.id;
   if (isVisible) {
     if (!edgeFnLabel.empty() && !valueLabel.empty()) {
-      str += " [headlabel=\"\\r" + edgeFnLabel + "\", taillabel=\"" +
+      Str += " [headlabel=\"\\r" + edgeFnLabel + "\", taillabel=\"" +
              valueLabel + "\"]";
     } else if (!edgeFnLabel.empty()) {
-      str += " [headlabel=\"\\r" + edgeFnLabel + "\"]";
+      Str += " [headlabel=\"\\r" + edgeFnLabel + "\"]";
     } else if (!valueLabel.empty()) {
-      str += " [taillabel=\"" + valueLabel + "\"]";
+      Str += " [taillabel=\"" + valueLabel + "\"]";
     }
   } else if (!isVisible) {
-    str += " [style=invis]";
+    Str += " [style=invis]";
   }
-  return str;
+  return Str;
 }
 
-std::string DOTFactSubGraph::str(std::string indent) const {
-  std::string innerIndent = indent + "  ";
-  std::string str = indent + "subgraph cluster_" + id + " {\n" + innerIndent +
-                    "style=invis\n" + innerIndent + "label=\"" + label +
-                    "\"\n\n" + innerIndent + "// Fact nodes in the ESG\n" +
-                    innerIndent + DOTConfig::FactNodeAttr() + '\n';
+std::string DOTFactSubGraph::str(const std::string &Indent) const {
+  std::string InnerIndent = Indent + "  ";
+  std::string Str = Indent + "subgraph cluster_" + id + " {\n" + InnerIndent +
+                    "style=invis\n" + InnerIndent + "label=\"" + label +
+                    "\"\n\n" + InnerIndent + "// Fact nodes in the ESG\n" +
+                    InnerIndent + DOTConfig::FactNodeAttr() + '\n';
   // Print fact nodes
-  for (auto n : nodes) {
-    str += n.second.str(innerIndent) + '\n';
+  for (const auto &N : nodes) {
+    Str += N.second.str(InnerIndent) + '\n';
   }
   // Print id edges
-  str += '\n' + innerIndent + "// Identity edges for this fact\n" +
-         innerIndent + DOTConfig::FactIDEdgeAttr() + '\n';
-  for (DOTEdge e : edges) {
-    str += e.str(innerIndent) + '\n';
+  Str += '\n' + InnerIndent + "// Identity edges for this fact\n" +
+         InnerIndent + DOTConfig::FactIDEdgeAttr() + '\n';
+  for (const DOTEdge &E : edges) {
+    Str += E.str(InnerIndent) + '\n';
   }
-  return str + indent + '}';
+  return Str + Indent + '}';
 }
 
-std::string DOTFunctionSubGraph::str(std::string indent) const {
-  std::string innerIndent = indent + "  ";
-  std::string str = indent + "subgraph cluster_" + id + " {\n" + innerIndent +
+std::string DOTFunctionSubGraph::str(const std::string &Indent) const {
+  std::string InnerIndent = Indent + "  ";
+  std::string Str = Indent + "subgraph cluster_" + id + " {\n" + InnerIndent +
                     "label=\"" + id + "\"";
   // Print control flow nodes
-  str += "\n\n" + innerIndent + "// Control flow nodes\n" + innerIndent +
+  Str += "\n\n" + InnerIndent + "// Control flow nodes\n" + InnerIndent +
          DOTConfig::CFNodeAttr() + '\n';
-  for (DOTNode stmt : stmts) {
-    str += stmt.str(innerIndent) + '\n';
+  for (const DOTNode &Stmt : stmts) {
+    Str += Stmt.str(InnerIndent) + '\n';
   }
 
   // Print fact subgraphs
-  str += '\n' + innerIndent + "// Fact subgraphs\n";
-  for (auto factSG : facts) {
-    str += factSG.second.str(innerIndent) + "\n\n";
+  Str += '\n' + InnerIndent + "// Fact subgraphs\n";
+  for (const auto &FactSG : facts) {
+    Str += FactSG.second.str(InnerIndent) + "\n\n";
   }
 
   // Print lambda subgraph
-  str += generateLambdaSG(innerIndent);
+  Str += generateLambdaSG(InnerIndent);
 
   // Print intra control flow edges
-  str += "\n\n" + innerIndent + "// Intra-procedural control flow edges\n" +
-         innerIndent + DOTConfig::CFIntraEdgeAttr() + '\n';
-  for (DOTEdge e : intraCFEdges) {
-    str += e.str(innerIndent) + '\n';
+  Str += "\n\n" + InnerIndent + "// Intra-procedural control flow edges\n" +
+         InnerIndent + DOTConfig::CFIntraEdgeAttr() + '\n';
+  for (const DOTEdge &E : intraCFEdges) {
+    Str += E.str(InnerIndent) + '\n';
   }
 
   // Print intra cross fact edges
-  str += '\n' + innerIndent + "// Intra-procedural cross fact edges\n" +
-         innerIndent + DOTConfig::FactCrossEdgeAttr() + '\n';
-  for (DOTEdge e : crossFactEdges) {
-    str += e.str(innerIndent) + '\n';
+  Str += '\n' + InnerIndent + "// Intra-procedural cross fact edges\n" +
+         InnerIndent + DOTConfig::FactCrossEdgeAttr() + '\n';
+  for (const DOTEdge &E : crossFactEdges) {
+    Str += E.str(InnerIndent) + '\n';
   }
-  return str + indent + '}';
+  return Str + Indent + '}';
 }
 
-DOTFactSubGraph *DOTFunctionSubGraph::getOrCreateFactSG(unsigned factID,
-                                                        std::string &label) {
-  DOTFactSubGraph *FuncSG = &facts[factID];
+DOTFactSubGraph *DOTFunctionSubGraph::getOrCreateFactSG(unsigned FactID,
+                                                        std::string &Label) {
+  DOTFactSubGraph *FuncSG = &facts[FactID];
   if (FuncSG->id.empty()) {
-    FuncSG->id = id + '_' + std::to_string(factID);
-    FuncSG->factId = factID;
-    FuncSG->label = label;
+    FuncSG->id = id + '_' + std::to_string(FactID);
+    FuncSG->factId = FactID;
+    FuncSG->label = Label;
   }
   return FuncSG;
 }
 
-std::string DOTFunctionSubGraph::generateLambdaSG(std::string indent) const {
-  std::string innerIndent = indent + "  ";
-  std::string str = indent + "// Auto-generated lambda nodes and edges\n" +
-                    indent + "subgraph cluster_" + id + "_lambda {\n" +
-                    innerIndent + "style=invis\n" + innerIndent +
-                    "label=\"Λ\"\n" + innerIndent +
+std::string
+DOTFunctionSubGraph::generateLambdaSG(const std::string &Indent) const {
+  std::string InnerIndent = Indent + "  ";
+  std::string Str = Indent + "// Auto-generated lambda nodes and edges\n" +
+                    Indent + "subgraph cluster_" + id + "_lambda {\n" +
+                    InnerIndent + "style=invis\n" + InnerIndent +
+                    "label=\"Λ\"\n" + InnerIndent +
                     DOTConfig::LambdaNodeAttr() + '\n';
   // Print lambda nodes
-  for (DOTNode stmt : stmts) {
-    str += innerIndent + id + "_0_" + stmt.stmtId +
-           " [label=\"Λ|SID: " + stmt.stmtId + "\"]\n";
+  for (const DOTNode &Stmt : stmts) {
+    Str += InnerIndent + id + "_0_" + Stmt.stmtId +
+           " [label=\"Λ|SID: " + Stmt.stmtId + "\"]\n";
   }
   // Print lambda edges
-  str += '\n' + innerIndent + DOTConfig::LambdaIDEdgeAttr() + '\n';
-  for (DOTEdge e : intraCFEdges) {
-    str += innerIndent + id + "_0_" + e.source.stmtId + " -> " + id + "_0_" +
-           e.target.stmtId;
-    if (e.isVisible) {
-      str += " [headlabel=\"\\rAllBottom\", taillabel=\"BOT\"]\n";
+  Str += '\n' + InnerIndent + DOTConfig::LambdaIDEdgeAttr() + '\n';
+  for (const DOTEdge &E : intraCFEdges) {
+    Str += InnerIndent + id + "_0_" + E.source.stmtId + " -> " + id + "_0_" +
+           E.target.stmtId;
+    if (E.isVisible) {
+      Str += " [headlabel=\"\\rAllBottom\", taillabel=\"BOT\"]\n";
     } else {
-      str += " [style=invis]\n";
+      Str += " [style=invis]\n";
     }
   }
-  return str + indent + '}';
+  return Str + Indent + '}';
 }
 
 void DOTFunctionSubGraph::createLayoutCFNodes() {
-  auto last = stmts.empty() ? stmts.end() : std::prev(stmts.end());
-  for (auto firstIt = stmts.begin(); firstIt != last; ++firstIt) {
-    auto secondIt = std::next(firstIt);
-    DOTNode n1 = *firstIt;
-    DOTNode n2 = *secondIt;
-    intraCFEdges.emplace(n1, n2, false);
+  auto Last = stmts.empty() ? stmts.end() : std::prev(stmts.end());
+  for (auto FirstIt = stmts.begin(); FirstIt != Last; ++FirstIt) {
+    auto SecondIt = std::next(FirstIt);
+    DOTNode N1 = *FirstIt;
+    DOTNode N2 = *SecondIt;
+    intraCFEdges.emplace(N1, N2, false);
   }
 }
 
 void DOTFunctionSubGraph::createLayoutFactNodes() {
-  for (auto &[key, factSG] : facts) {
-    for (auto stmt : stmts) {
-      if (factSG.nodes.find(stmt.stmtId) == factSG.nodes.end()) {
-        DOTNode factNode(stmt.funcName, factSG.label, stmt.stmtId,
-                         factSG.factId, false, false);
-        factSG.nodes[stmt.stmtId] = factNode;
+  for (auto &[Key, FactSG] : facts) {
+    for (const auto &Stmt : stmts) {
+      if (FactSG.nodes.find(Stmt.stmtId) == FactSG.nodes.end()) {
+        DOTNode FactNode(Stmt.funcName, FactSG.label, Stmt.stmtId,
+                         FactSG.factId, false, false);
+        FactSG.nodes[Stmt.stmtId] = FactNode;
       }
     }
   }
 }
 
 void DOTFunctionSubGraph::createLayoutFactEdges() {
-  for (auto &[key, factSG] : facts) {
-    for (auto iCFE : intraCFEdges) {
-      DOTNode d1 = {iCFE.source.funcName, factSG.label, iCFE.source.stmtId,
-                    factSG.factId, false};
-      DOTNode d2 = {iCFE.target.funcName, factSG.label, iCFE.target.stmtId,
-                    factSG.factId, false};
-      factSG.edges.emplace(d1, d2, false);
+  for (auto &[Key, FactSG] : facts) {
+    for (const auto &ICFE : intraCFEdges) {
+      DOTNode D1 = {ICFE.source.funcName, FactSG.label, ICFE.source.stmtId,
+                    FactSG.factId, false};
+      DOTNode D2 = {ICFE.target.funcName, FactSG.label, ICFE.target.stmtId,
+                    FactSG.factId, false};
+      FactSG.edges.emplace(D1, D2, false);
     }
   }
 }
 
-bool operator<(const DOTNode &lhs, const DOTNode &rhs) {
-  stringIDLess strLess;
+bool operator<(const DOTNode &Lhs, const DOTNode &Rhs) {
+  stringIDLess StrLess;
   // comparing control flow nodes
-  if (lhs.factId == 0 && rhs.factId == 0) {
-    return strLess(lhs.stmtId, rhs.stmtId);
+  if (Lhs.factId == 0 && Rhs.factId == 0) {
+    return StrLess(Lhs.stmtId, Rhs.stmtId);
   } else { // comparing fact nodes
-    if (lhs.factId == rhs.factId) {
-      return strLess(lhs.stmtId, rhs.stmtId);
+    if (Lhs.factId == Rhs.factId) {
+      return StrLess(Lhs.stmtId, Rhs.stmtId);
     } else {
-      return lhs.factId < rhs.factId;
+      return Lhs.factId < Rhs.factId;
     }
   }
 }
 
-bool operator==(const DOTNode &lhs, const DOTNode &rhs) {
-  return !(lhs < rhs) && !(rhs < lhs);
+bool operator==(const DOTNode &Lhs, const DOTNode &Rhs) {
+  return !(Lhs < Rhs) && !(Rhs < Lhs);
 }
 
-std::ostream &operator<<(std::ostream &os, const DOTNode &node) {
-  return os << node.str();
+std::ostream &operator<<(std::ostream &OS, const DOTNode &Node) {
+  return OS << Node.str();
 }
 
-bool operator<(const DOTEdge &lhs, const DOTEdge &rhs) {
-  if (lhs.source == rhs.source) {
-    return lhs.target < rhs.target;
+bool operator<(const DOTEdge &Lhs, const DOTEdge &Rhs) {
+  if (Lhs.source == Rhs.source) {
+    return Lhs.target < Rhs.target;
   }
-  return lhs.source < rhs.source;
+  return Lhs.source < Rhs.source;
 }
 
-std::ostream &operator<<(std::ostream &os, const DOTEdge &edge) {
-  return os << edge.str();
+std::ostream &operator<<(std::ostream &OS, const DOTEdge &Edge) {
+  return OS << Edge.str();
 }
 
-std::ostream &operator<<(std::ostream &os, const DOTFactSubGraph &factSG) {
-  return os << factSG.str();
+std::ostream &operator<<(std::ostream &OS, const DOTFactSubGraph &FactSG) {
+  return OS << FactSG.str();
 }
 
-std::ostream &operator<<(std::ostream &os,
-                         const DOTFunctionSubGraph &functionSG) {
-  return os << functionSG.str();
+std::ostream &operator<<(std::ostream &OS,
+                         const DOTFunctionSubGraph &FunctionSG) {
+  return OS << FunctionSG.str();
 }
 
 DOTConfig &DOTConfig::getDOTConfig() {
@@ -244,56 +246,56 @@ DOTConfig &DOTConfig::getDOTConfig() {
   return DC;
 }
 
-void DOTConfig::importDOTConfig() {
-  boost::filesystem::path FilePath(PhasarConfig::PhasarDirectory());
+void DOTConfig::importDOTConfig(std::string ConfigPath) {
+  boost::filesystem::path FilePath(ConfigPath);
   FilePath /= boost::filesystem::path("config/DOTGraphConfig.json");
   if (boost::filesystem::exists(FilePath) &&
       !boost::filesystem::is_directory(FilePath)) {
-    std::ifstream ifs(FilePath.string());
-    if (ifs.is_open()) {
-      std::stringstream iss;
-      iss << ifs.rdbuf();
-      ifs.close();
-      nlohmann::json jDOTConfig;
-      iss >> jDOTConfig;
-      for (auto &el : jDOTConfig.items()) {
-        std::stringstream attr_str;
-        if (el.key().find("Node") != std::string::npos) {
-          attr_str << "node [";
+    std::ifstream Ifs(FilePath.string());
+    if (Ifs.is_open()) {
+      std::stringstream Iss;
+      Iss << Ifs.rdbuf();
+      Ifs.close();
+      nlohmann::json JDOTConfig;
+      Iss >> JDOTConfig;
+      for (auto &El : JDOTConfig.items()) {
+        std::stringstream AttrStr;
+        if (El.key().find("Node") != std::string::npos) {
+          AttrStr << "node [";
         } else {
-          attr_str << "edge [";
+          AttrStr << "edge [";
         }
-        for (nlohmann::json::iterator it = el.value().begin();
-             it != el.value().end(); ++it) {
+        for (nlohmann::json::iterator It = El.value().begin();
+             It != El.value().end(); ++It) {
           // using it.value() directly with the << operator adds unnecessary
           // quotes
-          std::string val = it.value();
-          attr_str << it.key() << "=" << val;
-          if (std::next(it) != el.value().end()) {
-            attr_str << ", ";
+          std::string Val = It.value();
+          AttrStr << It.key() << "=" << Val;
+          if (std::next(It) != El.value().end()) {
+            AttrStr << ", ";
           }
         }
-        attr_str << ']';
-        if (el.key() == "CFNode") {
-          DOTConfig::CFNode = attr_str.str();
-        } else if (el.key() == "CFIntraEdge") {
-          DOTConfig::CFIntraEdge = attr_str.str();
-        } else if (el.key() == "CFInterEdge") {
-          DOTConfig::CFInterEdge = attr_str.str();
-        } else if (el.key() == "FactNode") {
-          DOTConfig::FactNode = attr_str.str();
-        } else if (el.key() == "FactIDEdge") {
-          DOTConfig::FactIDEdge = attr_str.str();
-        } else if (el.key() == "FactCrossEdge") {
-          DOTConfig::FactCrossEdge = attr_str.str();
-        } else if (el.key() == "FactInterEdge") {
-          DOTConfig::FactInterEdge = attr_str.str();
-        } else if (el.key() == "LambdaNode") {
-          DOTConfig::LambdaNode = attr_str.str();
-        } else if (el.key() == "LambdaIDEdge") {
-          DOTConfig::LambdaIDEdge = attr_str.str();
-        } else if (el.key() == "LambdaInterEdge") {
-          DOTConfig::LambdaInterEdge = attr_str.str();
+        AttrStr << ']';
+        if (El.key() == "CFNode") {
+          DOTConfig::CFNode = AttrStr.str();
+        } else if (El.key() == "CFIntraEdge") {
+          DOTConfig::CFIntraEdge = AttrStr.str();
+        } else if (El.key() == "CFInterEdge") {
+          DOTConfig::CFInterEdge = AttrStr.str();
+        } else if (El.key() == "FactNode") {
+          DOTConfig::FactNode = AttrStr.str();
+        } else if (El.key() == "FactIDEdge") {
+          DOTConfig::FactIDEdge = AttrStr.str();
+        } else if (El.key() == "FactCrossEdge") {
+          DOTConfig::FactCrossEdge = AttrStr.str();
+        } else if (El.key() == "FactInterEdge") {
+          DOTConfig::FactInterEdge = AttrStr.str();
+        } else if (El.key() == "LambdaNode") {
+          DOTConfig::LambdaNode = AttrStr.str();
+        } else if (El.key() == "LambdaIDEdge") {
+          DOTConfig::LambdaIDEdge = AttrStr.str();
+        } else if (El.key() == "LambdaInterEdge") {
+          DOTConfig::LambdaInterEdge = AttrStr.str();
         }
       }
     } else {

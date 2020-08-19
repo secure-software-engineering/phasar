@@ -32,10 +32,9 @@ using namespace psr;
 namespace psr {
 
 AnalysisPluginController::AnalysisPluginController(
-    std::vector<std::string> AnalysisPlygins, const ProjectIRDB *IRDB,
+    const std::vector<std::string> &AnalysisPlygins, const ProjectIRDB *IRDB,
     const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
-    const LLVMPointsToInfo *PT, std::set<std::string> EntryPoints) {
-  auto &lg = lg::get();
+    const LLVMPointsToInfo *PT, const std::set<std::string> &EntryPoints) {
   for (const auto &AnalysisPlugin : AnalysisPlygins) {
     boost::filesystem::path LibPath(AnalysisPlugin);
     boost::system::error_code Err;
@@ -46,13 +45,13 @@ AnalysisPluginController::AnalysisPluginController(
     }
     // if (!IDETabulationProblemPluginFactory.empty()) {
     //   for (auto Problem : IDETabulationProblemPluginFactory) {
-    //     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+    //     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
     //                   << "Solving plugin: " << Problem.first);
     //   }
     // }
     //   if (!IFDSTabulationProblemPluginFactory.empty()) {
     //     for (auto &Problem : IFDSTabulationProblemPluginFactory) {
-    //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+    //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
     //                     << "Solving plugin: " << Problem.first);
     //       unique_ptr<IFDSTabulationProblemPlugin> plugin(
     //           Problem.second(ICFG, EntryPoints));
@@ -68,13 +67,13 @@ AnalysisPluginController::AnalysisPluginController(
     //   }
     //   if (!InterMonoProblemPluginFactory.empty()) {
     //     for (auto Problem : InterMonoProblemPluginFactory) {
-    //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+    //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
     //                     << "Solving plugin: " << Problem.first);
     //     }
     //   }
     //   if (!IntraMonoProblemPluginFactory.empty()) {
     //     for (auto Problem : IntraMonoProblemPluginFactory) {
-    //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+    //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
     //                     << "Solving plugin: " << Problem.first);
     //     }
     //   }

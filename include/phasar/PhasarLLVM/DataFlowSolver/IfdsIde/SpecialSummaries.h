@@ -24,18 +24,21 @@
 #include <vector>
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 #include "phasar/Utils/IO.h" // readFile
+
+#include "llvm/IR/Function.h"
 
 namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {
+  using FlowFunctionType = FlowFunction<D>;
+  using FlowFunctionPtrType = std::shared_ptr<FlowFunction<D>>;
+
 private:
-  std::map<std::string, std::shared_ptr<FlowFunction<D>>> SpecialFlowFunctions;
+  std::map<std::string, FlowFunctionPtrType> SpecialFlowFunctions;
   std::map<std::string, std::shared_ptr<EdgeFunction<V>>> SpecialEdgeFunctions;
   std::vector<std::string> SpecialFunctionNames;
 
@@ -67,7 +70,7 @@ public:
 
   // Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &name,
-                             std::shared_ptr<FlowFunction<D>> flowfunction) {
+                             FlowFunctionPtrType flowfunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
     return Override;
@@ -75,7 +78,7 @@ public:
 
   // Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &name,
-                             std::shared_ptr<FlowFunction<D>> flowfunction,
+                             FlowFunctionPtrType flowfunction,
                              std::shared_ptr<EdgeFunction<V>> edgefunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
@@ -91,13 +94,12 @@ public:
     return SpecialFlowFunctions.count(name);
   }
 
-  std::shared_ptr<FlowFunction<D>>
+  FlowFunctionPtrType
   getSpecialFlowFunctionSummary(const llvm::Function *function) {
     return getSpecialFlowFunctionSummary(function->getName().str());
   }
 
-  std::shared_ptr<FlowFunction<D>>
-  getSpecialFlowFunctionSummary(const std::string &name) {
+  FlowFunctionPtrType getSpecialFlowFunctionSummary(const std::string &name) {
     return SpecialFlowFunctions[name];
   }
 

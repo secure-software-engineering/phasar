@@ -6,76 +6,76 @@
 
 namespace psr {
 
-static void filterReturnValues(TraceStats::FileStats &fileStats) {
-  for (auto fileStatsIt = fileStats.begin(); fileStatsIt != fileStats.end();) {
-    const auto file = fileStatsIt->first;
-    auto &functionStats = fileStatsIt->second;
+static void filterReturnValues(TraceStats::FileStats &FileStats) {
+  for (auto FileStatsIt = FileStats.begin(); FileStatsIt != FileStats.end();) {
+    const auto File = FileStatsIt->first;
+    auto &FunctionStats = FileStatsIt->second;
 
-    for (auto functionStatsIt = functionStats.begin();
-         functionStatsIt != functionStats.end();) {
-      const auto function = functionStatsIt->first;
-      auto &lineNumberStats = functionStatsIt->second;
+    for (auto FunctionStatsIt = FunctionStats.begin();
+         FunctionStatsIt != FunctionStats.end();) {
+      const auto Function = FunctionStatsIt->first;
+      auto &LineNumberStats = FunctionStatsIt->second;
 
-      for (auto lineNumberStatsIt = lineNumberStats.begin();
-           lineNumberStatsIt != lineNumberStats.end();) {
-        bool isLineNumberRetVal = lineNumberStatsIt->isReturnValue();
-        if (!isLineNumberRetVal) {
-          lineNumberStatsIt = lineNumberStats.erase(lineNumberStatsIt);
+      for (auto LineNumberStatsIt = LineNumberStats.begin();
+           LineNumberStatsIt != LineNumberStats.end();) {
+        bool IsLineNumberRetVal = LineNumberStatsIt->isReturnValue();
+        if (!IsLineNumberRetVal) {
+          LineNumberStatsIt = LineNumberStats.erase(LineNumberStatsIt);
         } else {
-          ++lineNumberStatsIt;
+          ++LineNumberStatsIt;
         }
       }
 
-      bool isLineNumberStatsEmpty = lineNumberStats.empty();
-      if (isLineNumberStatsEmpty) {
-        functionStatsIt = functionStats.erase(functionStatsIt);
+      bool IsLineNumberStatsEmpty = LineNumberStats.empty();
+      if (IsLineNumberStatsEmpty) {
+        FunctionStatsIt = FunctionStats.erase(FunctionStatsIt);
       } else {
-        ++functionStatsIt;
+        ++FunctionStatsIt;
       }
     }
 
-    bool isFunctionStatsEmpty = functionStats.empty();
-    if (isFunctionStatsEmpty) {
-      fileStatsIt = fileStats.erase(fileStatsIt);
+    bool IsFunctionStatsEmpty = FunctionStats.empty();
+    if (IsFunctionStatsEmpty) {
+      FileStatsIt = FileStats.erase(FileStatsIt);
     } else {
-      ++fileStatsIt;
+      ++FileStatsIt;
     }
   }
 }
 
 void LcovRetValWriter::write() const {
-  std::ofstream writer(getOutFile());
+  std::ofstream Writer(getOutFile());
 
   LOG_INFO("Writing lcov return value trace to: " << getOutFile());
 
-  TraceStats::FileStats stats = getTraceStats().getStats();
+  TraceStats::FileStats Stats = getTraceStats().getStats();
 
-  filterReturnValues(stats);
+  filterReturnValues(Stats);
 
-  for (const auto &fileEntry : stats) {
-    const auto file = fileEntry.first;
-    const auto functionStats = fileEntry.second;
+  for (const auto &FileEntry : Stats) {
+    const auto File = FileEntry.first;
+    const auto FunctionStats = FileEntry.second;
 
-    writer << "SF:" << file << "\n";
+    Writer << "SF:" << File << "\n";
 
-    for (const auto &functionEntry : functionStats) {
-      const auto function = functionEntry.first;
+    for (const auto &FunctionEntry : FunctionStats) {
+      const auto Function = FunctionEntry.first;
 
-      writer << "FNDA:"
-             << "1," << function << "\n";
+      Writer << "FNDA:"
+             << "1," << Function << "\n";
     }
 
-    for (const auto &functionEntry : functionStats) {
-      const auto lineNumberStats = functionEntry.second;
+    for (const auto &FunctionEntry : FunctionStats) {
+      const auto LineNumberStats = FunctionEntry.second;
 
-      for (const auto &lineNumberEntry : lineNumberStats) {
+      for (const auto &LineNumberEntry : LineNumberStats) {
 
-        writer << "DA:" << lineNumberEntry.getLineNumber() << ",1"
+        Writer << "DA:" << LineNumberEntry.getLineNumber() << ",1"
                << "\n";
       }
     }
 
-    writer << "end_of_record"
+    Writer << "end_of_record"
            << "\n";
   }
 }

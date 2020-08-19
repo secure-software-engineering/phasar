@@ -34,47 +34,78 @@ namespace psr {
 class LLVMBasedCFG
     : public virtual CFG<const llvm::Instruction *, const llvm::Function *> {
 public:
-  LLVMBasedCFG() = default;
+  LLVMBasedCFG(bool IgnoreDbgInstructions = true)
+      : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
 
   ~LLVMBasedCFG() override = default;
 
-  const llvm::Function *
-  getFunctionOf(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] const llvm::Function *
+  getFunctionOf(const llvm::Instruction *Stmt) const override;
 
-  std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getPredsOf(const llvm::Instruction *Inst) const override;
 
-  std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getSuccsOf(const llvm::Instruction *Inst) const override;
 
-  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
-  getAllControlFlowEdges(const llvm::Function *fun) const override;
+  [[nodiscard]] std::vector<
+      std::pair<const llvm::Instruction *, const llvm::Instruction *>>
+  getAllControlFlowEdges(const llvm::Function *Fun) const override;
 
-  std::vector<const llvm::Instruction *>
-  getAllInstructionsOf(const llvm::Function *fun) const override;
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getAllInstructionsOf(const llvm::Function *Fun) const override;
 
-  bool isExitStmt(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getStartPointsOf(const llvm::Function *Fun) const override;
 
-  bool isStartPoint(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getExitPointsOf(const llvm::Function *Fun) const override;
 
-  bool isFieldLoad(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
-  bool isFieldStore(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] bool isExitStmt(const llvm::Instruction *Stmt) const override;
 
-  bool isFallThroughSuccessor(const llvm::Instruction *stmt,
-                              const llvm::Instruction *succ) const override;
+  [[nodiscard]] bool isStartPoint(const llvm::Instruction *Stmt) const override;
 
-  bool isBranchTarget(const llvm::Instruction *stmt,
-                      const llvm::Instruction *succ) const override;
+  [[nodiscard]] bool isFieldLoad(const llvm::Instruction *Stmt) const override;
 
-  std::string getStatementId(const llvm::Instruction *stmt) const override;
+  [[nodiscard]] bool isFieldStore(const llvm::Instruction *Stmt) const override;
 
-  std::string getFunctionName(const llvm::Function *fun) const override;
+  [[nodiscard]] bool
+  isFallThroughSuccessor(const llvm::Instruction *Stmt,
+                         const llvm::Instruction *succ) const override;
 
-  void print(const llvm::Function *F,
+  [[nodiscard]] bool
+  isBranchTarget(const llvm::Instruction *Stmt,
+                 const llvm::Instruction *succ) const override;
+
+  [[nodiscard]] bool
+  isHeapAllocatingFunction(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] bool
+  isSpecialMemberFunction(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] SpecialMemberFunctionType
+  getSpecialMemberFunctionType(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] std::string
+  getStatementId(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] std::string
+  getFunctionName(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] std::string
+  getDemangledFunctionName(const llvm::Function *Fun) const override;
+
+  void print(const llvm::Function *Fun,
              std::ostream &OS = std::cout) const override;
 
-  nlohmann::json getAsJson(const llvm::Function *F) const override;
+  [[nodiscard]] nlohmann::json
+  getAsJson(const llvm::Function *Fun) const override;
+
+private:
+  // Ignores debug instructions in control flow if set to true.
+  const bool IgnoreDbgInstructions;
 };
 
 } // namespace psr

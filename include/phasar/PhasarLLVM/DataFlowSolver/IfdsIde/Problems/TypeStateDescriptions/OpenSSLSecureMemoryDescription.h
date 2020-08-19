@@ -38,9 +38,9 @@ private:
   };
 
   static const std::map<std::string, std::set<int>> OpenSSLSecureMemoryFuncs;
-  // delta matrix to implement the state machine's delta function
-  static const OpenSSLSecureMemoryState delta[6][7];
-  OpenSSLSecureMemoryToken funcNameToToken(const std::string &F) const;
+  // Delta matrix to implement the state machine's Delta function
+  static const OpenSSLSecureMemoryState Delta[6][7];
+  static OpenSSLSecureMemoryToken funcNameToToken(const std::string &F);
 
 public:
   bool isFactoryFunction(const std::string &F) const override;

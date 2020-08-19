@@ -9,80 +9,83 @@
 namespace psr {
 
 std::set<ExtendedValue>
-MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  const auto memTransferInst =
+MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  const auto *const MemTransferInst =
       llvm::cast<const llvm::MemTransferInst>(currentInst);
 
-  const auto srcMemLocationMatr = memTransferInst->getRawSource();
-  const auto dstMemLocationMatr = memTransferInst->getRawDest();
+  auto *const SrcMemLocationMatr = MemTransferInst->getRawSource();
+  auto *const DstMemLocationMatr = MemTransferInst->getRawDest();
 
-  const auto factMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromFact(fact);
-  auto srcMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromMatr(srcMemLocationMatr);
-  auto dstMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromMatr(dstMemLocationMatr);
+  const auto FactMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
+  auto SrcMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromMatr(SrcMemLocationMatr);
+  auto DstMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromMatr(DstMemLocationMatr);
 
-  bool isArgumentPatch = DataFlowUtils::isPatchableArgumentMemcpy(
-      memTransferInst->getRawSource(), srcMemLocationSeq, fact);
-  std::set<ExtendedValue> targetFacts;
+  bool IsArgumentPatch = DataFlowUtils::isPatchableArgumentMemcpy(
+      MemTransferInst->getRawSource(), SrcMemLocationSeq, Fact);
+  std::set<ExtendedValue> TargetFacts;
 
   /*
    * Patch argument
    */
-  if (isArgumentPatch) {
-    const auto patchedMemLocationSeq = DataFlowUtils::patchMemoryLocationFrame(
-        factMemLocationSeq, dstMemLocationSeq);
-    ExtendedValue ev(fact);
-    ev.setMemLocationSeq(patchedMemLocationSeq);
-    ev.resetVarArgIndex();
+  if (IsArgumentPatch) {
+    const auto PatchedMemLocationSeq = DataFlowUtils::patchMemoryLocationFrame(
+        FactMemLocationSeq, DstMemLocationSeq);
+    ExtendedValue EV(Fact);
+    EV.setMemLocationSeq(PatchedMemLocationSeq);
+    EV.resetVarArgIndex();
 
-    targetFacts.insert(ev);
-    traceStats.add(memTransferInst, dstMemLocationSeq);
+    TargetFacts.insert(EV);
+    traceStats.add(MemTransferInst, DstMemLocationSeq);
 
     LOG_DEBUG("Patched memory location (arg/memcpy)");
     LOG_DEBUG("Source");
-    DataFlowUtils::dumpFact(fact);
+    DataFlowUtils::dumpFact(Fact);
     LOG_DEBUG("Destination");
-    DataFlowUtils::dumpFact(ev);
+    DataFlowUtils::dumpFact(EV);
   } else {
-    bool isSrcArrayDecay = DataFlowUtils::isArrayDecay(srcMemLocationMatr);
-    if (isSrcArrayDecay)
-      srcMemLocationSeq.pop_back();
+    bool IsSrcArrayDecay = DataFlowUtils::isArrayDecay(SrcMemLocationMatr);
+    if (IsSrcArrayDecay) {
+      SrcMemLocationSeq.pop_back();
+    }
 
-    bool isDstArrayDecay = DataFlowUtils::isArrayDecay(dstMemLocationMatr);
-    if (isDstArrayDecay)
-      dstMemLocationSeq.pop_back();
+    bool IsDstArrayDecay = DataFlowUtils::isArrayDecay(DstMemLocationMatr);
+    if (IsDstArrayDecay) {
+      DstMemLocationSeq.pop_back();
+    }
 
-    bool genFact = DataFlowUtils::isSubsetMemoryLocationSeq(srcMemLocationSeq,
-                                                            factMemLocationSeq);
-    bool killFact = DataFlowUtils::isSubsetMemoryLocationSeq(
-        dstMemLocationSeq, factMemLocationSeq);
+    bool GenFact = DataFlowUtils::isSubsetMemoryLocationSeq(SrcMemLocationSeq,
+                                                            FactMemLocationSeq);
+    bool KillFact = DataFlowUtils::isSubsetMemoryLocationSeq(
+        DstMemLocationSeq, FactMemLocationSeq);
 
-    if (genFact) {
-      const auto relocatableMemLocationSeq =
-          DataFlowUtils::getRelocatableMemoryLocationSeq(factMemLocationSeq,
-                                                         srcMemLocationSeq);
-      const auto relocatedMemLocationSeq =
-          DataFlowUtils::joinMemoryLocationSeqs(dstMemLocationSeq,
-                                                relocatableMemLocationSeq);
-      ExtendedValue ev(fact);
-      ev.setMemLocationSeq(relocatedMemLocationSeq);
+    if (GenFact) {
+      const auto RelocatableMemLocationSeq =
+          DataFlowUtils::getRelocatableMemoryLocationSeq(FactMemLocationSeq,
+                                                         SrcMemLocationSeq);
+      const auto RelocatedMemLocationSeq =
+          DataFlowUtils::joinMemoryLocationSeqs(DstMemLocationSeq,
+                                                RelocatableMemLocationSeq);
+      ExtendedValue EV(Fact);
+      EV.setMemLocationSeq(RelocatedMemLocationSeq);
 
-      targetFacts.insert(ev);
-      traceStats.add(memTransferInst, dstMemLocationSeq);
+      TargetFacts.insert(EV);
+      traceStats.add(MemTransferInst, DstMemLocationSeq);
 
       LOG_DEBUG("Relocated memory location (memcpy/memmove)");
       LOG_DEBUG("Source");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
       LOG_DEBUG("Destination");
-      DataFlowUtils::dumpFact(ev);
+      DataFlowUtils::dumpFact(EV);
     }
-    if (!killFact)
-      targetFacts.insert(fact);
+    if (!KillFact) {
+      TargetFacts.insert(Fact);
+    }
   }
 
-  return targetFacts;
+  return TargetFacts;
 }
 
 } // namespace psr

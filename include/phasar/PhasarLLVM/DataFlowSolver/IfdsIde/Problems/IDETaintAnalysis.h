@@ -16,6 +16,7 @@
 #include <string>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -30,51 +31,47 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
-class IDETaintAnalysis
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  const llvm::Value *, LLVMBasedICFG> {
+struct IDETaintAnalysisDomain : LLVMAnalysisDomainDefault {
+  using l_t = const llvm::Value *;
+};
+
+class IDETaintAnalysis : public IDETabulationProblem<IDETaintAnalysisDomain> {
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef const llvm::Value *l_t;
-  typedef LLVMBasedICFG i_t;
+  using IDETabProblemType = IDETabulationProblem<IDETaintAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
 
   std::set<std::string> source_functions = {"fread", "read"};
   // keep in mind that 'char** argv' of main is a source for tainted values as
   // well
   std::set<std::string> sink_functions = {"fwrite", "write", "printf"};
-  bool set_contains_str(std::set<std::string> s, std::string str);
+  static bool setContainsStr(std::set<std::string> s, const std::string &str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                   const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                    std::set<std::string> EntryPoints = {"main"});
 
   ~IDETaintAnalysis() override = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        f_t calleeFun,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+                                         n_t exitStmt, n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+                                             f_t destFun) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -132,7 +129,7 @@ public:
 
   void printFunction(std::ostream &os, f_t m) const override;
 
-  void printEdgeFact(std::ostream &os, l_t l) const override;
+  void printEdgeFact(std::ostream &os, l_t V) const override;
 };
 
 } // namespace psr

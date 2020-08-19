@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -33,24 +34,28 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
+struct IDETypeStateAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using l_t = int;
+};
+
 class IDETypeStateAnalysis
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  int, LLVMBasedICFG> {
+    : public IDETabulationProblem<IDETypeStateAnalysisDomain> {
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef int l_t;
-  typedef LLVMBasedICFG i_t;
+  using IDETabProblemType = IDETabulationProblem<IDETypeStateAnalysisDomain>;
+  using typename IDETabProblemType::d_t;
+  using typename IDETabProblemType::f_t;
+  using typename IDETabProblemType::i_t;
+  using typename IDETabProblemType::l_t;
+  using typename IDETabProblemType::n_t;
+  using typename IDETabProblemType::t_t;
+  using typename IDETabProblemType::v_t;
+
   using ConfigurationTy = TypeStateDescription;
 
 private:
   const TypeStateDescription &TSD;
-  std::map<const llvm::Value *, std::set<const llvm::Value *>> PointsToCache;
+  std::map<const llvm::Value *, std::unordered_set<const llvm::Value *>>
+      PointsToCache;
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
       RelevantAllocaCache;
 
@@ -96,7 +101,7 @@ public:
   const l_t BOTTOM;
 
   IDETypeStateAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                       const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                       const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                        const TypeStateDescription &TSD,
                        std::set<std::string> EntryPoints = {"main"});
 
@@ -104,23 +109,18 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        f_t calleeFun,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
+                                         n_t exitStmt, n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                               std::set<f_t> callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+                                             f_t destFun) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -166,7 +166,7 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printNode(std::ostream &os, n_t d) const override;
+  void printNode(std::ostream &os, n_t N) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 

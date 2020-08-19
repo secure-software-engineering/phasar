@@ -19,31 +19,36 @@
 
 #include <set>
 #include <string>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 namespace llvm {
 class Instruction;
 class ImmutableCallSite;
 class Function;
+class Type;
+class Value;
 } // namespace llvm
 
 namespace psr {
+
 class ProjectIRDB;
+class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
-class PointsToGraph;
 
 class OTFResolver : public CHAResolver {
 protected:
+  LLVMBasedICFG &ICF;
   LLVMPointsToInfo &PT;
-  PointsToGraph &WholeModulePTG;
   std::vector<const llvm::Instruction *> CallStack;
 
 public:
-  OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo &PT,
-              PointsToGraph &WholeModulePTG);
+  OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
+              LLVMPointsToInfo &PT);
 
   ~OTFResolver() override = default;
 
@@ -51,7 +56,7 @@ public:
 
   void handlePossibleTargets(
       llvm::ImmutableCallSite CS,
-      std::set<const llvm::Function *> &possible_targets) override;
+      std::set<const llvm::Function *> &CalleeTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 
@@ -60,6 +65,13 @@ public:
 
   std::set<const llvm::Function *>
   resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
+
+  static std::set<const llvm::Type *>
+  getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
+
+  static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
+  getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
+                              const llvm::Function *CalleeTarget);
 };
 } // namespace psr
 

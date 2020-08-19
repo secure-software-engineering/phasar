@@ -34,7 +34,8 @@ public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *f_t;
 
-  ICFGTestPlugin(ProjectIRDB &IRDB, const std::vector<std::string> EntryPoints);
+  ICFGTestPlugin(ProjectIRDB &IRDB,
+                 const std::vector<std::string> &EntryPoints);
 
   ~ICFGTestPlugin() override = default;
 
@@ -51,6 +52,12 @@ public:
 
   std::vector<n_t> getAllInstructionsOf(f_t fun) const override;
 
+  std::set<n_t> getStartPointsOf(f_t fun) const override;
+
+  std::set<n_t> getExitPointsOf(f_t fun) const override;
+
+  bool isCallStmt(n_t stmt) const override;
+
   bool isExitStmt(n_t stmt) const override;
 
   bool isStartPoint(n_t stmt) const override;
@@ -63,9 +70,18 @@ public:
 
   bool isBranchTarget(n_t stmt, n_t succ) const override;
 
+  bool isHeapAllocatingFunction(f_t fun) const override;
+
+  bool isSpecialMemberFunction(f_t fun) const override;
+
+  SpecialMemberFunctionType
+  getSpecialMemberFunctionType(f_t fun) const override;
+
   std::string getStatementId(n_t stmt) const override;
 
   std::string getFunctionName(f_t fun) const override;
+
+  std::string getDemangledFunctionName(f_t fun) const override;
 
   void print(f_t F, std::ostream &OS = std::cout) const override;
 
@@ -76,8 +92,6 @@ public:
   std::set<f_t> getAllFunctions() const override;
 
   f_t getFunction(const std::string &fun) const override;
-
-  bool isCallStmt(n_t stmt) const override;
 
   bool isIndirectFunctionCall(n_t stmt) const override;
 
@@ -91,10 +105,6 @@ public:
 
   std::set<n_t> getCallsFromWithin(f_t fun) const override;
 
-  std::set<n_t> getStartPointsOf(f_t fun) const override;
-
-  std::set<n_t> getExitPointsOf(f_t fun) const override;
-
   std::set<n_t> getReturnSitesOfCallAt(n_t stmt) const override;
 
   void print(std::ostream &OS = std::cout) const override;
@@ -104,7 +114,7 @@ public:
 
 extern "C" std::unique_ptr<ICFGPlugin>
 makeICFGTestPlugin(ProjectIRDB &IRDB,
-                   const std::vector<std::string> EntryPoints);
+                   const std::vector<std::string> &EntryPoints);
 } // namespace psr
 
 #endif

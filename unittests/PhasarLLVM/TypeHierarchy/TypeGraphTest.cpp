@@ -8,78 +8,82 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "TestConfig.h"
+
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-class TypeGraphTest : public ::testing::Test {
-protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
+TEST(TypeGraphTest, AddType) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll"});
+  llvm::Module *M =
+      IRDB.getModule(unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll");
 
-TEST_F(TypeGraphTest, AddType) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/two_structs_cpp.ll"});
-  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/two_structs_cpp.ll");
+  unsigned int NbStruct = 0;
 
-  unsigned int nb_struct = 0;
+  CachedTypeGraph Tg;
+  CachedTypeGraph::graph_t G;
 
-  CachedTypeGraph tg;
-  CachedTypeGraph::graph_t g;
+  for (auto *StructType : M->getIdentifiedStructTypes()) {
+    ASSERT_TRUE(StructType != nullptr);
 
-  for (auto struct_type : M->getIdentifiedStructTypes()) {
-    ASSERT_TRUE(struct_type != nullptr);
+    auto Node = Tg.addType(StructType);
 
-    auto node = tg.addType(struct_type);
+    ASSERT_TRUE(Tg.g[Node].name == StructType->getName().str());
+    ASSERT_TRUE(Tg.g[Node].base_type == StructType);
+    ASSERT_TRUE(Tg.g[Node].types.size() == 1);
+    ASSERT_TRUE(Tg.g[Node].types.count(StructType));
 
-    ASSERT_TRUE(tg.g[node].name == struct_type->getName().str());
-    ASSERT_TRUE(tg.g[node].base_type == struct_type);
-    ASSERT_TRUE(tg.g[node].types.size() == 1);
-    ASSERT_TRUE(tg.g[node].types.count(struct_type));
+    boost::add_vertex(G);
 
-    boost::add_vertex(g);
+    ASSERT_TRUE(boost::isomorphism(G, Tg.g));
 
-    ASSERT_TRUE(boost::isomorphism(g, tg.g));
-
-    ++nb_struct;
+    ++NbStruct;
   }
 
-  ASSERT_TRUE(nb_struct >= 2);
+  ASSERT_TRUE(NbStruct >= 2);
 }
 
-TEST_F(TypeGraphTest, ReverseTypePropagation) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/seven_structs_cpp.ll"});
-  llvm::Module *M =
-      IRDB.getModule(pathToLLFiles + "basic/seven_structs_cpp.ll");
+TEST(TypeGraphTest, ReverseTypePropagation) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "basic/seven_structs_cpp.ll"});
+  llvm::Module *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                                   "basic/seven_structs_cpp.ll");
 
-  unsigned int nb_struct = 0;
-  llvm::StructType *structA = nullptr, *structB = nullptr, *structC = nullptr,
-                   *structD = nullptr, *structE = nullptr;
+  unsigned int NbStruct = 0;
+  llvm::StructType *StructA = nullptr;
 
-  CachedTypeGraph tg;
+  llvm::StructType *StructB = nullptr;
+
+  llvm::StructType *StructC = nullptr;
+
+  llvm::StructType *StructD = nullptr;
+
+  llvm::StructType *StructE = nullptr;
+
+  CachedTypeGraph Tg;
 
   // Isomorphism to assure that the TypeGraph have the wanted structure
-  CachedTypeGraph::graph_t g;
+  CachedTypeGraph::graph_t G;
 
-  for (auto struct_type : M->getIdentifiedStructTypes()) {
-    if (struct_type) {
-      switch (nb_struct) {
+  for (auto *StructType : M->getIdentifiedStructTypes()) {
+    if (StructType) {
+      switch (NbStruct) {
       case 0:
-        structA = struct_type;
+        StructA = StructType;
         break;
       case 1:
-        structB = struct_type;
+        StructB = StructType;
         break;
       case 2:
-        structC = struct_type;
+        StructC = StructType;
         break;
       case 3:
-        structD = struct_type;
+        StructD = StructType;
         break;
       case 4:
-        structE = struct_type;
+        StructE = StructType;
         break;
       case 5:
         break;
@@ -88,201 +92,209 @@ TEST_F(TypeGraphTest, ReverseTypePropagation) {
       default:
         // NB: Will always fail but serve to understand where the error come
         // from
-        ASSERT_TRUE(nb_struct < 7);
+        ASSERT_TRUE(NbStruct < 7);
         break;
       }
 
-      ++nb_struct;
+      ++NbStruct;
     }
   }
 
-  ASSERT_TRUE(nb_struct == 7);
-  ASSERT_TRUE(structA != nullptr);
-  ASSERT_TRUE(structB != nullptr);
-  ASSERT_TRUE(structC != nullptr);
-  ASSERT_TRUE(structD != nullptr);
-  ASSERT_TRUE(structE != nullptr);
+  ASSERT_TRUE(NbStruct == 7);
+  ASSERT_TRUE(StructA != nullptr);
+  ASSERT_TRUE(StructB != nullptr);
+  ASSERT_TRUE(StructC != nullptr);
+  ASSERT_TRUE(StructD != nullptr);
+  ASSERT_TRUE(StructE != nullptr);
 
-  auto vertexA = boost::add_vertex(g);
-  auto vertexB = boost::add_vertex(g);
-  auto vertexC = boost::add_vertex(g);
-  auto vertexD = boost::add_vertex(g);
-  auto vertexE = boost::add_vertex(g);
+  auto VertexA = boost::add_vertex(G);
+  auto VertexB = boost::add_vertex(G);
+  auto VertexC = boost::add_vertex(G);
+  auto VertexD = boost::add_vertex(G);
+  auto VertexE = boost::add_vertex(G);
 
-  auto nodeA = tg.addType(structA);
-  auto nodeB = tg.addType(structB);
-  auto nodeC = tg.addType(structC);
-  auto nodeD = tg.addType(structD);
-  auto nodeE = tg.addType(structE);
+  auto NodeA = Tg.addType(StructA);
+  auto NodeB = Tg.addType(StructB);
+  auto NodeC = Tg.addType(StructC);
+  auto NodeD = Tg.addType(StructD);
+  auto NodeE = Tg.addType(StructE);
 
-  tg.addLinkWithoutReversePropagation(structA, structB);
-  tg.addLinkWithoutReversePropagation(structB, structC);
-  tg.addLinkWithoutReversePropagation(structC, structD);
-  tg.addLinkWithoutReversePropagation(structE, structB);
+  Tg.addLinkWithoutReversePropagation(StructA, StructB);
+  Tg.addLinkWithoutReversePropagation(StructB, StructC);
+  Tg.addLinkWithoutReversePropagation(StructC, StructD);
+  Tg.addLinkWithoutReversePropagation(StructE, StructB);
 
-  boost::add_edge(vertexA, vertexB, g);
-  boost::add_edge(vertexB, vertexC, g);
-  boost::add_edge(vertexC, vertexD, g);
-  boost::add_edge(vertexE, vertexB, g);
+  boost::add_edge(VertexA, VertexB, G);
+  boost::add_edge(VertexB, VertexC, G);
+  boost::add_edge(VertexC, VertexD, G);
+  boost::add_edge(VertexE, VertexB, G);
 
-  ASSERT_TRUE(boost::isomorphism(g, tg.g));
+  ASSERT_TRUE(boost::isomorphism(G, Tg.g));
 
-  auto tg_edges = boost::edges(tg.g);
+  auto TgEdges = boost::edges(Tg.g);
 
-  int number_edge = 0;
+  int NumberEdge = 0;
 
-  tg_edges = boost::edges(tg.g);
-  for (auto it = tg_edges.first; it != tg_edges.second; ++it) {
-    ++number_edge;
+  TgEdges = boost::edges(Tg.g);
+  for (auto It = TgEdges.first; It != TgEdges.second; ++It) {
+    ++NumberEdge;
 
-    auto src = boost::source(*it, tg.g);
-    auto target = boost::target(*it, tg.g);
+    auto Src = boost::source(*It, Tg.g);
+    auto Target = boost::target(*It, Tg.g);
 
-    ASSERT_TRUE(number_edge <= 4);
+    ASSERT_TRUE(NumberEdge <= 4);
 
-    ASSERT_TRUE(src == nodeA || src == nodeB || src == nodeC || src == nodeE);
-    if (src == nodeA)
-      ASSERT_TRUE(target == nodeB);
-    else if (src == nodeB)
-      ASSERT_TRUE(target == nodeC);
-    else if (src == nodeC)
-      ASSERT_TRUE(target == nodeD);
-    else if (src == nodeE)
-      ASSERT_TRUE(target == nodeB);
+    ASSERT_TRUE(Src == NodeA || Src == NodeB || Src == NodeC || Src == NodeE);
+    if (Src == NodeA) {
+      ASSERT_TRUE(Target == NodeB);
+    } else if (Src == NodeB) {
+      ASSERT_TRUE(Target == NodeC);
+    } else if (Src == NodeC) {
+      ASSERT_TRUE(Target == NodeD);
+    } else if (Src == NodeE) {
+      ASSERT_TRUE(Target == NodeB);
+    }
   }
 
-  ASSERT_TRUE(number_edge == 4);
-  number_edge = 0; // Avoid stupid mistakes
+  ASSERT_TRUE(NumberEdge == 4);
+  NumberEdge = 0; // Avoid stupid mistakes
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(tg.g[vertexA].types.count(structA));
-  ASSERT_TRUE(tg.g[vertexA].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexB].types.count(structB));
-  ASSERT_TRUE(tg.g[vertexB].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexC].types.count(structC));
-  ASSERT_TRUE(tg.g[vertexC].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexD].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexD].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexE].types.count(structE));
-  ASSERT_TRUE(tg.g[vertexE].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA));
+  ASSERT_TRUE(Tg.g[VertexA].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB));
+  ASSERT_TRUE(Tg.g[VertexB].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC));
+  ASSERT_TRUE(Tg.g[VertexC].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE));
+  ASSERT_TRUE(Tg.g[VertexE].types.size() == 1);
 
-  tg.reverseTypePropagation(structC);
+  Tg.reverseTypePropagation(StructC);
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(tg.g[vertexA].types.count(structA) &&
-              tg.g[vertexA].types.count(structB) &&
-              tg.g[vertexA].types.count(structC));
-  ASSERT_TRUE(tg.g[vertexA].types.size() == 3);
-  ASSERT_TRUE(tg.g[vertexB].types.count(structB) &&
-              tg.g[vertexB].types.count(structC));
-  ASSERT_TRUE(tg.g[vertexB].types.size() == 2);
-  ASSERT_TRUE(tg.g[vertexC].types.count(structC));
-  ASSERT_TRUE(tg.g[vertexC].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexD].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexD].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexE].types.count(structE) &&
-              tg.g[vertexE].types.count(structB) &&
-              tg.g[vertexE].types.count(structC));
-  ASSERT_TRUE(tg.g[vertexE].types.size() == 3);
+  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA) &&
+              Tg.g[VertexA].types.count(StructB) &&
+              Tg.g[VertexA].types.count(StructC));
+  ASSERT_TRUE(Tg.g[VertexA].types.size() == 3);
+  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB) &&
+              Tg.g[VertexB].types.count(StructC));
+  ASSERT_TRUE(Tg.g[VertexB].types.size() == 2);
+  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC));
+  ASSERT_TRUE(Tg.g[VertexC].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE) &&
+              Tg.g[VertexE].types.count(StructB) &&
+              Tg.g[VertexE].types.count(StructC));
+  ASSERT_TRUE(Tg.g[VertexE].types.size() == 3);
 }
 
-TEST_F(TypeGraphTest, AddLinkSimple) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/two_structs_cpp.ll"});
-  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/two_structs_cpp.ll");
+TEST(TypeGraphTest, AddLinkSimple) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll"});
+  llvm::Module *M =
+      IRDB.getModule(unittest::PathToLLTestFiles + "basic/two_structs_cpp.ll");
 
-  unsigned int nb_struct = 0;
-  llvm::StructType *structA = nullptr, *structB = nullptr;
+  unsigned int NbStruct = 0;
+  llvm::StructType *StructA = nullptr;
 
-  CachedTypeGraph tg;
-  CachedTypeGraph::graph_t g;
+  llvm::StructType *StructB = nullptr;
 
-  for (auto struct_type : M->getIdentifiedStructTypes()) {
-    if (struct_type) {
-      switch (nb_struct) {
+  CachedTypeGraph Tg;
+  CachedTypeGraph::graph_t G;
+
+  for (auto *StructType : M->getIdentifiedStructTypes()) {
+    if (StructType) {
+      switch (NbStruct) {
       case 0:
-        structA = struct_type;
+        StructA = StructType;
         break;
       case 1:
-        structB = struct_type;
+        StructB = StructType;
         break;
       default:
         // NB: Will always fail but serve to understand where the error come
         // from
-        ASSERT_TRUE(nb_struct < 2);
+        ASSERT_TRUE(NbStruct < 2);
         break;
       }
 
-      ++nb_struct;
+      ++NbStruct;
     }
   }
 
-  ASSERT_TRUE(nb_struct == 2);
-  ASSERT_TRUE(structA != nullptr);
-  ASSERT_TRUE(structB != nullptr);
+  ASSERT_TRUE(NbStruct == 2);
+  ASSERT_TRUE(StructA != nullptr);
+  ASSERT_TRUE(StructB != nullptr);
 
-  auto nodeA = tg.addType(structA);
-  auto nodeB = tg.addType(structB);
-  tg.addLink(structA, structB);
+  auto NodeA = Tg.addType(StructA);
+  auto NodeB = Tg.addType(StructB);
+  Tg.addLink(StructA, StructB);
 
-  auto vertexA = boost::add_vertex(g);
-  auto vertexB = boost::add_vertex(g);
+  auto VertexA = boost::add_vertex(G);
+  auto VertexB = boost::add_vertex(G);
 
-  boost::add_edge(vertexA, vertexB, g);
+  boost::add_edge(VertexA, VertexB, G);
 
-  ASSERT_TRUE(boost::isomorphism(g, tg.g));
+  ASSERT_TRUE(boost::isomorphism(G, Tg.g));
 
-  auto p = edges(tg.g);
+  auto P = edges(Tg.g);
 
-  auto begin = p.first;
-  auto end = p.second;
+  auto Begin = P.first;
+  auto End = P.second;
 
-  int number_edge = 0;
+  int NumberEdge = 0;
 
-  for (auto it = begin; it != end; ++it) {
-    ++number_edge;
+  for (auto It = Begin; It != End; ++It) {
+    ++NumberEdge;
 
-    auto src = boost::source(*it, tg.g);
-    auto target = boost::target(*it, tg.g);
+    auto Src = boost::source(*It, Tg.g);
+    auto Target = boost::target(*It, Tg.g);
 
-    ASSERT_TRUE(number_edge == 1);
-    ASSERT_TRUE(src == nodeA);
-    ASSERT_TRUE(target == nodeB);
+    ASSERT_TRUE(NumberEdge == 1);
+    ASSERT_TRUE(Src == NodeA);
+    ASSERT_TRUE(Target == NodeB);
   }
 
-  ASSERT_TRUE(number_edge == 1);
+  ASSERT_TRUE(NumberEdge == 1);
 }
 
-TEST_F(TypeGraphTest, TypeAggregation) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/seven_structs_cpp.ll"});
-  llvm::Module *M =
-      IRDB.getModule(pathToLLFiles + "basic/seven_structs_cpp.ll");
+TEST(TypeGraphTest, TypeAggregation) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "basic/seven_structs_cpp.ll"});
+  llvm::Module *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                                   "basic/seven_structs_cpp.ll");
 
-  unsigned int nb_struct = 0;
-  llvm::StructType *structA = nullptr, *structB = nullptr, *structC = nullptr,
-                   *structD = nullptr, *structE = nullptr;
+  unsigned int NbStruct = 0;
+  llvm::StructType *StructA = nullptr;
+  llvm::StructType *StructB = nullptr;
+  llvm::StructType *StructC = nullptr;
+  llvm::StructType *StructD = nullptr;
+  llvm::StructType *StructE = nullptr;
 
-  CachedTypeGraph tg;
+  CachedTypeGraph Tg;
 
   // Isomorphism to assure that the TypeGraph have the wanted structure
-  CachedTypeGraph::graph_t g;
+  CachedTypeGraph::graph_t G;
 
-  for (auto struct_type : M->getIdentifiedStructTypes()) {
-    if (struct_type) {
-      switch (nb_struct) {
+  for (auto *StructType : M->getIdentifiedStructTypes()) {
+    if (StructType) {
+      switch (NbStruct) {
       case 0:
-        structA = struct_type;
+        StructA = StructType;
         break;
       case 1:
-        structB = struct_type;
+        StructB = StructType;
         break;
       case 2:
-        structC = struct_type;
+        StructC = StructType;
         break;
       case 3:
-        structD = struct_type;
+        StructD = StructType;
         break;
       case 4:
-        structE = struct_type;
+        StructE = StructType;
         break;
       case 5:
         break;
@@ -291,112 +303,113 @@ TEST_F(TypeGraphTest, TypeAggregation) {
       default:
         // NB: Will always fail but serve to understand where the error come
         // from
-        ASSERT_TRUE(nb_struct < 7);
+        ASSERT_TRUE(NbStruct < 7);
         break;
       }
 
-      ++nb_struct;
+      ++NbStruct;
     }
   }
 
-  ASSERT_TRUE(nb_struct == 7);
-  ASSERT_TRUE(structA != nullptr);
-  ASSERT_TRUE(structB != nullptr);
-  ASSERT_TRUE(structC != nullptr);
-  ASSERT_TRUE(structD != nullptr);
-  ASSERT_TRUE(structE != nullptr);
+  ASSERT_TRUE(NbStruct == 7);
+  ASSERT_TRUE(StructA != nullptr);
+  ASSERT_TRUE(StructB != nullptr);
+  ASSERT_TRUE(StructC != nullptr);
+  ASSERT_TRUE(StructD != nullptr);
+  ASSERT_TRUE(StructE != nullptr);
 
-  auto vertexA = boost::add_vertex(g);
-  auto vertexB = boost::add_vertex(g);
-  auto vertexC = boost::add_vertex(g);
-  auto vertexD = boost::add_vertex(g);
-  auto vertexE = boost::add_vertex(g);
+  auto VertexA = boost::add_vertex(G);
+  auto VertexB = boost::add_vertex(G);
+  auto VertexC = boost::add_vertex(G);
+  auto VertexD = boost::add_vertex(G);
+  auto VertexE = boost::add_vertex(G);
 
-  auto nodeA = tg.addType(structA);
-  auto nodeB = tg.addType(structB);
-  auto nodeC = tg.addType(structC);
-  auto nodeD = tg.addType(structD);
-  auto nodeE = tg.addType(structE);
+  auto NodeA = Tg.addType(StructA);
+  auto NodeB = Tg.addType(StructB);
+  auto NodeC = Tg.addType(StructC);
+  auto NodeD = Tg.addType(StructD);
+  auto NodeE = Tg.addType(StructE);
 
-  tg.addLinkWithoutReversePropagation(structA, structB);
-  tg.addLinkWithoutReversePropagation(structB, structC);
-  tg.addLinkWithoutReversePropagation(structC, structD);
-  tg.addLinkWithoutReversePropagation(structE, structB);
+  Tg.addLinkWithoutReversePropagation(StructA, StructB);
+  Tg.addLinkWithoutReversePropagation(StructB, StructC);
+  Tg.addLinkWithoutReversePropagation(StructC, StructD);
+  Tg.addLinkWithoutReversePropagation(StructE, StructB);
 
-  boost::add_edge(vertexA, vertexB, g);
-  boost::add_edge(vertexB, vertexC, g);
-  boost::add_edge(vertexC, vertexD, g);
-  boost::add_edge(vertexE, vertexB, g);
+  boost::add_edge(VertexA, VertexB, G);
+  boost::add_edge(VertexB, VertexC, G);
+  boost::add_edge(VertexC, VertexD, G);
+  boost::add_edge(VertexE, VertexB, G);
 
-  ASSERT_TRUE(boost::isomorphism(g, tg.g));
+  ASSERT_TRUE(boost::isomorphism(G, Tg.g));
 
-  auto tg_edges = boost::edges(tg.g);
+  auto TgEdges = boost::edges(Tg.g);
 
-  int number_edge = 0;
+  int NumberEdge = 0;
 
-  tg_edges = boost::edges(tg.g);
-  for (auto it = tg_edges.first; it != tg_edges.second; ++it) {
-    ++number_edge;
+  TgEdges = boost::edges(Tg.g);
+  for (auto It = TgEdges.first; It != TgEdges.second; ++It) {
+    ++NumberEdge;
 
-    auto src = boost::source(*it, tg.g);
-    auto target = boost::target(*it, tg.g);
+    auto Src = boost::source(*It, Tg.g);
+    auto Target = boost::target(*It, Tg.g);
 
-    ASSERT_TRUE(number_edge <= 4);
+    ASSERT_TRUE(NumberEdge <= 4);
 
-    ASSERT_TRUE(src == nodeA || src == nodeB || src == nodeC || src == nodeE);
-    if (src == nodeA)
-      ASSERT_TRUE(target == nodeB);
-    else if (src == nodeB)
-      ASSERT_TRUE(target == nodeC);
-    else if (src == nodeC)
-      ASSERT_TRUE(target == nodeD);
-    else if (src == nodeE)
-      ASSERT_TRUE(target == nodeB);
+    ASSERT_TRUE(Src == NodeA || Src == NodeB || Src == NodeC || Src == NodeE);
+    if (Src == NodeA) {
+      ASSERT_TRUE(Target == NodeB);
+    } else if (Src == NodeB) {
+      ASSERT_TRUE(Target == NodeC);
+    } else if (Src == NodeC) {
+      ASSERT_TRUE(Target == NodeD);
+    } else if (Src == NodeE) {
+      ASSERT_TRUE(Target == NodeB);
+    }
   }
 
-  ASSERT_TRUE(number_edge == 4);
-  number_edge = 0; // Avoid stupid mistakes
+  ASSERT_TRUE(NumberEdge == 4);
+  NumberEdge = 0; // Avoid stupid mistakes
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(tg.g[vertexA].types.count(structA));
-  ASSERT_TRUE(tg.g[vertexA].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexB].types.count(structB));
-  ASSERT_TRUE(tg.g[vertexB].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexC].types.count(structC));
-  ASSERT_TRUE(tg.g[vertexC].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexD].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexD].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexE].types.count(structE));
-  ASSERT_TRUE(tg.g[vertexE].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA));
+  ASSERT_TRUE(Tg.g[VertexA].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB));
+  ASSERT_TRUE(Tg.g[VertexB].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC));
+  ASSERT_TRUE(Tg.g[VertexC].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE));
+  ASSERT_TRUE(Tg.g[VertexE].types.size() == 1);
 
-  tg.aggregateTypes();
+  Tg.aggregateTypes();
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(tg.g[vertexA].types.count(structA) &&
-              tg.g[vertexA].types.count(structB) &&
-              tg.g[vertexA].types.count(structC) &&
-              tg.g[vertexA].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexA].types.size() == 4);
-  ASSERT_TRUE(tg.g[vertexB].types.count(structB) &&
-              tg.g[vertexB].types.count(structC) &&
-              tg.g[vertexB].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexB].types.size() == 3);
-  ASSERT_TRUE(tg.g[vertexC].types.count(structC) &&
-              tg.g[vertexC].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexC].types.size() == 2);
-  ASSERT_TRUE(tg.g[vertexD].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexD].types.size() == 1);
-  ASSERT_TRUE(tg.g[vertexE].types.count(structE) &&
-              tg.g[vertexE].types.count(structB) &&
-              tg.g[vertexE].types.count(structC) &&
-              tg.g[vertexE].types.count(structD));
-  ASSERT_TRUE(tg.g[vertexE].types.size() == 4);
+  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA) &&
+              Tg.g[VertexA].types.count(StructB) &&
+              Tg.g[VertexA].types.count(StructC) &&
+              Tg.g[VertexA].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexA].types.size() == 4);
+  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB) &&
+              Tg.g[VertexB].types.count(StructC) &&
+              Tg.g[VertexB].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexB].types.size() == 3);
+  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC) &&
+              Tg.g[VertexC].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexC].types.size() == 2);
+  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
+  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE) &&
+              Tg.g[VertexE].types.count(StructB) &&
+              Tg.g[VertexE].types.count(StructC) &&
+              Tg.g[VertexE].types.count(StructD));
+  ASSERT_TRUE(Tg.g[VertexE].types.size() == 4);
 }
 } // namespace psr
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  auto res = RUN_ALL_TESTS();
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
+  auto Res = RUN_ALL_TESTS();
   llvm::llvm_shutdown();
-  return res;
+  return Res;
 }
