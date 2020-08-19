@@ -113,7 +113,9 @@ else
 fi
 
 # installing LLVM
-./utils/install-llvm.sh ${NUM_THREADS} ${LLVM_INSTALL_DIR} ${LLVM_RELEASE}
+tmp_dir=`mktemp -d "llvm-10_build.XXXXXXXX" --tmpdir`
+./utils/install-llvm.sh ${NUM_THREADS} ${tmp_dir} ${LLVM_INSTALL_DIR} ${LLVM_RELEASE}
+rm -rf ${tmp_dir}
 sudo pip3 install wllvm
 echo "dependencies successfully installed"
 
