@@ -65,6 +65,42 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 //   ASSERT_TRUE(Callees2.count(FooC));
 // }
 
+TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/function_pointer_2_cpp.ll"},
+      IRDBOptions::WPA);
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB, false);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
+
+  const llvm::Function *Main = IRDB.getFunctionDefinition("main");
+  const llvm::Function *Bar = IRDB.getFunctionDefinition("_Z3barv");
+
+  const auto *FPtrCall = getNthInstruction(Main, 7);
+  auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
+
+  ASSERT_EQ(Callees.size(), 1U);
+  ASSERT_EQ(Callees.count(Bar), 1U);
+}
+
+TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/function_pointer_3_cpp.ll"},
+      IRDBOptions::WPA);
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB, false);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
+
+  const llvm::Function *Main = IRDB.getFunctionDefinition("main");
+  const llvm::Function *Foo = IRDB.getFunctionDefinition("_Z3foov");
+
+  const auto *FPtrCall = getNthInstruction(Main, 8);
+  auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
+
+  ASSERT_EQ(Callees.size(), 1U);
+  ASSERT_EQ(Callees.count(Foo), 1U);
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

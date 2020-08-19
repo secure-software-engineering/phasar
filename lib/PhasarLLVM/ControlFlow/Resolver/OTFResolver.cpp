@@ -136,12 +136,19 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   std::set<const llvm::Function *> Callees;
-  const auto PTS = PT.getPointsToSet(CS.getCalledValue());
-  for (const auto *P : *PTS) {
-    if (P->getType()->isPointerTy() &&
-        P->getType()->getPointerElementType()->isFunctionTy()) {
-      if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
-        Callees.insert(F);
+  if (CS.getCalledValue() && CS.getCalledValue()->getType()->isPointerTy()) {
+    if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
+            CS.getCalledValue()->getType()->getPointerElementType())) {
+      const auto PTS = PT.getPointsToSet(CS.getCalledValue());
+      for (const auto *P : *PTS) {
+        if (P->getType()->isPointerTy() &&
+            P->getType()->getPointerElementType()->isFunctionTy()) {
+          if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
+            if (matchesSignature(F, FTy)) {
+              Callees.insert(F);
+            }
+          }
+        }
       }
     }
   }

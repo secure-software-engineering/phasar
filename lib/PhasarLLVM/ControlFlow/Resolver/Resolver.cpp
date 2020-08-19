@@ -116,7 +116,6 @@ Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
       }
     }
   }
-
   return CalleeTargets;
 }
 
