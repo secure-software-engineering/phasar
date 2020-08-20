@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "boost/graph/adjacency_list.hpp"
+#include "boost/container/flat_set.hpp"
 
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
@@ -103,7 +104,7 @@ private:
   /// The call graph.
   bidigraph_t CallGraph;
 
-  /// Maps function names to the corresponding vertex id.
+  /// Maps functions to the corresponding vertex id.
   std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
   void constructionWalker(const llvm::Function *F, Resolver &Resolver);
@@ -133,8 +134,21 @@ public:
 
   ~LLVMBasedICFG() override;
 
+  /**
+   * \return all of the functions in the IRDB, this may include some not in the callgraph
+   */
   [[nodiscard]] std::set<const llvm::Function *>
   getAllFunctions() const override;
+
+  /**
+   * A boost flat_set is used here because we already have the functions in order,
+   * so building it is fast since we can always add to the end.  We get the performance
+   * and space benefits of array-backed storage and all the functionality of a set.
+   *
+   * \return all of the functions which are represented by a vertex in the callgraph.
+   */
+  [[nodiscard]] boost::container::flat_set<const llvm::Function *>
+  getAllVertexFunctions() const;
 
   bool isIndirectFunctionCall(const llvm::Instruction *N) const override;
 

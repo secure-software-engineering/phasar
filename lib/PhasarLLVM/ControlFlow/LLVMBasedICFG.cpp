@@ -289,6 +289,15 @@ set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
   return IRDB.getAllFunctions();
 }
 
+boost::container::flat_set<const llvm::Function *> LLVMBasedICFG::getAllVertexFunctions() const {
+  boost::container::flat_set<const llvm::Function *> vertexFuncs;
+  vertexFuncs.reserve(FunctionVertexMap.size());
+  for (auto v : FunctionVertexMap) {
+    vertexFuncs.insert(v.first);
+  }
+  return vertexFuncs;
+}
+
 std::vector<const llvm::Instruction *>
 LLVMBasedICFG::getOutEdges(const llvm::Function *F) const {
   auto FunctionMapIt = FunctionVertexMap.find(F);
