@@ -190,21 +190,21 @@ public:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(N) Succ Inst : " << problem.NtoString(succ));
     auto Key = createEdgeFunctionInstKey(curr, succ);
-    if (NormalFunctionCache.count(Key)) {
+    auto SearchNormalFlowFunction = NormalFunctionCache.find(Key);
+    if (SearchNormalFlowFunction != NormalFunctionCache.end()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("Normal-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      NormalEdgeFlowData &data = NormalFunctionCache.at(Key);
-      if (data.FlowFuncPtr != nullptr) {
-        return data.FlowFuncPtr;
+      if (SearchNormalFlowFunction->second.FlowFuncPtr != nullptr) {
+        return SearchNormalFlowFunction->second.FlowFuncPtr;
       } else {
         auto ff =
             (autoAddZero)
                 ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
                       problem.getNormalFlowFunction(curr, succ), zeroValue)
                 : problem.getNormalFlowFunction(curr, succ);
-        data.FlowFuncPtr = ff;
+        SearchNormalFlowFunction->second.FlowFuncPtr = ff;
         return ff;
       }
     } else {
@@ -229,13 +229,14 @@ public:
                   << "(N) Call Stmt : " << problem.NtoString(callStmt);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(F) Dest Fun : " << problem.FtoString(destFun));
-    auto key = std::tie(callStmt, destFun);
-    if (CallFlowFunctionCache.count(key)) {
+    auto Key = std::tie(callStmt, destFun);
+    auto SearchCallFlowFunction = CallFlowFunctionCache.find(Key);
+    if (SearchCallFlowFunction != CallFlowFunctionCache.end()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("Call-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      return CallFlowFunctionCache.at(key);
+      return SearchCallFlowFunction->second;
     } else {
       INC_COUNTER("Call-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
@@ -243,7 +244,7 @@ public:
               ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
                     problem.getCallFlowFunction(callStmt, destFun), zeroValue)
               : problem.getCallFlowFunction(callStmt, destFun);
-      CallFlowFunctionCache.insert(std::make_pair(key, ff));
+      CallFlowFunctionCache.insert(std::make_pair(Key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -264,13 +265,14 @@ public:
                   << "(N) Exit Stmt : " << problem.NtoString(exitStmt);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(N) Ret Site  : " << problem.NtoString(retSite));
-    auto key = std::tie(callSite, calleeFun, exitStmt, retSite);
-    if (ReturnFlowFunctionCache.count(key)) {
+    auto Key = std::tie(callSite, calleeFun, exitStmt, retSite);
+    auto SearchReturnFlowFunction = ReturnFlowFunctionCache.find(Key);
+    if (SearchReturnFlowFunction != ReturnFlowFunctionCache.end()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("Return-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      return ReturnFlowFunctionCache.at(key);
+      return SearchReturnFlowFunction->second;
     } else {
       INC_COUNTER("Return-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
@@ -280,7 +282,7 @@ public:
                           zeroValue)
                     : problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
                                                  retSite);
-      ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
+      ReturnFlowFunctionCache.insert(std::make_pair(Key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -302,13 +304,14 @@ public:
                                                                     : callees) {
           BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << problem.FtoString(callee);
         });
-    auto key = std::tie(callSite, retSite, callees);
-    if (CallToRetFlowFunctionCache.count(key)) {
+    auto Key = std::tie(callSite, retSite, callees);
+    auto SearchCallToRetFlowFunction = CallToRetFlowFunctionCache.find(Key);
+    if (SearchCallToRetFlowFunction != CallToRetFlowFunctionCache.end()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       INC_COUNTER("CallToRet-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      return CallToRetFlowFunctionCache.at(key);
+      return SearchCallToRetFlowFunction->second;
     } else {
       INC_COUNTER("CallToRet-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
@@ -318,7 +321,7 @@ public:
                                                      callees),
                     zeroValue)
               : problem.getCallToRetFlowFunction(callSite, retSite, callees);
-      CallToRetFlowFunctionCache.insert(std::make_pair(key, ff));
+      CallToRetFlowFunctionCache.insert(std::make_pair(Key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -353,46 +356,41 @@ public:
                   << "(N) Succ Inst : " << problem.NtoString(succ);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Succ Node : " << problem.DtoString(succNode));
-    if (hasNormalEdgeFunction(curr, currNode, succ, succNode)) {
-      INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Edge function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-      EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(curr, succ);
-      auto SearchInnerMap = NormalFunctionCache.find(OuterMapKey);
-      assert(
-          SearchInnerMap != NormalFunctionCache.end() &&
-          "Outer map did not contain map node, which should be guaranteed by "
-          "hasNormalEdgeFunction.");
-
+    EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(curr, succ);
+    auto SearchInnerMap = NormalFunctionCache.find(OuterMapKey);
+    if (SearchInnerMap != NormalFunctionCache.end()) {
       auto SearchEdgeFunc = SearchInnerMap->second.EdgeFunctionMap.find(
           createEdgeFunctionNodeKey(currNode, succNode));
-      assert(SearchEdgeFunc != SearchInnerMap->second.EdgeFunctionMap.end() &&
-             "Inner map did not contain EdgeFunction, which should be "
-             "guaranteed by hasNormalEdgeFunction");
-
-      return SearchEdgeFunc->second;
-    } else {
+      if (SearchEdgeFunc != SearchInnerMap->second.EdgeFunctionMap.end()) {
+        INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "Edge function fetched from cache";
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+        return SearchEdgeFunc->second;
+      }
       INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
 
-      EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(curr, succ);
-      auto SearchInnerMap = NormalFunctionCache.find(OuterMapKey);
-      if (SearchInnerMap != NormalFunctionCache.end()) {
-        SearchInnerMap->second.EdgeFunctionMap.insert(
-            createEdgeFunctionNodeKey(currNode, succNode), ef);
-      } else {
-        NormalFunctionCache.try_emplace(
-            OuterMapKey,
-            NormalEdgeFlowData(InnerEdgeFunctionMapType{std::make_pair(
-                createEdgeFunctionNodeKey(currNode, succNode), ef)}));
-      }
+      SearchInnerMap->second.EdgeFunctionMap.insert(
+          createEdgeFunctionNodeKey(currNode, succNode), ef);
+
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ef;
     }
+    INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
+    auto ef = problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
+
+    NormalFunctionCache.try_emplace(
+        OuterMapKey, NormalEdgeFlowData(InnerEdgeFunctionMapType{std::make_pair(
+                         createEdgeFunctionNodeKey(currNode, succNode), ef)}));
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Edge function constructed";
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    return ef;
   }
 
   EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
@@ -409,18 +407,19 @@ public:
         << "(F) Dest Fun : " << problem.FtoString(destinationFunction);
         BOOST_LOG_SEV(lg::get(), DEBUG)
         << "(D) Dest Node : " << problem.DtoString(destNode));
-    auto key = std::tie(callStmt, srcNode, destinationFunction, destNode);
-    if (CallEdgeFunctionCache.count(key)) {
+    auto Key = std::tie(callStmt, srcNode, destinationFunction, destNode);
+    auto SearchCallEdgeFunction = CallEdgeFunctionCache.find(Key);
+    if (SearchCallEdgeFunction != CallEdgeFunctionCache.end()) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      return CallEdgeFunctionCache.at(key);
+      return SearchCallEdgeFunction->second;
     } else {
       INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
                                             destinationFunction, destNode);
-      CallEdgeFunctionCache.insert(std::make_pair(key, ef));
+      CallEdgeFunctionCache.insert(std::make_pair(Key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -446,19 +445,20 @@ public:
                   << "(N) Ret Site  : " << problem.NtoString(reSite);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Ret Node  : " << problem.DtoString(retNode));
-    auto key =
+    auto Key =
         std::tie(callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
-    if (ReturnEdgeFunctionCache.count(key)) {
+    auto SearchReturnEdgeFunction = ReturnEdgeFunctionCache.find(Key);
+    if (SearchReturnEdgeFunction != ReturnEdgeFunctionCache.end()) {
       INC_COUNTER("Return-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      return ReturnEdgeFunctionCache.at(key);
+      return SearchReturnEdgeFunction->second;
     } else {
       INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getReturnEdgeFunction(
           callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
-      ReturnEdgeFunctionCache.insert(std::make_pair(key, ef));
+      ReturnEdgeFunctionCache.insert(std::make_pair(Key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -486,46 +486,43 @@ public:
           BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << problem.FtoString(callee);
         });
 
-    if (hasCallToRetEdgeFunctionCache(callSite, callNode, retSite,
-                                      retSiteNode)) {
-      INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Edge function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-
-      EdgeFuncInstKey OuterMapKey =
-          createEdgeFunctionInstKey(callSite, retSite);
-      auto SearchInnerMap = CallToRetEdgeFunctionCache.find(OuterMapKey);
-      assert(
-          SearchInnerMap != CallToRetEdgeFunctionCache.end() &&
-          "Outer map did not contain map node, which should be guaranteed by "
-          "hasCallToRetEdgeFunctionCache.");
-
+    EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(callSite, retSite);
+    auto SearchInnerMap = CallToRetEdgeFunctionCache.find(OuterMapKey);
+    if (SearchInnerMap != CallToRetEdgeFunctionCache.end()) {
       auto SearchEdgeFunc = SearchInnerMap->second.find(
           createEdgeFunctionNodeKey(callNode, retSiteNode));
-      return SearchEdgeFunc->second;
-    } else {
+      if (SearchEdgeFunc != SearchInnerMap->second.end()) {
+        INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "Edge function fetched from cache";
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+        return SearchEdgeFunc->second;
+      }
       INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getNormalEdgeFunction(callSite, callNode, retSite,
                                               retSiteNode);
 
-      EdgeFuncInstKey OuterMapKey =
-          createEdgeFunctionInstKey(callSite, retSite);
-      auto SearchInnerMap = CallToRetEdgeFunctionCache.find(OuterMapKey);
-      if (SearchInnerMap != CallToRetEdgeFunctionCache.end()) {
-        SearchInnerMap->second.insert(
-            createEdgeFunctionNodeKey(callNode, retSiteNode), ef);
-      } else {
-        InnerEdgeFunctionMapType Mapp{};
-        Mapp.insert(createEdgeFunctionNodeKey(callNode, retSiteNode), ef);
+      SearchInnerMap->second.insert(
+          createEdgeFunctionNodeKey(callNode, retSiteNode), ef);
 
-        CallToRetEdgeFunctionCache.emplace(OuterMapKey, std::move(Mapp));
-      }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return ef;
     }
+
+    INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
+    auto ef =
+        problem.getNormalEdgeFunction(callSite, callNode, retSite, retSiteNode);
+
+    CallToRetEdgeFunctionCache.emplace(
+        OuterMapKey,
+        InnerEdgeFunctionMapType{std::make_pair(
+            createEdgeFunctionNodeKey(callNode, retSiteNode), ef)});
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Edge function constructed";
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    return ef;
   }
 
   EdgeFunctionPtrType getSummaryEdgeFunction(n_t callSite, d_t callNode,
@@ -542,18 +539,19 @@ public:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Ret Node  : " << problem.DtoString(retSiteNode);
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    auto key = std::tie(callSite, callNode, retSite, retSiteNode);
-    if (SummaryEdgeFunctionCache.count(key)) {
+    auto Key = std::tie(callSite, callNode, retSite, retSiteNode);
+    auto SearchSummaryEdgeFunction = SummaryEdgeFunctionCache.find(Key);
+    if (SearchSummaryEdgeFunction != SummaryEdgeFunctionCache.end()) {
       INC_COUNTER("Summary-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      return SummaryEdgeFunctionCache.at(key);
+      return SearchSummaryEdgeFunction->second;
     } else {
       INC_COUNTER("Summary-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getSummaryEdgeFunction(callSite, callNode, retSite,
                                                retSiteNode);
-      SummaryEdgeFunctionCache.insert(std::make_pair(key, ef));
+      SummaryEdgeFunctionCache.insert(std::make_pair(Key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -663,32 +661,6 @@ public:
   }
 
 private:
-  /// Checks if an EdgeFunction corresponding to the passed n_t/d_t values is
-  /// cached.
-  ///
-  /// \returns true, if a cache entry is present
-  inline bool hasNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                                    d_t succNode) {
-    auto Search =
-        NormalFunctionCache.find(createEdgeFunctionInstKey(curr, succ));
-    if (Search != NormalFunctionCache.end()) {
-      return Search->second.EdgeFunctionMap.count(
-          createEdgeFunctionNodeKey(currNode, succNode));
-    }
-    return false;
-  }
-
-  inline bool hasCallToRetEdgeFunctionCache(n_t curr, d_t currNode, n_t succ,
-                                            d_t succNode) {
-    auto Search =
-        CallToRetEdgeFunctionCache.find(createEdgeFunctionInstKey(curr, succ));
-    if (Search != CallToRetEdgeFunctionCache.end()) {
-      return Search->second.count(
-          createEdgeFunctionNodeKey(currNode, succNode));
-    }
-    return false;
-  }
-
   inline EdgeFuncInstKey createEdgeFunctionInstKey(n_t n1, n_t n2) {
     uint64_t val = 0;
     val |= KeyCompressor.getCompressedID(n1);
