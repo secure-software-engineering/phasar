@@ -131,7 +131,7 @@ export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 mkdir -p ${PHASAR_DIR}/build
 cd ${PHASAR_DIR}/build
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ${BOOST_PARAMS} -DPHASAR_BUILD_UNITTESTS=${DO_UNIT_TEST} ${PHASAR_DIR}
-cmake --build . -j${num_cores}
+cmake --build . -j${NUM_THREADS}
 
 if ${DO_UNIT_TEST}; then
    echo "Running PhASAR unit tests..."
