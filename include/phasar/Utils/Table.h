@@ -142,8 +142,8 @@ public:
   [[nodiscard]] bool contains(R rowKey, C columnKey) const {
     // Returns true if the table contains a mapping with the specified row and
     // column keys.
-    if (table.count(rowKey)) {
-      return table.at(rowKey).count(columnKey);
+    if (auto RowIter = table.find(rowKey); RowIter != table.end()) {
+      return RowIter->second.find(columnKey) != RowIter->second.end();
     }
     return false;
   }
