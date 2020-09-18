@@ -1,8 +1,7 @@
-set(PointerSources
-	LLVMTypeHierarchyTest.cpp
-	TypeGraphTest.cpp
+set(ControlFlowSources
+	LLVMPointsToSetTest.cpp
 )
 
-foreach(TEST_SRC ${PointerSources})
+foreach(TEST_SRC ${ControlFlowSources})
 	add_phasar_unittest(${TEST_SRC})
 endforeach(TEST_SRC)

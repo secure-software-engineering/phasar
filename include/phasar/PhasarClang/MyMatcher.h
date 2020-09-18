@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARCLANG_MYMATCHER_H_
 #define PHASAR_PHASARCLANG_MYMATCHER_H_
 
-#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include "clang/ASTMatchers/ASTMatchFinder.h"
 
 namespace psr {
 

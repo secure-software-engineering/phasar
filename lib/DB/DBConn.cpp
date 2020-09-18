@@ -13,31 +13,31 @@
  *  Created on: 23.08.2016
  *      Author: pdschbrt
  */
-
+/*
 #include <thread>
 
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/GlobalVariable.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Verifier.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/Support/SourceMgr.h>
+#include "llvm/Bitcode/BitcodeWriter.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/SourceMgr.h"
 
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/prepared_statement.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
+#include "cppconn/driver.h"
+#include "cppconn/exception.h"
+#include "cppconn/prepared_statement.h"
+#include "cppconn/resultset.h"
+#include "cppconn/statement.h"
 
-#include <phasar/DB/DBConn.h>
-#include <phasar/DB/Hexastore.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include "phasar/DB/DBConn.h"
+#include "phasar/DB/Hexastore.h"
+#include "phasar/PhasarLLVM/Pointer/VTable.h"
 
-#include <phasar/Utils/IO.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
+#include "phasar/Utils/IO.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Macros.h"
 
 using namespace psr;
 using namespace std;
@@ -506,7 +506,7 @@ bool DBConn::insertVTable(const VTable &VTBL, const string &TypeName,
   try {
     int typeID = getTypeID(TypeName);
     // module ID of the module that contains the current type
-    for (auto fname : VTBL.getVTable()) {
+    for (auto fname : VTBL) {
       // Identify the corresponding function id
       unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
           "SELECT DISTINCT function_id, declaration FROM function "
@@ -1555,3 +1555,4 @@ void DBConn::dropDBAndRebuildScheme() {
 }
 
 } // namespace psr
+*/

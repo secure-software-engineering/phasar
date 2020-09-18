@@ -17,9 +17,9 @@
 #ifndef PHASAR_PHASARCLANG_RANDOMCHANGEASTCONSUMER_H_
 #define PHASAR_PHASARCLANG_RANDOMCHANGEASTCONSUMER_H_
 
-#include <clang/AST/ASTConsumer.h>
+#include "clang/AST/ASTConsumer.h"
 
-#include <phasar/PhasarClang/RandomChangeVisitor.h>
+#include "phasar/PhasarClang/RandomChangeVisitor.h"
 
 namespace clang {
 class ASTContext;
@@ -35,7 +35,7 @@ private:
 public:
   RandomChangeASTConsumer(clang::Rewriter &R);
 
-  virtual void HandleTranslationUnit(clang::ASTContext &Context) override;
+  void HandleTranslationUnit(clang::ASTContext &Context) override;
 
   // virtual bool HandleTopLevelDecl(DeclGroupRef DG);
 };

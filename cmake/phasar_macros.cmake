@@ -4,51 +4,45 @@ function(add_phasar_unittest test_name)
   add_executable(${test}
     ${test_name}
   )
-  # Fix boost_thread dependency for MacOS
-  if(APPLE)
-    set(BOOST_THREAD boost_thread-mt)
+  add_dependencies(PhasarUnitTests ${test})
+
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(${test} USE_SHARED ${LLVM_LINK_COMPONENTS})
   else()
-    set(BOOST_THREAD boost_thread)
-  endif()
-  # Workaround: Remove Plugins for MacOS for now
-  if(APPLE)
-    set(PHASAR_PLUGINS_LIB )
-  else()
-    set(PHASAR_PLUGINS_LIB phasar_plugins)
+    llvm_config(${test} ${LLVM_LINK_COMPONENTS})
   endif()
 
   target_link_libraries(${test}
+    LINK_PUBLIC
     phasar_config
     phasar_controller
+    phasar_controlflow
+    phasar_phasarllvm_utils
+    phasar_analysis_strategy
+    phasar_ifdside
+    phasar_utils
+    phasar_mono
     phasar_db
     phasar_experimental
-    phasar_clang
-    phasar_controlflow
-    phasar_ifdside
-    phasar_mono
+    # phasar_clang
     phasar_passes
-    ${PHASAR_PLUGINS_LIB}
+    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
+    phasar_plugins
+    # ${PHASAR_PLUGINS_LIB}
     phasar_pointer
-    phasar_phasarllvm_utils
-    phasar_utils
-    boost_program_options
-    boost_filesystem
-    boost_graph
-    boost_system
-    boost_log
-    ${BOOST_THREAD}
+    phasar_typehierarchy
+    phasar_taintapiconfig
     ${SQLITE3_LIBRARY}
     ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
-    ${CLANG_LIBRARIES}
-    ${llvm_libs}
     curl
     gtest
   )
 
   add_test(NAME "${test}"
     COMMAND ${test} ${CATCH_TEST_FILTER}
+    WORKING_DIRECTORY ${PHASAR_UNITTEST_DIR}
   )
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
@@ -84,33 +78,34 @@ function(generate_ll_file)
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
   # define compilation flags
-  set(GEN_CXX_FLAGS -std=c++14 -emit-llvm -S)
-  set(GEN_C_FLAGS -emit-llvm -S)
-  set(GEN_CMD_COMMENT "compile ${GEN_LL_FILE} to LLVM IR")
+  set(GEN_CXX_FLAGS -std=c++14 -fno-discard-value-names -emit-llvm -S)
+  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S)
+  set(GEN_CMD_COMMENT "[LL]")
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
     list(APPEND GEN_C_FLAGS -Xclang -disable-O0-optnone)
-    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} with mem2reg optimization")
+    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT}[M2R]")
   endif()
   if(GEN_LL_DEBUG)
     list(APPEND GEN_CXX_FLAGS -g)
     list(APPEND GEN_C_FLAGS -g)
-    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} with/and debug information")
+    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT}[DBG]")
   endif()
+  set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} ${GEN_LL_FILE}")
 
   # define .ll file generation command
   if(${test_code_file_ext} STREQUAL ".cpp")
-    set(GEN_CMD ${CMAKE_CXX_COMPILER})
+    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER})
     list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
   else()
-    set(GEN_CMD ${CMAKE_C_COMPILER})
+    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
     list(APPEND GEN_CMD ${GEN_C_FLAGS})
   endif()
   if(GEN_LL_MEM2REG)
     add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM
@@ -148,7 +143,7 @@ macro(add_phasar_library name)
     string( REGEX MATCHALL "/[^/]" split_path ${CMAKE_CURRENT_SOURCE_DIR})
     list( GET split_path -1 dir)
     file( GLOB_RECURSE headers
-      ../../include/polly${dir}/*.h)
+      ../../include/phasar${dir}/*.h)
     set(srcs ${srcs} ${headers})
   endif(MSVC_IDE OR XCODE)
   if (MODULE)
@@ -159,6 +154,7 @@ macro(add_phasar_library name)
     set(libkind)
   endif()
   add_library( ${name} ${libkind} ${srcs} )
+  add_library( phasar::${name} ALIAS ${name} )
   if( LLVM_COMMON_DEPENDS )
     add_dependencies( ${name} ${LLVM_COMMON_DEPENDS} )
   endif( LLVM_COMMON_DEPENDS )
@@ -170,12 +166,20 @@ macro(add_phasar_library name)
 
   if(PHASAR_LINK_LIBS)
     foreach(lib ${PHASAR_LINK_LIBS})
-      target_link_libraries(${name} LINK_PRIVATE ${lib})
+      if(PHASAR_DEBUG_LIBDEPS)
+        target_link_libraries(${name} LINK_PRIVATE ${lib})
+      else()
+        target_link_libraries(${name} LINK_PUBLIC ${lib})
+      endif(PHASAR_DEBUG_LIBDEPS)
     endforeach(lib)
   endif(PHASAR_LINK_LIBS)
 
   if( LLVM_LINK_COMPONENTS )
-    llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    if( USE_LLVM_FAT_LIB )
+      llvm_config(${name} USE_SHARED ${LLVM_LINK_COMPONENTS})
+    else()
+      llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    endif()
   endif( LLVM_LINK_COMPONENTS )
   if(MSVC)
     get_target_property(cflag ${name} COMPILE_FLAGS)
@@ -185,10 +189,32 @@ macro(add_phasar_library name)
     set(cflag "${cflag} /Za")
     set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${cflag})
   endif(MSVC)
-  install(TARGETS ${name}
-    EXPORT LLVMExports
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+  #cut off prefix phasar_ for convenient component names
+  string(REGEX REPLACE phasar_ "" name component_name)
+  if(PHASAR_IN_TREE)
+    install(TARGETS ${name}
+      EXPORT LLVMExports
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+  else()
+    install(TARGETS ${name}
+      EXPORT phasarTargets
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+    install(TARGETS ${name}
+      EXPORT ${name}-targets
+      COMPONENT ${component_name}
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+    install(EXPORT ${name}-targets
+      FILE ${name}-targets.cmake
+      NAMESPACE phasar::
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+      COMPONENT ${component_name})
+    install(FILES ${name}-config.cmake
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar)
+  endif()
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
 endmacro(add_phasar_library)
 

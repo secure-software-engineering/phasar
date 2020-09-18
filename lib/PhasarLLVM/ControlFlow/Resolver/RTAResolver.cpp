@@ -14,92 +14,88 @@
  *      Author: nicolas bellec
  */
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Module.h>
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Module.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
 
-RTAResolver::RTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
-    : CHAResolver(irdb, ch) {}
+RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : CHAResolver(IRDB, TH) {}
 
-void RTAResolver::firstFunction(const llvm::Function *F) {
-  auto func_type = F->getFunctionType();
+// void RTAResolver::firstFunction(const llvm::Function *F) {
+//   auto func_type = F->getFunctionType();
 
-  for (auto param : func_type->params()) {
-    if (llvm::isa<llvm::PointerType>(param)) {
-      if (auto struct_ty =
-              llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-        unsound_types.insert(struct_ty);
-      }
-    }
-  }
-}
+//   for (auto param : func_type->params()) {
+//     if (llvm::isa<llvm::PointerType>(param)) {
+//       if (auto struct_ty =
+//               llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
+//         unsound_types.insert(struct_ty);
+//       }
+//     }
+//   }
+// }
 
-set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  throw runtime_error("RTA is currently unabled to deal with already built "
-                      "library, it has been disable until this is fixed");
+set<const llvm::Function *>
+RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+  // throw runtime_error("RTA is currently unabled to deal with already built "
+  //                     "library, it has been disable until this is fixed");
 
-  set<string> possible_call_targets;
-  auto &lg = lg::get();
+  set<const llvm::Function *> PossibleCallTargets;
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = getVtableIndex(CS);
-  if (vtable_index < 0) {
+  auto VtableIndex = getVFTIndex(CS);
+  if (VtableIndex < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                   << llvmIRToString(CS.getInstruction()) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Virtual function table entry is: " << vtable_index);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Virtual function table entry is: " << VtableIndex);
 
-  auto receiver_type = getReceiverType(CS);
-  auto receiver_type_name = receiver_type->getName().str();
-
-  if (unsound_types.find(receiver_type) != unsound_types.end()) {
-    return CHAResolver::resolveVirtualCall(CS);
-  }
+  const auto *ReceiverType = getReceiverType(CS);
 
   // also insert all possible subtypes vtable entries
-  auto reachable_type_names =
-      CH.getTransitivelyReachableTypes(receiver_type_name);
+  auto ReachableTypes = Resolver::TH->getSubTypes(ReceiverType);
 
   // also insert all possible subtypes vtable entries
-  auto possible_types = IRDB.getAllocatedTypes();
+  auto PossibleTypes = IRDB.getAllocatedStructTypes();
 
-  auto end_it = reachable_type_names.end();
-  for (auto possible_type : possible_types) {
-    if (auto possible_type_struct =
-            llvm::dyn_cast<llvm::StructType>(possible_type)) {
-      string type_name = possible_type_struct->getName().str();
-      if (reachable_type_names.find(type_name) != end_it) {
-        insertVtableIntoResult(possible_call_targets, type_name, vtable_index,
-                               CS);
+  auto EndIt = ReachableTypes.end();
+  for (const auto *PossibleType : PossibleTypes) {
+    if (const auto *PossibleTypeStruct =
+            llvm::dyn_cast<llvm::StructType>(PossibleType)) {
+      if (ReachableTypes.find(PossibleTypeStruct) != EndIt) {
+        const auto *Target =
+            getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
+        if (Target) {
+          PossibleCallTargets.insert(Target);
+        }
       }
     }
   }
 
-  if (possible_call_targets.size() == 0)
+  if (PossibleCallTargets.empty()) {
     return CHAResolver::resolveVirtualCall(CS);
+  }
 
-  return possible_call_targets;
+  return PossibleCallTargets;
 }

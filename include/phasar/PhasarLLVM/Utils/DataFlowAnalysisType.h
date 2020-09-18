@@ -11,37 +11,33 @@
 #define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
 #include <iosfwd>
-#include <map>
+#include <set>
 #include <string>
+#include <variant>
+
+#include "phasar/PhasarLLVM/Plugins/PluginCtors.h"
 
 namespace psr {
 
 enum class DataFlowAnalysisType {
-  IFDS_UninitializedVariables = 0,
-  IFDS_ConstAnalysis,
-  IFDS_TaintAnalysis,
-  IDE_TaintAnalysis,
-  IDE_TypeStateAnalysis,
-  IFDS_TypeAnalysis,
-  IFDS_SolverTest,
-  IFDS_LinearConstantAnalysis,
-  IDE_LinearConstantAnalysis,
-  IDE_SolverTest,
-  Intra_Mono_FullConstantPropagation,
-  Intra_Mono_SolverTest,
-  Inter_Mono_SolverTest,
-  Inter_Mono_TaintAnalysis,
-  Plugin,
-  None
+#define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE) TYPE,
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
 };
 
-extern const std::map<std::string, DataFlowAnalysisType>
-    StringToDataFlowAnalysisType;
+class ProjectIRDB;
+class LLVMTypeHierarchy;
+class LLVMBasedICFG;
+class LLVMPointsToInfo;
+using DataFlowAnalysisKind =
+    std::variant<DataFlowAnalysisType, IDEPluginConstructor,
+                 IFDSPluginConstructor, IntraMonoPluginConstructor,
+                 InterMonoPluginConstructor>;
 
-extern const std::map<DataFlowAnalysisType, std::string>
-    DataFlowAnalysisTypeToString;
+std::string toString(const DataFlowAnalysisType &D);
 
-std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &k);
+DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
+
+std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
 
 } // namespace psr
 

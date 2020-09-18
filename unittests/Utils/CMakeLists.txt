@@ -2,6 +2,7 @@ set(UtilsSources
 	LLVMShorthandsTest.cpp
 	LLVMIRToSrcTest.cpp
 	PAMMTest.cpp
+	BitVectorSetTest.cpp
 )
 
 foreach(TEST_SRC ${UtilsSources})

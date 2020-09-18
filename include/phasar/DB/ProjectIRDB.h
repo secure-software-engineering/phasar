@@ -10,17 +10,19 @@
 #ifndef PHASAR_DB_PROJECTIRDB_H_
 #define PHASAR_DB_PROJECTIRDB_H_
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 
-#include <clang/Tooling/CompilationDatabase.h>
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Passes/PassBuilder.h"
 
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-
-#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include "phasar/Utils/EnumFlags.h"
 
 namespace llvm {
 class Value;
@@ -32,11 +34,7 @@ class GlobalVariable;
 
 namespace psr {
 
-enum class IRDBOptions : uint32_t {
-  NONE = 0,
-  MEM2REG = (1 << 0),
-  WPA = (1 << 1)
-};
+enum class IRDBOptions : uint32_t { NONE = 0, WPA = (1 << 0), OWNS = (1 << 1) };
 
 /**
  * This class owns the LLVM IR code of the project under analysis and some
@@ -46,97 +44,131 @@ enum class IRDBOptions : uint32_t {
  */
 class ProjectIRDB {
 private:
-  llvm::Module *WPAMOD = nullptr;
+  llvm::Module *WPAModule = nullptr;
   IRDBOptions Options;
-  void compileAndAddToDB(std::vector<const char *> CompileCommand);
-  std::vector<std::string> header_search_paths;
-  static const std::set<std::string> unknown_flags;
-  void setupHeaderSearchPaths();
-  // Stores all source files that have been examined
-  std::set<std::string> source_files;
+  llvm::PassBuilder PB;
+  llvm::ModuleAnalysisManager MAM;
+  llvm::ModulePassManager MPM;
   // Stores all allocation instructions
-  std::set<const llvm::Value *> alloca_instructions;
-  // Stores all return/resume instructions
-  std::set<const llvm::Instruction *> ret_res_instructions;
-  // Stores all functions
-  std::set<const llvm::Function *> functions;
-  // Contains all contexts for all modules and owns them
-  std::map<std::string, std::unique_ptr<llvm::LLVMContext>> contexts;
+  std::set<const llvm::Instruction *> AllocaInstructions;
+  // Stores all allocated types
+  std::set<const llvm::Type *> AllocatedTypes;
+  // Return or resum instructions
+  std::set<const llvm::Instruction *> RetOrResInstructions;
+  // Stores the contexts
+  std::vector<std::unique_ptr<llvm::LLVMContext>> Contexts;
   // Contains all modules that correspond to a project and owns them
-  std::map<std::string, std::unique_ptr<llvm::Module>> modules;
-  // Maps function names to the module they are !defined! in
-  std::map<std::string, std::string> functionToModuleMap;
-  // Maps globals to the module they are !defined! in
-  std::map<std::string, std::string> globals;
+  std::map<std::string, std::unique_ptr<llvm::Module>> Modules;
   // Maps an id to its corresponding instruction
-  std::map<std::size_t, llvm::Instruction *> instructions;
-  // Maps a function to its points-to graph
-  std::map<std::string, std::unique_ptr<PointsToGraph>> ptgs;
-  std::set<const llvm::Type *> allocated_types;
+  std::map<std::size_t, llvm::Instruction *> IDInstructionMapping;
 
-  void buildFunctionModuleMapping(llvm::Module *M);
-  void buildGlobalModuleMapping(llvm::Module *M);
   void buildIDModuleMapping(llvm::Module *M);
+
   void preprocessModule(llvm::Module *M);
+  static bool wasCompiledWithDebugInfo(llvm::Module *M) {
+    return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
+  };
+
+  void preprocessAllModules();
 
 public:
   /// Constructs an empty ProjectIRDB
-  ProjectIRDB(enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from a bunch of llvm IR files
+  ProjectIRDB(IRDBOptions Options);
+  /// Constructs a ProjectIRDB from a bunch of LLVM IR files
   ProjectIRDB(const std::vector<std::string> &IRFiles,
-              enum IRDBOptions Opt = IRDBOptions::NONE);
-  /// Constructs a ProjectIRDB from a CompilationDatabase (only for simple
-  /// projects)
-  ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
-              enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from files which may have to be compiled to llvm
-  /// IR
-  ProjectIRDB(const std::vector<std::string> &Files,
-              std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
+              IRDBOptions Options = (IRDBOptions::WPA | IRDBOptions::OWNS));
+  /// Constructs a ProjecIRDB from a bunch of LLVM Modules
+  ProjectIRDB(const std::vector<llvm::Module *> &Modules,
+              IRDBOptions Options = IRDBOptions::WPA);
+
   ProjectIRDB(ProjectIRDB &&) = default;
-  ProjectIRDB &operator=(ProjectIRDB &&) = delete;
+  ProjectIRDB &operator=(ProjectIRDB &&) = default;
 
   ProjectIRDB(ProjectIRDB &) = delete;
   ProjectIRDB &operator=(const ProjectIRDB &) = delete;
 
-  ~ProjectIRDB() = default;
+  ~ProjectIRDB();
 
-  void preprocessIR();
+  void insertModule(llvm::Module *M);
 
   // add WPA support by providing a fat completely linked module
   void linkForWPA();
   // get a completely linked module for the WPA_MODE
   llvm::Module *getWPAModule();
-  bool containsSourceFile(const std::string &src);
-  bool empty();
-  llvm::LLVMContext *getLLVMContext(const std::string &ModuleName);
-  void insertModule(std::unique_ptr<llvm::Module> M);
+
+  [[nodiscard]] inline bool containsSourceFile(const std::string &File) const {
+    return Modules.find(File) != Modules.end();
+  };
+
+  [[nodiscard]] inline bool empty() const { return Modules.empty(); };
+
+  [[nodiscard]] bool debugInfoAvailable() const;
+
   llvm::Module *getModule(const std::string &ModuleName);
-  std::set<llvm::Module *> getAllModules() const;
-  std::set<const llvm::Function *> getAllFunctions();
-  std::set<const llvm::Instruction *> getRetResInstructions();
-  std::set<const llvm::Value *> getAllocaInstructions();
+
+  [[nodiscard]] inline std::set<llvm::Module *> getAllModules() const {
+    std::set<llvm::Module *> ModuleSet;
+    for (const auto &[File, Module] : Modules) {
+      ModuleSet.insert(Module.get());
+    }
+    return ModuleSet;
+  }
+
+  [[nodiscard]] std::set<const llvm::Function *> getAllFunctions() const;
+
+  [[nodiscard]] const llvm::Function *
+  getFunctionDefinition(const std::string &FunctionName) const;
+
+  [[nodiscard]] const llvm::Function *
+  getFunction(const std::string &FunctionName) const;
+
+  [[nodiscard]] const llvm::GlobalVariable *
+  getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
+
+  llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
+
+  [[nodiscard]] const llvm::Module *
+  getModuleDefiningFunction(const std::string &FunctionName) const;
+
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getAllocaInstructions() const {
+    return AllocaInstructions;
+  };
 
   /**
    * LLVM's intrinsic global variables are excluded.
    *
    * @brief Returns all stack and heap allocations, including global variables.
    */
-  std::set<const llvm::Value *> getAllMemoryLocations();
-  std::set<std::string> getAllSourceFiles();
-  std::size_t getNumberOfModules();
-  llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
-  llvm::Function *getFunction(const std::string &FunctionName);
-  llvm::GlobalVariable *
-  getGlobalVariable(const std::string &GlobalVariableName);
-  std::string
-  getGlobalVariableModuleName(const std::string &GlobalVariableName);
-  llvm::Instruction *getInstruction(std::size_t id);
-  std::size_t getInstructionID(const llvm::Instruction *I);
-  PointsToGraph *getPointsToGraph(const std::string &FunctionName);
-  void insertPointsToGraph(const std::string &FunctionName, PointsToGraph *ptg);
-  void print();
-  void exportPATBCJSON();
+  [[nodiscard]] std::set<const llvm::Value *> getAllMemoryLocations() const;
+
+  [[nodiscard]] std::set<std::string> getAllSourceFiles() const;
+
+  [[nodiscard]] std::set<const llvm::Type *> getAllocatedTypes() const {
+    return AllocatedTypes;
+  };
+
+  [[nodiscard]] std::set<const llvm::StructType *>
+  getAllocatedStructTypes() const;
+
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getRetOrResInstructions() const {
+    return RetOrResInstructions;
+  };
+
+  [[nodiscard]] std::size_t getNumberOfModules() const {
+    return Modules.size();
+  };
+
+  [[nodiscard]] llvm::Instruction *getInstruction(std::size_t id);
+
+  [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
+
+  void print() const;
+
+  void emitPreprocessedIR(std::ostream &os = std::cout,
+                          bool ShortenIR = true) const;
+
   /**
    * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
    * Operands into unique Hexastore string representation.
@@ -166,13 +198,13 @@ public:
    * @brief Creates a unique string representation for any given
    * llvm::Value.
    */
-  std::string valueToPersistedString(const llvm::Value *V);
+  [[nodiscard]] static std::string valueToPersistedString(const llvm::Value *V);
   /**
    * @brief Convertes the given string back into the llvm::Value it represents.
    * @return Pointer to the converted llvm::Value.
    */
-  const llvm::Value *persistedStringToValue(const std::string &StringRep);
-  std::set<const llvm::Type *> getAllocatedTypes();
+  [[nodiscard]] const llvm::Value *
+  persistedStringToValue(const std::string &StringRep) const;
 };
 
 } // namespace psr

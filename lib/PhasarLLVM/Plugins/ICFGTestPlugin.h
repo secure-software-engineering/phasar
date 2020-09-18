@@ -10,15 +10,20 @@
 #ifndef ICFGTESTPLUGIN_H_
 #define ICFGTESTPLUGIN_H_
 
+#include <iostream>
 #include <memory>
 #include <set>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h>
+
+namespace llvm {
+class Instruction;
+class Function;
+} // namespace llvm
 
 namespace psr {
 
@@ -26,66 +31,90 @@ using json = nlohmann::json;
 
 class ICFGTestPlugin : public ICFGPlugin {
 public:
-  ICFGTestPlugin(ProjectIRDB &IRDB, const std::vector<std::string> EntryPoints);
+  typedef const llvm::Instruction *n_t;
+  typedef const llvm::Function *f_t;
 
-  bool isCallStmt(const llvm::Instruction *stmt) override;
+  ICFGTestPlugin(ProjectIRDB &IRDB,
+                 const std::vector<std::string> &EntryPoints);
 
-  const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
+  ~ICFGTestPlugin() override = default;
 
-  std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *stmt) override;
+  // CFG parts
 
-  std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *stmt) override;
+  f_t getFunctionOf(n_t stmt) const override;
 
-  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
-  getAllControlFlowEdges(const llvm::Function *fun) override;
+  std::vector<n_t> getPredsOf(n_t stmt) const override;
 
-  std::vector<const llvm::Instruction *>
-  getAllInstructionsOf(const llvm::Function *fun) override;
+  std::vector<n_t> getSuccsOf(n_t stmt) const override;
 
-  bool isExitStmt(const llvm::Instruction *stmt) override;
+  std::vector<std::pair<n_t, n_t>>
+  getAllControlFlowEdges(f_t fun) const override;
 
-  bool isStartPoint(const llvm::Instruction *stmt) override;
+  std::vector<n_t> getAllInstructionsOf(f_t fun) const override;
 
-  bool isFallThroughSuccessor(const llvm::Instruction *stmt,
-                              const llvm::Instruction *succ) override;
+  std::set<n_t> getStartPointsOf(f_t fun) const override;
 
-  bool isBranchTarget(const llvm::Instruction *stmt,
-                      const llvm::Instruction *succ) override;
+  std::set<n_t> getExitPointsOf(f_t fun) const override;
 
-  std::string getMethodName(const llvm::Function *fun) override;
+  bool isCallStmt(n_t stmt) const override;
 
-  const llvm::Function *getMethod(const std::string &fun) override;
+  bool isExitStmt(n_t stmt) const override;
 
-  std::set<const llvm::Instruction *> allNonCallStartNodes() override;
+  bool isStartPoint(n_t stmt) const override;
 
-  std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *stmt) override;
+  bool isFieldLoad(n_t stmt) const override;
 
-  std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *fun) override;
+  bool isFieldStore(n_t stmt) const override;
 
-  std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *fun) override;
+  bool isFallThroughSuccessor(n_t stmt, n_t succ) const override;
 
-  std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *fun) override;
+  bool isBranchTarget(n_t stmt, n_t succ) const override;
 
-  std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *fun) override;
+  bool isHeapAllocatingFunction(f_t fun) const override;
 
-  std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *stmt) override;
+  bool isSpecialMemberFunction(f_t fun) const override;
 
-  std::string getStatementId(const llvm::Instruction *) override;
+  SpecialMemberFunctionType
+  getSpecialMemberFunctionType(f_t fun) const override;
 
-  json getAsJson() override;
+  std::string getStatementId(n_t stmt) const override;
+
+  std::string getFunctionName(f_t fun) const override;
+
+  std::string getDemangledFunctionName(f_t fun) const override;
+
+  void print(f_t F, std::ostream &OS = std::cout) const override;
+
+  nlohmann::json getAsJson(f_t F) const override;
+
+  // ICFG parts
+
+  std::set<f_t> getAllFunctions() const override;
+
+  f_t getFunction(const std::string &fun) const override;
+
+  bool isIndirectFunctionCall(n_t stmt) const override;
+
+  bool isVirtualFunctionCall(n_t stmt) const override;
+
+  std::set<n_t> allNonCallStartNodes() const override;
+
+  std::set<f_t> getCalleesOfCallAt(n_t stmt) const override;
+
+  std::set<n_t> getCallersOf(f_t fun) const override;
+
+  std::set<n_t> getCallsFromWithin(f_t fun) const override;
+
+  std::set<n_t> getReturnSitesOfCallAt(n_t stmt) const override;
+
+  void print(std::ostream &OS = std::cout) const override;
+
+  nlohmann::json getAsJson() const override;
 };
 
 extern "C" std::unique_ptr<ICFGPlugin>
 makeICFGTestPlugin(ProjectIRDB &IRDB,
-                   const std::vector<std::string> EntryPoints);
+                   const std::vector<std::string> &EntryPoints);
 } // namespace psr
 
 #endif

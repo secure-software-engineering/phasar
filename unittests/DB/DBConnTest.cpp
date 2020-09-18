@@ -1,6 +1,7 @@
-#include <gtest/gtest.h>
-#include <phasar/DB/DBConn.h>
-#include <phasar/DB/ProjectIRDB.h>
+/*
+#include "phasar/DB/DBConn.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
@@ -70,3 +71,4 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+*/

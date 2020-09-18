@@ -20,21 +20,26 @@
 #include <utility> // std::pair
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/copy.hpp>
-#include <boost/graph/graph_utility.hpp>
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/copy.hpp"
+#include "boost/graph/graph_utility.hpp"
 
 namespace psr {
 
 template <typename GraphTy, typename VertexTy, typename EdgeProp>
 void contract_vertices(VertexTy replacement, VertexTy replace, GraphTy &g) {
   auto be = boost::adjacent_vertices(replace, g);
-  for (auto beit = be.first; beit != be.second; ++beit) {
-    for (auto out_edge :
-         boost::make_iterator_range(boost::out_edges(replace, g))) {
-      add_edge(replacement, *beit, EdgeProp(g[out_edge]), g);
-      remove_edge(out_edge, g);
+  auto beit = be.first;
+  while (beit != be.second) {
+    typename boost::graph_traits<GraphTy>::out_edge_iterator out_edge, end;
+    boost::tie(out_edge, end) = boost::out_edges(replace, g);
+    while (out_edge != end) {
+      add_edge(replacement, *beit, EdgeProp(g[*out_edge]), g);
+      remove_edge(*out_edge, g);
+      boost::tie(out_edge, end) = boost::out_edges(replace, g);
     }
+    be = boost::adjacent_vertices(replace, g);
+    beit = be.first;
   }
   remove_vertex(replace, g);
 }

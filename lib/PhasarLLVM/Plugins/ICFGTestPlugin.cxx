@@ -10,10 +10,10 @@
 #include <iostream>
 #include <utility>
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
 
-#include <phasar/DB/ProjectIRDB.h>
+#include "phasar/DB/ProjectIRDB.h"
 
 #include "ICFGTestPlugin.h"
 
@@ -30,129 +30,155 @@ __attribute__((constructor)) void init() {
 __attribute__((destructor)) void fini() { cout << "fini - ICFGTestPlugin\n"; }
 
 unique_ptr<ICFGPlugin> makeICFGTestPlugin(ProjectIRDB &IRDB,
-                                          const vector<string> EntryPoints) {
+                                          const vector<string> &EntryPoints) {
   return unique_ptr<ICFGPlugin>(new ICFGTestPlugin(IRDB, EntryPoints));
 }
 
 ICFGTestPlugin::ICFGTestPlugin(ProjectIRDB &IRDB,
-                               const vector<string> EntryPoints)
+                               const vector<string> &EntryPoints)
     : ICFGPlugin(IRDB, EntryPoints) {}
 
-bool ICFGTestPlugin::isCallStmt(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
-  return false;
-}
-
-const llvm::Function *
-ICFGTestPlugin::getMethodOf(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
+ICFGTestPlugin::f_t
+ICFGTestPlugin::getFunctionOf(ICFGTestPlugin::n_t Stmt) const {
   return nullptr;
 }
 
-vector<const llvm::Instruction *>
-ICFGTestPlugin::getPredsOf(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
+std::vector<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getPredsOf(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 
-vector<const llvm::Instruction *>
-ICFGTestPlugin::getSuccsOf(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
+std::vector<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getSuccsOf(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 
-vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
-ICFGTestPlugin::getAllControlFlowEdges(const llvm::Function *fun) {
-  throw logic_error("Not implemented yet!");
+std::vector<std::pair<ICFGTestPlugin::n_t, ICFGTestPlugin::n_t>>
+ICFGTestPlugin::getAllControlFlowEdges(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
-vector<const llvm::Instruction *>
-ICFGTestPlugin::getAllInstructionsOf(const llvm::Function *fun) {
-  throw logic_error("Not implemented yet!");
+std::vector<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getAllInstructionsOf(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
-bool ICFGTestPlugin::isExitStmt(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getStartPointsOf(ICFGTestPlugin::f_t fun) const {
+  return {};
+}
+
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t fun) const {
+  return {};
+}
+
+bool ICFGTestPlugin::isExitStmt(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isStartPoint(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
+bool ICFGTestPlugin::isStartPoint(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isFallThroughSuccessor(const llvm::Instruction *stmt,
-                                            const llvm::Instruction *succ) {
-  throw logic_error("Not implemented yet!");
+bool ICFGTestPlugin::isFieldLoad(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-bool ICFGTestPlugin::isBranchTarget(const llvm::Instruction *stmt,
-                                    const llvm::Instruction *succ) {
-  throw logic_error("Not implemented yet!");
+bool ICFGTestPlugin::isFieldStore(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
-string ICFGTestPlugin::getMethodName(const llvm::Function *fun) {
-  throw logic_error("Not implemented yet!");
+bool ICFGTestPlugin::isFallThroughSuccessor(ICFGTestPlugin::n_t Stmt,
+                                            ICFGTestPlugin::n_t Succ) const {
+  return false;
+}
+
+bool ICFGTestPlugin::isBranchTarget(ICFGTestPlugin::n_t Stmt,
+                                    ICFGTestPlugin::n_t Succ) const {
+  return false;
+}
+
+bool ICFGTestPlugin::isHeapAllocatingFunction(ICFGTestPlugin::f_t fun) const {
+  return false;
+}
+
+bool ICFGTestPlugin::isSpecialMemberFunction(ICFGTestPlugin::f_t fun) const {
+  return false;
+}
+
+SpecialMemberFunctionType
+ICFGTestPlugin::getSpecialMemberFunctionType(ICFGTestPlugin::f_t fun) const {
+  return SpecialMemberFunctionType::None;
+}
+
+std::string ICFGTestPlugin::getStatementId(ICFGTestPlugin::n_t Stmt) const {
   return "";
 }
 
-const llvm::Function *ICFGTestPlugin::getMethod(const string &fun) {
-  throw logic_error("Not implemented yet!");
+std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::f_t Fun) const {
+  return "";
+}
+
+std::string
+ICFGTestPlugin::getDemangledFunctionName(ICFGTestPlugin::f_t Fun) const {
+  return "";
+}
+
+void ICFGTestPlugin::print(ICFGTestPlugin::f_t F, std::ostream &OS) const {}
+
+nlohmann::json ICFGTestPlugin::getAsJson(ICFGTestPlugin::f_t F) const {
+  return "";
+}
+
+// ICFG parts
+
+std::set<ICFGTestPlugin::f_t> ICFGTestPlugin::getAllFunctions() const {
+  return {};
+}
+
+ICFGTestPlugin::f_t ICFGTestPlugin::getFunction(const std::string &Fun) const {
   return nullptr;
 }
 
-set<const llvm::Instruction *> ICFGTestPlugin::allNonCallStartNodes() {
-  throw logic_error("Not implemented yet!");
+bool ICFGTestPlugin::isCallStmt(ICFGTestPlugin::n_t Stmt) const {
+  return false;
+}
+
+bool ICFGTestPlugin::isIndirectFunctionCall(ICFGTestPlugin::n_t Stmt) const {
+  return false;
+}
+
+bool ICFGTestPlugin::isVirtualFunctionCall(ICFGTestPlugin::n_t Stmt) const {
+  return false;
+}
+
+std::set<ICFGTestPlugin::n_t> ICFGTestPlugin::allNonCallStartNodes() const {
   return {};
 }
 
-set<const llvm::Function *>
-ICFGTestPlugin::getCalleesOfCallAt(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
+std::set<ICFGTestPlugin::f_t>
+ICFGTestPlugin::getCalleesOfCallAt(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 
-set<const llvm::Instruction *>
-ICFGTestPlugin::getCallersOf(const llvm::Function *fun) {
-  throw logic_error("Not implemented yet!");
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getCallersOf(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
-set<const llvm::Instruction *>
-ICFGTestPlugin::getCallsFromWithin(const llvm::Function *fun) {
-  throw logic_error("Not implemented yet!");
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getCallsFromWithin(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
-set<const llvm::Instruction *>
-ICFGTestPlugin::getStartPointsOf(const llvm::Function *fun) {
-  throw logic_error("Not implemented yet!");
+std::set<ICFGTestPlugin::n_t>
+ICFGTestPlugin::getReturnSitesOfCallAt(ICFGTestPlugin::n_t Stmt) const {
   return {};
 }
 
-set<const llvm::Instruction *>
-ICFGTestPlugin::getExitPointsOf(const llvm::Function *fun) {
-  throw logic_error("Not implemented yet!");
-  return {};
-}
+void ICFGTestPlugin::print(std::ostream &OS) const {}
 
-set<const llvm::Instruction *>
-ICFGTestPlugin::getReturnSitesOfCallAt(const llvm::Instruction *stmt) {
-  throw logic_error("Not implemented yet!");
-  return {};
-}
-
-string ICFGTestPlugin::getStatementId(const llvm::Instruction *stmt) {
-  return llvm::cast<llvm::MDString>(
-             stmt->getMetadata(MetaDataKind)->getOperand(0))
-      ->getString()
-      .str();
-}
-
-json ICFGTestPlugin::getAsJson() { return json{}; }
+nlohmann::json ICFGTestPlugin::getAsJson() const { return ""_json; }
 
 } // namespace psr

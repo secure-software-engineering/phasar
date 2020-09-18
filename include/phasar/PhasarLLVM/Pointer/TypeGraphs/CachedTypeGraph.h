@@ -21,13 +21,13 @@
 #include <string>
 #include <unordered_map>
 
-#include <gtest/gtest_prod.h>
+#include "gtest/gtest_prod.h"
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/reverse_graph.hpp>
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/graph_traits.hpp"
+#include "boost/graph/reverse_graph.hpp"
 
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/TypeGraph.h>
+#include "phasar/PhasarLLVM/Pointer/TypeGraphs/TypeGraph.h"
 
 namespace llvm {
 class StructType;
@@ -81,8 +81,8 @@ protected:
   FRIEND_TEST(TypeGraphTest, TypeAggregation);
   FRIEND_TEST(TypeGraphTest, Merging);
 
-  vertex_t addType(const llvm::StructType *new_type);
-  void reverseTypePropagation(const llvm::StructType *base_struct);
+  vertex_t addType(const llvm::StructType *NewType);
+  void reverseTypePropagation(const llvm::StructType *BaseStruct);
   void aggregateTypes();
   bool addLinkWithoutReversePropagation(const llvm::StructType *from,
                                         const llvm::StructType *to);
@@ -101,7 +101,7 @@ public:
   virtual void
   printAsDot(const std::string &path = "typegraph.dot") const override;
   virtual std::set<const llvm::StructType *>
-  getTypes(const llvm::StructType *struct_type) override;
+  getTypes(const llvm::StructType *StructType) override;
 };
 } // namespace psr
 

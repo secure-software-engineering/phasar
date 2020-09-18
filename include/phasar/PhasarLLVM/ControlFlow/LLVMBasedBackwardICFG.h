@@ -7,111 +7,95 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- *
- * LLVMBasedBackwardsICFG.h
- *
- *  Created on: 15.09.2016
- *      Author: pdschbrt
-
-
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <phasar/PhasarLLVM/ControFlow/BiDiICFG.h>
+#include <iosfwd>
+#include <map>
 #include <set>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
-class LLVMBasedBackwardsICFG : public BiDiICFG<const llvm::Instruction*, const
-llvm::Function*> {
-private:
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
+namespace llvm {
+class Instruction;
+class Function;
+class Module;
+class Instruction;
+class BitCastInst;
+} // namespace llvm
+
+namespace psr {
+
+class Resolver;
+class ProjectIRDB;
+class LLVMTypeHierarchy;
+class LLVMPointsToGraph;
+
+class LLVMBasedBackwardsICFG
+    : public ICFG<const llvm::Instruction *, const llvm::Function *>,
+      public virtual LLVMBasedBackwardCFG {
+private:
+  LLVMBasedICFG ForwardICFG;
 
 public:
-        LLVMBasedBackwardsICFG();
+  LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG);
 
-        virtual ~LLVMBasedBackwardsICFG();
+  LLVMBasedBackwardsICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+                         const std::set<std::string> &EntryPoints = {},
+                         LLVMTypeHierarchy *TH = nullptr,
+                         LLVMPointsToInfo *PT = nullptr,
+                         SoundnessFlag SF = SoundnessFlag::SOUNDY);
 
-        //swapped
-        std::vector<const llvm::Instruction*> getSuccsOf(const
-llvm::Instruction* n) override;
+  ~LLVMBasedBackwardsICFG() override = default;
 
-        //swapped
-        std::set<const llvm::Instruction*> getStartPointsOf(const
-llvm::Function* m) override;
+  std::set<const llvm::Function *> getAllFunctions() const override;
 
-        //swapped
-        std::set<const llvm::Instruction*> getReturnSitesOfCallAt(const
-llvm::Instruction* n) override;
+  bool isIndirectFunctionCall(const llvm::Instruction *Stmt) const override;
 
-        //swapped
-        bool isExitStmt(const llvm::Instruction* stmt) override;
+  bool isVirtualFunctionCall(const llvm::Instruction *Stmt) const override;
 
-        //swapped
-        bool isStartPoint(const llvm::Instruction* stmt) override;
+  const llvm::Function *getFunction(const std::string &Fun) const override;
 
-        //swapped
-        std::set<const llvm::Instruction*> allNonCallStartNodes() override;
+  std::set<const llvm::Function *>
+  getCalleesOfCallAt(const llvm::Instruction *N) const override;
 
-        //swapped
-        std::vector<const llvm::Instruction*> getPredsOf(const
-llvm::Instruction* u) override;
+  std::set<const llvm::Instruction *>
+  getCallersOf(const llvm::Function *M) const override;
 
-        //swapped
-        std::set<const llvm::Instruction*> getEndPointsOf(const llvm::Function*
-m) override;
+  std::set<const llvm::Instruction *>
+  getCallsFromWithin(const llvm::Function *M) const override;
 
-        //swapped
-        std::vector<const llvm::Instruction*> getPredsOfCallAt(const
-llvm::Instruction* u) override;
+  std::set<const llvm::Instruction *>
+  getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
-        //swapped
-        std::set<const llvm::Instruction*> allNonCallEndNodes() override;
+  std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
-        //same
-        const llvm::Function* getMethodOf(const llvm::Instruction* n) override;
+  void mergeWith(const LLVMBasedBackwardsICFG &other);
 
-        //same
-        std::set<const llvm::Function*> getCalleesOfCallAt(const
-llvm::Instruction* n) override;
+  using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
+                                     // prints
+  void print(std::ostream &OS) const override;
 
-        //same
-        std::set<const llvm::Instruction*> getCallersOf(const llvm::Function* m)
-override;
+  void printAsDot(std::ostream &OS) const;
 
-        //same
-        std::set<const llvm::Instruction*> getCallsFromWithin(const
-llvm::Function* m) override;
+  using LLVMBasedBackwardCFG::getAsJson; // tell the compiler we wish to have
+                                         // both prints
+  nlohmann::json getAsJson() const override;
 
-        //same
-        bool isCallStmt(const llvm::Instruction* stmt) override;
+  unsigned getNumOfVertices();
 
-        //same
-        //DirectedGraph<const llvm::Instruction*> getOrCreateUnitGraph(const
-llvm::Function* m) override;
+  unsigned getNumOfEdges();
 
-        //same
-        std::vector<const llvm::Instruction*> getParameterRefs(const
-llvm::Function* m) override;
-
-        bool isFallThroughSuccessor(const llvm::Instruction* stmt, const
-llvm::Instruction* succ) override;
-
-        bool isBranchTarget(const llvm::Instruction* stmt, const
-llvm::Instruction* succ) override;
-
-        //swapped
-        bool isReturnSite(const llvm::Instruction* n) override;
-
-        // same
-        bool isReachable(const llvm::Instruction* u) override;
-
+  std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };
 
+} // namespace psr
 
 #endif
-
-*/

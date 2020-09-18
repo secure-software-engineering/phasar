@@ -17,11 +17,12 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
+#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
 
 namespace llvm {
 class Function;
@@ -31,41 +32,80 @@ class Instruction;
 namespace psr {
 
 class LLVMBasedCFG
-    : public CFG<const llvm::Instruction *, const llvm::Function *> {
+    : public virtual CFG<const llvm::Instruction *, const llvm::Function *> {
 public:
-  LLVMBasedCFG() = default;
+  LLVMBasedCFG(bool IgnoreDbgInstructions = true)
+      : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
 
-  virtual ~LLVMBasedCFG() = default;
+  ~LLVMBasedCFG() override = default;
 
-  virtual const llvm::Function *
-  getMethodOf(const llvm::Instruction *stmt) override;
+  [[nodiscard]] const llvm::Function *
+  getFunctionOf(const llvm::Instruction *Stmt) const override;
 
-  virtual std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *stmt) override;
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getPredsOf(const llvm::Instruction *Inst) const override;
 
-  virtual std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *stmt) override;
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getSuccsOf(const llvm::Instruction *Inst) const override;
 
-  virtual std::vector<
+  [[nodiscard]] std::vector<
       std::pair<const llvm::Instruction *, const llvm::Instruction *>>
-  getAllControlFlowEdges(const llvm::Function *fun) override;
+  getAllControlFlowEdges(const llvm::Function *Fun) const override;
 
-  virtual std::vector<const llvm::Instruction *>
-  getAllInstructionsOf(const llvm::Function *fun) override;
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getAllInstructionsOf(const llvm::Function *Fun) const override;
 
-  virtual bool isExitStmt(const llvm::Instruction *stmt) override;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getStartPointsOf(const llvm::Function *Fun) const override;
 
-  virtual bool isStartPoint(const llvm::Instruction *stmt) override;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getExitPointsOf(const llvm::Function *Fun) const override;
 
-  virtual bool isFallThroughSuccessor(const llvm::Instruction *stmt,
-                                      const llvm::Instruction *succ) override;
+  [[nodiscard]] bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
-  virtual bool isBranchTarget(const llvm::Instruction *stmt,
-                              const llvm::Instruction *succ) override;
+  [[nodiscard]] bool isExitStmt(const llvm::Instruction *Stmt) const override;
 
-  virtual std::string getStatementId(const llvm::Instruction *stmt) override;
+  [[nodiscard]] bool isStartPoint(const llvm::Instruction *Stmt) const override;
 
-  virtual std::string getMethodName(const llvm::Function *fun) override;
+  [[nodiscard]] bool isFieldLoad(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] bool isFieldStore(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] bool
+  isFallThroughSuccessor(const llvm::Instruction *Stmt,
+                         const llvm::Instruction *succ) const override;
+
+  [[nodiscard]] bool
+  isBranchTarget(const llvm::Instruction *Stmt,
+                 const llvm::Instruction *succ) const override;
+
+  [[nodiscard]] bool
+  isHeapAllocatingFunction(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] bool
+  isSpecialMemberFunction(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] SpecialMemberFunctionType
+  getSpecialMemberFunctionType(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] std::string
+  getStatementId(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] std::string
+  getFunctionName(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] std::string
+  getDemangledFunctionName(const llvm::Function *Fun) const override;
+
+  void print(const llvm::Function *Fun,
+             std::ostream &OS = std::cout) const override;
+
+  [[nodiscard]] nlohmann::json
+  getAsJson(const llvm::Function *Fun) const override;
+
+private:
+  // Ignores debug instructions in control flow if set to true.
+  const bool IgnoreDbgInstructions;
 };
 
 } // namespace psr

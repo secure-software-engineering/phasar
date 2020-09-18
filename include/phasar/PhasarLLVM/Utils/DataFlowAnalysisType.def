@@ -1,0 +1,33 @@
+/******************************************************************************
+ * Copyright (c) 2019 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#ifndef DATA_FLOW_ANALYSIS_TYPES
+#define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)
+#endif
+
+DATA_FLOW_ANALYSIS_TYPES("IFDSUninitializedVariables", "ifds-uninit", IFDSUninitializedVariables)
+DATA_FLOW_ANALYSIS_TYPES("IFDSConstAnalysis", "ifds-const", IFDSConstAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IFDSTaintAnalysis", "ifds-taint", IFDSTaintAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IDETaintAnalysis", "ide-taint", IDETaintAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IFDSTypeAnalysis", "ifds-type", IFDSTypeAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IDEOpenSSLTypeStateAnalysis", "ide-openssl-ts", IDEOpenSSLTypeStateAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IFDSSolverTest", "ifds-solvertest", IFDSSolverTest)
+DATA_FLOW_ANALYSIS_TYPES("IFDSLinearConstantAnalysis", "ifds-lca", IFDSLinearConstantAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IFDSFieldSensTaintAnalysis", "ifds-fstaint", IFDSFieldSensTaintAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IDELinearConstantAnalysis", "ide-lca", IDELinearConstantAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IDESolverTest", "ide-solvertest", IDESolverTest)
+DATA_FLOW_ANALYSIS_TYPES("IDEInstInteractionAnalysis", "ide-iia", IDEInstInteractionAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IntraMonoFullConstantPropagation", "intra-mono-fca", IntraMonoFullConstantPropagation)
+DATA_FLOW_ANALYSIS_TYPES("IntraMonoSolverTest", "intra-mono-solvertest", IntraMonoSolverTest)
+DATA_FLOW_ANALYSIS_TYPES("InterMonoSolverTest", "inter-mono-solvertest", InterMonoSolverTest)
+DATA_FLOW_ANALYSIS_TYPES("InterMonoTaintAnalysis", "inter-mono-taint", InterMonoTaintAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("Plugin", "plugin", Plugin)
+DATA_FLOW_ANALYSIS_TYPES("None", "none", None)
+
+#undef DATA_FLOW_ANALYSIS_TYPES

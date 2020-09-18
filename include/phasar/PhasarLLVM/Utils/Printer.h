@@ -23,7 +23,16 @@
 
 namespace psr {
 
-template <typename N> struct NodePrinter {
+template <typename AnalysisDomainTy> struct NodePrinter {
+  using N = typename AnalysisDomainTy::n_t;
+
+  NodePrinter() = default;
+  NodePrinter(const NodePrinter &) = delete;
+  NodePrinter &operator=(const NodePrinter &) = delete;
+  NodePrinter(NodePrinter &&) = delete;
+  NodePrinter &operator=(NodePrinter &&) = delete;
+  virtual ~NodePrinter() = default;
+
   virtual void printNode(std::ostream &os, N n) const = 0;
 
   virtual std::string NtoString(N n) const {
@@ -33,7 +42,16 @@ template <typename N> struct NodePrinter {
   }
 };
 
-template <typename D> struct DataFlowFactPrinter {
+template <typename AnalysisDomainTy> struct DataFlowFactPrinter {
+  using D = typename AnalysisDomainTy::d_t;
+
+  DataFlowFactPrinter() = default;
+  DataFlowFactPrinter(const DataFlowFactPrinter &) = delete;
+  DataFlowFactPrinter &operator=(const DataFlowFactPrinter &) = delete;
+  DataFlowFactPrinter(DataFlowFactPrinter &&) = delete;
+  DataFlowFactPrinter &operator=(DataFlowFactPrinter &&) = delete;
+  virtual ~DataFlowFactPrinter() = default;
+
   virtual void printDataFlowFact(std::ostream &os, D d) const = 0;
 
   virtual std::string DtoString(D d) const {
@@ -44,6 +62,13 @@ template <typename D> struct DataFlowFactPrinter {
 };
 
 template <typename V> struct ValuePrinter {
+  ValuePrinter() = default;
+  ValuePrinter(const ValuePrinter &) = delete;
+  ValuePrinter &operator=(const ValuePrinter &) = delete;
+  ValuePrinter(ValuePrinter &&) = delete;
+  ValuePrinter &operator=(ValuePrinter &&) = delete;
+  virtual ~ValuePrinter() = default;
+
   virtual void printValue(std::ostream &os, V v) const = 0;
 
   virtual std::string VtoString(V v) const {
@@ -53,12 +78,57 @@ template <typename V> struct ValuePrinter {
   }
 };
 
-template <typename M> struct MethodPrinter {
-  virtual void printMethod(std::ostream &os, M m) const = 0;
+template <typename T> struct TypePrinter {
+  TypePrinter() = default;
+  TypePrinter(const TypePrinter &) = delete;
+  TypePrinter &operator=(const TypePrinter &) = delete;
+  TypePrinter(TypePrinter &&) = delete;
+  TypePrinter &operator=(TypePrinter &&) = delete;
+  virtual ~TypePrinter() = default;
 
-  virtual std::string MtoString(M m) const {
+  virtual void printType(std::ostream &os, T t) const = 0;
+
+  virtual std::string TtoString(T t) const {
     std::stringstream ss;
-    printMethod(ss, m);
+    printType(ss, t);
+    return ss.str();
+  }
+};
+
+template <typename AnalysisDomainTy> struct EdgeFactPrinter {
+  using l_t = typename AnalysisDomainTy::l_t;
+
+  EdgeFactPrinter() = default;
+  EdgeFactPrinter(const EdgeFactPrinter &) = delete;
+  EdgeFactPrinter &operator=(const EdgeFactPrinter &) = delete;
+  EdgeFactPrinter(EdgeFactPrinter &&) = delete;
+  EdgeFactPrinter &operator=(EdgeFactPrinter &&) = delete;
+  virtual ~EdgeFactPrinter() = default;
+
+  virtual void printEdgeFact(std::ostream &os, l_t l) const = 0;
+
+  [[nodiscard]] virtual std::string LtoString(l_t l) const {
+    std::stringstream ss;
+    printEdgeFact(ss, l);
+    return ss.str();
+  }
+};
+
+template <typename AnalysisDomainTy> struct FunctionPrinter {
+  using F = typename AnalysisDomainTy::f_t;
+
+  FunctionPrinter() = default;
+  FunctionPrinter(const FunctionPrinter &) = delete;
+  FunctionPrinter &operator=(const FunctionPrinter &) = delete;
+  FunctionPrinter(FunctionPrinter &&) = delete;
+  FunctionPrinter &operator=(FunctionPrinter &&) = delete;
+  virtual ~FunctionPrinter() = default;
+
+  virtual void printFunction(std::ostream &os, F f) const = 0;
+
+  virtual std::string FtoString(F f) const {
+    std::stringstream ss;
+    printFunction(ss, f);
     return ss.str();
   }
 };

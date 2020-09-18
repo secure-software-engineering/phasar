@@ -19,39 +19,59 @@
 
 #include <set>
 #include <string>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 namespace llvm {
 class Instruction;
 class ImmutableCallSite;
 class Function;
+class Type;
+class Value;
 } // namespace llvm
 
 namespace psr {
-class ProjectIRDB;
-class LLVMTypeHierarchy;
-class PointsToGraph;
 
-struct OTFResolver : public CHAResolver {
+class ProjectIRDB;
+class LLVMBasedICFG;
+class LLVMTypeHierarchy;
+
+class OTFResolver : public CHAResolver {
 protected:
-  PointsToGraph &WholeModulePTG;
+  LLVMBasedICFG &ICF;
+  LLVMPointsToInfo &PT;
   std::vector<const llvm::Instruction *> CallStack;
 
 public:
-  OTFResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch,
-              PointsToGraph &wholemodulePTG);
-  virtual ~OTFResolver() = default;
+  OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
+              LLVMPointsToInfo &PT);
 
-  virtual void preCall(const llvm::Instruction *Inst) override;
-  virtual void TreatPossibleTarget(
-      const llvm::ImmutableCallSite &CS,
-      std::set<const llvm::Function *> &possible_targets) override;
-  virtual void postCall(const llvm::Instruction *Inst) override;
-  virtual void OtherInst(const llvm::Instruction *Inst) override;
-  virtual std::set<std::string>
-  resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
+  ~OTFResolver() override = default;
+
+  void preCall(const llvm::Instruction *Inst) override;
+
+  void handlePossibleTargets(
+      llvm::ImmutableCallSite CS,
+      std::set<const llvm::Function *> &CalleeTargets) override;
+
+  void postCall(const llvm::Instruction *Inst) override;
+
+  std::set<const llvm::Function *>
+  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+
+  std::set<const llvm::Function *>
+  resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
+
+  static std::set<const llvm::Type *>
+  getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
+
+  static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
+  getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
+                              const llvm::Function *CalleeTarget);
 };
 } // namespace psr
 

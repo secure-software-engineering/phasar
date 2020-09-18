@@ -3,8 +3,16 @@
 # bin/ directory
 bin/*
 
-# build directory for cmake
+# build directories for cmake
 build/
+build_*/
+
+# LLVM project
+llvm-project/*
+
+# Boost
+boost_1_66_0.tar.gz
+boost_1_66_0/*
 
 # external git submodules
 external/*
@@ -108,6 +116,9 @@ find_all_symbols_db.yaml
 # Emacs convenience metadata
 TAGS
 
+# vim swp files
+*.*.swp
+
 # config files
 compiler_info.txt
 standard_header_paths.conf
@@ -115,7 +126,6 @@ standard_header_paths.conf
 # CMake temporary files
 CMakeFiles
 CMakeCache.txt
-*.cmake
 !cmake/*.cmake
 *.pc
 Makefile

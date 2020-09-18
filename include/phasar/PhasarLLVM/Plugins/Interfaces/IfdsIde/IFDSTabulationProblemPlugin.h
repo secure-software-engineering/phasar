@@ -19,12 +19,20 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
+#include <type_traits>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFactWrapper.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace llvm {
 class Function;
@@ -34,53 +42,46 @@ class Value;
 
 namespace psr {
 
-class LLVMBasedICFG;
+class ProjectIRDB;
+
+struct IFDSPluginAnalysisDomain : public LLVMAnalysisDomainDefault {
+  using d_t = const FlowFact *;
+};
 
 class IFDSTabulationProblemPlugin
-    : public DefaultIFDSTabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedICFG &> {
-protected:
-  std::vector<std::string> EntryPoints;
+    : public IFDSTabulationProblem<IFDSPluginAnalysisDomain> {
+  using AnalysisDomainTy = IFDSPluginAnalysisDomain;
 
 public:
-  IFDSTabulationProblemPlugin(LLVMBasedICFG &ICFG,
-                              std::vector<std::string> EntryPoints = {"main"})
-      : DefaultIFDSTabulationProblem<const llvm::Instruction *,
-                                     const llvm::Value *,
-                                     const llvm::Function *, LLVMBasedICFG &>(
-            ICFG),
-        EntryPoints(EntryPoints) {
-    DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
-  }
-  ~IFDSTabulationProblemPlugin() = default;
+  IFDSTabulationProblemPlugin(const ProjectIRDB *IRDB,
+                              const LLVMTypeHierarchy *TH,
+                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                              std::set<std::string> EntryPoints)
+      : IFDSTabulationProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT,
+                                                EntryPoints) {}
+  ~IFDSTabulationProblemPlugin() override = default;
 
-  const llvm::Value *createZeroValue() override {
-    // create a special value to represent the zero value!
-    return LLVMZeroValue::getInstance();
-  }
+  bool isZeroValue(d_t d) const override { return d == getZeroValue(); }
 
-  bool isZeroValue(const llvm::Value *d) const override {
-    return isLLVMZeroValue(d);
-  }
-
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override {
+  void printNode(std::ostream &os, n_t n) const override {
     os << llvmIRToString(n);
   }
 
-  void printDataFlowFact(std::ostream &os,
-                         const llvm::Value *d) const override {
-    os << llvmIRToString(d);
+  void printDataFlowFact(std::ostream &os, d_t d) const override {
+    // os << llvmIRToString(d);
+    d->print(os);
   }
 
-  void printMethod(std::ostream &os, const llvm::Function *m) const override {
+  void printFunction(std::ostream &os, f_t m) const override {
     os << m->getName().str();
   }
 };
 
 extern std::map<std::string,
                 std::unique_ptr<IFDSTabulationProblemPlugin> (*)(
-                    LLVMBasedICFG &I, std::vector<std::string> EntryPoints)>
+                    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                    std::set<std::string> EntryPoints)>
     IFDSTabulationProblemPluginFactory;
 
 } // namespace psr

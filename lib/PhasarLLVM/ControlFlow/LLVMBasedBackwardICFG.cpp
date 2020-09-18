@@ -7,164 +7,131 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
+#include <memory>
 
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Module.h"
 
- * LLVMBasedBackwardsICFG.cpp
- *
- *  Created on: 15.09.2016
- *      Author: pdschbrt
+#include "boost/graph/copy.hpp"
+#include "boost/graph/depth_first_search.hpp"
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMM.h"
+#include "phasar/Utils/Utilities.h"
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardsICFG.h>
+using namespace psr;
+using namespace std;
+namespace psr {
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG() {
-        // TODO Auto-generated constructor stub
-
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
+    : ForwardICFG(ICFG) {
+  auto CgCopy = ForwardICFG.CallGraph;
+  boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
 }
 
-LLVMBasedBackwardsICFG::~LLVMBasedBackwardsICFG() {
-        // TODO Auto-generated destructor stub
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
+    ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+    const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
+    LLVMPointsToInfo *PT, SoundnessFlag SF)
+    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT, SF) {
+  auto CgCopy = ForwardICFG.CallGraph;
+  boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
 }
 
-//swapped
-//vector<const llvm::Instruction*> LLVMBasedBackwardsICFG::getSuccsOf(const
-llvm::Instruction* n)
-//{
-//	return 0;
-//}
-//
-////swapped
-//set<const llvm::Instruction*> LLVMBasedBackwardsICFG::getStartPointsOf(const
-llvm::Function* m)
-//{
-//	return 0;
-//}
-//
-////swapped
-//vector<const llvm::Instruction*>
-LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction* n)
-//{
-//	return 0;
-//}
-//
-////swapped
-//bool LLVMBasedBackwardsICFG::isExitStmt(const llvm::Instruction* stmt)
-//{
-//	return 0;
-//}
-//
-////swapped
-//bool LLVMBasedBackwardsICFG::isStartPoint(const llvm::Instruction* stmt)
-//{
-//	return 0;
-//}
-//
-////swapped
-//set<const llvm::Instruction*> LLVMBasedBackwardsICFG::allNonCallStartNodes()
-//{
-//	return 0;
-//}
-//
-////swapped
-//vector<const llvm::Instruction*> LLVMBasedBackwardsICFG::getPredsOf(const
-llvm::Instruction* u)
-//{
-//	return 0;
-//}
-//
-////swapped
-//set<const llvm::Instruction*> LLVMBasedBackwardsICFG::getEndPointsOf(const
-llvm::Function* m)
-//{
-//	return 0;
-//}
-//
-////swapped
-//vector<const llvm::Instruction*>
-LLVMBasedBackwardsICFG::getPredsOfCallAt(const llvm::Instruction* u)
-//{
-//	return 0;
-//}
-//
-////swapped
-//set<const llvm::Instruction*> LLVMBasedBackwardsICFG::allNonCallEndNodes()
-//{
-//	return 0;
-//}
-//
-////same
-//const llvm::Function* LLVMBasedBackwardsICFG::getMethodOf(const
-llvm::Instruction* n)
-//{
-//	return 0;
-//}
-//
-////same
-//set<const llvm::Function*> LLVMBasedBackwardsICFG::getCalleesOfCallAt(const
-llvm::Instruction* n)
-//{
-//	return 0;
-//}
-//
-////same
-//set<const llvm::Instruction*> LLVMBasedBackwardsICFG::getCallersOf(const
-llvm::Function* m)
-//{
-//	return 0;
-//}
-////same
-//set<const llvm::Instruction*> LLVMBasedBackwardsICFG::getCallsFromWithin(const
-llvm::Function* m)
-//{
-//	return 0;
-//}
-//
-////same
-//bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction* stmt)
-//{
-//	return 0;
-//}
-//
-////same
-////DirectedGraph<const llvm::Instruction*>
-LLVMBasedBackwardsICFG::getOrCreateUnitGraph(const llvm::Function* m)
-////{
-////	return 0;
-////}
-//
-////same
-//
-//vector<const llvm::Instruction*>
-LLVMBasedBackwardsICFG::getParameterRefs(const llvm::Function* m)
-//{
-//	return 0;
-//}
-//
-//bool LLVMBasedBackwardsICFG::isFallThroughSuccessor(const llvm::Instruction*
-stmt, const llvm::Instruction* succ)
-//{
-//	return 0;
-//}
-//
-//bool LLVMBasedBackwardsICFG::isBranchTarget(const llvm::Instruction* stmt,
-const llvm::Instruction* succ)
-//{
-//	return 0;
-//}
-//
-////swapped
-//bool LLVMBasedBackwardsICFG::isReturnSite(const llvm::Instruction* n)
-//{
-//	return 0;
-//}
-//
-//// same
-//bool LLVMBasedBackwardsICFG::isReachable(const llvm::Instruction* u)
-//{
-//	return 0;
-//}
+bool LLVMBasedBackwardsICFG::isIndirectFunctionCall(
+    const llvm::Instruction *Stmt) const {
+  return ForwardICFG.isIndirectFunctionCall(Stmt);
+}
 
-*/
+bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(
+    const llvm::Instruction *Stmt) const {
+  return ForwardICFG.isVirtualFunctionCall(Stmt);
+}
+
+std::set<const llvm::Function *>
+LLVMBasedBackwardsICFG::getAllFunctions() const {
+  return ForwardICFG.getAllFunctions();
+}
+
+const llvm::Function *
+LLVMBasedBackwardsICFG::getFunction(const std::string &Fun) const {
+  return ForwardICFG.getFunction(Fun);
+}
+
+std::set<const llvm::Function *>
+LLVMBasedBackwardsICFG::getCalleesOfCallAt(const llvm::Instruction *N) const {
+  return ForwardICFG.getCalleesOfCallAt(N);
+}
+
+std::set<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::getCallersOf(const llvm::Function *M) const {
+  return ForwardICFG.getCallersOf(M);
+}
+
+std::set<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *M) const {
+  return ForwardICFG.getCallsFromWithin(M);
+}
+
+std::set<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
+    const llvm::Instruction *N) const {
+  std::set<const llvm::Instruction *> ReturnSites;
+  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(N)) {
+    for (const auto *Succ : this->getSuccsOf(Call)) {
+      ReturnSites.insert(Succ);
+    }
+  }
+  if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
+    ReturnSites.insert(&Invoke->getNormalDest()->back());
+    ReturnSites.insert(&Invoke->getUnwindDest()->back());
+  }
+  return ReturnSites;
+}
+
+std::set<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::allNonCallStartNodes() const {
+  return ForwardICFG.allNonCallStartNodes();
+}
+
+void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &Other) {
+  ForwardICFG.mergeWith(Other.ForwardICFG);
+}
+
+void LLVMBasedBackwardsICFG::print(std::ostream &OS) const {
+  ForwardICFG.print(OS);
+}
+
+void LLVMBasedBackwardsICFG::printAsDot(std::ostream &OS) const {
+  ForwardICFG.printAsDot(OS);
+}
+
+nlohmann::json LLVMBasedBackwardsICFG::getAsJson() const {
+  return ForwardICFG.getAsJson();
+}
+
+unsigned LLVMBasedBackwardsICFG::getNumOfVertices() {
+  return ForwardICFG.getNumOfVertices();
+}
+
+unsigned LLVMBasedBackwardsICFG::getNumOfEdges() {
+  return ForwardICFG.getNumOfEdges();
+}
+
+std::vector<const llvm::Function *>
+LLVMBasedBackwardsICFG::getDependencyOrderedFunctions() {
+  return ForwardICFG.getDependencyOrderedFunctions();
+}
+
+} // namespace psr
