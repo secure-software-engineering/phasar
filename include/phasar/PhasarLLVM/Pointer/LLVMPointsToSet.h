@@ -12,13 +12,17 @@
 
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include "nlohmann/json.hpp"
 
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+
+#include "llvm/Support/FormatVariadic.h"
 
 namespace llvm {
 class Value;
@@ -34,11 +38,13 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
+  using PointsToSetMap = std::unordered_map<
+      const llvm::Value *,
+      std::shared_ptr<std::unordered_set<const llvm::Value *>>>;
+
   LLVMBasedPointsToAnalysis PTA;
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
-  std::unordered_map<const llvm::Value *,
-                     std::shared_ptr<std::unordered_set<const llvm::Value *>>>
-      PointsToSets;
+  PointsToSetMap PointsToSets;
 
   void computeValuesPointsToSet(const llvm::Value *V);
 
@@ -97,6 +103,24 @@ public:
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
   void printAsJson(std::ostream &OS = std::cout) const override;
+
+  /**
+   * Shows a parts of an alias set. Good for debugging when one wants to peak
+   * into a points to set.
+   *
+   * @param ValueSetPair a pair on an Value* and the corresponding points to set
+   * @param Peak the amount of instrutions shown from the points to set
+   */
+  static void
+  peakIntoPointsToSet(const PointsToSetMap::value_type &ValueSetPair, int Peak);
+
+  /**
+   * Prints out the size distribution for all points to sets.
+   *
+   * @param Peak the amount of instrutions shown from one of the biggest points
+   * to sets, use 0 show nothing.
+   */
+  void drawPointsToSetsDistribution(int Peak = 10) const;
 };
 
 } // namespace psr
