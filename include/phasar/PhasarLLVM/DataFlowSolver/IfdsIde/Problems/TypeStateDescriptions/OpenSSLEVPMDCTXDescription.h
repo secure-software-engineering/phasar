@@ -21,15 +21,19 @@
 namespace psr {
 
 class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
+  // TODO: We don't check whether the EVP_MD object is properly instantiated
+  // when passed to EVP_Digest[Sign]Init[_ex]
+
   enum OpenSSLEVPMDCTXState {
     TOP = 42,
     BOT = 0,
-    ALLOCATED = 1,
-    INITIALIZED = 2,
-    FINALIZED = 3,
-    FREED = 4,
-    ERROR = 5,
-    UNINIT = 6,
+    ALLOCATED,
+    INITIALIZED,
+    SIGN_INITIALIZED,
+    FINALIZED,
+    FREED,
+    ERROR,
+    UNINIT,
   };
   // typename: evp_md_ctx_st, evp_md_st
   enum class OpenSSLEVPMDCTXToken {
@@ -37,6 +41,9 @@ class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
     EVP_DIGEST_INIT,
     EVP_DIGEST_UPDATE,
     EVP_DIGEST_FINAL,
+    EVP_DIGEST_SIGN_INIT,
+    EVP_DIGEST_SIGN_UPDATE,
+    EVP_DIGEST_SIGN_FINAL,
     EVP_MD_CTX_FREE,
     STAR,
   };

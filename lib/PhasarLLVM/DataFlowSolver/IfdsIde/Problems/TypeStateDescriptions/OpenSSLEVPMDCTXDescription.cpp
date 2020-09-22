@@ -9,29 +9,39 @@ namespace psr {
 
 const std::array<
     int, enum2int(OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXToken::STAR)>
-    OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXFuncs = {-1, 0, 0, 0, 0};
+    OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXFuncs = {-1, 0, 0, 0,
+                                                        0,  0, 0, 0};
 
 // delta[Token][State] = next State
-// Tokens: NEW = 0, UPDATE, FINAL, FREE, STAR
-// States: BOT = 0, ALLOCATED = 1, INITIALIZED = 2, FINALIZED = 3, FREED = 4,
-// ERROR = 5, UNINIT = 6
+// Tokens: NEW = 0, INIT, UPDATE, FINAL, FREE, STAR
+// States: BOT = 0, ALLOCATED = 1, INITIALIZED = 2, SIGN_INITIALIZED = 3,
+// FINALIZED = 4, FREED = 5, ERROR = 6, UNINIT = 7
 const OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXState
     OpenSSLEVPMDCTXDescription::Delta
         [enum2int(OpenSSLEVPMDCTXToken::STAR) + 1]
         [enum2int(OpenSSLEVPMDCTXState::UNINIT) + 1] = {
             // NEW
-            {ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ERROR,
-             ALLOCATED},
+            {ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED,
+             ERROR, ALLOCATED},
             // INIT
-            {BOT, INITIALIZED, INITIALIZED, INITIALIZED, ERROR, ERROR, ERROR},
+            {BOT, INITIALIZED, INITIALIZED, INITIALIZED, INITIALIZED, ERROR,
+             ERROR, ERROR},
             // UPDATE
-            {BOT, ERROR, INITIALIZED, ERROR, ERROR, ERROR, ERROR},
+            {BOT, ERROR, INITIALIZED, ERROR, ERROR, ERROR, ERROR, ERROR},
             // FINAL
-            {BOT, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR},
+            {BOT, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR, ERROR},
+            // SIGN_INIT
+            {BOT, SIGN_INITIALIZED, SIGN_INITIALIZED, SIGN_INITIALIZED,
+             SIGN_INITIALIZED, ERROR, ERROR, ERROR},
+            // SIGN_UPDATE
+            {BOT, ERROR, ERROR, SIGN_INITIALIZED, ERROR, ERROR, ERROR, ERROR},
+            // SIGN_FINAL
+            {BOT, ERROR, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR},
             // FREE
-            {ERROR, FREED, FREED, FREED, ERROR, ERROR, ERROR},
+            {ERROR, FREED, FREED, FREED, FREED, ERROR, ERROR, ERROR},
             // STAR
-            {BOT, ALLOCATED, INITIALIZED, FINALIZED, ERROR, ERROR, ERROR}
+            {BOT, ALLOCATED, INITIALIZED, SIGN_INITIALIZED, FINALIZED, ERROR,
+             ERROR, ERROR}
 
 };
 
@@ -44,6 +54,13 @@ OpenSSLEVPMDCTXDescription::funcNameToToken(llvm::StringRef F) {
       .Case("EVP_DigestUpdate", OpenSSLEVPMDCTXToken::EVP_DIGEST_UPDATE)
       .Case("EVP_DigestFinal", OpenSSLEVPMDCTXToken::EVP_DIGEST_FINAL)
       .Case("EVP_DigestFinal_ex", OpenSSLEVPMDCTXToken::EVP_DIGEST_FINAL)
+      .Case("EVP_DigestSignInit", OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_INIT)
+      .Case("EVP_DigestSignInit_ex", OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_INIT)
+      .Case("EVP_DigestSignUpdate",
+            OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_UPDATE)
+      .Case("EVP_DigestSignFinal", OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_FINAL)
+      .Case("EVP_DigestSignFinal_ex",
+            OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_FINAL)
       .Case("EVP_MD_CTX_free", OpenSSLEVPMDCTXToken::EVP_MD_CTX_FREE)
       .Default(OpenSSLEVPMDCTXToken::STAR);
 }
@@ -113,6 +130,8 @@ OpenSSLEVPMDCTXDescription::stateToString(TypeStateDescription::State S) const {
     return "INITIALIZED";
   case FINALIZED:
     return "FINALIZED";
+  case SIGN_INITIALIZED:
+    return "SIGN_INITIALIZED";
   case FREED:
     return "FREED";
   case ERROR:
