@@ -89,6 +89,13 @@ template <typename T,
 constexpr bool hasFlag(T _this, T flag) {
   return static_cast<bool>(_this & flag);
 }
+
+/// Automatically converts the enumitem from an 'enum class' to its underlying
+/// integer value
+template <typename T> constexpr std::underlying_type_t<T> enum2int(T enumitem) {
+  return static_cast<std::underlying_type_t<T>>(enumitem);
+}
+
 } // namespace psr
 
 #endif

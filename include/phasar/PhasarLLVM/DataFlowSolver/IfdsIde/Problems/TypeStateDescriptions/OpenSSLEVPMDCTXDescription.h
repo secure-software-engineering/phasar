@@ -17,8 +17,9 @@
 #include <string>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
-
+#include "phasar/Utils/EnumFlags.h"
 namespace psr {
+
 class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
   enum OpenSSLEVPMDCTXState {
     TOP = 42,
@@ -42,9 +43,11 @@ class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
 
   // in this API, we don't have situations, where there is more than one
   // interesting argument index
-  static const std::array<int, OpenSSLEVPMDCTXToken::STAR> OpenSSLEVPMDCTXFuncs;
-  static const OpenSSLEVPMDCTXState Delta[OpenSSLEVPMDCTXToken::STAR + 1]
-                                         [OpenSSLEVPMDCTXState::ERROR + 1];
+  static const std::array<int, enum2int(OpenSSLEVPMDCTXToken::STAR)>
+      OpenSSLEVPMDCTXFuncs;
+  static const OpenSSLEVPMDCTXState
+      Delta[enum2int(OpenSSLEVPMDCTXToken::STAR) + 1]
+           [enum2int(OpenSSLEVPMDCTXState::UNINIT) + 1];
 
   static OpenSSLEVPMDCTXToken funcNameToToken(llvm::StringRef F);
 
@@ -75,7 +78,7 @@ public:
   TypeStateDescription::State start() const override;
 
   TypeStateDescription::State error() const override;
-}
+};
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_OPENSSLEVPMDCTXDESCRIPTION_H_

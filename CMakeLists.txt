@@ -57,6 +57,8 @@ option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkag
 
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 
+option(PHASAR_ENABLE_DESUGARING "Desugars the variability tests (default is ON)" ON)
+
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage ")

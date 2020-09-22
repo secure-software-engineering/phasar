@@ -7,29 +7,31 @@ using namespace std;
 
 namespace psr {
 
-const std::array<int, OpenSSLEVPMDCTXToken::STAR>
+const std::array<
+    int, enum2int(OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXToken::STAR)>
     OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXFuncs = {-1, 0, 0, 0, 0};
 
 // delta[Token][State] = next State
 // Tokens: NEW = 0, UPDATE, FINAL, FREE, STAR
 // States: BOT = 0, ALLOCATED = 1, INITIALIZED = 2, FINALIZED = 3, FREED = 4,
 // ERROR = 5, UNINIT = 6
-const OpenSSLEVPMDCTXState
-    OpenSSLEVPMDCTXDescription::Delta[OpenSSLEVPMDCTXToken::STAR +
-                                      1][OpenSSLEVPMDCTXState::ERROR + 1] = {
-        // NEW
-        {ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ERROR,
-         ALLOCATED},
-        // INIT
-        {BOT, INITIALIZED, INITIALIZED, INITIALIZED, ERROR, ERROR, ERROR},
-        // UPDATE
-        {BOT, ERROR, INITIALIZED, ERROR, ERROR, ERROR, ERROR},
-        // FINAL
-        {BOT, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR},
-        // FREE
-        {ERROR, FREED, FREED, FREED, ERROR, ERROR, ERROR},
-        // STAR
-        {BOT, ALLOCATED, INITIALIZED, FINALIZED, ERROR, ERROR, ERROR}
+const OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXState
+    OpenSSLEVPMDCTXDescription::Delta
+        [enum2int(OpenSSLEVPMDCTXToken::STAR) + 1]
+        [enum2int(OpenSSLEVPMDCTXState::UNINIT) + 1] = {
+            // NEW
+            {ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ERROR,
+             ALLOCATED},
+            // INIT
+            {BOT, INITIALIZED, INITIALIZED, INITIALIZED, ERROR, ERROR, ERROR},
+            // UPDATE
+            {BOT, ERROR, INITIALIZED, ERROR, ERROR, ERROR, ERROR},
+            // FINAL
+            {BOT, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR},
+            // FREE
+            {ERROR, FREED, FREED, FREED, ERROR, ERROR, ERROR},
+            // STAR
+            {BOT, ALLOCATED, INITIALIZED, FINALIZED, ERROR, ERROR, ERROR}
 
 };
 
@@ -49,16 +51,14 @@ OpenSSLEVPMDCTXDescription::funcNameToToken(llvm::StringRef F) {
 bool OpenSSLEVPMDCTXDescription::isFactoryFunction(const std::string &F) const {
   auto tok = funcNameToToken(F);
   return tok != OpenSSLEVPMDCTXToken::STAR &&
-         OpenSSLEVPMDCTXFuncs[static_cast<
-             std::underlying_type_t<OpenSSLEVPMDCTXToken>>(tok)] == -1;
+         OpenSSLEVPMDCTXFuncs[enum2int(tok)] == -1;
 }
 
 bool OpenSSLEVPMDCTXDescription::isConsumingFunction(
     const std::string &F) const {
   auto tok = funcNameToToken(F);
   return tok != OpenSSLEVPMDCTXToken::STAR &&
-         OpenSSLEVPMDCTXFuncs[static_cast<
-             std::underlying_type_t<OpenSSLEVPMDCTXToken>>(tok)] >= 0;
+         OpenSSLEVPMDCTXFuncs[enum2int(tok)] >= 0;
 }
 bool OpenSSLEVPMDCTXDescription::isAPIFunction(const std::string &F) const {
   return funcNameToToken(F) != OpenSSLEVPMDCTXToken::STAR;
@@ -66,10 +66,9 @@ bool OpenSSLEVPMDCTXDescription::isAPIFunction(const std::string &F) const {
 TypeStateDescription::State
 OpenSSLEVPMDCTXDescription::getNextState(std::string Tok,
                                          TypeStateDescription::State S) const {
-  auto tok = funcNameToToken(F);
+  auto tok = funcNameToToken(Tok);
 
-  return Delta[static_cast<std::underlying_type_t<OpenSSLEVPMDCTXToken>>(tok)]
-              [S];
+  return Delta[enum2int(tok)][S];
 }
 
 std::string OpenSSLEVPMDCTXDescription::getTypeNameOfInterest() const {
@@ -82,9 +81,11 @@ OpenSSLEVPMDCTXDescription::getConsumerParamIdx(const std::string &F) const {
   if (tok == OpenSSLEVPMDCTXToken::STAR)
     return {};
 
-  auto idx = OpenSSLEVPMDCTXFuncs
-      [static_cast<std::underlying_type_t<OpenSSLEVPMDCTXToken>>(tok)];
-  return idx >= 0 ? {idx} : {};
+  auto idx = OpenSSLEVPMDCTXFuncs[enum2int(tok)];
+  if (idx >= 0)
+    return {idx};
+  else
+    return {};
 }
 std::set<int>
 OpenSSLEVPMDCTXDescription::getFactoryParamIdx(const std::string &F) const {
@@ -92,9 +93,11 @@ OpenSSLEVPMDCTXDescription::getFactoryParamIdx(const std::string &F) const {
   if (tok == OpenSSLEVPMDCTXToken::STAR)
     return {};
 
-  auto idx = OpenSSLEVPMDCTXFuncs
-      [static_cast<std::underlying_type_t<OpenSSLEVPMDCTXToken>>(tok)];
-  return idx == -1 ? {-1} : {};
+  auto idx = OpenSSLEVPMDCTXFuncs[enum2int(tok)];
+  if (idx == -1)
+    return {-1};
+  else
+    return {};
 }
 
 std::string
@@ -117,7 +120,7 @@ OpenSSLEVPMDCTXDescription::stateToString(TypeStateDescription::State S) const {
   case UNINIT:
     return "UNINIT";
   default:
-    return "<NONE>"
+    return "<NONE>";
   }
 }
 

@@ -184,7 +184,7 @@ function(xtc_making_plans_for_nigell)
   #define XTC transformation command
   add_custom_command(
     OUTPUT ${test_code_xtc_file}
-    COMMAND java -cp $ENV{CLASSPATH}:$ENV{XTC_DESUGAR} xtc.lang.cpp.SuperC -silent ${test_code_file_path} > ${test_code_xtc_file} 2> /dev/null
+    COMMAND java -cp $ENV{CLASSPATH}:$ENV{XTC_DESUGAR} superc.SugarC -silent ${test_code_file_path} > ${test_code_xtc_file} 2> /dev/null
     COMMENT ${GEN_XTC_COMMENT}
     DEPENDS ${GEN_LL_FILE}
     VERBATIM
