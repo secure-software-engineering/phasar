@@ -354,4 +354,70 @@ void LLVMPointsToSet::print(std::ostream &OS) const {
   }
 }
 
+void LLVMPointsToSet::peakIntoPointsToSet(
+    const PointsToSetMap::value_type &ValueSetPair, int Peak) {
+  llvm::outs() << "Value: ";
+  ValueSetPair.first->dump();
+
+  int PeakCounter = 0;
+  llvm::outs() << "aliases with: {\n";
+  for (const llvm::Value *I : *ValueSetPair.second) {
+    I->dump();
+    PeakCounter++;
+    if (PeakCounter > Peak) {
+      llvm::outs() << llvm::formatv("... and {0} more\n",
+                                    ValueSetPair.second->size() - Peak);
+      break;
+    }
+  }
+  llvm::outs() << "}\n";
+}
+
+void LLVMPointsToSet::drawPointsToSetsDistribution(int Peak) const {
+  std::vector<std::pair<size_t, unsigned>> SizeAmountPairs;
+
+  for (const auto &ValueSetPair : PointsToSets) {
+    auto Search =
+        std::find_if(SizeAmountPairs.begin(), SizeAmountPairs.end(),
+                     [&ValueSetPair](const auto &Entry) {
+                       return Entry.first == ValueSetPair.second->size();
+                     });
+    if (Search != SizeAmountPairs.end()) {
+      Search->second++;
+    } else {
+      SizeAmountPairs.emplace_back(ValueSetPair.second->size(), 1);
+    }
+  }
+
+  std::sort(SizeAmountPairs.begin(), SizeAmountPairs.end(),
+            [](const auto &KVPair1, const auto &KVPair2) {
+              return KVPair1.first < KVPair2.first;
+            });
+
+  int TotalValues = std::accumulate(
+      SizeAmountPairs.begin(), SizeAmountPairs.end(), 0,
+      [](int Current, const auto &KVPair) { return Current + KVPair.second; });
+
+  llvm::outs() << llvm::formatv("{0,10}  {1,-=50} {2,10}\n", "PtS Size",
+                                "Distribution", "Number of sets");
+  for (auto &KV : SizeAmountPairs) {
+    std::string PeakBar(static_cast<double>(KV.second) * 50 /
+                            static_cast<double>(TotalValues),
+                        '*');
+    llvm::outs() << llvm::formatv("{0,10} |{1,-50} {2,-10}\n", KV.first,
+                                  PeakBar, KV.second);
+  }
+  llvm::outs() << "\n";
+
+  if (Peak) {
+    for (const auto &ValueSetPair : PointsToSets) {
+      if (ValueSetPair.second->size() == SizeAmountPairs.back().first) {
+        llvm::outs() << "Peak into one of the biggest points sets.\n";
+        peakIntoPointsToSet(ValueSetPair, Peak);
+        return;
+      }
+    }
+  }
+}
+
 } // namespace psr
