@@ -357,12 +357,13 @@ void LLVMPointsToSet::print(std::ostream &OS) const {
 void LLVMPointsToSet::peakIntoPointsToSet(
     const PointsToSetMap::value_type &ValueSetPair, int Peak) {
   llvm::outs() << "Value: ";
-  ValueSetPair.first->dump();
-
+  ValueSetPair.first->print(llvm::outs());
+  llvm::outs() << '\n';
   int PeakCounter = 0;
   llvm::outs() << "aliases with: {\n";
   for (const llvm::Value *I : *ValueSetPair.second) {
-    I->dump();
+    I->print(llvm::outs());
+    llvm::outs() << '\n';
     PeakCounter++;
     if (PeakCounter > Peak) {
       llvm::outs() << llvm::formatv("... and {0} more\n",

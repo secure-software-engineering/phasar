@@ -289,7 +289,8 @@ set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
   return IRDB.getAllFunctions();
 }
 
-boost::container::flat_set<const llvm::Function *> LLVMBasedICFG::getAllVertexFunctions() const {
+boost::container::flat_set<const llvm::Function *>
+LLVMBasedICFG::getAllVertexFunctions() const {
   boost::container::flat_set<const llvm::Function *> vertexFuncs;
   vertexFuncs.reserve(FunctionVertexMap.size());
   for (auto v : FunctionVertexMap) {
