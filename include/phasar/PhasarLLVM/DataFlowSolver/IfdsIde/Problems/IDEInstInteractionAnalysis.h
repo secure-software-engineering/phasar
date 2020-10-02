@@ -207,8 +207,8 @@ public:
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
-              : Load(Load),
-                PTS(Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
+              : Load(Load), PTS(Problem.PT->getReachableAllocationSites(
+                                Load->getPointerOperand())) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
@@ -249,14 +249,15 @@ public:
                           const llvm::StoreInst *Store)
               : Store(Store), ValuePTS([&]() {
                   if (isInterestingPointer(Store->getValueOperand())) {
-                    return Problem.PT->getPointsToSet(Store->getValueOperand());
+                    return Problem.PT->getReachableAllocationSites(
+                        Store->getValueOperand());
                   } else {
                     return std::make_shared<std::unordered_set<d_t>>(
                         std::unordered_set<d_t>{Store->getValueOperand()});
                   }
                 }()),
-                PointerPTS(
-                    Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
+                PointerPTS(Problem.PT->getReachableAllocationSites(
+                    Store->getPointerOperand())) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
@@ -598,9 +599,11 @@ public:
         // using points-to sets
         std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
         if (Store->getValueOperand()->getType()->isPointerTy()) {
-          ValuePTS = this->PT->getPointsToSet(Store->getValueOperand());
+          ValuePTS =
+              this->PT->getReachableAllocationSites(Store->getValueOperand());
         }
-        auto PointerPTS = this->PT->getPointsToSet(Store->getPointerOperand());
+        auto PointerPTS =
+            this->PT->getReachableAllocationSites(Store->getPointerOperand());
         // overriding edge
         if ((currNode == Store->getValueOperand() ||
              (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||

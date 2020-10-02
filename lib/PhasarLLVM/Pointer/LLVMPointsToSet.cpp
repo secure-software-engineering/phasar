@@ -264,26 +264,26 @@ LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
   return PointsToSets[V];
 }
 
-std::unordered_set<const llvm::Value *>
+std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
                                              const llvm::Instruction *I) {
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
-    return std::unordered_set<const llvm::Value *>();
+    return std::make_shared<std::unordered_set<const llvm::Value *>>();
   }
   computeValuesPointsToSet(V);
-  std::unordered_set<const llvm::Value *> AllocSites;
+  auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
   const auto PTS = PointsToSets[V];
   for (const auto *P : *PTS) {
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
-      AllocSites.insert(Alloca);
+      AllocSites->insert(Alloca);
     }
     if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
       llvm::ImmutableCallSite CS(P);
       if (CS.getCalledFunction() != nullptr &&
           CS.getCalledFunction()->hasName() &&
           HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-        AllocSites.insert(P);
+        AllocSites->insert(P);
       }
     }
   }

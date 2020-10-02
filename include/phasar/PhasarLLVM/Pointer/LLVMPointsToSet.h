@@ -86,7 +86,7 @@ public:
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
-  [[nodiscard]] std::unordered_set<const llvm::Value *>
+  [[nodiscard]] std::shared_ptr<std::unordered_set<const llvm::Value *>>
   getReachableAllocationSites(const llvm::Value *V,
                               const llvm::Instruction *I = nullptr) override;
 
