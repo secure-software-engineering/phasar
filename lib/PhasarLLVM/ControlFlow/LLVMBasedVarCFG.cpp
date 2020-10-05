@@ -74,27 +74,39 @@ z3::expr LLVMBasedVarCFG::createBinOp(const llvm::BinaryOperator *val) const {
 bool LLVMBasedVarCFG::isPPVariable(const llvm::GlobalVariable *glob,
                                    std::string &_name) const {
   auto name = glob->getName();
-  if (!name.startswith("_")) {
-    // std::cerr << "Not starts with _" << std::endl;
-    return false;
-  }
-  auto config = name.find("_CONFIG_");
-  const auto config_len = llvm::StringRef("_CONFIG_").size();
-  if (config == llvm::StringRef::npos || config == 0 ||
-      name.size() == config_len) {
-    // std::cerr << "ERROR: config: " << config << "; size: " << name.size()
-    //          << " vs " << config_len << std::endl;
+  if (!name.startswith("__static_condition")) {
     return false;
   }
 
-  // if (name.endswith("_defined")) {
-  // const auto defined_len = llvm::StringRef("_defined").size();
-  // name = name.substr(0, name.size() - defined_len);
-  //}
+  constexpr auto config_len = sizeof("__static_condition") - 1;
+  if (name.size() == config_len) {
+    return false;
+  }
 
-  _name = name.substr(config + config_len);
+  // TODO: extract name from __static_condition_renaming call in
+  // __static_initializer
+  _name = name.str();
+
+  // std::cout << "Found static condition: " << name.str() << std::endl;
 
   return true;
+}
+
+// don't pass by reference, as we need to take ownership of the Name
+z3::expr LLVMBasedVarCFG::createBoolConst(std::string Name) const {
+  auto ret = CTX.bool_const(Name.data());
+  // move name here to preserve the allocated string which is stored
+  // untracked in ret
+  PPVariables.insert({std::move(Name), ret});
+  return ret;
+}
+// don't pass by reference, as we need to take ownership of the Name
+z3::expr LLVMBasedVarCFG::createIntConst(std::string Name) const {
+  auto ret = CTX.int_const(Name.data());
+  // move name here to preserve the allocated string which is stored
+  // untracked in ret
+  PPVariables.insert({std::move(Name), ret});
+  return ret;
 }
 
 z3::expr
@@ -108,32 +120,26 @@ LLVMBasedVarCFG::createVariableOrGlobal(const llvm::LoadInst *val) const {
       if (isPPVariable(glob, name)) {
         auto it = PPVariables.find(name);
         if (it != PPVariables.end()) {
-          // std::cout << "Variable: " << it->second << std::endl;
           return it->second;
         }
-        // constexpr auto defined_len = sizeof("_defined") - 1;
-        auto ret = getTrueConstraint();
+
+        // auto ret = getTrueConstraint();
+
+        // TODO: the naming has changed in XTC; especially, we no longer have
+        // the _defined suffix.
         auto defined_pos = name.find_last_of("_defined");
 
         if (defined_pos == name.size() - 1) {
-          ret = CTX.bool_const(name.data());
+          // ret = CTX.bool_const(name.data());
+          return createBoolConst(std::move(name));
         } else {
 
-          ret = CTX.int_const(name.data());
+          // ret = CTX.int_const(name.data());
+          return createIntConst(std::move(name));
         }
-        // move name here to preserve the allocated string, which is stored
-        // untracked in ret
-        PPVariables.insert({std::move(name), ret});
-        // std::cout << "+Variable: " << ret << std::endl;
-        return ret;
-      } /*else {
-        std::cerr << "ERROR: " << llvmIRToString(val) << " is no pp variable"
-                  << std::endl;
-      }*/
+      }
     }
   }
-  // std::cerr << "Invalid preprocessor variable: " << llvmIRToString(val)
-  //          << std::endl;
   llvm::report_fatal_error("Invalid preprocessor variable");
 }
 
@@ -294,8 +300,12 @@ bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
           if (isPPVariable(glob, name)) {
             if (auto icmp = llvm::dyn_cast<llvm::CmpInst>(lcond)) {
               cond = inferCondition(icmp);
+            } else if (auto trnc = llvm::dyn_cast<llvm::TruncInst>(lcond);
+                       trnc && trnc->getType()->isIntegerTy(1)) {
+              cond = createBoolConst(std::move(name));
             } else {
               // TODO was hier?
+              std::cerr << "Fallback to true" << std::endl;
               cond = CTX.bool_val(true);
             }
             return true;

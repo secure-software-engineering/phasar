@@ -35,7 +35,7 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/variability/hashing/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::set<std::string> EntryPoints = {"__main_9"};
 
   // inst ID => value ID => {Z3Constraint x typestate}
   using TSAVarResults_t = std::map<
@@ -70,7 +70,9 @@ protected:
     LLVMPointsToSet PT(*IRDB);
     LLVMBasedVarICFG VICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                            &PT);
-    OpenSSLEVPMDCTXDescription Desc;
+
+    auto staticRenaming = extractStaticRenaming(IRDB);
+    OpenSSLEVPMDCTXDescription Desc(&staticRenaming);
     IDETypeStateAnalysis TSAProblem(IRDB, &TH, &VICFG, &PT, Desc, EntryPoints);
 
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VARAProblem(TSAProblem,
@@ -113,67 +115,56 @@ protected:
 
 TEST_F(IDEVarTAOpenSSLMDTest, Hash01) {
   TSAVarResults_t GroundTruth;
-  GroundTruth[7]["6"] = {{"true", ALLOCATED}}; // EVP_CTX_new
+  GroundTruth[46]["45"] = {{"true", ALLOCATED}}; // EVP_CTX_new
 
-  // GroundTruth[9]["6"] = {{"true", ALLOCATED}};
-  // GroundTruth[9]["8"] = {{"true", ALLOCATED}};
+  // GroundTruth[50]["45"] = {{"true", INITIALIZED}};
+  // GroundTruth[50]["47"] = {{"true", INITIALIZED}};
 
-  // GroundTruth[10]["6"] = {{"true", ALLOCATED}}; // EVP_DigestInit
-  // GroundTruth[10]["8"] = {{"true", ALLOCATED}};
+  // GroundTruth[55]["45"] = {{"true", INITIALIZED}};
+  // GroundTruth[55]["47"] = {{"true", INITIALIZED}};
+  // GroundTruth[55]["53"] = {{"true", INITIALIZED}};
 
-  GroundTruth[11]["6"] = {{"true", INITIALIZED}};
-  GroundTruth[11]["8"] = {{"true", INITIALIZED}};
+  // GroundTruth[59]["45"] = {{"true", FINALIZED}};
+  // GroundTruth[59]["47"] = {{"true", FINALIZED}};
+  // GroundTruth[59]["53"] = {{"true", FINALIZED}};
+  // GroundTruth[59]["57"] = {{"true", FINALIZED}};
 
-  // GroundTruth[15]["6"] = {{"true", INITIALIZED}}; // EVP_DigestUpdate
-  // GroundTruth[15]["8"] = {{"true", INITIALIZED}};
-  // GroundTruth[15]["13"] = {{"true", INITIALIZED}};
-
-  // GroundTruth[18]["6"] = {{"true", INITIALIZED}}; // EVP_DigestFinal
-  // GroundTruth[18]["8"] = {{"true", INITIALIZED}};
-  // GroundTruth[18]["13"] = {{"true", INITIALIZED}};
-
-  // GroundTruth[20]["6"] = {{"true", FINALIZED}}; // EVP_MD_CTX_free
-  // GroundTruth[20]["8"] = {{"true", FINALIZED}};
-  // GroundTruth[20]["13"] = {{"true", FINALIZED}};
-  // GroundTruth[20]["19"] = {{"true", FINALIZED}};
-
-  GroundTruth[21]["6"] = {{"true", FREED}}; // ret
-  GroundTruth[21]["8"] = {{"true", FREED}};
-  GroundTruth[21]["13"] = {{"true", FREED}};
-  GroundTruth[21]["19"] = {{"true", FREED}};
+  GroundTruth[62]["45"] = {{"true", FREED}}; // ret
+  GroundTruth[62]["47"] = {{"true", FREED}};
+  GroundTruth[62]["53"] = {{"true", FREED}};
+  GroundTruth[62]["57"] = {{"true", FREED}};
 
   doAnalysisAndCompareResults("hash01_c_dbg_xtc.ll", GroundTruth, false);
 }
 
 TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
   TSAVarResults_t GroundTruth;
-  GroundTruth[7]["6"] = {{"true", ALLOCATED}};
+  GroundTruth[46]["45"] = {{"true", ALLOCATED}};
 
-  // GroundTruth[12]["6"] = {{"true", ALLOCATED}};
-  // GroundTruth[12]["10"] = {{"true", ALLOCATED}};
+  // GroundTruth[52]["45"] = {{"true", ERROR}};
+  // GroundTruth[52]["50"] = {{"true", ERROR}};
 
-  GroundTruth[13]["6"] = {{"true", ERROR}};
-  GroundTruth[13]["10"] = {{"true", ERROR}};
+  // GroundTruth[56]["45"] = {{"true", ERROR}};
+  // GroundTruth[56]["50"] = {{"true", ERROR}};
+  // GroundTruth[56]["54"] = {{"true", ERROR}};
 
-  // GroundTruth[15]["6"] = {{"true", ERROR}};
-  // GroundTruth[15]["10"] = {{"true", ERROR}};
-  // GroundTruth[15]["13"] = {{"true", ERROR}};
-
-  GroundTruth[16]["6"] = {{"true", ERROR}};
-  GroundTruth[16]["10"] = {{"true", ERROR}};
-  GroundTruth[16]["13"] = {{"true", ERROR}};
-
-  GroundTruth[18]["6"] = {{"true", ERROR}};
-  GroundTruth[18]["10"] = {{"true", ERROR}};
-  GroundTruth[18]["13"] = {{"true", ERROR}};
-  GroundTruth[18]["16"] = {{"true", ERROR}};
+  GroundTruth[59]["45"] = {{"true", ERROR}};
+  GroundTruth[59]["50"] = {{"true", ERROR}};
+  GroundTruth[59]["54"] = {{"true", ERROR}};
+  GroundTruth[59]["57"] = {{"true", ERROR}};
 
   doAnalysisAndCompareResults("hash02_c_dbg_xtc.ll", GroundTruth, false);
 }
 
-TEST_F(IDEVarTAOpenSSLMDTest, Hash03) {
+TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
   TSAVarResults_t GroundTruth;
-  // TODO
+
+  GroundTruth[61]["60"] = {{"true", ALLOCATED}};
+  GroundTruth[68]["60"] = {{"defined __static_condition11", INITIALIZED},
+                           {"not defined __static_condition11", ALLOCATED}};
+
+  // TODO: more GT
+
   doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", GroundTruth, true);
 }
 

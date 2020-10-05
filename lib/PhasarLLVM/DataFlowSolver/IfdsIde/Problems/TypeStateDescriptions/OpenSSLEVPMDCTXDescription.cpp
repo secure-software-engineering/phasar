@@ -2,6 +2,7 @@
 
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
+#include <llvm/ADT/SmallVector.h>
 
 using namespace std;
 
@@ -46,8 +47,8 @@ const OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXState
 };
 
 OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXToken
-OpenSSLEVPMDCTXDescription::funcNameToToken(llvm::StringRef F) {
-  return llvm::StringSwitch<OpenSSLEVPMDCTXToken>(F)
+OpenSSLEVPMDCTXDescription::funcNameToToken(llvm::StringRef F) const {
+  /*return llvm::StringSwitch<OpenSSLEVPMDCTXToken>(F)
       .Case("EVP_MD_CTX_new", OpenSSLEVPMDCTXToken::EVP_MD_CTX_NEW)
       .Case("EVP_DigestInit", OpenSSLEVPMDCTXToken::EVP_DIGEST_INIT)
       .Case("EVP_DigestInit_ex", OpenSSLEVPMDCTXToken::EVP_DIGEST_INIT)
@@ -62,7 +63,45 @@ OpenSSLEVPMDCTXDescription::funcNameToToken(llvm::StringRef F) {
       .Case("EVP_DigestSignFinal_ex",
             OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_FINAL)
       .Case("EVP_MD_CTX_free", OpenSSLEVPMDCTXToken::EVP_MD_CTX_FREE)
-      .Default(OpenSSLEVPMDCTXToken::STAR);
+      .Default(OpenSSLEVPMDCTXToken::STAR);*/
+  if (auto it = name2tok.find(F); it != name2tok.end()) {
+    return it->second;
+  }
+  return OpenSSLEVPMDCTXToken::STAR;
+}
+
+OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXDescription(
+    const stringstringmap_t *staticRenaming)
+    : TypeStateDescription(), staticRenaming(staticRenaming),
+      name2tok(
+          {{"EVP_MD_CTX_new", OpenSSLEVPMDCTXToken::EVP_MD_CTX_NEW},
+           {"EVP_DigestInit", OpenSSLEVPMDCTXToken::EVP_DIGEST_INIT},
+           {"EVP_DigestInit_ex", OpenSSLEVPMDCTXToken::EVP_DIGEST_INIT},
+           {"EVP_DigestUpdate", OpenSSLEVPMDCTXToken::EVP_DIGEST_UPDATE},
+           {"EVP_DigestFinal", OpenSSLEVPMDCTXToken::EVP_DIGEST_FINAL},
+           {"EVP_DigestFinal_ex", OpenSSLEVPMDCTXToken::EVP_DIGEST_FINAL},
+           {"EVP_DigestSignInit", OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_INIT},
+           {"EVP_DigestSignInit_ex",
+            OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_INIT},
+           {"EVP_DigestSignUpdate",
+            OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_UPDATE},
+           {"EVP_DigestSignFinal", OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_FINAL},
+           {"EVP_DigestSignFinal_ex",
+            OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_FINAL},
+           {"EVP_MD_CTX_free", OpenSSLEVPMDCTXToken::EVP_MD_CTX_FREE}}) {
+  if (staticRenaming) {
+    llvm::SmallVector<std::pair<llvm::StringRef, OpenSSLEVPMDCTXToken>, 12>
+        toinsert;
+    for (auto &entry : name2tok) {
+      auto it = staticRenaming->find(entry.getKey());
+      if (it != staticRenaming->end()) {
+        toinsert.emplace_back(it->second, entry.getValue());
+      }
+    }
+    for (auto &[key, value] : toinsert) {
+      name2tok[key] = value;
+    }
+  }
 }
 
 bool OpenSSLEVPMDCTXDescription::isFactoryFunction(const std::string &F) const {
@@ -89,6 +128,12 @@ OpenSSLEVPMDCTXDescription::getNextState(std::string Tok,
 }
 
 std::string OpenSSLEVPMDCTXDescription::getTypeNameOfInterest() const {
+  if (staticRenaming) {
+    if (auto it = staticRenaming->find("evp_md_ctx_st");
+        it != staticRenaming->end()) {
+      return (llvm::StringLiteral("struct.") + it->second).str();
+    }
+  }
   return "struct.evp_md_ctx_st";
 }
 

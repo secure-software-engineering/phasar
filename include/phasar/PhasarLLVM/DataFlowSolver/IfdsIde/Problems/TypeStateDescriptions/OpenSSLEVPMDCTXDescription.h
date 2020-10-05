@@ -17,7 +17,9 @@
 #include <string>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
 #include "phasar/Utils/EnumFlags.h"
+#include <llvm/ADT/StringMap.h>
 namespace psr {
 
 class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
@@ -56,9 +58,13 @@ class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
       Delta[enum2int(OpenSSLEVPMDCTXToken::STAR) + 1]
            [enum2int(OpenSSLEVPMDCTXState::UNINIT) + 1];
 
-  static OpenSSLEVPMDCTXToken funcNameToToken(llvm::StringRef F);
+  OpenSSLEVPMDCTXToken funcNameToToken(llvm::StringRef F) const;
+  const stringstringmap_t *staticRenaming = nullptr;
+
+  llvm::StringMap<OpenSSLEVPMDCTXToken> name2tok;
 
 public:
+  OpenSSLEVPMDCTXDescription(const stringstringmap_t *staticRenaming = nullptr);
   bool isFactoryFunction(const std::string &F) const override;
 
   bool isConsumingFunction(const std::string &F) const override;

@@ -61,6 +61,10 @@ private:
                              bool ForEquality) const;
 
   bool isPPVariable(const llvm::GlobalVariable *G, std::string &Name) const;
+  // don't pass by reference, as we need to take ownership of the Name
+  z3::expr createBoolConst(std::string Name) const;
+  // don't pass by reference, as we need to take ownership of the Name
+  z3::expr createIntConst(std::string Name) const;
 
 public:
   LLVMBasedVarCFG() = default;
