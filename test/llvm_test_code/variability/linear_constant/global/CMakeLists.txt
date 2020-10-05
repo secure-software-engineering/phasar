@@ -1,6 +1,7 @@
 set(GlobalVarSources
   global_01.c
-  global_02.c
+  # TODO XTC unsupported feature
+  # global_02.c
   # TODO XTC unsupported feature
   # global_03.c
   # TODO XTC unsupported feature

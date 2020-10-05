@@ -104,7 +104,7 @@ TypeStateDescription::State OpenSSLEVPCIPHERCTXDescription::getNextState(
 }
 
 std::string OpenSSLEVPCIPHERCTXDescription::getTypeNameOfInterest() const {
-  return "struct.evt_cipher_ctx_st";
+  return "struct.evp_cipher_ctx_st";
 }
 
 std::set<int> OpenSSLEVPCIPHERCTXDescription::getConsumerParamIdx(

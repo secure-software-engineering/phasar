@@ -89,7 +89,7 @@ OpenSSLEVPMDCTXDescription::getNextState(std::string Tok,
 }
 
 std::string OpenSSLEVPMDCTXDescription::getTypeNameOfInterest() const {
-  return "struct.evt_md_ctx_st";
+  return "struct.evp_md_ctx_st";
 }
 
 std::set<int>

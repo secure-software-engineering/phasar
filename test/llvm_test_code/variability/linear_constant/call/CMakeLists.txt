@@ -3,11 +3,14 @@ set(CallVarSources
   # call_01.c
   # TODO XTC unsupported feature
   # call_02.c
-  call_03.c
+  # TODO XTC unsupported feature
+  # call_03.c
   # TODO XTC unsupported feature
   # call_04.c
-  call_05.c
-  call_06.c
+  # TODO XTC unsupported feature
+  # call_05.c
+  # TODO XTC unsupported feature
+  # call_06.c
   call_07.c
   # TODO XTC unsupported feature
   # call_08.c
