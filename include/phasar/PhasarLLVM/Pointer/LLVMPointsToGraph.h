@@ -141,7 +141,7 @@ public:
                  const llvm::Instruction *I = nullptr) override;
 
   std::shared_ptr<std::unordered_set<const llvm::Value *>>
-  getReachableAllocationSites(const llvm::Value *V,
+  getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
 
   void mergeWith(const PointsToInfo<const llvm::Value *,

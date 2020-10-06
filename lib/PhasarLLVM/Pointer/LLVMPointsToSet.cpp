@@ -266,6 +266,7 @@ LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
 
 std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
+                                             bool IntraProcOnly,
                                              const llvm::Instruction *I) {
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
@@ -274,16 +275,50 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
   computeValuesPointsToSet(V);
   auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
   const auto PTS = PointsToSets[V];
-  for (const auto *P : *PTS) {
-    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
-      AllocSites->insert(Alloca);
+  // consider the full inter-procedural points-to/alias information
+  if (!IntraProcOnly) {
+    for (const auto *P : *PTS) {
+      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
+        AllocSites->insert(Alloca);
+      }
+      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
+        llvm::ImmutableCallSite CS(P);
+        if (CS.getCalledFunction() != nullptr &&
+            CS.getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+          AllocSites->insert(P);
+        }
+      }
     }
-    if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-      llvm::ImmutableCallSite CS(P);
-      if (CS.getCalledFunction() != nullptr &&
-          CS.getCalledFunction()->hasName() &&
-          HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-        AllocSites->insert(P);
+  } else {
+    // consider the function-local, i.e. intra-procedural, points-to/alias
+    // information only
+    const auto *VFun = retrieveFunction(V);
+    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+    // VFun and VG are mutally exclusive
+    assert(VFun != VG && "VFun and VG must be mutally exclusive!");
+    for (const auto *P : *PTS) {
+      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
+        // only add function local allocation sites
+        if (VFun && VFun == Alloca->getFunction()) {
+          AllocSites->insert(Alloca);
+        }
+        if (VG) {
+          AllocSites->insert(Alloca);
+        }
+      }
+      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
+        llvm::ImmutableCallSite CS(P);
+        if (CS.getCalledFunction() != nullptr &&
+            CS.getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+          if (VFun && VFun == CS.getInstruction()->getFunction()) {
+            AllocSites->insert(P);
+          }
+          if (VG) {
+            AllocSites->insert(P);
+          }
+        }
       }
     }
   }

@@ -12,7 +12,6 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
-using namespace std;
 using namespace psr;
 
 namespace psr {

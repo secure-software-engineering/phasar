@@ -52,7 +52,7 @@ public:
                                                                 N I = N{}) = 0;
 
   virtual std::shared_ptr<std::unordered_set<V>>
-  getReachableAllocationSites(V V1, N I = N{}) = 0;
+  getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
 
   virtual void print(std::ostream &OS = std::cout) const = 0;
 

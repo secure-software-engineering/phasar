@@ -266,6 +266,7 @@ AliasResult LLVMPointsToGraph::alias(const llvm::Value *V1,
 
 std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToGraph::getReachableAllocationSites(const llvm::Value *V,
+                                               bool IntraProcOnly,
                                                const llvm::Instruction *I) {
   computePointsToGraph(V);
   auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
