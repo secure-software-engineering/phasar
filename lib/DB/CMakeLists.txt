@@ -27,6 +27,7 @@ set(LLVM_LINK_COMPONENTS
   Linker
   BitWriter
   Passes
+  Demangle
 )
 
 if(BUILD_SHARED_LIBS)

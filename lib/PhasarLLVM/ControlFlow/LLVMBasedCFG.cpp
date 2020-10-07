@@ -19,6 +19,7 @@
 #include <iterator>
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
@@ -303,7 +304,7 @@ string LLVMBasedCFG::getFunctionName(const llvm::Function *Fun) const {
 
 std::string
 LLVMBasedCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
-  return cxxDemangle(getFunctionName(Fun));
+  return llvm::demangle(getFunctionName(Fun));
 }
 
 void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {

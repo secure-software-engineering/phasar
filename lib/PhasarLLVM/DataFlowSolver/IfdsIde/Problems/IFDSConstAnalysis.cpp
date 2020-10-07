@@ -9,6 +9,7 @@
 
 #include <utility>
 
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -72,7 +73,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
         if (auto *VTable =
                 llvm::dyn_cast<llvm::GlobalVariable>(CFInst->getOperand(0))) {
           if (VTable->hasName() &&
-              cxxDemangle(VTable->getName().str()).find("vtable") !=
+              llvm::demangle(VTable->getName().str()).find("vtable") !=
                   string::npos) {
             LOG_IF_ENABLE(
                 BOOST_LOG_SEV(lg::get(), DEBUG)

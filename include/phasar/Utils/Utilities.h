@@ -23,8 +23,6 @@ namespace psr {
 
 std::string createTimeStamp();
 
-std::string cxxDemangle(const std::string &MangledName);
-
 bool isConstructor(const std::string &MangledName);
 
 std::string debasify(const std::string &name);
