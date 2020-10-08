@@ -17,6 +17,7 @@
 #include <string>
 
 #include "llvm/Analysis/LoopInfo.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -91,7 +92,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           llvm::ImmutableCallSite CS(&I);
           if (CS.getCalledFunction()) {
             if (MemAllocatingFunctions.count(
-                    cxxDemangle(CS.getCalledFunction()->getName().str()))) {
+                    llvm::demangle(CS.getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
               Stats.allocaInstructions.insert(&I);
               ++Stats.allocationsites;

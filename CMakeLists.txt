@@ -206,6 +206,7 @@ add_subdirectory(lib)
 set(LLVM_LINK_COMPONENTS
   coverage
   coroutines
+  demangle
   libdriver
   lto
   support
