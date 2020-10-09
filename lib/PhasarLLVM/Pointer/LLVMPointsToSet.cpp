@@ -83,8 +83,8 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
       }
     }
   } else {
-    auto *VF = retrieveFunction(V);
-    computeFunctionsPointsToSet(VF);
+    const auto *VF = retrieveFunction(V);
+    computeFunctionsPointsToSet(const_cast<llvm::Function *>(VF));
   }
 }
 
