@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 namespace llvm {
+class Function;
 class Instruction;
 class Value;
 } // namespace llvm
@@ -24,7 +25,7 @@ class LLVMPointsToInfo
 public:
   ~LLVMPointsToInfo() override = default;
 
-  static llvm::Function *retrieveFunction(const llvm::Value *V);
+  static const llvm::Function *retrieveFunction(const llvm::Value *V);
 };
 
 } // namespace psr
