@@ -143,7 +143,7 @@ LLVMPointsToGraph::LLVMPointsToGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     : PTA(IRDB, UseLazyEvaluation, PATy) {}
 
 void LLVMPointsToGraph::computePointsToGraph(const llvm::Value *V) {
-  auto *VF = retrieveFunction(V);
+  auto *VF = const_cast<llvm::Function *>(retrieveFunction(V));
   computePointsToGraph(VF);
 }
 
