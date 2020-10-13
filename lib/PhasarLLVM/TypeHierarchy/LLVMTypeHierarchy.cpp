@@ -164,25 +164,27 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
   if (const auto *TI = ClearNameTIMap[removeStructOrClassPrefix(Type)]) {
-    if (const auto *I =
-            llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-      for (const auto &Op : I->operands()) {
-        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          // caution: getAsInstruction allocates, need to delete later
-          auto *AsI = CE->getAsInstruction();
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
-            if (BC->getOperand(0)->hasName()) {
-              auto Name = BC->getOperand(0)->getName();
-              if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
-                auto ClearName = removeTypeInfoPrefix(
-                    boost::core::demangle(Name.str().c_str()));
-                if (const auto *Type = ClearNameTypeMap[ClearName]) {
-                  SubTypes.push_back(Type);
+    if (TI->hasInitializer()) {
+      if (const auto *I =
+              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+        for (const auto &Op : I->operands()) {
+          if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+            // caution: getAsInstruction allocates, need to delete later
+            auto *AsI = CE->getAsInstruction();
+            if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+              if (BC->getOperand(0)->hasName()) {
+                auto Name = BC->getOperand(0)->getName();
+                if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
+                  auto ClearName = removeTypeInfoPrefix(
+                      boost::core::demangle(Name.str().c_str()));
+                  if (const auto *Type = ClearNameTypeMap[ClearName]) {
+                    SubTypes.push_back(Type);
+                  }
                 }
               }
             }
+            AsI->deleteValue();
           }
-          AsI->deleteValue();
         }
       }
     }
@@ -197,22 +199,25 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
   std::vector<const llvm::Function *> VFS;
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
-      if (const auto *I =
-              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        for (const auto &Op : I->operands()) {
-          if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
-            for (auto &COp : CA->operands()) {
-              if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-                // caution: getAsInstruction allocates, need to delete later
-                auto *AsI = CE->getAsInstruction();
-                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
-                  if (BC->getOperand(0)->hasName()) {
-                    if (auto *F = M.getFunction(BC->getOperand(0)->getName())) {
-                      VFS.push_back(F);
+      if (TI->hasInitializer()) {
+        if (const auto *I =
+                llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+          for (const auto &Op : I->operands()) {
+            if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
+              for (auto &COp : CA->operands()) {
+                if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
+                  // caution: getAsInstruction allocates, need to delete later
+                  auto *AsI = CE->getAsInstruction();
+                  if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                    if (BC->getOperand(0)->hasName()) {
+                      if (auto *F =
+                              M.getFunction(BC->getOperand(0)->getName())) {
+                        VFS.push_back(F);
+                      }
                     }
                   }
+                  AsI->deleteValue();
                 }
-                AsI->deleteValue();
               }
             }
           }
