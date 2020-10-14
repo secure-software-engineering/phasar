@@ -1,12 +1,10 @@
 #file(GLOB variability_files *.c *.cpp)
 
 set(variability_files
-  hash01.c
-  hash02.c
-  hash03.c
-  hash04.c
-  #TODO: XTC unsupported feature
-  #hash05.c
+  crypt01.c
+  crypt02.c
+  crypt03.c
+  crypt04.c
 )
 
 foreach(TEST_SRC ${variability_files})
