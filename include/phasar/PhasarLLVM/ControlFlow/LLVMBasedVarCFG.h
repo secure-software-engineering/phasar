@@ -18,6 +18,8 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/VarCFG.h"
+#include <llvm/ADT/StringMap.h>
+#include <optional>
 
 namespace llvm {
 class Function;
@@ -33,6 +35,8 @@ class GlobalVariable;
 
 namespace psr {
 
+class ProjectIRDB;
+
 class LLVMBasedVarCFG
     : public virtual LLVMBasedCFG,
       public virtual VarCFG<const llvm::Instruction *, const llvm::Function *,
@@ -41,33 +45,40 @@ private:
   // TODO: check if those variables need to be mutable, i.e. the z3
   // related member functions need to be const.
   mutable z3::context CTX;
-  mutable std::unordered_map<std::string, z3::expr> PPVariables;
+  llvm::StringMap<z3::expr> AvailablePPConditions;
+  // mutable std::unordered_map<std::string, z3::expr> PPVariables;
 
   bool isPPBranchNode(const llvm::BranchInst *BI) const;
 
   bool isPPBranchNode(const llvm::BranchInst *BI, z3::expr &Cond) const;
 
-  z3::expr inferCondition(const llvm::CmpInst *Cmp) const;
+  // z3::expr inferCondition(const llvm::CmpInst *Cmp) const;
 
-  z3::expr createExpression(const llvm::Value *V) const;
+  // z3::expr createExpression(const llvm::Value *V) const;
 
-  z3::expr createBinOp(const llvm::BinaryOperator *OP) const;
+  // z3::expr createBinOp(const llvm::BinaryOperator *OP) const;
 
-  z3::expr createVariableOrGlobal(const llvm::LoadInst *LI) const;
+  // z3::expr createVariableOrGlobal(const llvm::LoadInst *LI) const;
 
-  z3::expr createConstant(const llvm::Constant *C) const;
+  // z3::expr createConstant(const llvm::Constant *C) const;
 
-  z3::expr compareBoolAndInt(z3::expr XBool, z3::expr XInt,
-                             bool ForEquality) const;
+  // z3::expr compareBoolAndInt(z3::expr XBool, z3::expr XInt,
+  //                            bool ForEquality) const;
 
-  bool isPPVariable(const llvm::GlobalVariable *G, std::string &Name) const;
+  // bool isPPVariable(const llvm::GlobalVariable *G, std::string &Name) const;
+
   // don't pass by reference, as we need to take ownership of the Name
-  z3::expr createBoolConst(std::string Name) const;
+  // z3::expr createBoolConst(std::string Name) const;
   // don't pass by reference, as we need to take ownership of the Name
-  z3::expr createIntConst(std::string Name) const;
+  // z3::expr createIntConst(std::string Name) const;
+
+  std::optional<z3::expr>
+  getConditionIfIsPPVariable(const llvm::GlobalVariable *G) const;
+
+  z3::expr deserializePPCondition(llvm::StringRef Cond) const;
 
 public:
-  LLVMBasedVarCFG() = default;
+  LLVMBasedVarCFG(const ProjectIRDB &IRDB);
 
   ~LLVMBasedVarCFG() override = default;
 

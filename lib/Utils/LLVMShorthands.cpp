@@ -153,6 +153,25 @@ globalValuesUsedinFunction(const llvm::Function *F) {
   return GlobalsUsed;
 }
 
+std::optional<llvm::StringRef>
+extractConstantStringFromValue(const llvm::Value *V) {
+  auto gep = llvm::dyn_cast<llvm::ConstantExpr>(V); // constant GEP
+  if (!gep)
+    return std::nullopt;
+
+  auto gv = llvm::dyn_cast<llvm::GlobalVariable>(
+      gep->getOperand(0)); // Pointer operand of the constant GEP
+  if (!gv)
+    return std::nullopt;
+
+  auto init =
+      llvm::dyn_cast_or_null<llvm::ConstantDataArray>(gv->getInitializer());
+  if (!init)
+    return std::nullopt;
+
+  return init->getAsCString();
+}
+
 std::string getMetaDataID(const llvm::Value *V) {
   if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     if (auto *Metadata = Inst->getMetadata(PhasarConfig::MetaDataKind())) {

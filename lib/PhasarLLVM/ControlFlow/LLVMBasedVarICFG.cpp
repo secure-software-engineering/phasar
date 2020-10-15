@@ -17,6 +17,6 @@ LLVMBasedVarICFG::LLVMBasedVarICFG(ProjectIRDB &IRDB,
                                    CallGraphAnalysisType CGType,
                                    const std::set<std::string> &EntryPoints,
                                    LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT)
-    : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT) {}
+    : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT), LLVMBasedVarCFG(IRDB) {}
 
 } // namespace psr

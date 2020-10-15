@@ -17,10 +17,12 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "phasar/Utils/Utilities.h"
+#include <llvm/ADT/StringRef.h>
 
 namespace llvm {
 class Value;
@@ -77,6 +79,9 @@ std::string llvmIRToShortString(const llvm::Value *V);
  */
 std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F);
+
+std::optional<llvm::StringRef>
+extractConstantStringFromValue(const llvm::Value *V);
 
 /**
  * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta
