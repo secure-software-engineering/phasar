@@ -80,6 +80,12 @@ std::string llvmIRToShortString(const llvm::Value *V);
 std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F);
 
+/**
+ * @brief Returns the constant string that is represented by V. If V is no
+ * constant string, returns std::nullopt.
+ * @remarks Expects V to be a getelementptr of a global variable that is
+ * initialized with a c-string
+ */
 std::optional<llvm::StringRef>
 extractConstantStringFromValue(const llvm::Value *V);
 
