@@ -10,6 +10,7 @@
 #include <array>
 #include <utility>
 
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
@@ -103,7 +104,7 @@ void IDESecureHeapPropagation::printDataFlowFact(std::ostream &Os,
 }
 
 void IDESecureHeapPropagation::printFunction(std::ostream &Os, f_t F) const {
-  Os << cxxDemangle(F->getName().str());
+  Os << llvm::demangle(F->getName().str());
 }
 
 // in addition provide specifications for the IDE parts

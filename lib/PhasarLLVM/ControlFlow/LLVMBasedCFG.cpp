@@ -14,6 +14,12 @@
  *      Author: philipp
  */
 
+#include <algorithm>
+#include <cassert>
+#include <iterator>
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
@@ -25,10 +31,6 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
-
-#include <algorithm>
-#include <cassert>
-#include <iterator>
 
 using namespace std;
 using namespace psr;
@@ -211,12 +213,12 @@ bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *Stmt,
 }
 
 bool LLVMBasedCFG::isHeapAllocatingFunction(const llvm::Function *Fun) const {
-  static const std::set<std::string> HeapAllocatingFunctions = {
+  static const std::set<llvm::StringRef> HeapAllocatingFunctions = {
       "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
   if (!Fun) {
     return false;
   }
-  if (Fun->hasName() && HeapAllocatingFunctions.find(Fun->getName().str()) !=
+  if (Fun->hasName() && HeapAllocatingFunctions.find(Fun->getName()) !=
                             HeapAllocatingFunctions.end()) {
     return true;
   }
@@ -302,7 +304,7 @@ string LLVMBasedCFG::getFunctionName(const llvm::Function *Fun) const {
 
 std::string
 LLVMBasedCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
-  return cxxDemangle(getFunctionName(Fun));
+  return llvm::demangle(getFunctionName(Fun));
 }
 
 void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {

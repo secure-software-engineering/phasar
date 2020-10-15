@@ -1,10 +1,11 @@
 set(UtilsSources
-	LLVMShorthandsTest.cpp
-	LLVMIRToSrcTest.cpp
-	PAMMTest.cpp
-	BitVectorSetTest.cpp
+  BitVectorSetTest.cpp
+  EquivalenceClassMapTest.cpp
+  LLVMIRToSrcTest.cpp
+  LLVMShorthandsTest.cpp
+  PAMMTest.cpp
 )
 
 foreach(TEST_SRC ${UtilsSources})
-	add_phasar_unittest(${TEST_SRC})
+  add_phasar_unittest(${TEST_SRC})
 endforeach(TEST_SRC)

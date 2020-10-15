@@ -103,22 +103,6 @@ public:
 
   using EdgeFactGeneratorTy = std::set<e_t>(n_t curr);
 
-private:
-  std::function<EdgeFactGeneratorTy> edgeFactGen;
-  static inline const l_t BottomElement = Bottom{};
-  static inline const l_t TopElement = Top{};
-  // bool GeneratedGlobalVariables = false;
-
-  inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t curr) {
-    if (edgeFactGen) {
-      auto Results = edgeFactGen(curr);
-      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
-      return BVS;
-    }
-    return {};
-  }
-
-public:
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
@@ -208,7 +192,8 @@ public:
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
               : Load(Load),
-                PTS(Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
+                PTS(Problem.PT->getReachableAllocationSites(
+                    Load->getPointerOperand(), Problem.IntraProcPTIOnly)) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
@@ -249,14 +234,15 @@ public:
                           const llvm::StoreInst *Store)
               : Store(Store), ValuePTS([&]() {
                   if (isInterestingPointer(Store->getValueOperand())) {
-                    return Problem.PT->getPointsToSet(Store->getValueOperand());
+                    return Problem.PT->getReachableAllocationSites(
+                        Store->getValueOperand(), Problem.IntraProcPTIOnly);
                   } else {
                     return std::make_shared<std::unordered_set<d_t>>(
                         std::unordered_set<d_t>{Store->getValueOperand()});
                   }
                 }()),
-                PointerPTS(
-                    Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
+                PointerPTS(Problem.PT->getReachableAllocationSites(
+                    Store->getPointerOperand(), Problem.IntraProcPTIOnly)) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
@@ -598,9 +584,11 @@ public:
         // using points-to sets
         std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
         if (Store->getValueOperand()->getType()->isPointerTy()) {
-          ValuePTS = this->PT->getPointsToSet(Store->getValueOperand());
+          ValuePTS = this->PT->getReachableAllocationSites(
+              Store->getValueOperand(), IntraProcPTIOnly);
         }
-        auto PointerPTS = this->PT->getPointsToSet(Store->getPointerOperand());
+        auto PointerPTS = this->PT->getReachableAllocationSites(
+            Store->getPointerOperand(), IntraProcPTIOnly);
         // overriding edge
         if ((currNode == Store->getValueOperand() ||
              (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
@@ -973,6 +961,22 @@ protected:
     auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
     auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
     return LhsSet.setUnion(RhsSet);
+  }
+
+private:
+  std::function<EdgeFactGeneratorTy> edgeFactGen;
+  static inline const l_t BottomElement = Bottom{};
+  static inline const l_t TopElement = Top{};
+  // bool GeneratedGlobalVariables = false;
+  const bool IntraProcPTIOnly = true;
+
+  inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t curr) {
+    if (edgeFactGen) {
+      auto Results = edgeFactGen(curr);
+      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
+      return BVS;
+    }
+    return {};
   }
 
 }; // namespace psr

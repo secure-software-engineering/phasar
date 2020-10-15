@@ -14,6 +14,7 @@
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/CFLAndersAliasAnalysis.h"
 #include "llvm/Analysis/CFLSteensAliasAnalysis.h"
+#include "llvm/Analysis/TypeBasedAliasAnalysis.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/DataLayout.h"
@@ -119,6 +120,7 @@ LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(ProjectIRDB &IRDB,
   default:
     break;
   }
+  AA.registerFunctionAnalysis<llvm::TypeBasedAA>();
   FAM.registerPass([&] { return std::move(AA); });
   PB.registerFunctionAnalyses(FAM);
   llvm::FunctionPassManager FPM;

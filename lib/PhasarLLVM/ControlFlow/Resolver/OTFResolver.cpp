@@ -106,7 +106,7 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 
   // Use points-to information to resolve the indirect call
   auto AllocSites = PT.getReachableAllocationSites(Receiver);
-  auto PossibleAllocatedTypes = getReachableTypes(AllocSites);
+  auto PossibleAllocatedTypes = getReachableTypes(*AllocSites);
 
   const auto *ReceiverType = getReceiverType(CS);
 

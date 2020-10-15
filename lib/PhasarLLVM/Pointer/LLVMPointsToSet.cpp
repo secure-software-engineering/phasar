@@ -83,8 +83,8 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
       }
     }
   } else {
-    auto *VF = retrieveFunction(V);
-    computeFunctionsPointsToSet(VF);
+    const auto *VF = retrieveFunction(V);
+    computeFunctionsPointsToSet(const_cast<llvm::Function *>(VF));
   }
 }
 
@@ -264,26 +264,61 @@ LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
   return PointsToSets[V];
 }
 
-std::unordered_set<const llvm::Value *>
+std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
+                                             bool IntraProcOnly,
                                              const llvm::Instruction *I) {
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
-    return std::unordered_set<const llvm::Value *>();
+    return std::make_shared<std::unordered_set<const llvm::Value *>>();
   }
   computeValuesPointsToSet(V);
-  std::unordered_set<const llvm::Value *> AllocSites;
+  auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
   const auto PTS = PointsToSets[V];
-  for (const auto *P : *PTS) {
-    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
-      AllocSites.insert(Alloca);
+  // consider the full inter-procedural points-to/alias information
+  if (!IntraProcOnly) {
+    for (const auto *P : *PTS) {
+      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
+        AllocSites->insert(Alloca);
+      }
+      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
+        llvm::ImmutableCallSite CS(P);
+        if (CS.getCalledFunction() != nullptr &&
+            CS.getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+          AllocSites->insert(P);
+        }
+      }
     }
-    if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-      llvm::ImmutableCallSite CS(P);
-      if (CS.getCalledFunction() != nullptr &&
-          CS.getCalledFunction()->hasName() &&
-          HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-        AllocSites.insert(P);
+  } else {
+    // consider the function-local, i.e. intra-procedural, points-to/alias
+    // information only
+    const auto *VFun = retrieveFunction(V);
+    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+    // VFun and VG are mutally exclusive
+    assert(VFun != VG && "VFun and VG must be mutally exclusive!");
+    for (const auto *P : *PTS) {
+      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
+        // only add function local allocation sites
+        if (VFun && VFun == Alloca->getFunction()) {
+          AllocSites->insert(Alloca);
+        }
+        if (VG) {
+          AllocSites->insert(Alloca);
+        }
+      }
+      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
+        llvm::ImmutableCallSite CS(P);
+        if (CS.getCalledFunction() != nullptr &&
+            CS.getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+          if (VFun && VFun == CS.getInstruction()->getFunction()) {
+            AllocSites->insert(P);
+          }
+          if (VG) {
+            AllocSites->insert(P);
+          }
+        }
       }
     }
   }
@@ -350,6 +385,73 @@ void LLVMPointsToSet::print(std::ostream &OS) const {
     OS << "V: " << llvmIRToString(V) << '\n';
     for (const auto &Ptr : *PTS) {
       OS << "\tpoints to -> " << llvmIRToString(Ptr) << '\n';
+    }
+  }
+}
+
+void LLVMPointsToSet::peakIntoPointsToSet(
+    const PointsToSetMap::value_type &ValueSetPair, int Peak) {
+  llvm::outs() << "Value: ";
+  ValueSetPair.first->print(llvm::outs());
+  llvm::outs() << '\n';
+  int PeakCounter = 0;
+  llvm::outs() << "aliases with: {\n";
+  for (const llvm::Value *I : *ValueSetPair.second) {
+    I->print(llvm::outs());
+    llvm::outs() << '\n';
+    PeakCounter++;
+    if (PeakCounter > Peak) {
+      llvm::outs() << llvm::formatv("... and {0} more\n",
+                                    ValueSetPair.second->size() - Peak);
+      break;
+    }
+  }
+  llvm::outs() << "}\n";
+}
+
+void LLVMPointsToSet::drawPointsToSetsDistribution(int Peak) const {
+  std::vector<std::pair<size_t, unsigned>> SizeAmountPairs;
+
+  for (const auto &ValueSetPair : PointsToSets) {
+    auto Search =
+        std::find_if(SizeAmountPairs.begin(), SizeAmountPairs.end(),
+                     [&ValueSetPair](const auto &Entry) {
+                       return Entry.first == ValueSetPair.second->size();
+                     });
+    if (Search != SizeAmountPairs.end()) {
+      Search->second++;
+    } else {
+      SizeAmountPairs.emplace_back(ValueSetPair.second->size(), 1);
+    }
+  }
+
+  std::sort(SizeAmountPairs.begin(), SizeAmountPairs.end(),
+            [](const auto &KVPair1, const auto &KVPair2) {
+              return KVPair1.first < KVPair2.first;
+            });
+
+  int TotalValues = std::accumulate(
+      SizeAmountPairs.begin(), SizeAmountPairs.end(), 0,
+      [](int Current, const auto &KVPair) { return Current + KVPair.second; });
+
+  llvm::outs() << llvm::formatv("{0,10}  {1,-=50} {2,10}\n", "PtS Size",
+                                "Distribution", "Number of sets");
+  for (auto &KV : SizeAmountPairs) {
+    std::string PeakBar(static_cast<double>(KV.second) * 50 /
+                            static_cast<double>(TotalValues),
+                        '*');
+    llvm::outs() << llvm::formatv("{0,10} |{1,-50} {2,-10}\n", KV.first,
+                                  PeakBar, KV.second);
+  }
+  llvm::outs() << "\n";
+
+  if (Peak) {
+    for (const auto &ValueSetPair : PointsToSets) {
+      if (ValueSetPair.second->size() == SizeAmountPairs.back().first) {
+        llvm::outs() << "Peak into one of the biggest points sets.\n";
+        peakIntoPointsToSet(ValueSetPair, Peak);
+        return;
+      }
     }
   }
 }
