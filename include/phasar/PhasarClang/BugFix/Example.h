@@ -7,9 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
+#ifndef PHASAR_PHASARCLANG_BUGFIX_EXAMPLE_H_
+#define PHASAR_PHASARCLANG_BUGFIX_EXAMPLE_H_
 
-int main(int argc, char **argv) {
-  std::cout << "Hello, phasar-bugfix!\n";
-  return 0;
-}
+namespace psr {
+
+void helloBugFix();
+
+} // namespace psr
+
+#endif

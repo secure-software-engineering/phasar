@@ -9,7 +9,12 @@
 
 #include <iostream>
 
-int main(int argc, char **argv) {
-  std::cout << "Hello, phasar-bugfix!\n";
-  return 0;
-}
+#include "phasar/PhasarClang/BugFix/Example.h"
+
+using namespace psr;
+
+namespace psr {
+
+void helloBugFix() { std::cout << "Hello, BugFix!\n"; }
+
+} // namespace psr
