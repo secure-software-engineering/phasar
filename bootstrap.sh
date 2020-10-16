@@ -148,3 +148,7 @@ sudo cmake -DCMAKE_INSTALL_PREFIX=${PHASAR_INSTALL_DIR} -P cmake_install.cmake
 sudo ldconfig
 cd ..
 echo "phasar successfully installed to ${PHASAR_INSTALL_DIR}"
+
+
+echo "Set environment variables"
+./utils/setEnvironmentVariables.sh ${LLVM_INSTALL_DIR} ${PHASAR_INSTALL_DIR}
