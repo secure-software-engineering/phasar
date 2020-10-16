@@ -12,7 +12,7 @@ EXPORTGUARD="# PhASAR export guard"
 
 # Check whether the SHELLrc file contains the EXPORTGUARD 
 if grep -Fxq "$EXPORTGUARD" $RCPATH
-the
+then
     echo "Environment variables have been already set"
 else
     echo 'Add environment variables to' $(basename $SHELL)'rc'
