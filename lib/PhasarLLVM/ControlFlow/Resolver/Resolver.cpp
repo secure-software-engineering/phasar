@@ -78,7 +78,8 @@ const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
                                     llvm::ImmutableCallSite CS) {
   if (TH->hasVFTable(T)) {
-    const auto *Target = TH->getVFTable(T)->getFunction(Idx);
+    const auto *VT = TH->getVFTable(T);
+    const auto *Target = VT->getFunction(Idx);
     if (Target->getName() != "__cxa_pure_virtual") {
       return Target;
     }

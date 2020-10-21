@@ -19,27 +19,30 @@ using namespace psr;
 
 namespace psr {
 
+void LLVMVFTable::setEntry(const unsigned Idx, const llvm::Function *F) {
+  VFT[Idx] = F;
+}
+
 const llvm::Function *LLVMVFTable::getFunction(unsigned Idx) const {
-  if (Idx < size()) {
-    return VFT[Idx];
+  auto Search = VFT.find(Idx);
+  if (Search != VFT.end()) {
+    return Search->second;
   }
   return nullptr;
 }
 
 int LLVMVFTable::getIndex(const llvm::Function *F) const {
-  auto It = std::find(VFT.begin(), VFT.end(), F);
-  if (It != VFT.end()) {
-    return std::distance(VFT.begin(), It);
+  for (auto &[Idx, Fun] : VFT) {
+    if (Fun == F) {
+      return Idx;
+    }
   }
   return -1;
 }
 
 void LLVMVFTable::print(std::ostream &OS) const {
-  for (const auto *F : VFT) {
-    OS << F->getName().str();
-    if (F != VFT.back()) {
-      OS << '\n';
-    }
+  for (const auto &[Idx, F] : VFT) {
+    OS << Idx << ":" << F->getName().str() << '\n';
   }
 }
 

@@ -32,8 +32,9 @@ namespace psr {
 class LLVMVFTable : public VFTable<const llvm::Function *> {
 private:
   friend class LLVMTypeHierarchy;
-  std::vector<const llvm::Function *> VFT;
-  LLVMVFTable(std::vector<const llvm::Function *> Fs) : VFT(std::move(Fs)) {}
+  std::map<unsigned, const llvm::Function *> VFT;
+
+  void setEntry(const unsigned Idx, const llvm::Function *F);
 
 public:
   LLVMVFTable() = default;
@@ -46,7 +47,7 @@ public:
    */
   [[nodiscard]] const llvm::Function *getFunction(unsigned Idx) const override;
 
-  [[nodiscard]] std::vector<const llvm::Function *>
+  [[nodiscard]] std::map<unsigned, const llvm::Function *>
   getAllFunctions() const override {
     return VFT;
   }
@@ -67,20 +68,20 @@ public:
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
-  [[nodiscard]] std::vector<const llvm::Function *>::iterator begin() {
+  [[nodiscard]] std::map<unsigned, const llvm::Function *>::iterator begin() {
     return VFT.begin();
   }
 
-  [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
+  [[nodiscard]] std::map<unsigned, const llvm::Function *>::const_iterator
   begin() const {
     return VFT.begin();
   };
 
-  [[nodiscard]] std::vector<const llvm::Function *>::iterator end() {
+  [[nodiscard]] std::map<unsigned, const llvm::Function *>::iterator end() {
     return VFT.end();
   };
 
-  [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
+  [[nodiscard]] std::map<unsigned, const llvm::Function *>::const_iterator
   end() const {
     return VFT.end();
   };

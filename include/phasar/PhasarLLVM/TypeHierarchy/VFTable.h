@@ -23,7 +23,7 @@ public:
 
   virtual F getFunction(unsigned Idx) const = 0;
 
-  virtual std::vector<F> getAllFunctions() const = 0;
+  virtual std::map<unsigned, F> getAllFunctions() const = 0;
 
   virtual int getIndex(F f) const = 0;
 

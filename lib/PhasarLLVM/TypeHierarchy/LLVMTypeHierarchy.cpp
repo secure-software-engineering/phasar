@@ -192,19 +192,21 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
   return SubTypes;
 }
 
-std::vector<const llvm::Function *>
+LLVMVFTable
 LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                                        const llvm::StructType &Type) {
   auto ClearName = removeStructOrClassPrefix(Type.getName().str());
-  std::vector<const llvm::Function *> VFS;
+  LLVMVFTable VFT;
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
       if (TI->hasInitializer()) {
         if (const auto *I =
                 llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+          unsigned VTOffset = 0;
           for (const auto &Op : I->operands()) {
             if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
-              for (auto &COp : CA->operands()) {
+              for (unsigned OpIdx = 2; OpIdx < CA->getNumOperands(); OpIdx++) {
+                auto *COp = CA->getOperand(OpIdx);
                 if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
                   // caution: getAsInstruction allocates, need to delete later
                   auto *AsI = CE->getAsInstruction();
@@ -212,20 +214,21 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                     if (BC->getOperand(0)->hasName()) {
                       if (auto *F =
                               M.getFunction(BC->getOperand(0)->getName())) {
-                        VFS.push_back(F);
+                        VFT.setEntry(VTOffset + OpIdx - 2, F);
                       }
                     }
                   }
                   AsI->deleteValue();
                 }
               }
+              VTOffset += CA->getNumOperands() - 2;
             }
           }
         }
       }
     }
   }
-  return VFS;
+  return VFT;
 }
 
 void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
@@ -342,9 +345,7 @@ void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "VFTables:\n";
   for (const auto &[Ty, VFT] : TypeVFTMap) {
     OS << "Virtual function table for: " << Ty->getName().str() << '\n';
-    for (const auto *F : VFT) {
-      OS << "\t-" << F->getName().str() << '\n';
-    }
+    VFT.print(OS);
   }
 }
 

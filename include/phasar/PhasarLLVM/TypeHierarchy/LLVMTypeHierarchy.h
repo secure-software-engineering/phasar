@@ -133,8 +133,8 @@ private:
   std::vector<const llvm::StructType *>
   getSubTypes(const llvm::Module &M, const llvm::StructType &Type);
 
-  std::vector<const llvm::Function *>
-  getVirtualFunctions(const llvm::Module &M, const llvm::StructType &Type);
+  LLVMVFTable getVirtualFunctions(const llvm::Module &M,
+                                  const llvm::StructType &Type);
 
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
   FRIEND_TEST(LTHTest, GraphConstruction);
