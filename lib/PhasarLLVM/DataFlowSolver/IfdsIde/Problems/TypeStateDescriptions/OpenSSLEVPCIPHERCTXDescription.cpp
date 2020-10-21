@@ -57,10 +57,10 @@ const OpenSSLEVPCIPHERCTXDescription::OpenSSLEVPCIPHERCTXState
              INITIALIZED_DECRYPT, FINALIZED, ERROR, ERROR, ERROR},
 };
 
-auto OpenSSLEVPCIPHERCTXDescription::funcNameToToken(llvm::StringRef F)
+auto OpenSSLEVPCIPHERCTXDescription::funcNameToToken(llvm::StringRef F) const
     -> OpenSSLEVPCIPHERCTXToken {
 
-  return llvm::StringSwitch<OpenSSLEVPCIPHERCTXToken>(F)
+  /*return llvm::StringSwitch<OpenSSLEVPCIPHERCTXToken>(F)
       .Case("EVP_CIPHER_CTX_new", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_NEW)
       .Cases("EVP_CipherInit", "EVP_CipherInit_ex",
              OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_INIT)
@@ -77,7 +77,48 @@ auto OpenSSLEVPCIPHERCTXDescription::funcNameToToken(llvm::StringRef F)
       .Case("EVP_DecryptUpdate", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_UPDATE)
       .Cases("EVP_DecryptFinal", "EVP_DecryptFinal_ex",
              OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_FINAL)
-      .Default(OpenSSLEVPCIPHERCTXToken::STAR);
+      .Default(OpenSSLEVPCIPHERCTXToken::STAR);*/
+  if (auto it = name2tok.find(F); it != name2tok.end()) {
+    return it->second;
+  }
+  return OpenSSLEVPCIPHERCTXToken::STAR;
+}
+
+OpenSSLEVPCIPHERCTXDescription::OpenSSLEVPCIPHERCTXDescription(
+    const stringstringmap_t *staticRenaming)
+    : TypeStateDescription(), staticRenaming(staticRenaming),
+      name2tok(
+          {{"EVP_CIPHER_CTX_new", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_NEW},
+           {"EVP_CipherInit_ex", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_INIT},
+           {"EVP_CipherInit", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_INIT},
+           {"EVP_CipherUpdate", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_UPDATE},
+           {"EVP_CipherFinal", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_FINAL},
+           {"EVP_CipherFinal_ex", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_FINAL},
+           {"EVP_EncryptInit", OpenSSLEVPCIPHERCTXToken::EVP_ENCRYPT_INIT},
+           {"EVP_EncryptInit_ex", OpenSSLEVPCIPHERCTXToken::EVP_ENCRYPT_INIT},
+           {"EVP_EncryptUpdate", OpenSSLEVPCIPHERCTXToken::EVP_ENCRYPT_UPDATE},
+           {"EVP_EncryptFinal", OpenSSLEVPCIPHERCTXToken::EVP_ENCRYPT_FINAL},
+           {"EVP_EncryptFinal_ex", OpenSSLEVPCIPHERCTXToken::EVP_ENCRYPT_FINAL},
+           {"EVP_DecryptInit", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_INIT},
+           {"EVP_DecryptInit_ex", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_INIT},
+           {"EVP_DecryptUpdate", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_UPDATE},
+           {"EVP_DecryptFinal", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_FINAL},
+           {"EVP_DecryptFinal_ex", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_FINAL},
+           {"EVP_CIPHER_CTX_FREE",
+            OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_FREE}}) {
+  if (staticRenaming) {
+    llvm::SmallVector<std::pair<llvm::StringRef, OpenSSLEVPCIPHERCTXToken>, 12>
+        toinsert;
+    for (auto &entry : name2tok) {
+      auto it = staticRenaming->find(entry.getKey());
+      if (it != staticRenaming->end()) {
+        toinsert.emplace_back(it->second, entry.getValue());
+      }
+    }
+    for (auto &[key, value] : toinsert) {
+      name2tok[key] = value;
+    }
+  }
 }
 
 bool OpenSSLEVPCIPHERCTXDescription::isFactoryFunction(
@@ -104,6 +145,12 @@ TypeStateDescription::State OpenSSLEVPCIPHERCTXDescription::getNextState(
 }
 
 std::string OpenSSLEVPCIPHERCTXDescription::getTypeNameOfInterest() const {
+  if (staticRenaming) {
+    if (auto it = staticRenaming->find("evp_cipher_ctx_st");
+        it != staticRenaming->end()) {
+      return (llvm::StringLiteral("struct.") + it->second).str();
+    }
+  }
   return "struct.evp_cipher_ctx_st";
 }
 

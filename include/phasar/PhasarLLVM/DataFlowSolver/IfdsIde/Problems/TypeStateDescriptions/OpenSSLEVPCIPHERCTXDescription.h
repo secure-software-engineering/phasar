@@ -13,6 +13,7 @@
 #include <llvm/ADT/StringRef.h>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
 #include "phasar/Utils/EnumFlags.h"
 
 #include <array>
@@ -55,9 +56,15 @@ class OpenSSLEVPCIPHERCTXDescription : public TypeStateDescription {
       Delta[enum2int(OpenSSLEVPCIPHERCTXToken::STAR) + 1]
            [enum2int(OpenSSLEVPCIPHERCTXState::UNINIT) + 1];
 
-  static OpenSSLEVPCIPHERCTXToken funcNameToToken(llvm::StringRef F);
+  OpenSSLEVPCIPHERCTXToken funcNameToToken(llvm::StringRef F) const;
+
+  const stringstringmap_t *staticRenaming = nullptr;
+
+  llvm::StringMap<OpenSSLEVPCIPHERCTXToken> name2tok;
 
 public:
+  OpenSSLEVPCIPHERCTXDescription(
+      const stringstringmap_t *staticRenaming = nullptr);
   bool isFactoryFunction(const std::string &F) const override;
 
   bool isConsumingFunction(const std::string &F) const override;

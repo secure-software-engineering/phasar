@@ -11,10 +11,11 @@ typedef __SIZE_TYPE__ size_t;
 
 extern EVP_MD_CTX *EVP_MD_CTX_new(void);
 extern EVP_MD *EVP_sha512_256(void);
-extern int EVP_DigestInit_ex(EVP_MD_CTX *, EVP_MD *, void *);
-extern int EVP_DigestUpdate(EVP_MD_CTX *, const void *, size_t);
-extern int EVP_DigestFinal_ex(EVP_MD_CTX *, unsigned char *, unsigned int *);
-extern void EVP_MD_CTX_free(EVP_MD_CTX *);
+extern int EVP_DigestInit_ex(EVP_MD_CTX *ctx, EVP_MD *md, void *impl);
+extern int EVP_DigestUpdate(EVP_MD_CTX *ctx, const void *m, size_t mlen);
+extern int EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *digest,
+                              unsigned int *dlen);
+extern void EVP_MD_CTX_free(EVP_MD_CTX *ctx);
 
 void initialize(EVP_MD_CTX *ctx) {
 #ifdef A

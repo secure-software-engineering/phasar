@@ -11,7 +11,7 @@ typedef __SIZE_TYPE__ size_t;
 
 extern EVP_CIPHER_CTX *EVP_CIPHER_CTX_new(void);
 extern EVP_CIPHER *EVP_aes_256_cbc(void);
-extern void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *);
+extern void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx);
 int EVP_EncryptInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, void *impl,
                        const unsigned char *key, const unsigned char *iv);
 extern int EVP_EncryptUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl,
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
   const size_t arglen = strlen(argv[1]);
   unsigned char ciphertext[(arglen + 16) & ~16];
-  EVP_EncryptUpdate(ctx, ciphertext, NULL, argv[1], arglen);
+  EVP_EncryptUpdate(ctx, ciphertext, NULL, (unsigned char *)argv[1], arglen);
 
   EVP_EncryptFinal_ex(ctx, ciphertext + 16, NULL);
   EVP_CIPHER_CTX_free(ctx);
