@@ -24,6 +24,7 @@ endforeach(TEST_SRC)
 set(LinkSources
   type_hierarchy_14.cpp
   type_hierarchy_15.cpp
+  type_hierarchy_16.cpp
 )
 
 foreach(TEST_SRC ${LinkSources})
@@ -33,6 +34,7 @@ endforeach(TEST_SRC)
 set(LinkDbgSources
   type_hierarchy_14.cpp
   type_hierarchy_15.cpp
+  type_hierarchy_16.cpp
 )
 
 foreach(TEST_SRC ${LinkDbgSources})
