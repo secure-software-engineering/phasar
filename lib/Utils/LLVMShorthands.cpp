@@ -66,8 +66,38 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   return false;
 }
 
-bool matchesSignature(const llvm::Function *F,
-                      const llvm::FunctionType *FType) {
+// For C-style polymorphism we need to check whether a callee candidate would
+// be able to sanely access the formal argument.
+bool isTypeMatchForFunctionArgument(llvm::Type *Actual, llvm::Type *Formal) {
+  // First check for trivial type equality
+  if (Actual == Formal) {
+    return true;
+  }
+  // Trivial non-equality, e.g. PointerType and IntegerType
+  if (Actual->getTypeID() != Formal->getTypeID()) {
+    return false;
+  }
+  // For PointerType delegate into its element type
+  if (llvm::isa<llvm::PointerType>(Actual)) {
+    // If formal argument is void *, we can pass anything.
+    if (Formal->getPointerElementType()->isIntegerTy(8)) {
+      return true;
+    }
+    return isTypeMatchForFunctionArgument(Actual->getPointerElementType(),
+                                          Formal->getPointerElementType());
+  }
+  // For structs, Formal needs to be somehow contained in Actual.
+  if (llvm::isa<llvm::StructType>(Actual)) {
+    // Well, we could do sanity checks here, but if the analysed code is insane
+    // we would miss callees, so we don't do that.
+    return true;
+  }
+  // Sound fallback if we didn't match until here.
+  return false;
+}
+
+bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
+                      bool ExactMatch) {
   // FType->print(llvm::outs());
   if (F == nullptr || FType == nullptr) {
     return false;
@@ -75,11 +105,21 @@ bool matchesSignature(const llvm::Function *F,
   if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
     unsigned Idx = 0;
-    for (const auto &Arg : F->args()) {
-      if (Arg.getType() != FType->getParamType(Idx)) {
-        return false;
+    if (ExactMatch) {
+      for (const auto &Arg : F->args()) {
+        if (Arg.getType() != FType->getParamType(Idx)) {
+          return false;
+        }
+        ++Idx;
       }
-      ++Idx;
+    } else {
+      for (const auto &Arg : F->args()) {
+        if (!isTypeMatchForFunctionArgument(FType->getParamType(Idx),
+                                            Arg.getType())) {
+          return false;
+        }
+        ++Idx;
+      }
     }
     return true;
   }

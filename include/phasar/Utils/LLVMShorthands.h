@@ -51,7 +51,8 @@ bool isFunctionPointer(const llvm::Value *V) noexcept;
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 
 // TODO add description
-bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
+bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
+                      bool ExactMatch = true);
 
 // TODO add description
 bool matchesSignature(const llvm::FunctionType *FType1,

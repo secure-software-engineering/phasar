@@ -135,17 +135,68 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+  static int hitcounter = 0;
+  hitcounter++;
+  int loopcounter = 0;
+  std::cout << hitcounter++ << ": " <<
+  llvmIRToShortString(CS.getInstruction())
+            << "\n";
   std::set<const llvm::Function *> Callees;
   if (CS.getCalledValue() && CS.getCalledValue()->getType()->isPointerTy()) {
     if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CS.getCalledValue()->getType()->getPointerElementType())) {
       const auto PTS = PT.getPointsToSet(CS.getCalledValue());
       for (const auto *P : *PTS) {
+        if (hitcounter == 59)
+          loopcounter++;
+        // std::cout << loopcounter++ << ": " << llvmIRToString(P) << "\n";
         if (P->getType()->isPointerTy() &&
             P->getType()->getPointerElementType()->isFunctionTy()) {
           if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
             if (matchesSignature(F, FTy)) {
               Callees.insert(F);
+            }
+          }
+        }
+        if (auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
+          if (!GVP->hasInitializer())
+            continue;
+          auto InitConst = GVP->getInitializer();
+          std::list<const llvm::ConstantAggregate *> ConstantAggregateWL;
+          if (auto *InitConstAggregate =
+                  llvm::dyn_cast<llvm::ConstantAggregate>(InitConst)) {
+            ConstantAggregateWL.push_back(InitConstAggregate);
+          }
+          while (!ConstantAggregateWL.empty()) {
+            auto ConstAggregateItem = ConstantAggregateWL.front();
+            ConstantAggregateWL.pop_front();
+            for (const auto &Op : ConstAggregateItem->operands()) {
+              if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+                auto *AsI = CE->getAsInstruction();
+                if (AsI->getType()->getPointerElementType() == FTy) {
+                  if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                    if (auto *F =
+                            llvm::dyn_cast<llvm::Function>(BC->getOperand(0))) {
+                      Callees.insert(F);
+                    }
+                  }
+                }
+                AsI->deleteValue();
+              }
+              if (auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
+                if (true || loopcounter == 9031) {
+                  if (matchesSignature(F, FTy, false)) {
+                    std::cout << F->getName().str() << ": insert\n";
+                    Callees.insert(F);
+                  }
+                }
+                // if (matchesSignature(F, FTy, false)) {
+                //   Callees.insert(F);
+                // }
+              }
+              if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
+                ConstantAggregateWL.push_back(CA);
+              }
             }
           }
         }
