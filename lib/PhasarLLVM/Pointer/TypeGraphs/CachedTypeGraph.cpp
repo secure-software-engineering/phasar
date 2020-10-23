@@ -64,7 +64,14 @@ struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
 
 CachedTypeGraph::vertex_t
 CachedTypeGraph::addType(const llvm::StructType *NewType) {
-  auto Name = NewType->getName().str();
+  std::string Name;
+  if (!NewType->isLiteral()) {
+    Name = NewType->getName().str();
+  } else {
+    std::stringstream StrS;
+    StrS << "literal_" << NewType;
+    Name = StrS.str();
+  }
 
   if (type_vertex_map.find(Name) == type_vertex_map.end()) {
     auto Vertex = boost::add_vertex(g);
