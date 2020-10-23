@@ -11,13 +11,15 @@ struct B : A{
     virtual void quack() {}
 };
 
+void caller(A& a) {
+    a.foo();
+    a.bar();
+}
 
 int main() {
     A a;
-    a.foo();
+    caller(a);
     B b;
-    b.foo();
-    b.bar();
-    b.quack();
+    caller(b);
     return 0;
 }
