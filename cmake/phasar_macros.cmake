@@ -48,7 +48,7 @@ function(add_phasar_unittest test_name)
 endfunction()
 
 function(generate_ll_file)
-  set(options MEM2REG DEBUG)
+  set(options MEM2REG DEBUG LINK)
   set(testfile FILE)
   cmake_parse_arguments(GEN_LL "${options}" "${testfile}" "" ${ARGN} )
   # get file extension
@@ -61,6 +61,9 @@ function(generate_ll_file)
   endif()
   if(GEN_LL_DEBUG)
     set(ll_file_suffix "${ll_file_suffix}_dbg")
+  endif()
+  if(GEN_LL_LINK)
+    set(ll_file_suffix "${ll_file_suffix}_lnk")
   endif()
 #  set(ll_file_suffix "${ll_file_suffix}.ll")
   string(REPLACE ${test_code_file_ext}
@@ -90,6 +93,9 @@ function(generate_ll_file)
     list(APPEND GEN_C_FLAGS -g)
     set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT}[DBG]")
   endif()
+  if(GEN_LL_LINK)
+    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT}[LNK]")
+  endif()
   set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} ${GEN_LL_FILE}")
 
   # define .ll file generation command
@@ -105,6 +111,15 @@ function(generate_ll_file)
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
       COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMENT ${GEN_CMD_COMMENT}
+      DEPENDS ${GEN_LL_FILE}
+      VERBATIM
+    )
+  elseif(GEN_LL_LINK)
+    add_custom_command(
+      OUTPUT ${test_code_ll_file}
+      COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} llvm-link -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM

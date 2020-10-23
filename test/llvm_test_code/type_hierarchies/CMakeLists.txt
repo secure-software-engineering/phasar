@@ -20,3 +20,21 @@ set(NoMem2regSources
 foreach(TEST_SRC ${NoMem2regSources})
   generate_ll_file(FILE ${TEST_SRC})
 endforeach(TEST_SRC)
+
+set(LinkSources
+  type_hierarchy_14.cpp
+  type_hierarchy_15.cpp
+)
+
+foreach(TEST_SRC ${LinkSources})
+  generate_ll_file(FILE ${TEST_SRC} LINK)
+endforeach(TEST_SRC)
+
+set(LinkDbgSources
+  type_hierarchy_14.cpp
+  type_hierarchy_15.cpp
+)
+
+foreach(TEST_SRC ${LinkDbgSources})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG LINK)
+endforeach(TEST_SRC)
