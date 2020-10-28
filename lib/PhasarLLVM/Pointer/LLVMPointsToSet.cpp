@@ -38,12 +38,12 @@ namespace psr {
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy) {
-  if (!UseLazyEvaluation) {
-    for (llvm::Module *M : IRDB.getAllModules()) {
-      // compute points-to information for all globals
-      for (const auto &G : M->globals()) {
-        computeValuesPointsToSet(&G);
-      }
+  for (llvm::Module *M : IRDB.getAllModules()) {
+    // compute points-to information for all globals
+    for (const auto &G : M->globals()) {
+      computeValuesPointsToSet(&G);
+    }
+    if (!UseLazyEvaluation) {
       // compute points-to information for all functions
       for (auto &F : *M) {
         if (!F.isDeclaration()) {
