@@ -40,9 +40,7 @@ OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
                          LLVMBasedICFG &ICF, LLVMPointsToInfo &PT)
     : CHAResolver(IRDB, TH), ICF(ICF), PT(PT) {}
 
-void OTFResolver::preCall(const llvm::Instruction *Inst) {
-  CallStack.push_back(Inst);
-}
+void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 
 void OTFResolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
@@ -77,9 +75,7 @@ void OTFResolver::handlePossibleTargets(
   }
 }
 
-void OTFResolver::postCall(const llvm::Instruction *Inst) {
-  CallStack.pop_back();
-}
+void OTFResolver::postCall(const llvm::Instruction *Inst) {}
 
 set<const llvm::Function *>
 OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
