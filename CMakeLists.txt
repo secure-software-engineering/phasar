@@ -140,7 +140,7 @@ endif()
 add_definitions(${LLVM_DEFINITIONS})
 
 if (NOT PHASAR_IN_TREE)
-  find_library(LLVM_LIBRARY NAMES LLVM HINTS ${LLVM_LIBRARY_DIRS})
+  find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
   if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
     message(STATUS "Found consolidated shared LLVM lib " ${LLVM_LIBRARY} " that will be linked against.")
     set(USE_LLVM_FAT_LIB on)
