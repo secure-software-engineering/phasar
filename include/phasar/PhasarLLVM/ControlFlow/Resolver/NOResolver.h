@@ -37,16 +37,16 @@ public:
   void preCall(const llvm::Instruction *Inst) override;
 
   void handlePossibleTargets(
-      llvm::ImmutableCallSite CS,
+      llvm::AbstractCallSite CS,
       std::set<const llvm::Function *> &PossibleTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+  resolveVirtualCall(llvm::AbstractCallSite CS) override;
 
   std::set<const llvm::Function *>
-  resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
+  resolveFunctionPointer(llvm::AbstractCallSite CS) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
 };

@@ -10,7 +10,7 @@
 #include <utility>
 
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"

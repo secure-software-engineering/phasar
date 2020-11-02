@@ -3,10 +3,10 @@ set -e
 
 readonly PHASAR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 readonly PHASAR_INSTALL_DIR="/usr/local/phasar"
-readonly LLVM_INSTALL_DIR="/usr/local/llvm-10"
+readonly LLVM_INSTALL_DIR="/usr/local/llvm-11"
 
 NUM_THREADS=$(nproc)
-LLVM_RELEASE=llvmorg-10.0.0
+LLVM_RELEASE=llvmorg-11.0.0
 DO_UNIT_TEST=false
 
 
@@ -113,7 +113,7 @@ else
 fi
 
 # installing LLVM
-tmp_dir=`mktemp -d "llvm-10_build.XXXXXXXX" --tmpdir`
+tmp_dir=`mktemp -d "llvm-11_build.XXXXXXXX" --tmpdir`
 ./utils/install-llvm.sh ${NUM_THREADS} ${tmp_dir} ${LLVM_INSTALL_DIR} ${LLVM_RELEASE}
 rm -rf ${tmp_dir}
 sudo pip3 install wllvm

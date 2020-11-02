@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 

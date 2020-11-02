@@ -14,7 +14,7 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -154,7 +154,7 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
 }
 
 set<const llvm::Function *>
-DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+DTAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
   set<const llvm::Function *> PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

@@ -16,7 +16,7 @@
 
 #include <set>
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 
@@ -29,7 +29,7 @@ NOResolver::NOResolver(ProjectIRDB &IRDB) : Resolver(IRDB) {}
 void NOResolver::preCall(const llvm::Instruction *Inst) {}
 
 void NOResolver::handlePossibleTargets(
-    llvm::ImmutableCallSite CS,
+    llvm::AbstractCallSite CS,
     std::set<const llvm::Function *> &PossibleTargets) {}
 
 void NOResolver::postCall(const llvm::Instruction *Inst) {}

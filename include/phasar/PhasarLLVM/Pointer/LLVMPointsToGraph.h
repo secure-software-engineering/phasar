@@ -17,7 +17,7 @@
 
 #include "boost/graph/adjacency_list.hpp"
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 
 #include "nlohmann/json.hpp"
 

@@ -16,7 +16,7 @@
 
 #include <set>
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractAbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 
@@ -30,7 +30,7 @@ using namespace psr;
 
 namespace psr {
 
-int getVFTIndex(llvm::ImmutableCallSite CS) {
+int getVFTIndex(llvm::AbstractCallSite CS) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
   const auto *Load = llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
@@ -48,7 +48,7 @@ int getVFTIndex(llvm::ImmutableCallSite CS) {
   return -3;
 }
 
-const llvm::StructType *getReceiverType(llvm::ImmutableCallSite CS) {
+const llvm::StructType *getReceiverType(llvm::AbstractCallSite CS) {
   if (CS.getNumArgOperands() > 0) {
     const llvm::Value *Receiver = CS.getArgOperand(0);
     if (Receiver->getType()->isPointerTy()) {
@@ -61,7 +61,7 @@ const llvm::StructType *getReceiverType(llvm::ImmutableCallSite CS) {
   return nullptr;
 }
 
-std::string getReceiverTypeName(llvm::ImmutableCallSite CS) {
+std::string getReceiverTypeName(llvm::AbstractCallSite CS) {
   const auto *const RT = getReceiverType(CS);
   if (RT) {
     return RT->getName().str();
@@ -76,7 +76,7 @@ Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    llvm::ImmutableCallSite CS) {
+                                    llvm::AbstractCallSite CS) {
   if (TH->hasVFTable(T)) {
     const auto *Target = TH->getVFTable(T)->getFunction(Idx);
     if (Target->getName() != "__cxa_pure_virtual") {
@@ -89,13 +89,13 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
 void Resolver::preCall(const llvm::Instruction *Inst) {}
 
 void Resolver::handlePossibleTargets(
-    llvm::ImmutableCallSite CS,
+    llvm::AbstractCallSite CS,
     std::set<const llvm::Function *> &PossibleTargets) {}
 
 void Resolver::postCall(const llvm::Instruction *Inst) {}
 
 std::set<const llvm::Function *>
-Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+Resolver::resolveFunctionPointer(llvm::AbstractCallSite CS) {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target

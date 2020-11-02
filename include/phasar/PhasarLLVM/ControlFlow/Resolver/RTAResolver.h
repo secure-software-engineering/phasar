@@ -35,7 +35,7 @@ public:
   ~RTAResolver() override = default;
 
   virtual std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+  resolveVirtualCall(llvm::AbstractCallSite CS) override;
 };
 } // namespace psr
 

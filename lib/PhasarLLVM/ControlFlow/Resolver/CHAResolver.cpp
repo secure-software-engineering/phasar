@@ -14,7 +14,7 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -33,7 +33,7 @@ CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : Resolver(IRDB, TH) {}
 
 set<const llvm::Function *>
-CHAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+CHAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
