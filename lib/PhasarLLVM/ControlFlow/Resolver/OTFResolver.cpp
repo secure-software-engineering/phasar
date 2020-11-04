@@ -195,11 +195,12 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
               ConstantAggregateWL.push(CA);
             }
             if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
-              if (GV->hasInitializer()) {
-                if (auto *GVCA = llvm::dyn_cast<llvm::ConstantAggregate>(
-                        GV->getInitializer())) {
-                  ConstantAggregateWL.push(GVCA);
-                }
+              if (!GV->hasInitializer()) {
+                continue;
+              }
+              if (auto *GVCA = llvm::dyn_cast<llvm::ConstantAggregate>(
+                      GV->getInitializer())) {
+                ConstantAggregateWL.push(GVCA);
               }
             }
           }
