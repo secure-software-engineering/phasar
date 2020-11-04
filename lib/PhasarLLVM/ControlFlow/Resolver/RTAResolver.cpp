@@ -48,7 +48,7 @@ RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 // }
 
 set<const llvm::Function *>
-RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+RTAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
   // throw runtime_error("RTA is currently unabled to deal with already built "
   //                     "library, it has been disable until this is fixed");
 

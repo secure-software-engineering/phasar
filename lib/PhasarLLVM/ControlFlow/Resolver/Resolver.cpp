@@ -16,7 +16,7 @@
 
 #include <set>
 
-#include "llvm/IR/AbstractAbstractCallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 
@@ -33,7 +33,7 @@ namespace psr {
 int getVFTIndex(llvm::AbstractCallSite CS) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
-  const auto *Load = llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+  const auto *Load = llvm::dyn_cast<llvm::LoadInst>(CS.getCalledOperand());
   if (Load == nullptr) {
     return -1;
   }
@@ -50,7 +50,7 @@ int getVFTIndex(llvm::AbstractCallSite CS) {
 
 const llvm::StructType *getReceiverType(llvm::AbstractCallSite CS) {
   if (CS.getNumArgOperands() > 0) {
-    const llvm::Value *Receiver = CS.getArgOperand(0);
+    const llvm::Value *Receiver = CS.getCallArgOperand(0);
     if (Receiver->getType()->isPointerTy()) {
       if (const llvm::StructType *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
               Receiver->getType()->getPointerElementType())) {
@@ -105,10 +105,10 @@ Resolver::resolveFunctionPointer(llvm::AbstractCallSite CS) {
   std::set<const llvm::Function *> CalleeTargets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)
-  if (CS.getCalledValue() != nullptr &&
-      CS.getCalledValue()->getType()->isPointerTy()) {
+  if (CS.getCalledOperand() != nullptr &&
+      CS.getCalledOperand()->getType()->isPointerTy()) {
     if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
-            CS.getCalledValue()->getType()->getPointerElementType())) {
+            CS.getCalledOperand()->getType()->getPointerElementType())) {
       for (const auto *F : IRDB.getAllFunctions()) {
         if (matchesSignature(F, FTy)) {
           CalleeTargets.insert(F);

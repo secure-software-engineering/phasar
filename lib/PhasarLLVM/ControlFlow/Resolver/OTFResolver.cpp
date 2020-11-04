@@ -45,7 +45,7 @@ void OTFResolver::preCall(const llvm::Instruction *Inst) {
 }
 
 void OTFResolver::handlePossibleTargets(
-    llvm::ImmutableCallSite CS,
+    llvm::AbstractCallSite CS,
     std::set<const llvm::Function *> &CalleeTargets) {
   // if we have no inter-procedural points-to information, use call-graph
   // information to simulate inter-procedural points-to information
@@ -82,7 +82,7 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
 }
 
 set<const llvm::Function *>
-OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+OTFResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
   set<const llvm::Function *> PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -102,7 +102,7 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  const llvm::Value *Receiver = CS.getArgOperand(0);
+  const llvm::Value *Receiver = CS.getCallArgOperand(0);
 
   // Use points-to information to resolve the indirect call
   auto AllocSites = PT.getReachableAllocationSites(Receiver);
@@ -134,12 +134,13 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 }
 
 std::set<const llvm::Function *>
-OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+OTFResolver::resolveFunctionPointer(llvm::AbstractCallSite CS) {
   std::set<const llvm::Function *> Callees;
-  if (CS.getCalledValue() && CS.getCalledValue()->getType()->isPointerTy()) {
+  if (CS.getCalledOperand() &&
+      CS.getCalledOperand()->getType()->isPointerTy()) {
     if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
-            CS.getCalledValue()->getType()->getPointerElementType())) {
-      const auto PTS = PT.getPointsToSet(CS.getCalledValue());
+            CS.getCalledOperand()->getType()->getPointerElementType())) {
+      const auto PTS = PT.getPointsToSet(CS.getCalledOperand());
       for (const auto *P : *PTS) {
         if (P->getType()->isPointerTy() &&
             P->getType()->getPointerElementType()->isFunctionTy()) {
@@ -183,18 +184,20 @@ std::set<const llvm::Type *> OTFResolver::getReachableTypes(
 }
 
 std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-OTFResolver::getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
+OTFResolver::getActualFormalPointerPairs(llvm::AbstractCallSite CS,
                                          const llvm::Function *CalleeTarget) {
   std::vector<std::pair<const llvm::Value *, const llvm::Value *>> Pairs;
   // ordinary case
   if (!CalleeTarget->isVarArg()) {
-    Pairs.reserve(CS.arg_size());
+    Pairs.reserve(CS.getNumArgOperands());
     for (unsigned Idx = 0;
-         Idx < CS.arg_size() && Idx < CalleeTarget->arg_size(); ++Idx) {
+         Idx < CS.getNumArgOperands() && Idx < CalleeTarget->arg_size();
+         ++Idx) {
       // only collect pointer typed pairs
-      if (CS.getArgOperand(Idx)->getType()->isPointerTy() &&
+      if (CS.getCallArgOperand(Idx)->getType()->isPointerTy() &&
           CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
-        Pairs.emplace_back(CS.getArgOperand(Idx), CalleeTarget->getArg(Idx));
+        Pairs.emplace_back(CS.getCallArgOperand(Idx),
+                           CalleeTarget->getArg(Idx));
       }
     }
   } else {
@@ -219,9 +222,9 @@ OTFResolver::getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
       }
     }
     if (VarArgs) {
-      for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
-        if (CS.getArgOperand(Idx)->getType()->isPointerTy()) {
-          Pairs.emplace_back(CS.getArgOperand(Idx), VarArgs);
+      for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
+        if (CS.getCallArgOperand(Idx)->getType()->isPointerTy()) {
+          Pairs.emplace_back(CS.getCallArgOperand(Idx), VarArgs);
         }
       }
     }

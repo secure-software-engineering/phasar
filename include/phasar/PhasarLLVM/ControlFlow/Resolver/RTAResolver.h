@@ -22,7 +22,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
 namespace llvm {
-class ImmutableCallSite;
+class AbstractCallSite;
 class StructType;
 class Function;
 } // namespace llvm

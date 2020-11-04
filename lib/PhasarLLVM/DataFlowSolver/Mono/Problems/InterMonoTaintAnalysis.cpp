@@ -95,7 +95,7 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
   vector<const llvm::Value *> Formals;
   // set up the actual parameters
   for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CS.getArgOperand(Idx));
+    Actuals.push_back(CS.getCallArgOperand(Idx));
   }
   // set up the formal parameters
   /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
@@ -130,7 +130,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   unsigned Index = 0;
   for (const auto &Arg : Callee->args()) {
     if (Arg.getType()->isPointerTy() && In.count(&Arg)) {
-      Out.insert(CS.getArgOperand(Index));
+      Out.insert(CS.getCallArgOperand(Index));
     }
     Index++;
   }
@@ -156,19 +156,19 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
     if (TSF.isSink(Callee->getName().str())) {
       for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
         if (TSF.getSink(Callee->getName().str()).isLeakedArg(Idx) &&
-            In.count(CS.getArgOperand(Idx))) {
+            In.count(CS.getCallArgOperand(Idx))) {
           cout << "FOUND LEAK AT: " << llvmIRToString(CallSite) << '\n';
-          cout << "LEAKED VALUE: " << llvmIRToString(CS.getArgOperand(Idx))
+          cout << "LEAKED VALUE: " << llvmIRToString(CS.getCallArgOperand(Idx))
                << '\n'
                << endl;
-          Leaks[CallSite].insert(CS.getArgOperand(Idx));
+          Leaks[CallSite].insert(CS.getCallArgOperand(Idx));
         }
       }
     }
     if (TSF.isSource(Callee->getName().str())) {
       for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
         if (TSF.getSource(Callee->getName().str()).isTaintedArg(Idx)) {
-          Out.insert(CS.getArgOperand(Idx));
+          Out.insert(CS.getCallArgOperand(Idx));
         }
       }
       if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
@@ -179,8 +179,8 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
 
   // erase pointer arguments, since they are now propagated in the retFF
   for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
-    if (CS.getArgOperand(Idx)->getType()->isPointerTy()) {
-      Out.erase(CS.getArgOperand(Idx));
+    if (CS.getCallArgOperand(Idx)->getType()->isPointerTy()) {
+      Out.erase(CS.getCallArgOperand(Idx));
     }
   }
   return Out;

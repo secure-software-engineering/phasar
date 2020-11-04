@@ -252,7 +252,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
           : DestFun(DM), CallSite(CS), Zerovalue(ZV) {
         // set up the actual parameters
         for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-          Actuals.push_back(CallSite.getArgOperand(Idx));
+          Actuals.push_back(CallSite.getCallArgOperand(Idx));
         }
         // set up the formal parameters
         /*for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {

@@ -16,7 +16,7 @@
 
 namespace llvm {
 class Instruction;
-class ImmutableCallSite;
+class AbstractCallSite;
 class Function;
 class StructType;
 } // namespace llvm
@@ -27,7 +27,7 @@ class NOResolver final : public Resolver {
 protected:
   const llvm::Function *getNonPureVirtualVFTEntry(const llvm::StructType *T,
                                                   unsigned Idx,
-                                                  llvm::ImmutableCallSite CS);
+                                                  llvm::AbstractCallSite CS);
 
 public:
   NOResolver(ProjectIRDB &IRDB);

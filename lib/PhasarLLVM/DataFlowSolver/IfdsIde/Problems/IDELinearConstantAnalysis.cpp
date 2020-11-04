@@ -135,7 +135,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
           : DestFun(DestFun) {
         // Set up the actual parameters
         for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-          Actuals.push_back(CallSite.getArgOperand(Idx));
+          Actuals.push_back(CallSite.getCallArgOperand(Idx));
         }
         // Set up the formal parameters
         for (unsigned Idx = 0; Idx < DestFun->arg_size(); ++Idx) {
@@ -416,7 +416,7 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
       llvm::ImmutableCallSite CS(CallStmt);
-      const auto *Actual = CS.getArgOperand(getFunctionArgumentNr(A));
+      const auto *Actual = CS.getCallArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);

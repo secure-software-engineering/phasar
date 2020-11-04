@@ -176,7 +176,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
           Analysis(Analysis) {
       // Set up the actual parameters
       for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-        Actuals.push_back(CallSite.getArgOperand(Idx));
+        Actuals.push_back(CallSite.getCallArgOperand(Idx));
       }
       // Set up the formal parameters
       for (unsigned Idx = 0; Idx < CalleeFun->arg_size(); ++Idx) {

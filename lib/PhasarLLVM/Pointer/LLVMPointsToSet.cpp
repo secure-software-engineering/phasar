@@ -175,7 +175,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     }
     llvm::Instruction &Inst = *I;
     if (auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
-      llvm::Value *Callee = Call->getCalledValue();
+      llvm::Value *Callee = Call->getCalledOperand();
       // Skip actual functions for direct function calls.
       if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee)) {
         Pointers.insert(Callee);

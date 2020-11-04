@@ -142,7 +142,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
               std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
                   &Source.TaintedArgs)) {
         for (unsigned I = 0; I < ICallSite.getNumArgOperands(); ++I) {
-          IFDSTaintAnalysis::d_t V = ICallSite.getArgOperand(I);
+          IFDSTaintAnalysis::d_t V = ICallSite.getCallArgOperand(I);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -158,7 +158,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       } else if (auto *Pval =
                      std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
         for (auto FormalIndex : *Pval) {
-          IFDSTaintAnalysis::d_t V = ICallSite.getArgOperand(FormalIndex);
+          IFDSTaintAnalysis::d_t V = ICallSite.getCallArgOperand(FormalIndex);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -198,7 +198,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           // if so, add to Leaks and return id
           if (!TaintAnalysis->isZeroValue(Source)) {
             for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-              if (Source == CallSite.getArgOperand(Idx) &&
+              if (Source == CallSite.getCallArgOperand(Idx) &&
                   Sink.isLeakedArg(Idx)) {
                 cout << "FOUND LEAK" << endl;
                 Leaks[CallSite.getInstruction()].insert(Source);

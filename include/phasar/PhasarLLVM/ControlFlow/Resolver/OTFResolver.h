@@ -28,7 +28,7 @@
 
 namespace llvm {
 class Instruction;
-class ImmutableCallSite;
+class AbstractCallSite;
 class Function;
 class Type;
 class Value;
@@ -70,7 +70,7 @@ public:
   getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
 
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-  getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
+  getActualFormalPointerPairs(llvm::AbstractCallSite CS,
                               const llvm::Function *CalleeTarget);
 };
 } // namespace psr

@@ -177,7 +177,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                         << "  " << llvmIRToString(CS.getInstruction()));
         } else {
           // still try to resolve the called function statically
-          const llvm::Value *SV = CS.getCalledValue()->stripPointerCasts();
+          const llvm::Value *SV = CS.getCalledOperand()->stripPointerCasts();
           const llvm::Function *ValueFunction =
               !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName());
           if (ValueFunction) {
