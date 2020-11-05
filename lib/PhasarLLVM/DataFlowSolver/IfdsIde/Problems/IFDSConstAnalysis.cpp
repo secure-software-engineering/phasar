@@ -143,7 +143,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallStmt,
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Destination method: " << DestFun->getName().str());
     return make_shared<MapFactsToCallee<>>(
-        llvm::ImmutableCallSite(CallStmt), DestFun,
+        llvm::cast<llvm::CallBase>(CallStmt), DestFun,
         [](IFDSConstAnalysis::d_t Actual) {
           return Actual->getType()->isPointerTy();
         });
@@ -159,7 +159,7 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
   return make_shared<MapFactsToCaller<>>(
-      llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt,
+      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt,
       [](IFDSConstAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
       },

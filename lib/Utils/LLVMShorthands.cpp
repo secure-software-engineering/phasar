@@ -56,10 +56,10 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
     if (llvm::isa<llvm::AllocaInst>(V)) {
       return true;
     } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
-      llvm::ImmutableCallSite CS(V);
-      return CS.getCalledFunction() != nullptr &&
+      const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(V);
+      return CB->getCalledFunction() != nullptr &&
              HeapAllocationFunctions.count(
-                 CS.getCalledFunction()->getName().str());
+                 CB->getCalledFunction()->getName().str());
     }
     return false;
   }

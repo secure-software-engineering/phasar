@@ -105,7 +105,7 @@ OpenSSLEVPKDFCTXDescription::getNextState(std::string Tok,
 TypeStateDescription::State
 OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
                                           TypeStateDescription::State S,
-                                          llvm::ImmutableCallSite CS) const {
+                                          llvm::AbstractCallSite CS) const {
   if (isAPIFunction(Tok)) {
     auto NameToTok = funcNameToToken(Tok);
     auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(

@@ -48,10 +48,10 @@ IDESecureHeapPropagation::getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                    std::set<f_t> Callees) {
+  // TODO - finalize dynamic or normal or static cast
+  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
 
-  llvm::ImmutableCallSite CS(CallSite);
-
-  auto FName = CS.getCalledFunction()->getName();
+  auto FName = CB->getCalledFunction()->getName();
   if (FName == initializerFn) {
     return std::make_shared<Gen<d_t>>(SecureHeapFact::INITIALIZED,
                                       getZeroValue());
@@ -138,9 +138,9 @@ IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
     // std::endl;
     return SHPGenEdgeFn::getInstance(l_t::INITIALIZED);
   }
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
   if (CallNode != ZeroValue &&
-      CS.getCalledFunction()->getName() == shutdownFn) {
+      CB->getCalledFunction()->getName() == shutdownFn) {
     // std::cerr << "Kill at " << llvmIRToShortString(callSite) << std::endl;
     return SHPGenEdgeFn::getInstance(l_t::BOT);
   }

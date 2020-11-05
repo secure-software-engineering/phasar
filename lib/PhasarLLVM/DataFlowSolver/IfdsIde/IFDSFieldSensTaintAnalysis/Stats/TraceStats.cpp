@@ -31,7 +31,7 @@ long TraceStats::add(const llvm::Instruction *Instruction, bool IsReturnValue) {
     return 0;
   }
 
-  const auto FunctionName = Function->getName();
+  const auto FunctionName = Function->getName().str();
 
   auto *const FnScope = llvm::cast<llvm::DIScope>(DebugLocFn.getScope());
 

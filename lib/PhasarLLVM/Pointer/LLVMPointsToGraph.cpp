@@ -68,7 +68,7 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
     // check for heap allocation
     if (llvm::isa<llvm::CallInst>(G[U].V) ||
         llvm::isa<llvm::InvokeInst>(G[U].V)) {
-      llvm::ImmutableCallSite CS(G[U].V);
+      llvm::AbstractCallSite CS(G[U].V);
       if (CS.getCalledFunction() != nullptr &&
           HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
         // If the call stack is empty, we completely ignore the calling

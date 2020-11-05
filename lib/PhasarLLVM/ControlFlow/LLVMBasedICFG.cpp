@@ -166,36 +166,36 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
       if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
         Resolver.preCall(&I);
 
-        llvm::ImmutableCallSite CS(&I);
+        const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(&I);
         set<const llvm::Function *> PossibleTargets;
         // check if function call can be resolved statically
         if (CS.getCalledFunction() != nullptr) {
-          PossibleTargets.insert(CS.getCalledFunction());
+          PossibleTargets.insert(CB->getCalledFunction());
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Found static call-site: ");
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "  " << llvmIRToString(CS.getInstruction()));
         } else {
           // still try to resolve the called function statically
-          const llvm::Value *SV = CS.getCalledOperand()->stripPointerCasts();
+          const llvm::Value *SV = CB->getCalledOperand()->stripPointerCasts();
           const llvm::Function *ValueFunction =
               !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName());
           if (ValueFunction) {
             PossibleTargets.insert(ValueFunction);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Found static call-site: "
-                          << llvmIRToString(CS.getInstruction()));
+                          << llvmIRToString(CB->getInstruction()));
           } else {
             // the function call must be resolved dynamically
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Found dynamic call-site: ");
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "  " << llvmIRToString(CS.getInstruction()));
+                          << "  " << llvmIRToString(CB->getInstruction()));
             // call the resolve routine
-            if (LLVMBasedICFG::isVirtualFunctionCall(CS.getInstruction())) {
-              PossibleTargets = Resolver.resolveVirtualCall(CS);
+            if (LLVMBasedICFG::isVirtualFunctionCall(CB->getInstruction())) {
+              PossibleTargets = Resolver.resolveVirtualCall(CB);
             } else {
-              PossibleTargets = Resolver.resolveFunctionPointer(CS);
+              PossibleTargets = Resolver.resolveFunctionPointer(CB);
             }
           }
         }
@@ -261,14 +261,14 @@ std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
 }
 
 bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *N) const {
-  llvm::ImmutableCallSite CS(N);
-  return CS.isIndirectCall();
+  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(N);
+  return CB->isIndirectCall();
 }
 
 bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
-  llvm::ImmutableCallSite CS(N);
+  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(N);
   // check potential receiver type
-  const auto *RecType = getReceiverType(CS);
+  const auto *RecType = getReceiverType(CB);
   if (!RecType) {
     return false;
   }
@@ -278,7 +278,7 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
   if (!TH->hasVFTable(RecType)) {
     return false;
   }
-  return getVFTIndex(CS) >= 0;
+  return getVFTIndex(CB) >= 0;
 }
 
 const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {
@@ -479,7 +479,7 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
 
   // This vector holds the call-sites that are used to merge the whole-module
   // points-to graphs
-  vector<pair<llvm::ImmutableCallSite, const llvm::Function *>> Calls;
+  vector<pair<llvm::AbstractCallSite, const llvm::Function *>> Calls;
   vertex_iterator VIv;
 
   vertex_iterator VIvEnd;
@@ -507,7 +507,7 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
           auto Edge = CallGraph[*EI];
           // This becomes the new edge for this graph to the other graph
           boost::add_edge(Source, *VIu, Edge.CS, CallGraph);
-          Calls.emplace_back(llvm::ImmutableCallSite(Edge.CS),
+          Calls.emplace_back(llvm::AbstractCallSite(Edge.CS),
                              CallGraph[*VIu].F);
           // Remove the old edge flowing into the virtual node
           boost::remove_edge(Source, *VIv, CallGraph);

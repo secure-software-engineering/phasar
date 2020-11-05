@@ -90,12 +90,12 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
   BitVectorSet<const llvm::Value *> Out;
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
   vector<const llvm::Value *> Actuals;
   vector<const llvm::Value *> Formals;
   // set up the actual parameters
-  for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CS.getCallArgOperand(Idx));
+  for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
+    Actuals.push_back(CB->getCallArgOperand(Idx));
   }
   // set up the formal parameters
   /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
@@ -126,11 +126,11 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   }
   // propagate pointer arguments to the caller, since this callee may modify
   // them
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
   unsigned Index = 0;
   for (const auto &Arg : Callee->args()) {
     if (Arg.getType()->isPointerTy() && In.count(&Arg)) {
-      Out.insert(CS.getCallArgOperand(Index));
+      Out.insert(CB->getCallArgOperand(Index));
     }
     Index++;
   }
@@ -144,7 +144,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
   BitVectorSet<const llvm::Value *> Out(In);
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
   //-----------------------------------------------------------------------------
   // Handle virtual calls in the loop
   //-----------------------------------------------------------------------------
@@ -154,21 +154,21 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
                   << Callee->getName().str());
 
     if (TSF.isSink(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
+      for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
         if (TSF.getSink(Callee->getName().str()).isLeakedArg(Idx) &&
-            In.count(CS.getCallArgOperand(Idx))) {
+            In.count(CB->getCallArgOperand(Idx))) {
           cout << "FOUND LEAK AT: " << llvmIRToString(CallSite) << '\n';
-          cout << "LEAKED VALUE: " << llvmIRToString(CS.getCallArgOperand(Idx))
+          cout << "LEAKED VALUE: " << llvmIRToString(CB->getCallArgOperand(Idx))
                << '\n'
                << endl;
-          Leaks[CallSite].insert(CS.getCallArgOperand(Idx));
+          Leaks[CallSite].insert(CB->getCallArgOperand(Idx));
         }
       }
     }
     if (TSF.isSource(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
+      for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
         if (TSF.getSource(Callee->getName().str()).isTaintedArg(Idx)) {
-          Out.insert(CS.getCallArgOperand(Idx));
+          Out.insert(CB->getCallArgOperand(Idx));
         }
       }
       if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
@@ -178,9 +178,9 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
   }
 
   // erase pointer arguments, since they are now propagated in the retFF
-  for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
-    if (CS.getCallArgOperand(Idx)->getType()->isPointerTy()) {
-      Out.erase(CS.getCallArgOperand(Idx));
+  for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
+    if (CB->getCallArgOperand(Idx)->getType()->isPointerTy()) {
+      Out.erase(CB->getCallArgOperand(Idx));
     }
   }
   return Out;

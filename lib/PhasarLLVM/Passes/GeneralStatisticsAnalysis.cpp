@@ -89,10 +89,10 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         // check for function calls
         if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
           ++Stats.callsites;
-          llvm::ImmutableCallSite CS(&I);
-          if (CS.getCalledFunction()) {
+          const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(I);
+          if (CB->getCalledFunction()) {
             if (MemAllocatingFunctions.count(
-                    llvm::demangle(CS.getCalledFunction()->getName().str()))) {
+                    llvm::demangle(CB->getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
               Stats.allocaInstructions.insert(&I);
               ++Stats.allocationsites;
@@ -108,9 +108,10 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
                       if (llvm::isa<llvm::CallInst>(User) ||
                           llvm::isa<llvm::InvokeInst>(User)) {
                         // potential call to the structures ctor
-                        llvm::ImmutableCallSite CTor(User);
+                        const llvm::CallBase *CTor =
+                            llvm::cast<llvm::CallBase>(User);
                         if (CTor.getCalledFunction() &&
-                            getNthFunctionArgument(CTor.getCalledFunction(), 0)
+                            getNthFunctionArgument(CTor->getCalledFunction(), 0)
                                     ->getType() == Cast->getDestTy()) {
                           Stats.allocatedTypes.insert(
                               Cast->getDestTy()->getPointerElementType());

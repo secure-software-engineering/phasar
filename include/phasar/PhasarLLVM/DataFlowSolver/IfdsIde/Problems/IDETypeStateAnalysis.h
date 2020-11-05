@@ -198,12 +198,12 @@ public:
     // might turn to nullptr for whatever reason...
     const std::string Token;
     l_t CurrentState;
-    llvm::ImmutableCallSite CS;
+    const llvm::CallBase *CB;
 
   public:
     TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok,
-                   llvm::ImmutableCallSite cs)
-        : TSD(tsd), Token(tok), CurrentState(TSD.top()), CS(cs){};
+                   const llvm::CallBase cb)
+        : TSD(tsd), Token(tok), CurrentState(TSD.top()), CB(cb){};
 
     l_t computeTarget(l_t source) override;
 

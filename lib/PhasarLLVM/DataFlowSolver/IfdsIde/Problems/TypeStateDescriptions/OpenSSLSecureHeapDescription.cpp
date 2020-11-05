@@ -95,7 +95,7 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
 TypeStateDescription::State
 OpenSSLSecureHeapDescription::getNextState(const std::string &Tok,
                                            TypeStateDescription::State S,
-                                           llvm::ImmutableCallSite CS) const {
+                                           llvm::AbstractCallSite CS) const {
   if (isAPIFunction(Tok)) {
     auto Ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
         funcNameToToken(Tok));

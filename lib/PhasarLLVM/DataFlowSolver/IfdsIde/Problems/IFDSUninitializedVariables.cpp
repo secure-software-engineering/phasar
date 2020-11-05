@@ -240,14 +240,14 @@ IFDSUninitializedVariables::getCallFlowFunction(
     IFDSUninitializedVariables::f_t DestFun) {
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    llvm::ImmutableCallSite CallSite(CallStmt);
+    const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallStmt);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::Function *DestFun;
-      llvm::ImmutableCallSite CallSite;
+      llvm::AbstractCallSite CallSite;
       const llvm::Value *Zerovalue;
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
-      UVFF(const llvm::Function *DM, llvm::ImmutableCallSite CS,
+      UVFF(const llvm::Function *DM, llvm::AbstractCallSite CS,
            const llvm::Value *ZV)
           : DestFun(DM), CallSite(CS), Zerovalue(ZV) {
         // set up the actual parameters
@@ -326,11 +326,11 @@ IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::n_t RetSite) {
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    llvm::ImmutableCallSite CS(CallSite);
+    const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallStmt);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
-      llvm::ImmutableCallSite Call;
+      llvm::AbstractCallSite Call;
       const llvm::Instruction *Exit;
-      UVFF(llvm::ImmutableCallSite C, const llvm::Instruction *E)
+      UVFF(llvm::AbstractCallSite C, const llvm::Instruction *E)
           : Call(C), Exit(E) {}
       set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
@@ -357,7 +357,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return make_shared<UVFF>(CS, ExitStmt);
+    return make_shared<UVFF>(CB, ExitStmt);
   }
   // kill everything else
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
@@ -373,12 +373,12 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   //----------------------------------------------------------------------
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    llvm::ImmutableCallSite CS(CallSite);
+    const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
     return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
-        [CS](IFDSUninitializedVariables::d_t Source)
+        [CB](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
-            for (const auto &Arg : CS.args()) {
+            for (const auto &Arg : CB->args()) {
               if (Arg.get() == Source) {
                 // do not propagate pointer arguments, since the function may
                 // initialize them (would be much more precise with

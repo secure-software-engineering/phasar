@@ -152,7 +152,7 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
-  const auto DestFunName = DestFun->getName();
+  const auto DestFunName = DestFun->getName().str();
 
   /*
    * We exclude function ptr calls as they will be applied to every

@@ -43,7 +43,7 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       LOG_DEBUG("End of block label: " << EndBasicBlockLabel);
 
       ExtendedValue EV(currentInst);
-      EV.setEndOfTaintedBlockLabel(EndBasicBlockLabel);
+      EV.setEndOfTaintedBlockLabel(EndBasicBlockLabel.str());
 
       traceStats.add(currentInst);
 

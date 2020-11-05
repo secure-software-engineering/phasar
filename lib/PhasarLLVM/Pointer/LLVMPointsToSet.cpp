@@ -282,10 +282,10 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
         AllocSites->insert(Alloca);
       }
       if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+        const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(P);
+        if (CB->getCalledFunction() != nullptr &&
+            CB->getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(CB.getCalledFunction()->getName())) {
           AllocSites->insert(P);
         }
       }
@@ -308,11 +308,11 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
         }
       }
       if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-          if (VFun && VFun == CS.getInstruction()->getFunction()) {
+        const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(P);
+        if (CB->getCalledFunction() != nullptr &&
+            CB->getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(CB->getCalledFunction()->getName())) {
+          if (VFun && VFun == CB->getInstruction()->getFunction()) {
             AllocSites->insert(P);
           }
           if (VG) {

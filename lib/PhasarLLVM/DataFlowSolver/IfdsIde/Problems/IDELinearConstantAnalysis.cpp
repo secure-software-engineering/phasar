@@ -130,7 +130,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
       const llvm::Function *DestFun;
-      LCAFF(llvm::ImmutableCallSite CallSite,
+      LCAFF(const llvm::AbstractCallSite CallSite,
             IDELinearConstantAnalysis::f_t DestFun)
           : DestFun(DestFun) {
         // Set up the actual parameters
@@ -190,7 +190,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
         return Res;
       }
     };
-    return make_shared<LCAFF>(llvm::ImmutableCallSite(CallStmt), DestFun);
+    return make_shared<LCAFF>(llvm::cast<llvm::CallBase>(CallStmt), DestFun);
   }
   // Pass everything else as identity
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -415,8 +415,8 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
-      llvm::ImmutableCallSite CS(CallStmt);
-      const auto *Actual = CS.getCallArgOperand(getFunctionArgumentNr(A));
+      const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallStmt);
+      const auto *Actual = CB->getCallArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);

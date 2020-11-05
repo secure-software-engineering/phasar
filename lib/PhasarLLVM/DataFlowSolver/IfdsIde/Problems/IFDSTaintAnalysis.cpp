@@ -100,7 +100,7 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee<>>(llvm::ImmutableCallSite(CallStmt),
+    return make_shared<MapFactsToCallee<>>(llvm::cast<llvm::CallBase>(CallStmt),
                                            DestFun);
   }
   // Pass everything else as identity
@@ -114,7 +114,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
   return make_shared<MapFactsToCaller<>>(
-      llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt,
+      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt,
       [](IFDSTaintAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
       });
@@ -137,12 +137,12 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Plugin SOURCE effects");
       auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
-      llvm::ImmutableCallSite ICallSite(CallSite);
+      const llvm::CallBase *ICB = llvm::cast<llvm::CallBase>(CallSite);
       if (auto *Pval =
               std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
                   &Source.TaintedArgs)) {
-        for (unsigned I = 0; I < ICallSite.getNumArgOperands(); ++I) {
-          IFDSTaintAnalysis::d_t V = ICallSite.getCallArgOperand(I);
+        for (unsigned I = 0; I < ICB->getNumArgOperands(); ++I) {
+          IFDSTaintAnalysis::d_t V = ICB->getCallArgOperand(I);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -158,7 +158,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       } else if (auto *Pval =
                      std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
         for (auto FormalIndex : *Pval) {
-          IFDSTaintAnalysis::d_t V = ICallSite.getCallArgOperand(FormalIndex);
+          IFDSTaintAnalysis::d_t V = ICB->getCallArgOperand(FormalIndex);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -181,12 +181,12 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       // process leaks
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Plugin SINK effects");
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
-        llvm::ImmutableCallSite CallSite;
+        llvm::AbstractCallSite CallSite;
         IFDSTaintAnalysis::f_t CalledMthd;
         TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction Sink;
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *TaintAnalysis;
-        TAFF(llvm::ImmutableCallSite CS, IFDSTaintAnalysis::f_t CalledMthd,
+        TAFF(llvm::AbstractCallSite CS, IFDSTaintAnalysis::f_t CalledMthd,
              TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction S,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks,
              const IFDSTaintAnalysis *Ta)
@@ -208,7 +208,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           return {Source};
         }
       };
-      return make_shared<TAFF>(llvm::ImmutableCallSite(CallSite), Callee,
+      return make_shared<TAFF>(llvm::cast<llvm::CallBase>(CallSite), Callee,
                                SourceSinkFunctions.getSink(FunctionName), Leaks,
                                this);
     }

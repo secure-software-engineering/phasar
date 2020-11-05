@@ -14,7 +14,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Instructions.h"
 
 #include <functional>
@@ -73,27 +73,27 @@ class MapFactsAlongsideCallSite
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 protected:
-  llvm::ImmutableCallSite CallSite;
-  std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)> Predicate;
+  const llvm::CallBase *CB;
+  std::function<bool(const llvm::CallBase *, const llvm::Value *)> Predicate;
 
 public:
   MapFactsAlongsideCallSite(
-      llvm::ImmutableCallSite CallSite,
-      std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)>
+      const llvm::CallBase *CB,
+      std::function<bool(const llvm::CallBase *, const llvm::Value *)>
           Predicate =
-              [](llvm::ImmutableCallSite CS, const llvm::Value *V) {
+              [](const llvm::CallBase *CB, const llvm::Value *V) {
                 // Checks if a values is involved in a call, i.e. may be
                 // modified by a callee, in which case its flow is controlled by
                 // getCallFlowFunction() and getRetFlowFunction().
                 bool Involved = false;
-                for (auto &Arg : CS.args()) {
+                for (auto &Arg : CB->args()) {
                   if (Arg == V && V->getType()->isPointerTy()) {
                     Involved = true;
                   }
                 }
                 return Involved;
               })
-      : CallSite(CallSite), Predicate(std::move(Predicate)){};
+      : CB(CB), Predicate(std::move(Predicate)){};
   virtual ~MapFactsAlongsideCallSite() = default;
 
   container_type computeTargets(const llvm::Value *Source) override {
@@ -103,7 +103,7 @@ public:
     }
     // propagate if predicate does not hold, i.e. fact is not involved in the
     // call
-    if (!Predicate(CallSite, Source)) {
+    if (!Predicate(CB, Source)) {
       return {Source};
     }
     // Pass ZeroValue as is
@@ -132,12 +132,12 @@ protected:
 
 public:
   MapFactsToCallee(
-      llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
+      const llvm::CallBase *CB, const llvm::Function *DestFun,
       std::function<bool(const llvm::Value *)> Predicate =
           [](const llvm::Value *) { return true; })
       : DestFun(DestFun), Predicate(std::move(Predicate)) {
     // Set up the actual parameters
-    for (const auto &Actual : CallSite.args()) {
+    for (const auto &Actual : CB->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -223,7 +223,7 @@ class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 private:
-  llvm::ImmutableCallSite CallSite;
+  const llvm::CallBase *CB;
   const llvm::Function *CalleeFun;
   const llvm::ReturnInst *ExitStmt;
   std::vector<const llvm::Value *> Actuals;
@@ -233,19 +233,19 @@ private:
 
 public:
   MapFactsToCaller(
-      llvm::ImmutableCallSite CS, const llvm::Function *CalleeFun,
+      const llvm::CallBase *CB, const llvm::Function *CalleeFun,
       const llvm::Instruction *ExitStmt,
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
           [](const llvm::Function *) { return true; })
-      : CallSite(CS), CalleeFun(CalleeFun),
+      : CB(CB), CalleeFun(CalleeFun),
         ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
         ParamPredicate(std::move(ParamPredicate)),
         ReturnPredicate(std::move(ReturnPredicate)) {
     assert(ExitStmt && "Should not be null");
     // Set up the actual parameters
-    for (const auto &Actual : CallSite.args()) {
+    for (const auto &Actual : CB->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -300,7 +300,7 @@ public:
       }
       // Collect return value facts
       if (Source == ExitStmt->getReturnValue() && ReturnPredicate(CalleeFun)) {
-        Res.insert(CallSite.getInstruction());
+        Res.insert(CB);
       }
       return Res;
     } else {
