@@ -18,31 +18,32 @@ const std::array<
 // States: BOT = 0, ALLOCATED = 1, INITIALIZED = 2, SIGN_INITIALIZED = 3,
 // FINALIZED = 4, FREED = 5, ERROR = 6, UNINIT = 7
 const OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXState
-    OpenSSLEVPMDCTXDescription::Delta
-        [enum2int(OpenSSLEVPMDCTXToken::STAR) + 1]
-        [enum2int(OpenSSLEVPMDCTXState::UNINIT) + 1] = {
-            // NEW
-            {ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED,
-             ERROR, ALLOCATED},
-            // INIT
-            {BOT, INITIALIZED, INITIALIZED, INITIALIZED, INITIALIZED, ERROR,
-             ERROR, ERROR},
-            // UPDATE
-            {BOT, ERROR, INITIALIZED, ERROR, ERROR, ERROR, ERROR, ERROR},
-            // FINAL
-            {BOT, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR, ERROR},
-            // SIGN_INIT
-            {BOT, SIGN_INITIALIZED, SIGN_INITIALIZED, SIGN_INITIALIZED,
-             SIGN_INITIALIZED, ERROR, ERROR, ERROR},
-            // SIGN_UPDATE
-            {BOT, ERROR, ERROR, SIGN_INITIALIZED, ERROR, ERROR, ERROR, ERROR},
-            // SIGN_FINAL
-            {BOT, ERROR, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR},
-            // FREE
-            {ERROR, FREED, FREED, FREED, FREED, ERROR, ERROR, ERROR},
-            // STAR
-            {BOT, ALLOCATED, INITIALIZED, SIGN_INITIALIZED, FINALIZED, ERROR,
-             ERROR, ERROR}
+    OpenSSLEVPMDCTXDescription::Delta[enum2int(OpenSSLEVPMDCTXToken::STAR) +
+                                      1][enum2int(
+                                             OpenSSLEVPMDCTXState::UNINIT) +
+                                         1] = {
+        // NEW
+        {ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED, ALLOCATED,
+         ERROR, ALLOCATED},
+        // INIT
+        {BOT, INITIALIZED, INITIALIZED, INITIALIZED, INITIALIZED, ERROR, ERROR,
+         ERROR},
+        // UPDATE
+        {BOT, ERROR, INITIALIZED, SIGN_INITIALIZED, ERROR, ERROR, ERROR, ERROR},
+        // FINAL
+        {BOT, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR, ERROR},
+        // SIGN_INIT
+        {BOT, SIGN_INITIALIZED, SIGN_INITIALIZED, SIGN_INITIALIZED,
+         SIGN_INITIALIZED, ERROR, ERROR, ERROR},
+        // SIGN_UPDATE
+        {BOT, ERROR, ERROR, SIGN_INITIALIZED, ERROR, ERROR, ERROR, ERROR},
+        // SIGN_FINAL
+        {BOT, ERROR, ERROR, FINALIZED, ERROR, ERROR, ERROR, ERROR},
+        // FREE
+        {ERROR, FREED, FREED, FREED, FREED, ERROR, ERROR, ERROR},
+        // STAR
+        {BOT, ALLOCATED, INITIALIZED, SIGN_INITIALIZED, FINALIZED, ERROR, ERROR,
+         ERROR}
 
 };
 
