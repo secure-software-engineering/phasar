@@ -75,11 +75,11 @@ protected:
   }
 
   bool isCallEdge(std::pair<n_t, n_t> edge) {
-    return !isIntraEdge(edge) && ICF->isCallStmt(edge.first);
+    return !isIntraEdge(edge) && ICF->isCallSite(edge.first);
   }
 
   bool isReturnEdge(std::pair<n_t, n_t> edge) {
-    return !isIntraEdge(edge) && ICF->isExitStmt(edge.first);
+    return !isIntraEdge(edge) && ICF->isExitSite(edge.first);
   }
 
   void printWorkList() {
@@ -145,7 +145,7 @@ protected:
       Worklist.push_back({dst, nprimeprime});
     }
     // add inter-procedural call edges again
-    if (ICF->isCallStmt(dst)) {
+    if (ICF->isCallSite(dst)) {
       for (auto callee : ICF->getCalleesOfCallAt(dst)) {
         for (auto startPoint : ICF->getStartPointsOf(callee)) {
           Worklist.push_back({dst, startPoint});
@@ -153,7 +153,7 @@ protected:
       }
     }
     // add inter-procedural return edges again
-    if (ICF->isExitStmt(dst)) {
+    if (ICF->isExitSite(dst)) {
       for (auto caller : ICF->getCallersOf(ICF->getFunctionOf(dst))) {
         for (auto nprimeprime : ICF->getSuccsOf(caller)) {
           Worklist.push_back({dst, nprimeprime});
@@ -183,12 +183,12 @@ public:
       Worklist.pop_front();
       auto src = edge.first;
       auto dst = edge.second;
-      if (ICF->isCallStmt(src)) {
+      if (ICF->isCallSite(src)) {
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
       std::unordered_map<CallStringCTX<n_t, K>, BitVectorSet<d_t>> Out;
-      if (ICF->isCallStmt(src)) {
+      if (ICF->isCallSite(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
           // Handle call flow
@@ -219,7 +219,7 @@ public:
             }
           }
         }
-      } else if (ICF->isExitStmt(src)) {
+      } else if (ICF->isExitSite(src)) {
         // Handle return flow
         for (auto &[CTX, Facts] : Analysis[src]) {
           auto CTXRm(CTX);

@@ -236,11 +236,11 @@ IFDSUninitializedVariables::getNormalFlowFunction(
 
 IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getCallFlowFunction(
-    IFDSUninitializedVariables::n_t CallStmt,
+    IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t DestFun) {
-  if (llvm::isa<llvm::CallInst>(CallStmt) ||
-      llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallStmt);
+  if (llvm::isa<llvm::CallInst>(CallSite) ||
+      llvm::isa<llvm::InvokeInst>(CallSite)) {
+    const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::Function *DestFun;
       llvm::AbstractCallSite CallSite;
@@ -322,11 +322,11 @@ IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t CalleeFun,
-    IFDSUninitializedVariables::n_t ExitStmt,
+    IFDSUninitializedVariables::n_t ExitSite,
     IFDSUninitializedVariables::n_t RetSite) {
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallStmt);
+    const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       llvm::AbstractCallSite Call;
       const llvm::Instruction *Exit;
@@ -357,7 +357,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return make_shared<UVFF>(CB, ExitStmt);
+    return make_shared<UVFF>(CB, ExitSite);
   }
   // kill everything else
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
@@ -395,7 +395,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
 
 IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getSummaryFlowFunction(
-    IFDSUninitializedVariables::n_t CallStmt,
+    IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t DestFun) {
   return nullptr;
 }

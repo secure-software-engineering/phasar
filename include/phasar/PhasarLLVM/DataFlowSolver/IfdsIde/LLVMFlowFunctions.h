@@ -225,7 +225,7 @@ class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
 private:
   const llvm::CallBase *CB;
   const llvm::Function *CalleeFun;
-  const llvm::ReturnInst *ExitStmt;
+  const llvm::ReturnInst *ExitSite;
   std::vector<const llvm::Value *> Actuals;
   std::vector<const llvm::Value *> Formals;
   std::function<bool(const llvm::Value *)> ParamPredicate;
@@ -234,16 +234,16 @@ private:
 public:
   MapFactsToCaller(
       const llvm::CallBase *CB, const llvm::Function *CalleeFun,
-      const llvm::Instruction *ExitStmt,
+      const llvm::Instruction *ExitSite,
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
           [](const llvm::Function *) { return true; })
       : CB(CB), CalleeFun(CalleeFun),
-        ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
+        ExitSite(llvm::dyn_cast<llvm::ReturnInst>(ExitSite)),
         ParamPredicate(std::move(ParamPredicate)),
         ReturnPredicate(std::move(ReturnPredicate)) {
-    assert(ExitStmt && "Should not be null");
+    assert(ExitSite && "Should not be null");
     // Set up the actual parameters
     for (const auto &Actual : CB->args()) {
       Actuals.push_back(Actual);
@@ -299,7 +299,7 @@ public:
         }
       }
       // Collect return value facts
-      if (Source == ExitStmt->getReturnValue() && ReturnPredicate(CalleeFun)) {
+      if (Source == ExitSite->getReturnValue() && ReturnPredicate(CalleeFun)) {
         Res.insert(CB);
       }
       return Res;

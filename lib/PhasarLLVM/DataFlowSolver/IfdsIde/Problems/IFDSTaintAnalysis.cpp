@@ -86,7 +86,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
 }
 
 IFDSTaintAnalysis::FlowFunctionPtrType
-IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
+IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallSite,
                                        IFDSTaintAnalysis::f_t DestFun) {
   string FunctionName = llvm::demangle(DestFun->getName().str());
   // Check if a source or sink function is called:
@@ -98,9 +98,9 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
     return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
   }
   // Map the actual into the formal parameters
-  if (llvm::isa<llvm::CallInst>(CallStmt) ||
-      llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee<>>(llvm::cast<llvm::CallBase>(CallStmt),
+  if (llvm::isa<llvm::CallInst>(CallSite) ||
+      llvm::isa<llvm::InvokeInst>(CallSite)) {
+    return make_shared<MapFactsToCallee<>>(llvm::cast<llvm::CallBase>(CallSite),
                                            DestFun);
   }
   // Pass everything else as identity
@@ -109,12 +109,12 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
 
 IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t CalleeFun,
-    IFDSTaintAnalysis::n_t ExitStmt, IFDSTaintAnalysis::n_t RetSite) {
+    IFDSTaintAnalysis::n_t ExitSite, IFDSTaintAnalysis::n_t RetSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
   return make_shared<MapFactsToCaller<>>(
-      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt,
+      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitSite,
       [](IFDSTaintAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
       });
@@ -218,7 +218,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
 }
 
 IFDSTaintAnalysis::FlowFunctionPtrType
-IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
+IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallSite,
                                           IFDSTaintAnalysis::f_t DestFun) {
   SpecialSummaries<IFDSTaintAnalysis::d_t> &SS =
       SpecialSummaries<IFDSTaintAnalysis::d_t>::getInstance();

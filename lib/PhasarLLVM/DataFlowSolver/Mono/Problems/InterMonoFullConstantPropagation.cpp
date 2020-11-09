@@ -101,7 +101,7 @@ BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::returnFlow(
     InterMonoFullConstantPropagation::n_t CallSite,
     InterMonoFullConstantPropagation::f_t Callee,
-    InterMonoFullConstantPropagation::n_t ExitStmt,
+    InterMonoFullConstantPropagation::n_t ExitSite,
     InterMonoFullConstantPropagation::n_t RetSite,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
   // TODO implement

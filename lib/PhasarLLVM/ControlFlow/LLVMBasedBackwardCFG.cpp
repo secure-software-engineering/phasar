@@ -69,11 +69,11 @@ LLVMBasedBackwardCFG::getExitPointsOf(const llvm::Function *Fun) const {
 }
 
 // LLVMBasedCFG::isStartPoint
-bool LLVMBasedBackwardCFG::isExitStmt(const llvm::Instruction *Stmt) const {
+bool LLVMBasedBackwardCFG::isExitSite(const llvm::Instruction *Stmt) const {
   return (Stmt == &Stmt->getFunction()->front().front());
 }
 
-// LLVMBasedCFG::isExitStmt
+// LLVMBasedCFG::isExitSite
 bool LLVMBasedBackwardCFG::isStartPoint(const llvm::Instruction *Stmt) const {
   return llvm::isa<llvm::ReturnInst>(Stmt);
 }

@@ -136,7 +136,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
-IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
+IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallSite,
                                           IDETypeStateAnalysis::f_t DestFun) {
   // Kill all data-flow facts if we hit a function of the target API.
   // Those functions are modled within Call-To-Return.
@@ -145,18 +145,18 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
   }
   // Otherwise, if we have an ordinary function call, we can just use the
   // standard mapping.
-  if (llvm::isa<llvm::CallInst>(CallStmt) ||
-      llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    return make_shared<MapFactsToCallee<>>(llvm::cast<llvm::CallBase>(CallStmt),
+  if (llvm::isa<llvm::CallInst>(CallSite) ||
+      llvm::isa<llvm::InvokeInst>(CallSite)) {
+    return make_shared<MapFactsToCallee<>>(llvm::cast<llvm::CallBase>(CallSite),
                                            DestFun);
   }
-  llvm::report_fatal_error("callStmt not a CallInst nor a InvokeInst");
+  llvm::report_fatal_error("callSite not a CallInst nor a InvokeInst");
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
                                          IDETypeStateAnalysis::f_t CalleeFun,
-                                         IDETypeStateAnalysis::n_t ExitStmt,
+                                         IDETypeStateAnalysis::n_t ExitSite,
                                          IDETypeStateAnalysis::n_t RetSite) {
   // Besides mapping the formal parameter back into the actual parameter and
   // propagating the return value into the caller context, we also propagate
@@ -164,15 +164,15 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
   struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
     llvm::AbstractCallSite CallSite;
     const llvm::Function *CalleeFun;
-    const llvm::ReturnInst *ExitStmt;
+    const llvm::ReturnInst *ExitSite;
     IDETypeStateAnalysis *Analysis;
     std::vector<const llvm::Value *> Actuals;
     std::vector<const llvm::Value *> Formals;
     TSFlowFunction(llvm::AbstractCallSite CS, const llvm::Function *CalleeFun,
-                   const llvm::Instruction *ExitStmt,
+                   const llvm::Instruction *ExitSite,
                    IDETypeStateAnalysis *Analysis)
         : CallSite(CS), CalleeFun(CalleeFun),
-          ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
+          ExitSite(llvm::dyn_cast<llvm::ReturnInst>(ExitSite)),
           Analysis(Analysis) {
       // Set up the actual parameters
       for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
@@ -226,7 +226,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
           }
         }
         // Collect the return value
-        if (Source == ExitStmt->getReturnValue()) {
+        if (Source == ExitSite->getReturnValue()) {
           Res.insert(CallSite.getInstruction());
         }
         // Collect all relevant alloca's to map into caller context
@@ -243,7 +243,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
     }
   };
   return make_shared<TSFlowFunction>(llvm::cast<llvm::CallBase>(CallSite),
-                                     CalleeFun, ExitStmt, this);
+                                     CalleeFun, ExitSite, this);
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
@@ -302,7 +302,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
 
 IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getSummaryFlowFunction(
-    IDETypeStateAnalysis::n_t CallStmt, IDETypeStateAnalysis::f_t DestFun) {
+    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::f_t DestFun) {
   return nullptr;
 }
 
@@ -406,7 +406,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallEdgeFunction(
-    IDETypeStateAnalysis::n_t CallStmt, IDETypeStateAnalysis::d_t SrcNode,
+    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t SrcNode,
     IDETypeStateAnalysis::f_t DestinationFunction,
     IDETypeStateAnalysis::d_t DestNode) {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
@@ -416,7 +416,7 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite,
     IDETypeStateAnalysis::f_t CalleeFunction,
-    IDETypeStateAnalysis::n_t ExitStmt, IDETypeStateAnalysis::d_t ExitNode,
+    IDETypeStateAnalysis::n_t ExitSite, IDETypeStateAnalysis::d_t ExitNode,
     IDETypeStateAnalysis::n_t ReSite, IDETypeStateAnalysis::d_t RetNode) {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
@@ -478,7 +478,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getSummaryEdgeFunction(
-    IDETypeStateAnalysis::n_t CallStmt, IDETypeStateAnalysis::d_t CallNode,
+    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t RetSite, IDETypeStateAnalysis::d_t RetSiteNode) {
   return nullptr;
 }
@@ -757,7 +757,7 @@ void IDETypeStateAnalysis::emitTextReport(
     for (const auto &BB : *F) {
       for (const auto &I : BB) {
         auto Results = SR.resultsAt(&I, true);
-        if (ICF->isExitStmt(&I)) {
+        if (ICF->isExitSite(&I)) {
           OS << "\nAt exit stmt: " << NtoString(&I) << '\n';
           for (auto Res : Results) {
             if (const auto *Alloca =

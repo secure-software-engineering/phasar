@@ -56,9 +56,9 @@ public:
 
   std::set<n_t> getExitPointsOf(f_t fun) const override;
 
-  bool isCallStmt(n_t stmt) const override;
+  bool isCallSite(n_t stmt) const override;
 
-  bool isExitStmt(n_t stmt) const override;
+  bool isExitSite(n_t stmt) const override;
 
   bool isStartPoint(n_t stmt) const override;
 

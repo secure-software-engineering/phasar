@@ -59,7 +59,7 @@ public:
 
   virtual BitVectorSet<d_t> callFlow(n_t CallSite, f_t Callee,
                                      const BitVectorSet<d_t> &In) = 0;
-  virtual BitVectorSet<d_t> returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
+  virtual BitVectorSet<d_t> returnFlow(n_t CallSite, f_t Callee, n_t ExitSite,
                                        n_t RetSite,
                                        const BitVectorSet<d_t> &In) = 0;
   virtual BitVectorSet<d_t> callToRetFlow(n_t CallSite, n_t RetSite,

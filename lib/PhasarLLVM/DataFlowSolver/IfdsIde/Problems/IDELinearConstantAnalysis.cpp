@@ -121,11 +121,11 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallFlowFunction(
-    IDELinearConstantAnalysis::n_t CallStmt,
+    IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t DestFun) {
   // Map the actual parameters into the formal parameters
-  if (llvm::isa<llvm::CallInst>(CallStmt) ||
-      llvm::isa<llvm::InvokeInst>(CallStmt)) {
+  if (llvm::isa<llvm::CallInst>(CallSite) ||
+      llvm::isa<llvm::InvokeInst>(CallSite)) {
     struct LCAFF : FlowFunction<const llvm::Value *> {
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
@@ -190,7 +190,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
         return Res;
       }
     };
-    return make_shared<LCAFF>(llvm::cast<llvm::CallBase>(CallStmt), DestFun);
+    return make_shared<LCAFF>(llvm::cast<llvm::CallBase>(CallSite), DestFun);
   }
   // Pass everything else as identity
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -200,11 +200,11 @@ IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t CalleeFun,
-    IDELinearConstantAnalysis::n_t ExitStmt,
+    IDELinearConstantAnalysis::n_t ExitSite,
     IDELinearConstantAnalysis::n_t RetSite) {
   // Handle the case: %x = call i32 ...
   if (CallSite->getType()->isIntegerTy()) {
-    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
+    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
     auto *ReturnValue = Return->getReturnValue();
     struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
       IDELinearConstantAnalysis::n_t CallSite;
@@ -260,7 +260,7 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getSummaryFlowFunction(
-    IDELinearConstantAnalysis::n_t CallStmt,
+    IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t DestFun) {
   return nullptr;
 }
@@ -408,14 +408,14 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getCallEdgeFunction(
-    IDELinearConstantAnalysis::n_t CallStmt,
+    IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::d_t SrcNode,
     IDELinearConstantAnalysis::f_t DestinationFunction,
     IDELinearConstantAnalysis::d_t DestNode) {
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
-      const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallStmt);
+      const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
       const auto *Actual = CB->getCallArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
@@ -430,13 +430,13 @@ shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t CalleeFunction,
-    IDELinearConstantAnalysis::n_t ExitStmt,
+    IDELinearConstantAnalysis::n_t ExitSite,
     IDELinearConstantAnalysis::d_t ExitNode,
     IDELinearConstantAnalysis::n_t ReSite,
     IDELinearConstantAnalysis::d_t RetNode) {
   // Case: Returning constant integer
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
-    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
+    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
     auto *ReturnValue = Return->getReturnValue();
     if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
       auto IntConst = CI->getSExtValue();
@@ -458,7 +458,7 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getSummaryEdgeFunction(
-    IDELinearConstantAnalysis::n_t CallStmt,
+    IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::d_t CallNode,
     IDELinearConstantAnalysis::n_t RetSite,
     IDELinearConstantAnalysis::d_t RetSiteNode) {
@@ -907,13 +907,13 @@ IDELinearConstantAnalysis::getLCAResults(
         LcaRes->line_nr = Lnr;
       }
       LcaRes->ir_trace.push_back(Stmt);
-      if (Stmt->isTerminator() && !ICF->isExitStmt(Stmt)) {
+      if (Stmt->isTerminator() && !ICF->isExitSite(Stmt)) {
         std::cout << "Delete result since stmt is Terminator or Exit!\n";
         FResults.erase(Lnr);
       } else {
         // check results of succ(stmt)
         std::unordered_map<d_t, l_t> Results;
-        if (ICF->isExitStmt(Stmt)) {
+        if (ICF->isExitSite(Stmt)) {
           Results = SR.resultsAt(Stmt, true);
         } else {
           // It's not a terminator inst, hence it has only a single successor

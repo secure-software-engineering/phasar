@@ -114,12 +114,12 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
 
 BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
-    const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
+    const llvm::Instruction *ExitSite, const llvm::Instruction *RetSite,
     const BitVectorSet<const llvm::Value *> &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::returnFlow()");
   BitVectorSet<const llvm::Value *> Out;
-  if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
+  if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitSite)) {
     if (In.count(Ret->getReturnValue())) {
       Out.insert(CallSite);
     }

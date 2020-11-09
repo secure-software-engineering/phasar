@@ -57,9 +57,9 @@ public:
 
   virtual std::set<N> getExitPointsOf(F Fun) const = 0;
 
-  virtual bool isCallStmt(N Stmt) const = 0;
+  virtual bool isCallSite(N Stmt) const = 0;
 
-  virtual bool isExitStmt(N Stmt) const = 0;
+  virtual bool isExitSite(N Stmt) const = 0;
 
   virtual bool isStartPoint(N Stmt) const = 0;
 

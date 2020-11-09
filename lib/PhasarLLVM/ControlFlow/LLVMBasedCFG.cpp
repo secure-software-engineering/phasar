@@ -155,11 +155,11 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
   }
 }
 
-bool LLVMBasedCFG::isCallStmt(const llvm::Instruction *Stmt) const {
+bool LLVMBasedCFG::isCallSite(const llvm::Instruction *Stmt) const {
   return llvm::isa<llvm::CallInst>(Stmt) || llvm::isa<llvm::InvokeInst>(Stmt);
 }
 
-bool LLVMBasedCFG::isExitStmt(const llvm::Instruction *Stmt) const {
+bool LLVMBasedCFG::isExitSite(const llvm::Instruction *Stmt) const {
   return llvm::isa<llvm::ReturnInst>(Stmt);
 }
 

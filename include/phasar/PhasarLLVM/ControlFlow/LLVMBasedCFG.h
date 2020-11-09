@@ -61,9 +61,9 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;
 
-  [[nodiscard]] bool isCallStmt(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isCallSite(const llvm::Instruction *Stmt) const override;
 
-  [[nodiscard]] bool isExitStmt(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isExitSite(const llvm::Instruction *Stmt) const override;
 
   [[nodiscard]] bool isStartPoint(const llvm::Instruction *Stmt) const override;
 

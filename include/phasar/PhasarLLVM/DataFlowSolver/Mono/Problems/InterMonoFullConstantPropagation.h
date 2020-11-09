@@ -68,7 +68,7 @@ public:
   BitVectorSet<d_t> callFlow(n_t CallSite, f_t Callee,
                              const BitVectorSet<d_t> &In) override;
 
-  BitVectorSet<d_t> returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
+  BitVectorSet<d_t> returnFlow(n_t CallSite, f_t Callee, n_t ExitSite,
                                n_t RetSite,
                                const BitVectorSet<d_t> &In) override;
 

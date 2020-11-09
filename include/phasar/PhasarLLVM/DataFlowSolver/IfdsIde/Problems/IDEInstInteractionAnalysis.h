@@ -399,7 +399,7 @@ public:
     return std::make_shared<IIAFlowFunction>(curr);
   }
 
-  inline FlowFunctionPtrType getCallFlowFunction(n_t callStmt,
+  inline FlowFunctionPtrType getCallFlowFunction(n_t callSite,
                                                  f_t destMthd) override {
     if (this->ICF->isHeapAllocatingFunction(destMthd)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
@@ -410,16 +410,16 @@ public:
     }
     // Map actual to formal parameters.
     return std::make_shared<MapFactsToCallee<container_type>>(
-        const llvm::cast<llvm::CallBase>(callStmt), destMthd);
+        const llvm::cast<llvm::CallBase>(callSite), destMthd);
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
-                                                n_t exitStmt,
+                                                n_t exitSite,
                                                 n_t retSite) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
     return std::make_shared<MapFactsToCaller<container_type>>(
-        const llvm::cast<llvm::CallBase>(callSite), calleeMthd, exitStmt);
+        const llvm::cast<llvm::CallBase>(callSite), calleeMthd, exitSite);
   }
 
   inline FlowFunctionPtrType
@@ -453,7 +453,7 @@ public:
         const llvm::cast<llvm::CallBase>(callSite));
   }
 
-  inline FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+  inline FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                                     f_t destMthd) override {
     // Do not use user-crafted summaries.
     return nullptr;
@@ -654,14 +654,14 @@ public:
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationMethod,
+  getCallEdgeFunction(n_t callSite, d_t srcNode, f_t destinationMethod,
                       d_t destNode) override {
     // Can be passed as identity.
     return EdgeIdentity<l_t>::getInstance();
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitSite,
                         d_t exitNode, n_t reSite, d_t retNode) override {
     // Can be passed as identity.
     return EdgeIdentity<l_t>::getInstance();

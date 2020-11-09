@@ -800,8 +800,8 @@ protected:
         << "  D target: " << IDEProblem.DtoString(edge.factAtTarget()) << " >";
         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-    if (!ICF->isCallStmt(edge.getTarget())) {
-      if (ICF->isExitStmt(edge.getTarget())) {
+    if (!ICF->isCallSite(edge.getTarget())) {
+      if (ICF->isExitSite(edge.getTarget())) {
         processExit(edge);
       }
       if (!ICF->getSuccsOf(edge.getTarget()).empty()) {
@@ -822,7 +822,7 @@ protected:
         unbalancedRetSites.count(n)) {
       propagateValueAtStart(nAndD, n);
     }
-    if (ICF->isCallStmt(n)) {
+    if (ICF->isCallSite(n)) {
       propagateValueAtCall(nAndD, n);
     }
   }
@@ -1446,7 +1446,7 @@ protected:
           }
         }
         // Store all valid facts after call-to-return flow
-        if (ICF->isCallStmt(Edge.first)) {
+        if (ICF->isCallSite(Edge.first)) {
           ValidInCallerContext[Edge.second].insert(D2Set.begin(), D2Set.end());
         }
         LOG_IF_ENABLE([&]() {
@@ -1486,7 +1486,7 @@ protected:
        * Special Case: Summary was applied for a particular call
        *   Process the summary's #gen and #kill.
        */
-      if (ICF->isCallStmt(Edge.first)) {
+      if (ICF->isCallSite(Edge.first)) {
         for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1532,7 +1532,7 @@ protected:
        * the caller, we have to increase the number of generated facts by one.
        * Zero value does not count towards generated/killed facts.
        */
-      if (ICF->isExitStmt(cell.getRowKey())) {
+      if (ICF->isExitSite(cell.getRowKey())) {
         for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1656,7 +1656,7 @@ public:
       DOTNode N2(fnName, n2_label, n2_stmtId);
       // Add control flow node(s) to function subgraph
       FG->stmts.insert(N1);
-      if (ICF->isExitStmt(Edge.second)) {
+      if (ICF->isExitSite(Edge.second)) {
         FG->stmts.insert(N2);
       }
 

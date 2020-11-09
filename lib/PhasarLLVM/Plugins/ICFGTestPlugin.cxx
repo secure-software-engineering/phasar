@@ -73,7 +73,7 @@ ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 
-bool ICFGTestPlugin::isExitStmt(ICFGTestPlugin::n_t Stmt) const {
+bool ICFGTestPlugin::isExitSite(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 
@@ -141,7 +141,7 @@ ICFGTestPlugin::f_t ICFGTestPlugin::getFunction(const std::string &Fun) const {
   return nullptr;
 }
 
-bool ICFGTestPlugin::isCallStmt(ICFGTestPlugin::n_t Stmt) const {
+bool ICFGTestPlugin::isCallSite(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }
 

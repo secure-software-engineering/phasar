@@ -63,7 +63,7 @@ public:
 
   BitVectorSet<const llvm::Value *>
   returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-             const llvm::Instruction *ExitStmt,
+             const llvm::Instruction *ExitSite,
              const llvm::Instruction *RetSite,
              const BitVectorSet<const llvm::Value *> &In) override;
 
