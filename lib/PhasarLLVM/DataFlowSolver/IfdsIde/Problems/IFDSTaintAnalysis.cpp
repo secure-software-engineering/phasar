@@ -142,7 +142,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
               std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
                   &Source.TaintedArgs)) {
         for (unsigned I = 0; I < ICB->getNumArgOperands(); ++I) {
-          IFDSTaintAnalysis::d_t V = ICB->getCallArgOperand(I);
+          IFDSTaintAnalysis::d_t V = ICB->getArgOperand(I);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -158,7 +158,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       } else if (auto *Pval =
                      std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
         for (auto FormalIndex : *Pval) {
-          IFDSTaintAnalysis::d_t V = ICB->getCallArgOperand(FormalIndex);
+          IFDSTaintAnalysis::d_t V = ICB->getArgOperand(FormalIndex);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -181,27 +181,26 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       // process leaks
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Plugin SINK effects");
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
-        llvm::AbstractCallSite CallSite;
+        const llvm::CallBase *CB;
         IFDSTaintAnalysis::f_t CalledMthd;
         TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction Sink;
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *TaintAnalysis;
-        TAFF(llvm::AbstractCallSite CS, IFDSTaintAnalysis::f_t CalledMthd,
+        TAFF(const llvm::CallBase *CB, IFDSTaintAnalysis::f_t CalledMthd,
              TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction S,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks,
              const IFDSTaintAnalysis *Ta)
-            : CallSite(CS), CalledMthd(CalledMthd), Sink(std::move(S)),
-              Leaks(Leaks), TaintAnalysis(Ta) {}
+            : CB(CB), CalledMthd(CalledMthd), Sink(std::move(S)), Leaks(Leaks),
+              TaintAnalysis(Ta) {}
         set<IFDSTaintAnalysis::d_t>
         computeTargets(IFDSTaintAnalysis::d_t Source) override {
           // check if a tainted value flows into a sink
           // if so, add to Leaks and return id
           if (!TaintAnalysis->isZeroValue(Source)) {
-            for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-              if (Source == CallSite.getCallArgOperand(Idx) &&
-                  Sink.isLeakedArg(Idx)) {
+            for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
+              if (Source == CB->getArgOperand(Idx) && Sink.isLeakedArg(Idx)) {
                 cout << "FOUND LEAK" << endl;
-                Leaks[CallSite.getInstruction()].insert(Source);
+                Leaks[CB].insert(Source);
               }
             }
           }

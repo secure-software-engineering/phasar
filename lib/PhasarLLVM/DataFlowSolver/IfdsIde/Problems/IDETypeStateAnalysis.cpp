@@ -435,10 +435,10 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if (TSD.isFactoryFunction(DemangledFname)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Processing factory function");
-      if (isZeroValue(CallNode) && RetSiteNode == CB->getInstruction()) {
+      if (isZeroValue(CallNode) && RetSiteNode == CB) {
         struct TSFactoryEF : public TSEdgeFunction {
           TSFactoryEF(const TypeStateDescription &Tsd, const std::string &Tok,
-                      const llvm::CallBase Cb)
+                      const llvm::CallBase *Cb)
               : TSEdgeFunction(Tsd, Tok, Cb) {}
 
           IDETypeStateAnalysis::l_t

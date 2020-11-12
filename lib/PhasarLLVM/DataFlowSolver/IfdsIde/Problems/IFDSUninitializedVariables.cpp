@@ -243,16 +243,16 @@ IFDSUninitializedVariables::getCallFlowFunction(
     const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::Function *DestFun;
-      llvm::AbstractCallSite CallSite;
+     const llvm::CallBase *CB;
       const llvm::Value *Zerovalue;
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
-      UVFF(const llvm::Function *DM, llvm::AbstractCallSite CS,
+      UVFF(const llvm::Function *DM, const llvm::CallBase *CB,
            const llvm::Value *ZV)
-          : DestFun(DM), CallSite(CS), Zerovalue(ZV) {
+          : DestFun(DM), CB(CB), Zerovalue(ZV) {
         // set up the actual parameters
-        for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-          Actuals.push_back(CallSite.getCallArgOperand(Idx));
+        for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
+          Actuals.push_back(CB->getArgOperand(Idx));
         }
         // set up the formal parameters
         /*for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
@@ -328,26 +328,26 @@ IFDSUninitializedVariables::getRetFlowFunction(
       llvm::isa<llvm::InvokeInst>(CallSite)) {
     const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
-      llvm::AbstractCallSite Call;
+      const llvm::CallBase *Call;
       const llvm::Instruction *Exit;
-      UVFF(llvm::AbstractCallSite C, const llvm::Instruction *E)
+      UVFF(const llvm::CallBase *C, const llvm::Instruction *E)
           : Call(C), Exit(E) {}
       set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
         // check if we return an uninitialized value
         set<IFDSUninitializedVariables::d_t> Ret;
         if (Exit->getNumOperands() > 0 && Exit->getOperand(0) == Source) {
-          Ret.insert(Call.getInstruction());
+          Ret.insert(Call);
         }
         //----------------------------------------------------------------------
         // Handle pointer/reference parameters
         //----------------------------------------------------------------------
-        if (Call.getCalledFunction()) {
+        if (Call->getCalledFunction()) {
           unsigned I = 0;
-          for (const auto &Arg : Call.getCalledFunction()->args()) {
+          for (const auto &Arg : Call->getCalledFunction()->args()) {
             // auto arg = getNthFunctionArgument(call.getCalledFunction(), i);
             if (&Arg == Source && Arg.getType()->isPointerTy()) {
-              Ret.insert(Call.getArgument(I));
+              Ret.insert(Call->getArgOperand(I));
             }
             I++;
           }

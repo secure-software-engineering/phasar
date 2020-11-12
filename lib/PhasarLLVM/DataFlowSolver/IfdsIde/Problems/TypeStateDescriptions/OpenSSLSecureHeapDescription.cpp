@@ -95,12 +95,12 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
 TypeStateDescription::State
 OpenSSLSecureHeapDescription::getNextState(const std::string &Tok,
                                            TypeStateDescription::State S,
-                                           llvm::AbstractCallSite CS) const {
+                                           const llvm::CallBase *CB) const {
   if (isAPIFunction(Tok)) {
     auto Ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
         funcNameToToken(Tok));
     auto Results = secureHeapPropagationResults.resultAt(
-        CS.getInstruction(), SecureHeapFact::INITIALIZED);
+        CB, SecureHeapFact::INITIALIZED);
     if (Results != SecureHeapValue::INITIALIZED) {
       // std::cerr << "ERROR: SecureHeap not initialized at "
       //          << llvmIRToShortString(CS.getInstruction()) << std::endl;

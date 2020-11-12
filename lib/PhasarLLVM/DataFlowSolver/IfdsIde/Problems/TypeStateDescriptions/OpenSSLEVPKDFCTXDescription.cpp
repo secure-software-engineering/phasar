@@ -105,7 +105,7 @@ OpenSSLEVPKDFCTXDescription::getNextState(std::string Tok,
 TypeStateDescription::State
 OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
                                           TypeStateDescription::State S,
-                                          llvm::AbstractCallSite CS) const {
+                                          const llvm::CallBase *CB) const {
   if (isAPIFunction(Tok)) {
     auto NameToTok = funcNameToToken(Tok);
     auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
@@ -119,8 +119,8 @@ OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
       // cout << "## Factory-Call: ";
       // cout.flush();
       // cout << llvmIRToShortString(CS.getInstruction()) << endl;
-      auto KdfState = kdfAnalysisResults.resultAt(CS.getInstruction(),
-                                                  CS.getCallArgOperand(0));
+      auto KdfState = kdfAnalysisResults.resultAt(CB,
+                                                  CB->getArgOperand(0));
       if (KdfState !=
           OpenSSLEVPKDFDescription::OpenSSLEVPKDFState::KDF_FETCHED) {
         return error();

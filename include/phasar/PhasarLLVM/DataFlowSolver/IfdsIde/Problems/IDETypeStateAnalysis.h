@@ -202,7 +202,7 @@ public:
 
   public:
     TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok,
-                   const llvm::CallBase cb)
+                   const llvm::CallBase *cb)
         : TSD(tsd), Token(tok), CurrentState(TSD.top()), CB(cb){};
 
     l_t computeTarget(l_t source) override;

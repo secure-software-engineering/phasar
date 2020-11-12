@@ -10,8 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H_
 
+#include "llvm/IR/InstrTypes.h"
+
 #include <set>
 #include <string>
+
 
 namespace psr {
 
@@ -43,7 +46,7 @@ struct TypeStateDescription {
    */
   virtual State getNextState(std::string Tok, State S) const = 0;
   virtual State getNextState(const std::string &Tok, State S,
-                             llvm::AbstractCallSite CS) const {
+                             const llvm::CallBase *CB) const {
     return getNextState(Tok, S);
   }
   virtual std::string getTypeNameOfInterest() const = 0;
