@@ -206,8 +206,14 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                 // caution: getAsInstruction allocates, need to delete later
                 auto *AsI = CE->getAsInstruction();
                 if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
-                  if (BC->getOperand(0)->hasName()) {
-                    if (auto *F = M.getFunction(BC->getOperand(0)->getName())) {
+                  // if the entry is a GlobalAlias, get its Aliasee
+                  auto *ENTRY = BC->getOperand(0);
+                  while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(ENTRY)) {
+                    ENTRY = GA->getAliasee();
+                  }
+
+                  if (ENTRY->hasName()) {
+                    if (auto *F = M.getFunction(ENTRY->getName())) {
                       VFS.push_back(F);
                     }
                   }
