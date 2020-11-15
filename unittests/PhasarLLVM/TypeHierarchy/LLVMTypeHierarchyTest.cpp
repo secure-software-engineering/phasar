@@ -52,6 +52,12 @@ TEST(LTHTest, BasicTHReconstruction_1) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
+TEST(LTHTest, THConstructionException) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+      "type_hierarchies/type_hierarchy_15_cpp.ll"});
+  LLVMTypeHierarchy LTH(IRDB);
+}
+
 TEST(LTHTest, BasicTHReconstruction_2) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_2_cpp.ll"});
