@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <set>
+#include <memory>
 #include <string>
 #include <tuple>
 
@@ -41,19 +42,20 @@ protected:
   using IMFCPCompactResult_t =
       std::tuple<std::string, std::size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>;
-  ProjectIRDB *IRDB = nullptr;
+  std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override {
     std::cout << "setup\n";
     boost::log::core::get()->set_logging_enabled(false);
   }
-  void TearDown() override { delete IRDB; }
+  void TearDown() override {  }
 
   void
   doAnalysisAndCompareResults(const std::string &LlvmFilePath,
                               const std::set<IMFCPCompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    auto IR_Files = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
     if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }
@@ -62,7 +64,7 @@ protected:
     LLVMPointsToSet PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                        &PT);
-    InterMonoFullConstantPropagation FCP(IRDB, &TH, &ICFG, &PT, EntryPoints);
+    InterMonoFullConstantPropagation FCP(IRDB.get(), &TH, &ICFG, &PT, EntryPoints);
     InterMonoSolver_P<InterMonoFullConstantPropagation, 3> IMSolver(FCP);
     IMSolver.solve();
     if (PrintDump) {

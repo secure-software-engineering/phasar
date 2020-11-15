@@ -7,6 +7,8 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
+#include <memory>
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
@@ -19,6 +21,7 @@
 
 #include "gtest/gtest.h"
 
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
@@ -29,14 +32,14 @@ protected:
       "build/test/llvm_test_code/openssl/key_derivation/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  OpenSSLEVPKDFCTXDescription *OpenSSLEVPKeyDerivationDesc{};
-  OpenSSLEVPKDFDescription *OpenSSLEVPKDFDesc{};
-  IDETypeStateAnalysis *TSProblem{}, *TSKDFProblem{};
-  IDESolver<IDETypeStateAnalysisDomain> *Llvmtssolver{}, *KdfSolver{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<OpenSSLEVPKDFCTXDescription> OpenSSLEVPKeyDerivationDesc;
+  unique_ptr<OpenSSLEVPKDFDescription> OpenSSLEVPKDFDesc;
+  unique_ptr<IDETypeStateAnalysis> TSProblem, TSKDFProblem;
+  unique_ptr<IDESolver<IDETypeStateAnalysisDomain>> Llvmtssolver, KdfSolver;
 
   enum OpenSSLEVPKeyDerivationState {
     TOP = 42,
@@ -51,22 +54,23 @@ protected:
   ~IDETSAnalysisOpenSSLEVPKDFTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(),
+                                      PT.get());
 
-    OpenSSLEVPKDFDesc = new OpenSSLEVPKDFDescription();
-    TSKDFProblem = new IDETypeStateAnalysis(IRDB, TH, ICFG, PT,
+    OpenSSLEVPKDFDesc = make_unique<OpenSSLEVPKDFDescription>();
+    TSKDFProblem = make_unique<IDETypeStateAnalysis>(IRDB, TH, ICFG, PT,
                                             *OpenSSLEVPKDFDesc, EntryPoints);
-    KdfSolver = new IDESolver<IDETypeStateAnalysisDomain>(*TSKDFProblem);
+    KdfSolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSKDFProblem);
 
-    OpenSSLEVPKeyDerivationDesc = new OpenSSLEVPKDFCTXDescription(*KdfSolver);
-    TSProblem = new IDETypeStateAnalysis(
+    OpenSSLEVPKeyDerivationDesc = make_unique<OpenSSLEVPKDFCTXDescription>(*KdfSolver);
+    TSProblem = make_unique<IDETypeStateAnalysis>(
         IRDB, TH, ICFG, PT, *OpenSSLEVPKeyDerivationDesc, EntryPoints);
 
-    Llvmtssolver = new IDESolver<IDETypeStateAnalysisDomain>(*TSProblem);
+    Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSProblem);
     KdfSolver->solve();
     Llvmtssolver->solve();
   }
@@ -77,10 +81,6 @@ protected:
   }
 
   void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete ICFG;
-    delete TSProblem;
   }
 
   /**

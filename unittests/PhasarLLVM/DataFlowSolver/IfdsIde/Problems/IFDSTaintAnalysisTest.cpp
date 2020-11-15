@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -20,28 +22,36 @@ protected:
       unittest::PathToLLTestFiles + "taint_analysis/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  IFDSTaintAnalysis *TaintProblem{};
-  TaintConfiguration<const llvm::Value *> *TSF{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<IFDSTaintAnalysis> TaintProblem;
+  unique_ptr<TaintConfiguration<const llvm::Value *>> TSF;
 
   IFDSTaintAnalysisTest() = default;
   ~IFDSTaintAnalysisTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
-    TSF = new TaintConfiguration<const llvm::Value *>(
-        {TaintConfiguration<const llvm::Value *>::SourceFunction("source()",
-                                                                 true)},
-        {TaintConfiguration<const llvm::Value *>::SinkFunction(
-            "sink(int)", std::vector<unsigned>({0}))});
-    TaintProblem = new IFDSTaintAnalysis(IRDB, TH, ICFG, PT, *TSF, EntryPoints);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(),
+                                      PT.get());
+    auto source = {TaintConfiguration<const llvm::Value *>
+      ::SourceFunction("source()",
+                       true)};
+    auto sink = {TaintConfiguration<const llvm::Value *>
+      ::SinkFunction("sink(int)",
+                     std::vector<unsigned>({0}))};
+    TSF = make_unique<TaintConfiguration<const llvm::Value *>>(
+      source, sink
+    );
+
+    TaintProblem = make_unique<IFDSTaintAnalysis>(IRDB.get(), TH.get(),
+                                                  ICFG.get(), PT.get(),
+                                                  *TSF, EntryPoints);
   }
 
   void SetUp() override {
@@ -50,11 +60,6 @@ protected:
   }
 
   void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete ICFG;
-    delete TaintProblem;
-    delete TSF;
   }
 
   void compareResults(map<int, set<string>> &GroundTruth) {

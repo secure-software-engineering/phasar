@@ -1,3 +1,6 @@
+// to use unique_ptr
+#include <memory>
+
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -9,6 +12,7 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "gtest/gtest.h"
 
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
@@ -19,22 +23,23 @@ protected:
       "build/test/llvm_test_code/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMPointsToInfo *PT{};
-  LLVMBasedICFG *ICFG{};
-  WPDSLinearConstantAnalysis *LCAProblem{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<WPDSLinearConstantAnalysis> LCAProblem;
 
   WPDSLinearConstantAnalysisTest() = default;
   ~WPDSLinearConstantAnalysisTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
-    // LCAProblem = new WPDSLinearConstantAnalysis(
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(),
+                                      PT.get());
+    // LCAProblem = make_unique<WPDSLinearConstantAnalysis>(
     //    *ICFG, *TH, *IRDB, WPDSType::FWPDS, WPDSSearchDirection::BACKWARD);
   }
 
@@ -45,11 +50,6 @@ protected:
 
   void TearDown() override {
     PAMM_GET_INSTANCE;
-    delete IRDB;
-    delete TH;
-    delete PT;
-    delete ICFG;
-    delete LCAProblem;
     PAMM_RESET;
   }
 

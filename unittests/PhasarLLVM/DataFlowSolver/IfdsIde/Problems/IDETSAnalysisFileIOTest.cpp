@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <memory>
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
@@ -18,6 +20,7 @@
 
 #include "gtest/gtest.h"
 
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
@@ -28,12 +31,12 @@ protected:
       "build/test/llvm_test_code/typestate_analysis_fileio/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  CSTDFILEIOTypeStateDescription *CSTDFILEIODesc{};
-  IDETypeStateAnalysis *TSProblem{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<CSTDFILEIOTypeStateDescription> CSTDFILEIODesc;
+  unique_ptr<IDETypeStateAnalysis> TSProblem;
   enum IOSTATE {
     TOP = 42,
     UNINIT = 0,
@@ -47,14 +50,17 @@ protected:
   ~IDETSAnalysisFileIOTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
-    CSTDFILEIODesc = new CSTDFILEIOTypeStateDescription();
-    TSProblem = new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *CSTDFILEIODesc,
-                                         EntryPoints);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(),
+                                      PT.get());
+    CSTDFILEIODesc = make_unique<CSTDFILEIOTypeStateDescription>();
+    TSProblem = make_unique<IDETypeStateAnalysis>(IRDB.get(), TH.get(),
+                                                  ICFG.get(), PT.get(),
+                                                  *CSTDFILEIODesc,
+                                                  EntryPoints);
   }
 
   void SetUp() override {
@@ -63,10 +69,6 @@ protected:
   }
 
   void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete ICFG;
-    delete TSProblem;
   }
 
   /**
