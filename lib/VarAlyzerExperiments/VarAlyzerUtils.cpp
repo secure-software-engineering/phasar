@@ -7,12 +7,19 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <cassert>
+#include <set>
 #include <string>
 #include <vector>
 
-#include "boost/filesystem/path.hpp"
 #include "boost/filesystem.hpp"
+#include "boost/filesystem/path.hpp"
 
+#include "llvm/Support/ErrorHandling.h"
+
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
+#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/VarAlyzerExperiments/VarAlyzerUtils.h"
 
 using namespace psr;
@@ -36,19 +43,44 @@ std::vector<std::string> makeStringVectorFromPathVector(
 }
 
 OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str) {
-  if (Str == "MD") {
-    return OpenSSLEVPAnalysisType::MD;
-  }
   if (Str == "CIPHER") {
     return OpenSSLEVPAnalysisType::CIPHER;
   }
   if (Str == "MAC") {
     return OpenSSLEVPAnalysisType::MAC;
   }
-  if (Str == "ALL") {
-    return OpenSSLEVPAnalysisType::ALL;
+  if (Str == "MD") {
+    return OpenSSLEVPAnalysisType::MD;
   }
-  return OpenSSLEVPAnalysisType::ALL;
+  llvm::report_fatal_error("input string is invalid");
+}
+
+std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
+                                                 ProjectIRDB &IR,
+                                                 LLVMBasedICFG &ICF) {
+  const auto *F = IR.getFunction(FunName);
+  auto CallSites = ICF.getCallersOf(F);
+  std::set<std::string> EntryPoints;
+  for (const auto *CallSite : CallSites) {
+    EntryPoints.insert(CallSite->getFunction()->getName().str());
+  }
+  return EntryPoints;
+}
+
+std::set<std::string>
+getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
+                                    LLVMBasedICFG &ICF) {
+  auto FNameMap = extractStaticRenaming(&IR);
+  auto Search = FNameMap.find(FunName);
+  assert(Search != FNameMap.end() && "Expected to find FunName in FNameMap!");
+  auto DesugaredFName = Search->second;
+  const auto *F = IR.getFunction(DesugaredFName);
+  auto CallSites = ICF.getCallersOf(IR.getFunction(DesugaredFName));
+  std::set<std::string> EntryPoints;
+  for (const auto *CallSite : CallSites) {
+    EntryPoints.insert(CallSite->getFunction()->getName().str());
+  }
+  return EntryPoints;
 }
 
 } // namespace psr

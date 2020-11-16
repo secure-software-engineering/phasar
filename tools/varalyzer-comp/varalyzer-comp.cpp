@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   if (argc < 4) {
     std::cout << "Usage:\n"
                  "\t<varalyzer>\n"
-                 "\t<analysis: \"MD\", \"CIPHER\", \"MAC\">\n"
+                 "\t<analysis: \"CIPHER\", \"MAC\", \"MD\">\n"
                  "\t<SuperC-desugared SPL LLVM IR file>\n"
                  "\t<SP_1 LLVM IR file> <...>\n\n";
     return 1;
@@ -42,9 +42,9 @@ int main(int argc, char **argv) {
     SPIRFiles.emplace_back(argv[i]);
   }
   // have some rudimentary checks
-  if (!(AnalysisTypeStr == "MD" || AnalysisTypeStr == "CIPHER" ||
-        AnalysisTypeStr == "MAC" || AnalysisTypeStr == "ALL")) {
-    std::cout << "error: analysis type must be one of {MD, CIPHER, MAC, ALL}\n";
+  if (!(AnalysisTypeStr == "MAC" || AnalysisTypeStr == "CIPHER" ||
+        AnalysisTypeStr == "MD")) {
+    std::cout << "error: analysis type must be one of {MAC, MD, CIPHER}\n";
     return 1;
   }
   if (!isValidLLVMIRFile(DesugeredSPLIRFile)) {
@@ -62,19 +62,19 @@ int main(int argc, char **argv) {
   // constant data
   const OpenSSLEVPAnalysisType AnalysisType =
       to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
-  const std::set<std::string> EntryPoints({"main"});
   // compute helper analyses for the desugared IR file
   ProjectIRDB DesugaredIR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
   LLVMTypeHierarchy DesugaredTH(DesugaredIR);
   LLVMPointsToSet DesugaredPT(DesugaredIR);
-  LLVMBasedVarICFG DesugaredICF(DesugaredIR, CallGraphAnalysisType::OTF,
-                                EntryPoints, &DesugaredTH, &DesugaredPT);
-  if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER ||
-      AnalysisType == OpenSSLEVPAnalysisType::ALL) {
+  LLVMBasedVarICFG DesugaredICF(DesugaredIR, CallGraphAnalysisType::OTF, {},
+                                &DesugaredTH, &DesugaredPT);
+  if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
     OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc;
+    auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+        "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF);
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
                                       &DesugaredPT, VarCipherCTXDesc,
-                                      EntryPoints);
+                                      VarAnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarVarProblem(VarTSProblem,
                                                                   DesugaredICF);
     IDESolver VarSolver(VarVarProblem);
@@ -88,11 +88,12 @@ int main(int argc, char **argv) {
       ProjectIRDB SPIR({SPIRFile.string()}, IRDBOptions::WPA);
       LLVMTypeHierarchy SPTH(SPIR);
       LLVMPointsToSet SPPT(SPIR);
-      LLVMBasedICFG SPICF(SPIR, CallGraphAnalysisType::OTF, EntryPoints, &SPTH,
-                          &SPPT);
+      LLVMBasedICFG SPICF(SPIR, CallGraphAnalysisType::OTF, {}, &SPTH, &SPPT);
       OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
+      auto AnalysisEntryPoints =
+          getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", SPIR, SPICF);
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, CipherCTXDesc,
-                                     EntryPoints);
+                                     AnalysisEntryPoints);
       IDESolver Solver(TSProblem);
       Solver.solve();
       // do the comparison
@@ -106,11 +107,13 @@ int main(int argc, char **argv) {
     }
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
-      AnalysisType == OpenSSLEVPAnalysisType::MAC ||
-      AnalysisType == OpenSSLEVPAnalysisType::ALL) {
+      AnalysisType == OpenSSLEVPAnalysisType::MAC) {
     OpenSSLEVPMDCTXDescription VarMdCTXDesc;
+    auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+        "EVP_MD_CTX_new", DesugaredIR, DesugaredICF);
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
-                                      &DesugaredPT, VarMdCTXDesc, EntryPoints);
+                                      &DesugaredPT, VarMdCTXDesc,
+                                      VarAnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarVarProblem(VarTSProblem,
                                                                   DesugaredICF);
     IDESolver VarSolver(VarVarProblem);
@@ -125,11 +128,12 @@ int main(int argc, char **argv) {
       ProjectIRDB SPIR({SPIRFile.string()}, IRDBOptions::WPA);
       LLVMTypeHierarchy SPTH(SPIR);
       LLVMPointsToSet SPPT(SPIR);
-      LLVMBasedICFG SPICF(SPIR, CallGraphAnalysisType::OTF, EntryPoints, &SPTH,
-                          &SPPT);
+      LLVMBasedICFG SPICF(SPIR, CallGraphAnalysisType::OTF, {}, &SPTH, &SPPT);
       OpenSSLEVPMDCTXDescription MdCTXDesc;
+      auto AnalysisEntryPoints =
+          getEntryPointsForCallersOf("EVP_MD_CTX_new", SPIR, SPICF);
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, MdCTXDesc,
-                                     EntryPoints);
+                                     AnalysisEntryPoints);
       IDESolver Solver(TSProblem);
       Solver.solve();
       // TODO

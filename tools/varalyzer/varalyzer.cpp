@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   if (argc < 3) {
     std::cout << "Usage:\n"
                  "\t<varalyzer>\n"
-                 "\t<analysis: \"MD\", \"CIPHER\", \"MAC\">\n"
+                 "\t<analysis: \"CIPHER\", \"MAC\", \"MD\">\n"
                  "\t<SuperC-desugared SPL LLVM IR file>\n";
     return 1;
   }
@@ -35,9 +35,9 @@ int main(int argc, char **argv) {
   std::string AnalysisTypeStr = argv[1];
   boost::filesystem::path DesugeredSPLIRFile = argv[2];
   // have some rudimentary checks
-  if (!(AnalysisTypeStr == "MD" || AnalysisTypeStr == "CIPHER" ||
-        AnalysisTypeStr == "MAC" || AnalysisTypeStr == "ALL")) {
-    std::cout << "error: analysis type must be one of {MD, CIPHER, MAC, ALL}\n";
+  if (!(AnalysisTypeStr == "MAC" || AnalysisTypeStr == "MD" ||
+        AnalysisTypeStr == "CIPHER")) {
+    std::cout << "error: analysis type must be one of {MAC_MD, CIPHER}\n";
     return 1;
   }
   if (!isValidLLVMIRFile(DesugeredSPLIRFile)) {
@@ -48,27 +48,31 @@ int main(int argc, char **argv) {
   // constant data
   const OpenSSLEVPAnalysisType AnalysisType =
       to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
-  const std::set<std::string> EntryPoints({"main"});
   // compute helper analyses for the desugared IR file
   ProjectIRDB IR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IR);
   LLVMPointsToSet PT(IR);
-  LLVMBasedVarICFG ICF(IR, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
-  if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER ||
-      AnalysisType == OpenSSLEVPAnalysisType::ALL) {
+  // by using an empty list of entry points, all functions are considered as
+  // entry points
+  LLVMBasedVarICFG ICF(IR, CallGraphAnalysisType::OTF, {}, &TH, &PT);
+  if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
+    auto AnalysisEntryPoints =
+        getEntryPointsForCallersOfDesugared("EVP_CIPHER_CTX_new", IR, ICF);
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
-                                 EntryPoints);
+                                 AnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
     IDESolver Solver(VarProblem);
     Solver.solve();
     Solver.dumpResults();
   }
-  if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
-      AnalysisType == OpenSSLEVPAnalysisType::MAC ||
-      AnalysisType == OpenSSLEVPAnalysisType::ALL) {
+  if (AnalysisType == OpenSSLEVPAnalysisType::MAC ||
+      AnalysisType == OpenSSLEVPAnalysisType::MD) {
     OpenSSLEVPMDCTXDescription MdCTXDesc;
-    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc, EntryPoints);
+    auto AnalysisEntryPoints =
+        getEntryPointsForCallersOfDesugared("EVP_MD_CTX_new", IR, ICF);
+    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
+                                 AnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
     IDESolver Solver(VarProblem);
     Solver.solve();

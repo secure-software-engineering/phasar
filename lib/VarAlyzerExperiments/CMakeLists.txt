@@ -2,9 +2,13 @@ file(GLOB_RECURSE VARALYZER_UTILS_SRC *.h *.cpp)
 
 set(PHASAR_LINK_LIBS
   phasar_config
+  phasar_ifdside
+  phasar_controlflow
 )
 
 set(LLVM_LINK_COMPONENTS
+  Core
+  Support
 )
 
 if(BUILD_SHARED_LIBS)

@@ -113,7 +113,15 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
-  for (const auto &EntryPoint : EntryPoints) {
+  std::set<std::string> ChosenEntryPoints = EntryPoints;
+  if (ChosenEntryPoints.empty()) {
+    for (const auto *F : IRDB.getAllFunctions()) {
+      if (F && !F->isDeclaration()) {
+        ChosenEntryPoints.insert(F->getName().str());
+      }
+    }
+  }
+  for (const auto &EntryPoint : ChosenEntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
       llvm::report_fatal_error("Could not retrieve function for entry point");

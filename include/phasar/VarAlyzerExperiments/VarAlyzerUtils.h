@@ -10,6 +10,7 @@
 #ifndef PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 #define PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -17,16 +18,25 @@
 
 namespace psr {
 
+class ProjectIRDB;
+class LLVMBasedICFG;
+
 bool isValidLLVMIRFile(const boost::filesystem::path &FilePath);
 
 std::vector<std::string> makeStringVectorFromPathVector(
     const std::vector<boost::filesystem::path> &Paths);
 
-enum class OpenSSLEVPAnalysisType { ALL, CIPHER, MAC, MD };
+enum class OpenSSLEVPAnalysisType { CIPHER, MAC, MD };
 
 OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str);
 
-std::set<std::string> getEntryPointsForCallersOf();
+std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
+                                                 ProjectIRDB &IR,
+                                                 LLVMBasedICFG &ICF);
+
+std::set<std::string>
+getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
+                                    LLVMBasedICFG &ICF);
 
 } // namespace psr
 
