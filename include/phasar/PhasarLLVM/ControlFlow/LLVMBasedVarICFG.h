@@ -27,7 +27,8 @@ public:
   LLVMBasedVarICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                    const std::set<std::string> &EntryPoints = {},
                    LLVMTypeHierarchy *TH = nullptr,
-                   LLVMPointsToInfo *PT = nullptr);
+                   LLVMPointsToInfo *PT = nullptr,
+                   const stringstringmap_t *StaticBackwardRenaming = nullptr);
 
   ~LLVMBasedVarICFG() override = default;
 };

@@ -24,6 +24,11 @@ using stringstringmap_t = // std::map<std::string, T>;
 /// ProjectIRDB
 stringstringmap_t extractStaticRenaming(const ProjectIRDB *IRDB);
 
+/// Extracts the mappings (unmangledName -> ctx_mangledName;  ctx_mangledName ->
+/// unmangledName) from the given ProjectIRDB
+std::pair<stringstringmap_t, stringstringmap_t>
+extractBiDiStaticRenaming(const ProjectIRDB *IRDB);
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VARSTATICRENAMING_H_

@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/VarAlyzerExperiments/VarAlyzerUtils.h"
 
 using namespace psr;
@@ -69,8 +70,9 @@ std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
 
 std::set<std::string>
 getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
-                                    LLVMBasedICFG &ICF) {
-  auto FNameMap = extractStaticRenaming(&IR);
+                                    LLVMBasedICFG &ICF,
+                                    const stringstringmap_t &FNameMap) {
+  // auto FNameMap = extractStaticRenaming(&IR);
   auto Search = FNameMap.find(FunName);
   assert(Search != FNameMap.end() && "Expected to find FunName in FNameMap!");
   auto DesugaredFName = Search->second;
@@ -81,6 +83,16 @@ getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
     EntryPoints.insert(CallSite->getFunction()->getName().str());
   }
   return EntryPoints;
+}
+
+llvm::StringRef staticRename(llvm::StringRef Name,
+                             const stringstringmap_t &Renaming) {
+  if (auto it = Renaming.find(Name); it != Renaming.end())
+    return it->getValue();
+
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Renaming fallthrough: " << Name.str());
+  return Name;
 }
 
 } // namespace psr

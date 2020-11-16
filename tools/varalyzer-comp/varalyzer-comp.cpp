@@ -67,17 +67,19 @@ int main(int argc, char **argv) {
       to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
   // compute helper analyses for the desugared IR file
   ProjectIRDB DesugaredIR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
+  auto [ForwardRenaming, BackwardRenaming] =
+      extractBiDiStaticRenaming(&DesugaredIR);
   LLVMTypeHierarchy DesugaredTH(DesugaredIR);
   LLVMPointsToSet DesugaredPT(DesugaredIR);
   LLVMBasedVarICFG DesugaredICF(DesugaredIR, CallGraphAnalysisType::OTF, {},
-                                &DesugaredTH, &DesugaredPT);
+                                &DesugaredTH, &DesugaredPT, &BackwardRenaming);
 
   int numViolations = 0;
 
   if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
-    OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc;
+    OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc(&ForwardRenaming);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-        "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF);
+        "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
                                       &DesugaredPT, VarCipherCTXDesc,
                                       VarAnalysisEntryPoints);
@@ -119,9 +121,9 @@ int main(int argc, char **argv) {
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
       AnalysisType == OpenSSLEVPAnalysisType::MAC) {
-    OpenSSLEVPMDCTXDescription VarMdCTXDesc;
+    OpenSSLEVPMDCTXDescription VarMdCTXDesc(&ForwardRenaming);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-        "EVP_MD_CTX_new", DesugaredIR, DesugaredICF);
+        "EVP_MD_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
                                       &DesugaredPT, VarMdCTXDesc,
                                       VarAnalysisEntryPoints);

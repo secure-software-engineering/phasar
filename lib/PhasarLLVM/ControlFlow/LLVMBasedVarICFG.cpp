@@ -13,10 +13,11 @@ using namespace psr;
 
 namespace psr {
 
-LLVMBasedVarICFG::LLVMBasedVarICFG(ProjectIRDB &IRDB,
-                                   CallGraphAnalysisType CGType,
-                                   const std::set<std::string> &EntryPoints,
-                                   LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT)
-    : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT), LLVMBasedVarCFG(IRDB) {}
+LLVMBasedVarICFG::LLVMBasedVarICFG(
+    ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+    const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
+    LLVMPointsToInfo *PT, const stringstringmap_t *StaticBackwardRenaming)
+    : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT),
+      LLVMBasedVarCFG(IRDB, StaticBackwardRenaming) {}
 
 } // namespace psr

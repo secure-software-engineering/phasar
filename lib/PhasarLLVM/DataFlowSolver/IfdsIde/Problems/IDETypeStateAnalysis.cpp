@@ -311,7 +311,13 @@ IDETypeStateAnalysis::initialSeeds() {
   // just start in main()
   map<IDETypeStateAnalysis::n_t, set<IDETypeStateAnalysis::d_t>> SeedMap;
   for (const auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+    auto Fn = ICF->getFunction(EntryPoint);
+    // assert(Fn && "Unknown Entrypoint");
+    if (!Fn) {
+      std::cerr << "Unknown Entrypoint: " << EntryPoint << std::endl;
+      abort();
+    }
+    SeedMap.insert(make_pair(&Fn->front().front(),
                              set<IDETypeStateAnalysis::d_t>({getZeroValue()})));
   }
   return SeedMap;

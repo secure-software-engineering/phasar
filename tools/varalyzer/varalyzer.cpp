@@ -50,15 +50,17 @@ int main(int argc, char **argv) {
       to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
   // compute helper analyses for the desugared IR file
   ProjectIRDB IR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
+  auto [ForwardRenaming, BackwardRenaming] = extractBiDiStaticRenaming(&IR);
   LLVMTypeHierarchy TH(IR);
   LLVMPointsToSet PT(IR);
   // by using an empty list of entry points, all functions are considered as
   // entry points
-  LLVMBasedVarICFG ICF(IR, CallGraphAnalysisType::OTF, {}, &TH, &PT);
+  LLVMBasedVarICFG ICF(IR, CallGraphAnalysisType::OTF, {}, &TH, &PT,
+                       &BackwardRenaming);
   if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
-    OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
-    auto AnalysisEntryPoints =
-        getEntryPointsForCallersOfDesugared("EVP_CIPHER_CTX_new", IR, ICF);
+    OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(&ForwardRenaming);
+    auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+        "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming);
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
                                  AnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
@@ -68,9 +70,9 @@ int main(int argc, char **argv) {
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MAC ||
       AnalysisType == OpenSSLEVPAnalysisType::MD) {
-    OpenSSLEVPMDCTXDescription MdCTXDesc;
-    auto AnalysisEntryPoints =
-        getEntryPointsForCallersOfDesugared("EVP_MD_CTX_new", IR, ICF);
+    OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming);
+    auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+        "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
                                  AnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
