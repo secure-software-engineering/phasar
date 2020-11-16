@@ -10,6 +10,9 @@
 #ifndef PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 #define PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 
+#include <llvm/ADT/DenseMapInfo.h>
+#include <llvm/ADT/Hashing.h>
+#include <llvm/ADT/StringRef.h>
 #include <set>
 #include <string>
 #include <vector>
@@ -29,6 +32,8 @@ OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str);
 
 std::set<std::string> getEntryPointsForCallersOf();
 
+
 } // namespace psr
+
 
 #endif

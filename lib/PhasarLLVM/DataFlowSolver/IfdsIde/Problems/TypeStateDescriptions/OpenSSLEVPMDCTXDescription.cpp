@@ -165,8 +165,8 @@ OpenSSLEVPMDCTXDescription::getFactoryParamIdx(const std::string &F) const {
     return {};
 }
 
-std::string
-OpenSSLEVPMDCTXDescription::stateToString(TypeStateDescription::State S) const {
+llvm::StringRef OpenSSLEVPMDCTXDescription::stateToUnownedString(
+    TypeStateDescription::State S) const {
   switch (S) {
   case TOP:
     return "TOP";
@@ -189,6 +189,30 @@ OpenSSLEVPMDCTXDescription::stateToString(TypeStateDescription::State S) const {
   default:
     return "<NONE>";
   }
+}
+
+std::string
+OpenSSLEVPMDCTXDescription::stateToString(TypeStateDescription::State S) const {
+  return stateToUnownedString(S).str();
+}
+llvm::StringRef OpenSSLEVPMDCTXDescription::tokenToString(int tok) const {
+  static std::array<std::string, enum2int(OpenSSLEVPMDCTXToken::STAR)>
+      tokNames = {"EVP_MD_CTX_NEW",        "EVP_DIGEST_INIT",
+                  "EVP_DIGEST_UPDATE",     "EVP_DIGEST_FINAL",
+                  "EVP_DIGEST_SIGN_INIT",  "EVP_DIGEST_SIGN_UPDATE",
+                  "EVP_DIGEST_SIGN_FINAL", "EVP_MD_CTX_FREE"};
+  if (unsigned(tok) < tokNames.size())
+    return tokNames[tok];
+
+  return "<STAR>";
+}
+
+llvm::StringRef
+OpenSSLEVPMDCTXDescription::demangleToken(llvm::StringRef Tok) const {
+  auto IntTok = funcNameToToken(Tok);
+  if (IntTok == OpenSSLEVPMDCTXToken::STAR)
+    return Tok;
+  return tokenToString(enum2int(IntTok));
 }
 
 TypeStateDescription::State OpenSSLEVPMDCTXDescription::bottom() const {

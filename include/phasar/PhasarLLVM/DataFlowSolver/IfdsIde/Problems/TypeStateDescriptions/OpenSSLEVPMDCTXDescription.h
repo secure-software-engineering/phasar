@@ -66,8 +66,9 @@ class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
 
 public:
   OpenSSLEVPMDCTXDescription(
-      
-      const stringstringmap_t *staticRenaming = nullptr,llvm::StringRef typenameOfInterest = "__forward_tag_reference_14");
+
+      const stringstringmap_t *staticRenaming = nullptr,
+      llvm::StringRef typenameOfInterest = "__forward_tag_reference_14");
   bool isFactoryFunction(const std::string &F) const override;
 
   bool isConsumingFunction(const std::string &F) const override;
@@ -84,6 +85,13 @@ public:
   std::set<int> getFactoryParamIdx(const std::string &F) const override;
 
   std::string stateToString(TypeStateDescription::State S) const override;
+
+  llvm::StringRef
+  stateToUnownedString(TypeStateDescription::State S) const override;
+
+  llvm::StringRef tokenToString(int Tok) const override;
+
+  llvm::StringRef demangleToken(llvm::StringRef Tok) const override;
 
   TypeStateDescription::State bottom() const override;
 

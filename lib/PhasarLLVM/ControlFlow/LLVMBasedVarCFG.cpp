@@ -253,7 +253,9 @@ z3::expr LLVMBasedVarCFG::inferCondition(const llvm::CmpInst *cmp) const {
 }
 #endif
 
-LLVMBasedVarCFG::LLVMBasedVarCFG(const ProjectIRDB &IRDB) {
+LLVMBasedVarCFG::LLVMBasedVarCFG(
+    const ProjectIRDB &IRDB, const stringstringmap_t *StaticBackwardRenaming)
+    : staticBackwardRenaming(StaticBackwardRenaming) {
   // void __static_condition_renaming(globName, smt2lib_solver)
   auto staticRenamingFn = IRDB.getFunction("__static_condition_renaming");
 
@@ -417,5 +419,18 @@ LLVMBasedVarCFG::getPPConstraintOrTrue(const llvm::Instruction *Stmt,
 }
 
 z3::context &LLVMBasedVarCFG::getContext() const { return CTX; }
+
+std::string
+LLVMBasedVarCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
+  auto fnName = this->LLVMBasedCFG::getDemangledFunctionName(Fun);
+  if (!staticBackwardRenaming)
+    return fnName;
+
+  if (auto it = staticBackwardRenaming->find(fnName);
+      it != staticBackwardRenaming->end())
+    return it->getValue();
+
+  return fnName;
+}
 
 } // namespace psr

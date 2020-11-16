@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
 
 #include <iostream>
+#include <llvm/ADT/DenseSet.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -22,10 +23,48 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
+namespace psr {
+
+namespace TypeStateAnalysis {
+/// A protocol misuse detected by the IDETypeStateAnalysis
+struct Breach final {
+  /// The name of the function in which the error occurred
+  std::string Caller;
+
+  /// The transition that lead to the error
+  struct {
+    /// The state from which the object transitioned into an error state
+    llvm::StringRef State;
+
+    /// The name of the function that caused the transition into an error
+    /// state
+    llvm::StringRef Token;
+  } Transition;
+
+  bool operator==(const Breach &B) const;
+  inline bool operator!=(const Breach &B) const { return !(*this == B); }
+  friend std::ostream &operator<<(std::ostream &OS, const Breach &B);
+};
+} // namespace TypeStateAnalysis
+} // namespace psr
+
 namespace llvm {
+
+// Hashing support for psr::TypeStateAnalysis::Breach
+hash_code hash_value(const psr::TypeStateAnalysis::Breach &B);
+template <> struct DenseMapInfo<psr::TypeStateAnalysis::Breach> {
+  static psr::TypeStateAnalysis::Breach getEmptyKey();
+  static psr::TypeStateAnalysis::Breach getTombstoneKey();
+  static unsigned getHashValue(const psr::TypeStateAnalysis::Breach &B);
+  static bool isEqual(const psr::TypeStateAnalysis::Breach &B1,
+                      const psr::TypeStateAnalysis::Breach &B2);
+};
+
+// Forward declarations:
 class Instruction;
 class Function;
 class Value;
+
 } // namespace llvm
 
 namespace psr {
@@ -51,6 +90,7 @@ public:
   using typename IDETabProblemType::v_t;
 
   using ConfigurationTy = TypeStateDescription;
+  using Breach = TypeStateAnalysis::Breach;
 
 private:
   const TypeStateDescription &TSD;
@@ -58,6 +98,8 @@ private:
       PointsToCache;
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
       RelevantAllocaCache;
+
+  llvm::DenseSet<Breach> DetectedBreaches;
 
   /**
    * @brief Returns all alloca's that are (indirect) aliases of V.
@@ -177,6 +219,8 @@ public:
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &OS = std::cout) override;
 
+  inline const auto &getProtocolBreaches() const { return DetectedBreaches; }
+
   // customize the edge function composer
   class TSEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
   private:
@@ -193,7 +237,8 @@ public:
   class TSEdgeFunction : public EdgeFunction<l_t>,
                          public std::enable_shared_from_this<TSEdgeFunction> {
   protected:
-    const TypeStateDescription &TSD;
+    // const TypeStateDescription &TSD;
+    IDETypeStateAnalysis &TSA;
     // Do not use a reference here, since LLVM's StringRef's (obtained by str())
     // might turn to nullptr for whatever reason...
     const std::string Token;
@@ -201,9 +246,9 @@ public:
     llvm::ImmutableCallSite CS;
 
   public:
-    TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok,
+    TSEdgeFunction(IDETypeStateAnalysis &tsa, const std::string tok,
                    llvm::ImmutableCallSite cs)
-        : TSD(tsd), Token(tok), CurrentState(TSD.top()), CS(cs){};
+        : TSA(tsa), Token(tok), CurrentState(tsa.TSD.top()), CS(cs){};
 
     l_t computeTarget(l_t source) override;
 

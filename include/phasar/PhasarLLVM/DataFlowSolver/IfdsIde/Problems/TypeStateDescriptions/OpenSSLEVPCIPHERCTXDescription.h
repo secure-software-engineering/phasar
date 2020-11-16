@@ -84,6 +84,13 @@ public:
 
   std::string stateToString(TypeStateDescription::State S) const override;
 
+  llvm::StringRef
+  stateToUnownedString(TypeStateDescription::State S) const override;
+
+  llvm::StringRef tokenToString(int tok) const override;
+
+  llvm::StringRef demangleToken(llvm::StringRef Tok) const override;
+
   TypeStateDescription::State bottom() const override;
 
   TypeStateDescription::State top() const override;
