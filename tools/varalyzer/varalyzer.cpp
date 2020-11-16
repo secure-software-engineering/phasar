@@ -14,6 +14,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -57,20 +58,21 @@ int main(int argc, char **argv) {
       AnalysisType == OpenSSLEVPAnalysisType::ALL) {
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
-                                    EntryPoints);
+                                 EntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
     IDESolver Solver(VarProblem);
     Solver.solve();
+    Solver.dumpResults();
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
       AnalysisType == OpenSSLEVPAnalysisType::MAC ||
       AnalysisType == OpenSSLEVPAnalysisType::ALL) {
     OpenSSLEVPMDCTXDescription MdCTXDesc;
-    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
-                                    EntryPoints);
+    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc, EntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
     IDESolver Solver(VarProblem);
     Solver.solve();
+    Solver.dumpResults();
   }
   return 0;
 }

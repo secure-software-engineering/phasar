@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -78,6 +79,7 @@ int main(int argc, char **argv) {
                                                                   DesugaredICF);
     IDESolver VarSolver(VarVarProblem);
     VarSolver.solve();
+    // auto VarBreaches = VarVarProblem.getProtocolBreaches();
     // have one large loop that computes all required information for the
     // sampled software products
     for (const auto &SPIRFile : SPIRFiles) {
@@ -94,6 +96,13 @@ int main(int argc, char **argv) {
       IDESolver Solver(TSProblem);
       Solver.solve();
       // do the comparison
+      //  (i) clear function name (name of the function in which the error
+      //  occurred) (ii) errornous transition (state before error and token that
+      //  caused the error (clear name))
+      // auto NonVarBreaches = TSProblem.getProtocolBreaches();
+      // for () {
+      //   check if every NonVarBreach can be found in VarBreaches
+      // }
     }
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
@@ -106,6 +115,7 @@ int main(int argc, char **argv) {
                                                                   DesugaredICF);
     IDESolver VarSolver(VarVarProblem);
     VarSolver.solve();
+    // TODO
     // have one large loop that computes all required information for the
     // sampled
     // software products
@@ -122,6 +132,7 @@ int main(int argc, char **argv) {
                                      EntryPoints);
       IDESolver Solver(TSProblem);
       Solver.solve();
+      // TODO
       // do the comparison
     }
   }

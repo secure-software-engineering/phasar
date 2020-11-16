@@ -26,6 +26,8 @@ enum class OpenSSLEVPAnalysisType { ALL, CIPHER, MAC, MD };
 
 OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str);
 
+std::set<std::string> getEntryPointsForCallersOf();
+
 } // namespace psr
 
 #endif
