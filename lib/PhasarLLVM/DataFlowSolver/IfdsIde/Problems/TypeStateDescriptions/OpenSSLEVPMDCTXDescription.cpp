@@ -72,8 +72,9 @@ OpenSSLEVPMDCTXDescription::funcNameToToken(llvm::StringRef F) const {
 }
 
 OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXDescription(
-    const stringstringmap_t *staticRenaming)
+    const stringstringmap_t *staticRenaming, llvm::StringRef typeNameOfInterest)
     : TypeStateDescription(), staticRenaming(staticRenaming),
+      typeNameOfInterest(typeNameOfInterest.str()),
       name2tok(
           {{"EVP_MD_CTX_new", OpenSSLEVPMDCTXToken::EVP_MD_CTX_NEW},
            {"EVP_DigestInit", OpenSSLEVPMDCTXToken::EVP_DIGEST_INIT},
@@ -129,13 +130,14 @@ OpenSSLEVPMDCTXDescription::getNextState(std::string Tok,
 }
 
 std::string OpenSSLEVPMDCTXDescription::getTypeNameOfInterest() const {
-  if (staticRenaming) {
+  /*if (staticRenaming) {
     if (auto it = staticRenaming->find("evp_md_ctx_st");
         it != staticRenaming->end()) {
       return (llvm::StringLiteral("struct.") + it->second).str();
     }
   }
-  return "struct.evp_md_ctx_st";
+  return "struct.evp_md_ctx_st";*/
+  return typeNameOfInterest;
 }
 
 std::set<int>

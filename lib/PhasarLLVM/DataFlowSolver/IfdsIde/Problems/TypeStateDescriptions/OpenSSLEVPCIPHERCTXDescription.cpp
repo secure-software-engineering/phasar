@@ -85,8 +85,9 @@ auto OpenSSLEVPCIPHERCTXDescription::funcNameToToken(llvm::StringRef F) const
 }
 
 OpenSSLEVPCIPHERCTXDescription::OpenSSLEVPCIPHERCTXDescription(
-    const stringstringmap_t *staticRenaming)
+    const stringstringmap_t *staticRenaming, llvm::StringRef typeNameOfInterest)
     : TypeStateDescription(), staticRenaming(staticRenaming),
+      typeNameOfInterest(typeNameOfInterest.str()),
       name2tok(
           {{"EVP_CIPHER_CTX_new", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_NEW},
            {"EVP_CipherInit_ex", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_INIT},
@@ -145,13 +146,14 @@ TypeStateDescription::State OpenSSLEVPCIPHERCTXDescription::getNextState(
 }
 
 std::string OpenSSLEVPCIPHERCTXDescription::getTypeNameOfInterest() const {
-  if (staticRenaming) {
+  /*if (staticRenaming) {
     if (auto it = staticRenaming->find("evp_cipher_ctx_st");
         it != staticRenaming->end()) {
       return (llvm::StringLiteral("struct.") + it->second).str();
     }
   }
-  return "struct.evp_cipher_ctx_st";
+  return "struct.evp_cipher_ctx_st";*/
+  return typeNameOfInterest;
 }
 
 std::set<int> OpenSSLEVPCIPHERCTXDescription::getConsumerParamIdx(

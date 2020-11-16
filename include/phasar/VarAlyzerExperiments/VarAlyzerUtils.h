@@ -10,6 +10,7 @@
 #ifndef PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 #define PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 
+#include <set>
 #include <string>
 #include <vector>
 
