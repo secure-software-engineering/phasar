@@ -85,8 +85,9 @@ auto OpenSSLEVPCIPHERCTXDescription::funcNameToToken(llvm::StringRef F) const
 }
 
 OpenSSLEVPCIPHERCTXDescription::OpenSSLEVPCIPHERCTXDescription(
-    const stringstringmap_t *staticRenaming)
+    const stringstringmap_t *staticRenaming, llvm::StringRef typeNameOfInterest)
     : TypeStateDescription(), staticRenaming(staticRenaming),
+      typeNameOfInterest(typeNameOfInterest.str()),
       name2tok(
           {{"EVP_CIPHER_CTX_new", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_NEW},
            {"EVP_CipherInit_ex", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_INIT},
@@ -145,13 +146,14 @@ TypeStateDescription::State OpenSSLEVPCIPHERCTXDescription::getNextState(
 }
 
 std::string OpenSSLEVPCIPHERCTXDescription::getTypeNameOfInterest() const {
-  if (staticRenaming) {
+  /*if (staticRenaming) {
     if (auto it = staticRenaming->find("evp_cipher_ctx_st");
         it != staticRenaming->end()) {
       return (llvm::StringLiteral("struct.") + it->second).str();
     }
   }
-  return "struct.evp_cipher_ctx_st";
+  return "struct.evp_cipher_ctx_st";*/
+  return typeNameOfInterest;
 }
 
 std::set<int> OpenSSLEVPCIPHERCTXDescription::getConsumerParamIdx(
@@ -179,9 +181,8 @@ OpenSSLEVPCIPHERCTXDescription::getFactoryParamIdx(const std::string &F) const {
     return {};
 }
 
-std::string OpenSSLEVPCIPHERCTXDescription::stateToString(
+llvm::StringRef OpenSSLEVPCIPHERCTXDescription::stateToUnownedString(
     TypeStateDescription::State S) const {
-
   switch (S) {
   case TOP:
     return "TOP";
@@ -206,6 +207,32 @@ std::string OpenSSLEVPCIPHERCTXDescription::stateToString(
   default:
     return "<NONE>";
   }
+}
+
+std::string OpenSSLEVPCIPHERCTXDescription::stateToString(
+    TypeStateDescription::State S) const {
+  return stateToUnownedString(S).str();
+}
+
+llvm::StringRef OpenSSLEVPCIPHERCTXDescription::tokenToString(int tok) const {
+  static std::array<std::string, enum2int(OpenSSLEVPCIPHERCTXToken::STAR)>
+      tokNames = {
+          "EVP_CIPHER_CTX_NEW", "EVP_CIPHER_INIT",    "EVP_CIPHER_UPDATE",
+          "EVP_CIPHER_FINAL",   "EVP_ENCRYPT_INIT",   "EVP_ENCRYPT_UPDATE",
+          "EVP_ENCRYPT_FINAL",  "EVP_DECRYPT_INIT",   "EVP_DECRYPT_UPDATE",
+          "EVP_DECRYPT_FINAL",  "EVP_CIPHER_CTX_FREE"};
+  if (unsigned(tok) < tokNames.size())
+    return tokNames[tok];
+
+  return "<STAR>";
+}
+
+llvm::StringRef
+OpenSSLEVPCIPHERCTXDescription::demangleToken(llvm::StringRef Tok) const {
+  auto IntTok = funcNameToToken(Tok);
+  if (IntTok == OpenSSLEVPCIPHERCTXToken::STAR)
+    return Tok;
+  return tokenToString(enum2int(IntTok));
 }
 
 TypeStateDescription::State OpenSSLEVPCIPHERCTXDescription::bottom() const {

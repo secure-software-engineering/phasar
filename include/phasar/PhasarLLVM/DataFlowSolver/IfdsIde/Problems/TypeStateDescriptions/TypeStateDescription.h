@@ -52,6 +52,11 @@ struct TypeStateDescription {
   virtual std::set<int> getConsumerParamIdx(const std::string &F) const = 0;
   virtual std::set<int> getFactoryParamIdx(const std::string &F) const = 0;
   virtual std::string stateToString(State S) const = 0;
+  virtual llvm::StringRef stateToUnownedString(State S) const;
+  virtual llvm::StringRef tokenToString(int Tok) const { return "Token"; }
+  virtual llvm::StringRef demangleToken(llvm::StringRef Tok) const {
+    return Tok;
+  }
   virtual State bottom() const = 0;
   virtual State top() const = 0;
 

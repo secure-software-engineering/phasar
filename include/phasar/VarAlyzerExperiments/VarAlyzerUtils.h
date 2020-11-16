@@ -14,6 +14,10 @@
 #include <string>
 #include <vector>
 
+#include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/StringRef.h"
+
 #include "boost/filesystem/path.hpp"
 
 namespace psr {

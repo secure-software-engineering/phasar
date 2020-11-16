@@ -18,6 +18,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/VarCFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
 #include <llvm/ADT/StringMap.h>
 #include <optional>
 
@@ -46,6 +47,7 @@ private:
   // related member functions need to be const.
   mutable z3::context CTX;
   llvm::StringMap<z3::expr> AvailablePPConditions;
+  const stringstringmap_t *staticBackwardRenaming = nullptr;
   // mutable std::unordered_map<std::string, z3::expr> PPVariables;
 
   bool isPPBranchNode(const llvm::BranchInst *BI) const;
@@ -78,7 +80,8 @@ private:
   z3::expr deserializePPCondition(llvm::StringRef Cond) const;
 
 public:
-  LLVMBasedVarCFG(const ProjectIRDB &IRDB);
+  LLVMBasedVarCFG(const ProjectIRDB &IRDB,
+                  const stringstringmap_t *StaticBackwardRenaming = nullptr);
 
   ~LLVMBasedVarCFG() override = default;
 
@@ -94,6 +97,9 @@ public:
   z3::expr getTrueConstraint() const override;
 
   z3::context &getContext() const;
+
+  [[nodiscard]] std::string
+  getDemangledFunctionName(const llvm::Function *Fun) const override;
 };
 
 } // namespace psr

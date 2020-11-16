@@ -15,6 +15,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/DB/ProjectIRDB.h"
@@ -436,24 +437,33 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
                     << "Processing factory function");
       if (isZeroValue(CallNode) && RetSiteNode == CS.getInstruction()) {
         struct TSFactoryEF : public TSEdgeFunction {
-          TSFactoryEF(const TypeStateDescription &Tsd, const std::string &Tok,
+          TSFactoryEF(IDETypeStateAnalysis &Tsa, const std::string &Tok,
                       llvm::ImmutableCallSite Cs)
-              : TSEdgeFunction(Tsd, Tok, Cs) {}
+              : TSEdgeFunction(Tsa, Tok, Cs) {}
 
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t Source) override {
             // CurrentState = TSD.start();
-            CurrentState = TSD.getNextState(
-                Token, Source == TSD.top() ? TSD.uninit() : Source, CS);
 
+            CurrentState = TSA.TSD.getNextState(
+                Token, Source == TSA.TSD.top() ? TSA.TSD.uninit() : Source, CS);
+            if (CurrentState == TSA.TSD.error() && Source != CurrentState) {
+              // transition to error
+              auto parentFnName =
+                  TSA.getICFG()->getDemangledFunctionName(CS->getFunction());
+              TSA.DetectedBreaches.insert(
+                  Breach{parentFnName,
+                         {TSA.TSD.stateToUnownedString(Source),
+                          TSA.TSD.demangleToken(Token)}});
+            }
             return CurrentState;
           }
 
           void print(std::ostream &OS, bool IsForDebug = false) const override {
-            OS << "Factory(" << TSD.stateToString(CurrentState) << ")";
+            OS << "Factory(" << TSA.TSD.stateToString(CurrentState) << ")";
           }
         };
-        return make_shared<TSFactoryEF>(TSD, DemangledFname, CS);
+        return make_shared<TSFactoryEF>(*this, DemangledFname, CS);
       }
     }
 
@@ -468,7 +478,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
         if (CallNode == RetSiteNode &&
             PointsToAndAllocas.find(CallNode) != PointsToAndAllocas.end()) {
-          return make_shared<TSEdgeFunction>(TSD, DemangledFname, CS);
+          return make_shared<TSEdgeFunction>(*this, DemangledFname, CS);
         }
       }
     }
@@ -542,11 +552,11 @@ IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
     IDETypeStateAnalysis::l_t Source) {
-  CurrentState = TSD.getNextState(Token, Source);
+  CurrentState = TSA.TSD.getNextState(Token, Source);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "State machine transition: (" << Token << " , "
-                << TSD.stateToString(Source) << ") -> "
-                << TSD.stateToString(CurrentState));
+                << TSA.TSD.stateToString(Source) << ") -> "
+                << TSA.TSD.stateToString(CurrentState));
   return CurrentState;
 }
 
@@ -562,7 +572,7 @@ IDETypeStateAnalysis::TSEdgeFunction::composeWith(
     return this->shared_from_this();
   }
   return make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
-                                             SecondFunction, TSD.bottom());
+                                             SecondFunction, TSA.TSD.bottom());
 }
 
 std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
@@ -580,7 +590,7 @@ IDETypeStateAnalysis::TSEdgeFunction::joinWith(
           OtherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSD.bottom());
+  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSA.TSD.bottom());
 }
 
 bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
@@ -594,7 +604,7 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
 
 void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
                                                  bool IsForDebug) const {
-  OS << "TSEF(" << TSD.stateToString(CurrentState) << ")";
+  OS << "TSEF(" << TSA.TSD.stateToString(CurrentState) << ")";
 }
 
 std::set<IDETypeStateAnalysis::d_t>
@@ -817,4 +827,47 @@ void IDETypeStateAnalysis::emitTextReport(
   }
 }
 
+bool TypeStateAnalysis::Breach::operator==(const Breach &B) const {
+  return Caller == B.Caller && Transition.State == B.Transition.State &&
+         Transition.Token == B.Transition.Token;
+}
+std::ostream &TypeStateAnalysis::operator<<(std::ostream &OS, const Breach &B) {
+  llvm::raw_os_ostream(OS) << "{ Caller: \"" << B.Caller
+                           << "\", Transition: { State: \""
+                           << B.Transition.State << "\", Token: \""
+                           << B.Transition.Token << "\" } }";
+  return OS;
+}
+
 } // namespace psr
+
+namespace llvm {
+
+hash_code hash_value(const psr::TypeStateAnalysis::Breach &B) {
+  return hash_combine(llvm::StringRef(B.Caller),
+                      llvm::StringRef(B.Transition.State), B.Transition.Token);
+}
+
+psr::TypeStateAnalysis::Breach
+DenseMapInfo<psr::TypeStateAnalysis::Breach>::getEmptyKey() {
+  return psr::TypeStateAnalysis::Breach{
+      "", {"", DenseMapInfo<StringRef>::getEmptyKey()}};
+}
+
+psr::TypeStateAnalysis::Breach
+DenseMapInfo<psr::TypeStateAnalysis::Breach>::getTombstoneKey() {
+  return psr::TypeStateAnalysis::Breach{
+      "", {"", DenseMapInfo<StringRef>::getTombstoneKey()}};
+}
+
+unsigned DenseMapInfo<psr::TypeStateAnalysis::Breach>::getHashValue(
+    const psr::TypeStateAnalysis::Breach &B) {
+  return hash_value(B);
+}
+
+bool DenseMapInfo<psr::TypeStateAnalysis::Breach>::isEqual(
+    const psr::TypeStateAnalysis::Breach &B1,
+    const psr::TypeStateAnalysis::Breach &B2) {
+  return B1 == B2;
+}
+} // namespace llvm
