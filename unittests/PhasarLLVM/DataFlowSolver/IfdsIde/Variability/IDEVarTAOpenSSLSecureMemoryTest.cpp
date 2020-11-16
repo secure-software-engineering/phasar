@@ -143,7 +143,7 @@ TEST_F(IDEVarTabulationProblemTest, DISABLED_HandleBasic_01) {
   GroundTruth[11]["9"] = {{"true", ALLOCATED}};
   GroundTruth[11]["4"] = {{"true", ALLOCATED}};
 
-  doAnalysisAndCompareResults("memory1_c.ll", GroundTruth, true);
+  doAnalysisAndCompareResults("memory1_1_c.ll", GroundTruth, true);
 }
 
 TEST_F(IDEVarTabulationProblemTest, HandleBasic_01_2) {

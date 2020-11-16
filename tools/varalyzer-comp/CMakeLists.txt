@@ -1,18 +1,18 @@
 # Build a stand-alone executable
 if(PHASAR_IN_TREE)
-  add_phasar_executable(varalyzer
-    varalyzer.cpp
+  add_phasar_executable(varalyzer-comp
+    varalyzer-comp.cpp
   )
 else()
-  add_executable(varalyzer
-    varalyzer.cpp
+  add_executable(varalyzer-comp
+    varalyzer-comp.cpp
   )
 endif()
 
 find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
-target_link_libraries(varalyzer
+target_link_libraries(varalyzer-comp
   LINK_PUBLIC
   phasar_config
   phasar_controller
@@ -38,15 +38,15 @@ target_link_libraries(varalyzer
 )
 
 if(USE_LLVM_FAT_LIB)
-  llvm_config(varalyzer USE_SHARED ${LLVM_LINK_COMPONENTS})
+  llvm_config(varalyzer-comp USE_SHARED ${LLVM_LINK_COMPONENTS})
 else()
-  llvm_config(varalyzer ${LLVM_LINK_COMPONENTS})
+  llvm_config(varalyzer-comp ${LLVM_LINK_COMPONENTS})
 endif()
 
 set(LLVM_LINK_COMPONENTS
 )
 
-install(TARGETS varalyzer
+install(TARGETS varalyzer-comp
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

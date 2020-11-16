@@ -6,8 +6,8 @@
 #include "boost/filesystem/path.hpp"
 
 #include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPCIPHERCTXDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   // handle command-line arguments
-  std::cout << "Hello, VarAlyzer!\n";
+  std::cout << "Hello, Typestate!\n";
   std::string AnalysisTypeStr = argv[1];
   boost::filesystem::path DesugeredSPLIRFile = argv[2];
   // have some rudimentary checks
@@ -52,24 +52,21 @@ int main(int argc, char **argv) {
   ProjectIRDB IR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IR);
   LLVMPointsToSet PT(IR);
-  LLVMBasedVarICFG ICF(IR, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
+  LLVMBasedICFG ICF(IR, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
   if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER ||
       AnalysisType == OpenSSLEVPAnalysisType::ALL) {
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
-                                    EntryPoints);
-    IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
-    IDESolver Solver(VarProblem);
+                                 EntryPoints);
+    IDESolver Solver(Problem);
     Solver.solve();
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
       AnalysisType == OpenSSLEVPAnalysisType::MAC ||
       AnalysisType == OpenSSLEVPAnalysisType::ALL) {
     OpenSSLEVPMDCTXDescription MdCTXDesc;
-    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
-                                    EntryPoints);
-    IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
-    IDESolver Solver(VarProblem);
+    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc, EntryPoints);
+    IDESolver Solver(Problem);
     Solver.solve();
   }
   return 0;
