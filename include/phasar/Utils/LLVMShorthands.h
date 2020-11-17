@@ -18,6 +18,7 @@
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
 #include <string>
+#include <optional>
 #include <vector>
 
 #include "phasar/Utils/Utilities.h"
@@ -188,6 +189,15 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  * @return
  */
 std::size_t computeModuleHash(const llvm::Module *M);
+
+/**
+ * @brief Returns the constant string that is represented by V. If V is no
+ * constant string, returns std::nullopt.
+ * @remarks Expects V to be a getelementptr of a global variable that is
+ * initialized with a c-string
+ */
+std::optional<llvm::StringRef>
+extractConstantStringFromValue(const llvm::Value *V);
 
 } // namespace psr
 

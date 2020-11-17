@@ -10,6 +10,7 @@
 #ifndef PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 #define PHASAR_VARALYZEREXPERIMENTS_VARALYZERUTILS_H_
 
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -49,7 +50,8 @@ getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
                                     LLVMBasedICFG &ICF,
                                     const stringstringmap_t &FNameMap);
 
-llvm::StringRef getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A);
+std::optional<llvm::StringRef>
+getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A);
 
 llvm::StringRef staticRename(llvm::StringRef Name,
                              const stringstringmap_t &Renaming);

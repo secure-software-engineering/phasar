@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <cassert>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -89,7 +90,8 @@ getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
   return EntryPoints;
 }
 
-llvm::StringRef getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A) {
+std::optional<llvm::StringRef>
+getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A) {
   const auto *F = A->getFunction();
   for (const auto &BB : *F) {
     for (const auto &I : BB) {
@@ -109,7 +111,7 @@ llvm::StringRef getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A) {
       }
     }
   }
-  return "";
+  return std::nullopt;
 }
 
 llvm::StringRef staticRename(llvm::StringRef Name,

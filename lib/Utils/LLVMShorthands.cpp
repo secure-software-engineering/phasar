@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 #include <unordered_map>
+#include <optional>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -315,6 +316,25 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
     }
   }
   return nullptr;
+}
+
+std::optional<llvm::StringRef>
+extractConstantStringFromValue(const llvm::Value *V) {
+  auto gep = llvm::dyn_cast<llvm::ConstantExpr>(V); // constant GEP
+  if (!gep)
+    return std::nullopt;
+
+  auto gv = llvm::dyn_cast<llvm::GlobalVariable>(
+      gep->getOperand(0)); // Pointer operand of the constant GEP
+  if (!gv)
+    return std::nullopt;
+
+  auto init =
+      llvm::dyn_cast_or_null<llvm::ConstantDataArray>(gv->getInitializer());
+  if (!init)
+    return std::nullopt;
+
+  return init->getAsCString();
 }
 
 } // namespace psr
