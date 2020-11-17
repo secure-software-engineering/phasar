@@ -62,7 +62,7 @@ OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str) {
   llvm::report_fatal_error("input string is invalid");
 }
 
-std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
+std::set<std::string> getEntryPointsForCallersOf(llvm::StringRef FunName,
                                                  ProjectIRDB &IR,
                                                  LLVMBasedICFG &ICF) {
   const auto *F = IR.getFunction(FunName);
@@ -75,43 +75,12 @@ std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
 }
 
 std::set<std::string>
-getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
+getEntryPointsForCallersOfDesugared(llvm::StringRef FunName, ProjectIRDB &IR,
                                     LLVMBasedICFG &ICF,
                                     const stringstringmap_t &FNameMap) {
   auto Search = FNameMap.find(FunName);
   assert(Search != FNameMap.end() && "Expected to find FunName in FNameMap!");
-  auto DesugaredFName = Search->second;
-  const auto *F = IR.getFunction(DesugaredFName);
-  auto CallSites = ICF.getCallersOf(IR.getFunction(DesugaredFName));
-  std::set<std::string> EntryPoints;
-  for (const auto *CallSite : CallSites) {
-    EntryPoints.insert(CallSite->getFunction()->getName().str());
-  }
-  return EntryPoints;
-}
-
-std::optional<llvm::StringRef>
-getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A) {
-  const auto *F = A->getFunction();
-  for (const auto &BB : *F) {
-    for (const auto &I : BB) {
-      if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
-        if (DbgDeclare->getAddress() == A) {
-          const auto *LocalVar = DbgDeclare->getVariable();
-          if (const auto *DerivedTy =
-                  llvm::dyn_cast<llvm::DIDerivedType>(LocalVar->getType())) {
-            while ((DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
-                        DerivedTy->getBaseType()))) {
-              if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef) {
-                return DerivedTy->getName();
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return std::nullopt;
+  return getEntryPointsForCallersOf(Search->second, IR, ICF);
 }
 
 llvm::StringRef staticRename(llvm::StringRef Name,

@@ -41,25 +41,23 @@ enum class OpenSSLEVPAnalysisType { CIPHER, MAC, MD };
 
 OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str);
 
-std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
+std::set<std::string> getEntryPointsForCallersOf(llvm::StringRef FunName,
                                                  ProjectIRDB &IR,
                                                  LLVMBasedICFG &ICF);
 
 std::set<std::string>
-getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
+getEntryPointsForCallersOfDesugared(llvm::StringRef FunName, ProjectIRDB &IR,
                                     LLVMBasedICFG &ICF,
                                     const stringstringmap_t &FNameMap);
 
 std::optional<llvm::StringRef>
-getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A);
-std::optional<llvm::StringRef>
 extractDesugaredTypeNameOfInterest(llvm::StringRef OriginalTOI,
                                    const ProjectIRDB &IRDB,
                                    const stringstringmap_t &ForwardRenaming);
-llvm::StringRef
-extractDesugaredTypeNameOfInterestOrFail(llvm::StringRef OriginalTOI,
-                                   const ProjectIRDB &IRDB,
-                                   const stringstringmap_t &ForwardRenaming, llvm::StringRef ErrorMsg, int errorExitCode=1);
+llvm::StringRef extractDesugaredTypeNameOfInterestOrFail(
+    llvm::StringRef OriginalTOI, const ProjectIRDB &IRDB,
+    const stringstringmap_t &ForwardRenaming, llvm::StringRef ErrorMsg,
+    int errorExitCode = 1);
 
 llvm::StringRef staticRename(llvm::StringRef Name,
                              const stringstringmap_t &Renaming);
