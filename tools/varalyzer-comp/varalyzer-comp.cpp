@@ -83,11 +83,17 @@ int main(int argc, char **argv) {
   int numViolations = 0;
 
   if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
-    OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc(&ForwardRenaming);
+    auto typenameOfInterest = extractDesugaredTypeNameOfInterestOrFail(
+        "EVP_CIPHER_CTX", DesugaredIR, ForwardRenaming,
+        "error: analysis target EVP_CIPHER_CTX not found in the LLVM IR "
+        "file\n");
+    OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc(&ForwardRenaming,
+                                                    typenameOfInterest);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
     if (VarAnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points\n";
+      std::cout << "error: could not retrieve analysis' entry points for file: "
+                << DesugeredSPLIRFile.string() << "\n";
       return 1;
     }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
@@ -111,8 +117,11 @@ int main(int argc, char **argv) {
       auto AnalysisEntryPoints =
           getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", SPIR, SPICF);
       if (AnalysisEntryPoints.empty()) {
-        std::cout << "error: could not retrieve analysis' entry points\n";
-        return 1;
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "error: could not retrieve analysis' entry points for file: "
+            << SPIRFile.string());
+        continue;
       }
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, CipherCTXDesc,
                                      AnalysisEntryPoints);
@@ -135,11 +144,17 @@ int main(int argc, char **argv) {
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
       AnalysisType == OpenSSLEVPAnalysisType::MAC) {
-    OpenSSLEVPMDCTXDescription VarMdCTXDesc(&ForwardRenaming);
+    auto typenameOfInterest = extractDesugaredTypeNameOfInterestOrFail(
+        "EVP_MD_CTX", DesugaredIR, ForwardRenaming,
+        "error: analysis target EVP_MD_CTX not found in the LLVM IR "
+        "file\n");
+    OpenSSLEVPMDCTXDescription VarMdCTXDesc(&ForwardRenaming,
+                                            typenameOfInterest);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
     if (VarAnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points\n";
+      std::cout << "error: could not retrieve analysis' entry points for file: "
+                << DesugeredSPLIRFile.string() << "\n";
       return 1;
     }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
@@ -150,7 +165,6 @@ int main(int argc, char **argv) {
     IDESolver VarSolver(VarVarProblem);
     VarSolver.solve();
     auto VarBreaches = VarTSProblem.getProtocolBreaches();
-    // TODO
     // have one large loop that computes all required information for the
     // sampled
     // software products
@@ -165,14 +179,16 @@ int main(int argc, char **argv) {
       auto AnalysisEntryPoints =
           getEntryPointsForCallersOf("EVP_MD_CTX_new", SPIR, SPICF);
       if (AnalysisEntryPoints.empty()) {
-        std::cout << "error: could not retrieve analysis' entry points\n";
-        return 1;
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "error: could not retrieve analysis' entry points for file: "
+            << SPIRFile.string());
+        continue;
       }
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, MdCTXDesc,
                                      AnalysisEntryPoints);
       IDESolver Solver(TSProblem);
       Solver.solve();
-      // TODO
       // do the comparison
       auto NonVarBreaches = TSProblem.getProtocolBreaches();
       for (const auto &NonVarBreach : NonVarBreaches) {

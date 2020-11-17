@@ -16,6 +16,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/path.hpp"
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Instructions.h"
@@ -61,7 +62,7 @@ OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str) {
   llvm::report_fatal_error("input string is invalid");
 }
 
-std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
+std::set<std::string> getEntryPointsForCallersOf(llvm::StringRef FunName,
                                                  ProjectIRDB &IR,
                                                  LLVMBasedICFG &ICF) {
   const auto *F = IR.getFunction(FunName);
@@ -74,43 +75,12 @@ std::set<std::string> getEntryPointsForCallersOf(const std::string &FunName,
 }
 
 std::set<std::string>
-getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
+getEntryPointsForCallersOfDesugared(llvm::StringRef FunName, ProjectIRDB &IR,
                                     LLVMBasedICFG &ICF,
                                     const stringstringmap_t &FNameMap) {
   auto Search = FNameMap.find(FunName);
   assert(Search != FNameMap.end() && "Expected to find FunName in FNameMap!");
-  auto DesugaredFName = Search->second;
-  const auto *F = IR.getFunction(DesugaredFName);
-  auto CallSites = ICF.getCallersOf(IR.getFunction(DesugaredFName));
-  std::set<std::string> EntryPoints;
-  for (const auto *CallSite : CallSites) {
-    EntryPoints.insert(CallSite->getFunction()->getName().str());
-  }
-  return EntryPoints;
-}
-
-std::optional<llvm::StringRef>
-getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A) {
-  const auto *F = A->getFunction();
-  for (const auto &BB : *F) {
-    for (const auto &I : BB) {
-      if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
-        if (DbgDeclare->getAddress() == A) {
-          const auto *LocalVar = DbgDeclare->getVariable();
-          if (const auto *DerivedTy =
-                  llvm::dyn_cast<llvm::DIDerivedType>(LocalVar->getType())) {
-            while ((DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
-                        DerivedTy->getBaseType()))) {
-              if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef) {
-                return DerivedTy->getName();
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return std::nullopt;
+  return getEntryPointsForCallersOf(Search->second, IR, ICF);
 }
 
 llvm::StringRef staticRename(llvm::StringRef Name,
@@ -122,6 +92,56 @@ llvm::StringRef staticRename(llvm::StringRef Name,
                 << "Renaming fallthrough: " << Name.str());
 
   return Name;
+}
+
+std::optional<llvm::StringRef>
+getBaseTypeNameIfUsingTypeDef(llvm::StringRef Target, const llvm::Function *F) {
+  for (auto ii = llvm::inst_begin(F), end = llvm::inst_end(F); ii != end;
+       ++ii) {
+    if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&*ii)) {
+      const auto *LocalVar = DbgDeclare->getVariable();
+
+      if (const auto *DerivedTy =
+              llvm::dyn_cast<llvm::DIDerivedType>(LocalVar->getType())) {
+
+        while ((DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
+                    DerivedTy->getBaseType()))) {
+          if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef) {
+            if (DerivedTy->getName() == Target) {
+              return DerivedTy->getBaseType()->getName();
+            }
+          }
+        }
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+std::optional<llvm::StringRef>
+extractDesugaredTypeNameOfInterest(llvm::StringRef OriginalTOI,
+                                   const ProjectIRDB &IRDB,
+                                   const stringstringmap_t &ForwardRenaming) {
+  auto renamedName = staticRename(OriginalTOI, ForwardRenaming);
+
+  for (auto F : IRDB.getAllFunctions()) {
+    if (auto name = getBaseTypeNameIfUsingTypeDef(renamedName, F))
+      return *name;
+  }
+  return std::nullopt;
+}
+
+llvm::StringRef extractDesugaredTypeNameOfInterestOrFail(
+    llvm::StringRef OriginalTOI, const ProjectIRDB &IRDB,
+    const stringstringmap_t &ForwardRenaming, llvm::StringRef ErrorMsg,
+    int errorExitCode) {
+  if (auto ret = extractDesugaredTypeNameOfInterest(OriginalTOI, IRDB,
+                                                    ForwardRenaming))
+    return *ret;
+
+  llvm::errs() << ErrorMsg;
+  exit(errorExitCode);
+  return "";
 }
 
 } // namespace psr

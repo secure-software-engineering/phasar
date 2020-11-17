@@ -58,7 +58,9 @@ int main(int argc, char **argv) {
       to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
   // compute helper analyses for the desugared IR file
   ProjectIRDB IR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
+
   auto [ForwardRenaming, BackwardRenaming] = extractBiDiStaticRenaming(&IR);
+
   LLVMTypeHierarchy TH(IR);
   LLVMPointsToSet PT(IR);
   // by using an empty list of entry points, all functions are considered as
@@ -66,7 +68,14 @@ int main(int argc, char **argv) {
   LLVMBasedVarICFG ICF(IR, CallGraphAnalysisType::OTF, {}, &TH, &PT,
                        &BackwardRenaming);
   if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
-    OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(&ForwardRenaming);
+    auto typenameOfInterest = extractDesugaredTypeNameOfInterestOrFail(
+        "EVP_CIPHER_CTX", IR, ForwardRenaming,
+        "error: analysis target EVP_CIPHER_CTX not found in the LLVM IR "
+        "file\n");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Found TypeNameOfInterest: " << typenameOfInterest);
+    OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(&ForwardRenaming,
+                                                 typenameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming);
     if (AnalysisEntryPoints.empty()) {
@@ -82,7 +91,13 @@ int main(int argc, char **argv) {
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MAC ||
       AnalysisType == OpenSSLEVPAnalysisType::MD) {
-    OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming);
+    auto typenameOfInterest = extractDesugaredTypeNameOfInterestOrFail(
+        "EVP_MD_CTX", IR, ForwardRenaming,
+        "error: analysis target EVP_MD_CTX not found in the LLVM IR "
+        "file\n");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Found TypeNameOfInterest: " << typenameOfInterest);
+    OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming, typenameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
     if (AnalysisEntryPoints.empty()) {
