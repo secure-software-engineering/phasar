@@ -21,6 +21,11 @@
 #include "boost/filesystem/path.hpp"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
+
+namespace llvm {
+class AllocaInst;
+} // namespace llvm
+
 namespace psr {
 
 class ProjectIRDB;
@@ -43,6 +48,8 @@ std::set<std::string>
 getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
                                     LLVMBasedICFG &ICF,
                                     const stringstringmap_t &FNameMap);
+
+llvm::StringRef getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A);
 
 llvm::StringRef staticRename(llvm::StringRef Name,
                              const stringstringmap_t &Renaming);

@@ -15,6 +15,10 @@
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/path.hpp"
 
+#include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -83,6 +87,29 @@ getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
     EntryPoints.insert(CallSite->getFunction()->getName().str());
   }
   return EntryPoints;
+}
+
+llvm::StringRef getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A) {
+  const auto *F = A->getFunction();
+  for (const auto &BB : *F) {
+    for (const auto &I : BB) {
+      if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
+        if (DbgDeclare->getAddress() == A) {
+          const auto *LocalVar = DbgDeclare->getVariable();
+          if (const auto *DerivedTy =
+                  llvm::dyn_cast<llvm::DIDerivedType>(LocalVar->getType())) {
+            while ((DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
+                        DerivedTy->getBaseType()))) {
+              if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef) {
+                return DerivedTy->getName();
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return "";
 }
 
 llvm::StringRef staticRename(llvm::StringRef Name,
