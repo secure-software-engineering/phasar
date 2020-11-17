@@ -52,6 +52,14 @@ getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
 
 std::optional<llvm::StringRef>
 getBaseTypeNameIfUsingTypeDef(const llvm::AllocaInst *A);
+std::optional<llvm::StringRef>
+extractDesugaredTypeNameOfInterest(llvm::StringRef OriginalTOI,
+                                   const ProjectIRDB &IRDB,
+                                   const stringstringmap_t &ForwardRenaming);
+llvm::StringRef
+extractDesugaredTypeNameOfInterestOrFail(llvm::StringRef OriginalTOI,
+                                   const ProjectIRDB &IRDB,
+                                   const stringstringmap_t &ForwardRenaming, llvm::StringRef ErrorMsg, int errorExitCode=1);
 
 llvm::StringRef staticRename(llvm::StringRef Name,
                              const stringstringmap_t &Renaming);

@@ -16,6 +16,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/path.hpp"
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Instructions.h"
@@ -122,6 +123,56 @@ llvm::StringRef staticRename(llvm::StringRef Name,
                 << "Renaming fallthrough: " << Name.str());
 
   return Name;
+}
+
+std::optional<llvm::StringRef>
+getBaseTypeNameIfUsingTypeDef(llvm::StringRef Target, const llvm::Function *F) {
+  for (auto ii = llvm::inst_begin(F), end = llvm::inst_end(F); ii != end;
+       ++ii) {
+    if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&*ii)) {
+      const auto *LocalVar = DbgDeclare->getVariable();
+
+      if (const auto *DerivedTy =
+              llvm::dyn_cast<llvm::DIDerivedType>(LocalVar->getType())) {
+
+        while ((DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
+                    DerivedTy->getBaseType()))) {
+          if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef) {
+            if (DerivedTy->getName() == Target) {
+              return DerivedTy->getBaseType()->getName();
+            }
+          }
+        }
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+std::optional<llvm::StringRef>
+extractDesugaredTypeNameOfInterest(llvm::StringRef OriginalTOI,
+                                   const ProjectIRDB &IRDB,
+                                   const stringstringmap_t &ForwardRenaming) {
+  auto renamedName = staticRename(OriginalTOI, ForwardRenaming);
+
+  for (auto F : IRDB.getAllFunctions()) {
+    if (auto name = getBaseTypeNameIfUsingTypeDef(renamedName, F))
+      return *name;
+  }
+  return std::nullopt;
+}
+
+llvm::StringRef extractDesugaredTypeNameOfInterestOrFail(
+    llvm::StringRef OriginalTOI, const ProjectIRDB &IRDB,
+    const stringstringmap_t &ForwardRenaming, llvm::StringRef ErrorMsg,
+    int errorExitCode) {
+  if (auto ret = extractDesugaredTypeNameOfInterest(OriginalTOI, IRDB,
+                                                    ForwardRenaming))
+    return *ret;
+
+  llvm::errs() << ErrorMsg;
+  exit(errorExitCode);
+  return "";
 }
 
 } // namespace psr

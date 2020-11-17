@@ -68,7 +68,7 @@ public:
   OpenSSLEVPMDCTXDescription(
 
       const stringstringmap_t *staticRenaming = nullptr,
-      llvm::StringRef typenameOfInterest = "__forward_tag_reference_14");
+      llvm::StringRef typenameOfInterest = "evp_md_ctx_st");
   bool isFactoryFunction(const std::string &F) const override;
 
   bool isConsumingFunction(const std::string &F) const override;
