@@ -77,7 +77,6 @@ std::set<std::string>
 getEntryPointsForCallersOfDesugared(const std::string &FunName, ProjectIRDB &IR,
                                     LLVMBasedICFG &ICF,
                                     const stringstringmap_t &FNameMap) {
-  // auto FNameMap = extractStaticRenaming(&IR);
   auto Search = FNameMap.find(FunName);
   assert(Search != FNameMap.end() && "Expected to find FunName in FNameMap!");
   auto DesugaredFName = Search->second;

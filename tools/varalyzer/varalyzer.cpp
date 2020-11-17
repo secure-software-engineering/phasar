@@ -61,6 +61,10 @@ int main(int argc, char **argv) {
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(&ForwardRenaming);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming);
+    if (AnalysisEntryPoints.empty()) {
+      std::cout << "error: could not retrieve analysis' entry points\n";
+      return 1;
+    }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
                                  AnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
@@ -73,7 +77,10 @@ int main(int argc, char **argv) {
     OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
-
+    if (AnalysisEntryPoints.empty()) {
+      std::cout << "error: could not retrieve analysis' entry points\n";
+      return 1;
+    }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
                                  AnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);

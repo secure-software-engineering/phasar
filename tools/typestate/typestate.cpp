@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     std::cout << "Usage:\n"
                  "\t<varalyzer>\n"
                  "\t<analysis: \"CIPHER\", \"MAC\", \"MD\">\n"
-                 "\t<SuperC-desugared SPL LLVM IR file>\n";
+                 "\t<LLVM IR file>\n";
     return 1;
   }
   // handle command-line arguments
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
       to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
   // compute helper analyses for the desugared IR file
   ProjectIRDB IR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
-  // auto [ForwardRenaming, BackwardRenaming] = extractBiDiStaticRenaming(&IR);
+  auto [ForwardRenaming, BackwardRenaming] = extractBiDiStaticRenaming(&IR);
   LLVMTypeHierarchy TH(IR);
   LLVMPointsToSet PT(IR);
   // by using an empty list of entry points, all functions are considered as
@@ -60,11 +60,15 @@ int main(int argc, char **argv) {
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
     auto AnalysisEntryPoints =
         getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", IR, ICF);
-    // if (AnalysisEntryPoints.empty()) {
-    //   // if AnalysisEntryPoints are empty, we must run on desugared code
-    //   getEntryPointsForCallersOfDesugared("EVP_CIPHER_CTX_new", IR, ICF,
-    //                                       ForwardRenaming);
-    // }
+    if (AnalysisEntryPoints.empty()) {
+      // if AnalysisEntryPoints are empty, we must run on desugared code
+      AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+          "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming);
+    }
+    if (AnalysisEntryPoints.empty()) {
+      std::cout << "error: could not retrieve analysis' entry points\n";
+      return 1;
+    }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
                                  AnalysisEntryPoints);
     IDESolver Solver(Problem);
@@ -76,11 +80,15 @@ int main(int argc, char **argv) {
     OpenSSLEVPMDCTXDescription MdCTXDesc;
     auto AnalysisEntryPoints =
         getEntryPointsForCallersOf("EVP_MD_CTX_new", IR, ICF);
-    // if (AnalysisEntryPoints.empty()) {
-    //   // if AnalysisEntryPoints are empty, we must run on desugared code
-    //   getEntryPointsForCallersOfDesugared("EVP_MD_CTX_new", IR, ICF,
-    //                                       ForwardRenaming);
-    // }
+    if (AnalysisEntryPoints.empty()) {
+      // if AnalysisEntryPoints are empty, we must run on desugared code
+      AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+          "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
+    }
+    if (AnalysisEntryPoints.empty()) {
+      std::cout << "error: could not retrieve analysis' entry points\n";
+      return 1;
+    }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
                                  AnalysisEntryPoints);
     IDESolver Solver(Problem);

@@ -80,6 +80,10 @@ int main(int argc, char **argv) {
     OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc(&ForwardRenaming);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
+    if (VarAnalysisEntryPoints.empty()) {
+      std::cout << "error: could not retrieve analysis' entry points\n";
+      return 1;
+    }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
                                       &DesugaredPT, VarCipherCTXDesc,
                                       VarAnalysisEntryPoints);
@@ -100,6 +104,10 @@ int main(int argc, char **argv) {
       OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
       auto AnalysisEntryPoints =
           getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", SPIR, SPICF);
+      if (AnalysisEntryPoints.empty()) {
+        std::cout << "error: could not retrieve analysis' entry points\n";
+        return 1;
+      }
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, CipherCTXDesc,
                                      AnalysisEntryPoints);
       IDESolver Solver(TSProblem);
@@ -124,6 +132,10 @@ int main(int argc, char **argv) {
     OpenSSLEVPMDCTXDescription VarMdCTXDesc(&ForwardRenaming);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
+    if (VarAnalysisEntryPoints.empty()) {
+      std::cout << "error: could not retrieve analysis' entry points\n";
+      return 1;
+    }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
                                       &DesugaredPT, VarMdCTXDesc,
                                       VarAnalysisEntryPoints);
@@ -146,6 +158,10 @@ int main(int argc, char **argv) {
       OpenSSLEVPMDCTXDescription MdCTXDesc;
       auto AnalysisEntryPoints =
           getEntryPointsForCallersOf("EVP_MD_CTX_new", SPIR, SPICF);
+      if (AnalysisEntryPoints.empty()) {
+        std::cout << "error: could not retrieve analysis' entry points\n";
+        return 1;
+      }
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, MdCTXDesc,
                                      AnalysisEntryPoints);
       IDESolver Solver(TSProblem);
