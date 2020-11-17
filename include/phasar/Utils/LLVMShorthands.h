@@ -17,12 +17,10 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "phasar/Utils/Utilities.h"
-#include <llvm/ADT/StringRef.h>
 
 namespace llvm {
 class Value;
@@ -61,9 +59,6 @@ bool matchesSignature(const llvm::FunctionType *FType1,
 
 /**
  * @brief Returns a string representation of a LLVM Value.
- * @note Expensive function (between 20 to 550 ms per call)
- *       avoid to do it often, it can kill the performances (c.f. warning in the
- * implementation)
  */
 std::string llvmIRToString(const llvm::Value *V);
 
@@ -79,15 +74,6 @@ std::string llvmIRToShortString(const llvm::Value *V);
  */
 std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F);
-
-/**
- * @brief Returns the constant string that is represented by V. If V is no
- * constant string, returns std::nullopt.
- * @remarks Expects V to be a getelementptr of a global variable that is
- * initialized with a c-string
- */
-std::optional<llvm::StringRef>
-extractConstantStringFromValue(const llvm::Value *V);
 
 /**
  * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta

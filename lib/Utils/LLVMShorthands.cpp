@@ -15,6 +15,7 @@
  */
 
 #include <cstdlib>
+#include <unordered_map>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -26,6 +27,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -103,14 +105,22 @@ bool matchesSignature(const llvm::FunctionType *FType1,
   return false;
 }
 
+static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
+  static std::unordered_map<const llvm::Module *,
+                            std::unique_ptr<llvm::ModuleSlotTracker>>
+      ModuleToSlotTracker;
+  const auto *M = getModuleFromVal(V);
+  if (ModuleToSlotTracker.count(M) == 0) {
+    ModuleToSlotTracker.insert_or_assign(
+        M, std::make_unique<llvm::ModuleSlotTracker>(M));
+  }
+  return *ModuleToSlotTracker[M];
+}
+
 std::string llvmIRToString(const llvm::Value *V) {
-  // WARNING: Expensive function, cause is the V->print(RSO)
-  //         (20ms on a medium size code (phasar without debug)
-  //          80ms on a huge size code (clang without debug),
-  //          can be multiplied by times 3 to 5 if passes are enabled)
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
-  V->print(RSO);
+  V->print(RSO, getModuleSlotTrackerFor(V));
   RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
   boost::trim_left(IRBuffer);
@@ -118,23 +128,13 @@ std::string llvmIRToString(const llvm::Value *V) {
 }
 
 std::string llvmIRToShortString(const llvm::Value *V) {
-  // WARNING: Expensive function, cause is the V->print(RSO)
-  //         (20ms on a medium size code (phasar without debug)
-  //          80ms on a huge size code (clang without debug),
-  //          can be multiplied by times 3 to 5 if passes are enabled)
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
-  V->print(RSO);
-  boost::trim_left(IRBuffer);
+  V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
+  RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
-  if (IRBuffer.find(", align") != std::string::npos) {
-    IRBuffer.erase(IRBuffer.find(", align"));
-  } else if (IRBuffer.find(", !") != std::string::npos) {
-    IRBuffer.erase(IRBuffer.find(", !"));
-  } else if (IRBuffer.size() > 30) {
-    IRBuffer.erase(30);
-  }
-  return IRBuffer + " | ID: " + getMetaDataID(V);
+  boost::trim_left(IRBuffer);
+  return IRBuffer;
 }
 
 std::vector<const llvm::Value *>
@@ -151,25 +151,6 @@ globalValuesUsedinFunction(const llvm::Function *F) {
     }
   }
   return GlobalsUsed;
-}
-
-std::optional<llvm::StringRef>
-extractConstantStringFromValue(const llvm::Value *V) {
-  auto gep = llvm::dyn_cast<llvm::ConstantExpr>(V); // constant GEP
-  if (!gep)
-    return std::nullopt;
-
-  auto gv = llvm::dyn_cast<llvm::GlobalVariable>(
-      gep->getOperand(0)); // Pointer operand of the constant GEP
-  if (!gv)
-    return std::nullopt;
-
-  auto init =
-      llvm::dyn_cast_or_null<llvm::ConstantDataArray>(gv->getInitializer());
-  if (!init)
-    return std::nullopt;
-
-  return init->getAsCString();
 }
 
 std::string getMetaDataID(const llvm::Value *V) {
