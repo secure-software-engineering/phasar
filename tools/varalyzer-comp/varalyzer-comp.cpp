@@ -20,14 +20,16 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/VarAlyzerExperiments/VarAlyzerUtils.h"
 
 using namespace psr;
 
 int main(int argc, char **argv) {
-  if (argc < 4) {
+  if (argc < 5) {
     std::cout << "Usage:\n"
-                 "\t<varalyzer>\n"
+                 "\t<varalyzer-comp>\n"
+                 "\t<enable logging: l, L>\n"
                  "\t<analysis: \"CIPHER\", \"MAC\", \"MD\">\n"
                  "\t<SuperC-desugared SPL LLVM IR file>\n"
                  "\t<SP_1 LLVM IR file> <...>\n"
@@ -36,13 +38,18 @@ int main(int argc, char **argv) {
   }
   // handle command-line arguments
   std::cout << "Hello, VarAlyzerComp!" << std::endl;
-  std::string AnalysisTypeStr = argv[1];
-  boost::filesystem::path DesugeredSPLIRFile = argv[2];
+  std::string Log = argv[1];
+  std::string AnalysisTypeStr = argv[2];
+  boost::filesystem::path DesugeredSPLIRFile = argv[3];
   std::vector<boost::filesystem::path> SPIRFiles;
   for (int i = 3; i < argc; ++i) {
     SPIRFiles.emplace_back(argv[i]);
   }
   // have some rudimentary checks
+  if (!(Log == "l" || Log == "L")) {
+    std::cout << "error: logging must be one of {l, L}\n";
+    return 1;
+  }
   if (!(AnalysisTypeStr == "MAC" || AnalysisTypeStr == "CIPHER" ||
         AnalysisTypeStr == "MD")) {
     std::cout << "error: analysis type must be one of {MAC, MD, CIPHER}\n";
@@ -60,8 +67,7 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
-
-  std::cout << "Start analyzing..." << std::endl;
+  initializeLogger(Log == "L");
   // constant data
   const OpenSSLEVPAnalysisType AnalysisType =
       to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
