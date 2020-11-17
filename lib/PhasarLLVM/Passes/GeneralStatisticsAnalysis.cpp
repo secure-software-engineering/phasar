@@ -152,8 +152,9 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
               PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("GS Load Instructions", loadInstructions,
               PAMM_SEVERITY_LEVEL::Full);
-  // Using the logging guard explicitly since we are printing allocated types
-  // manually
+// Using the logging guard explicitly since we are printing allocated types
+// manually
+#ifdef DYNAMIC_LOG
   if (boost::log::core::get()->get_logging_enabled()) {
     BOOST_LOG_SEV(lg::get(), INFO)
         << "GeneralStatisticsAnalysis summary for module: '"
@@ -185,6 +186,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
       BOOST_LOG_SEV(lg::get(), INFO) << "  " << Rso.str();
     }
   }
+#endif
   // now we are done and can return the results
   return Stats;
 }

@@ -99,7 +99,7 @@ template <typename T> struct __lg__ {
         "cmake option '-DPHASAR_ENABLE_DYNAMIC_LOG=ON'.");
   }
 };
-#define lg __lg__<void>
+using lg = __lg__<void>;
 #endif
 
 /**
