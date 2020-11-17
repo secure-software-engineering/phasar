@@ -273,8 +273,21 @@ LLVMBasedVarCFG::LLVMBasedVarCFG(
         z3::solver Solver(CTX);
         Solver.from_string(smt2lib_solver.data());
         auto assertions = Solver.assertions();
-        assert(assertions.size() == 1);
-        AvailablePPConditions.insert({globName, assertions[0]});
+        auto singleAssertion = [&] {
+          auto assertions = Solver.assertions();
+          assert(assertions.size() &&
+                 "Must have at least one assertion for any PP "
+                 "condition");
+          auto it = assertions.begin();
+          const auto end = assertions.end();
+          auto ret = *it;
+
+          for (++it; it != end; ++it) {
+            ret = ret & *it;
+          }
+          return ret;
+        }();
+        AvailablePPConditions.insert({globName, singleAssertion});
       }
     }
   }
