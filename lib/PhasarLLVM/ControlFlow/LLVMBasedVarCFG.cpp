@@ -258,20 +258,24 @@ LLVMBasedVarCFG::LLVMBasedVarCFG(
     : staticBackwardRenaming(StaticBackwardRenaming) {
   // void __static_condition_renaming(globName, smt2lib_solver)
   auto staticRenamingFn = IRDB.getFunction("__static_condition_renaming");
+  // We need to check if staticRenamingFn is null. In case no static
+  // preprocessor conditionals are beeing used, this function does not exist and
+  // thus the ProjectIRDB returns a nullptr.
+  if (staticRenamingFn) {
+    for (auto use : staticRenamingFn->users()) {
+      if (auto call = llvm::dyn_cast<llvm::CallBase>(use);
+          call && call->getCalledFunction() == staticRenamingFn) {
+        auto globName =
+            extractConstantStringFromValue(call->getArgOperand(0)).value();
+        auto smt2lib_solver =
+            extractConstantStringFromValue(call->getArgOperand(1)).value();
 
-  for (auto use : staticRenamingFn->users()) {
-    if (auto call = llvm::dyn_cast<llvm::CallBase>(use);
-        call && call->getCalledFunction() == staticRenamingFn) {
-      auto globName =
-          extractConstantStringFromValue(call->getArgOperand(0)).value();
-      auto smt2lib_solver =
-          extractConstantStringFromValue(call->getArgOperand(1)).value();
-
-      z3::solver Solver(CTX);
-      Solver.from_string(smt2lib_solver.data());
-      auto assertions = Solver.assertions();
-      assert(assertions.size() == 1);
-      AvailablePPConditions.insert({globName, assertions[0]});
+        z3::solver Solver(CTX);
+        Solver.from_string(smt2lib_solver.data());
+        auto assertions = Solver.assertions();
+        assert(assertions.size() == 1);
+        AvailablePPConditions.insert({globName, assertions[0]});
+      }
     }
   }
 }
