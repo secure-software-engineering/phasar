@@ -30,6 +30,7 @@
 #include <llvm/Support/Compiler.h> // LLVM_UNLIKELY
 
 #include "llvm/Support/ErrorHandling.h"
+#include <llvm/Support/raw_os_ostream.h>
 
 namespace psr {
 
@@ -128,6 +129,50 @@ struct LoggerExceptionHandler {
  * Initializes the logger.
  */
 void initializeLogger(bool UseLogger, const std::string &LogFile = "");
+
+/// Dummy for printing iterator ranges
+template <typename Iter, typename EndIter> class SequencePrinter {
+  Iter begIt;
+  EndIter endIt;
+
+public:
+  template <typename It, typename EndIt>
+  explicit SequencePrinter(It &&it, EndIt &&end)
+      : begIt(std::forward<It>(it)), endIt(std::forward<EndIt>(end)) {}
+  Iter begin() const { return begIt; }
+  EndIter end() const { return endIt; }
+  friend std::ostream &operator<<(std::ostream &OS, const SequencePrinter &SP) {
+    llvm::raw_os_ostream ROS(OS);
+    ROS << "[";
+    auto it = SP.begIt;
+    const auto end = SP.endIt;
+    if (it != end) {
+      ROS << *it;
+      while (++it != end)
+        ROS << ", " << *it;
+    }
+    ROS << "]";
+    return OS;
+  }
+};
+
+/// Creates an ostream-manipulator that prints all elements from the given
+/// iterator range
+template <typename Iter, typename EndIter>
+auto printAll(Iter &&it, EndIter &&endIt) {
+  return SequencePrinter<std::decay_t<Iter>, std::decay_t<EndIter>>(
+      std::forward<Iter>(it), std::forward<EndIter>(endIt));
+}
+
+/// Creates an ostream-manipulator that prints all elements from the given
+/// container
+template <typename ContainerTy> auto printAll(const ContainerTy &Cont) {
+  return printAll(Cont.begin(), Cont.end());
+}
+
+// extern template SequencePrinter<std::set<std::string>::iterator,
+//                                 std::set<std::string>::iterator>
+// printAll<std::set<std::string>>(const std::set<std::string> &);
 
 } // namespace psr
 

@@ -21,6 +21,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarCFG.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace psr;
 
@@ -272,7 +273,6 @@ LLVMBasedVarCFG::LLVMBasedVarCFG(
 
         z3::solver Solver(CTX);
         Solver.from_string(smt2lib_solver.data());
-        auto assertions = Solver.assertions();
         auto singleAssertion = [&] {
           auto assertions = Solver.assertions();
           assert(assertions.size() &&
@@ -283,20 +283,24 @@ LLVMBasedVarCFG::LLVMBasedVarCFG(
           auto ret = *it;
 
           for (++it; it != end; ++it) {
-            ret = ret & *it;
+            ret = ret && *it;
           }
-          return ret;
+
+          return ret.simplify();
         }();
         AvailablePPConditions.insert({globName, singleAssertion});
       }
     }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "AvailablePPConditions"
+                  << printAll(AvailablePPConditions.keys()));
   }
 }
 
 std::optional<z3::expr> LLVMBasedVarCFG::getConditionIfIsPPVariable(
     const llvm::GlobalVariable *G) const {
   auto name = G->getName();
-  constexpr char STATIC_RENAMING[] = "__static_condition_renaming";
+  constexpr char STATIC_RENAMING[] = "__static_condition_";
   if (name.size() <= sizeof(STATIC_RENAMING) ||
       !name.startswith(STATIC_RENAMING)) {
     return std::nullopt;
@@ -304,6 +308,7 @@ std::optional<z3::expr> LLVMBasedVarCFG::getConditionIfIsPPVariable(
 
   if (auto it = AvailablePPConditions.find(name);
       it != AvailablePPConditions.end()) {
+
     return it->second;
   }
 
@@ -349,7 +354,6 @@ bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
   // chained branches
   auto lcond = br->getCondition();
 
-#if 0
   if (auto condUser = llvm::dyn_cast<llvm::User>(lcond)) {
     // check for 'load i32, i32* @_Z...CONFIG_...'
     // TODO: Is normal iteration sufficient, or do we need recursion here?
@@ -362,7 +366,7 @@ bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
           // if (isPPVariable(glob, name)) {
           if (auto solverSpec = getConditionIfIsPPVariable(glob);
               solverSpec.has_value()) {
-            if (auto icmp = llvm::dyn_cast<llvm::CmpInst>(lcond)) {
+            /*if (auto icmp = llvm::dyn_cast<llvm::CmpInst>(lcond)) {
               cond = inferCondition(icmp);
             } else if (auto trnc = llvm::dyn_cast<llvm::TruncInst>(lcond);
                        trnc && trnc->getType()->isIntegerTy(1)) {
@@ -370,8 +374,9 @@ bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
             } else {
               // TODO was hier?
               std::cerr << "Fallback to true" << std::endl;
-              cond = CTX.bool_val(true);
-            }
+              cond = getTrueConstraint();
+            }*/
+            cond = solverSpec.value();
             return true;
           } /*else {
             std::cout << glob->getName().str() << " is no PP variable"
@@ -383,7 +388,7 @@ bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
     // std::cerr << "Fall through" << std::endl;
   } else
     std::cerr << "No user" << std::endl;
-#endif
+
   cond = getTrueConstraint();
   return false;
 }

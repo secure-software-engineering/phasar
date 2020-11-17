@@ -66,39 +66,6 @@ std::set<std::string> staticRenameAll(Iter NamesBegin, EndIter &&NamesEnd,
   return ret;
 }
 
-template <typename Iter, typename EndIter> class SequencePrinter {
-  Iter begIt;
-  EndIter endIt;
-
-public:
-  template <typename It, typename EndIt>
-  explicit SequencePrinter(It &&it, EndIt &&end)
-      : begIt(std::forward<It>(it)), endIt(std::forward<EndIt>(end)) {}
-  Iter begin() const { return begIt; }
-  EndIter end() const { return endIt; }
-  friend std::ostream &operator<<(std::ostream &OS, const SequencePrinter &SP) {
-    OS << "[";
-    auto it = SP.begIt;
-    const auto end = SP.endIt;
-    if (it != end) {
-      OS << *it;
-      while (++it != end)
-        OS << ", " << *it;
-    }
-    return OS << "]";
-  }
-};
-
-template <typename Iter, typename EndIter>
-auto printAll(Iter &&it, EndIter &&endIt) {
-  return SequencePrinter<std::decay_t<Iter>, std::decay_t<EndIter>>(
-      std::forward<Iter>(it), std::forward<EndIter>(endIt));
-}
-
-template <typename ContainerTy> auto printAll(const ContainerTy &Cont) {
-  return printAll(Cont.begin(), Cont.end());
-}
-
 } // namespace psr
 
 #endif

@@ -121,6 +121,7 @@ llvm::StringRef staticRename(llvm::StringRef Name,
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Renaming fallthrough: " << Name.str());
+
   return Name;
 }
 

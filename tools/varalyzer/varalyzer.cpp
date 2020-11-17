@@ -73,6 +73,7 @@ int main(int argc, char **argv) {
     OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
+
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
                                  AnalysisEntryPoints);
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
