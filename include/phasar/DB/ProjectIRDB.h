@@ -122,6 +122,8 @@ public:
   [[nodiscard]] const llvm::Function *
   getFunction(const std::string &FunctionName) const;
 
+  [[nodiscard]] const llvm::Type *getType(llvm::StringRef Name) const;
+
   [[nodiscard]] const llvm::GlobalVariable *
   getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
 
@@ -130,7 +132,7 @@ public:
   [[nodiscard]] const llvm::Module *
   getModuleDefiningFunction(const std::string &FunctionName) const;
 
-  [[nodiscard]] std::set<const llvm::Instruction *>
+  [[nodiscard]] const std::set<const llvm::Instruction *> &
   getAllocaInstructions() const {
     return AllocaInstructions;
   };

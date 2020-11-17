@@ -90,11 +90,13 @@ int main(int argc, char **argv) {
     OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc(&ForwardRenaming,
                                                     typenameOfInterest);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-        "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
+        "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming,
+        typenameOfInterest);
     if (VarAnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points for file: "
-                << DesugeredSPLIRFile.string() << "\n";
-      return 1;
+      std::cout
+          << "warning: could not retrieve analysis' entry points for file: "
+          << DesugeredSPLIRFile.string() << "\n";
+      return 0;
     }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
                                       &DesugaredPT, VarCipherCTXDesc,
@@ -115,11 +117,12 @@ int main(int argc, char **argv) {
       LLVMBasedICFG SPICF(SPIR, CallGraphAnalysisType::OTF, {}, &SPTH, &SPPT);
       OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
       auto AnalysisEntryPoints =
-          getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", SPIR, SPICF);
+          getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", SPIR, SPICF,
+                                     CipherCTXDesc.getTypeNameOfInterest());
       if (AnalysisEntryPoints.empty()) {
         LOG_IF_ENABLE(
             BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "error: could not retrieve analysis' entry points for file: "
+            << "warning: could not retrieve analysis' entry points for file: "
             << SPIRFile.string());
         continue;
       }
@@ -135,7 +138,7 @@ int main(int argc, char **argv) {
       for (const auto &NonVarBreach : NonVarBreaches) {
         // check if every NonVarBreach can be found in VarBreaches
         if (!VarBreaches.count(NonVarBreach)) {
-          std::cerr << "Did not find NonVarBreach " << NonVarBreach
+          std::cerr << "error: Did not find NonVarBreach " << NonVarBreach
                     << " in VarBreaches\n";
           numViolations++;
         }
@@ -151,11 +154,13 @@ int main(int argc, char **argv) {
     OpenSSLEVPMDCTXDescription VarMdCTXDesc(&ForwardRenaming,
                                             typenameOfInterest);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-        "EVP_MD_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming);
+        "EVP_MD_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming,
+        typenameOfInterest);
     if (VarAnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points for file: "
-                << DesugeredSPLIRFile.string() << "\n";
-      return 1;
+      std::cerr
+          << "warning: could not retrieve analysis' entry points for file: "
+          << DesugeredSPLIRFile.string() << "\n";
+      return 0;
     }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
                                       &DesugaredPT, VarMdCTXDesc,
@@ -166,8 +171,7 @@ int main(int argc, char **argv) {
     VarSolver.solve();
     auto VarBreaches = VarTSProblem.getProtocolBreaches();
     // have one large loop that computes all required information for the
-    // sampled
-    // software products
+    // sampled software products
     for (const auto &SPIRFile : SPIRFiles) {
       // compute results on concrete software products in a
       // variability-oblivious manner
@@ -176,13 +180,12 @@ int main(int argc, char **argv) {
       LLVMPointsToSet SPPT(SPIR);
       LLVMBasedICFG SPICF(SPIR, CallGraphAnalysisType::OTF, {}, &SPTH, &SPPT);
       OpenSSLEVPMDCTXDescription MdCTXDesc;
-      auto AnalysisEntryPoints =
-          getEntryPointsForCallersOf("EVP_MD_CTX_new", SPIR, SPICF);
+      auto AnalysisEntryPoints = getEntryPointsForCallersOf(
+          "EVP_MD_CTX_new", SPIR, SPICF, MdCTXDesc.getTypeNameOfInterest());
       if (AnalysisEntryPoints.empty()) {
-        LOG_IF_ENABLE(
-            BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "error: could not retrieve analysis' entry points for file: "
-            << SPIRFile.string());
+        std::cerr
+            << "warning: could not retrieve analysis' entry points for file: "
+            << SPIRFile.string();
         continue;
       }
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, MdCTXDesc,
@@ -194,7 +197,7 @@ int main(int argc, char **argv) {
       for (const auto &NonVarBreach : NonVarBreaches) {
         // check if every NonVarBreach can be found in VarBreaches
         if (!VarBreaches.count(NonVarBreach)) {
-          std::cerr << "Did not find NonVarBreach " << NonVarBreach
+          std::cerr << "error: Did not find NonVarBreach " << NonVarBreach
                     << " in VarBreaches\n";
           numViolations++;
         }

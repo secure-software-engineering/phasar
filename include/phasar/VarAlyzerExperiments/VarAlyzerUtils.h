@@ -41,14 +41,14 @@ enum class OpenSSLEVPAnalysisType { CIPHER, MAC, MD };
 
 OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str);
 
-std::set<std::string> getEntryPointsForCallersOf(llvm::StringRef FunName,
-                                                 ProjectIRDB &IR,
-                                                 LLVMBasedICFG &ICF);
-
 std::set<std::string>
-getEntryPointsForCallersOfDesugared(llvm::StringRef FunName, ProjectIRDB &IR,
-                                    LLVMBasedICFG &ICF,
-                                    const stringstringmap_t &FNameMap);
+getEntryPointsForCallersOf(llvm::StringRef FunName, ProjectIRDB &IR,
+                           LLVMBasedICFG &ICF,
+                           llvm::StringRef TypeNameOfInterest);
+
+std::set<std::string> getEntryPointsForCallersOfDesugared(
+    llvm::StringRef FunName, ProjectIRDB &IR, LLVMBasedICFG &ICF,
+    const stringstringmap_t &FNameMap, llvm::StringRef TypeNameOfInterest);
 
 std::optional<llvm::StringRef>
 extractDesugaredTypeNameOfInterest(llvm::StringRef OriginalTOI,
@@ -71,6 +71,8 @@ std::set<std::string> staticRenameAll(Iter NamesBegin, EndIter &&NamesEnd,
   }
   return ret;
 }
+
+bool isOfType(const llvm::Type *OfTy, const llvm::Type *IsTy);
 
 } // namespace psr
 
