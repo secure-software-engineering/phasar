@@ -61,20 +61,25 @@ int main(int argc, char **argv) {
   auto [ForwardRenaming, BackwardRenaming] = extractBiDiStaticRenaming(&IR);
   LLVMTypeHierarchy TH(IR);
   LLVMPointsToSet PT(IR);
+
   // by using an empty list of entry points, all functions are considered as
   // entry points
   LLVMBasedICFG ICF(IR, CallGraphAnalysisType::OTF, {}, &TH, &PT);
   if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
-    OpenSSLEVPCIPHERCTXDescription CipherCTXDesc;
-    auto AnalysisEntryPoints =
-        getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", IR, ICF);
+    auto typeNameOfInterest =
+        ForwardRenaming.empty() ? "evp_cipher_ctx_st"
+                                : extractDesugaredTypeNameOfInterestOrFail(
+                                      "EVP_CIPHER_CTX", IR, ForwardRenaming,
+                                      "error: could not retrieve desugared "
+                                      "typenameOfInterest for EVP_CIPHER_CTX");
+    OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(
+        ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
+        typeNameOfInterest);
+    auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+        "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, typeNameOfInterest);
+
     if (AnalysisEntryPoints.empty()) {
-      // if AnalysisEntryPoints are empty, we must run on desugared code
-      AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-          "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming);
-    }
-    if (AnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points\n";
+      std::cerr << "warning: could not retrieve analysis' entry points\n";
       return 1;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
@@ -85,17 +90,22 @@ int main(int argc, char **argv) {
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
       AnalysisType == OpenSSLEVPAnalysisType::MAC) {
-    OpenSSLEVPMDCTXDescription MdCTXDesc;
-    auto AnalysisEntryPoints =
-        getEntryPointsForCallersOf("EVP_MD_CTX_new", IR, ICF);
+    auto typeNameOfInterest = ForwardRenaming.empty()
+                                  ? "evp_md_ctx_st"
+                                  : extractDesugaredTypeNameOfInterestOrFail(
+                                        "EVP_MD_CTX", IR, ForwardRenaming,
+                                        "error: could not retrieve desugared "
+                                        "typenameOfInterest for EVP_MD_CTX");
+    OpenSSLEVPMDCTXDescription MdCTXDesc(
+        ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
+        typeNameOfInterest);
+    auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
+        "EVP_MD_CTX_new", IR, ICF, ForwardRenaming,
+        MdCTXDesc.getTypeNameOfInterest());
+
     if (AnalysisEntryPoints.empty()) {
-      // if AnalysisEntryPoints are empty, we must run on desugared code
-      AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-          "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
-    }
-    if (AnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points\n";
-      return 1;
+      std::cerr << "warning: could not retrieve analysis' entry points\n";
+      return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
                                  AnalysisEntryPoints);

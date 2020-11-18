@@ -77,10 +77,10 @@ int main(int argc, char **argv) {
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(&ForwardRenaming,
                                                  typenameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-        "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming);
+        "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, typenameOfInterest);
     if (AnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points\n";
-      return 1;
+      std::cerr << "warning: could not retrieve analysis' entry points\n";
+      return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
                                  AnalysisEntryPoints);
@@ -99,10 +99,10 @@ int main(int argc, char **argv) {
                   << "Found TypeNameOfInterest: " << typenameOfInterest.str());
     OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming, typenameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-        "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
+        "EVP_MD_CTX_new", IR, ICF, ForwardRenaming, typenameOfInterest);
     if (AnalysisEntryPoints.empty()) {
-      std::cout << "error: could not retrieve analysis' entry points\n";
-      return 1;
+      std::cerr << "warning: could not retrieve analysis' entry points\n";
+      return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
                                  AnalysisEntryPoints);

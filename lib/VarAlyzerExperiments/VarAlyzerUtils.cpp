@@ -16,6 +16,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/path.hpp"
 
+#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfoMetadata.h"
@@ -62,25 +63,48 @@ OpenSSLEVPAnalysisType to_OpenSSLEVPAnalysisType(const std::string &Str) {
   llvm::report_fatal_error("input string is invalid");
 }
 
-std::set<std::string> getEntryPointsForCallersOf(llvm::StringRef FunName,
-                                                 ProjectIRDB &IR,
-                                                 LLVMBasedICFG &ICF) {
+std::set<std::string>
+getEntryPointsForCallersOf(llvm::StringRef FunName, ProjectIRDB &IR,
+                           LLVMBasedICFG &ICF,
+                           llvm::StringRef TypeNameOfInterest) {
+
+  // Deduplication is easier on pointers than on fresh allocated strings
+  llvm::SmallPtrSet<const llvm::Function *, 8> EntrypointFunctions;
+
   const auto *F = IR.getFunction(FunName);
   auto CallSites = ICF.getCallersOf(F);
-  std::set<std::string> EntryPoints;
+
   for (const auto *CallSite : CallSites) {
-    EntryPoints.insert(CallSite->getFunction()->getName().str());
+    EntrypointFunctions.insert(CallSite->getFunction());
   }
+
+  if (EntrypointFunctions.empty()) {
+    // Exceptional case that we have no context-constructor calls
+    // -> Detect all allocas of the typenameOfInterest
+
+    auto Ty = IR.getType(TypeNameOfInterest);
+    assert(Ty);
+
+    for (auto Alloca : IR.getAllocaInstructions()) {
+      if (isOfType(Ty, Alloca->getType())) {
+        EntrypointFunctions.insert(Alloca->getFunction());
+      }
+    }
+  }
+  // Retrieve the entrypoint-names
+  std::set<std::string> EntryPoints;
+
+  for (auto Fn : EntrypointFunctions)
+    EntryPoints.insert(Fn->getName().str());
+
   return EntryPoints;
 }
 
-std::set<std::string>
-getEntryPointsForCallersOfDesugared(llvm::StringRef FunName, ProjectIRDB &IR,
-                                    LLVMBasedICFG &ICF,
-                                    const stringstringmap_t &FNameMap) {
-  auto Search = FNameMap.find(FunName);
-  assert(Search != FNameMap.end() && "Expected to find FunName in FNameMap!");
-  return getEntryPointsForCallersOf(Search->second, IR, ICF);
+std::set<std::string> getEntryPointsForCallersOfDesugared(
+    llvm::StringRef FunName, ProjectIRDB &IR, LLVMBasedICFG &ICF,
+    const stringstringmap_t &FNameMap, llvm::StringRef TypeNameOfInterest) {
+  auto Search = staticRename(FunName, FNameMap);
+  return getEntryPointsForCallersOf(Search, IR, ICF, TypeNameOfInterest);
 }
 
 llvm::StringRef staticRename(llvm::StringRef Name,
@@ -142,6 +166,17 @@ llvm::StringRef extractDesugaredTypeNameOfInterestOrFail(
   llvm::errs() << ErrorMsg;
   exit(errorExitCode);
   return "";
+}
+
+bool isOfType(const llvm::Type *OfTy, const llvm::Type *IsTy) {
+  while (IsTy) {
+    if (OfTy == IsTy)
+      return true;
+    if (!IsTy->isPointerTy())
+      return false;
+    IsTy = IsTy->getPointerElementType();
+  }
+  return false;
 }
 
 } // namespace psr

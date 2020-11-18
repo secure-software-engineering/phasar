@@ -318,6 +318,22 @@ ProjectIRDB::getFunction(const std::string &FunctionName) const {
   return nullptr;
 }
 
+const llvm::Type *ProjectIRDB::getType(llvm::StringRef Name) const {
+  std::string structName = ("struct." + Name).str();
+  std::string className = ("class." + Name).str();
+  for (const auto &[File, Module] : Modules) {
+    auto Ty = Module->getTypeByName(Name);
+    if (Ty)
+      return Ty;
+
+    if ((Ty = Module->getTypeByName(structName)))
+      return Ty;
+    if ((Ty = Module->getTypeByName(className)))
+      return Ty;
+  }
+  return nullptr;
+}
+
 const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(
     const std::string &GlobalVariableName) const {
   for (const auto &[File, Module] : Modules) {
