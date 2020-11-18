@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
         "error: analysis target EVP_CIPHER_CTX not found in the LLVM IR "
         "file\n");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Found TypeNameOfInterest: " << typenameOfInterest);
+                  << "Found TypeNameOfInterest: " << typenameOfInterest.str());
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(&ForwardRenaming,
                                                  typenameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
         "error: analysis target EVP_MD_CTX not found in the LLVM IR "
         "file\n");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Found TypeNameOfInterest: " << typenameOfInterest);
+                  << "Found TypeNameOfInterest: " << typenameOfInterest.str());
     OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming, typenameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", IR, ICF, ForwardRenaming);
