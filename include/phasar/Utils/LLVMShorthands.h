@@ -17,8 +17,8 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
-#include <string>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "phasar/Utils/Utilities.h"

@@ -83,7 +83,9 @@ getEntryPointsForCallersOf(llvm::StringRef FunName, ProjectIRDB &IR,
     // -> Detect all allocas of the typenameOfInterest
 
     auto Ty = IR.getType(TypeNameOfInterest);
-    assert(Ty);
+    // some individual modules don't use OpenSSL functionalities at all when a
+    // certain configuration has been chosen
+    // assert(Ty);
 
     for (auto Alloca : IR.getAllocaInstructions()) {
       if (isOfType(Ty, Alloca->getType())) {
