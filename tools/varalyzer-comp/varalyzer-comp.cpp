@@ -27,7 +27,7 @@ using namespace psr;
 
 int main(int argc, char **argv) {
   if (argc < 5) {
-    std::cout << "Usage:\n"
+    std::cerr << "Usage:\n"
                  "\t<varalyzer-comp>\n"
                  "\t<enable logging: l, L>\n"
                  "\t<analysis: \"CIPHER\", \"MAC\", \"MD\">\n"
@@ -47,22 +47,22 @@ int main(int argc, char **argv) {
   }
   // have some rudimentary checks
   if (!(Log == "l" || Log == "L")) {
-    std::cout << "error: logging must be one of {l, L}\n";
+    std::cerr << "error: logging must be one of {l, L}\n";
     return 1;
   }
   if (!(AnalysisTypeStr == "MAC" || AnalysisTypeStr == "CIPHER" ||
         AnalysisTypeStr == "MD")) {
-    std::cout << "error: analysis type must be one of {MAC, MD, CIPHER}\n";
+    std::cerr << "error: analysis type must be one of {MAC, MD, CIPHER}\n";
     return 1;
   }
   if (!isValidLLVMIRFile(DesugeredSPLIRFile)) {
-    std::cout << "error: '" << DesugeredSPLIRFile.string()
+    std::cerr << "error: '" << DesugeredSPLIRFile.string()
               << "' is not a valid LLVM IR file" << std::endl;
     return 1;
   }
   for (const auto &SPIRFile : SPIRFiles) {
     if (!isValidLLVMIRFile(SPIRFile)) {
-      std::cout << "error: '" << SPIRFile.string()
+      std::cerr << "error: '" << SPIRFile.string()
                 << "' is not a valid LLVM IR file" << std::endl;
       return 1;
     }
@@ -93,9 +93,9 @@ int main(int argc, char **argv) {
         "EVP_CIPHER_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming,
         typenameOfInterest);
     if (VarAnalysisEntryPoints.empty()) {
-      std::cout
-          << "warning: could not retrieve analysis' entry points for file: "
-          << DesugeredSPLIRFile.string() << "\n";
+      std::cerr << "warning: could not retrieve analysis' entry points because "
+                   "the module does not use the EVP library: "
+                << DesugeredSPLIRFile.string() << "\n";
       return 0;
     }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
                                                                   DesugaredICF);
     IDESolver VarSolver(VarVarProblem);
     VarSolver.solve();
+    VarSolver.dumpResults();
     auto VarBreaches = VarTSProblem.getProtocolBreaches();
     // have one large loop that computes all required information for the
     // sampled software products
@@ -122,7 +123,8 @@ int main(int argc, char **argv) {
       if (AnalysisEntryPoints.empty()) {
         LOG_IF_ENABLE(
             BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "warning: could not retrieve analysis' entry points for file: "
+            << "warning: could not retrieve analysis' entry points because "
+               "the module does not use the EVP library: "
             << SPIRFile.string());
         continue;
       }
@@ -130,6 +132,7 @@ int main(int argc, char **argv) {
                                      AnalysisEntryPoints);
       IDESolver Solver(TSProblem);
       Solver.solve();
+      Solver.dumpResults();
       // do the comparison
       //  (i) clear function name (name of the function in which the error
       //  occurred) (ii) errornous transition (state before error and token that
@@ -157,9 +160,9 @@ int main(int argc, char **argv) {
         "EVP_MD_CTX_new", DesugaredIR, DesugaredICF, ForwardRenaming,
         typenameOfInterest);
     if (VarAnalysisEntryPoints.empty()) {
-      std::cerr
-          << "warning: could not retrieve analysis' entry points for file: "
-          << DesugeredSPLIRFile.string() << "\n";
+      std::cerr << "warning: could not retrieve analysis' entry points because "
+                   "the module does not use the EVP library: "
+                << DesugeredSPLIRFile.string() << "\n";
       return 0;
     }
     IDETypeStateAnalysis VarTSProblem(&DesugaredIR, &DesugaredTH, &DesugaredICF,
@@ -169,6 +172,7 @@ int main(int argc, char **argv) {
                                                                   DesugaredICF);
     IDESolver VarSolver(VarVarProblem);
     VarSolver.solve();
+    VarSolver.dumpResults();
     auto VarBreaches = VarTSProblem.getProtocolBreaches();
     // have one large loop that computes all required information for the
     // sampled software products
@@ -184,7 +188,8 @@ int main(int argc, char **argv) {
           "EVP_MD_CTX_new", SPIR, SPICF, MdCTXDesc.getTypeNameOfInterest());
       if (AnalysisEntryPoints.empty()) {
         std::cerr
-            << "warning: could not retrieve analysis' entry points for file: "
+            << "warning: could not retrieve analysis' entry points because "
+               "the module does not use the EVP library: "
             << SPIRFile.string();
         continue;
       }
@@ -192,6 +197,7 @@ int main(int argc, char **argv) {
                                      AnalysisEntryPoints);
       IDESolver Solver(TSProblem);
       Solver.solve();
+      Solver.dumpResults();
       // do the comparison
       auto NonVarBreaches = TSProblem.getProtocolBreaches();
       for (const auto &NonVarBreach : NonVarBreaches) {

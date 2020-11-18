@@ -25,7 +25,7 @@ using namespace psr;
 
 int main(int argc, char **argv) {
   if (argc < 4) {
-    std::cout << "Usage:\n"
+    std::cerr << "Usage:\n"
                  "\t<typestate>\n"
                  "\t<enable logging: l, L>\n"
                  "\t<analysis: \"CIPHER\", \"MAC\", \"MD\">\n"
@@ -39,16 +39,16 @@ int main(int argc, char **argv) {
   boost::filesystem::path DesugeredSPLIRFile = argv[3];
   // have some rudimentary checks
   if (!(Log == "l" || Log == "L")) {
-    std::cout << "error: logging must be one of {l, L}\n";
+    std::cerr << "error: logging must be one of {l, L}\n";
     return 1;
   }
   if (!(AnalysisTypeStr == "MD" || AnalysisTypeStr == "CIPHER" ||
         AnalysisTypeStr == "MAC")) {
-    std::cout << "error: analysis type must be one of {MD, CIPHER, MAC}\n";
+    std::cerr << "error: analysis type must be one of {MD, CIPHER, MAC}\n";
     return 1;
   }
   if (!isValidLLVMIRFile(DesugeredSPLIRFile)) {
-    std::cout << "error: '" << DesugeredSPLIRFile.string()
+    std::cerr << "error: '" << DesugeredSPLIRFile.string()
               << "' is not a valid LLVM IR file\n";
     return 1;
   }
@@ -79,8 +79,9 @@ int main(int argc, char **argv) {
         "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, typeNameOfInterest);
 
     if (AnalysisEntryPoints.empty()) {
-      std::cerr << "warning: could not retrieve analysis' entry points\n";
-      return 1;
+      std::cerr << "warning: could not retrieve analysis' entry points because "
+                   "the module does not use the EVP library\n";
+      return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
                                  AnalysisEntryPoints);
@@ -104,7 +105,8 @@ int main(int argc, char **argv) {
         MdCTXDesc.getTypeNameOfInterest());
 
     if (AnalysisEntryPoints.empty()) {
-      std::cerr << "warning: could not retrieve analysis' entry points\n";
+      std::cerr << "warning: could not retrieve analysis' entry points because "
+                   "the module does not use the EVP library\n";
       return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
