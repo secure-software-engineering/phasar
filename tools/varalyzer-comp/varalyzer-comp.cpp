@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   std::string AnalysisTypeStr = argv[2];
   boost::filesystem::path DesugeredSPLIRFile = argv[3];
   std::vector<boost::filesystem::path> SPIRFiles;
-  for (int i = 3; i < argc; ++i) {
+  for (int i = 4; i < argc; ++i) {
     SPIRFiles.emplace_back(argv[i]);
   }
   // have some rudimentary checks
@@ -121,11 +121,10 @@ int main(int argc, char **argv) {
           getEntryPointsForCallersOf("EVP_CIPHER_CTX_new", SPIR, SPICF,
                                      CipherCTXDesc.getTypeNameOfInterest());
       if (AnalysisEntryPoints.empty()) {
-        LOG_IF_ENABLE(
-            BOOST_LOG_SEV(lg::get(), DEBUG)
+        std::cerr
             << "warning: could not retrieve analysis' entry points because "
                "the module does not use the EVP library: "
-            << SPIRFile.string());
+            << SPIRFile.string() << "\n";
         continue;
       }
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, CipherCTXDesc,
@@ -190,7 +189,7 @@ int main(int argc, char **argv) {
         std::cerr
             << "warning: could not retrieve analysis' entry points because "
                "the module does not use the EVP library: "
-            << SPIRFile.string();
+            << SPIRFile.string() << "\n";
         continue;
       }
       IDETypeStateAnalysis TSProblem(&SPIR, &SPTH, &SPICF, &SPPT, MdCTXDesc,
