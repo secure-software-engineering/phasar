@@ -285,7 +285,7 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
         const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(P);
         if (CB->getCalledFunction() != nullptr &&
             CB->getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CB.getCalledFunction()->getName())) {
+            HeapAllocatingFunctions.count(CB->getCalledFunction()->getName())) {
           AllocSites->insert(P);
         }
       }
@@ -312,7 +312,7 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
         if (CB->getCalledFunction() != nullptr &&
             CB->getCalledFunction()->hasName() &&
             HeapAllocatingFunctions.count(CB->getCalledFunction()->getName())) {
-          if (VFun && VFun == CB->getInstruction()->getFunction()) {
+          if (VFun && VFun == CB->getFunction()) {
             AllocSites->insert(P);
           }
           if (VG) {

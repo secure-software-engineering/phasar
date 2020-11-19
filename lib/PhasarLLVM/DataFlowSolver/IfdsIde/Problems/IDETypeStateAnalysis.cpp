@@ -162,21 +162,21 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
   // propagating the return value into the caller context, we also propagate
   // all related alloca's of the formal parameter and the return value.
   struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
-    llvm::AbstractCallSite CallSite;
+    const llvm::CallBase *CB;
     const llvm::Function *CalleeFun;
     const llvm::ReturnInst *ExitSite;
     IDETypeStateAnalysis *Analysis;
     std::vector<const llvm::Value *> Actuals;
     std::vector<const llvm::Value *> Formals;
-    TSFlowFunction(llvm::AbstractCallSite CS, const llvm::Function *CalleeFun,
+    TSFlowFunction(const llvm::CallBase *CB, const llvm::Function *CalleeFun,
                    const llvm::Instruction *ExitSite,
                    IDETypeStateAnalysis *Analysis)
-        : CallSite(CS), CalleeFun(CalleeFun),
+        : CB(CB), CalleeFun(CalleeFun),
           ExitSite(llvm::dyn_cast<llvm::ReturnInst>(ExitSite)),
           Analysis(Analysis) {
       // Set up the actual parameters
-      for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-        Actuals.push_back(CallSite.getCallArgOperand(Idx));
+      for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
+        Actuals.push_back(CB->getArgOperand(Idx));
       }
       // Set up the formal parameters
       for (unsigned Idx = 0; Idx < CalleeFun->arg_size(); ++Idx) {
@@ -227,7 +227,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
         }
         // Collect the return value
         if (Source == ExitSite->getReturnValue()) {
-          Res.insert(CallSite.getInstruction());
+          Res.insert(CB);
         }
         // Collect all relevant alloca's to map into caller context
         std::set<IDETypeStateAnalysis::d_t> RelAllocas;
@@ -464,7 +464,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
                     << "Processing consuming function");
       for (auto Idx : TSD.getConsumerParamIdx(DemangledFname)) {
         std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
-            getWMAliasesAndAllocas(CB->getArgument(Idx));
+            getWMAliasesAndAllocas(CB->getArgOperand(Idx));
 
         if (CallNode == RetSiteNode &&
             PointsToAndAllocas.find(CallNode) != PointsToAndAllocas.end()) {

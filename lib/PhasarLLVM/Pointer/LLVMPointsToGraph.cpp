@@ -68,15 +68,14 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
     // check for heap allocation
     if (llvm::isa<llvm::CallInst>(G[U].V) ||
         llvm::isa<llvm::InvokeInst>(G[U].V)) {
-      llvm::AbstractCallSite CS(G[U].V);
-      if (CS.getCalledFunction() != nullptr &&
-          HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+      const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(G[U].V);
+      if (CB->getCalledFunction() != nullptr &&
+          HeapAllocatingFunctions.count(CB->getCalledFunction()->getName())) {
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matchesStack(G) || CallStack.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Found heap allocation: "
-                        << llvmIRToString(CS.getInstruction()));
+                        << "Found heap allocation: " << llvmIRToString(CB));
           AllocationSites.insert(G[U].V);
         }
       }

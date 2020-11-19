@@ -14,7 +14,6 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -48,30 +47,29 @@ RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 // }
 
 set<const llvm::Function *>
-RTAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
+RTAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
   // throw runtime_error("RTA is currently unabled to deal with already built "
   //                     "library, it has been disable until this is fixed");
 
   set<const llvm::Function *> PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: "
-                << llvmIRToString(CS.getInstruction()));
+                << "Call virtual function: " << llvmIRToString(CB));
 
-  auto VtableIndex = getVFTIndex(CS);
+  auto VtableIndex = getVFTIndex(CB);
   if (VtableIndex < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CS.getInstruction()) << "\n");
+                  << llvmIRToString(CB) << "\n");
     return {};
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CS);
+  const auto *ReceiverType = getReceiverType(CB);
 
   // also insert all possible subtypes vtable entries
   auto ReachableTypes = Resolver::TH->getSubTypes(ReceiverType);
@@ -85,7 +83,7 @@ RTAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       if (ReachableTypes.find(PossibleTypeStruct) != EndIt) {
         const auto *Target =
-            getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
+            getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CB);
         if (Target) {
           PossibleCallTargets.insert(Target);
         }
@@ -94,7 +92,7 @@ RTAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
   }
 
   if (PossibleCallTargets.empty()) {
-    return CHAResolver::resolveVirtualCall(CS);
+    return CHAResolver::resolveVirtualCall(CB);
   }
 
   return PossibleCallTargets;

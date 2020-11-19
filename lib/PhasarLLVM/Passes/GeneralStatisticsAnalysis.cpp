@@ -22,7 +22,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
-#include "llvm/PassSupport.h"
+#include "llvm/Pass.h"
 #include "llvm/Support/raw_os_ostream.h"
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
@@ -89,7 +89,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         // check for function calls
         if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
           ++Stats.callsites;
-          const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(I);
+          const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(&I);
           if (CB->getCalledFunction()) {
             if (MemAllocatingFunctions.count(
                     llvm::demangle(CB->getCalledFunction()->getName().str()))) {
@@ -110,7 +110,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
                         // potential call to the structures ctor
                         const llvm::CallBase *CTor =
                             llvm::cast<llvm::CallBase>(User);
-                        if (CTor.getCalledFunction() &&
+                        if (CTor->getCalledFunction() &&
                             getNthFunctionArgument(CTor->getCalledFunction(), 0)
                                     ->getType() == Cast->getDestTy()) {
                           Stats.allocatedTypes.insert(

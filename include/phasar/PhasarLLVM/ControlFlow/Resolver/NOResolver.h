@@ -16,7 +16,7 @@
 
 namespace llvm {
 class Instruction;
-class AbstractCallSite;
+class CallBase;
 class Function;
 class StructType;
 } // namespace llvm
@@ -27,7 +27,7 @@ class NOResolver final : public Resolver {
 protected:
   const llvm::Function *getNonPureVirtualVFTEntry(const llvm::StructType *T,
                                                   unsigned Idx,
-                                                  llvm::AbstractCallSite CS);
+                                                  const llvm::CallBase *CB);
 
 public:
   NOResolver(ProjectIRDB &IRDB);
@@ -37,16 +37,16 @@ public:
   void preCall(const llvm::Instruction *Inst) override;
 
   void handlePossibleTargets(
-      llvm::AbstractCallSite CS,
+      const llvm::CallBase *CB,
       std::set<const llvm::Function *> &PossibleTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::AbstractCallSite CS) override;
+  resolveVirtualCall(const llvm::CallBase *CB) override;
 
   std::set<const llvm::Function *>
-  resolveFunctionPointer(llvm::AbstractCallSite CS) override;
+  resolveFunctionPointer(const llvm::CallBase *CB) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
 };

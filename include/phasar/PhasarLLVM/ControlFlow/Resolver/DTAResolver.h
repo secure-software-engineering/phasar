@@ -29,7 +29,7 @@
 
 namespace llvm {
 class Instruction;
-class ImmutableCallSite;
+class CallBase;
 class Function;
 } // namespace llvm
 
@@ -62,7 +62,7 @@ public:
   ~DTAResolver() override = default;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::AbstractCallSite CS) override;
+  resolveVirtualCall(const llvm::CallBase *CB) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
 };

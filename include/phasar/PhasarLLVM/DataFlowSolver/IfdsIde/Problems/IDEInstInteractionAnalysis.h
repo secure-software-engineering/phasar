@@ -410,7 +410,7 @@ public:
     }
     // Map actual to formal parameters.
     return std::make_shared<MapFactsToCallee<container_type>>(
-        const llvm::cast<llvm::CallBase>(callSite), destMthd);
+        llvm::cast<llvm::CallBase>(callSite), destMthd);
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
@@ -419,7 +419,7 @@ public:
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
     return std::make_shared<MapFactsToCaller<container_type>>(
-        const llvm::cast<llvm::CallBase>(callSite), calleeMthd, exitSite);
+        llvm::cast<llvm::CallBase>(callSite), calleeMthd, exitSite);
   }
 
   inline FlowFunctionPtrType
@@ -450,7 +450,7 @@ public:
     // Just use the auto mapping for values, pointer parameters are killed and
     // handled by getCallFlowfunction() and getRetFlowFunction().
     return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        const llvm::cast<llvm::CallBase>(callSite));
+        llvm::cast<llvm::CallBase>(callSite));
   }
 
   inline FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,

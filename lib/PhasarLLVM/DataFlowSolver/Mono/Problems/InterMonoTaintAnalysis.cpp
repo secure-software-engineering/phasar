@@ -95,7 +95,7 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
   vector<const llvm::Value *> Formals;
   // set up the actual parameters
   for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CB->getCallArgOperand(Idx));
+    Actuals.push_back(CB->getArgOperand(Idx));
   }
   // set up the formal parameters
   /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
@@ -130,7 +130,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   unsigned Index = 0;
   for (const auto &Arg : Callee->args()) {
     if (Arg.getType()->isPointerTy() && In.count(&Arg)) {
-      Out.insert(CB->getCallArgOperand(Index));
+      Out.insert(CB->getArgOperand(Index));
     }
     Index++;
   }
@@ -156,19 +156,19 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
     if (TSF.isSink(Callee->getName().str())) {
       for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
         if (TSF.getSink(Callee->getName().str()).isLeakedArg(Idx) &&
-            In.count(CB->getCallArgOperand(Idx))) {
+            In.count(CB->getArgOperand(Idx))) {
           cout << "FOUND LEAK AT: " << llvmIRToString(CallSite) << '\n';
-          cout << "LEAKED VALUE: " << llvmIRToString(CB->getCallArgOperand(Idx))
+          cout << "LEAKED VALUE: " << llvmIRToString(CB->getArgOperand(Idx))
                << '\n'
                << endl;
-          Leaks[CallSite].insert(CB->getCallArgOperand(Idx));
+          Leaks[CallSite].insert(CB->getArgOperand(Idx));
         }
       }
     }
     if (TSF.isSource(Callee->getName().str())) {
       for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
         if (TSF.getSource(Callee->getName().str()).isTaintedArg(Idx)) {
-          Out.insert(CB->getCallArgOperand(Idx));
+          Out.insert(CB->getArgOperand(Idx));
         }
       }
       if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
@@ -179,8 +179,8 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
 
   // erase pointer arguments, since they are now propagated in the retFF
   for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-    if (CB->getCallArgOperand(Idx)->getType()->isPointerTy()) {
-      Out.erase(CB->getCallArgOperand(Idx));
+    if (CB->getArgOperand(Idx)->getType()->isPointerTy()) {
+      Out.erase(CB->getArgOperand(Idx));
     }
   }
   return Out;

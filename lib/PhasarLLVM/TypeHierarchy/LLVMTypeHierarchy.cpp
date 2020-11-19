@@ -96,10 +96,10 @@ std::string
 LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
   llvm::StringRef SR(TypeName);
   if (SR.startswith(StructPrefix)) {
-    return SR.ltrim(StructPrefix);
+    return SR.ltrim(StructPrefix).str();
   }
   if (SR.startswith(ClassPrefix)) {
-    return SR.ltrim(ClassPrefix);
+    return SR.ltrim(ClassPrefix).str();
   }
   return TypeName;
 }
@@ -107,10 +107,10 @@ LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
 std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(TypeInfoPrefixDemang)) {
-    return SR.ltrim(TypeInfoPrefixDemang);
+    return SR.ltrim(TypeInfoPrefixDemang).str();
   }
   if (SR.startswith(TypeInfoPrefix)) {
-    return SR.ltrim(TypeInfoPrefix);
+    return SR.ltrim(TypeInfoPrefix).str();
   }
   return VarName;
 }
@@ -118,10 +118,10 @@ std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
 std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(VTablePrefixDemang)) {
-    return SR.ltrim(VTablePrefixDemang);
+    return SR.ltrim(VTablePrefixDemang).str();
   }
   if (SR.startswith(VTablePrefix)) {
-    return SR.ltrim(VTablePrefix);
+    return SR.ltrim(VTablePrefix).str();
   }
   return VarName;
 }

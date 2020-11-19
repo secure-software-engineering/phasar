@@ -14,7 +14,6 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -33,25 +32,25 @@ CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : Resolver(IRDB, TH) {}
 
 set<const llvm::Function *>
-CHAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: "
-                << llvmIRToString(CS.getInstruction()));
+CHAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
+  // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+  //               << "Call virtual function: " << llvmIRToString(CB));
 
-  auto VFTIdx = getVFTIndex(CS);
+  auto VFTIdx = getVFTIndex(CB);
   if (VFTIdx < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Error with resolveVirtualCall : impossible to retrieve "
-                     "the vtable index\n"
-                  << llvmIRToString(CS.getInstruction()) << "\n");
+    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+    //               << "Error with resolveVirtualCall : impossible to retrieve
+    //               "
+    //                  "the vtable index\n"
+    //               << llvmIRToString(CB) << "\n");
     return {};
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VFTIdx);
 
-  const auto *ReceiverTy = getReceiverType(CS);
+  const auto *ReceiverTy = getReceiverType(CB);
 
   // also insert all possible subtypes vtable entries
   auto FallbackTys = Resolver::TH->getSubTypes(ReceiverTy);
@@ -59,7 +58,7 @@ CHAResolver::resolveVirtualCall(llvm::AbstractCallSite CS) {
   set<const llvm::Function *> PossibleCallees;
 
   for (const auto &FallbackTy : FallbackTys) {
-    const auto *Target = getNonPureVirtualVFTEntry(FallbackTy, VFTIdx, CS);
+    const auto *Target = getNonPureVirtualVFTEntry(FallbackTy, VFTIdx, CB);
     if (Target) {
       PossibleCallees.insert(Target);
     }

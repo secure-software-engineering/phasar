@@ -243,7 +243,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
     const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::Function *DestFun;
-     const llvm::CallBase *CB;
+      const llvm::CallBase *CB;
       const llvm::Value *Zerovalue;
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
@@ -313,7 +313,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(DestFun, CallSite, ZeroValue);
+    return make_shared<UVFF>(DestFun, CB, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }

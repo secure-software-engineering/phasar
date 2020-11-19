@@ -31,9 +31,9 @@ namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 
-int getVFTIndex(llvm::AbstractCallSite CS);
+int getVFTIndex(const llvm::CallBase *CB);
 
-const llvm::StructType *getReceiverType(llvm::AbstractCallSite CS);
+const llvm::StructType *getReceiverType(const llvm::CallBase *CB);
 
 std::string getReceiverTypeName(const llvm::CallBase &CB);
 
@@ -46,7 +46,7 @@ protected:
 
   const llvm::Function *getNonPureVirtualVFTEntry(const llvm::StructType *T,
                                                   unsigned Idx,
-                                                  llvm::AbstractCallSite CS);
+                                                  const llvm::CallBase *CB);
 
 public:
   Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
@@ -56,16 +56,16 @@ public:
   virtual void preCall(const llvm::Instruction *Inst);
 
   virtual void
-  handlePossibleTargets(llvm::AbstractCallSite CS,
+  handlePossibleTargets(const llvm::CallBase *CB,
                         std::set<const llvm::Function *> &PossibleTargets);
 
   virtual void postCall(const llvm::Instruction *Inst);
 
   virtual std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::AbstractCallSite CS) = 0;
+  resolveVirtualCall(const llvm::CallBase *CB) = 0;
 
   virtual std::set<const llvm::Function *>
-  resolveFunctionPointer(llvm::AbstractCallSite CS);
+  resolveFunctionPointer(const llvm::CallBase *CB);
 
   virtual void otherInst(const llvm::Instruction *Inst);
 };
