@@ -33,17 +33,18 @@ CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 
 set<const llvm::Function *>
 CHAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
-  // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-  //               << "Call virtual function: " << llvmIRToString(CB));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Call virtual function: "
+                << llvmIRToString(llvm::cast<const llvm::Value>(&CB)));
 
   auto VFTIdx = getVFTIndex(CB);
   if (VFTIdx < 0) {
     // An error occured
-    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-    //               << "Error with resolveVirtualCall : impossible to retrieve
-    //               "
-    //                  "the vtable index\n"
-    //               << llvmIRToString(CB) << "\n");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Error with resolveVirtualCall : impossible to retrieve "
+                     "the vtable index\n"
+                  << llvmIRToString(llvm::cast<const llvm::Value>(&CB))
+                  << "\n");
     return {};
   }
 
