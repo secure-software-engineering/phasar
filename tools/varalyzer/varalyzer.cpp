@@ -88,7 +88,6 @@ int main(int argc, char **argv) {
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
     IDESolver Solver(VarProblem);
     Solver.solve();
-    Solver.dumpResults();
   }
   if (AnalysisType == OpenSSLEVPAnalysisType::MAC ||
       AnalysisType == OpenSSLEVPAnalysisType::MD) {
@@ -111,7 +110,6 @@ int main(int argc, char **argv) {
     IDEVarTabulationProblem_P<IDETypeStateAnalysis> VarProblem(Problem, ICF);
     IDESolver Solver(VarProblem);
     Solver.solve();
-    Solver.dumpResults();
   }
   return 0;
 }
