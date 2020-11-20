@@ -341,111 +341,128 @@ TEST(LTHTest, VTableConstruction) {
 
   ASSERT_TRUE(demangle(TH1.getVFTable(TH1.getType("struct.Base"))
                            ->getFunction(0)
-                           ->getName()) == "Base::foo()");
+                           ->getName()
+                           .str()) == "Base::foo()");
   ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Base"))->size() == 1U);
   ASSERT_TRUE(demangle(TH1.getVFTable(TH1.getType("struct.Child"))
                            ->getFunction(0)
-                           ->getName()) == "Child::foo()");
+                           ->getName()
+                           .str()) == "Child::foo()");
   ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Child"))->size() == 1U);
 
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.A"))->getFunction(0)->getName()) ==
-      "A::f()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.A"))
+                           ->getFunction(0)
+                           ->getName()
+                           .str()) == "A::f()");
   ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.A"))->size() == 1U);
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.B"))->getFunction(0)->getName()) ==
-      "A::f()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.B"))
+                           ->getFunction(0)
+                           ->getName()
+                           .str()) == "A::f()");
   ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.B"))->size() == 1U);
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.C"))->getFunction(0)->getName()) ==
-      "A::f()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.C"))
+                           ->getFunction(0)
+                           ->getName()
+                           .str()) == "A::f()");
   ASSERT_TRUE(
 
       TH2.getVFTable(TH2.getType("struct.C"))->size() == 1U);
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.D"))->getFunction(0)->getName()) ==
-      "A::f()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.D"))
+                           ->getFunction(0)
+                           ->getName()
+                           .str()) == "A::f()");
   ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.D"))->size() == 1U);
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.X"))->getFunction(0)->getName()) ==
-      "X::g()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.X"))
+                           ->getFunction(0)
+                           ->getName()
+                           .str()) == "X::g()");
   ASSERT_TRUE(
 
       TH2.getVFTable(TH2.getType("struct.X"))->size() == 1U);
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.Y"))->getFunction(0)->getName()) ==
-      "X::g()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.Y"))
+                           ->getFunction(0)
+                           ->getName()
+                           .str()) == "X::g()");
   ASSERT_TRUE(
 
       TH2.getVFTable(TH2.getType("struct.Y"))->size() == 1U);
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.Z"))->getFunction(0)->getName()) ==
-      "A::f()");
-  ASSERT_TRUE(
-      demangle(
-          TH2.getVFTable(TH2.getType("struct.Z"))->getFunction(1)->getName()) ==
-      "X::g()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.Z"))
+                           ->getFunction(0)
+                           ->getName()
+                           .str()) == "A::f()");
+  ASSERT_TRUE(demangle(TH2.getVFTable(TH2.getType("struct.Z"))
+                           ->getFunction(1)
+                           ->getName()
+                           .str()) == "X::g()");
   ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.Z"))->size() == 2U);
 
   ASSERT_TRUE(demangle(TH3.getVFTable(TH3.getType("struct.Base"))
                            ->getFunction(0)
-                           ->getName()) == "Base::foo()");
+                           ->getName()
+                           .str()) == "Base::foo()");
   ASSERT_TRUE(demangle(TH3.getVFTable(TH3.getType("struct.Base"))
                            ->getFunction(1)
-                           ->getName()) == "Base::bar()");
+                           ->getName()
+                           .str()) == "Base::bar()");
   ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Base"))->size() == 2U);
   ASSERT_TRUE(demangle(TH3.getVFTable(TH3.getType("struct.Child"))
                            ->getFunction(0)
-                           ->getName()) == "Child::foo()");
+                           ->getName()
+                           .str()) == "Child::foo()");
   ASSERT_TRUE(demangle(TH3.getVFTable(TH3.getType("struct.Child"))
                            ->getFunction(1)
-                           ->getName()) == "Base::bar()");
+                           ->getName()
+                           .str()) == "Base::bar()");
   ASSERT_TRUE(demangle(TH3.getVFTable(TH3.getType("struct.Child"))
                            ->getFunction(2)
-                           ->getName()) == "Child::baz()");
+                           ->getName()
+                           .str()) == "Child::baz()");
   ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Child"))->size() == 3U);
 
   ASSERT_TRUE(demangle(TH4.getVFTable(TH4.getType("struct.Base"))
                            ->getFunction(0)
-                           ->getName()) == "Base::foo()");
+                           ->getName()
+                           .str()) == "Base::foo()");
   ASSERT_TRUE(demangle(TH4.getVFTable(TH4.getType("struct.Base"))
                            ->getFunction(1)
-                           ->getName()) == "Base::bar()");
+                           ->getName()
+                           .str()) == "Base::bar()");
   ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Base"))->size() == 2U);
   ASSERT_TRUE(demangle(TH4.getVFTable(TH4.getType("struct.Child"))
                            ->getFunction(0)
-                           ->getName()) == "Child::foo()");
+                           ->getName()
+                           .str()) == "Child::foo()");
   ASSERT_TRUE(demangle(TH4.getVFTable(TH4.getType("struct.Child"))
                            ->getFunction(1)
-                           ->getName()) == "Base::bar()");
+                           ->getName()
+                           .str()) == "Base::bar()");
   ASSERT_TRUE(demangle(TH4.getVFTable(TH4.getType("struct.Child"))
                            ->getFunction(2)
-                           ->getName()) == "Child::baz()");
+                           ->getName()
+                           .str()) == "Child::baz()");
   ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Child"))->size() == 3U);
 
   ASSERT_TRUE(demangle(TH5.getVFTable(TH5.getType("struct.Base"))
                            ->getFunction(0)
-                           ->getName()) == "__cxa_pure_virtual");
+                           ->getName()
+                           .str()) == "__cxa_pure_virtual");
   ASSERT_TRUE(demangle(TH5.getVFTable(TH5.getType("struct.Base"))
                            ->getFunction(1)
-                           ->getName()) == "Base::bar()");
+                           ->getName()
+                           .str()) == "Base::bar()");
   ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Base"))->size() == 2U);
   ASSERT_TRUE(demangle(TH5.getVFTable(TH5.getType("struct.Child"))
                            ->getFunction(0)
-                           ->getName()) == "Child::foo()");
+                           ->getName()
+                           .str()) == "Child::foo()");
   ASSERT_TRUE(demangle(TH5.getVFTable(TH5.getType("struct.Child"))
                            ->getFunction(1)
-                           ->getName()) == "Base::bar()");
+                           ->getName()
+                           .str()) == "Base::bar()");
   ASSERT_TRUE(demangle(TH5.getVFTable(TH5.getType("struct.Child"))
                            ->getFunction(2)
-                           ->getName()) == "Child::baz()");
+                           ->getName()
+                           .str()) == "Child::baz()");
   ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Child"))->size() == 3U);
 }
 
