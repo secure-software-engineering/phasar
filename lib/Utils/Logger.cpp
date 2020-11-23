@@ -88,13 +88,15 @@ void initializeLogger(bool UseLogger, const string &LogFile) {
   using text_sink = boost::log::sinks::synchronous_sink<
       boost::log::sinks::text_ostream_backend>;
   boost::shared_ptr<text_sink> Sink = boost::make_shared<text_sink>();
-  // boost::shared_ptr<std::ostream> Stream = nullptr;
-  // if (LogFile.empty()) {
-  //  // the easiest way is to write the logs to std::clog
-  boost::shared_ptr<std::ostream> Stream(&std::clog, boost::null_deleter{});
-  // } else {
-  // Stream = boost::make_shared<std::ofstream>(LogFile);
-  // }
+  boost::shared_ptr<std::ostream> Stream =
+      [](const string &LogFile) -> boost::shared_ptr<std::ostream> {
+    if (LogFile.empty()) {
+      // the easiest way is to write the logs to std::clog
+      return boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter{});
+    } else {
+      return boost::make_shared<std::ofstream>(LogFile);
+    }
+  }(LogFile);
   Sink->locked_backend()->add_stream(Stream);
   Sink->set_filter(&logFilter);
   Sink->set_formatter(&logFormatter);
