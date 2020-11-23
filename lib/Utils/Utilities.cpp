@@ -16,8 +16,8 @@
 #include "boost/algorithm/string/find.hpp"
 #include "boost/algorithm/string/predicate.hpp"
 #include "boost/algorithm/string/split.hpp"
-#include "boost/core/demangle.hpp"
 
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DerivedTypes.h"
 
 #include "cxxabi.h"
@@ -37,10 +37,6 @@ std::string createTimeStamp() {
   TimeStr.erase(std::remove(TimeStr.begin(), TimeStr.end(), '\n'),
                 TimeStr.end());
   return TimeStr;
-}
-
-string cxxDemangle(const string &MangledName) {
-  return boost::core::demangle(MangledName.c_str());
 }
 
 bool isConstructor(const string &MangledName) {
@@ -82,7 +78,7 @@ const llvm::Type *stripPointer(const llvm::Type *Pointer) {
   return Pointer;
 }
 
-bool isMangled(const string &Name) { return Name != cxxDemangle(Name); }
+bool isMangled(const string &Name) { return Name != llvm::demangle(Name); }
 
 vector<string> splitString(const string &Str, const string &Delimiter) {
   vector<string> SplitStrings;

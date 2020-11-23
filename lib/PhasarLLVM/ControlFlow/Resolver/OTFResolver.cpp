@@ -64,19 +64,11 @@ void OTFResolver::handlePossibleTargets(
         // handle return value
         if (CalleeTarget->getReturnType()->isPointerTy()) {
           for (const auto &ExitPoint : ICF.getExitPointsOf(CalleeTarget)) {
-            // get the return value
+            // get the function's return value
             if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
-              // get the target value to which the return value is written to
-              if (const auto *Store =
-                      llvm::dyn_cast<llvm::StoreInst>(CS->getNextNode())) {
-                const auto *TargetVal = Store->getPointerOperand();
-                PT.introduceAlias(TargetVal, Ret->getReturnValue(),
-                                  CS.getInstruction());
-              } else {
-                // return value may also be used directly
-                PT.introduceAlias(CS.getInstruction(), Ret->getReturnValue(),
-                                  CS.getInstruction());
-              }
+              // introduce alias to the returned value
+              PT.introduceAlias(CS.getInstruction(), Ret->getReturnValue(),
+                                CS.getInstruction());
             }
           }
         }
@@ -114,7 +106,7 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 
   // Use points-to information to resolve the indirect call
   auto AllocSites = PT.getReachableAllocationSites(Receiver);
-  auto PossibleAllocatedTypes = getReachableTypes(AllocSites);
+  auto PossibleAllocatedTypes = getReachableTypes(*AllocSites);
 
   const auto *ReceiverType = getReceiverType(CS);
 
@@ -144,12 +136,19 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   std::set<const llvm::Function *> Callees;
-  const auto PTS = PT.getPointsToSet(CS.getCalledValue());
-  for (const auto *P : *PTS) {
-    if (P->getType()->isPointerTy() &&
-        P->getType()->getPointerElementType()->isFunctionTy()) {
-      if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
-        Callees.insert(F);
+  if (CS.getCalledValue() && CS.getCalledValue()->getType()->isPointerTy()) {
+    if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
+            CS.getCalledValue()->getType()->getPointerElementType())) {
+      const auto PTS = PT.getPointsToSet(CS.getCalledValue());
+      for (const auto *P : *PTS) {
+        if (P->getType()->isPointerTy() &&
+            P->getType()->getPointerElementType()->isFunctionTy()) {
+          if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
+            if (matchesSignature(F, FTy)) {
+              Callees.insert(F);
+            }
+          }
+        }
       }
     }
   }

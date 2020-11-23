@@ -1,5 +1,7 @@
 set(PHASAR_clang_COMPONENT_FOUND 1)
 
+find_package(Boost COMPONENTS log REQUIRED)
+
 list(APPEND
   PHASAR_LLVM_DEPS
   Support

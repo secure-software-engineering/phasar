@@ -1,5 +1,7 @@
 set(PHASAR_ifdside_COMPONENT_FOUND 1)
 
+find_package(Boost COMPONENTS program_options REQUIRED)
+
 list(APPEND
   LLVM_DEPS
   Support

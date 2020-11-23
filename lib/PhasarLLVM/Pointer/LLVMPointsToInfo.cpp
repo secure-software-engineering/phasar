@@ -12,25 +12,24 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
-using namespace std;
 using namespace psr;
 
 namespace psr {
 
-llvm::Function *LLVMPointsToInfo::retrieveFunction(const llvm::Value *V) {
+const llvm::Function *LLVMPointsToInfo::retrieveFunction(const llvm::Value *V) {
   const llvm::Function *Fun = nullptr;
   if (V) {
-    if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
       Fun = Inst->getFunction();
     }
-    if (auto BB = llvm::dyn_cast<llvm::BasicBlock>(V)) {
+    if (const auto *BB = llvm::dyn_cast<llvm::BasicBlock>(V)) {
       Fun = BB->getParent();
     }
-    if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
       Fun = Arg->getParent();
     }
   }
-  return const_cast<llvm::Function *>(Fun);
+  return Fun;
 }
 
 } // namespace psr

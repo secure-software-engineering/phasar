@@ -151,6 +151,9 @@ void AnalysisController::executeWholeProgram() {
       case DataFlowAnalysisType::IFDSTaintAnalysis: {
         WholeProgramAnalysis<IFDSSolver_P<IFDSTaintAnalysis>, IFDSTaintAnalysis>
             WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
+        WPA.solve();
+        emitRequestedDataFlowResults(WPA);
+        WPA.releaseAllHelperAnalyses();
       } break;
       case DataFlowAnalysisType::IDETaintAnalysis: {
         WholeProgramAnalysis<IDESolver_P<IDETaintAnalysis>, IDETaintAnalysis>

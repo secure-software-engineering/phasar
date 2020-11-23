@@ -17,8 +17,34 @@
 #include "boost/bimap/unordered_set_of.hpp"
 
 #include "llvm/ADT/BitVector.h"
+#include "llvm/Support/Compiler.h"
 
 namespace psr {
+namespace internal {
+inline bool isLess(const llvm::BitVector &Lhs, const llvm::BitVector &Rhs) {
+  unsigned LhsBits = Lhs.size();
+  unsigned RhsBits = Rhs.size();
+
+  if (LhsBits > RhsBits) {
+    if (Lhs.find_first_in(RhsBits, LhsBits) != -1) {
+      return false;
+    }
+  } else if (LhsBits < RhsBits) {
+    if (Rhs.find_first_in(LhsBits, RhsBits) != -1) {
+      return true;
+    }
+  }
+
+  // Compare every bit on both sides because Lhs and Rhs either have the same
+  // amount of bits or all other upper bits of the larger one are zero.
+  for (int i = static_cast<int>(std::min(LhsBits, RhsBits)) - 1; i >= 0; --i) {
+    if (LLVM_UNLIKELY(Lhs[i] != Rhs[i])) {
+      return Rhs[i];
+    }
+  }
+  return false;
+}
+} // namespace internal
 
 /**
  * BitVectorSet implements a set that requires minimal space. Elements are
@@ -267,7 +293,7 @@ public:
   }
 
   friend bool operator<(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
-    return Lhs.Bits.count() < Rhs.Bits.count();
+    return internal::isLess(Lhs.Bits, Rhs.Bits);
   }
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {

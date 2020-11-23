@@ -139,10 +139,12 @@ endif()
 
 add_definitions(${LLVM_DEFINITIONS})
 
-find_library(LLVM_LIBRARY NAMES LLVM REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
-if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-  message(STATUS "Found consolidated shared LLVM lib " ${LLVM_LIBRARY} " that will be linked against.")
-  set(USE_LLVM_FAT_LIB on)
+if (NOT PHASAR_IN_TREE)
+  find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
+  if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+    message(STATUS "Found consolidated shared LLVM lib " ${LLVM_LIBRARY} " that will be linked against.")
+    set(USE_LLVM_FAT_LIB on)
+  endif()
 endif()
 
 # Clang
@@ -204,6 +206,7 @@ add_subdirectory(lib)
 set(LLVM_LINK_COMPONENTS
   coverage
   coroutines
+  demangle
   libdriver
   lto
   support

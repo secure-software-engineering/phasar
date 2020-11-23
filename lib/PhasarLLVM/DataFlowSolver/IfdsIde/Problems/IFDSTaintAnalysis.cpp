@@ -9,6 +9,7 @@
 
 #include <utility>
 
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
@@ -87,7 +88,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
 IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
                                        IFDSTaintAnalysis::f_t DestFun) {
-  string FunctionName = cxxDemangle(DestFun->getName().str());
+  string FunctionName = llvm::demangle(DestFun->getName().str());
   // Check if a source or sink function is called:
   // We then can kill all data-flow facts not following the called function.
   // The respective taints or leaks are then generated in the corresponding
@@ -126,7 +127,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     set<IFDSTaintAnalysis::f_t> Callees) {
   // Process the effects of source or sink functions that are called
   for (const auto *Callee : ICF->getCalleesOfCallAt(CallSite)) {
-    string FunctionName = cxxDemangle(Callee->getName().str());
+    string FunctionName = llvm::demangle(Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "F:" << Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -221,7 +222,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
                                           IFDSTaintAnalysis::f_t DestFun) {
   SpecialSummaries<IFDSTaintAnalysis::d_t> &SS =
       SpecialSummaries<IFDSTaintAnalysis::d_t>::getInstance();
-  string FunctionName = cxxDemangle(DestFun->getName().str());
+  string FunctionName = llvm::demangle(DestFun->getName().str());
   // If we have a special summary, which is neither a source function, nor
   // a sink function, then we provide it to the solver.
   if (SS.containsSpecialSummary(FunctionName) &&

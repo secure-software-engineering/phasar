@@ -1,10 +1,12 @@
 #include "gtest/gtest.h"
 
+#include "phasar/Utils/BitVectorSet.h"
+
+#include "llvm/ADT/BitVector.h"
+
 #include <iostream>
 #include <set>
 #include <utility>
-
-#include "phasar/Utils/BitVectorSet.h"
 
 using namespace psr;
 using namespace std;
@@ -383,6 +385,97 @@ TEST(BitVectorSet, rangeFor) {
     DS.insert(I);
   }
   EXPECT_EQ(DS, DSGT);
+}
+
+TEST(BitVectorSet, lessThan) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({1, 2, 3, 4, 5});
+
+  EXPECT_TRUE(B < A);
+  EXPECT_FALSE(A < B);
+  EXPECT_FALSE(A < A);
+}
+
+//===----------------------------------------------------------------------===//
+// llvm::BitVector
+
+TEST(BitVector, emptyVectorsShouldNotBeLess) {
+  llvm::BitVector A(5);
+  llvm::BitVector B(5);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, emptyVectorsWithDifferentSizeShouldNotBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(5);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, equalVectorsShouldNotBeLess) {
+  llvm::BitVector A(10);
+  llvm::BitVector B(10);
+
+  A.set(3);
+  B.set(3);
+  A.set(5);
+  B.set(5);
+  A.set(8);
+  B.set(8);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, equalSizedVectorsWithBitDifference) {
+  llvm::BitVector A(10);
+  llvm::BitVector B(10);
+
+  A.set(3);
+  B.set(3);
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+  A.set(8);
+  B.set(8);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
+
+  // Switching the bits shoud invert the lesser relationship
+  A.set(4);
+  A.reset(5);
+  B.set(5);
+  B.reset(4);
+
+  EXPECT_TRUE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, biggerVecWithoutUpperBitsSetShouldNotBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(10);
+
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
+}
+
+TEST(BitVector, biggerVecWithUpperBitsSetShouldBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(10);
+
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+
+  A.set(40);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
 }
 
 int main(int Argc, char **Argv) {

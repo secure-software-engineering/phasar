@@ -14,6 +14,7 @@ set(LLVM_LINK_COMPONENTS
   Core
   Support
   BitWriter
+  Demangle
 )
 
 if(BUILD_SHARED_LIBS)

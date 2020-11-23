@@ -143,7 +143,7 @@ LLVMPointsToGraph::LLVMPointsToGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     : PTA(IRDB, UseLazyEvaluation, PATy) {}
 
 void LLVMPointsToGraph::computePointsToGraph(const llvm::Value *V) {
-  auto *VF = retrieveFunction(V);
+  auto *VF = const_cast<llvm::Function *>(retrieveFunction(V));
   computePointsToGraph(VF);
 }
 
@@ -264,12 +264,13 @@ AliasResult LLVMPointsToGraph::alias(const llvm::Value *V1,
   return AliasResult::NoAlias;
 }
 
-std::unordered_set<const llvm::Value *>
+std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToGraph::getReachableAllocationSites(const llvm::Value *V,
+                                               bool IntraProcOnly,
                                                const llvm::Instruction *I) {
   computePointsToGraph(V);
-  std::unordered_set<const llvm::Value *> AllocSites;
-  AllocationSiteDFSVisitor AllocVis(AllocSites, {});
+  auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
+  AllocationSiteDFSVisitor AllocVis(*AllocSites, {});
   vector<boost::default_color_type> ColorMap(boost::num_vertices(PAG));
   boost::depth_first_visit(
       PAG, ValueVertexMap[V], AllocVis,

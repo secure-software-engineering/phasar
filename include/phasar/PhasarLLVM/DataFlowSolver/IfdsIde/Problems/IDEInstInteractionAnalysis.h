@@ -103,22 +103,6 @@ public:
 
   using EdgeFactGeneratorTy = std::set<e_t>(n_t curr);
 
-private:
-  std::function<EdgeFactGeneratorTy> edgeFactGen;
-  static inline const l_t BottomElement = Bottom{};
-  static inline const l_t TopElement = Top{};
-  // bool GeneratedGlobalVariables = false;
-
-  inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t curr) {
-    if (edgeFactGen) {
-      auto Results = edgeFactGen(curr);
-      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
-      return BVS;
-    }
-    return {};
-  }
-
-public:
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
@@ -128,6 +112,8 @@ public:
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
                                     EnableIndirectTaints>::createZeroValue();
+    IIAAAddLabelsEF::initEdgeFunctionCleaner();
+    IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
 
   ~IDEInstInteractionAnalysisT() override = default;
@@ -206,7 +192,8 @@ public:
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
               : Load(Load),
-                PTS(Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
+                PTS(Problem.PT->getReachableAllocationSites(
+                    Load->getPointerOperand(), Problem.IntraProcPTIOnly)) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
@@ -247,14 +234,15 @@ public:
                           const llvm::StoreInst *Store)
               : Store(Store), ValuePTS([&]() {
                   if (isInterestingPointer(Store->getValueOperand())) {
-                    return Problem.PT->getPointsToSet(Store->getValueOperand());
+                    return Problem.PT->getReachableAllocationSites(
+                        Store->getValueOperand(), Problem.IntraProcPTIOnly);
                   } else {
                     return std::make_shared<std::unordered_set<d_t>>(
                         std::unordered_set<d_t>{Store->getValueOperand()});
                   }
                 }()),
-                PointerPTS(
-                    Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
+                PointerPTS(Problem.PT->getReachableAllocationSites(
+                    Store->getPointerOperand(), Problem.IntraProcPTIOnly)) {}
 
           container_type computeTargets(d_t src) override {
             container_type Facts;
@@ -533,7 +521,7 @@ public:
               BOOST_LOG_SEV(lg::get(), DFADEBUG)
                   << "at '" << llvmIRToString(curr) << "'\n";
             }());
-            return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
+            return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
           }
         }
         // kill all labels that are propagated along the edge of the value that
@@ -568,7 +556,7 @@ public:
                 UEF->insert(edgeFactGenToBitVectorSet(OrigAlloca));
               }
             }
-            return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
+            return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
           } else {
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
                           << "Kill at '" << llvmIRToString(curr) << "'\n");
@@ -588,7 +576,7 @@ public:
                 UEF->insert(edgeFactGenToBitVectorSet(OrigAlloca));
               }
             }
-            return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
+            return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
           }
         }
       } else {
@@ -596,20 +584,22 @@ public:
         // using points-to sets
         std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
         if (Store->getValueOperand()->getType()->isPointerTy()) {
-          ValuePTS = this->PT->getPointsToSet(Store->getValueOperand());
+          ValuePTS = this->PT->getReachableAllocationSites(
+              Store->getValueOperand(), IntraProcPTIOnly);
         }
-        auto PointerPTS = this->PT->getPointsToSet(Store->getPointerOperand());
+        auto PointerPTS = this->PT->getReachableAllocationSites(
+            Store->getPointerOperand(), IntraProcPTIOnly);
         // overriding edge
         if ((currNode == Store->getValueOperand() ||
              (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
              llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
             PointerPTS->count(Store->getPointerOperand())) {
-          return std::make_shared<IIAAKillOrReplaceEF>(UserEdgeFacts);
+          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
         // kill all labels that are propagated along the edge of the
         // value/values that is/are overridden
         if (currNode == succNode && PointerPTS->count(currNode)) {
-          return std::make_shared<IIAAKillOrReplaceEF>();
+          return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
         }
       }
     }
@@ -621,18 +611,18 @@ public:
         // generate labels from zero when the instruction itself is the flow
         // fact that is generated
         if (isZeroValue(currNode) && curr == succNode) {
-          return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
+          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
         // handle edges that may add new labels to existing facts
         if (curr == currNode && currNode == succNode) {
-          return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
+          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
         // generate labels from zero when an operand of the current instruction
         // is a flow fact that is generated
         for (const auto &Op : curr->operands()) {
           // also propagate the labels if one of the operands holds
           if (isZeroValue(currNode) && Op == succNode) {
-            return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
+            return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
           }
           // handle edges that may add new labels to existing facts
           if (Op == currNode && currNode == succNode) {
@@ -643,7 +633,7 @@ public:
               }
               BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
             }());
-            return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
+            return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
           }
           // handle edge that are drawn from existing facts
           if (Op == currNode && curr == succNode) {
@@ -654,7 +644,7 @@ public:
               }
               BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
             }());
-            return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
+            return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
           }
         }
       }
@@ -708,7 +698,8 @@ public:
   // others).
   class IIAAKillOrReplaceEF
       : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IIAAKillOrReplaceEF> {
+        public std::enable_shared_from_this<IIAAKillOrReplaceEF>,
+        public EdgeFunctionSingletonFactory<IIAAKillOrReplaceEF, l_t> {
   public:
     l_t Replacement;
 
@@ -782,7 +773,7 @@ public:
       OS << ")";
     }
 
-    bool isKillAll() const {
+    [[nodiscard]] bool isKillAll() const {
       if (auto *RSet = std::get_if<BitVectorSet<e_t>>(&Replacement)) {
         return RSet->empty();
       }
@@ -792,26 +783,22 @@ public:
 
   // Edge function that adds the given labels to existing labels
   // add all labels provided by Data.
-  class IIAAAddLabelsEF : public EdgeFunction<l_t>,
-                          public std::enable_shared_from_this<IIAAAddLabelsEF> {
-  private:
-    IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
-                                EnableIndirectTaints> &Analysis;
-
+  class IIAAAddLabelsEF
+      : public EdgeFunction<l_t>,
+        public std::enable_shared_from_this<IIAAAddLabelsEF>,
+        public EdgeFunctionSingletonFactory<IIAAAddLabelsEF, l_t> {
   public:
-    l_t Data;
+    const l_t Data;
 
-    explicit IIAAAddLabelsEF(
-        IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
-                                    EnableIndirectTaints> &Analysis,
-        l_t Data)
-        : Analysis(Analysis), Data(Data) {
+    explicit IIAAAddLabelsEF(l_t Data) : Data(Data) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "IIAAAddLabelsEF");
     }
 
     ~IIAAAddLabelsEF() override = default;
 
-    l_t computeTarget(l_t Src) override { return Analysis.join(Src, Data); }
+    l_t computeTarget(l_t Src) override {
+      return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
+    }
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
@@ -825,12 +812,12 @@ public:
         return this->shared_from_this();
       }
       if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(secondFunction.get())) {
-        auto Union = Analysis.join(Data, AS->Data);
-        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
+        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AS->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(Union);
       }
       if (auto *KR =
               dynamic_cast<IIAAKillOrReplaceEF *>(secondFunction.get())) {
-        return std::make_shared<IIAAAddLabelsEF>(Analysis, KR->Replacement);
+        return IIAAAddLabelsEF::createEdgeFunction(KR->Replacement);
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
@@ -848,14 +835,16 @@ public:
         return this->shared_from_this();
       }
       if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(otherFunction.get())) {
-        auto Union = Analysis.join(Data, AS->Data);
-        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
+        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AS->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(Union);
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(otherFunction.get())) {
-        auto Union = Analysis.join(Data, KR->Replacement);
-        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
+        auto Union =
+            IDEInstInteractionAnalysisT::joinImpl(Data, KR->Replacement);
+        return IIAAAddLabelsEF::createEdgeFunction(Union);
       }
-      return std::make_shared<AllBottom<l_t>>(Analysis.BottomElement);
+      return std::make_shared<AllBottom<l_t>>(
+          IDEInstInteractionAnalysisT::BottomElement);
     }
 
     [[nodiscard]] bool
@@ -869,7 +858,7 @@ public:
 
     void print(std::ostream &OS, bool isForDebug = false) const override {
       OS << "EF: (IIAAAddLabelsEF: ";
-      Analysis.printEdgeFact(OS, Data);
+      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, Data);
       OS << ")";
     }
   };
@@ -972,6 +961,22 @@ protected:
     auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
     auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
     return LhsSet.setUnion(RhsSet);
+  }
+
+private:
+  std::function<EdgeFactGeneratorTy> edgeFactGen;
+  static inline const l_t BottomElement = Bottom{};
+  static inline const l_t TopElement = Top{};
+  // bool GeneratedGlobalVariables = false;
+  const bool IntraProcPTIOnly = true;
+
+  inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t curr) {
+    if (edgeFactGen) {
+      auto Results = edgeFactGen(curr);
+      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
+      return BVS;
+    }
+    return {};
   }
 
 }; // namespace psr

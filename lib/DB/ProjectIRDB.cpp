@@ -14,6 +14,7 @@
 
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
@@ -479,7 +480,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
   for (const auto &[File, Module] : Modules) {
     for (auto &GV : Module->globals()) {
       if (GV.hasName()) {
-        string GVName = cxxDemangle(GV.getName().str());
+        string GVName = llvm::demangle(GV.getName().str());
         if (!IgnoredGlobalNames.count(GVName.substr(0, GVName.find(' ')))) {
           AllMemoryLoc.insert(&GV);
         }

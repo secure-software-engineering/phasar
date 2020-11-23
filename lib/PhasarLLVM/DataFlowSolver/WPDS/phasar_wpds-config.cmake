@@ -1,5 +1,7 @@
 set(PHASAR_wpds_COMPONENT_FOUND 1)
 
+find_package(Boost COMPONENTS filesystem program_options REQUIRED)
+
 list(APPEND
   PHASAR_LLVM_DEPS
   Support
