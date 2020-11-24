@@ -102,24 +102,25 @@ IntraMonoFullConstantPropagation::normalFlow(
     // Case I: Integer literal
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(ValueOp)) {
       auto Search = In.find(Store->getPointerOperand());
-      if(Search != In.end() && !std::holds_alternative<Bottom>(Search->second)){
+      if (Search != In.end() &&
+          !std::holds_alternative<Bottom>(Search->second)) {
         Out[Store->getPointerOperand()] = val->getSExtValue();
         return Out;
       }
-      
     }
     // Case II: Storing an integer typed value
     if (ValueOp->getType()->isIntegerTy()) {
-      //get value to be stored
+      // get value to be stored
       LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t> latticeVal =
           Top{};
       if (In.find(ValueOp) != In.end()) {
         latticeVal = In.at(ValueOp);
       }
-      //store value in variable if it is not top
+      // store value in variable if it is not top
       if (!std::holds_alternative<Top>(latticeVal)) {
         auto Search = In.find(Store->getPointerOperand());
-        if(Search != In.end() && !std::holds_alternative<Bottom>(Search->second)){
+        if (Search != In.end() &&
+            !std::holds_alternative<Bottom>(Search->second)) {
           Out[Store->getPointerOperand()] = latticeVal;
           return Out;
         }
@@ -130,7 +131,7 @@ IntraMonoFullConstantPropagation::normalFlow(
   // check load instructions
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Inst)) {
     auto Search = In.find(Load->getPointerOperand());
-    if(Search != In.end()){
+    if (Search != In.end()) {
       Out[Load] = Search->second;
       return Out;
     }
@@ -173,9 +174,9 @@ IntraMonoFullConstantPropagation::normalFlow(
       return Out;
 
     } else {
-      Out[Op] = executeBinOperation(Op->getOpcode(),
-                                         *std::get_if<plain_d_t>(&lval),
-                                         *std::get_if<plain_d_t>(&rval));
+      Out[Op] =
+          executeBinOperation(Op->getOpcode(), *std::get_if<plain_d_t>(&lval),
+                              *std::get_if<plain_d_t>(&rval));
       return Out;
     }
   }

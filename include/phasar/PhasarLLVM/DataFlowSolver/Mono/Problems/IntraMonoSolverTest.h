@@ -21,7 +21,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -35,6 +34,7 @@ class Function;
 
 namespace psr {
 
+class LLVMBasedCFG;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
@@ -60,14 +60,15 @@ public:
 
   ~IntraMonoSolverTest() override = default;
 
-  BitVectorSet<d_t> merge(mono_container_t &Lhs,
-                          mono_container_t &Rhs) override;
+  mono_container_t merge(const mono_container_t &Lhs,
+                         const mono_container_t &Rhs) override;
 
-  bool equal_to(mono_container_t &Lhs, mono_container_t &Rhs) override;
+  bool equal_to(const mono_container_t &Lhs,
+                const mono_container_t &Rhs) override;
 
-  BitVectorSet<d_t> normalFlow(n_t Inst, mono_container_t &In) override;
+  mono_container_t normalFlow(n_t Inst, const mono_container_t &In) override;
 
-  std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
+  std::unordered_map<n_t, mono_container_t> initialSeeds() override;
 
   void printNode(std::ostream &OS, n_t Inst) const override;
 

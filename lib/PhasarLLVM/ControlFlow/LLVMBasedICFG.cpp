@@ -84,7 +84,7 @@ std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
 // PT in case any of them is allocated within the constructor. To this end, we
 // set UserTHInfos and UserPTInfos to true here.
 LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
-    : IRDB(ICF.IRDB), CGType(ICF.CGType), SF(ICF.SF), TH(ICF.TH), PT(ICF.PT),
+    : IRDB(ICF.IRDB), CGType(ICF.CGType), S(ICF.S), TH(ICF.TH), PT(ICF.PT),
       // TODO copy resolver
       Res(nullptr), VisitedFunctions(ICF.VisitedFunctions),
       CallGraph(ICF.CallGraph), FunctionVertexMap(ICF.FunctionVertexMap) {}

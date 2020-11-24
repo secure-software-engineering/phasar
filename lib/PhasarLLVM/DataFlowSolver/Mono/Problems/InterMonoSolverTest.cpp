@@ -49,9 +49,9 @@ bool InterMonoSolverTest::equal_to(
   return Lhs == Rhs;
 }
 
-InterMonoSolverTest::mono_container_t
-InterMonoSolverTest::normalFlow(InterMonoSolverTest::n_t Inst,
-                                const InterMonoSolverTest::mono_container_t &In) {
+InterMonoSolverTest::mono_container_t InterMonoSolverTest::normalFlow(
+    InterMonoSolverTest::n_t Inst,
+    const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
   InterMonoSolverTest::mono_container_t Result;
   Result = Result.setUnion(In);
@@ -82,19 +82,18 @@ InterMonoSolverTest::mono_container_t InterMonoSolverTest::returnFlow(
   return In;
 }
 
-InterMonoSolverTest::mono_container_t
-InterMonoSolverTest::callToRetFlow(InterMonoSolverTest::n_t CallSite,
-                                   InterMonoSolverTest::n_t RetSite,
-                                   set<InterMonoSolverTest::f_t > Callees,
-                                   const InterMonoSolverTest::mono_container_t &In) {
+InterMonoSolverTest::mono_container_t InterMonoSolverTest::callToRetFlow(
+    InterMonoSolverTest::n_t CallSite, InterMonoSolverTest::n_t RetSite,
+    set<InterMonoSolverTest::f_t> Callees,
+    const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;
 }
 
-unordered_map<InterMonoSolverTest::n_t , InterMonoSolverTest::mono_container_t>
+unordered_map<InterMonoSolverTest::n_t, InterMonoSolverTest::mono_container_t>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  unordered_map<InterMonoSolverTest::n_t , InterMonoSolverTest::mono_container_t>
+  unordered_map<InterMonoSolverTest::n_t, InterMonoSolverTest::mono_container_t>
       Seeds;
   InterMonoSolverTest::f_t Main = ICF->getFunction("main");
   for (const auto *StartPoint : ICF->getStartPointsOf(Main)) {
@@ -108,8 +107,8 @@ void InterMonoSolverTest::printNode(ostream &OS,
   OS << llvmIRToString(Inst);
 }
 
-void InterMonoSolverTest::printDataFlowFact(ostream &OS,
-                                            InterMonoSolverTest::d_t Fact) const {
+void InterMonoSolverTest::printDataFlowFact(
+    ostream &OS, InterMonoSolverTest::d_t Fact) const {
   OS << llvmIRToString(Fact) << '\n';
 }
 

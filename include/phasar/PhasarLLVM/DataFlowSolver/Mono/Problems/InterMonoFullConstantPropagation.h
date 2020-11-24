@@ -16,7 +16,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -32,34 +31,28 @@ class StructType;
 namespace psr {
 
 class ProjectIRDB;
+class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
-struct InterMonoFullConstantPropagationAnalysisDomain
-    : public LLVMAnalysisDomainDefault {
-  using plain_d_t = int64_t;
-  using d_t = std::pair<const llvm::Value *, LatticeDomain<plain_d_t>>;
-  using mono_container_t =
-      std::map<const llvm::Value *, LatticeDomain<plain_d_t>>;
-};
-
 class InterMonoFullConstantPropagation
-    : public InterMonoProblem<InterMonoFullConstantPropagationAnalysisDomain> {
+    : public IntraMonoFullConstantPropagation,
+      public InterMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain> {
 public:
-  using n_t = InterMonoFullConstantPropagationAnalysisDomain::n_t;
-  using d_t = InterMonoFullConstantPropagationAnalysisDomain::d_t;
-  using plain_d_t = InterMonoFullConstantPropagationAnalysisDomain::plain_d_t;
-  using f_t = InterMonoFullConstantPropagationAnalysisDomain::f_t;
-  using t_t = InterMonoFullConstantPropagationAnalysisDomain::t_t;
-  using v_t = InterMonoFullConstantPropagationAnalysisDomain::v_t;
-  using i_t = InterMonoFullConstantPropagationAnalysisDomain::i_t;
-  using mono_container_t =
-      InterMonoFullConstantPropagationAnalysisDomain::mono_container_t;
+  using n_t = IntraMonoFullConstantPropagation::n_t;
+  using d_t = IntraMonoFullConstantPropagation::d_t;
+  using plain_d_t = IntraMonoFullConstantPropagation::plain_d_t;
+  using f_t = IntraMonoFullConstantPropagation::f_t;
+  using t_t = IntraMonoFullConstantPropagation::t_t;
+  using v_t = IntraMonoFullConstantPropagation::v_t;
+  using i_t = IntraMonoFullConstantPropagation::i_t;
+  using mono_container_t = IntraMonoFullConstantPropagation::mono_container_t;
 
-  InterMonoFullConstantPropagation(
-      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-      const std::set<std::string> &EntryPoints = {});
+  InterMonoFullConstantPropagation(const ProjectIRDB *IRDB,
+                                   const LLVMTypeHierarchy *TH,
+                                   const LLVMBasedICFG *ICF,
+                                   const LLVMPointsToInfo *PT,
+                                   std::set<std::string> EntryPoints = {});
 
   ~InterMonoFullConstantPropagation() override = default;
 

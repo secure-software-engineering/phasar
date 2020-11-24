@@ -367,34 +367,17 @@ public:
       // Compute the data-flow facts using the respective kind of flows
       if (ICF->isCallStmt(Src)) {
         // Handle call flow(s)
-        if (!isIntraEdge(Src)) {
+        if (!isIntraEdge(Edge)) {
           // real call
           for (auto &[Ctx, Facts] : Analysis[Src]) {
-            if (Cache.hasSummary(Facts)) {
-              // nothing to be done, we don't wish to analyze the function
-            } else if (true /* use isSensibleToSummarize */) {
-              // if callee target is primitive // TODO: find a better predicate
-              // then summarize!
-              auto Summary = summarize();
-              Cache.addSummary(Summary);
-            } else {
-              processCall(Edge); // TODO: decompose into processCall and
-                                 // processCallToRet
-            }
+            processCall(Edge); // TODO: decompose into processCall and
+                               // processCallToRet
           }
         } else {
           // call-to-return
-          // special semantics for applying a summary
-          for (auto &[Ctx, Facts] : Analysis[Src]) {
-            if (Cache.hasSummary(Facts)) {
-              auto Summary = Cache.retrieveSummary(Facts);
-              // Anlysis[Ctx] merge in Summary
-            }
-            // in addition call the user callToRetFlow and plug it in as well
-          }
+          processCall(
+              Edge); // TODO: decompose into processCall and processCallToRet
         }
-        processCall(
-            Edge); // TODO: decompose into processCall and processCallToRet
       } else if (ICF->isExitStmt(Src)) {
         // Handle return flow
         processExit(Edge);

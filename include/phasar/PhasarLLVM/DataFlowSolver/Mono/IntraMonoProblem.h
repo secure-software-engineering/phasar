@@ -75,7 +75,7 @@ public:
 
   ~IntraMonoProblem() override = default;
 
-  virtual mono_container_t normalFlow(n_t Stmt, const mono_container_t &In) = 0;
+  virtual mono_container_t normalFlow(n_t Inst, const mono_container_t &In) = 0;
 
   virtual mono_container_t merge(const mono_container_t &Lhs,
                                  const mono_container_t &Rhs) = 0;
@@ -99,7 +99,7 @@ public:
 
   virtual bool setSoundness(Soundness S) { return false; }
 
-  void printContainer(std::ostream &os, mono_container_t c) const override {}
+  virtual void printContainer(std::ostream &OS, mono_container_t C) const {}
 };
 
 } // namespace psr

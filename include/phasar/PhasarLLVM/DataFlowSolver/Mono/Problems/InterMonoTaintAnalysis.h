@@ -40,7 +40,7 @@ class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 
 struct InterMonoTaintAnalysisDomain : LLVMAnalysisDomainDefault {
-  using mono_containter_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
+  using mono_container_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
 };
 
 class InterMonoTaintAnalysis

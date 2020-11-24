@@ -35,13 +35,14 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoFullConstantPropagationAnalysisDomain>(
-          IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
+    : IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT, EntryPoints),
+      InterMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain>(
+          IRDB, TH, ICF, PT, EntryPoints) {}
 
-BitVectorSet<InterMonoFullConstantPropagation::d_t>
-InterMonoFullConstantPropagation::join(
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
-    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
+InterMonoFullConstantPropagation::mono_container_t
+InterMonoFullConstantPropagation::merge(
+    const InterMonoFullConstantPropagation::mono_container_t &Lhs,
+    const InterMonoFullConstantPropagation::mono_container_t &Rhs) {
   // TODO implement
   return {};
 }
@@ -167,7 +168,8 @@ void InterMonoFullConstantPropagation::printFunction(
 }
 
 void InterMonoFullConstantPropagation::printContainer(
-    std::ostream &OS, InterMonoFullConstantPropagation::mono_container_t Con) const {
+    std::ostream &OS,
+    InterMonoFullConstantPropagation::mono_container_t Con) const {
   for (const auto &[Var, Val] : Con) {
     OS << "<" << llvmIRToString(Var) << ", " << Val << ">, ";
   }

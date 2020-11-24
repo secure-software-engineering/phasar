@@ -24,9 +24,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -45,18 +43,21 @@ class LLVMBasedICFG;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
+class InterMonoFullConstantPropagation;
 
 struct IntraMonoFullConstantPropagationAnalysisDomain
     : public LLVMAnalysisDomainDefault {
   using plain_d_t = int64_t;
   using d_t = std::pair<const llvm::Value *, LatticeDomain<plain_d_t>>;
-  using mono_container_t = std::map<const llvm::Value *, LatticeDomain<plain_d_t>>;
+  using mono_container_t =
+      std::map<const llvm::Value *, LatticeDomain<plain_d_t>>;
 };
 
 class IntraMonoFullConstantPropagation
     : public IntraMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain> {
 public:
-  using plain_d_t = typename IntraMonoFullConstantPropagationAnalysisDomain::plain_d_t;
+  using plain_d_t =
+      typename IntraMonoFullConstantPropagationAnalysisDomain::plain_d_t;
   using n_t = typename IntraMonoFullConstantPropagationAnalysisDomain::n_t;
   using d_t = typename IntraMonoFullConstantPropagationAnalysisDomain::d_t;
   using f_t = typename IntraMonoFullConstantPropagationAnalysisDomain::f_t;
@@ -64,7 +65,8 @@ public:
   using v_t = typename IntraMonoFullConstantPropagationAnalysisDomain::v_t;
   using i_t = typename IntraMonoFullConstantPropagationAnalysisDomain::i_t;
   using c_t = typename IntraMonoFullConstantPropagationAnalysisDomain::c_t;
-  using mono_container_t = typename IntraMonoFullConstantPropagationAnalysisDomain::mono_container_t;
+  using mono_container_t =
+      typename IntraMonoFullConstantPropagationAnalysisDomain::mono_container_t;
 
   friend class InterMonoFullConstantPropagation;
 
@@ -83,9 +85,11 @@ public:
 
   mono_container_t normalFlow(n_t Inst, const mono_container_t &In) override;
 
-  mono_container_t merge(const mono_container_t &Lhs, const mono_container_t &Rhs) override;
+  mono_container_t merge(const mono_container_t &Lhs,
+                         const mono_container_t &Rhs) override;
 
-  bool equal_to(const mono_container_t &Lhs, const mono_container_t &Rhs) override;
+  bool equal_to(const mono_container_t &Lhs,
+                const mono_container_t &Rhs) override;
 
   std::unordered_map<n_t, mono_container_t> initialSeeds() override;
 

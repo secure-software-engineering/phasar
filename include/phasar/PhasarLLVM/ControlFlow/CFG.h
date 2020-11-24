@@ -17,10 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 
-<<<<<<< HEAD
 #include <iostream>
-=======
->>>>>>> f-InterMonoFullConstantPropagation
 #include <set>
 #include <string>
 #include <utility>

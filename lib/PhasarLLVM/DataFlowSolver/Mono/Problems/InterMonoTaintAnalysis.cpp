@@ -34,7 +34,7 @@ namespace psr {
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    const TaintConfiguration<InterMonoTaintAnalysisDomain::d_t> &TSF,
+    const TaintConfiguration<InterMonoTaintAnalysis::d_t> &TSF,
     std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, TH, ICF, PT,
                                                      std::move(EntryPoints)),
@@ -58,7 +58,7 @@ bool InterMonoTaintAnalysis::equal_to(
 }
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::normalFlow(
-    InterMonoTaintAnalysisDomain::n_t Inst,
+    InterMonoTaintAnalysis::n_t Inst,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::normalFlow()");
@@ -84,14 +84,14 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::normalFlow(
 }
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callFlow(
-    InterMonoTaintAnalysisDomain::n_t CallSite, const llvm::Function *Callee,
+    InterMonoTaintAnalysis::n_t CallSite, const llvm::Function *Callee,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
   InterMonoTaintAnalysis::mono_container_t Out;
   llvm::ImmutableCallSite CS(CallSite);
-  vector<InterMonoTaintAnalysisDomain::d_t> Actuals;
-  vector<InterMonoTaintAnalysisDomain::d_t> Formals;
+  vector<InterMonoTaintAnalysis::d_t> Actuals;
+  vector<InterMonoTaintAnalysis::d_t> Formals;
   // set up the actual parameters
   for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
     Actuals.push_back(CS.getArgOperand(Idx));
@@ -112,9 +112,8 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callFlow(
 }
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
-    InterMonoTaintAnalysisDomain::n_t CallSite, const llvm::Function *Callee,
-    InterMonoTaintAnalysisDomain::n_t ExitStmt,
-    InterMonoTaintAnalysisDomain::n_t RetSite,
+    InterMonoTaintAnalysis::n_t CallSite, const llvm::Function *Callee,
+    InterMonoTaintAnalysis::n_t ExitStmt, InterMonoTaintAnalysis::n_t RetSite,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::returnFlow()");
@@ -138,8 +137,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
 }
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
-    InterMonoTaintAnalysisDomain::n_t CallSite,
-    InterMonoTaintAnalysisDomain::n_t RetSite,
+    InterMonoTaintAnalysis::n_t CallSite, InterMonoTaintAnalysis::n_t RetSite,
     set<const llvm::Function *> Callees,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -187,13 +185,13 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   return Out;
 }
 
-unordered_map<InterMonoTaintAnalysisDomain::n_t,
+unordered_map<InterMonoTaintAnalysis::n_t,
               InterMonoTaintAnalysis::mono_container_t>
 InterMonoTaintAnalysis::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::initialSeeds()");
   const llvm::Function *Main = ICF->getFunction("main");
-  unordered_map<InterMonoTaintAnalysisDomain::n_t,
+  unordered_map<InterMonoTaintAnalysis::n_t,
                 InterMonoTaintAnalysis::mono_container_t>
       Seeds;
   InterMonoTaintAnalysis::mono_container_t Facts;
@@ -204,13 +202,13 @@ InterMonoTaintAnalysis::initialSeeds() {
   return Seeds;
 }
 
-void InterMonoTaintAnalysis::printNode(
-    ostream &OS, InterMonoTaintAnalysisDomain::n_t Inst) const {
+void InterMonoTaintAnalysis::printNode(ostream &OS,
+                                       InterMonoTaintAnalysis::n_t Inst) const {
   OS << llvmIRToString(Inst);
 }
 
 void InterMonoTaintAnalysis::printDataFlowFact(
-    ostream &OS, InterMonoTaintAnalysisDomain::d_t Fact) const {
+    ostream &OS, InterMonoTaintAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact) << '\n';
 }
 
@@ -218,8 +216,8 @@ void InterMonoTaintAnalysis::printFunction(ostream &OS,
                                            const llvm::Function *Fun) const {
   OS << Fun->getName().str();
 }
-const std::map<InterMonoTaintAnalysisDomain::n_t,
-               std::set<InterMonoTaintAnalysisDomain::d_t>> &
+const std::map<InterMonoTaintAnalysis::n_t,
+               std::set<InterMonoTaintAnalysis::d_t>> &
 InterMonoTaintAnalysis::getAllLeaks() const {
   return Leaks;
 }

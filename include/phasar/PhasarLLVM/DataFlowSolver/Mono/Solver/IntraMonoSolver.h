@@ -68,7 +68,7 @@ protected:
 
 public:
   IntraMonoSolver(ProblemTy &IMP) : IMProblem(IMP), CFG(IMP.getCFG()) {}
-  
+
   virtual ~IntraMonoSolver() = default;
 
   virtual void solve() {
