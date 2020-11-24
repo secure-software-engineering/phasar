@@ -18,6 +18,8 @@
 #define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 
 #include <set>
+#include <string>
+#include <type_traits>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -38,6 +40,7 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
   using i_t = typename AnalysisDomainTy::i_t;
+  using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
   static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
                 "I must implement the ICFG interface!");
@@ -52,19 +55,26 @@ public:
       : IntraMonoProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints),
         ICF(ICF) {}
 
+  ~InterMonoProblem() override = default;
+
   InterMonoProblem(const InterMonoProblem &copy) = delete;
+
   InterMonoProblem(InterMonoProblem &&move) = delete;
+
   InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
+
   InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
 
-  virtual BitVectorSet<d_t> callFlow(n_t CallSite, f_t Callee,
-                                     const BitVectorSet<d_t> &In) = 0;
-  virtual BitVectorSet<d_t> returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
-                                       n_t RetSite,
-                                       const BitVectorSet<d_t> &In) = 0;
-  virtual BitVectorSet<d_t> callToRetFlow(n_t CallSite, n_t RetSite,
-                                          std::set<f_t> Callees,
-                                          const BitVectorSet<d_t> &In) = 0;
+  virtual mono_container_t callFlow(n_t CallSite, f_t Callee,
+                                    const mono_container_t &In) = 0;
+
+  virtual mono_container_t returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
+                                      n_t RetSite,
+                                      const mono_container_t &In) = 0;
+
+  virtual mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
+                                         std::set<f_t> Callees,
+                                         const mono_container_t &In) = 0;
 
   const i_t *getICFG() const { return ICF; }
 };

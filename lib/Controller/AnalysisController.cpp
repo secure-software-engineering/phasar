@@ -76,7 +76,7 @@ bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
-    CallGraphAnalysisType CGTy, SoundnessFlag SF,
+    CallGraphAnalysisType CGTy, Soundness S,
     const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
     AnalysisControllerEmitterOptions EmitterOptions,
     const std::string &ProjectID, const std::string &OutDirectory)
@@ -85,7 +85,7 @@ AnalysisController::AnalysisController(
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
       AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
       Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
-      OutDirectory(OutDirectory), SF(SF) {
+      OutDirectory(OutDirectory), S(S) {
   if (!OutDirectory.empty()) {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();

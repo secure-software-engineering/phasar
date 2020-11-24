@@ -39,60 +39,60 @@ namespace psr {
 class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 
-class InterMonoTaintAnalysis
-    : public InterMonoProblem<LLVMAnalysisDomainDefault> {
-private:
-  const TaintConfiguration<const llvm::Value *> &TSF;
-  std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
+struct InterMonoTaintAnalysisDomain : LLVMAnalysisDomainDefault {
+  using mono_containter_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
+};
 
+class InterMonoTaintAnalysis
+    : public InterMonoProblem<InterMonoTaintAnalysisDomain> {
 public:
-  using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
+  using n_t = InterMonoTaintAnalysisDomain::n_t;
+  using d_t = InterMonoTaintAnalysisDomain::d_t;
+  using f_t = InterMonoTaintAnalysisDomain::f_t;
+  using t_t = InterMonoTaintAnalysisDomain::t_t;
+  using v_t = InterMonoTaintAnalysisDomain::v_t;
+  using i_t = InterMonoTaintAnalysisDomain::i_t;
+  using mono_container_t = InterMonoTaintAnalysisDomain::mono_container_t;
+  using ConfigurationTy = TaintConfiguration<d_t>;
 
   InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                          const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                         const TaintConfiguration<const llvm::Value *> &TSF,
+                         const TaintConfiguration<d_t> &TSF,
                          std::set<std::string> EntryPoints = {});
+
   ~InterMonoTaintAnalysis() override = default;
 
-  BitVectorSet<const llvm::Value *>
-  join(const BitVectorSet<const llvm::Value *> &Lhs,
-       const BitVectorSet<const llvm::Value *> &Rhs) override;
+  mono_container_t merge(const mono_container_t &Lhs,
+                         const mono_container_t &Rhs) override;
 
-  bool sqSubSetEqual(const BitVectorSet<const llvm::Value *> &Lhs,
-                     const BitVectorSet<const llvm::Value *> &Rhs) override;
+  bool equal_to(const mono_container_t &Lhs,
+                const mono_container_t &Rhs) override;
 
-  BitVectorSet<const llvm::Value *>
-  normalFlow(const llvm::Instruction *Stmt,
-             const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t normalFlow(n_t Inst, const mono_container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-           const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t callFlow(n_t CallSite, f_t Callee,
+                            const mono_container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-             const llvm::Instruction *ExitStmt,
-             const llvm::Instruction *RetSite,
-             const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
+                              n_t RetSite, const mono_container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  callToRetFlow(const llvm::Instruction *CallSite,
-                const llvm::Instruction *RetSite,
-                std::set<const llvm::Function *> Callees,
-                const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
+                                 std::set<f_t> Callees,
+                                 const mono_container_t &In) override;
 
-  std::unordered_map<const llvm::Instruction *,
-                     BitVectorSet<const llvm::Value *>>
-  initialSeeds() override;
+  std::unordered_map<n_t, mono_container_t> initialSeeds() override;
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
+  void printNode(std::ostream &OS, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
 
-  const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
-  getAllLeaks() const;
+  const std::map<n_t, std::set<d_t>> &getAllLeaks() const;
+
+private:
+  const TaintConfiguration<d_t> &TSF;
+  std::map<n_t, std::set<d_t>> Leaks;
 };
 
 } // namespace psr

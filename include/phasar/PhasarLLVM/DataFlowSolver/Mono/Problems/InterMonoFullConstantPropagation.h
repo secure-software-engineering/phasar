@@ -11,15 +11,16 @@
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H_
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -38,75 +39,59 @@ struct InterMonoFullConstantPropagationAnalysisDomain
     : public LLVMAnalysisDomainDefault {
   using plain_d_t = int64_t;
   using d_t = std::pair<const llvm::Value *, LatticeDomain<plain_d_t>>;
-  using i_t = LLVMBasedICFG;
+  using mono_container_t =
+      std::map<const llvm::Value *, LatticeDomain<plain_d_t>>;
 };
 
 class InterMonoFullConstantPropagation
     : public InterMonoProblem<InterMonoFullConstantPropagationAnalysisDomain> {
 public:
-  using plain_d_t =
-      typename InterMonoFullConstantPropagationAnalysisDomain::plain_d_t;
+  using n_t = InterMonoFullConstantPropagationAnalysisDomain::n_t;
+  using d_t = InterMonoFullConstantPropagationAnalysisDomain::d_t;
+  using plain_d_t = InterMonoFullConstantPropagationAnalysisDomain::plain_d_t;
+  using f_t = InterMonoFullConstantPropagationAnalysisDomain::f_t;
+  using t_t = InterMonoFullConstantPropagationAnalysisDomain::t_t;
+  using v_t = InterMonoFullConstantPropagationAnalysisDomain::v_t;
+  using i_t = InterMonoFullConstantPropagationAnalysisDomain::i_t;
+  using mono_container_t =
+      InterMonoFullConstantPropagationAnalysisDomain::mono_container_t;
 
-  InterMonoFullConstantPropagation(const ProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints = {});
+  InterMonoFullConstantPropagation(
+      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+      const std::set<std::string> &EntryPoints = {});
 
   ~InterMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<d_t> join(const BitVectorSet<d_t> &Lhs,
-                         const BitVectorSet<d_t> &Rhs) override;
+  mono_container_t normalFlow(n_t Inst, const mono_container_t &In) override;
 
-  bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
-                     const BitVectorSet<d_t> &Rhs) override;
+  mono_container_t callFlow(n_t CallSite, f_t Callee,
+                            const mono_container_t &In) override;
 
-  std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
+  mono_container_t returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
+                              n_t RetSite, const mono_container_t &In) override;
 
-  BitVectorSet<d_t> normalFlow(n_t S, const BitVectorSet<d_t> &In) override;
+  mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
+                                 std::set<f_t> Callees,
+                                 const mono_container_t &In) override;
 
-  BitVectorSet<d_t> callFlow(n_t CallSite, f_t Callee,
-                             const BitVectorSet<d_t> &In) override;
+  mono_container_t merge(const mono_container_t &Lhs,
+                         const mono_container_t &Rhs) override;
 
-  BitVectorSet<d_t> returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
-                               n_t RetSite,
-                               const BitVectorSet<d_t> &In) override;
+  bool equal_to(const mono_container_t &Lhs,
+                const mono_container_t &Rhs) override;
 
-  BitVectorSet<d_t> callToRetFlow(n_t CallSite, n_t RetSite,
-                                  std::set<f_t> Callees,
-                                  const BitVectorSet<d_t> &In) override;
+  std::unordered_map<n_t, mono_container_t> initialSeeds() override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &OS, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &os, f_t f) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
+
+  void printContainer(std::ostream &OS, mono_container_t Con) const override;
 };
 
 } // namespace psr
-
-namespace std {
-
-template <>
-struct hash<std::pair<
-    const llvm::Value *,
-    psr::LatticeDomain<psr::InterMonoFullConstantPropagation::plain_d_t>>> {
-  size_t operator()(const std::pair<const llvm::Value *,
-                                    psr::LatticeDomain<int64_t>> &P) const {
-    std::hash<const llvm::Value *> hash_ptr;
-    std::hash<int64_t> hash_unsigned;
-    size_t hp = hash_ptr(P.first);
-    size_t hu = 0;
-    // returns nullptr if P.second is Top or Bottom, a valid pointer otherwise
-    if (const auto *Ptr =
-            std::get_if<psr::InterMonoFullConstantPropagation::plain_d_t>(
-                &P.second)) {
-      hu = *Ptr;
-    }
-    return hp ^ (hu << 1);
-  }
-};
-
-} // namespace std
 
 #endif

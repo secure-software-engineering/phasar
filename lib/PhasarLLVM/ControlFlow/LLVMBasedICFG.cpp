@@ -92,8 +92,8 @@ LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
-                             SoundnessFlag SF)
-    : IRDB(IRDB), CGType(CGType), SF(SF), TH(TH), PT(PT) {
+                             Soundness S)
+    : IRDB(IRDB), CGType(CGType), S(S), TH(TH), PT(PT) {
   PAMM_GET_INSTANCE;
   // check for faults in the logic
   if (!TH && (CGType != CallGraphAnalysisType::NORESOLVE)) {
