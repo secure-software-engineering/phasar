@@ -19,6 +19,7 @@ else()
 	IDELinearConstantAnalysisTest.cpp
 	IDELinearConstantAnalysis_DotTest.cpp
 	IFDSUninitializedVariablesTest.cpp
+	IDETSAnalysisFileIOTest.cpp
   )
 endif(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)
 
