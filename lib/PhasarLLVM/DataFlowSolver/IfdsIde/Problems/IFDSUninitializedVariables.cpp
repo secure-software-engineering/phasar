@@ -429,7 +429,7 @@ bool IFDSUninitializedVariables::isZeroValue(
 
 void IFDSUninitializedVariables::printNode(
     ostream &OS, IFDSUninitializedVariables::n_t N) const {
-  OS << llvmIRToShortString(N);
+  OS << llvmIRToString(N);
 }
 
 void IFDSUninitializedVariables::printDataFlowFact(
