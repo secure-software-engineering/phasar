@@ -170,12 +170,9 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
             ConstantAggregateWL.push(InitConstAggregate);
           }
         }
-        std::unordered_set<const llvm::ConstantAggregate *>
-            VisitedConstantAggregates;
         while (!ConstantAggregateWL.empty()) {
           auto ConstAggregateItem = ConstantAggregateWL.top();
           ConstantAggregateWL.pop();
-          VisitedConstantAggregates.insert(ConstAggregateItem);
           for (const auto &Op : ConstAggregateItem->operands()) {
             if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
               auto *AsI = CE->getAsInstruction();
@@ -195,9 +192,7 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
               }
             }
             if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
-              if (VisitedConstantAggregates.count(CA) == 0) {
-                ConstantAggregateWL.push(CA);
-              }
+              ConstantAggregateWL.push(CA);
             }
             if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
               if (!GV->hasInitializer()) {
@@ -205,9 +200,7 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
               }
               if (auto *GVCA = llvm::dyn_cast<llvm::ConstantAggregate>(
                       GV->getInitializer())) {
-                if (VisitedConstantAggregates.count(GVCA) == 0) {
-                  ConstantAggregateWL.push(GVCA);
-                }
+                ConstantAggregateWL.push(GVCA);
               }
             }
           }
