@@ -106,14 +106,14 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
       F->getReturnType() == FType->getReturnType()) {
     unsigned Idx = 0;
     for (const auto &Arg : F->args()) {
-      bool TypeMissMatch = ExactMatch ? Arg.getType() != FType->getParamType(Idx) : 
-                                                                  !isTypeMatchForFunctionArgument(FType->getParamType(Idx), Arg.getType());
+      bool TypeMissMatch =
+          ExactMatch ? Arg.getType() != FType->getParamType(Idx)
+                     : !isTypeMatchForFunctionArgument(FType->getParamType(Idx),
+                                                       Arg.getType());
       if (TypeMissMatch) {
         return false;
       }
       ++Idx;
-    }
-      }
     }
     return true;
   }
