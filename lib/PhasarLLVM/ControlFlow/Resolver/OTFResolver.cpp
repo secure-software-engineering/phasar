@@ -170,9 +170,15 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
             ConstantAggregateWL.push(InitConstAggregate);
           }
         }
+        std::unordered_set<const llvm::ConstantAggregate *>
+            VisitedConstantAggregates;
         while (!ConstantAggregateWL.empty()) {
           auto ConstAggregateItem = ConstantAggregateWL.top();
           ConstantAggregateWL.pop();
+          // We may have already processed the item, avoid an infinite loop
+          if (!VisitedConstantAggregates.insert(ConstAggregateItem).second) {
+            continue;
+          }
           for (const auto &Op : ConstAggregateItem->operands()) {
             if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
               auto *AsI = CE->getAsInstruction();
