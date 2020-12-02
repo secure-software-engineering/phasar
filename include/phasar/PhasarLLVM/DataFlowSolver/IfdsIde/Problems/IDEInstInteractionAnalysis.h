@@ -101,7 +101,6 @@ public:
   using f_t = typename AnalysisDomainTy::f_t;
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
-
   // type of the element contained in the sets of edge functions
   using e_t = typename AnalysisDomainTy::e_t;
   using l_t = typename AnalysisDomainTy::l_t;
@@ -171,13 +170,14 @@ public:
     //   }
     // }
 
-    // // Handle points is the user wishes to conduct a non-syntax-only
-    // // inst-interaction analysis.
+    // // Handle points-to information if the user wishes to conduct a
+    // // non-syntax-only inst-interaction analysis.
     // if constexpr (!SyntacticAnalysisOnly) {
+
     //   // (ii) Handle semantic propagation (pointers) for load instructions.
+
     //   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    //     // If one of the potentially many loaded values holds, the load
-    //     itself
+    //     // If one of the potentially many loaded values holds, the load itself
     //     // (dereferenced value) must also be generated and populated.
     //     //
     //     // Flow function:
@@ -188,7 +188,7 @@ public:
     //     //              |  |\ |
     //     // x = load y   |  | \|
     //     //              v  v  v
-    //     //              0  y  x
+    //     //              0  Y  x
     //     //
     //     struct IIAFlowFunction : FlowFunction<d_t, container_type> {
     //       const llvm::LoadInst *Load;
@@ -196,9 +196,9 @@ public:
 
     //       IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
     //                       const llvm::LoadInst *Load)
-    //           : Load(Load),
-    //             PTS(Problem.PT->getReachableAllocationSites(
-    //                 Load->getPointerOperand(), Problem.IntraProcPTIOnly)) {}
+    //           : Load(Load), PTS(Problem.PT->getReachableAllocationSites(
+    //                             Load->getPointerOperand(),
+    //                             Problem.OnlyConsiderLocalAliases)) {}
 
     //       container_type computeTargets(d_t src) override {
     //         container_type Facts;
@@ -214,14 +214,15 @@ public:
 
     //   // (ii) Handle semantic propagation (pointers) for store instructions.
     //   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    //     // If the value to be stored holds the potentially memory location(s)
+    //     // If the value to be stored holds the potential memory location(s)
     //     // that it is stored to must be generated and populated, too.
     //     //
     //     // Flow function:
     //     //
     //     // Let X be
-    //     //    - pts(x), the points-to set of x if x is an intersting pointer.
+    //     //    - pts(x), the points-to set of x, if x is an intersting pointer.
     //     //    - a singleton set containing x, otherwise.
+    //     //
     //     // Let Y be pts(y), the points-to set of y.
     //     //
     //     //             0  X  y
@@ -240,14 +241,16 @@ public:
     //           : Store(Store), ValuePTS([&]() {
     //               if (isInterestingPointer(Store->getValueOperand())) {
     //                 return Problem.PT->getReachableAllocationSites(
-    //                     Store->getValueOperand(), Problem.IntraProcPTIOnly);
+    //                     Store->getValueOperand(),
+    //                     Problem.OnlyConsiderLocalAliases);
     //               } else {
     //                 return std::make_shared<std::unordered_set<d_t>>(
     //                     std::unordered_set<d_t>{Store->getValueOperand()});
     //               }
     //             }()),
     //             PointerPTS(Problem.PT->getReachableAllocationSites(
-    //                 Store->getPointerOperand(), Problem.IntraProcPTIOnly)) {}
+    //                 Store->getPointerOperand(),
+    //                 Problem.OnlyConsiderLocalAliases)) {}
 
     //       container_type computeTargets(d_t src) override {
     //         container_type Facts;
@@ -264,8 +267,7 @@ public:
     //         // If the value to be stored does not hold we must at least add
     //         // the store instruction and the points-to set as the instruction
     //         // still interacts with the memory locations pointed to be PTS.
-    //         if (Store->getPointerOperand() == src || PointerPTS->count(src))
-    //         {
+    //         if (Store->getPointerOperand() == src || PointerPTS->count(src)) {
     //           Facts.insert(Store);
     //           Facts.erase(src);
     //         }
@@ -677,29 +679,27 @@ public:
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
       } else {
-        //   // consider points-to information and find all possible overriding
-        //   edges
-        //   // using points-to sets
-        //   std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
-        //   if (Store->getValueOperand()->getType()->isPointerTy()) {
-        //     ValuePTS = this->PT->getReachableAllocationSites(
-        //         Store->getValueOperand(), IntraProcPTIOnly);
-        //   }
-        //   auto PointerPTS = this->PT->getReachableAllocationSites(
-        //       Store->getPointerOperand(), IntraProcPTIOnly);
-        //   // overriding edge
-        //   if ((currNode == Store->getValueOperand() ||
-        //        (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
-        //        llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
-        //       PointerPTS->count(Store->getPointerOperand())) {
-        //     return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
-        //   }
-        //   // kill all labels that are propagated along the edge of the
-        //   // value/values that is/are overridden
-        //   if (currNode == succNode && PointerPTS->count(currNode)) {
-        //     return
-        //     IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
-        //   }
+        // // consider points-to information and find all possible overriding edges
+        // // using points-to sets
+        // std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
+        // if (Store->getValueOperand()->getType()->isPointerTy()) {
+        //   ValuePTS = this->PT->getReachableAllocationSites(
+        //       Store->getValueOperand(), OnlyConsiderLocalAliases);
+        // }
+        // auto PointerPTS = this->PT->getReachableAllocationSites(
+        //     Store->getPointerOperand(), OnlyConsiderLocalAliases);
+        // // overriding edge
+        // if ((currNode == Store->getValueOperand() ||
+        //      (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
+        //      llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
+        //     PointerPTS->count(Store->getPointerOperand())) {
+        //   return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
+        // }
+        // // kill all labels that are propagated along the edge of the
+        // // value/values that is/are overridden
+        // if (currNode == succNode && PointerPTS->count(currNode)) {
+        //   return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
+        // }
       }
     }
     // Otherwise stick to identity.
@@ -1077,8 +1077,7 @@ private:
   std::function<EdgeFactGeneratorTy> edgeFactGen;
   static inline const l_t BottomElement = Bottom{};
   static inline const l_t TopElement = Top{};
-  // bool GeneratedGlobalVariables = false;
-  const bool IntraProcPTIOnly = true;
+  const bool OnlyConsiderLocalAliases = true;
 
   inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t curr) {
     if (edgeFactGen) {
