@@ -152,7 +152,7 @@ TEST(BitVectorSet, twoSets) {
   EXPECT_EQ(B.count(2), 0U);
   EXPECT_EQ(B.count(3), 0U);
 }
-
+// Failing test case
 TEST(BitVectorSet, equality) {
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({5, 6, 42});
@@ -176,7 +176,8 @@ TEST(BitVectorSet, equality) {
   A.insert(1);
   A.insert(2);
   A.insert(3);
-  EXPECT_EQ((A == E), 1);
+  // failing scenario
+  EXPECT_EQ((A == E), true);
 }
 
 TEST(BitVectorSet, size) {

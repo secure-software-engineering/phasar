@@ -670,6 +670,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 // //   EXPECT_TRUE(ChildsChildReachable.count("struct.ChildsChild"));
 // // }
 
+// Failing test case
 TEST(LTHTest, HandleSTLString) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_13_cpp.ll"});

@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_BITVECTORSET_H_
 
 #include <algorithm>
+#include <cassert>
 #include <initializer_list>
 
 #include "boost/bimap.hpp"
@@ -285,7 +286,33 @@ public:
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
 
   friend bool operator==(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
-    return Lhs.Bits == Rhs.Bits;
+    // return Lhs.Bits == Rhs.Bits;
+
+    typedef uintptr_t BitWord;
+    enum { BITWORD_SIZE = (unsigned)sizeof(BitWord) * CHAR_BIT };
+    static_assert(BITWORD_SIZE == 64 || BITWORD_SIZE == 32,
+                  "Unsupported word size");
+    unsigned lhssize = Lhs.size();
+    unsigned rhssize = Rhs.size();
+    unsigned LHSWords = (lhssize + BITWORD_SIZE - 1) / BITWORD_SIZE;
+    unsigned RHSWords = (rhssize + BITWORD_SIZE - 1) / BITWORD_SIZE;
+    unsigned i;
+    for (i = 0; i != std::min(LHSWords, RHSWords); ++i) {
+      if (Lhs.Bits[i] != Rhs.Bits[i])
+        return false;
+    }
+    // Verify that any extra words are all zeros.
+    if (i != LHSWords) {
+      for (; i != LHSWords; ++i)
+        if (Lhs.Bits[i])
+          return false;
+    } else if (i != RHSWords) {
+      for (; i != RHSWords; ++i)
+        if (Rhs.Bits[i])
+          return false;
+    }
+
+    return true;
   }
 
   friend bool operator!=(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
