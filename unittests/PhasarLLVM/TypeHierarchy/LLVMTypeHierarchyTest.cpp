@@ -52,6 +52,12 @@ TEST(LTHTest, BasicTHReconstruction_1) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
+TEST(LTHTest, THConstructionException) {
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
+      "type_hierarchies/type_hierarchy_15_cpp.ll"});
+  LLVMTypeHierarchy LTH(IRDB);
+}
+
 TEST(LTHTest, BasicTHReconstruction_2) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_2_cpp.ll"});
@@ -304,6 +310,8 @@ TEST(LTHTest, VTableConstruction) {
                      "type_hierarchies/type_hierarchy_9_cpp.ll"});
   ProjectIRDB IRDB5({unittest::PathToLLTestFiles +
                      "type_hierarchies/type_hierarchy_10_cpp.ll"});
+  ProjectIRDB IRDB6({unittest::PathToLLTestFiles +
+                     "type_hierarchies/type_hierarchy_14_cpp.ll"});
 
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
@@ -311,6 +319,7 @@ TEST(LTHTest, VTableConstruction) {
   LLVMTypeHierarchy TH3(IRDB3);
   LLVMTypeHierarchy TH4(IRDB4);
   LLVMTypeHierarchy TH5(IRDB5);
+  LLVMTypeHierarchy TH6(IRDB6);
 
   ASSERT_TRUE(TH1.hasVFTable(TH1.getType("struct.Base")));
   ASSERT_TRUE(TH1.hasVFTable(TH1.getType("struct.Child")));
@@ -443,6 +452,7 @@ TEST(LTHTest, VTableConstruction) {
                               ->getFunction(2)
                               ->getName()) == "Child::baz()");
   ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Child"))->size() == 3U);
+  ASSERT_TRUE(TH6.getVFTable(TH6.getType("class.Base"))->size() == 3U);
 }
 
 TEST(LTHTest, TransitivelyReachableTypes) {

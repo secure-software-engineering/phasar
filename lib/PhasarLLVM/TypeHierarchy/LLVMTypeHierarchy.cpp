@@ -96,10 +96,10 @@ std::string
 LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
   llvm::StringRef SR(TypeName);
   if (SR.startswith(StructPrefix)) {
-    return SR.ltrim(StructPrefix);
+    return SR.drop_front(StructPrefix.size());
   }
   if (SR.startswith(ClassPrefix)) {
-    return SR.ltrim(ClassPrefix);
+    return SR.drop_front(ClassPrefix.size());
   }
   return TypeName;
 }
@@ -107,10 +107,10 @@ LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
 std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(TypeInfoPrefixDemang)) {
-    return SR.ltrim(TypeInfoPrefixDemang);
+    return SR.drop_front(TypeInfoPrefixDemang.size());
   }
   if (SR.startswith(TypeInfoPrefix)) {
-    return SR.ltrim(TypeInfoPrefix);
+    return SR.drop_front(TypeInfoPrefix.size());
   }
   return VarName;
 }
@@ -118,10 +118,10 @@ std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
 std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(VTablePrefixDemang)) {
-    return SR.ltrim(VTablePrefixDemang);
+    return SR.drop_front(VTablePrefixDemang.size());
   }
   if (SR.startswith(VTablePrefix)) {
-    return SR.ltrim(VTablePrefix);
+    return SR.drop_front(VTablePrefix.size());
   }
   return VarName;
 }
@@ -163,7 +163,15 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
                                const llvm::StructType &Type) {
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
-  if (const auto *TI = ClearNameTIMap[removeStructOrClassPrefix(Type)]) {
+  std::string ClearName = removeStructOrClassPrefix(Type);
+  if (const auto *TI = ClearNameTIMap[ClearName]) {
+
+    if (!TI->hasInitializer()) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << ClearName << " does not have initializer");
+      return SubTypes;
+    }
+
     if (const auto *I =
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
@@ -197,6 +205,13 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
   std::vector<const llvm::Function *> VFS;
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
+
+      if (!TI->hasInitializer()) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << ClearName << " does not have initializer");
+        return VFS;
+      }
+
       if (const auto *I =
               llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
         for (const auto &Op : I->operands()) {
@@ -206,8 +221,14 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                 // caution: getAsInstruction allocates, need to delete later
                 auto *AsI = CE->getAsInstruction();
                 if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
-                  if (BC->getOperand(0)->hasName()) {
-                    if (auto *F = M.getFunction(BC->getOperand(0)->getName())) {
+                  // if the entry is a GlobalAlias, get its Aliasee
+                  auto *ENTRY = BC->getOperand(0);
+                  while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(ENTRY)) {
+                    ENTRY = GA->getAliasee();
+                  }
+
+                  if (ENTRY->hasName()) {
+                    if (auto *F = M.getFunction(ENTRY->getName())) {
                       VFS.push_back(F);
                     }
                   }
