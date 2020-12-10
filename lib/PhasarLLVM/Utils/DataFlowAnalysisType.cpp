@@ -10,43 +10,60 @@
 #include <ostream>
 #include <string>
 
-#include <llvm/ADT/StringSwitch.h>
+#include "llvm/ADT/StringSwitch.h"
 
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 
 using namespace psr;
 using namespace std;
 
 namespace psr {
 
-std::string to_string(const DataFlowAnalysisType &D) {
+std::string toString(const DataFlowAnalysisType &D) {
   switch (D) {
   default:
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
   case DataFlowAnalysisType::TYPE:                                             \
     return NAME;                                                               \
     break;
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def>
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
   }
 }
 
-DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S) {
+std::string toString(const DataFlowAnalysisKind &D) {
+  if (std::holds_alternative<DataFlowAnalysisType>(D)) {
+    return toString(std::get<DataFlowAnalysisType>(D));
+  } else if (std::holds_alternative<IFDSPluginConstructor>(D)) {
+    return "IFDS Plugin";
+  } else if (std::holds_alternative<IDEPluginConstructor>(D)) {
+    return "IDE Plugin";
+  } else if (std::holds_alternative<IntraMonoPluginConstructor>(D)) {
+    return "IntraMono Plugin";
+  } else if (std::holds_alternative<InterMonoPluginConstructor>(D)) {
+    return "InterMono Plugin";
+  } else {
+    return "None";
+  }
+}
+
+DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
   DataFlowAnalysisType Type = llvm::StringSwitch<DataFlowAnalysisType>(S)
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
   .Case(NAME, DataFlowAnalysisType::TYPE)
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def>
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
                                   .Default(DataFlowAnalysisType::None);
   if (Type == DataFlowAnalysisType::None) {
     Type = llvm::StringSwitch<DataFlowAnalysisType>(S)
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
   .Case(CMDFLAG, DataFlowAnalysisType::TYPE)
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def>
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
                .Default(DataFlowAnalysisType::None);
   }
   return Type;
 }
 
-ostream &operator<<(ostream &os, const DataFlowAnalysisType &D) {
-  return os << to_string(D);
+ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
+  return OS << toString(D);
 }
+
 } // namespace psr

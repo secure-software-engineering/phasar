@@ -7,10 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <cassert>
+#include "llvm/Support/ErrorHandling.h"
 
-#include <iostream>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
 using namespace std;
 using namespace psr;
@@ -37,10 +36,11 @@ const std::map<std::string, std::set<int>>
 // Token: FOPEN = 0, FCLOSE = 1, STAR = 2
 // States: UNINIT = 0, OPENED = 1, CLOSED = 2, ERROR = 3, BOT = 4
 const CSTDFILEIOTypeStateDescription::CSTDFILEIOState
-    CSTDFILEIOTypeStateDescription::delta[3][5] = {
+    CSTDFILEIOTypeStateDescription::Delta[3][5] = {
         /* FOPEN */
         {CSTDFILEIOState::OPENED, CSTDFILEIOState::OPENED,
-         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
+         CSTDFILEIOState::OPENED, CSTDFILEIOState::ERROR,
+         CSTDFILEIOState::OPENED},
         /* FCLOSE */
         {CSTDFILEIOState::ERROR, CSTDFILEIOState::CLOSED,
          CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
@@ -72,15 +72,15 @@ bool CSTDFILEIOTypeStateDescription::isAPIFunction(const std::string &F) const {
 TypeStateDescription::State CSTDFILEIOTypeStateDescription::getNextState(
     std::string Tok, TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    auto x = static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
+    auto X = static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
         funcNameToToken(Tok));
 
-    auto ret = delta[x][S];
+    auto Ret = Delta[X][S];
     // if (ret == error()) {
     //  std::cerr << "getNextState(" << Tok << ", " << stateToString(S)
     //            << ") = ERROR" << std::endl;
     // }
-    return ret;
+    return Ret;
   } else {
     return CSTDFILEIOState::BOT;
   }
@@ -129,7 +129,7 @@ std::string CSTDFILEIOTypeStateDescription::stateToString(
     return "BOT";
     break;
   default:
-    assert(false && "received unknown state!");
+    llvm::report_fatal_error("received unknown state!");
     break;
   }
 }
@@ -155,13 +155,14 @@ TypeStateDescription::State CSTDFILEIOTypeStateDescription::error() const {
 }
 
 CSTDFILEIOTypeStateDescription::CSTDFILEIOToken
-CSTDFILEIOTypeStateDescription::funcNameToToken(const std::string &F) const {
-  if (F == "fopen" || F == "fdopen")
+CSTDFILEIOTypeStateDescription::funcNameToToken(const std::string &F) {
+  if (F == "fopen" || F == "fdopen") {
     return CSTDFILEIOToken::FOPEN;
-  else if (F == "fclose")
+  } else if (F == "fclose") {
     return CSTDFILEIOToken::FCLOSE;
-  else
+  } else {
     return CSTDFILEIOToken::STAR;
+  }
 }
 
 } // namespace psr

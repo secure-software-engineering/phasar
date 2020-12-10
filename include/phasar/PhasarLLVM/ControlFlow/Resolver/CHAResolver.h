@@ -19,7 +19,7 @@
 
 #include <set>
 
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 namespace llvm {
 class ImmutableCallSite;

@@ -9,9 +9,9 @@
 
 #include <iostream>
 
-#include <llvm/IR/Module.h>
+#include "llvm/IR/Module.h"
 
-#include <phasar/PhasarLLVM/Passes/ExampleModulePass.h>
+#include "phasar/PhasarLLVM/Passes/ExampleModulePass.h"
 
 using namespace std;
 using namespace psr;
@@ -20,7 +20,7 @@ namespace psr {
 
 llvm::AnalysisKey ExampleModulePass::Key;
 
-ExampleModulePass::ExampleModulePass() {}
+ExampleModulePass::ExampleModulePass() = default;
 
 llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM) {
   cout << "ExampleModulePass::run()\n";

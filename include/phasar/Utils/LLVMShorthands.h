@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Utils/Utilities.h"
 
 namespace llvm {
 class Value;
@@ -35,31 +35,6 @@ class StringRef;
 } // namespace llvm
 
 namespace psr {
-/**
- * @brief Return type of SpecialMemberFunctionType.
- */
-enum class SpecialMemberFunctionTy {
-  NONE = 0,
-  CTOR,
-  DTOR,
-  CPASSIGNOP,
-  MVASSIGNOP
-};
-
-/**
- * @brief Hashes a string to an int so that strings can be used in switches.
- * @note In rare conditions the hash values of two strings can collide.
- */
-constexpr unsigned int str2int(const char *str, int h);
-
-/**
- * @brief checks if a function name is the name of a special member function.
- * @param s Mangled function name.
- * @return Returns an enum element of SpecialMemberFunctionTy.
- */
-SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s);
-
-SpecialMemberFunctionTy specialMemberFunctionType(const llvm::StringRef &sr);
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -76,7 +51,8 @@ bool isFunctionPointer(const llvm::Value *V) noexcept;
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 
 // TODO add description
-bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
+bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
+                      bool ExactMatch = true);
 
 // TODO add description
 bool matchesSignature(const llvm::FunctionType *FType1,
@@ -84,9 +60,6 @@ bool matchesSignature(const llvm::FunctionType *FType1,
 
 /**
  * @brief Returns a string representation of a LLVM Value.
- * @note Expensive function (between 20 to 550 ms per call)
- *       avoid to do it often, it can kill the performances (c.f. warning in the
- * implementation)
  */
 std::string llvmIRToString(const llvm::Value *V);
 
@@ -156,7 +129,9 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
  * @return LLVM Instruction or nullptr, if instNo invalid.
  */
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
-                                           unsigned instNo);
+                                           unsigned Idx);
+
+const llvm::Instruction *getLastInstructionOf(const llvm::Function *F);
 
 /**
  * The Termination Instruction count starts with one (not zero, as in Function
@@ -196,7 +171,7 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V);
  * @param V LLVM Value.
  * @return Module name or empty string.
  */
-const std::string getModuleNameFromVal(const llvm::Value *V);
+std::string getModuleNameFromVal(const llvm::Value *V);
 
 /**
  * @brief Computes a hash value for a given LLVM Module.

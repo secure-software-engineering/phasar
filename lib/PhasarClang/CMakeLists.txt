@@ -9,6 +9,7 @@ set(PHASAR_LINK_LIBS
 set(LLVM_LINK_COMPONENTS
   Support
   Core
+  Option
 )
 
 if(BUILD_SHARED_LIBS)
@@ -26,28 +27,8 @@ endif()
 find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_clang
   LINK_PUBLIC
-  clangTooling
-  clangFrontendTool
-  clangFrontend
-  clangDriver
-  clangSerialization
-  clangCodeGen
-  clangParse
-  clangSema
-  clangStaticAnalyzerFrontend
-  clangStaticAnalyzerCheckers
-  clangStaticAnalyzerCore
-  clangAnalysis
-  clangARCMigrate
-  clangRewrite
-  clangRewriteFrontend
-  clangEdit
-  clangAST
-  clangASTMatchers
-  clangLex
-  clangBasic
-
   ${Boost_LIBRARIES}
+  ${CLANG_LIBRARY}
 )
 
 set_target_properties(phasar_clang

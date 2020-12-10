@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSSummary.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSSummary.h"
 
 using namespace psr;
 namespace psr {} // namespace psr

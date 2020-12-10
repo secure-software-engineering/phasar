@@ -7,20 +7,21 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
-#include <boost/filesystem/operations.hpp>
+#include "boost/filesystem/operations.hpp"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/Logger.h"
 
 namespace llvm {
 class Value;
@@ -29,8 +30,6 @@ class Value;
 using namespace psr;
 
 int main(int argc, const char **argv) {
-  initializeLogger(false);
-  auto &lg = lg::get();
   if (argc < 2 || !boost::filesystem::exists(argv[1]) ||
       boost::filesystem::is_directory(argv[1])) {
     std::cerr << "myphasartool\n"
@@ -44,7 +43,7 @@ int main(int argc, const char **argv) {
     LLVMTypeHierarchy H(DB);
     // print type hierarchy
     H.print();
-    LLVMPointsToInfo P(DB);
+    LLVMPointsToSet P(DB);
     // print points-to information
     P.print();
     LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
@@ -53,22 +52,17 @@ int main(int argc, const char **argv) {
     // IFDS template parametrization test
     std::cout << "Testing IFDS:\n";
     IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
-               IFDSLinearConstantAnalysis::f_t, IFDSLinearConstantAnalysis::t_t,
-               IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
-        S(L);
+    IFDSSolver_P<IFDSLinearConstantAnalysis> S(L);
     S.solve();
     S.dumpResults();
-    // IDE template parametrization test
+    // use PhASAR's strategy concept that allows for even easier analysis set-up
     std::cout << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
-    IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
-              IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
-              IDELinearConstantAnalysis::i_t>
-        T(M);
-    T.solve();
-    T.dumpResults();
+    WholeProgramAnalysis<IDESolver_P<IDELinearConstantAnalysis>,
+                         IDELinearConstantAnalysis>
+        WPA(DB, {"main"}, &P, &I, &H);
+    WPA.solve();
+    WPA.dumpResults();
+    WPA.releaseAllHelperAnalyses();
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";
   }

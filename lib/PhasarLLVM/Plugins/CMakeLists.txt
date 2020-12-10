@@ -28,30 +28,41 @@ endif()
 
 
 find_package(Boost COMPONENTS log filesystem program_options REQUIRED)
+if(USE_LLVM_FAT_LIB)
+  llvm_config(phasar_plugins USE_SHARED ${LLVM_LINK_COMPONENTS})
+else()
+  llvm_config(phasar_plugins ${LLVM_LINK_COMPONENTS})
+endif()
 target_link_libraries(phasar_plugins
   LINK_PUBLIC
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
 )
 
-# Handle all plugins
-foreach(plugin ${PLUGINS_SO})
-  get_filename_component(plugin_name ${plugin} NAME_WE)
-  add_library(${plugin_name} SHARED ${plugin})
-  set_target_properties(${plugin_name} PROPERTIES PREFIX "")
-  target_link_libraries(${plugin_name}
-    phasar_plugins
-    phasar_config
-    phasar_utils
-    phasar_ifdside
-    phasar_mono
-    LLVMCore
-    LLVMSupport
-    )
-endforeach()
-
 set_target_properties(phasar_plugins
   PROPERTIES
   LINKER_LANGUAGE CXX
   PREFIX "lib"
 )
+
+
+# Handle all plugins
+foreach(plugin ${PLUGINS_SO})
+  get_filename_component(plugin_name ${plugin} NAME_WE)
+  add_library(${plugin_name} SHARED ${plugin})
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(${plugin_name} USE_SHARED ${LLVM_LINK_COMPONENTS})
+  else()
+    llvm_config(${plugin_name} ${LLVM_LINK_COMPONENTS})
+  endif()
+  set_target_properties(${plugin_name} PROPERTIES PREFIX "")
+  target_link_libraries(${plugin_name}
+    LINK_PRIVATE
+    phasar_plugins
+    phasar_config
+    phasar_utils
+    phasar_ifdside
+    phasar_mono
+    )
+endforeach()
+

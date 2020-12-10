@@ -12,11 +12,11 @@
 
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h"
 
 namespace psr {
 

@@ -2,6 +2,25 @@ set(PHASAR_VERSION 1.0.0)
 
 @PACKAGE_INIT@
 set_and_check(PHASAR_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
-include( "${CMAKE_CURRENT_LIST_DIR}/phasarTargets.cmake" )
 
-check_required_components(phasar)
+foreach(component ${phasar_FIND_COMPONENTS})
+  include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-config.cmake")
+  include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-targets.cmake")
+endforeach()
+
+function(phasar_config executable)
+  find_package(LLVM 10 REQUIRED CONFIG)
+  include_directories(${LLVM_INCLUDE_DIRS})
+  link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
+  find_library(LLVM_LIBRARY NAMES LLVM HINTS ${LLVM_LIBRARY_DIRS})
+  if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+    llvm_config(${executable} USE_SHARED ${PHASAR_LLVM_DEPS})
+  else()
+    llvm_config(${executable} ${PHASAR_LLVM_DEPS})
+  endif()
+  list(REMOVE_DUPLICATES PHASAR_NEEDED_LIBS)
+  target_link_libraries(${executable}
+    PUBLIC
+    ${PHASAR_NEEDED_LIBS}
+    )
+endfunction()

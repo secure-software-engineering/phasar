@@ -1,6 +1,8 @@
 set(NoMem2regSources
 	function_object_1.cpp
 	function_pointer_1.c
+	function_pointer_2.cpp
+	function_pointer_3.cpp
 	special_member_functions_1.cpp
 	static_callsite_10.cpp
 	static_callsite_11.cpp

@@ -22,8 +22,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Instruction;
@@ -36,61 +38,52 @@ namespace psr {
 
 class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
-class LLVMBasedICFG;
 
-class InterMonoSolverTest
-    : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedICFG> {
+struct InterMonoSolverTestDomain : LLVMAnalysisDomainDefault {
+  using mono_container_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
+};
+
+class InterMonoSolverTest : public InterMonoProblem<InterMonoSolverTestDomain> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
+  using n_t = InterMonoSolverTestDomain::n_t;
+  using d_t = InterMonoSolverTestDomain::d_t;
+  using f_t = InterMonoSolverTestDomain::f_t;
+  using t_t = InterMonoSolverTestDomain::t_t;
+  using v_t = InterMonoSolverTestDomain::v_t;
+  using i_t = InterMonoSolverTestDomain::i_t;
+  using mono_container_t = InterMonoSolverTestDomain::mono_container_t;
 
   InterMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                       const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                       std::set<std::string> EntryPoints = {});
+
   ~InterMonoSolverTest() override = default;
 
-  BitVectorSet<const llvm::Value *>
-  join(const BitVectorSet<const llvm::Value *> &Lhs,
-       const BitVectorSet<const llvm::Value *> &Rhs) override;
+  mono_container_t merge(const mono_container_t &Lhs,
+                         const mono_container_t &Rhs) override;
 
-  bool sqSubSetEqual(const BitVectorSet<const llvm::Value *> &Lhs,
-                     const BitVectorSet<const llvm::Value *> &Rhs) override;
+  bool equal_to(const mono_container_t &Lhs,
+                const mono_container_t &Rhs) override;
 
-  BitVectorSet<const llvm::Value *>
-  normalFlow(const llvm::Instruction *Stmt,
-             const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t normalFlow(n_t Inst, const mono_container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-           const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t callFlow(n_t CallSite, f_t Callee,
+                            const mono_container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-             const llvm::Instruction *ExitStmt,
-             const llvm::Instruction *RetSite,
-             const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
+                              n_t RetSite, const mono_container_t &In) override;
 
-  BitVectorSet<const llvm::Value *>
-  callToRetFlow(const llvm::Instruction *CallSite,
-                const llvm::Instruction *RetSite,
-                std::set<const llvm::Function *> Callees,
-                const BitVectorSet<const llvm::Value *> &In) override;
+  mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
+                                 std::set<f_t> Callees,
+                                 const mono_container_t &In) override;
 
-  std::unordered_map<const llvm::Instruction *,
-                     BitVectorSet<const llvm::Value *>>
-  initialSeeds() override;
+  std::unordered_map<n_t, mono_container_t> initialSeeds() override;
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
+  void printNode(std::ostream &OS, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
 };
 
 } // namespace psr
