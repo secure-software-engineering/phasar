@@ -256,14 +256,14 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
   bool NewTargetsFound = false;
   // Find vertex of calling function.
   vertex_t ThisFunctionVertexDescriptor;
-  auto FvmItr = FunctionVertexMap.find(I->getParent()->getParent());
+  auto FvmItr = FunctionVertexMap.find(I->getFunction());
   if (FvmItr != FunctionVertexMap.end()) {
     ThisFunctionVertexDescriptor = FvmItr->second;
   } else {
     LOG_IF_ENABLE(
         BOOST_LOG_SEV(lg::get(), ERROR)
         << "constructDynamicCall: Did not find vertex of calling function "
-        << I->getParent()->getParent()->getName().str() << " at callsite "
+        << I->getFunction()->getName().str() << " at callsite "
         << llvmIRToString(I));
     std::terminate();
   }

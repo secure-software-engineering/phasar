@@ -21,11 +21,11 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <stack>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <stack>
 
 #include "boost/container/flat_set.hpp"
 #include "boost/graph/adjacency_list.hpp"
@@ -115,7 +115,7 @@ private:
   std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
   void processFunction(const llvm::Function *F, Resolver &Resolver,
-                           bool &FixpointReached);
+                       bool &FixpointReached);
 
   bool constructDynamicCall(const llvm::Instruction *I, Resolver &Resolver);
 
