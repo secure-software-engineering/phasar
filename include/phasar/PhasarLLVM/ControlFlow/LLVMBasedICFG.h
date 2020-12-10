@@ -21,6 +21,7 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <stack>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -72,6 +73,12 @@ private:
   // Any types that could be initialized outside of the module
   // std::set<const llvm::StructType*> unsound_types;
 
+  // The worklist for direct callee resolution.
+  std::stack<const llvm::Function *> FunctionWL;
+
+  // Map indirect calls to the number of possible targets found for it. Fixpoint
+  // is not reached when more targets are found.
+  std::unordered_map<const llvm::Instruction *, unsigned> IndirectCalls;
   // The VertexProperties for our call-graph.
   struct VertexProperties {
     const llvm::Function *F = nullptr;
@@ -107,7 +114,10 @@ private:
   /// Maps functions to the corresponding vertex id.
   std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
-  void constructionWalker(const llvm::Function *F, Resolver &Resolver);
+  void processFunction(const llvm::Function *F, Resolver &Resolver,
+                       bool &FixpointReached);
+
+  bool constructDynamicCall(const llvm::Instruction *I, Resolver &Resolver);
 
   std::unique_ptr<Resolver> makeResolver(ProjectIRDB &IRDB,
                                          CallGraphAnalysisType CGT,

@@ -40,9 +40,7 @@ OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
                          LLVMBasedICFG &ICF, LLVMPointsToInfo &PT)
     : CHAResolver(IRDB, TH), ICF(ICF), PT(PT) {}
 
-void OTFResolver::preCall(const llvm::Instruction *Inst) {
-  CallStack.push_back(Inst);
-}
+void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 
 void OTFResolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
@@ -77,9 +75,7 @@ void OTFResolver::handlePossibleTargets(
   }
 }
 
-void OTFResolver::postCall(const llvm::Instruction *Inst) {
-  CallStack.pop_back();
-}
+void OTFResolver::postCall(const llvm::Instruction *Inst) {}
 
 set<const llvm::Function *>
 OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
@@ -144,17 +140,79 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
         if (P->getType()->isPointerTy() &&
             P->getType()->getPointerElementType()->isFunctionTy()) {
           if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
-            if (matchesSignature(F, FTy)) {
+            if (matchesSignature(F, FTy, false)) {
               Callees.insert(F);
+            }
+          }
+        }
+        std::vector<const llvm::GlobalVariable *> GlobalVariableWL;
+        std::stack<const llvm::ConstantAggregate *> ConstantAggregateWL;
+        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
+          // Unfortunately this allocates
+          auto *AsI = CE->getAsInstruction();
+          for (auto &Op : AsI->operands()) {
+            if (auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
+              GlobalVariableWL.push_back(GVOp);
+            }
+          }
+          AsI->deleteValue();
+        }
+        if (auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
+          GlobalVariableWL.push_back(GVP);
+        }
+        for (auto *GV : GlobalVariableWL) {
+          if (!GV->hasInitializer()) {
+            continue;
+          }
+          auto InitConst = GV->getInitializer();
+          if (auto *InitConstAggregate =
+                  llvm::dyn_cast<llvm::ConstantAggregate>(InitConst)) {
+            ConstantAggregateWL.push(InitConstAggregate);
+          }
+        }
+        std::unordered_set<const llvm::ConstantAggregate *>
+            VisitedConstantAggregates;
+        while (!ConstantAggregateWL.empty()) {
+          auto ConstAggregateItem = ConstantAggregateWL.top();
+          ConstantAggregateWL.pop();
+          // We may have already processed the item, avoid an infinite loop
+          if (!VisitedConstantAggregates.insert(ConstAggregateItem).second) {
+            continue;
+          }
+          for (const auto &Op : ConstAggregateItem->operands()) {
+            if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+              auto *AsI = CE->getAsInstruction();
+              if (AsI->getType()->getPointerElementType() == FTy) {
+                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                  if (auto *F =
+                          llvm::dyn_cast<llvm::Function>(BC->getOperand(0))) {
+                    Callees.insert(F);
+                  }
+                }
+              }
+              AsI->deleteValue();
+            }
+            if (auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
+              if (matchesSignature(F, FTy, false)) {
+                Callees.insert(F);
+              }
+            }
+            if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
+              ConstantAggregateWL.push(CA);
+            }
+            if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
+              if (!GV->hasInitializer()) {
+                continue;
+              }
+              if (auto *GVCA = llvm::dyn_cast<llvm::ConstantAggregate>(
+                      GV->getInitializer())) {
+                ConstantAggregateWL.push(GVCA);
+              }
             }
           }
         }
       }
     }
-  }
-  // if we could not find any callees, use a fallback solution
-  if (Callees.empty()) {
-    return Resolver::resolveFunctionPointer(CS);
   }
   return Callees;
 }
