@@ -10,15 +10,12 @@
 #include <array>
 #include <utility>
 
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Kill.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -26,29 +23,29 @@
 namespace psr {
 IDESecureHeapPropagation::IDESecureHeapPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   ZeroValue = createZeroValue();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getNormalFlowFunction(n_t Curr, n_t Succ) {
   return Identity<d_t>::getInstance();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallFlowFunction(n_t CallStmt, f_t DestMthd) {
   return Identity<d_t>::getInstance();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
                                              n_t ExitStmt, n_t RetSite) {
   return Identity<d_t>::getInstance();
 }
 
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                    std::set<f_t> Callees) {
 
@@ -61,7 +58,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
   }
   return Identity<d_t>::getInstance();
 }
-std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
+IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getSummaryFlowFunction(n_t CallStmt, f_t DestMthd) {
   return nullptr;
 }
@@ -107,7 +104,7 @@ void IDESecureHeapPropagation::printDataFlowFact(std::ostream &Os,
 }
 
 void IDESecureHeapPropagation::printFunction(std::ostream &Os, f_t F) const {
-  Os << cxxDemangle(F->getName().str());
+  Os << llvm::demangle(F->getName().str());
 }
 
 // in addition provide specifications for the IDE parts

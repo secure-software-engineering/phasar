@@ -17,6 +17,7 @@
 #ifndef PHASAR_UTILS_TABLE_H_
 #define PHASAR_UTILS_TABLE_H_
 
+#include <algorithm>
 #include <ostream>
 #include <set>
 #include <tuple>
@@ -38,8 +39,8 @@ public:
     ~Cell() = default;
     Cell(const Cell &) = default;
     Cell &operator=(const Cell &) = default;
-    Cell(Cell &&) = default;
-    Cell &operator=(Cell &&) = default;
+    Cell(Cell &&) noexcept = default;
+    Cell &operator=(Cell &&) noexcept = default;
 
     R getRowKey() const { return r; }
     C getColumnKey() const { return c; }
@@ -62,16 +63,11 @@ public:
   };
 
   Table() = default;
-
-  ~Table() = default;
-
   Table(const Table &t) = default;
-
-  Table(Table &&t) = default;
-
   Table &operator=(const Table &t) = default;
-
-  Table &operator=(Table &&t) = default;
+  Table(Table &&t) noexcept = default;
+  Table &operator=(Table &&t) noexcept = default;
+  ~Table() = default;
 
   void insert(R r, C c, V v) {
     // Associates the specified value with the specified keys.
@@ -82,9 +78,9 @@ public:
 
   void clear() { table.clear(); }
 
-  bool empty() const { return table.empty(); }
+  [[nodiscard]] bool empty() const { return table.empty(); }
 
-  size_t size() const { return table.size(); }
+  [[nodiscard]] size_t size() const { return table.size(); }
 
   [[nodiscard]] std::set<Cell> cellSet() const {
     // Returns a set of all row key / column key / value triplets.
@@ -146,8 +142,8 @@ public:
   [[nodiscard]] bool contains(R rowKey, C columnKey) const {
     // Returns true if the table contains a mapping with the specified row and
     // column keys.
-    if (table.count(rowKey)) {
-      return table.at(rowKey).count(columnKey);
+    if (auto RowIter = table.find(rowKey); RowIter != table.end()) {
+      return RowIter->second.find(columnKey) != RowIter->second.end();
     }
     return false;
   }

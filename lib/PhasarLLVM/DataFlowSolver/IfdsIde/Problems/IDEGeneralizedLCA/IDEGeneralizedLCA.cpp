@@ -9,22 +9,17 @@
 
 #include <sstream>
 
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/CallSite.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
-#include <llvm/IR/CallSite.h>
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/BinaryEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
@@ -50,11 +45,11 @@ IDEGeneralizedLCA::IDEGeneralizedLCA(
     const ProjectIRDB *IRDB,
     const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
     const LLVMBasedICFG *ICF,
-    const PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
+    PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
     std::set<std::string> EntryPoints, size_t MaxSetSize)
     : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints),
       maxSetSize(MaxSetSize) {
-  IDETabulationProblem::ZeroValue = createZeroValue();
+  this->ZeroValue = createZeroValue();
 }
 
 // flow functions
@@ -65,7 +60,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
   // std::endl;
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
     llvm::ImmutableCallSite CS(Curr);
-    if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
+    if (isStringConstructor(CS.getCalledFunction())) {
       return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                            getZeroValue());
     }
@@ -166,7 +161,7 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::f_t DestMthd) {
   // std::cout << "Call flow: " << llvmIRToString(callStmt) << std::endl;
-  if (isStringConstructor(DestMthd->getName().str())) {
+  if (isStringConstructor(DestMthd)) {
     // kill all data-flow facts at calls to string constructors
     return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
   }
@@ -197,7 +192,7 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
   if (auto Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
     // std::basic_string
-    if (isStringConstructor(Call->getCalledFunction()->getName().str())) {
+    if (isStringConstructor(Call->getCalledFunction())) {
       // found std::string ctor
       return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(
           Call->getArgOperand(0), getZeroValue());
@@ -286,7 +281,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
                 << IDEGeneralizedLCA::DtoString(SuccNode));
 
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
-    if (isStringConstructor(Invoke->getCalledFunction()->getName().str())) {
+    if (isStringConstructor(Invoke->getCalledFunction())) {
       if (CurrNode == getZeroValue() && SuccNode == Invoke->getArgOperand(0)) {
         // find string literal that is used to initialize the string
         if (auto User = llvm::dyn_cast<llvm::User>(Invoke->getArgOperand(1))) {
@@ -482,7 +477,7 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
 
   // check for ctor and then demangle function name and check for
   // std::basic_string
-  if (isStringConstructor(CS.getCalledFunction()->getName().str())) {
+  if (isStringConstructor(CS.getCalledFunction())) {
     // found correct place and time
     if (CallNode == getZeroValue() && RetSiteNode == CS.getArgOperand(0)) {
       // find string literal that is used to initialize the string
@@ -764,9 +759,12 @@ template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
   return Ss.str();
 }
 
-bool IDEGeneralizedLCA::isStringConstructor(const std::string &FunName) {
-  return (specialMemberFunctionType(FunName) == SpecialMemberFunctionTy::CTOR &&
-          cxxDemangle(FunName).find("::allocator<char> >::basic_string") !=
+bool IDEGeneralizedLCA::isStringConstructor(const llvm::Function *F) {
+  return (ICF->getSpecialMemberFunctionType(F) ==
+              SpecialMemberFunctionType::Constructor &&
+          llvm::demangle(F->getName().str())
+                  .find("::allocator<char> >::basic_string") !=
               std::string::npos);
 }
+
 } // namespace psr

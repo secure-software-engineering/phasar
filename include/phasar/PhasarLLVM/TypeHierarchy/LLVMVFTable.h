@@ -33,7 +33,7 @@ class LLVMVFTable : public VFTable<const llvm::Function *> {
 private:
   friend class LLVMTypeHierarchy;
   std::vector<const llvm::Function *> VFT;
-  LLVMVFTable(std::vector<const llvm::Function *> Fs);
+  LLVMVFTable(std::vector<const llvm::Function *> Fs) : VFT(std::move(Fs)) {}
 
 public:
   LLVMVFTable() = default;
@@ -44,9 +44,12 @@ public:
    * 	@param i Index of the entry.
    * 	@return Function identifier.
    */
-  const llvm::Function *getFunction(unsigned Idx) const override;
+  [[nodiscard]] const llvm::Function *getFunction(unsigned Idx) const override;
 
-  std::vector<const llvm::Function *> getAllFunctions() const override;
+  [[nodiscard]] std::vector<const llvm::Function *>
+  getAllFunctions() const override {
+    return VFT;
+  }
 
   /**
    * 	@brief Returns position index of the given function identifier
@@ -56,21 +59,31 @@ public:
    */
   int getIndex(const llvm::Function *F) const override;
 
-  bool empty() const override;
+  [[nodiscard]] bool empty() const override { return VFT.empty(); };
 
-  size_t size() const override;
+  [[nodiscard]] size_t size() const override { return VFT.size(); };
 
   void print(std::ostream &OS) const override;
 
-  nlohmann::json getAsJson() const override;
+  [[nodiscard]] nlohmann::json getAsJson() const override;
 
-  std::vector<const llvm::Function *>::iterator begin();
+  [[nodiscard]] std::vector<const llvm::Function *>::iterator begin() {
+    return VFT.begin();
+  }
 
-  std::vector<const llvm::Function *>::const_iterator begin() const;
+  [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
+  begin() const {
+    return VFT.begin();
+  };
 
-  std::vector<const llvm::Function *>::iterator end();
+  [[nodiscard]] std::vector<const llvm::Function *>::iterator end() {
+    return VFT.end();
+  };
 
-  std::vector<const llvm::Function *>::const_iterator end() const;
+  [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
+  end() const {
+    return VFT.end();
+  };
 };
 
 } // namespace psr

@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLEEFLOWFUNCTION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLEEFLOWFUNCTION_H_
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Value.h"

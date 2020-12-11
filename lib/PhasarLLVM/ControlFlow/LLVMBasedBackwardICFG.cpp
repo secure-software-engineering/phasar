@@ -20,24 +20,15 @@
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
-#include "boost/log/sources/record_ostream.hpp"
 
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMM.h"
 #include "phasar/Utils/Utilities.h"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
 
 using namespace psr;
 using namespace std;
@@ -52,14 +43,10 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
     ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
-    LLVMPointsToInfo *PT, SoundnessFlag SF)
-    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT, SF) {
+    LLVMPointsToInfo *PT, Soundness S)
+    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT, S) {
   auto CgCopy = ForwardICFG.CallGraph;
   boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
-}
-
-bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *Stmt) const {
-  return ForwardICFG.isCallStmt(Stmt);
 }
 
 bool LLVMBasedBackwardsICFG::isIndirectFunctionCall(
@@ -98,22 +85,13 @@ LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *M) const {
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *M) const {
-  return ForwardICFG.getExitPointsOf(M);
-}
-
-std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *Fun) const {
-  return ForwardICFG.getStartPointsOf(Fun);
-}
-
-std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
     const llvm::Instruction *N) const {
   std::set<const llvm::Instruction *> ReturnSites;
   if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(N)) {
-    for (const auto *Succ : this->getSuccsOf(Call))
+    for (const auto *Succ : this->getSuccsOf(Call)) {
       ReturnSites.insert(Succ);
+    }
   }
   if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
     ReturnSites.insert(&Invoke->getNormalDest()->back());
@@ -127,22 +105,8 @@ LLVMBasedBackwardsICFG::allNonCallStartNodes() const {
   return ForwardICFG.allNonCallStartNodes();
 }
 
-const llvm::Instruction *
-LLVMBasedBackwardsICFG::getLastInstructionOf(const std::string &Name) {
-  return ForwardICFG.getLastInstructionOf(Name);
-}
-
-std::vector<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getAllInstructionsOfFunction(const std::string &Name) {
-  return ForwardICFG.getAllInstructionsOfFunction(Name);
-}
-
 void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &Other) {
   ForwardICFG.mergeWith(Other.ForwardICFG);
-}
-
-bool LLVMBasedBackwardsICFG::isPrimitiveFunction(const std::string &Name) {
-  return ForwardICFG.isPrimitiveFunction(Name);
 }
 
 void LLVMBasedBackwardsICFG::print(std::ostream &OS) const {
@@ -151,10 +115,6 @@ void LLVMBasedBackwardsICFG::print(std::ostream &OS) const {
 
 void LLVMBasedBackwardsICFG::printAsDot(std::ostream &OS) const {
   ForwardICFG.printAsDot(OS);
-}
-
-void LLVMBasedBackwardsICFG::printInternalPTGAsDot(std::ostream &OS) const {
-  ForwardICFG.printInternalPTGAsDot(OS);
 }
 
 nlohmann::json LLVMBasedBackwardsICFG::getAsJson() const {
@@ -167,10 +127,6 @@ unsigned LLVMBasedBackwardsICFG::getNumOfVertices() {
 
 unsigned LLVMBasedBackwardsICFG::getNumOfEdges() {
   return ForwardICFG.getNumOfEdges();
-}
-
-const LLVMPointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() const {
-  return ForwardICFG.getWholeModulePTG();
 }
 
 std::vector<const llvm::Function *>

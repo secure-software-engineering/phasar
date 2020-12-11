@@ -18,6 +18,8 @@
 #define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 
 #include <set>
+#include <string>
+#include <type_traits>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -29,36 +31,52 @@ template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
 template <typename N, typename F> class ICFG;
 
-template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
-class InterMonoProblem : public IntraMonoProblem<N, D, F, T, V, I> {
-  static_assert(std::is_base_of_v<ICFG<N, F>, I>,
+template <typename AnalysisDomainTy>
+class InterMonoProblem : public IntraMonoProblem<AnalysisDomainTy> {
+public:
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using v_t = typename AnalysisDomainTy::v_t;
+  using i_t = typename AnalysisDomainTy::i_t;
+  using mono_container_t = typename AnalysisDomainTy::mono_container_t;
+
+  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
                 "I must implement the ICFG interface!");
 
 protected:
-  const I *ICF;
+  const i_t *ICF;
 
 public:
-  InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
-                   const I *ICF, const PointsToInfo<V, N> *PT,
+  InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+                   const i_t *ICF, const PointsToInfo<v_t, n_t> *PT,
                    std::set<std::string> EntryPoints = {})
-      : IntraMonoProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT, EntryPoints),
+      : IntraMonoProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints),
         ICF(ICF) {}
 
+  ~InterMonoProblem() override = default;
+
   InterMonoProblem(const InterMonoProblem &copy) = delete;
+
   InterMonoProblem(InterMonoProblem &&move) = delete;
+
   InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
+
   InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
 
-  virtual BitVectorSet<D> callFlow(N CallSite, F Callee,
-                                   const BitVectorSet<D> &In) = 0;
-  virtual BitVectorSet<D> returnFlow(N CallSite, F Callee, N ExitStmt,
-                                     N RetSite, const BitVectorSet<D> &In) = 0;
-  virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite,
-                                        std::set<F> Callees,
-                                        const BitVectorSet<D> &In) = 0;
+  virtual mono_container_t callFlow(n_t CallSite, f_t Callee,
+                                    const mono_container_t &In) = 0;
 
-  const I *getICFG() const { return ICF; }
+  virtual mono_container_t returnFlow(n_t CallSite, f_t Callee, n_t ExitStmt,
+                                      n_t RetSite,
+                                      const mono_container_t &In) = 0;
+
+  virtual mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
+                                         std::set<f_t> Callees,
+                                         const mono_container_t &In) = 0;
+
+  const i_t *getICFG() const { return ICF; }
 };
 
 } // namespace psr

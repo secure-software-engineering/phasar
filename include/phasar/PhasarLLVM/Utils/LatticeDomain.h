@@ -10,6 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_LATTICEDOMAIN_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_LATTICEDOMAIN_H_
 
+#include "llvm/Support/ErrorHandling.h"
+
 #include <iostream>
 #include <variant>
 
@@ -77,24 +79,26 @@ template <typename L>
 inline bool operator<(const LatticeDomain<L> &Lhs,
                       const LatticeDomain<L> &Rhs) {
   // Top < (Lhs::L < Rhs::L) < Bottom
-  if (std::holds_alternative<Top>(Lhs)) {
-    return true;
-  }
   if (std::holds_alternative<Top>(Rhs)) {
     return false;
   }
+  if (std::holds_alternative<Top>(Lhs)) {
+    return true;
+  }
+
   if (auto LhsPtr = std::get_if<L>(&Lhs)) {
     if (auto RhsPtr = std::get_if<L>(&Rhs)) {
       return *LhsPtr < *RhsPtr;
     }
   }
+
+  if (std::holds_alternative<Bottom>(Rhs)) {
+    return !std::holds_alternative<Bottom>(Lhs);
+  }
   if (std::holds_alternative<Bottom>(Lhs)) {
     return false;
   }
-  if (std::holds_alternative<Bottom>(Rhs)) {
-    return true;
-  }
-  return false;
+  llvm_unreachable("All comparision cases should be handled above.");
 }
 
 } // namespace psr

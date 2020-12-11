@@ -1,25 +1,23 @@
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "gtest/gtest.h"
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
-#include "gtest/gtest.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
+#include "phasar/Utils/LLVMShorthands.h"
+
+#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
 
-class LLVMBasedBackwardCFGTest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
+TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Term = getNthTermInstruction(F, 1);
   const auto *A = getNthInstruction(F, 10);
@@ -31,9 +29,10 @@ TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   ASSERT_FALSE(Cfg.isBranchTarget(C, Term));
 }
 
-TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
+TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -57,9 +56,10 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   ASSERT_EQ(PredsOfBrInst, Predeccessors);
 }
 
-TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
+TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/function_call_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE PREDECCESSOR
@@ -79,9 +79,10 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   ASSERT_EQ(PredsOfTermInst, Predeccessor);
 }
 
-TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
+TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
@@ -96,9 +97,10 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   ASSERT_EQ(SuccsOfTermInst, Successor);
 }
 
-TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
+TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE SUCCESSOR

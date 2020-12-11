@@ -30,6 +30,22 @@ std::string toString(const DataFlowAnalysisType &D) {
   }
 }
 
+std::string toString(const DataFlowAnalysisKind &D) {
+  if (std::holds_alternative<DataFlowAnalysisType>(D)) {
+    return toString(std::get<DataFlowAnalysisType>(D));
+  } else if (std::holds_alternative<IFDSPluginConstructor>(D)) {
+    return "IFDS Plugin";
+  } else if (std::holds_alternative<IDEPluginConstructor>(D)) {
+    return "IDE Plugin";
+  } else if (std::holds_alternative<IntraMonoPluginConstructor>(D)) {
+    return "IntraMono Plugin";
+  } else if (std::holds_alternative<InterMonoPluginConstructor>(D)) {
+    return "InterMono Plugin";
+  } else {
+    return "None";
+  }
+}
+
 DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
   DataFlowAnalysisType Type = llvm::StringSwitch<DataFlowAnalysisType>(S)
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
@@ -49,4 +65,5 @@ DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
 ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
   return OS << toString(D);
 }
+
 } // namespace psr

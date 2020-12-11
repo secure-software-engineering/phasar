@@ -18,7 +18,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/Utils/LLVMShorthands.h"
 

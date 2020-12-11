@@ -21,8 +21,7 @@
 #include <set>
 #include <vector>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenAll.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/SummaryStrategy.h"
 

@@ -54,9 +54,8 @@ const OpenSSLSecureHeapDescription::OpenSSLSecureHeapState
          OpenSSLSecureHeapState::FREED, OpenSSLSecureHeapState::ERROR},
 };
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapDescription(
-    IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
-              const llvm::StructType *, const llvm::Value *, SecureHeapValue,
-              LLVMBasedICFG> &SecureHeapPropagationResults)
+    IDESolver<IDESecureHeapPropagationAnalysisDomain>
+        &SecureHeapPropagationResults)
     : secureHeapPropagationResults(SecureHeapPropagationResults) {}
 
 bool OpenSSLSecureHeapDescription::isFactoryFunction(

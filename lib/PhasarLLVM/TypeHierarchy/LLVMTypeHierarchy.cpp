@@ -152,7 +152,6 @@ void LLVMTypeHierarchy::buildLLVMTypeHierarchy(const llvm::Module &M) {
   boost::transitive_closure(TypeGraph, TC);
   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
     for (auto OE : boost::make_iterator_range(boost::out_edges(V, TC))) {
-      auto Source = boost::source(OE, TC);
       auto Target = boost::target(OE, TC);
       TypeGraph[V].ReachableTypes.insert(TypeGraph[Target].Type);
     }
@@ -165,25 +164,27 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
   if (const auto *TI = ClearNameTIMap[removeStructOrClassPrefix(Type)]) {
-    if (const auto *I =
-            llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-      for (const auto &Op : I->operands()) {
-        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          // caution: getAsInstruction allocates, need to delete later
-          auto *AsI = CE->getAsInstruction();
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
-            if (BC->getOperand(0)->hasName()) {
-              auto Name = BC->getOperand(0)->getName();
-              if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
-                auto ClearName = removeTypeInfoPrefix(
-                    boost::core::demangle(Name.str().c_str()));
-                if (const auto *Type = ClearNameTypeMap[ClearName]) {
-                  SubTypes.push_back(Type);
+    if (TI->hasInitializer()) {
+      if (const auto *I =
+              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+        for (const auto &Op : I->operands()) {
+          if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+            // caution: getAsInstruction allocates, need to delete later
+            auto *AsI = CE->getAsInstruction();
+            if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+              if (BC->getOperand(0)->hasName()) {
+                auto Name = BC->getOperand(0)->getName();
+                if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
+                  auto ClearName = removeTypeInfoPrefix(
+                      boost::core::demangle(Name.str().c_str()));
+                  if (const auto *Type = ClearNameTypeMap[ClearName]) {
+                    SubTypes.push_back(Type);
+                  }
                 }
               }
             }
+            AsI->deleteValue();
           }
-          AsI->deleteValue();
         }
       }
     }
@@ -198,22 +199,25 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
   std::vector<const llvm::Function *> VFS;
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
-      if (const auto *I =
-              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        for (const auto &Op : I->operands()) {
-          if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
-            for (auto &COp : CA->operands()) {
-              if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-                // caution: getAsInstruction allocates, need to delete later
-                auto *AsI = CE->getAsInstruction();
-                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
-                  if (BC->getOperand(0)->hasName()) {
-                    if (auto *F = M.getFunction(BC->getOperand(0)->getName())) {
-                      VFS.push_back(F);
+      if (TI->hasInitializer()) {
+        if (const auto *I =
+                llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+          for (const auto &Op : I->operands()) {
+            if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
+              for (auto &COp : CA->operands()) {
+                if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
+                  // caution: getAsInstruction allocates, need to delete later
+                  auto *AsI = CE->getAsInstruction();
+                  if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                    if (BC->getOperand(0)->hasName()) {
+                      if (auto *F =
+                              M.getFunction(BC->getOperand(0)->getName())) {
+                        VFS.push_back(F);
+                      }
                     }
                   }
+                  AsI->deleteValue();
                 }
-                AsI->deleteValue();
               }
             }
           }
@@ -268,16 +272,6 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
   }
 }
 
-bool LLVMTypeHierarchy::hasType(const llvm::StructType *Type) const {
-  return TypeVertexMap.count(Type);
-}
-
-bool LLVMTypeHierarchy::isSubType(const llvm::StructType *Type,
-                                  const llvm::StructType *SubType) {
-  auto ReachableTypes = getSubTypes(Type);
-  return ReachableTypes.count(SubType);
-}
-
 std::set<const llvm::StructType *>
 LLVMTypeHierarchy::getSubTypes(const llvm::StructType *Type) {
   if (TypeVertexMap.count(Type)) {
@@ -286,14 +280,10 @@ LLVMTypeHierarchy::getSubTypes(const llvm::StructType *Type) {
   return {};
 }
 
-bool LLVMTypeHierarchy::isSuperType(const llvm::StructType *Type,
-                                    const llvm::StructType *SuperType) {
-  return isSubType(SuperType, Type);
-}
-
 std::set<const llvm::StructType *>
 LLVMTypeHierarchy::getSuperTypes(const llvm::StructType *Type) {
   std::set<const llvm::StructType *> ReachableTypes;
+  // TODO (philipp): what does this function do?
   return ReachableTypes;
 }
 
@@ -332,12 +322,6 @@ LLVMTypeHierarchy::getVFTable(const llvm::StructType *Type) const {
   }
   return nullptr;
 }
-
-size_t LLVMTypeHierarchy::size() const {
-  return boost::num_vertices(TypeGraph);
-}
-
-bool LLVMTypeHierarchy::empty() const { return size() == 0; }
 
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "Type Hierarchy:\n";

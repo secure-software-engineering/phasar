@@ -14,7 +14,7 @@
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -30,41 +30,38 @@ namespace psr {
 
 IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF,
-                               const LLVMPointsToInfo *PT,
+                               const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSSolverTest::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
+IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t Curr,
                                       IFDSSolverTest::n_t Succ) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
+IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t CallStmt,
                                     IFDSSolverTest::f_t DestFun) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
-IFDSSolverTest::getRetFlowFunction(IFDSSolverTest::n_t CallSite,
-                                   IFDSSolverTest::f_t CalleeFun,
-                                   IFDSSolverTest::n_t ExitStmt,
-                                   IFDSSolverTest::n_t RetSite) {
+IFDSSolverTest::FlowFunctionPtrType IFDSSolverTest::getRetFlowFunction(
+    IFDSSolverTest::n_t CallSite, IFDSSolverTest::f_t CalleeFun,
+    IFDSSolverTest::n_t ExitStmt, IFDSSolverTest::n_t RetSite) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
+IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t CallSite,
                                          IFDSSolverTest::n_t RetSite,
                                          set<IFDSSolverTest::f_t> Callees) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
+IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t CallStmt,
                                        IFDSSolverTest::f_t DestFun) {
   return nullptr;

@@ -10,9 +10,8 @@
 #include <utility>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -36,7 +35,7 @@ bool IDETaintAnalysis::setContainsStr(set<string> S, const string &Str) {
 IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
+                                   LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
@@ -44,34 +43,32 @@ IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
 
 // start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getNormalFlowFunction(IDETaintAnalysis::n_t Curr,
                                         IDETaintAnalysis::n_t Succ) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getCallFlowFunction(IDETaintAnalysis::n_t CallStmt,
                                       IDETaintAnalysis::f_t DestFun) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
-IDETaintAnalysis::getRetFlowFunction(IDETaintAnalysis::n_t CallSite,
-                                     IDETaintAnalysis::f_t CalleeFun,
-                                     IDETaintAnalysis::n_t ExitStmt,
-                                     IDETaintAnalysis::n_t RetSite) {
+IDETaintAnalysis::FlowFunctionPtrType IDETaintAnalysis::getRetFlowFunction(
+    IDETaintAnalysis::n_t CallSite, IDETaintAnalysis::f_t CalleeFun,
+    IDETaintAnalysis::n_t ExitStmt, IDETaintAnalysis::n_t RetSite) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getCallToRetFlowFunction(IDETaintAnalysis::n_t CallSite,
                                            IDETaintAnalysis::n_t RetSite,
                                            set<IDETaintAnalysis::f_t> Callees) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::FlowFunctionPtrType
 IDETaintAnalysis::getSummaryFlowFunction(IDETaintAnalysis::n_t CallStmt,
                                          IDETaintAnalysis::f_t DestFun) {
   return nullptr;

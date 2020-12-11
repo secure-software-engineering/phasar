@@ -32,43 +32,41 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMBasedICFG *ICF,
                                          const LLVMPointsToInfo *PT,
                                          std::set<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
-                       InterMonoSolverTest::f_t, InterMonoSolverTest::t_t,
-                       InterMonoSolverTest::v_t, InterMonoSolverTest::i_t>(
-          IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
+    : InterMonoProblem<InterMonoSolverTestDomain>(IRDB, TH, ICF, PT,
+                                                  std::move(EntryPoints)) {}
 
-BitVectorSet<const llvm::Value *>
-InterMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
-                          const BitVectorSet<const llvm::Value *> &Rhs) {
+InterMonoSolverTest::mono_container_t
+InterMonoSolverTest::merge(const InterMonoSolverTest::mono_container_t &Lhs,
+                           const InterMonoSolverTest::mono_container_t &Rhs) {
   cout << "InterMonoSolverTest::join()\n";
   return Lhs.setUnion(Rhs);
 }
 
-bool InterMonoSolverTest::sqSubSetEqual(
-    const BitVectorSet<const llvm::Value *> &Lhs,
-    const BitVectorSet<const llvm::Value *> &Rhs) {
-  cout << "InterMonoSolverTest::sqSubSetEqual()\n";
-  return Lhs.includes(Rhs);
+bool InterMonoSolverTest::equal_to(
+    const InterMonoSolverTest::mono_container_t &Lhs,
+    const InterMonoSolverTest::mono_container_t &Rhs) {
+  cout << "InterMonoSolverTest::equal_to()\n";
+  return Lhs == Rhs;
 }
 
-BitVectorSet<const llvm::Value *>
-InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
-                                const BitVectorSet<const llvm::Value *> &In) {
+InterMonoSolverTest::mono_container_t InterMonoSolverTest::normalFlow(
+    InterMonoSolverTest::n_t Inst,
+    const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
-  BitVectorSet<const llvm::Value *> Result;
+  InterMonoSolverTest::mono_container_t Result;
   Result = Result.setUnion(In);
-  if (const auto *const Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
+  if (const auto *const Alloc = llvm::dyn_cast<llvm::AllocaInst>(Inst)) {
     Result.insert(Alloc);
   }
   return In;
 }
 
-BitVectorSet<const llvm::Value *>
-InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
-                              const llvm::Function *Callee,
-                              const BitVectorSet<const llvm::Value *> &In) {
+InterMonoSolverTest::mono_container_t
+InterMonoSolverTest::callFlow(InterMonoSolverTest::n_t CallSite,
+                              InterMonoSolverTest::f_t Callee,
+                              const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::callFlow()\n";
-  BitVectorSet<const llvm::Value *> Result;
+  InterMonoSolverTest::mono_container_t Result;
   Result.setUnion(In);
   if (const auto *const Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
@@ -76,46 +74,47 @@ InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
   return In;
 }
 
-BitVectorSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
-    const llvm::Instruction *CallSite, const llvm::Function *Callee,
-    const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
-    const BitVectorSet<const llvm::Value *> &In) {
+InterMonoSolverTest::mono_container_t InterMonoSolverTest::returnFlow(
+    InterMonoSolverTest::n_t CallSite, InterMonoSolverTest::f_t Callee,
+    InterMonoSolverTest::n_t ExitStmt, InterMonoSolverTest::n_t RetSite,
+    const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::returnFlow()\n";
   return In;
 }
 
-BitVectorSet<const llvm::Value *> InterMonoSolverTest::callToRetFlow(
-    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-    set<const llvm::Function *> Callees,
-    const BitVectorSet<const llvm::Value *> &In) {
+InterMonoSolverTest::mono_container_t InterMonoSolverTest::callToRetFlow(
+    InterMonoSolverTest::n_t CallSite, InterMonoSolverTest::n_t RetSite,
+    set<InterMonoSolverTest::f_t> Callees,
+    const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;
 }
 
-unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+unordered_map<InterMonoSolverTest::n_t, InterMonoSolverTest::mono_container_t>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const llvm::Function *Main = ICF->getFunction("main");
-  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+  unordered_map<InterMonoSolverTest::n_t, InterMonoSolverTest::mono_container_t>
       Seeds;
-  Seeds.insert(
-      make_pair(&Main->front().front(), BitVectorSet<const llvm::Value *>()));
+  InterMonoSolverTest::f_t Main = ICF->getFunction("main");
+  for (const auto *StartPoint : ICF->getStartPointsOf(Main)) {
+    Seeds.insert(make_pair(StartPoint, allTop()));
+  }
   return Seeds;
 }
 
 void InterMonoSolverTest::printNode(ostream &OS,
-                                    const llvm::Instruction *N) const {
-  OS << llvmIRToString(N);
+                                    InterMonoSolverTest::n_t Inst) const {
+  OS << llvmIRToString(Inst);
 }
 
-void InterMonoSolverTest::printDataFlowFact(ostream &OS,
-                                            const llvm::Value *D) const {
-  OS << llvmIRToString(D) << '\n';
+void InterMonoSolverTest::printDataFlowFact(
+    ostream &OS, InterMonoSolverTest::d_t Fact) const {
+  OS << llvmIRToString(Fact) << '\n';
 }
 
 void InterMonoSolverTest::printFunction(ostream &OS,
-                                        const llvm::Function *M) const {
-  OS << M->getName().str();
+                                        InterMonoSolverTest::f_t Fun) const {
+  OS << Fun->getName().str();
 }
 
 } // namespace psr

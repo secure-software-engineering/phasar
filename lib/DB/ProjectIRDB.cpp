@@ -14,14 +14,13 @@
 
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/PassManager.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Linker/Linker.h"
-#include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Transforms/Utils.h"
@@ -45,7 +44,17 @@ using namespace std;
 
 namespace psr {
 
-ProjectIRDB::ProjectIRDB(IRDBOptions Options) : Options(Options) {}
+ProjectIRDB::ProjectIRDB(IRDBOptions Options) : Options(Options) {
+  // register the GeneralStaticsPass analysis pass to the ModuleAnalysisManager
+  // such that we can query its results later on
+  GeneralStatisticsAnalysis GSP;
+  MAM.registerPass([&]() { return std::move(GSP); });
+  PB.registerModuleAnalyses(MAM);
+  // add the transformation pass ValueAnnotationPass
+  MPM.addPass(ValueAnnotationPass());
+  // just to be sure that none of the passes messed up the module!
+  MPM.addPass(llvm::VerifierPass());
+}
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
                          IRDBOptions Options)
@@ -105,6 +114,7 @@ ProjectIRDB::~ProjectIRDB() {
       Module.release();
     }
   }
+  MAM.clear();
 }
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
@@ -113,18 +123,6 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   START_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Preprocess module: " << M->getModuleIdentifier());
-  llvm::PassBuilder PB;
-  llvm::ModuleAnalysisManager MAM;
-  // register the GeneralStaticsPass analysis pass to the ModuleAnalysisManager
-  // such that we can query its results later on
-  GeneralStatisticsAnalysis GSP;
-  MAM.registerPass([&]() { return std::move(GSP); });
-  PB.registerModuleAnalyses(MAM);
-  llvm::ModulePassManager MPM;
-  // add the transformation pass ValueAnnotationPass
-  MPM.addPass(ValueAnnotationPass());
-  // just to be sure that none of the passes messed up the module!
-  MPM.addPass(llvm::VerifierPass());
   MPM.run(*M, MAM);
   // retrieve data from the GeneralStatisticsAnalysis registered earlier
   auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
@@ -226,18 +224,12 @@ void ProjectIRDB::buildIDModuleMapping(llvm::Module *M) {
   }
 }
 
-bool ProjectIRDB::containsSourceFile(const std::string &File) const {
-  return Modules.find(File) != Modules.end();
-}
-
 llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
   if (Modules.count(ModuleName)) {
     return Modules[ModuleName].get();
   }
   return nullptr;
 }
-
-std::size_t ProjectIRDB::getNumberOfModules() const { return Modules.size(); }
 
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
   if (IDInstructionMapping.count(Id)) {
@@ -303,11 +295,6 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
     }
     OS << '\n';
   }
-}
-
-std::set<const llvm::Instruction *>
-ProjectIRDB::getRetOrResInstructions() const {
-  return RetOrResInstructions;
 }
 
 const llvm::Function *
@@ -448,10 +435,6 @@ ProjectIRDB::persistedStringToValue(const std::string &S) const {
   return nullptr;
 }
 
-std::set<const llvm::Instruction *> ProjectIRDB::getAllocaInstructions() const {
-  return AllocaInstructions;
-}
-
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() const {
   std::set<const llvm::Function *> Functions;
   for (const auto &[File, Module] : Modules) {
@@ -462,16 +445,10 @@ std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() const {
   return Functions;
 }
 
-bool ProjectIRDB::empty() const { return Modules.empty(); }
-
 void ProjectIRDB::insertModule(llvm::Module *M) {
   Contexts.push_back(std::unique_ptr<llvm::LLVMContext>(&M->getContext()));
   Modules.insert(std::make_pair(M->getModuleIdentifier(), M));
   preprocessModule(M);
-}
-
-set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() const {
-  return AllocatedTypes;
 }
 
 std::set<const llvm::StructType *>
@@ -503,7 +480,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
   for (const auto &[File, Module] : Modules) {
     for (auto &GV : Module->globals()) {
       if (GV.hasName()) {
-        string GVName = cxxDemangle(GV.getName().str());
+        string GVName = llvm::demangle(GV.getName().str());
         if (!IgnoredGlobalNames.count(GVName.substr(0, GVName.find(' ')))) {
           AllMemoryLoc.insert(&GV);
         }
@@ -511,10 +488,6 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
     }
   }
   return AllMemoryLoc;
-}
-
-bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) {
-  return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
 bool ProjectIRDB::debugInfoAvailable() const {

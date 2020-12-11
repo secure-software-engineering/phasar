@@ -27,6 +27,7 @@ set(LLVM_LINK_COMPONENTS
   Linker
   BitWriter
   Passes
+  Demangle
 )
 
 if(BUILD_SHARED_LIBS)
@@ -43,7 +44,6 @@ endif()
 
 target_link_libraries(phasar_db
   LINK_PUBLIC
-  ${Boost_LIBRARIES}
   ${SQLITE3_LIBRARY}
 )
 

@@ -1,13 +1,16 @@
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include <tuple>
+
 #include "gtest/gtest.h"
 
-#include <tuple>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
+#include "TestConfig.h"
 
 using namespace psr;
 
@@ -15,8 +18,7 @@ using namespace psr;
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/linear_constant/";
+      unittest::PathToLLTestFiles + "linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
@@ -31,15 +33,11 @@ protected:
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo PT(*IRDB);
+    LLVMPointsToSet PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                        &PT);
     IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
-    IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
-              IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
-              IDELinearConstantAnalysis::i_t>
-        LCASolver(LCAProblem);
+    IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
     LCASolver.solve();
     if (PrintDump) {
       LCASolver.dumpResults();

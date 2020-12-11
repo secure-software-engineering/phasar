@@ -21,7 +21,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/Utils/SoundnessFlag.h"
+#include "phasar/Utils/Soundness.h"
 
 namespace llvm {
 class Instruction;
@@ -51,13 +51,11 @@ public:
                          const std::set<std::string> &EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
                          LLVMPointsToInfo *PT = nullptr,
-                         SoundnessFlag SF = SoundnessFlag::SOUNDY);
+                         Soundness S = Soundness::SOUNDY);
 
   ~LLVMBasedBackwardsICFG() override = default;
 
   std::set<const llvm::Function *> getAllFunctions() const override;
-
-  bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
   bool isIndirectFunctionCall(const llvm::Instruction *Stmt) const override;
 
@@ -75,32 +73,17 @@ public:
   getCallsFromWithin(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *M) const override;
-
-  std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *Fun) const override;
-
-  std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
-  const llvm::Instruction *getLastInstructionOf(const std::string &Name);
-
-  std::vector<const llvm::Instruction *>
-  getAllInstructionsOfFunction(const std::string &Name);
-
   void mergeWith(const LLVMBasedBackwardsICFG &other);
-
-  bool isPrimitiveFunction(const std::string &Name);
 
   using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
                                      // prints
   void print(std::ostream &OS) const override;
 
   void printAsDot(std::ostream &OS) const;
-
-  void printInternalPTGAsDot(std::ostream &OS) const;
 
   using LLVMBasedBackwardCFG::getAsJson; // tell the compiler we wish to have
                                          // both prints
@@ -109,8 +92,6 @@ public:
   unsigned getNumOfVertices();
 
   unsigned getNumOfEdges();
-
-  const LLVMPointsToGraph &getWholeModulePTG() const;
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };

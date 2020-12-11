@@ -18,9 +18,8 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultSeeds.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -35,8 +34,7 @@ namespace psr {
 
 IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF,
-                             const LLVMPointsToInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
@@ -44,32 +42,32 @@ IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
 
 // start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
+IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getNormalFlowFunction(IDESolverTest::n_t Curr,
                                      IDESolverTest::n_t Succ) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
+IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getCallFlowFunction(IDESolverTest::n_t CallStmt,
                                    IDESolverTest::f_t DestFun) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>> IDESolverTest::getRetFlowFunction(
+IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
     IDESolverTest::n_t CallSite, IDESolverTest::f_t CalleeFun,
     IDESolverTest::n_t ExitStmt, IDESolverTest::n_t RetSite) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
+IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t CallSite,
                                         IDESolverTest::n_t RetSite,
                                         set<IDESolverTest::f_t> Callees) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDESolverTest::d_t>>
+IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t CallStmt,
                                       IDESolverTest::f_t DestFun) {
   return nullptr;

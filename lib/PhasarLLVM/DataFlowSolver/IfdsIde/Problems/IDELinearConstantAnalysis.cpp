@@ -11,6 +11,7 @@
 #include <limits>
 #include <utility>
 
+#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -21,16 +22,9 @@
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillIf.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/StrongUpdateStore.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -38,7 +32,6 @@
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include <utility>
 
 using namespace std;
 using namespace psr;
@@ -57,7 +50,7 @@ const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
@@ -71,7 +64,7 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 
 // Start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t Curr, IDELinearConstantAnalysis::n_t Succ) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
@@ -126,7 +119,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t CallStmt,
     IDELinearConstantAnalysis::f_t DestFun) {
@@ -203,7 +196,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t CalleeFun,
@@ -247,7 +240,7 @@ IDELinearConstantAnalysis::getRetFlowFunction(
       });
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::n_t RetSite, set<f_t> Callees) {
@@ -265,7 +258,7 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
+IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getSummaryFlowFunction(
     IDELinearConstantAnalysis::n_t CallStmt,
     IDELinearConstantAnalysis::f_t DestFun) {
@@ -798,7 +791,7 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
 
 void IDELinearConstantAnalysis::printNode(
     ostream &OS, IDELinearConstantAnalysis::n_t N) const {
-  OS << llvmIRToShortString(N);
+  OS << llvmIRToString(N);
 }
 
 void IDELinearConstantAnalysis::printDataFlowFact(

@@ -10,7 +10,7 @@
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Instruction.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
 

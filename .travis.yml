@@ -39,7 +39,7 @@ matrix:
           - libboost-log1.65-dev
           - libboost-thread1.65-dev
     env:
-      - MATRIX_EVAL="CC=clang && CXX=clang++"
+     # - MATRIX_EVAL="CC=clang && CXX=clang++"
   - os: osx
     osx_image: xcode11.3
     sudo: enabled
@@ -80,7 +80,7 @@ script:
   - sudo make install
   # - ctest -j2
   # Build the examples
-  - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
+  - cd $TRAVIS_BUILD_DIR/examples/llvm-hello-world
   - make
   # Override llvm-config to match the required one
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -sf `which llvm-config-10` `which llvm-config`; llvm-config --version; fi

@@ -17,47 +17,76 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 
+#include <iostream>
+#include <set>
 #include <string>
-#include <utility> // std::pair
+#include <utility>
 #include <vector>
 
 #include "nlohmann/json.hpp"
 
 namespace psr {
 
+enum class SpecialMemberFunctionType {
+#define SPECIAL_MEMBER_FUNCTION_TYPES(NAME, TYPE) TYPE,
+#include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.def"
+};
+
+std::string toString(const SpecialMemberFunctionType &SMFT);
+
+SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT);
+
+std::ostream &operator<<(std::ostream &os,
+                         const SpecialMemberFunctionType &SMFT);
+
 template <typename N, typename F> class CFG {
 public:
   virtual ~CFG() = default;
 
-  virtual F getFunctionOf(N stmt) const = 0;
+  virtual F getFunctionOf(N Stmt) const = 0;
 
-  virtual std::vector<N> getPredsOf(N stmt) const = 0;
+  virtual std::vector<N> getPredsOf(N Stmt) const = 0;
 
-  virtual std::vector<N> getSuccsOf(N stmt) const = 0;
+  virtual std::vector<N> getSuccsOf(N Stmt) const = 0;
 
-  virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(F fun) const = 0;
+  virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(F Fun) const = 0;
 
-  virtual std::vector<N> getAllInstructionsOf(F fun) const = 0;
+  virtual std::vector<N> getAllInstructionsOf(F Fun) const = 0;
 
-  virtual bool isExitStmt(N stmt) const = 0;
+  virtual std::set<N> getStartPointsOf(F Fun) const = 0;
 
-  virtual bool isStartPoint(N stmt) const = 0;
+  virtual std::set<N> getExitPointsOf(F Fun) const = 0;
 
-  virtual bool isFieldLoad(N stmt) const = 0;
+  virtual bool isCallStmt(N Stmt) const = 0;
 
-  virtual bool isFieldStore(N stmt) const = 0;
+  virtual bool isExitStmt(N Stmt) const = 0;
 
-  virtual bool isFallThroughSuccessor(N stmt, N succ) const = 0;
+  virtual bool isStartPoint(N Stmt) const = 0;
 
-  virtual bool isBranchTarget(N stmt, N succ) const = 0;
+  virtual bool isFieldLoad(N Stmt) const = 0;
 
-  virtual std::string getStatementId(N stmt) const = 0;
+  virtual bool isFieldStore(N Stmt) const = 0;
 
-  virtual std::string getFunctionName(F fun) const = 0;
+  virtual bool isFallThroughSuccessor(N Stmt, N Succ) const = 0;
 
-  virtual void print(F fun, std::ostream &OS) const = 0;
+  virtual bool isBranchTarget(N Stmt, N Succ) const = 0;
 
-  virtual nlohmann::json getAsJson(F fun) const = 0;
+  virtual bool isHeapAllocatingFunction(F Fun) const = 0;
+
+  virtual bool isSpecialMemberFunction(F Fun) const = 0;
+
+  virtual SpecialMemberFunctionType
+  getSpecialMemberFunctionType(F Fun) const = 0;
+
+  virtual std::string getStatementId(N Stmt) const = 0;
+
+  virtual std::string getFunctionName(F Fun) const = 0;
+
+  virtual std::string getDemangledFunctionName(F Fun) const = 0;
+
+  virtual void print(F Fun, std::ostream &OS) const = 0;
+
+  virtual nlohmann::json getAsJson(F Fun) const = 0;
 };
 
 } // namespace psr

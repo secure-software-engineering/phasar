@@ -19,7 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
@@ -38,10 +38,7 @@ protected:
       "build/test/llvm_test_code/general_linear_constant/";
 
   ProjectIRDB *IRDB = nullptr;
-  IDESolver<const llvm::Instruction *, const llvm::Value *,
-            const llvm::Function *, const llvm::StructType *,
-            const llvm::Value *, EdgeValueSet, LLVMBasedICFG> *LCASolver =
-      nullptr;
+  IDESolver<IDEGeneralizedLCADomain> *LCASolver = nullptr;
 
   IDEGeneralizedLCATest() {}
   virtual ~IDEGeneralizedLCATest() {}
@@ -49,13 +46,10 @@ protected:
   void Initialize(const std::string &llFile, size_t maxSetSize = 2) {
     IRDB = new ProjectIRDB({pathToLLFiles + llFile}, IRDBOptions::WPA);
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo PT(*IRDB);
+    LLVMPointsToSet PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
     IDEGeneralizedLCA LCAProblem(IRDB, &TH, &ICFG, &PT, {"main"}, maxSetSize);
-    LCASolver = new IDESolver<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, EdgeValueSet, LLVMBasedICFG>(
-        LCAProblem);
+    LCASolver = new IDESolver(LCAProblem);
 
     LCASolver->solve();
   }
@@ -167,8 +161,8 @@ TEST_F(IDEGeneralizedLCATest, Imprecision) {
   auto barInst = IRDB->getInstruction(7);
 
   // std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) <<
-  // std::endl; std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst) <<
-  // std::endl;
+  // std::endl; std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst)
+  // << std::endl;
 
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(1), EdgeValue(2)}, 0, 7}); // i

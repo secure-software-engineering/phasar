@@ -1,25 +1,22 @@
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "gtest/gtest.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
-#include "gtest/gtest.h"
+
+#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
 
-class LLVMBasedCFGTest : public ::testing::Test {
-protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/";
-};
-
-TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
+TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -39,9 +36,10 @@ TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
       Cfg.isFallThroughSuccessor(BranchInst, getNthTermInstruction(F, 4)));
 }
 
-TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
+TEST(LLVMBasedCFGTest, BranchTargetTest) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/switch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/switch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SWITCH INSTRUCTION
@@ -74,25 +72,27 @@ TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
   ASSERT_TRUE(Cfg.isBranchTarget(BranchInst, getNthTermInstruction(F, 6)));
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
+TEST(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
   const auto *TermInst = getNthTermInstruction(F, 4);
   std::vector<const llvm::Instruction *> Predeccessor;
   // br label %12
-  Predeccessor.push_back(getNthTermInstruction(F, 2));
-  // br label %12
   Predeccessor.push_back(getNthTermInstruction(F, 3));
+  // br label %12
+  Predeccessor.push_back(getNthTermInstruction(F, 2));
   auto PredsOfTermInst = Cfg.getPredsOf(TermInst);
   ASSERT_EQ(PredsOfTermInst, Predeccessor);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
+TEST(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE PREDECCESSOR
@@ -121,9 +121,10 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   ASSERT_EQ(PredsOfInst, Predeccessor);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
+TEST(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -147,9 +148,10 @@ TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   ASSERT_EQ(SuccsOfBrInst, Successors);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
+TEST(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/function_call_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE SUCCESSOR
@@ -169,9 +171,10 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   ASSERT_EQ(SuccsOfTermInst, Successors);
 }
 
-TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
+TEST(LLVMBasedCFGTest, HandlesCallSuccessor) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "control_flow/function_call_cpp.ll"});
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CALL INSTRUCTION SUCCESSOR
@@ -184,9 +187,9 @@ TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
   ASSERT_EQ(SuccsOfCallInst, Successors);
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldLoadsArray) {
+TEST(LLVMBasedCFGTest, HandleFieldLoadsArray) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/array_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/array_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldLoad(Inst));
@@ -194,9 +197,9 @@ TEST_F(LLVMBasedCFGTest, HandleFieldLoadsArray) {
   ASSERT_TRUE(Cfg.isFieldLoad(Inst));
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldStoreArray) {
+TEST(LLVMBasedCFGTest, HandleFieldStoreArray) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/array_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/array_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldStore(Inst));
@@ -204,9 +207,9 @@ TEST_F(LLVMBasedCFGTest, HandleFieldStoreArray) {
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldLoadsField) {
+TEST(LLVMBasedCFGTest, HandleFieldLoadsField) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/field_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/field_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldLoad(Inst));
@@ -218,9 +221,9 @@ TEST_F(LLVMBasedCFGTest, HandleFieldLoadsField) {
   ASSERT_TRUE(Cfg.isFieldLoad(Inst));
 }
 
-TEST_F(LLVMBasedCFGTest, HandleFieldStoreField) {
+TEST(LLVMBasedCFGTest, HandleFieldStoreField) {
   LLVMBasedCFG Cfg;
-  ProjectIRDB IRDB({PathToLlFiles + "fields/field_1_cpp.ll"});
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "fields/field_1_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldStore(Inst));
@@ -230,6 +233,199 @@ TEST_F(LLVMBasedCFGTest, HandleFieldStoreField) {
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
   Inst = getNthInstruction(F, 9);
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
+}
+
+TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_2_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_2_cpp.ll");
+  auto *F = M->getFunction("_ZNSt8ios_base4InitC1Ev");
+  LLVMBasedCFG CFG;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  auto *N = M->getFunction("_ZNSt8ios_base4InitD1Ev");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(N),
+            SpecialMemberFunctionType::Destructor);
+  auto *O = M->getFunction(
+      "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(O),
+            SpecialMemberFunctionType::Destructor);
+}
+
+TEST(LLVMBasedCFGTest, HandlesCppUserDefinedType) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_1_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_1_cpp.ll");
+  auto *F = M->getFunction("_ZN7MyClassC2Ev");
+  LLVMBasedCFG CFG;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  auto *N = M->getFunction("_ZN7MyClassaSERKS_");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(N),
+            SpecialMemberFunctionType::CopyAssignment);
+  auto *O = M->getFunction("_ZN7MyClassaSEOS_");
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(O),
+            SpecialMemberFunctionType::MoveAssignment);
+}
+
+TEST(LLVMBasedCFGTest, HandlesCppNonStandardFunctions) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_3_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_3_cpp.ll");
+  auto *F = M->getFunction("_ZN9testspace3foo3barES0_");
+  LLVMBasedCFG CFG;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::None);
+}
+
+TEST(LLVMBasedCFGTest, HandleFunctionsContainingCodesInName) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "name_mangling/special_members_4_cpp.ll"});
+
+  auto *M = IRDB.getModule(unittest::PathToLLTestFiles +
+                           "name_mangling/special_members_4_cpp.ll");
+  auto *F = M->getFunction("_ZN8C0C1C2C12D1C2Ev"); // C0C1C2C1::D1::D1()
+  LLVMBasedCFG CFG;
+  std::cout << "VALUE IS: "
+            << static_cast<std::underlying_type_t<SpecialMemberFunctionType>>(
+                   CFG.getSpecialMemberFunctionType(F))
+            << std::endl;
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  F = M->getFunction(
+      "_ZN8C0C1C2C12D1C2ERKS0_"); // C0C1C2C1::D1::D1(C0C1C2C1::D1 const&)
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  F = M->getFunction(
+      "_ZN8C0C1C2C12D1C2EOS0_"); // C0C1C2C1::D1::D1(C0C1C2C1::D1&&)
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Constructor);
+  F = M->getFunction("_ZN8C0C1C2C12D1D2Ev"); // C0C1C2C1::D1::~D1()
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::Destructor);
+  F = M->getFunction("_Z12C1C2C3D0D1D2v"); // C1C2C3D0D1D2()
+  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
+            SpecialMemberFunctionType::None);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInSuccessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_1_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 4);
+  // Ask a non-debug instructions for its successors
+  auto Succs1 = Cfg.getSuccsOf(I1);
+  const auto I2 = getNthInstruction(F, 6);
+  ASSERT_EQ(Succs1.size(), 1U);
+  ASSERT_EQ(Succs1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 7);
+  auto Succs2 = Cfg.getSuccsOf(I3);
+  const auto I4 = getNthInstruction(F, 8);
+  ASSERT_EQ(Succs2.size(), 1U);
+  ASSERT_EQ(Succs2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInSuccessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_4_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 5);
+  // Ask a non-debug instructions for its successors
+  auto Succs1 = Cfg.getSuccsOf(I1);
+  const auto I2 = getNthInstruction(F, 9);
+  ASSERT_EQ(Succs1.size(), 1U);
+  ASSERT_EQ(Succs1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 6);
+  auto Succs2 = Cfg.getSuccsOf(I3);
+  const auto I4 = getNthInstruction(F, 9);
+  ASSERT_EQ(Succs2.size(), 1U);
+  ASSERT_EQ(Succs2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInPredecessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_1_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 6);
+  // Ask a non-debug instructions for its successors
+  auto Preds1 = Cfg.getPredsOf(I1);
+  const auto I2 = getNthInstruction(F, 4);
+  ASSERT_EQ(Preds1.size(), 1U);
+  ASSERT_EQ(Preds1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 5);
+  auto Preds2 = Cfg.getPredsOf(I3);
+  const auto I4 = getNthInstruction(F, 4);
+  ASSERT_EQ(Preds2.size(), 1U);
+  ASSERT_EQ(Preds2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInPredecessors) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_4_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  const auto I1 = getNthInstruction(F, 9);
+  // Ask a non-debug instructions for its successors
+  auto Preds1 = Cfg.getPredsOf(I1);
+  const auto I2 = getNthInstruction(F, 5);
+  ASSERT_EQ(Preds1.size(), 1U);
+  ASSERT_EQ(Preds1[0], I2);
+  // Ask debug instruction for its sucessors
+  const auto I3 = getNthInstruction(F, 7);
+  auto Preds2 = Cfg.getPredsOf(I3);
+  const auto I4 = getNthInstruction(F, 5);
+  ASSERT_EQ(Preds2.size(), 1U);
+  ASSERT_EQ(Preds2[0], I4);
+}
+
+TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInControlFlowEdges) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_1_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  auto ControlFlowEdges = Cfg.getAllControlFlowEdges(F);
+  for (const auto &[Src, Dst] : ControlFlowEdges) {
+    // Calls to the intrinsic debug functions are disallowed here
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Src)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Dst)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+  }
+}
+
+TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInControlFlowEdges) {
+  LLVMBasedCFG Cfg;
+  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                     "control_flow/ignore_dbg_insts_4_cpp_dbg.ll"});
+  const auto *F = IRDB1.getFunctionDefinition("main");
+  auto ControlFlowEdges = Cfg.getAllControlFlowEdges(F);
+  for (const auto &[Src, Dst] : ControlFlowEdges) {
+    // Calls to the intrinsic debug functions are disallowed here
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Src)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+    if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(Dst)) {
+      ASSERT_FALSE(CallInst->getCalledFunction() &&
+                   CallInst->getCalledFunction()->isIntrinsic());
+    }
+  }
 }
 
 int main(int Argc, char **Argv) {

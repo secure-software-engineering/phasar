@@ -18,7 +18,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
@@ -42,7 +42,7 @@ int main(int Argc, const char **Argv) {
     LLVMTypeHierarchy H(DB);
     // print type hierarchy
     H.print();
-    LLVMPointsToInfo P(DB);
+    LLVMPointsToSet P(DB);
     // print points-to information
     P.print();
     LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
@@ -51,20 +51,13 @@ int main(int Argc, const char **Argv) {
     // IFDS template parametrization test
     std::cout << "Testing IFDS:\n";
     IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
-               IFDSLinearConstantAnalysis::f_t, IFDSLinearConstantAnalysis::t_t,
-               IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
-        S(L);
+    IFDSSolver S(L);
     S.solve();
     S.dumpResults();
     // IDE template parametrization test
     std::cout << "Testing IDE:\n";
     IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
-    IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
-              IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
-              IDELinearConstantAnalysis::i_t>
-        T(M);
+    IDESolver T(M);
     T.solve();
     T.dumpResults();
   } else {

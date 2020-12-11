@@ -40,7 +40,7 @@ namespace psr {
 
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     const TaintConfiguration<ExtendedValue> &TaintConfig,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
@@ -48,7 +48,7 @@ IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
   IFDSFieldSensTaintAnalysis::ZeroValue = createZeroValue();
 }
 
-std::shared_ptr<FlowFunction<ExtendedValue>>
+IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
     const llvm::Instruction *CurrentInst,
     const llvm::Instruction *SuccessorInst) {
@@ -95,7 +95,7 @@ IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
                                                 getZeroValue());
 }
 
-std::shared_ptr<FlowFunction<ExtendedValue>>
+IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getCallFlowFunction(
     const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
   return std::make_shared<MapTaintedValuesToCallee>(
@@ -103,7 +103,7 @@ IFDSFieldSensTaintAnalysis::getCallFlowFunction(
       getZeroValue());
 }
 
-std::shared_ptr<FlowFunction<ExtendedValue>>
+IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getRetFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Function *CalleeFun,
     const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite) {
@@ -118,7 +118,7 @@ IFDSFieldSensTaintAnalysis::getRetFlowFunction(
  * previously generated facts. Facts from the returning functions are
  * handled in getRetFlowFunction.
  */
-std::shared_ptr<FlowFunction<ExtendedValue>>
+IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
     std::set<const llvm::Function *> Callees) {
@@ -149,7 +149,7 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
  * Instead facts according to the defined flow function will be taken into
  * account.
  */
-std::shared_ptr<FlowFunction<ExtendedValue>>
+IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
   const auto DestFunName = DestFun->getName();

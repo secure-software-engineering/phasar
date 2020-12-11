@@ -8,6 +8,7 @@ set(LLVM_LINK_COMPONENTS
   Core
   Support
   Analysis
+  Demangle
 )
 
 if(BUILD_SHARED_LIBS)

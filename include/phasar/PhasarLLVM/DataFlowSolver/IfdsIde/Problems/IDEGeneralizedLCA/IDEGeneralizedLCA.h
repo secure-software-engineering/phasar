@@ -18,6 +18,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 
 namespace psr {
@@ -26,27 +27,26 @@ namespace psr {
 /// domain. Instead of using single values, we use a bounded set of cadidates to
 /// increase precision.
 
+struct IDEGeneralizedLCADomain : LLVMAnalysisDomainDefault {
+  using l_t = EdgeValueSet;
+};
+
 // Forward declare the IDETabulationProblem as we require its toString
 // functionality.
-template <typename N, typename D, typename F, typename T, typename V,
-          typename L, typename I>
+template <typename AnalysisDomainTy, typename Container>
 class IDETabulationProblem;
 
-class IDEGeneralizedLCA
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  EdgeValueSet, LLVMBasedICFG> {
+class IDEGeneralizedLCA : public IDETabulationProblem<IDEGeneralizedLCADomain> {
   size_t maxSetSize;
 
 public:
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG &i_t;
-  typedef EdgeValueSet l_t;
+  using d_t = typename IDEGeneralizedLCADomain::d_t;
+  using f_t = typename IDEGeneralizedLCADomain::f_t;
+  using i_t = typename IDEGeneralizedLCADomain::i_t;
+  using l_t = typename IDEGeneralizedLCADomain::l_t;
+  using n_t = typename IDEGeneralizedLCADomain::n_t;
+  using t_t = typename IDEGeneralizedLCADomain::t_t;
+  using v_t = typename IDEGeneralizedLCADomain::v_t;
 
   struct LCAResult {
     LCAResult() = default;
@@ -57,13 +57,13 @@ public:
     void print(std::ostream &os);
   };
 
-  typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_results_t;
+  using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
 
   IDEGeneralizedLCA(
       const ProjectIRDB *IRDB,
       const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
       const LLVMBasedICFG *ICF,
-      const PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
+      PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
       std::set<std::string> EntryPoints, size_t MaxSetSize);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
@@ -140,7 +140,7 @@ private:
   void stripBottomResults(std::unordered_map<d_t, l_t> &res);
   bool isEntryPoint(const std::string &name) const;
   template <typename V> std::string VtoString(V v);
-  bool isStringConstructor(const std::string &FunName);
+  bool isStringConstructor(const llvm::Function *F);
 };
 
 } // namespace psr

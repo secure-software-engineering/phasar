@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "gtest/gtest.h"
@@ -49,7 +49,7 @@ protected:
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
+    PT = new LLVMPointsToSet(*IRDB);
     ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
                              PT);
     CSTDFILEIODesc = new CSTDFILEIOTypeStateDescription();
@@ -77,10 +77,7 @@ protected:
    */
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth,
-      IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-                IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                IDETypeStateAnalysis::i_t> &Solver) {
+      IDESolver_P<IDETypeStateAnalysis> &Solver) {
     for (const auto &InstToGroundTruth : GroundTruth) {
       auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
       // std::cout << "Handle results at " << InstToGroundTruth.first <<
@@ -100,11 +97,7 @@ protected:
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
   initialize({PathToLlFiles + "typestate_01_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       {5, {{"3", IOSTATE::UNINIT}}},
@@ -115,11 +108,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
   initialize({PathToLlFiles + "typestate_02_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -129,11 +118,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
   initialize({PathToLlFiles + "typestate_03_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   // llvmtssolver.printReport();
@@ -159,11 +144,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
   initialize({PathToLlFiles + "typestate_04_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
 
@@ -185,11 +166,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
   initialize({PathToLlFiles + "typestate_05_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -208,11 +185,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
 TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
   // This test fails due to imprecise points-to information
   initialize({PathToLlFiles + "typestate_06_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -247,11 +220,7 @@ TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
   initialize({PathToLlFiles + "typestate_07_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -283,11 +252,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
   initialize({PathToLlFiles + "typestate_08_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -300,11 +265,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
   initialize({PathToLlFiles + "typestate_09_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -322,11 +283,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
   initialize({PathToLlFiles + "typestate_10_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -348,11 +305,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
   initialize({PathToLlFiles + "typestate_11_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -379,11 +332,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
   initialize({PathToLlFiles + "typestate_12_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -403,11 +352,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
   initialize({PathToLlFiles + "typestate_13_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -422,11 +367,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
   initialize({PathToLlFiles + "typestate_14_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -449,11 +390,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
   initialize({PathToLlFiles + "typestate_15_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -512,18 +449,14 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   initialize({PathToLlFiles + "typestate_16_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
 
-  auto Pts = ICFG->getWholeModulePTG().getPointsToSet(IRDB->getInstruction(2));
+  auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
   std::cout << "PointsTo(2) = {";
   bool Frst = true;
-  for (const auto *P : Pts) {
+  for (const auto *P : *Pts) {
     if (Frst) {
       Frst = false;
     } else {
@@ -548,11 +481,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
   initialize({PathToLlFiles + "typestate_17_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -579,11 +508,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
   initialize({PathToLlFiles + "typestate_18_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -601,11 +526,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
   initialize({PathToLlFiles + "typestate_19_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      Llvmtssolver(*TSProblem);
+  IDESolver_P<IDETypeStateAnalysis> Llvmtssolver(*TSProblem);
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
