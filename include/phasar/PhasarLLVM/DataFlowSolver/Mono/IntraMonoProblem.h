@@ -22,10 +22,9 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "phasar/Config/ContainerConfiguration.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/SoundnessFlag.h"
+#include "phasar/Utils/Soundness.h"
 
 namespace psr {
 
@@ -48,6 +47,7 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using i_t = typename AnalysisDomainTy::i_t;
   using c_t = typename AnalysisDomainTy::c_t;
+  using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
   static_assert(std::is_base_of_v<CFG<n_t, f_t>, c_t>,
                 "c_t must implement the CFG interface!");
@@ -60,7 +60,7 @@ protected:
   const c_t *CF;
   const PointsToInfo<v_t, n_t> *PT;
   std::set<std::string> EntryPoints;
-  [[maybe_unused]] SoundnessFlag SF = SoundnessFlag::UNUSED;
+  [[maybe_unused]] Soundness S = Soundness::UNUSED;
 
 public:
   // denote that a problem does not require a configuration (type/file)
@@ -70,18 +70,22 @@ public:
   IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, f_t> *TH,
                    const c_t *CF, const PointsToInfo<v_t, n_t> *PT,
                    std::set<std::string> EntryPoints = {})
-      : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
+      : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
+        EntryPoints(std::move(EntryPoints)) {}
+
   ~IntraMonoProblem() override = default;
 
-  virtual BitVectorSet<d_t> join(const BitVectorSet<d_t> &Lhs,
-                                 const BitVectorSet<d_t> &Rhs) = 0;
+  virtual mono_container_t normalFlow(n_t Inst, const mono_container_t &In) = 0;
 
-  virtual bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
-                             const BitVectorSet<d_t> &Rhs) = 0;
+  virtual mono_container_t merge(const mono_container_t &Lhs,
+                                 const mono_container_t &Rhs) = 0;
 
-  virtual BitVectorSet<d_t> normalFlow(n_t S, const BitVectorSet<d_t> &In) = 0;
+  virtual bool equal_to(const mono_container_t &Lhs,
+                        const mono_container_t &Rhs) = 0;
 
-  virtual std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() = 0;
+  virtual mono_container_t allTop() { return mono_container_t{}; }
+
+  virtual std::unordered_map<n_t, mono_container_t> initialSeeds() = 0;
 
   std::set<std::string> getEntryPoints() const { return EntryPoints; }
 
@@ -93,7 +97,9 @@ public:
 
   const PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
 
-  virtual bool setSoundnessFlag(SoundnessFlag SF) { return false; }
+  virtual bool setSoundness(Soundness S) { return false; }
+
+  virtual void printContainer(std::ostream &OS, mono_container_t C) const {}
 };
 
 } // namespace psr

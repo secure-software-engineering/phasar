@@ -1,6 +1,8 @@
 set(MonoSources
 	InterMonoFullConstantPropagationTest.cpp
 	InterMonoTaintAnalysisTest.cpp
+	IntraMonoUninitVariablesTest.cpp
+	IntraMonoFullConstantPropagationTest.cpp
 )
 
 foreach(TEST_SRC ${MonoSources})

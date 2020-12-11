@@ -25,7 +25,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
-#include "phasar/Utils/SoundnessFlag.h"
+#include "phasar/Utils/Soundness.h"
 
 namespace psr {
 
@@ -62,7 +62,7 @@ private:
   std::string ProjectID;
   std::string OutDirectory;
   boost::filesystem::path ResultDirectory;
-  [[maybe_unused]] SoundnessFlag SF;
+  [[maybe_unused]] Soundness S;
 
   ///
   /// \brief The maximum length of the CallStrings used in the InterMonoSolver
@@ -117,7 +117,7 @@ public:
                      std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
-                     SoundnessFlag SF, const std::set<std::string> &EntryPoints,
+                     Soundness S, const std::set<std::string> &EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
                      const std::string &ProjectID = "default-phasar-project",

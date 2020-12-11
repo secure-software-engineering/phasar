@@ -38,11 +38,12 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using i_t = typename AnalysisDomainTy::i_t;
   using c_t = typename AnalysisDomainTy::c_t;
+  using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
 protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<n_t, n_t>> Worklist;
-  std::unordered_map<n_t, BitVectorSet<d_t>> Analysis;
+  std::unordered_map<n_t, mono_container_t> Analysis;
   const c_t *CFG;
 
   void initialize() {
@@ -55,46 +56,61 @@ protected:
       Worklist.insert(Worklist.begin(), ControlFlowEdges.begin(),
                       ControlFlowEdges.end());
       // set all analysis information to the empty set
-      for (auto s : CFG->getAllInstructionsOf(Function)) {
-        Analysis.insert(std::make_pair(s, BitVectorSet<d_t>()));
+      for (auto Insts : CFG->getAllInstructionsOf(Function)) {
+        Analysis.insert(std::make_pair(Insts, IMProblem.allTop()));
       }
     }
     // insert initial seeds
     for (auto &[Node, FlowFacts] : IMProblem.initialSeeds()) {
-      Analysis[Node].insert(FlowFacts);
+      Analysis[Node].insert(FlowFacts.begin(), FlowFacts.end());
     }
   }
 
 public:
   IntraMonoSolver(ProblemTy &IMP) : IMProblem(IMP), CFG(IMP.getCFG()) {}
+
   virtual ~IntraMonoSolver() = default;
+
   virtual void solve() {
     // step 1: Initalization (of Worklist and Analysis)
     initialize();
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
       // std::cout << "worklist size: " << Worklist.size() << "\n";
-      std::pair<n_t, n_t> path = Worklist.front();
+      std::pair<n_t, n_t> Edge = Worklist.front();
       Worklist.pop_front();
-      n_t src = path.first;
-      n_t dst = path.second;
-      BitVectorSet<d_t> Out = IMProblem.normalFlow(src, Analysis[src]);
-      if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
-        Analysis[dst] = IMProblem.join(Analysis[dst], Out);
-        for (auto nprimeprime : CFG->getSuccsOf(dst)) {
-          Worklist.push_back({dst, nprimeprime});
+      n_t Src = Edge.first;
+      n_t Dst = Edge.second;
+      auto Out = IMProblem.normalFlow(Src, Analysis[Src]);
+      // need to merge if Dst is a branch target
+      if (CFG->isBranchTarget(Src, Dst)) {
+        for (auto Pred : CFG->getPredsOf(Dst)) {
+          if (Pred != Src) {
+            // we need to compute the out set of Pred and merge it with the out
+            // set of Src on-the-fly as we do not have a dedicated storage for
+            // merge points (otherwise we run into trouble with merge operator
+            // such as set union)
+            auto OtherPredOut = IMProblem.normalFlow(Pred, Analysis[Pred]);
+            Out = IMProblem.merge(Out, OtherPredOut);
+          }
+        }
+      }
+      if (!IMProblem.equal_to(Out, Analysis[Dst])) {
+        Analysis[Dst] = Out;
+        for (auto Nprimeprime : CFG->getSuccsOf(Dst)) {
+          Worklist.push_back({Dst, Nprimeprime});
         }
       }
     }
     // step 3: Presenting the result (MFP_in and MFP_out)
     // MFP_in[s] = Analysis[s];
     // MFP out[s] = IMProblem.flow(Analysis[s]);
-    for (auto entry : Analysis) {
-      entry.second = IMProblem.normalFlow(entry.first, entry.second);
+    for (auto &[Node, FlowFacts] : Analysis) {
+      FlowFacts = IMProblem.normalFlow(Node, FlowFacts);
     }
   }
 
-  BitVectorSet<d_t> getResultsAt(n_t n) { return Analysis[n]; }
+  mono_container_t getResultsAt(n_t n) { return Analysis[n]; }
 
   virtual void dumpResults(std::ostream &OS = std::cout) {
     OS << "Intra-Monotone solver results:\n"

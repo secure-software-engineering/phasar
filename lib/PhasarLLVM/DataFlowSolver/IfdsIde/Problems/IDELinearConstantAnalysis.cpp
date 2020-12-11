@@ -791,7 +791,7 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
 
 void IDELinearConstantAnalysis::printNode(
     ostream &OS, IDELinearConstantAnalysis::n_t N) const {
-  OS << llvmIRToShortString(N);
+  OS << llvmIRToString(N);
 }
 
 void IDELinearConstantAnalysis::printDataFlowFact(

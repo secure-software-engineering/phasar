@@ -51,7 +51,8 @@ bool isFunctionPointer(const llvm::Value *V) noexcept;
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 
 // TODO add description
-bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
+bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
+                      bool ExactMatch = true);
 
 // TODO add description
 bool matchesSignature(const llvm::FunctionType *FType1,
@@ -59,9 +60,6 @@ bool matchesSignature(const llvm::FunctionType *FType1,
 
 /**
  * @brief Returns a string representation of a LLVM Value.
- * @note Expensive function (between 20 to 550 ms per call)
- *       avoid to do it often, it can kill the performances (c.f. warning in the
- * implementation)
  */
 std::string llvmIRToString(const llvm::Value *V);
 

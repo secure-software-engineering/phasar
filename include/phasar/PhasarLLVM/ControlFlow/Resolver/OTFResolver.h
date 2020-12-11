@@ -44,7 +44,6 @@ class OTFResolver : public CHAResolver {
 protected:
   LLVMBasedICFG &ICF;
   LLVMPointsToInfo &PT;
-  std::vector<const llvm::Instruction *> CallStack;
 
 public:
   OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,

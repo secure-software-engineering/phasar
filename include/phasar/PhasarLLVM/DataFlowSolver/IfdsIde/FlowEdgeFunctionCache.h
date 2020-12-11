@@ -492,15 +492,15 @@ public:
       auto SearchEdgeFunc = SearchInnerMap->second.find(
           createEdgeFunctionNodeKey(callNode, retSiteNode));
       if (SearchEdgeFunc != SearchInnerMap->second.end()) {
-        INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
+        INC_COUNTER("CTR-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Edge function fetched from cache";
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         return SearchEdgeFunc->second;
       }
-      INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ef = problem.getNormalEdgeFunction(callSite, callNode, retSite,
-                                              retSiteNode);
+      INC_COUNTER("CTR-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
+      auto ef = problem.getCallToRetEdgeFunction(callSite, callNode, retSite,
+                                                 retSiteNode, callees);
 
       SearchInnerMap->second.insert(
           createEdgeFunctionNodeKey(callNode, retSiteNode), ef);
@@ -511,9 +511,9 @@ public:
       return ef;
     }
 
-    INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-    auto ef =
-        problem.getNormalEdgeFunction(callSite, callNode, retSite, retSiteNode);
+    INC_COUNTER("CTR-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
+    auto ef = problem.getCallToRetEdgeFunction(callSite, callNode, retSite,
+                                               retSiteNode, callees);
 
     CallToRetEdgeFunctionCache.emplace(
         OuterMapKey,

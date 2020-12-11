@@ -21,6 +21,7 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <stack>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -32,7 +33,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/Utils/SoundnessFlag.h"
+#include "phasar/Utils/Soundness.h"
 
 namespace llvm {
 class Instruction;
@@ -56,7 +57,7 @@ class LLVMBasedICFG
 private:
   ProjectIRDB &IRDB;
   CallGraphAnalysisType CGType;
-  SoundnessFlag SF;
+  Soundness S;
   bool UserTHInfos = true;
   bool UserPTInfos = true;
   LLVMTypeHierarchy *TH;
@@ -72,6 +73,12 @@ private:
   // Any types that could be initialized outside of the module
   // std::set<const llvm::StructType*> unsound_types;
 
+  // The worklist for direct callee resolution.
+  std::stack<const llvm::Function *> FunctionWL;
+
+  // Map indirect calls to the number of possible targets found for it. Fixpoint
+  // is not reached when more targets are found.
+  std::unordered_map<const llvm::Instruction *, unsigned> IndirectCalls;
   // The VertexProperties for our call-graph.
   struct VertexProperties {
     const llvm::Function *F = nullptr;
@@ -107,7 +114,10 @@ private:
   /// Maps functions to the corresponding vertex id.
   std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
-  void constructionWalker(const llvm::Function *F, Resolver &Resolver);
+  void processFunction(const llvm::Function *F, Resolver &Resolver,
+                       bool &FixpointReached);
+
+  bool constructDynamicCall(const llvm::Instruction *I, Resolver &Resolver);
 
   std::unique_ptr<Resolver> makeResolver(ProjectIRDB &IRDB,
                                          CallGraphAnalysisType CGT,
@@ -128,7 +138,7 @@ public:
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
                 LLVMTypeHierarchy *TH = nullptr, LLVMPointsToInfo *PT = nullptr,
-                SoundnessFlag SF = SoundnessFlag::SOUNDY);
+                Soundness S = Soundness::SOUNDY);
 
   LLVMBasedICFG(const LLVMBasedICFG &);
 

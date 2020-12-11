@@ -26,6 +26,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -66,8 +67,38 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   return false;
 }
 
-bool matchesSignature(const llvm::Function *F,
-                      const llvm::FunctionType *FType) {
+// For C-style polymorphism we need to check whether a callee candidate would
+// be able to sanely access the formal argument.
+bool isTypeMatchForFunctionArgument(llvm::Type *Actual, llvm::Type *Formal) {
+  // First check for trivial type equality
+  if (Actual == Formal) {
+    return true;
+  }
+  // Trivial non-equality, e.g. PointerType and IntegerType
+  if (Actual->getTypeID() != Formal->getTypeID()) {
+    return false;
+  }
+  // For PointerType delegate into its element type
+  if (llvm::isa<llvm::PointerType>(Actual)) {
+    // If formal argument is void *, we can pass anything.
+    if (Formal->getPointerElementType()->isIntegerTy(8)) {
+      return true;
+    }
+    return isTypeMatchForFunctionArgument(Actual->getPointerElementType(),
+                                          Formal->getPointerElementType());
+  }
+  // For structs, Formal needs to be somehow contained in Actual.
+  if (llvm::isa<llvm::StructType>(Actual)) {
+    // Well, we could do sanity checks here, but if the analysed code is insane
+    // we would miss callees, so we don't do that.
+    return true;
+  }
+  // Sound fallback if we didn't match until here.
+  return false;
+}
+
+bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
+                      bool ExactMatch) {
   // FType->print(llvm::outs());
   if (F == nullptr || FType == nullptr) {
     return false;
@@ -76,7 +107,11 @@ bool matchesSignature(const llvm::Function *F,
       F->getReturnType() == FType->getReturnType()) {
     unsigned Idx = 0;
     for (const auto &Arg : F->args()) {
-      if (Arg.getType() != FType->getParamType(Idx)) {
+      bool TypeMissMatch =
+          ExactMatch ? Arg.getType() != FType->getParamType(Idx)
+                     : !isTypeMatchForFunctionArgument(FType->getParamType(Idx),
+                                                       Arg.getType());
+      if (TypeMissMatch) {
         return false;
       }
       ++Idx;
@@ -103,14 +138,22 @@ bool matchesSignature(const llvm::FunctionType *FType1,
   return false;
 }
 
+static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
+  static std::unordered_map<const llvm::Module *,
+                            std::unique_ptr<llvm::ModuleSlotTracker>>
+      ModuleToSlotTracker;
+  const auto *M = getModuleFromVal(V);
+  if (ModuleToSlotTracker.count(M) == 0) {
+    ModuleToSlotTracker.insert_or_assign(
+        M, std::make_unique<llvm::ModuleSlotTracker>(M));
+  }
+  return *ModuleToSlotTracker[M];
+}
+
 std::string llvmIRToString(const llvm::Value *V) {
-  // WARNING: Expensive function, cause is the V->print(RSO)
-  //         (20ms on a medium size code (phasar without debug)
-  //          80ms on a huge size code (clang without debug),
-  //          can be multiplied by times 3 to 5 if passes are enabled)
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
-  V->print(RSO);
+  V->print(RSO, getModuleSlotTrackerFor(V));
   RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
   boost::trim_left(IRBuffer);
@@ -118,23 +161,13 @@ std::string llvmIRToString(const llvm::Value *V) {
 }
 
 std::string llvmIRToShortString(const llvm::Value *V) {
-  // WARNING: Expensive function, cause is the V->print(RSO)
-  //         (20ms on a medium size code (phasar without debug)
-  //          80ms on a huge size code (clang without debug),
-  //          can be multiplied by times 3 to 5 if passes are enabled)
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
-  V->print(RSO);
-  boost::trim_left(IRBuffer);
+  V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
+  RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
-  if (IRBuffer.find(", align") != std::string::npos) {
-    IRBuffer.erase(IRBuffer.find(", align"));
-  } else if (IRBuffer.find(", !") != std::string::npos) {
-    IRBuffer.erase(IRBuffer.find(", !"));
-  } else if (IRBuffer.size() > 30) {
-    IRBuffer.erase(30);
-  }
-  return IRBuffer + " | ID: " + getMetaDataID(V);
+  boost::trim_left(IRBuffer);
+  return IRBuffer;
 }
 
 std::vector<const llvm::Value *>

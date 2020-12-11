@@ -4,7 +4,7 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Linus Jungemann and others
  *****************************************************************************/
 
 /*
@@ -17,15 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 
+#include <cstdint>
+#include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
@@ -37,53 +38,92 @@ class StructType;
 
 namespace psr {
 
+class LLVMBasedCFG;
+class LLVMBasedICFG;
+class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
+class InterMonoFullConstantPropagation;
 
 struct IntraMonoFullConstantPropagationAnalysisDomain
     : public LLVMAnalysisDomainDefault {
-  using d_t = std::pair<const llvm::Value *, unsigned>;
-  using i_t = LLVMBasedCFG;
+  using plain_d_t = int64_t;
+  using d_t = std::pair<const llvm::Value *, LatticeDomain<plain_d_t>>;
+  using mono_container_t =
+      std::map<const llvm::Value *, LatticeDomain<plain_d_t>>;
 };
 
 class IntraMonoFullConstantPropagation
     : public IntraMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain> {
+public:
+  using plain_d_t =
+      typename IntraMonoFullConstantPropagationAnalysisDomain::plain_d_t;
+  using n_t = typename IntraMonoFullConstantPropagationAnalysisDomain::n_t;
+  using d_t = typename IntraMonoFullConstantPropagationAnalysisDomain::d_t;
+  using f_t = typename IntraMonoFullConstantPropagationAnalysisDomain::f_t;
+  using t_t = typename IntraMonoFullConstantPropagationAnalysisDomain::t_t;
+  using v_t = typename IntraMonoFullConstantPropagationAnalysisDomain::v_t;
+  using i_t = typename IntraMonoFullConstantPropagationAnalysisDomain::i_t;
+  using c_t = typename IntraMonoFullConstantPropagationAnalysisDomain::c_t;
+  using mono_container_t =
+      typename IntraMonoFullConstantPropagationAnalysisDomain::mono_container_t;
+
+  friend class InterMonoFullConstantPropagation;
+
+private:
+  static LatticeDomain<plain_d_t>
+  executeBinOperation(const unsigned Op, plain_d_t Lop, plain_d_t Rop);
+
 public:
   IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedCFG *CF,
                                    const LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints = {});
+
   ~IntraMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<std::pair<const llvm::Value *, unsigned>>
-  join(const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-       const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
-      override;
+  mono_container_t normalFlow(n_t Inst, const mono_container_t &In) override;
 
-  bool sqSubSetEqual(
-      const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-      const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
-      override;
+  mono_container_t merge(const mono_container_t &Lhs,
+                         const mono_container_t &Rhs) override;
 
-  BitVectorSet<std::pair<const llvm::Value *, unsigned>>
-  normalFlow(const llvm::Instruction *S,
-             const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &In)
-      override;
+  bool equal_to(const mono_container_t &Lhs,
+                const mono_container_t &Rhs) override;
 
-  std::unordered_map<const llvm::Instruction *,
-                     BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
-  initialSeeds() override;
+  std::unordered_map<n_t, mono_container_t> initialSeeds() override;
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
+  void printNode(std::ostream &OS, n_t Inst) const override;
 
-  void
-  printDataFlowFact(std::ostream &os,
-                    std::pair<const llvm::Value *, unsigned> d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
 };
 
 } // namespace psr
+
+namespace std {
+
+template <>
+struct hash<std::pair<
+    const llvm::Value *,
+    psr::LatticeDomain<psr::IntraMonoFullConstantPropagation::plain_d_t>>> {
+  size_t operator()(const std::pair<const llvm::Value *,
+                                    psr::LatticeDomain<int64_t>> &P) const {
+    std::hash<const llvm::Value *> hash_ptr;
+    std::hash<int64_t> hash_unsigned;
+    size_t hp = hash_ptr(P.first);
+    size_t hu = 0;
+    // returns nullptr if P.second is Top or Bottom, a valid pointer otherwise
+    if (auto Ptr =
+            std::get_if<psr::IntraMonoFullConstantPropagation::plain_d_t>(
+                &P.second)) {
+      hu = *Ptr;
+    }
+    return hp ^ (hu << 1);
+  }
+};
+
+} // namespace std
 
 #endif

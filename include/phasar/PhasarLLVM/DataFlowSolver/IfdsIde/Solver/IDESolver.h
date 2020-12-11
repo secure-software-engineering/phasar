@@ -1708,6 +1708,7 @@ public:
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "EF LABEL: " << EFLabel);
             if (D1FactId == D2FactId && !IDEProblem.isZeroValue(D1Fact)) {
+              assert(D1_FSG && "D1_FSG was nullptr but should be valid.");
               D1_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
               D1_FSG->edges.emplace(D1, D2, true, EFLabel);
             } else {

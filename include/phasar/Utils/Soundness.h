@@ -7,25 +7,25 @@
  *     Linus Jungemann and others
  *****************************************************************************/
 
-#ifndef PHASAR_UTILS_SOUNDNESSFLAG_H_
-#define PHASAR_UTILS_SOUNDNESSFLAG_H_
+#ifndef PHASAR_UTILS_SOUNDNESS_H_
+#define PHASAR_UTILS_SOUNDNESS_H_
 
 #include <iosfwd>
 #include <string>
 
 namespace psr {
 
-enum class SoundnessFlag {
+enum class Soundness {
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include "phasar/Utils/SoundnessFlag.def"
+#include "phasar/Utils/Soundness.def"
   Invalid
 };
 
-std::string toString(const SoundnessFlag &SF);
+std::string toString(const Soundness &S);
 
-SoundnessFlag toSoundnessFlag(const std::string &S);
+Soundness toSoundness(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const SoundnessFlag &SF);
+std::ostream &operator<<(std::ostream &os, const Soundness &S);
 
 } // namespace psr
 

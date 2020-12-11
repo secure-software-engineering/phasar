@@ -12,6 +12,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
@@ -19,8 +20,12 @@
 
 namespace psr {
 
+struct IntraMonoProblemPluginDomain : LLVMAnalysisDomainDefault {
+  using mono_container_t = std::set<LLVMAnalysisDomainDefault::d_t>;
+};
+
 class IntraMonoProblemPlugin
-    : public IntraMonoProblem<LLVMAnalysisDomainDefault> {
+    : public IntraMonoProblem<IntraMonoProblemPluginDomain> {
 public:
   IntraMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                          const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,

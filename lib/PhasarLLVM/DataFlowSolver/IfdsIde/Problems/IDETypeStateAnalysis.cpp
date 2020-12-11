@@ -542,7 +542,7 @@ IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
     IDETypeStateAnalysis::l_t Source) {
-  CurrentState = TSD.getNextState(Token, Source);
+  CurrentState = TSD.getNextState(Token, Source, CS);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "State machine transition: (" << Token << " , "
                 << TSD.stateToString(Source) << ") -> "

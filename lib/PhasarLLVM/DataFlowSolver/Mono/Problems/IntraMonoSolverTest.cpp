@@ -41,51 +41,50 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
     : IntraMonoProblem<IntraMonoSolverTestAnalysisDomain>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
-BitVectorSet<const llvm::Value *>
-IntraMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
-                          const BitVectorSet<const llvm::Value *> &Rhs) {
-  cout << "IntraMonoSolverTest::join()\n";
+IntraMonoSolverTest::mono_container_t
+IntraMonoSolverTest::merge(const IntraMonoSolverTest::mono_container_t &Lhs,
+                           const IntraMonoSolverTest::mono_container_t &Rhs) {
+  cout << "IntraMonoSolverTest::merge()\n";
   return Lhs.setUnion(Rhs);
 }
 
-bool IntraMonoSolverTest::sqSubSetEqual(
-    const BitVectorSet<const llvm::Value *> &Lhs,
-    const BitVectorSet<const llvm::Value *> &Rhs) {
-  cout << "IntraMonoSolverTest::sqSubSetEqual()\n";
-  return Lhs.includes(Rhs);
+bool IntraMonoSolverTest::equal_to(
+    const IntraMonoSolverTest::mono_container_t &Lhs,
+    const IntraMonoSolverTest::mono_container_t &Rhs) {
+  cout << "IntraMonoSolverTest::equal_to()\n";
+  return Lhs == Rhs;
 }
 
-BitVectorSet<const llvm::Value *>
-IntraMonoSolverTest::normalFlow(const llvm::Instruction *S,
-                                const BitVectorSet<const llvm::Value *> &In) {
+IntraMonoSolverTest::mono_container_t IntraMonoSolverTest::normalFlow(
+    IntraMonoSolverTest::n_t Inst,
+    const IntraMonoSolverTest::mono_container_t &In) {
   cout << "IntraMonoSolverTest::normalFlow()\n";
-  BitVectorSet<const llvm::Value *> Result;
-  Result.insert(In);
-  if (const auto *const Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
+  IntraMonoSolverTest::mono_container_t Result = In;
+  if (const auto *const Store = llvm::dyn_cast<llvm::StoreInst>(Inst)) {
     Result.insert(Store);
   }
   return Result;
 }
 
-unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+unordered_map<IntraMonoSolverTest::n_t, IntraMonoSolverTest::mono_container_t>
 IntraMonoSolverTest::initialSeeds() {
   cout << "IntraMonoSolverTest::initialSeeds()\n";
   return {};
 }
 
 void IntraMonoSolverTest::printNode(ostream &OS,
-                                    const llvm::Instruction *N) const {
-  OS << llvmIRToString(N);
+                                    IntraMonoSolverTest::n_t Inst) const {
+  OS << llvmIRToString(Inst);
 }
 
-void IntraMonoSolverTest::printDataFlowFact(ostream &OS,
-                                            const llvm::Value *D) const {
-  OS << llvmIRToString(D);
+void IntraMonoSolverTest::printDataFlowFact(
+    ostream &OS, IntraMonoSolverTest::d_t Fact) const {
+  OS << llvmIRToString(Fact);
 }
 
 void IntraMonoSolverTest::printFunction(ostream &OS,
-                                        const llvm::Function *M) const {
-  OS << M->getName().str();
+                                        IntraMonoSolverTest::f_t Fun) const {
+  OS << Fun->getName().str();
 }
 
 } // namespace psr
