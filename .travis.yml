@@ -81,7 +81,7 @@ script:
   # - ctest -j2
   # Build the examples
   - cd $TRAVIS_BUILD_DIR/examples/llvm-hello-world
-  - make
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
   # Override llvm-config to match the required one
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -sf `which llvm-config-10` `which llvm-config`; llvm-config --version; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/plugins; make; fi
