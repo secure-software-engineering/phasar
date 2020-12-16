@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <gtest/gtest.h>
+#include <memory>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
@@ -17,6 +18,7 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
@@ -27,13 +29,13 @@ protected:
       "build/test/llvm_test_code/openssl/secure_memory/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  OpenSSLSecureMemoryDescription *Desc{};
-  IDETypeStateAnalysis *TSProblem{};
-  IDESolver_P<IDETypeStateAnalysis> *Llvmtssolver = nullptr;
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<OpenSSLSecureMemoryDescription> Desc;
+  unique_ptr<IDETypeStateAnalysis> TSProblem;
+  unique_ptr<IDESolver_P<IDETypeStateAnalysis>> Llvmtssolver;
 
   enum OpenSSLSecureMemoryState {
     TOP = 42,
@@ -47,15 +49,15 @@ protected:
   ~IDETSAnalysisOpenSSLSecureMemoryTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
-    Desc = new OpenSSLSecureMemoryDescription();
-    TSProblem =
-        new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *Desc, EntryPoints);
-    Llvmtssolver = new IDESolver_P<IDETypeStateAnalysis>(*TSProblem);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(), PT.get());
+    Desc = make_unique<OpenSSLSecureMemoryDescription>();
+    TSProblem = make_unique<IDETypeStateAnalysis>(
+        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *Desc, EntryPoints);
+    Llvmtssolver = make_unique<IDESolver_P<IDETypeStateAnalysis>>(*TSProblem);
 
     Llvmtssolver->solve();
   }
@@ -65,13 +67,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete ICFG;
-    delete TSProblem;
-    delete Llvmtssolver;
-  }
+  void TearDown() override {}
 
   /**
    * We map instruction id to value for the ground truth. ID has to be

@@ -68,16 +68,21 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
     // A global object may be used in multiple functions.
     for (const auto *User : G->users()) {
       if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(User)) {
-        computeFunctionsPointsToSet(
-            const_cast<llvm::Function *>(Inst->getFunction()));
-        if (isInterestingPointer(User)) {
-          mergePointsToSets(User, G);
-        } else if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
-          if (isInterestingPointer(Store->getValueOperand())) {
-            // Store->getPointerOperand() doesn't require checking: it is
-            // always an interesting pointer
-            mergePointsToSets(Store->getValueOperand(),
-                              Store->getPointerOperand());
+        // The may be no corresponding function when the instruction is used in
+        // a vtable, for instance.
+        if (Inst->getParent()) {
+          computeFunctionsPointsToSet(
+              const_cast<llvm::Function *>(Inst->getFunction()));
+          if (isInterestingPointer(User)) {
+            mergePointsToSets(User, G);
+          } else if (const auto *Store =
+                         llvm::dyn_cast<llvm::StoreInst>(User)) {
+            if (isInterestingPointer(Store->getValueOperand())) {
+              // Store->getPointerOperand() doesn't require checking: it is
+              // always an interesting pointer
+              mergePointsToSets(Store->getValueOperand(),
+                                Store->getPointerOperand());
+            }
           }
         }
       }

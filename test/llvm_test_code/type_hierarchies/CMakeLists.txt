@@ -15,6 +15,8 @@ set(NoMem2regSources
   type_hierarchy_12_b.cpp
   type_hierarchy_12_c.cpp
   type_hierarchy_13.cpp
+  type_hierarchy_14.cpp
+  type_hierarchy_15.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})

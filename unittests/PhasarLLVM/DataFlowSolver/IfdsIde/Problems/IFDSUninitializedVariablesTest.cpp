@@ -1,6 +1,8 @@
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
+#include <memory>
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -21,24 +23,24 @@ protected:
       unittest::PathToLLTestFiles + "uninitialized_variables/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  IFDSUninitializedVariables *UninitProblem{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<IFDSUninitializedVariables> UninitProblem;
 
   IFDSUninitializedVariablesTest() = default;
   ~IFDSUninitializedVariablesTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(), PT.get());
     // TSF = new TaintSensitiveFunctions(true);
-    UninitProblem =
-        new IFDSUninitializedVariables(IRDB, TH, ICFG, PT, EntryPoints);
+    UninitProblem = make_unique<IFDSUninitializedVariables>(
+        IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
   }
 
   void SetUp() override {
@@ -46,12 +48,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete ICFG;
-    delete UninitProblem;
-  }
+  void TearDown() override {}
 
   void compareResults(map<int, set<string>> &GroundTruth) {
 

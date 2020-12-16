@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "gtest/gtest.h"
 
@@ -15,6 +16,7 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
@@ -25,20 +27,21 @@ protected:
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/llvmIRtoSrc/";
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMPointsToSet *PT{};
-  LLVMBasedICFG *ICFG{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMPointsToSet> PT;
+  unique_ptr<LLVMBasedICFG> ICFG;
 
   LLVMIRToSrcTest() = default;
   ~LLVMIRToSrcTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, {"main"}, TH, PT);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    set<string> entry_points = {"main"};
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      entry_points, TH.get(), PT.get());
   }
 
   void SetUp() override {
@@ -46,12 +49,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete PT;
-    delete ICFG;
-  }
+  void TearDown() override {}
 }; // Test Fixture
 
 // TEST_F(LLVMIRToSrcTest, HandleInstructions) {

@@ -1,3 +1,4 @@
+#include <memory>
 #include <tuple>
 
 #include "gtest/gtest.h"
@@ -24,19 +25,21 @@ protected:
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t =
       std::tuple<std::string, std::size_t, std::string, int64_t>;
-  ProjectIRDB *IRDB = nullptr;
+  std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    auto IR_Files = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                        &PT);
-    IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
+    IDELinearConstantAnalysis LCAProblem(IRDB.get(), &TH, &ICFG, &PT,
+                                         EntryPoints);
     IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
     LCASolver.solve();
     if (PrintDump) {
@@ -45,7 +48,7 @@ protected:
     return LCAProblem.getLCAResults(LCASolver.getSolverResults());
   }
 
-  void TearDown() override { delete IRDB; }
+  void TearDown() override {}
 
   /**
    * We map instruction id to value for the ground truth. ID has to be
