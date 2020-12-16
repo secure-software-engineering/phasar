@@ -19,6 +19,7 @@
 
 #include "boost/algorithm/string/trim.hpp"
 
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
@@ -140,15 +141,17 @@ bool matchesSignature(const llvm::FunctionType *FType1,
 }
 
 static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
-  static std::unordered_map<const llvm::Module *,
-                            std::unique_ptr<llvm::ModuleSlotTracker>>
+  static llvm::SmallDenseMap<const llvm::Module *,
+                             std::unique_ptr<llvm::ModuleSlotTracker>, 2>
       ModuleToSlotTracker;
   const auto *M = getModuleFromVal(V);
-  if (ModuleToSlotTracker.count(M) == 0) {
-    ModuleToSlotTracker.insert_or_assign(
-        M, std::make_unique<llvm::ModuleSlotTracker>(M));
+
+  auto &ret = ModuleToSlotTracker[M];
+  if (!ret) {
+    ret = std::make_unique<llvm::ModuleSlotTracker>(M);
   }
-  return *ModuleToSlotTracker[M];
+
+  return *ret;
 }
 
 std::string llvmIRToString(const llvm::Value *V) {
@@ -164,12 +167,9 @@ std::string llvmIRToString(const llvm::Value *V) {
 std::string llvmIRToShortString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
-  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (I->getType()->isVoidTy()) {
-      V->print(RSO, getModuleSlotTrackerFor(V));
-    } else {
-      V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
-    }
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V);
+      I && !I->getType()->isVoidTy()) {
+    V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
   } else {
     V->print(RSO, getModuleSlotTrackerFor(V));
   }
