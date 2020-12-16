@@ -15,6 +15,7 @@
  */
 
 #include <cstdlib>
+#include <llvm/IR/Instruction.h>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -163,7 +164,15 @@ std::string llvmIRToString(const llvm::Value *V) {
 std::string llvmIRToShortString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
-  V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (I->getType()->isVoidTy()) {
+      V->print(RSO, getModuleSlotTrackerFor(V));
+    } else {
+      V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
+    }
+  } else {
+    V->print(RSO, getModuleSlotTrackerFor(V));
+  }
   RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
   boost::trim_left(IRBuffer);
