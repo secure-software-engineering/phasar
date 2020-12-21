@@ -93,7 +93,7 @@ else()
 endif()
 
 configure_file(config.h.in config.h @ONLY)
-include_directories(${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
 include_directories(
