@@ -146,25 +146,48 @@ public:
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
     }
 
-    // // Handle indirect taints, i. e., propagate values that depend on branch
-    // // conditions whose operands are tainted.
-    // if (EnableIndirectTaints) {
-    //   if (auto br = llvm::dyn_cast<llvm::BranchInst>(curr);
-    //       br && br->isConditional()) {
-    //     return std::make_shared<LambdaFlow<d_t>>([=](d_t src) {
-    //       container_type ret = {src, br};
-    //       if (src == br->getCondition()) {
-    //         for (auto succ : br->successors()) {
-    //           // this->indirecrTaints[succ].insert(src);
-    //           for (auto &inst : succ->instructionsWithoutDebug()) {
-    //             ret.insert(&inst);
-    //           }
-    //         }
-    //       }
-    //       return ret;
-    //     });
-    //   }
-    // }
+    // Handle indirect taints, i. e., propagate values that depend on branch
+    // conditions whose operands are tainted.
+    if (EnableIndirectTaints) {
+      if (auto Br = llvm::dyn_cast<llvm::BranchInst>(curr);
+          Br && Br->isConditional()) {
+        // If the branch is conditional and its condition is tainted, then we
+        // need to propagates the instructions that are depending on this
+        // branch, too.
+        //
+        // Flow function:
+        //
+        // Let I be the set of instructions of the branch instruction's
+        // successors.
+        //
+        //                                          0  c  x
+        //                                          |  |\
+        // x = br C, label if.then, label if.else   |  | \--\
+        //                                          v  v  v  v
+        //                                          0  c  x  I
+        //
+        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
+          const llvm::BranchInst *Br;
+
+          IIAFlowFunction(const llvm::BranchInst *Br) : Br(Br) {}
+
+          container_type computeTargets(d_t src) override {
+            container_type Facts;
+            Facts.insert(src);
+            if (src == Br->getCondition()) {
+              Facts.insert(Br);
+              for (auto Succs : Br->successors()) {
+                for (auto &Inst : Succs->instructionsWithoutDebug()) {
+                  Facts.insert(&Inst);
+                }
+              }
+            }
+            return Facts;
+          }
+        };
+        return std::make_shared<IIAFlowFunction>(Br);
+      }
+    }
 
     // Handle points-to information if the user wishes to conduct a
     // non-syntax-only inst-interaction analysis.
@@ -1053,16 +1076,10 @@ protected:
   }
 
   static inline l_t joinImpl(l_t Lhs, l_t Rhs) {
-    if (Lhs == TopElement) {
+    if (Lhs == TopElement || Lhs == BottomElement) {
       return Rhs;
     }
-    if (Rhs == TopElement) {
-      return Lhs;
-    }
-    if (Lhs == BottomElement) {
-      return Rhs;
-    }
-    if (Rhs == BottomElement) {
+    if (Rhs == TopElement || Rhs == BottomElement) {
       return Lhs;
     }
     auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
