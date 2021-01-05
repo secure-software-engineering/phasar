@@ -1,0 +1,17 @@
+SPEC Imprecision
+
+OBJECTS
+    int x;
+    int y;
+
+EVENTS
+    bar: bar(x, y);
+
+ORDER
+    bar
+
+CONSTRAINTS
+    x in {1, 2};
+    x == 1 => y == 2;
+    x == 2 => y == 3;
+    

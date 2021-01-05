@@ -1,6 +1,8 @@
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include <memory>
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
@@ -20,22 +22,23 @@ protected:
   const std::string PathToLlFiles = unittest::PathToLLTestFiles + "constness/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  IFDSConstAnalysis *Constproblem{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<IFDSConstAnalysis> Constproblem;
 
   IFDSConstAnalysisTest() = default;
   ~IFDSConstAnalysisTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
-    Constproblem = new IFDSConstAnalysis(IRDB, TH, ICFG, PT, EntryPoints);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(), PT.get());
+    Constproblem = make_unique<IFDSConstAnalysis>(
+        IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
   }
 
   void SetUp() override {
@@ -43,13 +46,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete PT;
-    delete ICFG;
-    delete Constproblem;
-  }
+  void TearDown() override {}
 
   void compareResults(const std::set<unsigned long> &GroundTruth,
                       IFDSSolver_P<IFDSConstAnalysis> &Solver) {
@@ -188,7 +185,7 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
   initialize({PathToLlFiles + "global/global_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
-  compareResults({0}, Llvmconstsolver);
+  compareResults({0, 2}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleGlobalTest_04) {
