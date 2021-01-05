@@ -65,10 +65,6 @@ getAllocaInstruction(const llvm::GetElementPtrInst *GEP) {
 
 } // namespace
 
-namespace vara {
-class Taint;
-} // namespace vara
-
 namespace psr {
 
 template <typename EdgeFactType>
