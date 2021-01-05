@@ -1048,16 +1048,6 @@ protected:
         for (const auto &s : lset) {
           os << s << ", ";
         }
-      } else if constexpr (std::is_base_of_v<vara::Taint,
-                                             std::remove_pointer_t<e_t>>) {
-        for (const auto *s : lset) {
-          std::string IRBuffer;
-          llvm::raw_string_ostream RSO(IRBuffer);
-          s->print(RSO);
-          RSO.flush();
-          os << IRBuffer;
-          os << ", ";
-        }
       }
     }
   }
