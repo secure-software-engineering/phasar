@@ -75,11 +75,9 @@ template <typename AnalysisDomainTy, typename Container> struct IFDSExtension {
       TransformedProblem;
 };
 
-///
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
 /// can then be queried by using resultAt() and resultsAt().
-///
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>,
           bool = is_analysis_domain_extensions<AnalysisDomainTy>::value>
@@ -146,9 +144,7 @@ public:
     return J;
   }
 
-  ///
-  /// @brief Runs the solver on the configured problem. This can take some time.
-  ///
+  /// \brief Runs the solver on the configured problem. This can take some time.
   virtual void solve() {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Gen facts", 0, PAMM_SEVERITY_LEVEL::Core);
@@ -197,14 +193,11 @@ public:
     }
   }
 
-  ///
   /// Returns the L-type result for the given value at the given statement.
-  ///
   [[nodiscard]] virtual l_t resultAt(n_t stmt, d_t value) {
     return valtab.get(stmt, value);
   }
 
-  ///
   /// Returns the L-type result at the given statement for the given data-flow
   /// fact while respecting LLVM's SSA semantics.
   ///
@@ -220,23 +213,20 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  ///
   template <typename NTy = n_t>
-  [[nodiscard]]
-  typename std::enable_if_t<std::is_same_v<NTy, const llvm::Instruction *>, l_t>
+  [[nodiscard]] typename std::enable_if_t<
+      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>, l_t>
   resultAtInLLVMSSA(NTy stmt, d_t value) {
     if (stmt->getType()->isVoidTy()) {
       return valtab.get(stmt, value);
-    } else {
-      return valtab.get(stmt->getNextNode(), value);
     }
+    assert(stmt->getNextNode() && "Expected to find a valid successor node!");
+    return valtab.get(stmt->getNextNode(), value);
   }
 
-  ///
   /// Returns the resulting environment for the given statement.
   /// The artificial zero value can be automatically stripped.
   /// TOP values are never returned.
-  ///
   [[nodiscard]] virtual std::unordered_map<d_t, l_t>
   resultsAt(n_t stmt, bool stripZero = false) /*TODO const*/ {
     std::unordered_map<d_t, l_t> result = valtab.row(stmt);
@@ -252,7 +242,6 @@ public:
     return result;
   }
 
-  ///
   /// Returns the data-flow results at the given statement while respecting
   /// LLVM's SSA semantics.
   ///
@@ -268,20 +257,19 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  ///
   template <typename NTy = n_t>
-  [[nodiscard]]
-  typename std::enable_if_t<std::is_same_v<NTy, const llvm::Instruction *>,
-                            std::unordered_map<d_t, l_t>>
+  [[nodiscard]] typename std::enable_if_t<
+      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
+      std::unordered_map<d_t, l_t>>
   resultsAtInLLVMSSA(NTy stmt, bool stripZero = false) {
-    std::unordered_map<d_t, l_t> result = [&valtabe, stmt]() {
+    std::unordered_map<d_t, l_t> result = [this, stmt]() {
       if (stmt->getType()->isVoidTy()) {
         return valtab.row(stmt);
-      } else {
-        return valtab.row(stmt->getNextNode());
       }
+      return valtab.row(stmt->getNextNode());
     }();
     if (stripZero) {
+      // TODO: replace with std::erase_if (C++20)
       for (auto it = result.begin(); it != result.end();) {
         if (IDEProblem.isZeroValue(it->first)) {
           it = result.erase(it);

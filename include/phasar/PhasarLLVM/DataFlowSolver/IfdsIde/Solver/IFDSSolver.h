@@ -44,10 +44,8 @@ public:
 
   ~IFDSSolver() override = default;
 
-  ///
   /// Returns the data-flow results at the given statement.
-  ///
-  std::set<D> ifdsResultsAt(N Inst) {
+  [[nodiscard]] virtual std::set<D> ifdsResultsAt(N Inst) {
     std::set<D> KeySet;
     std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(Inst);
     for (auto FlowFact : ResultMap) {
@@ -56,7 +54,6 @@ public:
     return KeySet;
   }
 
-  ///
   /// Returns the data-flow results at the given statement while respecting
   /// LLVM's SSA semantics.
   ///
@@ -72,24 +69,25 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  ///
   template <typename NTy = N>
-  typename std::enable_if_t<std::is_same_v<NTy, const llvm::Instruction *>,
-                            std::set<D>>
+  [[nodiscard]] typename std::enable_if_t<
+      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
+      std::set<D>>
   ifdsResultsAtInLLVMSSA(NTy Inst) {
-    std::unordered_map<D, BinaryDomain> ResultMap = [this, Inst]() {
+    auto getResultMap = [this, Inst]() {
       if (Inst->getType()->isVoidTy()) {
         return this->resultsAt(Inst);
       } else {
         // In this case we have a value on the left-hand side and must return
         // the results at the successor instruction. Note that terminator
         // instructions are always of void type.
+        assert(Inst->getNextNode() &&
+               "Expected to find a valid successor node!");
         return this->resultsAt(Inst->getNextNode());
-        assert("Expected to find a successor instruction!");
       }
-    }();
+    };
     std::set<D> KeySet;
-    for (auto &[FlowFact, LatticeValue] : ResultMap) {
+    for (auto &[FlowFact, LatticeValue] : getResultMap()) {
       KeySet.insert(FlowFact);
     }
     return KeySet;
