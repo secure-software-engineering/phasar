@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <memory>
 #include <set>
 #include <string>
 #include <tuple>
@@ -40,7 +41,8 @@ protected:
   using IIACompactResult_t =
       std::tuple<std::string, std::size_t, std::string,
                  IDEInstInteractionAnalysisT<std::string, true>::l_t>;
-  ProjectIRDB *IRDB = nullptr;
+
+  std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override {
     boost::log::core::get()->set_logging_enabled(false);
@@ -52,7 +54,8 @@ protected:
   doAnalysisAndCompareResults(const std::string &LlvmFilePath,
                               const std::set<IIACompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    auto IR_Files = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
     if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }
@@ -61,8 +64,8 @@ protected:
     LLVMPointsToSet PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
                        &PT);
-    IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &TH, &ICFG,
-                                                              &PT, EntryPoints);
+    IDEInstInteractionAnalysisT<std::string, true> IIAProblem(
+        IRDB.get(), &TH, &ICFG, &PT, EntryPoints);
     // use Phasar's instruction ids as testing labels
     auto Generator = [](const llvm::Instruction *I) -> std::set<std::string> {
       std::set<std::string> Labels;
@@ -103,7 +106,7 @@ protected:
     }
   }
 
-  void TearDown() override { delete IRDB; }
+  void TearDown() override {}
 
 }; // Test Fixture
 

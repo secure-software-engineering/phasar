@@ -14,8 +14,7 @@ using namespace psr;
 
 TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_7_cpp.ll"},
-      IRDBOptions::WPA);
+      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_7_cpp.ll"});
   IRDB.emitPreprocessedIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB, false);

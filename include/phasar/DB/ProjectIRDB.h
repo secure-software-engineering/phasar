@@ -167,7 +167,7 @@ public:
   void print() const;
 
   void emitPreprocessedIR(std::ostream &os = std::cout,
-                          bool ShortenIR = true) const;
+                          bool ShortenIR = false) const;
 
   /**
    * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and

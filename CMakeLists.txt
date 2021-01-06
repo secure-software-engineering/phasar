@@ -92,6 +92,10 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
+configure_file(config.h.in config.h @ONLY)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )

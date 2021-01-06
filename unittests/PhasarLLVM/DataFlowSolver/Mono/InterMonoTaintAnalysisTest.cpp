@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "llvm/Support/raw_ostream.h"
 
 #include "gtest/gtest.h"
@@ -24,23 +26,26 @@ protected:
       unittest::PathToLLTestFiles + "taint_analysis/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB = nullptr;
+  std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override {
     std::cout << "setup\n";
     boost::log::core::get()->set_logging_enabled(false);
   }
-  void TearDown() override { delete IRDB; }
+  void TearDown() override {}
 
   std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    auto IR_Files = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto *PT = new LLVMPointsToSet(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
+    auto PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
+                       PT.get());
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
-    InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+    InterMonoTaintAnalysis TaintProblem(IRDB.get(), &TH, &ICFG, PT.get(), TC,
+                                        EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysisDomain, 3> TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
@@ -59,13 +64,16 @@ protected:
   void doAnalysisAndCompare(const std::string &LlvmFilePath, size_t InstId,
                             const std::set<std::string> &GroundTruth,
                             bool PrintDump = false) {
-    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    auto IR_Files = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto *PT = new LLVMPointsToSet(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
+    auto PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
+                       PT.get());
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
-    InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+    InterMonoTaintAnalysis TaintProblem(IRDB.get(), &TH, &ICFG, PT.get(), TC,
+                                        EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysisDomain, 3> TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
