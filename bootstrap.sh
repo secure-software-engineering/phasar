@@ -101,7 +101,10 @@ else
                     "libboost-log" "libboost-thread")
             additional_boost_libs=()
             for boost_lib in ${boostlibnames[@]}; do
-                dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 || additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}")
+                dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||
+                dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}.0" >/dev/null 2>&1 ||
+                additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}") ||
+                additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}.0")
                 dpkg -s "${boost_lib}-dev" >/dev/null 2>&1 || additional_boost_libs+=("${boost_lib}-dev")
             done
             if [ ${#additional_boost_libs[@]} -gt 0 ] ;then
