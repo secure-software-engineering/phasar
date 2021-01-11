@@ -723,7 +723,9 @@ public:
              (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
              llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
             PointerPTS->count(Store->getPointerOperand())) {
-          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
+          // Obtain labels from value to be stored (and may add UserEdgeFacts,
+          // if any).
+          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
         // Kill all labels that are propagated along the edge of the
         // value/values that is/are overridden.
