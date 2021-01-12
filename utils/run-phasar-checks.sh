@@ -7,6 +7,8 @@
 # the code base.
 #
 
+source ./utils/safeCommandsSet.sh
+
 build_dir=${1}
 num_jobs=${2}
 integer_re="^[0-9]+$"
@@ -23,9 +25,9 @@ cp .clang-tidy-ignore external/json/.clang-tidy
 cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy
 
 echo "Run clang-tidy ..."
-cd "${build_dir}" - || exit
+save_cd"${build_dir}" -
 run-clang-tidy.py -j "${num_jobs}" -p ./ -header-filter='phasar*.h' -fix
-cd - || exit
+save_cd -
 echo "Run clang-format ..."
 ./utils/run-clang-format.py
 
