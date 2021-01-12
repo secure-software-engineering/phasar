@@ -9,6 +9,6 @@ cd - || exit
 git clone git@github.com:nlohmann/json.git
 cd json/ || exit
 git checkout v3.4.0
-cd - || exit
+save_cd -
 git clone https://github.com/pdschubert/WALi-OpenNWA.git
 fi
