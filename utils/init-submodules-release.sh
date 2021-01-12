@@ -7,7 +7,7 @@ cd googletest/ || exit
 git checkout release-1.8.0
 save_cd -
 git clone git@github.com:nlohmann/json.git
-cd json/ || exit
+save_cd json/
 git checkout v3.4.0
 save_cd -
 git clone https://github.com/pdschubert/WALi-OpenNWA.git
