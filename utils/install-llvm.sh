@@ -46,10 +46,10 @@ if [ ! -d "${build_dir}/llvm-project" ]; then
 fi
 
 echo "Building LLVM..."
-save_cd "${build_dir}"/llvm-project/
+safe_cd "${build_dir}"/llvm-project/
 git checkout "${llvm_release}"
 mkdir -p build
-save_cd build
+safe_cd build
 cmake -G "Ninja" -DLLVM_ENABLE_PROJECTS='clang;clang-tools-extra;libcxx;libcxxabi;libunwind;lld;compiler-rt;debuginfo-tests' -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_CXX1Y=ON -DLLVM_ENABLE_EH=ON -DLLVM_ENABLE_RTTI=ON -DBUILD_SHARED_LIBS=ON -DLLVM_BUILD_EXAMPLES=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_BUILD_TESTS=Off -DLLVM_INCLUDE_TESTS=Off -DPYTHON_EXECUTABLE="$(which python3)" ../llvm
 cmake --build .
 

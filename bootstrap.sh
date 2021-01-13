@@ -134,7 +134,7 @@ export CC=${LLVM_INSTALL_DIR}/bin/clang
 export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
 mkdir -p "${PHASAR_DIR}"/build
-save_cd "${PHASAR_DIR}"/build
+safe_cd "${PHASAR_DIR}"/build
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release "${BOOST_PARAMS}" -DPHASAR_BUILD_UNITTESTS=${DO_UNIT_TEST} "${PHASAR_DIR}"
 cmake --build .
 
@@ -151,7 +151,7 @@ echo "phasar successfully built"
 echo "install phasar..."
 sudo cmake -DCMAKE_INSTALL_PREFIX=${PHASAR_INSTALL_DIR} -P cmake_install.cmake
 sudo ldconfig
-save_cd ..
+safe_cd ..
 echo "phasar successfully installed to ${PHASAR_INSTALL_DIR}"
 
 

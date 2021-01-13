@@ -25,9 +25,9 @@ cp .clang-tidy-ignore external/json/.clang-tidy
 cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy
 
 echo "Run clang-tidy ..."
-save_cd"${build_dir}" -
+safe_cd"${build_dir}" -
 run-clang-tidy.py -j "${num_jobs}" -p ./ -header-filter='phasar*.h' -fix
-save_cd -
+safe_cd -
 echo "Run clang-format ..."
 ./utils/run-clang-format.py
 
