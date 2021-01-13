@@ -148,7 +148,7 @@ public:
 
     // Handle indirect taints, i. e., propagate values that depend on branch
     // conditions whose operands are tainted.
-    if (EnableIndirectTaints) {
+    if constexpr (EnableIndirectTaints) {
       if (auto Br = llvm::dyn_cast<llvm::BranchInst>(curr);
           Br && Br->isConditional()) {
         // If the branch is conditional and its condition is tainted, then we
