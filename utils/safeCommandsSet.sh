@@ -1,5 +1,5 @@
 #!/bin/bash
 
-function save_cd {
+function safe_cd {
     cd "$@" || exit
 }
