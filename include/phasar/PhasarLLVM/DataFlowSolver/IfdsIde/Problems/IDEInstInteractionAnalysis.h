@@ -284,13 +284,6 @@ public:
               Facts.insert(Store->getPointerOperand());
               Facts.insert(PointerPTS->begin(), PointerPTS->end());
             }
-            // If the value to be stored does not hold we must at least add the
-            // store instruction and the points-to set as the instruction still
-            // interacts with the memory locations pointed to be PTS.
-            if (Store->getPointerOperand() == src || PointerPTS->count(src)) {
-              Facts.insert(Store);
-              Facts.erase(src);
-            }
             return Facts;
           }
         };
