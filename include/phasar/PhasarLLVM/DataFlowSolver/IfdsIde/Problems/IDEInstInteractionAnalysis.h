@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <iostream>
+#include <llvm/IR/Constant.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -571,68 +572,7 @@ public:
         }
       }
     }
-    // Handle edge functions for general instructions.
-    for (const auto &Op : curr->operands()) {
-      //
-      // 0 --> o_i
-      //
-      // Edge function:
-      //
-      //                        0
-      //                         \
-      // %i = instruction o_i     \ \x.x \cup { commit of('%i = instruction') }
-      //                           v
-      //                           o_i
-      //
-      if (isZeroValue(currNode) && Op == succNode) {
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-      }
-      //
-      // o_i --> o_i
-      //
-      // Edge function:
-      //
-      //                        o_i
-      //                        |
-      // %i = instruction o_i   | \x.x \cup { commit of('%i = instruction') }
-      //                        v
-      //                        o_i
-      //
-      if (Op == currNode && currNode == succNode) {
-        LOG_IF_ENABLE([&]() {
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is 'i'\n";
-          for (auto &EdgeFact : EdgeFacts) {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
-          }
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
-        }());
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-      }
-      //
-      // o_i --> i
-      //
-      // Edge function:
-      //
-      //                        o_i
-      //                         \
-      // %i = instruction o_i     \ \x.x \cup { commit of('%i = instruction') }
-      //                           v
-      //                           i
-      //
-      if (Op == currNode && curr == succNode) {
-        LOG_IF_ENABLE([&]() {
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is '0'\n";
-          for (auto &EdgeFact : EdgeFacts) {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
-          }
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
-        }());
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-      }
-    }
-
     // Overrides at store instructions
-
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
       if (SyntacticAnalysisOnly) {
         //
@@ -710,20 +650,121 @@ public:
         }
         auto PointerPTS = this->PT->getReachableAllocationSites(
             Store->getPointerOperand(), OnlyConsiderLocalAliases);
-        // overriding edge
+        // Overriding edge with literal: kill all labels that are propagated
+        // along the edge of the value that is overridden.
+        //
+        // x --> y
+        //
+        // Edge function:
+        //
+        // Let x be a literal.
+        //
+        //               y
+        //               |
+        // store x y     | \x.{}
+        //               v
+        //               y
+        //
+        if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+            currNode == succNode &&
+            (PointerPTS->count(currNode) ||
+             Store->getPointerOperand() == currNode)) {
+          std::cout << "LITERAL OVERRIDE\n";
+          return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
+        }
+        // Overriding edge: obtain labels from value to be stored (and may add
+        // UserEdgeFacts, if any).
+        //
+        // x --> y
+        //
+        // Edge function:
+        //
+        //            x
+        //             \
+        // store x y    \ \x.x \cup { commit of('store x y') }
+        //               v
+        //               y
+        //
         if ((currNode == Store->getValueOperand() ||
-             (ValuePTS && ValuePTS->count(Store->getValueOperand())) ||
-             llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
+             (ValuePTS && ValuePTS->count(Store->getValueOperand()))) &&
             PointerPTS->count(Store->getPointerOperand())) {
-          // Obtain labels from value to be stored (and may add UserEdgeFacts,
-          // if any).
           return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
         // Kill all labels that are propagated along the edge of the
         // value/values that is/are overridden.
+        //
+        // y --> y
+        //
+        // Edge function:
+        //
+        //            y
+        //            |
+        // store x y  | \x.{}
+        //            v
+        //            y
+        //
         if (currNode == succNode && PointerPTS->count(currNode)) {
           return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
         }
+      }
+    }
+    // Handle edge functions for general instructions.
+    for (const auto &Op : curr->operands()) {
+      //
+      // 0 --> o_i
+      //
+      // Edge function:
+      //
+      //                        0
+      //                         \
+      // %i = instruction o_i     \ \x.x \cup { commit of('%i = instruction') }
+      //                           v
+      //                           o_i
+      //
+      if (isZeroValue(currNode) && Op == succNode) {
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      }
+      //
+      // o_i --> o_i
+      //
+      // Edge function:
+      //
+      //                        o_i
+      //                        |
+      // %i = instruction o_i   | \x.x \cup { commit of('%i = instruction') }
+      //                        v
+      //                        o_i
+      //
+      if (Op == currNode && currNode == succNode) {
+        LOG_IF_ENABLE([&]() {
+          BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is 'i'\n";
+          for (auto &EdgeFact : EdgeFacts) {
+            BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
+          }
+          BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
+        }());
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      }
+      //
+      // o_i --> i
+      //
+      // Edge function:
+      //
+      //                        o_i
+      //                         \
+      // %i = instruction o_i     \ \x.x \cup { commit of('%i = instruction') }
+      //                           v
+      //                           i
+      //
+      if (Op == currNode && curr == succNode) {
+        LOG_IF_ENABLE([&]() {
+          BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is '0'\n";
+          for (auto &EdgeFact : EdgeFacts) {
+            BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
+          }
+          BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
+        }());
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
     }
     // Otherwise stick to identity.
@@ -1061,10 +1102,8 @@ protected:
     } else {
       auto lset = std::get<BitVectorSet<e_t>>(l);
       os << "(set size: " << lset.size() << ") values: ";
-      if constexpr (std::is_same_v<std::string, e_t>) {
-        for (const auto &s : lset) {
-          os << s << ", ";
-        }
+      for (const auto &s : lset) {
+        os << s << ", ";
       }
     }
   }
