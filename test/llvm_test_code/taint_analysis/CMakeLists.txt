@@ -28,6 +28,7 @@ set(NoMem2regSources
   taint_14_1.cpp
   taint_15.cpp
   taint_15_1.cpp
+  taint_exception.cpp
   virtual_calls.cpp
   virtual_calls_v2.cpp
   struct_member.cpp
