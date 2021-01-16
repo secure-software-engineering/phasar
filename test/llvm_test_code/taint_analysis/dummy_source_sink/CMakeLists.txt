@@ -4,6 +4,7 @@ set(taint_tests
   taint_03.cpp
   taint_04.cpp
   taint_05.cpp
+  taint_exception.cpp
 )
 
 set(taint_tests_mem2reg
