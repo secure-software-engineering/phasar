@@ -134,12 +134,31 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   compareResults(GroundTruth);
 }
 
-TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling) {
-  initialize({PathToLlFiles + "dummy_source_sink/taint_exception_cpp_dbg.ll"});
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_dbg.ll"});
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[15] = set<string>{"14"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[17] = set<string>{"16"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_exception_03_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[11] = set<string>{"10"};
+  GroundTruth[21] = set<string>{"20"};
   compareResults(GroundTruth);
 }
 
