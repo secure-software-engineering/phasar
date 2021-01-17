@@ -143,6 +143,15 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
   compareResults(GroundTruth);
 }
 
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_m2r_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[6] = set<string>{"0"};
+  compareResults(GroundTruth);
+}
+
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
