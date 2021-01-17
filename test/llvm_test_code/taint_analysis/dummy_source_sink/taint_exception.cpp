@@ -6,12 +6,9 @@ struct S {
     S(int data) : data(data) {}
 };
 
-void f() {
-    S *s = new S(source());
-    sink(s->data);
-}
-
 int main() {
-  f();
+  int data = source();
+  S *s = new S(0);
+  sink(data);
   return 0;
 }
