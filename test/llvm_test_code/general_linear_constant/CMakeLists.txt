@@ -4,7 +4,6 @@ set(Sources
     FPtest.c
     GlobalVariableTest.c
     Imprecision.c
-    length.c
     NullTest.c
     ReturnConstTest.c
     SimpleFunctionTest.c
