@@ -55,6 +55,55 @@
 using namespace psr;
 using namespace std;
 
+// Define some handy helper functionalities
+namespace {
+template <class graphType> class VertexWriter {
+public:
+  VertexWriter(const graphType &CGraph) : CGraph(CGraph) {}
+  template <class VertexOrEdge>
+  void operator()(std::ostream &Out, const VertexOrEdge &V) const {
+    Out << "[label=\"" << CGraph[V].getFunctionName() << "\"]";
+  }
+
+private:
+  const graphType &CGraph;
+};
+
+template <class graphType> class EdgeLabelWriter {
+public:
+  EdgeLabelWriter(const graphType &CGraph) : CGraph(CGraph) {}
+  template <class VertexOrEdge>
+  void operator()(std::ostream &Out, const VertexOrEdge &V) const {
+    Out << "[label=\"" << CGraph[V].getCallSiteAsString() << "\"]";
+  }
+
+private:
+  const graphType &CGraph;
+};
+
+std::vector<const llvm::Function *>
+getGlobalCtorsDtorsImpl(const llvm::Module *M, llvm::StringRef Fun) {
+  std::vector<const llvm::Function *> Result;
+  const auto *Gtors = M->getGlobalVariable(Fun);
+  if (const auto *FunArray = llvm::dyn_cast<llvm::ArrayType>(
+          Gtors->getType()->getPointerElementType())) {
+    if (const auto *ConstFunArray =
+            llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer())) {
+      for (const auto &Op : ConstFunArray->operands()) {
+        if (const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op)) {
+          if (const auto *Fun =
+                  llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1))) {
+            Result.push_back(Fun);
+          }
+        }
+      }
+    }
+  }
+  return Result;
+}
+
+} // anonymous namespace
+
 namespace psr {
 
 struct LLVMBasedICFG::dependency_visitor : boost::default_dfs_visitor {
@@ -543,6 +592,24 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
   return ReturnSites;
 }
 
+std::vector<const llvm::Function *> LLVMBasedICFG::getGlobalCtors() const {
+  std::vector<const llvm::Function *> Result;
+  for (const auto *Module : IRDB.getAllModules()) {
+    auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_ctors");
+    Result.insert(Result.begin(), Part.begin(), Part.end());
+  }
+  return Result;
+}
+
+std::vector<const llvm::Function *> LLVMBasedICFG::getGlobalDtors() const {
+  std::vector<const llvm::Function *> Result;
+  for (const auto *Module : IRDB.getAllModules()) {
+    auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_dtors");
+    Result.insert(Result.begin(), Part.begin(), Part.end());
+  }
+  return Result;
+}
+
 /**
  * Returns the set of all nodes that are neither call nor start nodes.
  */
@@ -650,32 +717,6 @@ void LLVMBasedICFG::print(ostream &OS) const {
     OS << '\n';
   }
 }
-
-namespace {
-template <class graphType> class VertexWriter {
-public:
-  VertexWriter(const graphType &CGraph) : CGraph(CGraph) {}
-  template <class VertexOrEdge>
-  void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-    Out << "[label=\"" << CGraph[V].getFunctionName() << "\"]";
-  }
-
-private:
-  const graphType &CGraph;
-};
-
-template <class graphType> class EdgeLabelWriter {
-public:
-  EdgeLabelWriter(const graphType &CGraph) : CGraph(CGraph) {}
-  template <class VertexOrEdge>
-  void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-    Out << "[label=\"" << CGraph[V].getCallSiteAsString() << "\"]";
-  }
-
-private:
-  const graphType &CGraph;
-};
-} // namespace
 
 void LLVMBasedICFG::printAsDot(std::ostream &OS, bool PrintEdgeLabels) const {
   if (PrintEdgeLabels) {
