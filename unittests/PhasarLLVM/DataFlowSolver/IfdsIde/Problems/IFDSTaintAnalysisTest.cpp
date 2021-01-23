@@ -176,7 +176,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[11] = set<string>{"10"};
+  GroundTruth[23] = set<string>{"22"};
   compareResults(GroundTruth);
 }
 
