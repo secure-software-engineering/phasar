@@ -10,8 +10,8 @@ int main() {
   int data;
   try {
     S *s = new S(0);
-    data = source();
   } catch (...) {
+    data = source();
   }
   sink(data);
   return 0;

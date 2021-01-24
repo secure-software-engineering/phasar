@@ -12,6 +12,7 @@ int main() {
     S *s = new S(0);
     data = source();
   } catch (...) {
+    data = source();
   }
   sink(data);
   return 0;
