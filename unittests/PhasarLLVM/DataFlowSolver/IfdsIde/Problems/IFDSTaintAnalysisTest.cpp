@@ -244,18 +244,6 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
-
-  const llvm::Function *entry =
-      TaintProblem->getProjectIRDB()->getFunction("main");
-  for (auto &BB : *entry) {
-    for (auto &I : BB) {
-      int metaId = stoi(getMetaDataID(&I));
-      llvm::outs() << "Instruction:\n"
-                   << I << '\n'
-                   << "Metadata ID: " << metaId << '\n';
-    }
-  }
-
   map<int, set<string>> GroundTruth;
   GroundTruth[35] = set<string>{"34"};
   compareResults(GroundTruth);
