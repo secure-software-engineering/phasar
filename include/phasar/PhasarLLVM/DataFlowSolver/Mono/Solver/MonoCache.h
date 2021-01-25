@@ -19,7 +19,7 @@ namespace psr {
 class MonoCache {
   // TODO
 public:
-        unordered_map<K, V> items;
+        unordered_map<K, V> summaries;
         vector<int> time; //The most recently added or recently used key is placed last
         int c;
 
@@ -28,8 +28,8 @@ public:
         }
 
 void get(K key) {
-        unordered_map<K, V>::iterator iter = items.find(key);
-        if(iter == items.end())
+        unordered_map<K, V>::iterator iter = summaries.find(key);
+        if(iter == summaries.end())
         return -1; //not found
         else {
                 vector<int>::iterator it = std::find(time.begin(), time.end(), key);
@@ -42,9 +42,9 @@ void get(K key) {
 
 
 void put(K key, V value) {
-        if(items.count(key)) //key already exists in cache
+        if(summaries.count(key)) //key already exists in cache
         {
-            items[key] = value; //key is set to the new value
+            summaries[key] = value; //key is set to the new value
             vector<int>::iterator it = std::find(time.begin(), time.end(), key);
             time.erase(it); //Update key usage time
             time.push_back(key);
@@ -53,10 +53,10 @@ void put(K key, V value) {
                 if(time.size()==c) { //The cache is full, delete an element that has not been used for the longest time
                         int pop = time[0];
                         time.erase(time.begin()); //Delete the oldest unused element and put it at the beginning of time
-                        items.erase(pop);
+                        summaries.erase(pop);
             }
             time.push_back(K);
-            items[key] = value;
+            summaries[key] = value;
         }
     }
 };

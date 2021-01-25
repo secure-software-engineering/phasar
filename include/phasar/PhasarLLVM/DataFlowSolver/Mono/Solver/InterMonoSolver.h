@@ -4,7 +4,8 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp 
+ * and others
  *****************************************************************************/
 
 /*
@@ -44,12 +45,10 @@ public:
 protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<n_t, n_t>> Worklist;
-  std::unordered_map<
-      n_t, std::unordered_map<CallStringCTX<n_t, K>, mono_container_t>>
-      Analysis;
+  std::unordered_map<n_t, std::unordered_map<CallStringCTX<n_t, K>, mono_container_t>> Analysis;
   std::unordered_set<f_t> AddedFunctions;
   const i_t *ICF;
-
+  
   void initialize() {
     for (auto &[Node, FlowFacts] : IMProblem.initialSeeds()) {
       auto ControlFlowEdges =
@@ -98,6 +97,7 @@ protected:
     auto Dst = Edge.second;
     // Add inter- and intra-edges of callee(s)
     for (auto Callee : ICF->getCalleesOfCallAt(Src)) {
+      std::cout << "Callees to add into Worklist " << Callee << '\n';
       if (AddedFunctions.find(Callee) != AddedFunctions.end()) {
         break;
       }
@@ -170,8 +170,7 @@ public:
 
   virtual ~InterMonoSolver() = default;
 
-  std::unordered_map<
-      n_t, std::unordered_map<CallStringCTX<n_t, K>, mono_container_t>>
+  std::unordered_map<n_t, std::unordered_map<CallStringCTX<n_t, K>, mono_container_t>>
   getAnalysis() {
     return Analysis;
   }
@@ -324,8 +323,7 @@ public:
         std::cout << "RetSite facts: ";
         IMProblem.printContainer(std::cout, Analysis[RetSite][CTXRm]);
         std::cout << '\n';
-        bool FlowFactStabilized =
-            IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
+        bool FlowFactStabilized = IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
         std::cout << "Ret stabilized? --> " << FlowFactStabilized << '\n';
         if (!FlowFactStabilized) {
           mono_container_t merge;
@@ -344,15 +342,54 @@ public:
     }
   }
 
-  mono_container_t
-  summarize(/*Function CalleeTarget, mono_container_t FactAtCall */) {
-    // spawn a new analysis with its own worklist
-  }
+   mono_container_t summarize(f_t CalleeTarget, mono_container_t FactAtCall) {
+     std::deque<std::pair<n_t, n_t>> SummaryWorklist;
+     std::unordered_map<n_t, std::unordered_map<CallStringCTX<n_t, K>, mono_container_t>> SummaryAnalysis;
+     mono_container_t ResultSummary;
 
-  bool isSensibleToSummarize() {
+      auto ControlFlowEdges = ICF->getAllControlFlowEdges(CalleeTarget);
+       SummaryWorklist.insert(SummaryWorklist.begin(), ControlFlowEdges.begin(),
+       ControlFlowEdges.end());
+
+       for (auto Edge : ControlFlowEdges) {
+         SummaryAnalysis[Edge.first];
+       }
+
+       if(!ControlFlowEdges.empty()) {
+         SummaryAnalysis[ControlFlowEdges.back().second];
+       }
+
+       while (!SummaryWorklist.empty()) {  
+         auto Edge = SummaryWorklist.front();
+         auto Src = Edge.first;
+         auto Dst = Edge.second;
+         if(ICF->isExitStmt(Src)){
+          //  auto RetFactsAtCallee = IMProblem.returnFlow(Src, ICF->getFunctionOf(Src), Src, Dst, SummaryAnalysis[Src][CallStringCTX<n_t, K>()]);
+          //   for(auto RetFactsAtCallee : SummaryAnalysis[Src]){
+          //     ResultSummary.insert(RetFactsAtCallee.begin(), RetFactsAtCallee.end()); // TODO: should fix this line
+          //   }
+         }
+       }
+     return ResultSummary;
+   }
+
+ 
+
+  bool isSensibleToSummarize(std::pair<n_t, n_t> Edge) {
     // use a heuristic to check whether we should compute a summary
     // make use of the call-graph information
+    auto res = true;
+    for (auto Callee : ICF->getCalleesOfCallAt(Edge.first)){
+    for(auto &[Src,Dst] : ICF->getAllControlFlowEdges(Callee)) {
+      if(ICF->isCallStmt(Src)){
+       res = false;
+       break;
+      }
+    }
+    }
+    return res;
   }
+  
 
   virtual void solve() {
     initialize();
@@ -370,13 +407,18 @@ public:
         if (!isIntraEdge(Edge)) {
           // real call
           for (auto &[Ctx, Facts] : Analysis[Src]) {
-            processCall(Edge); // TODO: decompose into processCall and
-                               // processCallToRet
+            if(isSensibleToSummarize(Edge)){
+              mono_container_t summary =  summarize(ICF->getFunctionOf(Dst),Facts);
+              // addSummary(summary);
+            }else{
+              processCall(Edge); // TODO: decompose into processCall and
+              }                 // processCallToRet
+            }
+              
           }
-        } else {
+        else {
           // call-to-return
-          processCall(
-              Edge); // TODO: decompose into processCall and processCallToRet
+          processCall(Edge); // TODO: decompose into processCall and processCallToRet
         }
       } else if (ICF->isExitStmt(Src)) {
         // Handle return flow
@@ -387,6 +429,8 @@ public:
       }
     }
   }
+
+
 
   mono_container_t getResultsAt(n_t n) {
     mono_container_t Result;
@@ -425,8 +469,7 @@ public:
 };
 
 template <typename Problem, unsigned K>
-using InterMonoSolver_P =
-    InterMonoSolver<typename Problem::ProblemAnalysisDomain, K>;
+using InterMonoSolver_P = InterMonoSolver<typename Problem::ProblemAnalysisDomain, K>;
 
 } // namespace psr
 

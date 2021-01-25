@@ -49,12 +49,10 @@ protected:
   void initialize() {
     auto EntryPoints = IMProblem.getEntryPoints();
     for (const auto &EntryPoint : EntryPoints) {
-      auto Function =
-          IMProblem.getProjectIRDB()->getFunctionDefinition(EntryPoint);
+      auto Function = IMProblem.getProjectIRDB()->getFunctionDefinition(EntryPoint);
       auto ControlFlowEdges = CFG->getAllControlFlowEdges(Function);
       // add all intra-procedural edges to the worklist
-      Worklist.insert(Worklist.begin(), ControlFlowEdges.begin(),
-                      ControlFlowEdges.end());
+      Worklist.insert(Worklist.begin(), ControlFlowEdges.begin(),ControlFlowEdges.end());
       // set all analysis information to the empty set
       for (auto Insts : CFG->getAllInstructionsOf(Function)) {
         Analysis.insert(std::make_pair(Insts, IMProblem.allTop()));
