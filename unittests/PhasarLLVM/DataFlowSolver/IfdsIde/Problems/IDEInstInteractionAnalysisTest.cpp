@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <variant>
 
 #include "gtest/gtest.h"
 
@@ -67,12 +68,21 @@ protected:
     IDEInstInteractionAnalysisT<std::string, true> IIAProblem(
         IRDB.get(), &TH, &ICFG, &PT, EntryPoints);
     // use Phasar's instruction ids as testing labels
-    auto Generator = [](const llvm::Instruction *I) -> std::set<std::string> {
+    auto Generator =
+        [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
+               Current) -> std::set<std::string> {
       std::set<std::string> Labels;
-      if (I->hasMetadata()) {
+      const llvm::Instruction *CurrentInst;
+      if (std::holds_alternative<const llvm::Instruction *>(Current)) {
+        CurrentInst = std::get<const llvm::Instruction *>(Current);
+      } else {
+        return Labels;
+      }
+      if (CurrentInst->hasMetadata()) {
         std::string Label =
             llvm::cast<llvm::MDString>(
-                I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
+                CurrentInst->getMetadata(PhasarConfig::MetaDataKind())
+                    ->getOperand(0))
                 ->getString()
                 .str();
         Labels.insert(Label);

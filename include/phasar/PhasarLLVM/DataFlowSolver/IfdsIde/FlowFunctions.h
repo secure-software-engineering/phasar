@@ -327,38 +327,31 @@ protected:
 template <typename D, typename Container = std::set<D>>
 class Union : public FlowFunction<D, Container> {
 public:
+  using typename FlowFunction<D, Container>::container_type;
   using typename FlowFunction<D, Container>::FlowFunctionType;
   using typename FlowFunction<D, Container>::FlowFunctionPtrType;
 
-  using typename FlowFunction<D, Container>::container_type;
-
-  Union(const std::vector<FlowFunctionType> &funcs) : funcs(funcs) {}
+  Union(const std::vector<FlowFunctionPtrType> &FlowFuncs)
+      : FlowFuncs([&FlowFuncs]() {
+          if (FlowFuncs.empty()) {
+            return std::vector<FlowFunctionPtrType>(
+                {Identity<D, Container>::getInstance()});
+          } else {
+            return FlowFuncs;
+          }
+        }()) {}
   virtual ~Union() = default;
-  container_type computeTargets(const D &source) override {
-    container_type result;
-    for (const FlowFunctionType &func : funcs) {
-      container_type target = func.computeTarget(source);
-      result.insert(target.begin(), target.end());
+  container_type computeTargets(D source) override {
+    container_type Result;
+    for (const auto &FlowFunc : FlowFuncs) {
+      container_type target = FlowFunc->computeTargets(source);
+      Result.insert(target.begin(), target.end());
     }
-    return result;
-  }
-  static FlowFunctionType setunion(const std::vector<FlowFunctionType> &funcs) {
-    std::vector<FlowFunctionType> vec;
-    for (const FlowFunctionType &func : funcs) {
-      if (func != Identity<D, Container>::getInstance()) {
-        vec.add(func);
-      }
-    }
-    if (vec.size() == 1) {
-      return vec[0];
-    } else if (vec.empty()) {
-      return Identity<D, Container>::getInstance();
-    }
-    return Union(vec);
+    return Result;
   }
 
 protected:
-  const std::vector<FlowFunctionType> funcs;
+  const std::vector<FlowFunctionPtrType> FlowFuncs;
 };
 
 template <typename D, typename Container = std::set<D>>

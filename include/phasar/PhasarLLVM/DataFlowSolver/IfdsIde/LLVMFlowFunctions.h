@@ -18,6 +18,7 @@
 #include "llvm/IR/Instructions.h"
 
 #include <functional>
+#include <llvm/IR/GlobalVariable.h>
 #include <memory>
 #include <set>
 #include <vector>
@@ -31,13 +32,11 @@ class Instruction;
 
 namespace psr {
 
-/**
- * A flow function that can be wrapped around another flow function
- * in order to kill unnecessary temporary values that are no longer
- * in use, but otherwise would be still propagated through the exploded
- * super-graph.
- * @brief Automatically kills temporary loads that are no longer in use.
- */
+/// A flow function that can be wrapped around another flow function
+/// in order to kill unnecessary temporary values that are no longer
+/// in use, but otherwise would be still propagated through the exploded
+/// super-graph.
+/// \brief Automatically kills temporary loads that are no longer in use.
 class AutoKillTMPs : public FlowFunction<const llvm::Value *> {
 protected:
   FlowFunctionPtrType delegate;
@@ -62,11 +61,9 @@ public:
 //===----------------------------------------------------------------------===//
 // Mapping functions
 
-/**
- * A predicate can be used to specify additional requirements for the
- * propagation.
- * @brief Propagates all non pointer parameters alongside the call site.
- */
+/// A predicate can be used to specify additional requirements for the
+/// propagation.
+/// \brief Propagates all non pointer parameters alongside the call site.
 template <typename Container = std::set<const llvm::Value *>>
 class MapFactsAlongsideCallSite
     : public FlowFunction<const llvm::Value *, Container> {
@@ -115,11 +112,9 @@ public:
   }
 };
 
-/**
- * A predicate can be used to specifiy additonal requirements for mapping
- * actual parameter into formal parameter.
- * @brief Generates all valid formal parameter in the callee context.
- */
+/// A predicate can be used to specifiy additonal requirements for mapping
+/// actual parameter into formal parameter.
+/// \brief Generates all valid formal parameter in the callee context.
 template <typename Container = std::set<const llvm::Value *>>
 class MapFactsToCallee : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
@@ -129,13 +124,16 @@ protected:
   std::vector<const llvm::Value *> Actuals{};
   std::vector<const llvm::Value *> Formals{};
   std::function<bool(const llvm::Value *)> Predicate;
+  bool MapGlobalVars;
 
 public:
   MapFactsToCallee(
       llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
+      bool MapGlobalVars = true,
       std::function<bool(const llvm::Value *)> Predicate =
           [](const llvm::Value *) { return true; })
-      : DestFun(DestFun), Predicate(std::move(Predicate)) {
+      : DestFun(DestFun), Predicate(std::move(Predicate)),
+        MapGlobalVars(MapGlobalVars) {
     // Set up the actual parameters
     for (const auto &Actual : CallSite.args()) {
       Actuals.push_back(Actual);
@@ -154,70 +152,71 @@ public:
     if (DestFun->isDeclaration()) {
       return {};
     }
-    if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-      container_type Res;
-      // Handle C-style varargs functions
-      if (DestFun->isVarArg()) {
-        // Map actual parameters to corresponding formal parameters.
-        for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-          if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
-            if (Idx >= DestFun->arg_size()) {
-              // Over-approximate by trying to add the
-              //   alloca [1 x %struct.__va_list_tag], align 16
-              // to the results
-              // find the allocated %struct.__va_list_tag and generate it
-              for (const auto &BB : *DestFun) {
-                for (const auto &I : BB) {
-                  if (const auto *Alloc =
-                          llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                    if (Alloc->getAllocatedType()->isArrayTy() &&
-                        Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                        Alloc->getAllocatedType()
-                            ->getArrayElementType()
-                            ->isStructTy() &&
-                        Alloc->getAllocatedType()
-                                ->getArrayElementType()
-                                ->getStructName() == "struct.__va_list_tag") {
-                      Res.insert(Alloc);
-                    }
+    // Pass ZeroValue as is
+    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+      return {Source};
+    }
+    // Pass global variables as is, if desired
+    if (MapGlobalVars && llvm::isa<llvm::GlobalVariable>(Source)) {
+      return {Source};
+    }
+    // Do the parameter mapping
+    container_type Res;
+    // Handle C-style varargs functions
+    if (DestFun->isVarArg()) {
+      // Map actual parameters to corresponding formal parameters.
+      for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
+        if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
+          if (Idx >= DestFun->arg_size()) {
+            // Over-approximate by trying to add the
+            //   alloca [1 x %struct.__va_list_tag], align 16
+            // to the results
+            // find the allocated %struct.__va_list_tag and generate it
+            for (const auto &BB : *DestFun) {
+              for (const auto &I : BB) {
+                if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+                  if (Alloc->getAllocatedType()->isArrayTy() &&
+                      Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                      Alloc->getAllocatedType()
+                          ->getArrayElementType()
+                          ->isStructTy() &&
+                      Alloc->getAllocatedType()
+                              ->getArrayElementType()
+                              ->getStructName() == "struct.__va_list_tag") {
+                    Res.insert(Alloc);
                   }
                 }
               }
-            } else {
-              assert(Idx < Formals.size() &&
-                     "Out of bound access to formal parameters!");
-              Res.insert(Formals[Idx]); // corresponding formal
             }
-          }
-        }
-        return Res;
-      } else {
-        // Handle ordinary case
-        // Map actual parameters to corresponding formal parameters.
-        for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-          if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
+          } else {
             assert(Idx < Formals.size() &&
                    "Out of bound access to formal parameters!");
             Res.insert(Formals[Idx]); // corresponding formal
           }
         }
-        return Res;
       }
+      return Res;
     } else {
-      // Pass ZeroValue as is
-      return {Source};
+      // Handle ordinary case
+      // Map actual parameters to corresponding formal parameters.
+      for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
+        if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
+          assert(Idx < Formals.size() &&
+                 "Out of bound access to formal parameters!");
+          Res.insert(Formals[Idx]); // corresponding formal
+        }
+      }
+      return Res;
     }
   }
-};
+}; // namespace psr
 
-/**
- * Predicates can be used to specify additional requirements for mapping
- * actual parameters into formal parameters and the return value.
- * @note Currently, the return value predicate only allows checks regarding
- * the callee method.
- * @brief Generates all valid actual parameters and the return value in the
- * caller context.
- */
+/// Predicates can be used to specify additional requirements for mapping
+/// actual parameters into formal parameters and the return value.
+/// \note Currently, the return value predicate only allows checks regarding
+/// the callee method.
+/// \brief Generates all valid actual parameters and the return value in the
+/// caller context.
 template <typename Container = std::set<const llvm::Value *>>
 class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
@@ -230,11 +229,12 @@ private:
   std::vector<const llvm::Value *> Formals;
   std::function<bool(const llvm::Value *)> ParamPredicate;
   std::function<bool(const llvm::Function *)> ReturnPredicate;
+  bool MapGlobalVars;
 
 public:
   MapFactsToCaller(
       llvm::ImmutableCallSite CS, const llvm::Function *CalleeFun,
-      const llvm::Instruction *ExitStmt,
+      const llvm::Instruction *ExitStmt, bool MapGlobalVars = true,
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
@@ -242,7 +242,8 @@ public:
       : CallSite(CS), CalleeFun(CalleeFun),
         ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
         ParamPredicate(std::move(ParamPredicate)),
-        ReturnPredicate(std::move(ReturnPredicate)) {
+        ReturnPredicate(std::move(ReturnPredicate)),
+        MapGlobalVars(MapGlobalVars) {
     assert(ExitStmt && "Should not be null");
     // Set up the actual parameters
     for (const auto &Actual : CallSite.args()) {
@@ -260,53 +261,56 @@ public:
   container_type computeTargets(const llvm::Value *Source) override {
     assert(!CalleeFun->isDeclaration() &&
            "Cannot perform mapping to caller for function declaration");
-    if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-      container_type Res;
-
-      // Handle C-style varargs functions
-      if (CalleeFun->isVarArg()) {
-        const llvm::Instruction *AllocVarArg;
-        // Find the allocation of %struct.__va_list_tag
-        for (const auto &BB : *CalleeFun) {
-          for (const auto &I : BB) {
-            if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-              if (Alloc->getAllocatedType()->isArrayTy() &&
-                  Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                  Alloc->getAllocatedType()
-                      ->getArrayElementType()
-                      ->isStructTy() &&
-                  Alloc->getAllocatedType()
-                          ->getArrayElementType()
-                          ->getStructName() == "struct.__va_list_tag") {
-                AllocVarArg = Alloc;
-                // TODO break out this nested loop earlier (without goto ;-)
-              }
+    // Pass ZeroValue as is
+    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+      return {Source};
+    }
+    // Pass global variables as is, if desired
+    if (MapGlobalVars && llvm::isa<llvm::GlobalVariable>(Source)) {
+      return {Source};
+    }
+    // Do the parameter mapping
+    container_type Res;
+    // Handle C-style varargs functions
+    if (CalleeFun->isVarArg()) {
+      const llvm::Instruction *AllocVarArg;
+      // Find the allocation of %struct.__va_list_tag
+      for (const auto &BB : *CalleeFun) {
+        for (const auto &I : BB) {
+          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+            if (Alloc->getAllocatedType()->isArrayTy() &&
+                Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                Alloc->getAllocatedType()
+                    ->getArrayElementType()
+                    ->isStructTy() &&
+                Alloc->getAllocatedType()
+                        ->getArrayElementType()
+                        ->getStructName() == "struct.__va_list_tag") {
+              AllocVarArg = Alloc;
+              // TODO break out this nested loop earlier (without goto ;-)
             }
           }
         }
-        // Generate the varargs things by using an over-approximation
-        if (Source == AllocVarArg) {
-          for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
-            Res.insert(Actuals[Idx]);
-          }
+      }
+      // Generate the varargs things by using an over-approximation
+      if (Source == AllocVarArg) {
+        for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
+          Res.insert(Actuals[Idx]);
         }
       }
-      // Handle ordinary case
-      // Map formal parameter into corresponding actual parameter.
-      for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
-        if (Source == Formals[Idx] && ParamPredicate(Formals[Idx])) {
-          Res.insert(Actuals[Idx]); // corresponding actual
-        }
-      }
-      // Collect return value facts
-      if (Source == ExitStmt->getReturnValue() && ReturnPredicate(CalleeFun)) {
-        Res.insert(CallSite.getInstruction());
-      }
-      return Res;
-    } else {
-      // Pass ZeroValue as is
-      return {Source};
     }
+    // Handle ordinary case
+    // Map formal parameter into corresponding actual parameter.
+    for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
+      if (Source == Formals[Idx] && ParamPredicate(Formals[Idx])) {
+        Res.insert(Actuals[Idx]); // corresponding actual
+      }
+    }
+    // Collect return value facts
+    if (Source == ExitStmt->getReturnValue() && ReturnPredicate(CalleeFun)) {
+      Res.insert(CallSite.getInstruction());
+    }
+    return Res;
   }
 };
 

@@ -11,8 +11,8 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
 
 #include <functional>
+#include <initializer_list>
 #include <iostream>
-#include <llvm/IR/Constant.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -23,8 +23,10 @@
 #include <variant>
 #include <vector>
 
+#include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
@@ -103,7 +105,8 @@ public:
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
 
-  using EdgeFactGeneratorTy = std::set<e_t>(n_t curr);
+  using EdgeFactGeneratorTy =
+      std::set<e_t>(std::variant<n_t, const llvm::GlobalVariable *> curr);
 
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
                               const LLVMTypeHierarchy *TH,
@@ -120,10 +123,9 @@ public:
 
   ~IDEInstInteractionAnalysisT() override = default;
 
-  // Offer a special hook to the user that allows to generate additional
-  // edge facts on-the-fly. Above the generator function, the ordinary
-  // edge facts are generated according to the usual edge functions.
-
+  /// Offer a special hook to the user that allows to generate additional
+  /// edge facts on-the-fly. Above the generator function, the ordinary
+  /// edge facts are generated according to the usual edge functions.
   inline void registerEdgeFactGenerator(
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator) {
     edgeFactGen = std::move(EdgeFactGenerator);
@@ -132,6 +134,40 @@ public:
   // start formulating our analysis by specifying the parts required for IFDS
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
+    // Generate all global variables and handle the instruction that we
+    // currently misuse to generate them.
+    // TODO The handling of global variables, global constructors and global
+    // destructors will soon be possible using a dedicated mechanism.
+    //
+    // Flow function:
+    //
+    // Let G be the set of global variables.
+    //
+    //                    0
+    //                    |\
+    // some instruction   | \--\
+    //                    v  v  v
+    //                    0  x  G
+    //
+    static auto Seeds = this->initialSeeds();
+    static bool initGlobals = true;
+    if (initGlobals && Seeds.count(curr)) {
+      initGlobals = false;
+      std::set<d_t> Globals;
+      for (const auto *Mod : this->IRDB->getAllModules()) {
+        for (const auto &Global : Mod->globals()) {
+          Globals.insert(&Global); // collect all global variables
+        }
+      }
+      // Create the flow function that generates the globals.
+      auto GlobalFlowFun =
+          std::make_shared<GenAll<d_t>>(Globals, this->getZeroValue());
+      // Create the flow function for the instruction we are currently misusing.
+      auto FlowFun = getNormalFlowFunction(curr, succ);
+      return std::make_shared<Union<d_t>>(
+          std::vector<FlowFunctionPtrType>({FlowFun, GlobalFlowFun}));
+    }
+
     // Generate all local variables
     //
     // Flow function:
@@ -177,8 +213,8 @@ public:
             Facts.insert(src);
             if (src == Br->getCondition()) {
               Facts.insert(Br);
-              for (auto Succs : Br->successors()) {
-                for (auto &Inst : Succs->instructionsWithoutDebug()) {
+              for (const auto *Succs : Br->successors()) {
+                for (const auto &Inst : Succs->instructionsWithoutDebug()) {
                   Facts.insert(&Inst);
                 }
               }
@@ -224,6 +260,10 @@ public:
             container_type Facts;
             Facts.insert(src);
             if (PTS->count(src)) {
+              Facts.insert(Load);
+            }
+            // Handle global variables which behave a bit special.
+            if (PTS->empty() && src == Load->getPointerOperand()) {
               Facts.insert(Load);
             }
             return Facts;
@@ -548,6 +588,39 @@ public:
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
     }
+    // TODO use new mechanism to handle globals.
+    //
+    // Zero --> Global edges
+    //
+    // Edge function:
+    //
+    // Let g be a global variable.
+    //
+    //                0
+    //                 \
+    // %a = alloca      \ \x.x \cup { commit of('@global') }
+    //                   v
+    //                   g
+    //
+    static auto Seeds = this->initialSeeds();
+    static auto Globals = [this]() {
+      std::set<d_t> Globals;
+      for (const auto *Mod : this->IRDB->getAllModules()) {
+        for (const auto &G : Mod->globals()) {
+          Globals.insert(&G);
+        }
+      }
+      return Globals;
+    }();
+    if (Seeds.count(curr) && isZeroValue(currNode) && Globals.count(succNode)) {
+      if (const auto *GlobalVarDef =
+              llvm::dyn_cast<llvm::GlobalVariable>(succNode)) {
+        EdgeFacts = edgeFactGen(GlobalVarDef);
+        // fill BitVectorSet
+        UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      }
+    }
     //
     // i --> i
     //
@@ -669,7 +742,6 @@ public:
             currNode == succNode &&
             (PointerPTS->count(currNode) ||
              Store->getPointerOperand() == currNode)) {
-          std::cout << "LITERAL OVERRIDE\n";
           return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
         }
         // Overriding edge: obtain labels from value to be stored (and may add
