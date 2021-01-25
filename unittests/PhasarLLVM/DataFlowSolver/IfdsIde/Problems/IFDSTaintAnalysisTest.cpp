@@ -259,6 +259,16 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_11) {
   compareResults(GroundTruth);
 }
 
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_12) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_12_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[62] = set<string>{"61"};
+  compareResults(GroundTruth);
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

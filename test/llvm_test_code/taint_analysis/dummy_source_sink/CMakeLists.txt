@@ -15,6 +15,7 @@ set(taint_tests
   taint_exception_09.cpp
   taint_exception_10.cpp
   taint_exception_11.cpp
+  taint_exception_12.cpp
 )
 
 set(taint_tests_mem2reg
