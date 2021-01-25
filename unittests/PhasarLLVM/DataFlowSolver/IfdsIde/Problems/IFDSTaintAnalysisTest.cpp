@@ -245,7 +245,17 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[35] = set<string>{"34"};
+  GroundTruth[33] = set<string>{"32"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_11) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_11_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[64] = set<string>{"63"};
   compareResults(GroundTruth);
 }
 

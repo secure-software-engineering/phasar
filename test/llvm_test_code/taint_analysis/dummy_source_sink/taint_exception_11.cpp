@@ -11,8 +11,9 @@ int main() {
   try {
     S *s = new S(0);
     try {
-      data = source();
+      S *s = new S(0);
     } catch (...) {
+      data = source();
     }
   } catch (...) {
   }
