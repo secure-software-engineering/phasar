@@ -300,8 +300,9 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
     // information only
     const auto *VFun = retrieveFunction(V);
     const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
-    // VFun and VG are mutally exclusive
-    assert(VFun != VG && "VFun and VG must be mutally exclusive!");
+    // We may not be able to retrieve a function for the given value since some
+    // pointer values can exist outside functions, for instance, in case of
+    // vtables, etc.
     for (const auto *P : *PTS) {
       if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
         // only add function local allocation sites
