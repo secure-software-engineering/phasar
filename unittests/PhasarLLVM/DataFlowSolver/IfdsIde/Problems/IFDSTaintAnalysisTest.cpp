@@ -204,7 +204,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[35] = set<string>{"34"};
+  GroundTruth[15] = set<string>{"14"};
   compareResults(GroundTruth);
 }
 
@@ -214,7 +214,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[15] = set<string>{"14"};
+  GroundTruth[31] = set<string>{"30"};
   compareResults(GroundTruth);
 }
 
@@ -224,7 +224,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[31] = set<string>{"30"};
+  GroundTruth[33] = set<string>{"32"};
   compareResults(GroundTruth);
 }
 
@@ -234,34 +234,13 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[15] = set<string>{"14"};
-  GroundTruth[33] = set<string>{"32"};
+  GroundTruth[64] = set<string>{"63"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
-  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
-  TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[33] = set<string>{"32"};
-  compareResults(GroundTruth);
-}
-
-TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_11) {
-  initialize(
-      {PathToLlFiles + "dummy_source_sink/taint_exception_11_cpp_dbg.ll"});
-  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
-  TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[64] = set<string>{"63"};
-  compareResults(GroundTruth);
-}
-
-TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_12) {
-  initialize(
-      {PathToLlFiles + "dummy_source_sink/taint_exception_12_cpp_dbg.ll"});
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;

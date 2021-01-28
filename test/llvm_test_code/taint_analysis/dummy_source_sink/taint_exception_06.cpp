@@ -7,13 +7,11 @@ struct S {
 };
 
 int main() {
-  int data;
+  int data = source();
   try {
     S *s = new S(0);
-    data = source();
+    sink(data);
   } catch (...) {
-    data = source();
   }
-  sink(data);
   return 0;
 }

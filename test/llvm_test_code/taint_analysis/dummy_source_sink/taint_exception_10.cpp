@@ -10,12 +10,13 @@ int main() {
   int data;
   try {
     S *s = new S(0);
-    try {
-      data = source();
-    } catch (...) {
-    }
   } catch (...) {
+    data = source();
   }
-  sink(data);
+  try {
+    S *s = new S(0);
+  } catch (...) {
+    sink(data);
+  }
   return 0;
 }
