@@ -2,8 +2,8 @@ extern int source();
 extern void sink(int data);
 
 struct S {
-    int data;
-    S(int data) : data(data) {}
+  int data;
+  S(int data) : data(data) {}
 };
 
 int main() {
