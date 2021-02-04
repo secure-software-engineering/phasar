@@ -10,18 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_H
 #define PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/Utils/LLVMShorthands.h"
-
-#include "llvm/IR/CallSite.h"
-#include "llvm/IR/Instructions.h"
-
 #include <functional>
-#include <llvm/IR/GlobalVariable.h>
 #include <memory>
 #include <set>
 #include <vector>
+
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Instructions.h"
+
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace llvm {
 class Value;
@@ -71,15 +71,16 @@ class MapFactsAlongsideCallSite
 
 protected:
   llvm::ImmutableCallSite CallSite;
+  bool PropagateGlobals;
   std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)> Predicate;
 
 public:
   MapFactsAlongsideCallSite(
-      llvm::ImmutableCallSite CallSite,
+      llvm::ImmutableCallSite CallSite, bool PropagateGlobals,
       std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)>
           Predicate =
               [](llvm::ImmutableCallSite CS, const llvm::Value *V) {
-                // Checks if a values is involved in a call, i.e. may be
+                // Checks if a values is involved in a call, i.e., may be
                 // modified by a callee, in which case its flow is controlled by
                 // getCallFlowFunction() and getRetFlowFunction().
                 bool Involved = false;
@@ -90,24 +91,25 @@ public:
                 }
                 return Involved;
               })
-      : CallSite(CallSite), Predicate(std::move(Predicate)){};
+      : CallSite(CallSite), PropagateGlobals(PropagateGlobals),
+        Predicate(std::move(Predicate)){};
   virtual ~MapFactsAlongsideCallSite() = default;
 
   container_type computeTargets(const llvm::Value *Source) override {
-    // always propagate the zero fact
-    if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-      return {Source};
-    }
-    // propagate if predicate does not hold, i.e. fact is not involved in the
-    // call
-    if (!Predicate(CallSite, Source)) {
-      return {Source};
-    }
     // Pass ZeroValue as is
     if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
       return {Source};
     }
-    // otherwise kill fact
+    // Pass global variables as is, if desired
+    if (PropagateGlobals && llvm::isa<llvm::GlobalVariable>(Source)) {
+      return {Source};
+    }
+    // Propagate if predicate does not hold, i.e., fact is not involved in the
+    // call
+    if (!Predicate(CallSite, Source)) {
+      return {Source};
+    }
+    // Otherwise kill fact
     return {};
   }
 };
@@ -121,19 +123,19 @@ class MapFactsToCallee : public FlowFunction<const llvm::Value *, Container> {
 
 protected:
   const llvm::Function *DestFun;
+  bool PropagateGlobals;
   std::vector<const llvm::Value *> Actuals{};
   std::vector<const llvm::Value *> Formals{};
   std::function<bool(const llvm::Value *)> Predicate;
-  bool MapGlobalVars;
 
 public:
   MapFactsToCallee(
       llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
-      bool MapGlobalVars = true,
+      bool PropagateGlobals = true,
       std::function<bool(const llvm::Value *)> Predicate =
           [](const llvm::Value *) { return true; })
-      : DestFun(DestFun), Predicate(std::move(Predicate)),
-        MapGlobalVars(MapGlobalVars) {
+      : DestFun(DestFun), PropagateGlobals(PropagateGlobals),
+        Predicate(std::move(Predicate)) {
     // Set up the actual parameters
     for (const auto &Actual : CallSite.args()) {
       Actuals.push_back(Actual);
@@ -157,7 +159,7 @@ public:
       return {Source};
     }
     // Pass global variables as is, if desired
-    if (MapGlobalVars && llvm::isa<llvm::GlobalVariable>(Source)) {
+    if (PropagateGlobals && llvm::isa<llvm::GlobalVariable>(Source)) {
       return {Source};
     }
     // Do the parameter mapping
@@ -225,25 +227,25 @@ private:
   llvm::ImmutableCallSite CallSite;
   const llvm::Function *CalleeFun;
   const llvm::ReturnInst *ExitStmt;
+  bool PropagateGlobals;
   std::vector<const llvm::Value *> Actuals;
   std::vector<const llvm::Value *> Formals;
   std::function<bool(const llvm::Value *)> ParamPredicate;
   std::function<bool(const llvm::Function *)> ReturnPredicate;
-  bool MapGlobalVars;
 
 public:
   MapFactsToCaller(
       llvm::ImmutableCallSite CS, const llvm::Function *CalleeFun,
-      const llvm::Instruction *ExitStmt, bool MapGlobalVars = true,
+      const llvm::Instruction *ExitStmt, bool PropagateGlobals = true,
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
           [](const llvm::Function *) { return true; })
       : CallSite(CS), CalleeFun(CalleeFun),
         ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
+        PropagateGlobals(PropagateGlobals),
         ParamPredicate(std::move(ParamPredicate)),
-        ReturnPredicate(std::move(ReturnPredicate)),
-        MapGlobalVars(MapGlobalVars) {
+        ReturnPredicate(std::move(ReturnPredicate)) {
     assert(ExitStmt && "Should not be null");
     // Set up the actual parameters
     for (const auto &Actual : CallSite.args()) {
@@ -266,7 +268,7 @@ public:
       return {Source};
     }
     // Pass global variables as is, if desired
-    if (MapGlobalVars && llvm::isa<llvm::GlobalVariable>(Source)) {
+    if (PropagateGlobals && llvm::isa<llvm::GlobalVariable>(Source)) {
       return {Source};
     }
     // Do the parameter mapping

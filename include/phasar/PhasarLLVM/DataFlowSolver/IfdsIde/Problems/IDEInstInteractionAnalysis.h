@@ -68,6 +68,10 @@ getAllocaInstruction(const llvm::GetElementPtrInst *GEP) {
 
 } // namespace
 
+namespace vara {
+class Taint;
+} // namespace vara
+
 namespace psr {
 
 template <typename EdgeFactType>
@@ -241,8 +245,8 @@ public:
         // Let Y = pts(y), be the points-to set of y.
         //
         //              0  Y  x
-        //              |  |\ |
-        // x = load y   |  | \|
+        //              |  |\
+        // x = load y   |  | \
         //              v  v  v
         //              0  Y  x
         //
@@ -334,6 +338,19 @@ public:
 
     // (i) Handle syntactic propagation
 
+    // Handle load instruction
+    //
+    // Flow function:
+    //
+    //              0  y  x
+    //              |  |\
+    // x = load y   |  | \
+    //              v  v  v
+    //              0  y  x
+    //
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+      return std::make_shared<Gen<d_t>>(Load, Load->getPointerOperand());
+    }
     // Handle store instructions
     //
     // Flow function:
@@ -405,8 +422,7 @@ public:
         return std::make_shared<IIAAFlowFunction>(Store);
       }
     }
-    // At last, we can handle all other (unary/binary) instructions (including
-    // load instructions)
+    // At last, we can handle all other (unary/binary) instructions.
     //
     // Flow function:
     //
@@ -473,7 +489,8 @@ public:
     }
     // Map actual to formal parameters.
     return std::make_shared<MapFactsToCallee<container_type>>(
-        llvm::ImmutableCallSite(callStmt), destMthd);
+        llvm::ImmutableCallSite(callStmt), destMthd,
+        true /* map globals to callee, too */);
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
@@ -482,7 +499,8 @@ public:
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
     return std::make_shared<MapFactsToCaller<container_type>>(
-        llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt);
+        llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
+        true /* map globals back to caller, too */);
   }
 
   inline FlowFunctionPtrType
@@ -510,10 +528,12 @@ public:
         }
       }
     }
-    // Just use the auto mapping for values, pointer parameters are killed and
-    // handled by getCallFlowfunction() and getRetFlowFunction().
+    // Just use the auto mapping for values, pointer parameters and global
+    // variables are killed and handled by getCallFlowfunction() and
+    // getRetFlowFunction().
     return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        llvm::ImmutableCallSite(callSite));
+        llvm::ImmutableCallSite(callSite),
+        false /* do not propagate globals */);
   }
 
   inline FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
@@ -622,7 +642,7 @@ public:
       }
     }
     //
-    // i --> i
+    // i --> i edges
     //
     // Edge function:
     //
@@ -638,10 +658,37 @@ public:
     // Handle loads in non-syntax only analysis
     if constexpr (!SyntacticAnalysisOnly) {
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+        //
+        // y --> x
+        //
+        // Edge function:
+        //
+        //             y
+        //              \
+        // x = load y    \ \x.{ commit of('x = load y') } \cup { commits of y }
+        //                v
+        //                x
+        //
         auto LoadPTS = this->PT->getReachableAllocationSites(
             Load->getPointerOperand(), OnlyConsiderLocalAliases);
-        if (LoadPTS->count(currNode) && Load == succNode) {
+        if ((currNode == Load->getPointerOperand() ||
+             LoadPTS->count(currNode)) &&
+            Load == succNode) {
           IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        } else {
+          //
+          // y --> y
+          //
+          // Edge function:
+          //
+          //             y
+          //             |
+          // x = load y  | \x.x (loads do not modify the value that is loaded
+          // from)
+          //             v
+          //             y
+          //
+          return EdgeIdentity<l_t>::getInstance();
         }
       }
     }
@@ -734,7 +781,7 @@ public:
         //
         //               y
         //               |
-        // store x y     | \x.{}
+        // store x y     | \x.{} \cup { commit of('store x y') }
         //               v
         //               y
         //
@@ -742,7 +789,7 @@ public:
             currNode == succNode &&
             (PointerPTS->count(currNode) ||
              Store->getPointerOperand() == currNode)) {
-          return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
+          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
         // Overriding edge: obtain labels from value to be stored (and may add
         // UserEdgeFacts, if any).
@@ -1086,7 +1133,6 @@ public:
 
     [[nodiscard]] bool
     equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-      // std::cout << "IIAAAddLabelsEF::equal_to\n";
       if (auto *I = dynamic_cast<IIAAAddLabelsEF *>(other.get())) {
         return (I->Data == this->Data);
       }
@@ -1174,8 +1220,18 @@ protected:
     } else {
       auto lset = std::get<BitVectorSet<e_t>>(l);
       os << "(set size: " << lset.size() << ") values: ";
-      for (const auto &s : lset) {
-        os << s << ", ";
+      if constexpr (std::is_same_v<e_t, vara::Taint *>) {
+        for (const auto &s : lset) {
+          std::string IRBuffer;
+          llvm::raw_string_ostream RSO(IRBuffer);
+          s->print(RSO);
+          RSO.flush();
+          os << IRBuffer << ", ";
+        }
+      } else {
+        for (const auto &s : lset) {
+          os << s << ", ";
+        }
       }
     }
   }
