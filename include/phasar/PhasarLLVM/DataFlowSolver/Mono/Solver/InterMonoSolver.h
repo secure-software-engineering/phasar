@@ -355,21 +355,17 @@ public:
          SummaryAnalysis[Edge.first];
        }
 
-       if(!ControlFlowEdges.empty()) {
-         SummaryAnalysis[ControlFlowEdges.back().second];
-       }
-
        while (!SummaryWorklist.empty()) {  
          auto Edge = SummaryWorklist.front();
          auto Src = Edge.first;
          auto Dst = Edge.second;
          if(ICF->isExitStmt(Src)){
-          //  auto RetFactsAtCallee = IMProblem.returnFlow(Src, ICF->getFunctionOf(Src), Src, Dst, SummaryAnalysis[Src][CallStringCTX<n_t, K>()]);
-          //   for(auto RetFactsAtCallee : SummaryAnalysis[Src]){
-          //     ResultSummary.insert(RetFactsAtCallee.begin(), RetFactsAtCallee.end()); // TODO: should fix this line
-          //   }
+           for(auto &[Ctx, ReturnFacts]: SummaryAnalysis[Src]){
+             ResultSummary.insert(ReturnFacts.begin(), ReturnFacts.end());
+           }
          }
        }
+     
      return ResultSummary;
    }
 
@@ -409,6 +405,7 @@ public:
           for (auto &[Ctx, Facts] : Analysis[Src]) {
             if(isSensibleToSummarize(Edge)){
               mono_container_t summary =  summarize(ICF->getFunctionOf(Dst),Facts);
+
               // addSummary(summary);
             }else{
               processCall(Edge); // TODO: decompose into processCall and
