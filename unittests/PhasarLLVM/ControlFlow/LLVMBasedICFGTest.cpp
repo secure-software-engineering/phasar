@@ -254,6 +254,27 @@ TEST(LLVMBasedICFGTest, StaticCallSite_8) {
   ASSERT_TRUE(ICFG.isStartPoint(I));
 }
 
+TEST(LLVMBasedICFGTest, GlobalCtorDtor_1) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/global_ctor_dtor_1_cpp.ll"},
+      IRDBOptions::WPA);
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH);
+  const llvm::Function *Main = IRDB.getFunctionDefinition("main");
+  const llvm::Function *BeforeMain = IRDB.getFunctionDefinition("before_main");
+  ASSERT_TRUE(Main);
+  ASSERT_TRUE(BeforeMain);
+  // // iterate all instructions
+  // for (const auto &BB : *F) {
+  //   for (const auto &I : BB) {
+  //     // inspect call-sites
+  //     if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
+  //       ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I));
+  //     }
+  //   }
+  // }
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
