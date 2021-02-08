@@ -138,7 +138,7 @@ public:
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
                 LLVMTypeHierarchy *TH = nullptr, LLVMPointsToInfo *PT = nullptr,
-                Soundness S = Soundness::SOUNDY);
+                Soundness S = Soundness::SOUNDY, bool IncludeGlobals = false);
 
   LLVMBasedICFG(const LLVMBasedICFG &);
 
