@@ -85,6 +85,9 @@ std::vector<const llvm::Function *>
 getGlobalCtorsDtorsImpl(const llvm::Module *M, llvm::StringRef Fun) {
   std::vector<const llvm::Function *> Result;
   const auto *Gtors = M->getGlobalVariable(Fun);
+  if (Gtors == nullptr) {
+    return Result;
+  }
   if (const auto *FunArray = llvm::dyn_cast<llvm::ArrayType>(
           Gtors->getType()->getPointerElementType())) {
     if (const auto *ConstFunArray =
@@ -162,12 +165,23 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
+  if (IncludeGlobals) {
+    for (const auto &GlobalDtor : getGlobalDtors()) {
+      FunctionWL.push(GlobalDtor);
+    }
+  }
   for (const auto &EntryPoint : EntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
       llvm::report_fatal_error("Could not retrieve function for entry point");
     }
     FunctionWL.push(F);
+  }
+  if (IncludeGlobals) {
+    for (const auto &GlobalCtor : getGlobalCtors()) {
+      FunctionWL.push(GlobalCtor);
+      // TODO: find registered destructors
+    }
   }
   bool FixpointReached;
   do {
