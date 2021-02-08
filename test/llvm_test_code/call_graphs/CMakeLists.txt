@@ -27,6 +27,9 @@ set(NoMem2regSources
 	virtual_call_7.cpp
 	virtual_call_8.cpp
 	virtual_call_9.cpp
+	global_ctor_dtor_1.cpp
+	global_ctor_dtor_2.cpp
+	global_ctor_dtor_3.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})
