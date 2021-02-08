@@ -1,7 +1,7 @@
 struct S {
-    int data;
-    S(int data) : data(data) {}
-    ~S() {}
+  int data;
+  S(int data) : data(data) {}
+  ~S() {}
 };
 
 S s(0);
@@ -11,5 +11,4 @@ S s(0);
 // __cxx_global_var_init calls S::S(int) and cxa_atexit(S::~S(), ...)
 // the call to cxa_atexit registers S::~S() to be called after main
 
-int main() {
-}
+int main() {}
