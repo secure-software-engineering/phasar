@@ -165,7 +165,39 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
+
   if (IncludeGlobals) {
+    std::vector<llvm::Function *> InitializerFunctions;
+
+    for (const auto &GlobalCtor : getGlobalCtors()) {
+      if (GlobalCtor->getName().startswith("_GLOBAL__sub_I_")) {
+        for (const auto &BB : *GlobalCtor) {
+          for (const auto &I : BB) {
+            if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
+              InitializerFunctions.push_back(Call->getCalledFunction());
+            }
+          }
+        }
+      }
+    }
+
+    // push all registered destructors to function worklist
+    for (const auto &F : InitializerFunctions) {
+      for (const auto &BB : *F) {
+        for (const auto &I : BB) {
+          if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
+            llvm::ImmutableCallSite CS(Call);
+            if (CS.getCalledFunction()->getName() == "__cxa_atexit") {
+              const llvm::Function *Dtor = llvm::cast<llvm::Function>(
+                  llvm::cast<llvm::User>(CS.getArgOperand(0))->getOperand(0));
+              FunctionWL.push(Dtor);
+            }
+          }
+        }
+      }
+    }
+
+    // all other destructors
     for (const auto &GlobalDtor : getGlobalDtors()) {
       FunctionWL.push(GlobalDtor);
     }
@@ -180,7 +212,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   if (IncludeGlobals) {
     for (const auto &GlobalCtor : getGlobalCtors()) {
       FunctionWL.push(GlobalCtor);
-      // TODO: find registered destructors
     }
   }
   bool FixpointReached;
