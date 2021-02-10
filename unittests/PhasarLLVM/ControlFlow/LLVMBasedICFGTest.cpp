@@ -332,7 +332,7 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_4) {
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Ctor = IRDB.getFunctionDefinition("_ZN1SC2Ei");
   const llvm::Function *Dtor = IRDB.getFunctionDefinition("_ZN1SD2Ev");
-    const llvm::Function *BeforeMain =
+  const llvm::Function *BeforeMain =
       IRDB.getFunctionDefinition("_Z11before_mainv");
   const llvm::Function *AfterMain =
       IRDB.getFunctionDefinition("_Z10after_mainv");
@@ -352,7 +352,6 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_4) {
   ASSERT_TRUE(VertFuns.find(BeforeMain) != boost::end(VertFuns));
   ASSERT_TRUE(VertFuns.find(AfterMain) != boost::end(VertFuns));
 }
-
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
