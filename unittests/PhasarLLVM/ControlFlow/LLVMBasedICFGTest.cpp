@@ -322,6 +322,38 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_3) {
   ASSERT_TRUE(VertFuns.find(Dtor) != boost::end(VertFuns));
 }
 
+TEST(LLVMBasedICFGTest, GlobalCtorDtor_4) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/global_ctor_dtor_4_cpp.ll"},
+      IRDBOptions::WPA);
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, nullptr,
+                     Soundness::SOUNDY, true);
+  const llvm::Function *Main = IRDB.getFunctionDefinition("main");
+  const llvm::Function *Ctor = IRDB.getFunctionDefinition("_ZN1SC2Ei");
+  const llvm::Function *Dtor = IRDB.getFunctionDefinition("_ZN1SD2Ev");
+    const llvm::Function *BeforeMain =
+      IRDB.getFunctionDefinition("_Z11before_mainv");
+  const llvm::Function *AfterMain =
+      IRDB.getFunctionDefinition("_Z10after_mainv");
+
+  ASSERT_TRUE(Main);
+  ASSERT_TRUE(Ctor);
+  ASSERT_TRUE(Dtor);
+  ASSERT_TRUE(BeforeMain);
+  ASSERT_TRUE(AfterMain);
+
+  boost::container::flat_set<const llvm::Function *> VertFuns =
+      ICFG.getAllVertexFunctions();
+
+  ASSERT_TRUE(VertFuns.find(Ctor) != boost::end(VertFuns));
+  ASSERT_TRUE(VertFuns.find(Dtor) != boost::end(VertFuns));
+  ASSERT_TRUE(VertFuns.find(Main) != boost::end(VertFuns));
+  ASSERT_TRUE(VertFuns.find(BeforeMain) != boost::end(VertFuns));
+  ASSERT_TRUE(VertFuns.find(AfterMain) != boost::end(VertFuns));
+}
+
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

@@ -30,6 +30,7 @@ set(NoMem2regSources
 	global_ctor_dtor_1.cpp
 	global_ctor_dtor_2.cpp
 	global_ctor_dtor_3.cpp
+	global_ctor_dtor_4.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})
