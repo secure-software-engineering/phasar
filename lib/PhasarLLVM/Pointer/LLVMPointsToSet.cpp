@@ -43,6 +43,9 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     for (const auto &G : M->globals()) {
       computeValuesPointsToSet(&G);
     }
+    for (const auto &F : M->functions()) {
+      computeValuesPointsToSet(&F);
+    }
     if (!UseLazyEvaluation) {
       // compute points-to information for all functions
       for (auto &F : *M) {
@@ -73,7 +76,7 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
         if (Inst->getParent()) {
           computeFunctionsPointsToSet(
               const_cast<llvm::Function *>(Inst->getFunction()));
-          if (isInterestingPointer(User)) {
+          if (!llvm::isa<llvm::Function>(G) && isInterestingPointer(User)) {
             mergePointsToSets(User, G);
           } else if (const auto *Store =
                          llvm::dyn_cast<llvm::StoreInst>(User)) {
@@ -177,6 +180,28 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     }
     if (EvalAAMD && llvm::isa<llvm::StoreInst>(&*I)) {
       Stores.insert(&*I);
+      auto *Store = llvm::cast<llvm::StoreInst>(&*I);
+      auto *SVO = Store->getValueOperand();
+      auto *SPO = Store->getPointerOperand();
+      if (SVO->getType()->isPointerTy()) {
+        if (llvm::isa<llvm::Function>(SVO)) {
+          addSingletonPointsToSet(SVO);
+          addSingletonPointsToSet(SPO);
+          mergePointsToSets(SVO, SPO);
+        }
+        if (auto *SVOCE = llvm::dyn_cast<llvm::ConstantExpr>(SVO)) {
+          auto *AsI = SVOCE->getAsInstruction();
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+            auto *RHS = BC->getOperand(0);
+            addSingletonPointsToSet(RHS);
+            addSingletonPointsToSet(SVOCE);
+            addSingletonPointsToSet(SPO);
+            mergePointsToSets(RHS, SPO);
+            mergePointsToSets(SVOCE, SPO);
+          }
+          AsI->deleteValue();
+        }
+      }
     }
     llvm::Instruction &Inst = *I;
     if (auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
