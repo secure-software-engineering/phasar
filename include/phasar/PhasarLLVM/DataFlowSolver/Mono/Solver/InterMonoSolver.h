@@ -371,22 +371,21 @@ public:
 
  
 
-  bool isSensibleToSummarize(std::pair<n_t, n_t> Edge) {
+  bool isSensibleToSummarize(n_t functionNode) {
     // use a heuristic to check whether we should compute a summary
     // make use of the call-graph information
-    auto res = true;
-    for (auto Callee : ICF->getCalleesOfCallAt(Edge.first)){
-    for(auto &[Src,Dst] : ICF->getAllControlFlowEdges(Callee)) {
-      if(ICF->isCallStmt(Src)){
-       res = false;
-       break;
-      }
+    auto isSensible = true;
+    if(ICF->isCallStmt(functionNode)){ // checks if the functionNode is CallStmt
+    for(auto &[Src, Dst] : ICF->getAllControlFlowEdges(ICF->getFunctionOf(functionNode))){ //iterates through the control flow edges of interprocedural function present in functionNode
+    if(ICF->isCallStmt(Src)){ //checks for presence of callstmt in the interprocedural function
+    isSensible = false; //presence of call statement identifies that the interprocedural function is not a leaf node in call graph and hence not sensible to summarize
+    break;
     }
     }
-    return res;
+    }
+    return isSensible; 
   }
   
-
   virtual void solve() {
     initialize();
     while (!Worklist.empty()) {
@@ -403,7 +402,7 @@ public:
         if (!isIntraEdge(Edge)) {
           // real call
           for (auto &[Ctx, Facts] : Analysis[Src]) {
-            if(isSensibleToSummarize(Edge)){
+            if(isSensibleToSummarize(Src)){
               mono_container_t summary =  summarize(ICF->getFunctionOf(Dst),Facts);
 
               // addSummary(summary);
