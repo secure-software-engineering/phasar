@@ -233,6 +233,10 @@ public:
   [[nodiscard]] std::vector<const llvm::Function *>
   getGlobalDtors() const override;
 
+  std::vector<const llvm::Function *> getGlobalInitializers() const;
+
+  std::vector<const llvm::Function *> getRegisteredDtors() const;
+
   [[nodiscard]] std::set<const llvm::Instruction *>
   allNonCallStartNodes() const override;
 

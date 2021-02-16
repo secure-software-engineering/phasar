@@ -167,41 +167,16 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
 
   if (IncludeGlobals) {
-    std::vector<llvm::Function *> InitializerFunctions;
-
-    for (const auto &GlobalCtor : getGlobalCtors()) {
-      if (GlobalCtor->getName().startswith("_GLOBAL__sub_I_")) {
-        for (const auto &BB : *GlobalCtor) {
-          for (const auto &I : BB) {
-            if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
-              InitializerFunctions.push_back(Call->getCalledFunction());
-            }
-          }
-        }
-      }
+    // push registered destructors to function worklist
+    for (const auto &RegisteredDtor : getRegisteredDtors()) {
+      FunctionWL.push(RegisteredDtor);
     }
-
-    // push all registered destructors to function worklist
-    for (const auto &F : InitializerFunctions) {
-      for (const auto &BB : *F) {
-        for (const auto &I : BB) {
-          if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
-            llvm::ImmutableCallSite CS(Call);
-            if (CS.getCalledFunction()->getName() == "__cxa_atexit") {
-              const llvm::Function *Dtor = llvm::cast<llvm::Function>(
-                  llvm::cast<llvm::User>(CS.getArgOperand(0))->getOperand(0));
-              FunctionWL.push(Dtor);
-            }
-          }
-        }
-      }
-    }
-
-    // all other destructors
+    // push global destructors to function worklist
     for (const auto &GlobalDtor : getGlobalDtors()) {
       FunctionWL.push(GlobalDtor);
     }
   }
+
   for (const auto &EntryPoint : EntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
@@ -209,11 +184,14 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     }
     FunctionWL.push(F);
   }
+
   if (IncludeGlobals) {
+    // push global constructors to function worklist
     for (const auto &GlobalCtor : getGlobalCtors()) {
       FunctionWL.push(GlobalCtor);
     }
   }
+
   bool FixpointReached;
   do {
     FixpointReached = true;
@@ -651,6 +629,46 @@ std::vector<const llvm::Function *> LLVMBasedICFG::getGlobalDtors() const {
   for (const auto *Module : IRDB.getAllModules()) {
     auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_dtors");
     Result.insert(Result.begin(), Part.begin(), Part.end());
+  }
+  return Result;
+}
+
+std::vector<const llvm::Function *>
+LLVMBasedICFG::getGlobalInitializers() const {
+  // get all functions used to initialize global variables
+  std::vector<const llvm::Function *> Result;
+  for (const auto &GlobalCtor : getGlobalCtors()) {
+    if (GlobalCtor->getName().startswith("_GLOBAL__sub_I_")) {
+      for (const auto &BB : *GlobalCtor) {
+        for (const auto &I : BB) {
+          if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
+            Result.push_back(Call->getCalledFunction());
+          }
+        }
+      }
+    }
+  }
+  return Result;
+}
+
+std::vector<const llvm::Function *> LLVMBasedICFG::getRegisteredDtors() const {
+  // get all destructors that are registered with __cxa_atexit
+  std::vector<const llvm::Function *> Result;
+  for (const auto &F : getGlobalInitializers()) {
+    for (const auto &BB : *F) {
+      for (const auto &I : BB) {
+        if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
+          llvm::ImmutableCallSite CS(Call);
+          if (CS.getCalledFunction()->getName() == "__cxa_atexit") {
+            // dtor is operand in call to __cxa_atexit
+            const llvm::Function *Dtor = llvm::cast<llvm::Function>(
+                llvm::cast<llvm::BitCastInst>(CS.getArgOperand(0))
+                    ->getOperand(0));
+            Result.push_back(Dtor);
+          }
+        }
+      }
+    }
   }
   return Result;
 }
