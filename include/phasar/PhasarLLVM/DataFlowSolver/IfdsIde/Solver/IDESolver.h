@@ -632,37 +632,37 @@ protected:
           }
         }
       }
-      // line 17-19 of Naeem/Lhotak/Rodriguez
-      // process intra-procedural flows along call-to-return flow functions
-      for (n_t returnSiteN : returnSiteNs) {
-        FlowFunctionPtrType callToReturnFlowFunction =
-            cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
-                                                             callees);
-        INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        container_type returnFacts =
-            computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
-        ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
-                         PAMM_SEVERITY_LEVEL::Full);
-        saveEdges(n, returnSiteN, d2, returnFacts, false);
-        for (d_t d3 : returnFacts) {
-          EdgeFunctionPtrType edgeFnE =
-              cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
-                  n, d2, returnSiteN, d3, callees);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Queried Call-to-Return Edge Function: "
-                        << edgeFnE->str());
-          if (SolverConfig.emitESG()) {
-            intermediateEdgeFunctions[std::make_tuple(n, d2, returnSiteN, d3)]
-                .push_back(edgeFnE);
-          }
-          INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          auto fPrime = f->composeWith(edgeFnE);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                            << "Compose: " << edgeFnE->str() << " * "
-                            << f->str() << " = " << fPrime->str();
-                        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-          propagate(d1, returnSiteN, d3, fPrime, n, false);
+    }
+    // line 17-19 of Naeem/Lhotak/Rodriguez
+    // process intra-procedural flows along call-to-return flow functions
+    for (n_t returnSiteN : returnSiteNs) {
+      FlowFunctionPtrType callToReturnFlowFunction =
+          cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
+                                                           callees);
+      INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
+      container_type returnFacts =
+          computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
+      ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
+                       PAMM_SEVERITY_LEVEL::Full);
+      saveEdges(n, returnSiteN, d2, returnFacts, false);
+      for (d_t d3 : returnFacts) {
+        EdgeFunctionPtrType edgeFnE =
+            cachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, returnSiteN,
+                                                             d3, callees);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Queried Call-to-Return Edge Function: "
+                      << edgeFnE->str());
+        if (SolverConfig.emitESG()) {
+          intermediateEdgeFunctions[std::make_tuple(n, d2, returnSiteN, d3)]
+              .push_back(edgeFnE);
         }
+        INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
+        auto fPrime = f->composeWith(edgeFnE);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "Compose: " << edgeFnE->str() << " * " << f->str()
+                          << " = " << fPrime->str();
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+        propagate(d1, returnSiteN, d3, fPrime, n, false);
       }
     }
   }
