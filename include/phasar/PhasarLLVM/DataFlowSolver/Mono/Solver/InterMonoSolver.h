@@ -28,6 +28,10 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+
+
 
 namespace psr {
 
@@ -343,47 +347,64 @@ public:
   }
 
    mono_container_t summarize(f_t CalleeTarget, mono_container_t FactAtCall) {
-     std::deque<std::pair<n_t, n_t>> SummaryWorklist;
-     std::unordered_map<n_t, std::unordered_map<CallStringCTX<n_t, K>, mono_container_t>> SummaryAnalysis;
-     mono_container_t ResultSummary;
+    mono_container_t ResultSummary;
+   // auto EntryPoint = ICF->getFunctionName(CalleeTarget); //initialize the entrypoint to the name of CalleeTarget function
+    IntraMonoSolver<AnalysisDomainTy> IMSolver(&IMProblem); //I have problem here creating instance, I tried many ways but recieving error non-matching constructor
+   // providing the reference of IMProblem
 
-      auto ControlFlowEdges = ICF->getAllControlFlowEdges(CalleeTarget);
-       SummaryWorklist.insert(SummaryWorklist.begin(), ControlFlowEdges.begin(),
-       ControlFlowEdges.end());
-
-       for (auto Edge : ControlFlowEdges) {
-         SummaryAnalysis[Edge.first];
-       }
-
-       while (!SummaryWorklist.empty()) {  
-         auto Edge = SummaryWorklist.front();
-         auto Src = Edge.first;
-         auto Dst = Edge.second;
-         if(ICF->isExitStmt(Src)){
-           for(auto &[Ctx, ReturnFacts]: SummaryAnalysis[Src]){
-             ResultSummary.insert(ReturnFacts.begin(), ReturnFacts.end());
-           }
-         }
-       }
-     
-     return ResultSummary;
+    IMSolver.solve(); //calling solve method to analyse the referred problem by IntraMonoSolver
+    
+    auto edges = ICF->getAllControlFlowEdges(CalleeTarget); //ControlflowEdges of CalleeTarget is stored in edges variable
+    for(auto &[Src, Dst]: edges){ //iterate through edges and find the exit statement
+      if(ICF->isExitStmt(Src)){  
+       ResultSummary = IMSolver.getResultsAt(Src);  //get the analysis result of Nth pr return instruction
+      }
+    }
+   return ResultSummary; //return the results
    }
 
- 
+
 
   bool isSensibleToSummarize(n_t functionNode) {
     // use a heuristic to check whether we should compute a summary
     // make use of the call-graph information
-    auto isSensible = true;
+
+    // first logic to check for leaf functions in a call graph
+     auto isSensible = true;
     if(ICF->isCallStmt(functionNode)){ // checks if the functionNode is CallStmt
-    for(auto &[Src, Dst] : ICF->getAllControlFlowEdges(ICF->getFunctionOf(functionNode))){ //iterates through the control flow edges of interprocedural function present in functionNode
-    if(ICF->isCallStmt(Src)){ //checks for presence of callstmt in the interprocedural function
-    isSensible = false; //presence of call statement identifies that the interprocedural function is not a leaf node in call graph and hence not sensible to summarize
-    break;
+    auto callsites = ICF->getCallsFromWithin(ICF->getFunctionOf(functionNode)); //get the callsites within the function that is present in the functionNode
+    if(!callsites.empty()){ //if there are callsites, the function is not sensible to summarize and set to false
+      isSensible = false;
     }
     }
+    return isSensible; //will consider one among the three logics written here
+     
+    // make use of leafNode function
+  
+    
+  //   auto isSensible = true;
+  //   if(ICF->isCallStmt(functionNode)){ // checks if the functionNode is CallStmt
+  //   for(auto &[Src, Dst] : ICF->getAllControlFlowEdges(ICF->getFunctionOf(functionNode))){ //iterates through the control flow edges of interprocedural function present in functionNode
+  //   if(ICF->isCallStmt(Src)){ //checks for presence of callstmt in the interprocedural function
+  //   isSensible = false; //presence of call statement identifies that the interprocedural function is not a leaf node in call graph and hence not sensible to summarize
+  //   break;
+  //   }
+  //   }
+  //   }
+  //   return isSensible;  
+  // }
+  }
+
+  bool isleafFunction(f_t CalleeTarget){
+    //determines if the function passed in the argument is the leaf node in Callgraph
+    bool leafNode = true;
+    if(ICF->isCallStmt(CalleeTarget)){
+    auto callSites = ICF->getOutEdges(CalleeTarget);//returns the callsites within a given method directly from the callgraph
+    if(!callSites.empty()){
+      leafNode = false; //sets false if there are callsites present inside the given method
     }
-    return isSensible; 
+    }
+    return leafNode;
   }
   
   virtual void solve() {
@@ -403,7 +424,7 @@ public:
           // real call
           for (auto &[Ctx, Facts] : Analysis[Src]) {
             if(isSensibleToSummarize(Src)){
-              mono_container_t summary =  summarize(ICF->getFunctionOf(Dst),Facts);
+              mono_container_t summary =  summarize(ICF->getFunctionOf(Src),Facts);
 
               // addSummary(summary);
             }else{
