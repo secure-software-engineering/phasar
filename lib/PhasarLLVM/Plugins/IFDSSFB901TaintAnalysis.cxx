@@ -15,23 +15,25 @@
  */
 
 #include <iostream>
+#include <utility>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
 
 #include "IFDSSFB901TaintAnalysis.h"
+
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-unique_ptr<IFDSTabulationProblemPlugin> makeIFDSSFB901TaintAnalysis(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints) {
+unique_ptr<IFDSTabulationProblemPlugin>
+makeIFDSSFB901TaintAnalysis(const ProjectIRDB *IRDB,
+                            const LLVMTypeHierarchy *TH,
+                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                            std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSSFB901TaintAnalysis(IRDB, TH, ICF, PT, EntryPoints));
+      new IFDSSFB901TaintAnalysis(IRDB, TH, ICF, PT, std::move(EntryPoints)));
 }
 
 __attribute__((constructor)) void init() {
@@ -46,50 +48,60 @@ __attribute__((destructor)) void fini() {
 
 IFDSSFB901TaintAnalysis::IFDSSFB901TaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
-
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSFB901TaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
-                                               const llvm::Instruction *succ) {
-  return Identity<const llvm::Value *>::getInstance();
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+  ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSFB901TaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                             const llvm::Function *destFun) {
-  return Identity<const llvm::Value *>::getInstance();
+const FlowFact *IFDSSFB901TaintAnalysis::createZeroValue() const {
+  // static auto zero =
+  //     std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
+  // return zero.get();
+  static auto zero = new ValueFlowFactWrapper(nullptr);
+  return zero;
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSFB901TaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                            const llvm::Function *calleeFun,
-                                            const llvm::Instruction *exitStmt,
-                                            const llvm::Instruction *retSite) {
-  return Identity<const llvm::Value *>::getInstance();
+IFDSSFB901TaintAnalysis::FlowFunctionPtrType
+IFDSSFB901TaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
+                                               const llvm::Instruction *Succ) {
+  return Identity<const FlowFact *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+IFDSSFB901TaintAnalysis::FlowFunctionPtrType
+IFDSSFB901TaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallStmt,
+                                             const llvm::Function *DestFun) {
+  return Identity<const FlowFact *>::getInstance();
+}
+
+IFDSSFB901TaintAnalysis::FlowFunctionPtrType
+IFDSSFB901TaintAnalysis::getRetFlowFunction(const llvm::Instruction *CallSite,
+                                            const llvm::Function *CalleeFun,
+                                            const llvm::Instruction *ExitStmt,
+                                            const llvm::Instruction *RetSite) {
+  return Identity<const FlowFact *>::getInstance();
+}
+
+IFDSSFB901TaintAnalysis::FlowFunctionPtrType
 IFDSSFB901TaintAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
-    set<const llvm::Function *> callees) {
-  return Identity<const llvm::Value *>::getInstance();
+    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
+    set<const llvm::Function *> Callees) {
+  return Identity<const FlowFact *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+IFDSSFB901TaintAnalysis::FlowFunctionPtrType
 IFDSSFB901TaintAnalysis::getSummaryFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destFun) {
+    const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
   return nullptr;
 }
 
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<const llvm::Instruction *, set<const FlowFact *>>
 IFDSSFB901TaintAnalysis::initialSeeds() {
   cout << "IFDSSFB901TaintAnalysis::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<const llvm::Instruction *, set<const FlowFact *>> SeedMap;
   SeedMap.insert(std::make_pair(
       &ICF->getFunction("run_service_contrast_cpu")->front().front(),
-      set<const llvm::Value *>({getZeroValue()})));
+      set<const FlowFact *>({getZeroValue()})));
   return SeedMap;
 }
 

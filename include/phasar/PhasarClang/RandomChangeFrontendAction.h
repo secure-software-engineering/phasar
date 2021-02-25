@@ -19,11 +19,11 @@
 
 #include <memory>
 
-#include <llvm/ADT/StringRef.h>
+#include "llvm/ADT/StringRef.h"
 
-#include <clang/Frontend/ASTConsumers.h>
-#include <clang/Frontend/FrontendActions.h>
-#include <clang/Rewrite/Core/Rewriter.h>
+#include "clang/Frontend/ASTConsumers.h"
+#include "clang/Frontend/FrontendActions.h"
+#include "clang/Rewrite/Core/Rewriter.h"
 
 namespace clang {
 class CompilerInstance;

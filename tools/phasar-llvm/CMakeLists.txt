@@ -24,7 +24,6 @@ target_link_libraries(phasar-llvm
   phasar_mono
   phasar_db
   phasar_experimental
-  phasar_clang
   phasar_passes
   # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
   phasar_plugins
@@ -35,14 +34,12 @@ target_link_libraries(phasar-llvm
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CLANG_LIBRARIES}
 )
 
-if(NOT PHASAR_IN_TREE)
-target_link_libraries(phasar-llvm
-  LINK_PUBLIC
-  ${llvm_libs}
-)
+if(USE_LLVM_FAT_LIB)
+  llvm_config(phasar-llvm USE_SHARED ${LLVM_LINK_COMPONENTS})
+else()
+  llvm_config(phasar-llvm ${LLVM_LINK_COMPONENTS})
 endif()
 
 set(LLVM_LINK_COMPONENTS

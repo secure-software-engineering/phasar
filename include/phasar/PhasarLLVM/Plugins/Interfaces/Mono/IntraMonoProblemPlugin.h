@@ -12,15 +12,47 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
+
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace psr {
 
-class IntraMonoProblemPlugin {};
+struct IntraMonoProblemPluginDomain : LLVMAnalysisDomainDefault {
+  using mono_container_t = std::set<LLVMAnalysisDomainDefault::d_t>;
+};
 
-extern "C" std::unique_ptr<IntraMonoProblemPlugin> makeIntraMonoProblemPlugin();
+class IntraMonoProblemPlugin
+    : public IntraMonoProblem<IntraMonoProblemPluginDomain> {
+public:
+  IntraMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                         const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
+                         std::set<std::string> EntryPoints)
+      : IntraMonoProblem(IRDB, TH, CF, PT, EntryPoints) {}
 
-extern std::map<std::string, std::unique_ptr<IntraMonoProblemPlugin> (*)()>
+  void printNode(std::ostream &os, n_t n) const override {
+    os << llvmIRToString(n);
+  }
+  void printDataFlowFact(std::ostream &os, d_t d) const override {
+    os << llvmIRToString(d);
+  }
+  void printFunction(std::ostream &os, f_t f) const override {
+    os << f->getName().str();
+  }
+};
+
+extern std::unique_ptr<IntraMonoProblemPlugin>
+makeIntraMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                           const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
+                           std::set<std::string> EntryPoints);
+
+extern std::map<std::string,
+                std::unique_ptr<IntraMonoProblemPlugin> (*)(
+                    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                    const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
+                    std::set<std::string> EntryPoints)>
     IntraMonoProblemPluginFactory;
 
 } // namespace psr

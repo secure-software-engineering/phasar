@@ -1,40 +1,44 @@
-#include <gtest/gtest.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMMMacros.h>
+// to use unique_ptr
+#include <memory>
 
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "gtest/gtest.h"
+
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class WPDSLinearConstantAnalysisTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMPointsToInfo *PT;
-  LLVMBasedICFG *ICFG;
-  WPDSLinearConstantAnalysis *LCAProblem;
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<WPDSLinearConstantAnalysis> LCAProblem;
 
   WPDSLinearConstantAnalysisTest() = default;
-  virtual ~WPDSLinearConstantAnalysisTest() = default;
+  ~WPDSLinearConstantAnalysisTest() override = default;
 
-  void Initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
-    // LCAProblem = new WPDSLinearConstantAnalysis(
+  void initialize(const std::vector<std::string> &IRFiles) {
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(), PT.get());
+    // LCAProblem = make_unique<WPDSLinearConstantAnalysis>(
     //    *ICFG, *TH, *IRDB, WPDSType::FWPDS, WPDSSearchDirection::BACKWARD);
   }
 
@@ -45,11 +49,6 @@ protected:
 
   void TearDown() override {
     PAMM_GET_INSTANCE;
-    delete IRDB;
-    delete TH;
-    delete PT;
-    delete ICFG;
-    delete LCAProblem;
     PAMM_RESET;
   }
 
@@ -272,7 +271,7 @@ protected:
 // }
 
 // main function for the test case
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

@@ -22,8 +22,8 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/Utils/Table.h>
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Utils/Table.h"
 
 namespace psr {
 

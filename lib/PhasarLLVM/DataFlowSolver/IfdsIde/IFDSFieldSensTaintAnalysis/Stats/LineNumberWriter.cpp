@@ -2,24 +2,24 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/LineNumberWriter.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/LineNumberWriter.h"
 
 namespace psr {
 
 void LineNumberWriter::write() const {
-  std::ofstream writer(getOutFile());
+  std::ofstream Writer(getOutFile());
 
   LOG_INFO("Writing line number trace to: " << getOutFile());
 
-  for (const auto &fileEntry : getTraceStats().getStats()) {
-    const auto functionStats = fileEntry.second;
+  for (const auto &FileEntry : getTraceStats().getStats()) {
+    const auto FunctionStats = FileEntry.second;
 
-    for (const auto &functionEntry : functionStats) {
-      const auto lineNumberStats = functionEntry.second;
+    for (const auto &FunctionEntry : FunctionStats) {
+      const auto LineNumberStats = FunctionEntry.second;
 
-      for (const auto &lineNumberEntry : lineNumberStats) {
+      for (const auto &LineNumberEntry : LineNumberStats) {
 
-        writer << lineNumberEntry.getLineNumber() << "\n";
+        Writer << LineNumberEntry.getLineNumber() << "\n";
       }
     }
   }

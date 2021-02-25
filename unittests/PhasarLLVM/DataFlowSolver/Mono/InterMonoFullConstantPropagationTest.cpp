@@ -7,91 +7,194 @@
  *     Philipp Schubert, Linus Jungemann, and others
  *****************************************************************************/
 
+#include <memory>
 #include <set>
 #include <string>
 #include <tuple>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+
+#include "TestConfig.h"
 
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
-class InterMonoTaintAnalysisTest : public ::testing::Test {
+class InterMonoFullConstantPropagationTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/full_constant/";
+  const std::string PathToLlFiles =
+      unittest::PathToLLTestFiles + "full_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
   using IMFCPCompactResult_t =
       std::tuple<std::string, std::size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>;
-  ProjectIRDB *IRDB = nullptr;
+  std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override {
     std::cout << "setup\n";
     boost::log::core::get()->set_logging_enabled(false);
   }
-  void TearDown() override { delete IRDB; }
+  void TearDown() override {}
 
-  void doAnalysisAndCompareResults(std::string llvmFilePath,
-                                   std::set<IMFCPCompactResult_t> GroundTruth,
-                                   bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
-    if (printDump) {
+  void
+  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+                              const std::set<IMFCPCompactResult_t> &GroundTruth,
+                              bool PrintDump = false) {
+    auto IR_Files = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
+    if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo PT(*IRDB);
+    LLVMPointsToSet PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                        &PT);
-    InterMonoFullConstantPropagation FCP(IRDB, &TH, &ICFG, &PT, EntryPoints);
+    InterMonoFullConstantPropagation FCP(IRDB.get(), &TH, &ICFG, &PT,
+                                         EntryPoints);
     InterMonoSolver_P<InterMonoFullConstantPropagation, 3> IMSolver(FCP);
     IMSolver.solve();
-    if (printDump) {
+    
+    if (PrintDump) {
       IMSolver.dumpResults();
     }
+    std::cout << "Done analysis!\n";
     // do the comparison
-    for (auto &Truth : GroundTruth) {
-      auto Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
-      auto Line = getNthInstruction(Fun, std::get<1>(Truth));
+    bool ResultNotEmpty = false;
+    for (const auto &Truth : GroundTruth) {
+      const auto *Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
+      const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultSet = IMSolver.getResultsAt(Line);
-      for (auto &[Fact, Value] : ResultSet.getAsSet()) {
+      for (const auto &[Fact, Value] : ResultSet) {
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
           std::cout << "Checking variable: " << FactStr << std::endl;
+          ResultNotEmpty = true;
           EXPECT_EQ(std::get<3>(Truth), Value);
         }
       }
     }
+    EXPECT_TRUE(ResultNotEmpty);
   }
 
 }; // Test Fixture
 
-TEST_F(InterMonoTaintAnalysisTest, BasicTest_01) {
+// Test for Case I of Store
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_01) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 5, "i", 13));
+//   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
+// }
+
+// // Test for Case II of Store and Load Inst
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_02) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 8, "i", 13));
+//   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
+// }
+
+// // Test for Operators
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_03) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 9, "i", 13));
+//   doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, true);
+// }
+
+// // Test for Operators
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_04) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 12, "i", 13));
+//   doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth,
+//                               true);
+// }
+
+// // Test for Operators
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_05) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 9, "i", 13));
+//   doAnalysisAndCompareResults("basic_05_cpp.ll", GroundTruth,
+//                               true);
+// }
+
+// // Test for Operators
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_06) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 8, "i", 9));
+//   doAnalysisAndCompareResults("basic_06_cpp.ll", GroundTruth,
+//                               true);
+// }
+
+// Test for return Flow
+TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_01) {
   std::set<IMFCPCompactResult_t> GroundTruth;
-  // TODO needs to be adjusted
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 1, "i", 13));
-  doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
+          "main", 6, "i", 13));
+  doAnalysisAndCompareResults("advanced_01_cpp.ll", GroundTruth, true);
 }
+
+// // Test for Call Flow
+// TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_02) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 14, "i", 14));
+//   doAnalysisAndCompareResults("advanced_02_cpp.ll", GroundTruth, true);
+// }
+
+// // Test for Call Flow
+// TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_03) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 9, "i", 5));
+//   doAnalysisAndCompareResults("advanced_03_cpp.ll", GroundTruth, true);
+// }
+
+// TEST_F(InterMonoFullConstantPropagationTest, BasicTest_07) {
+//   std::set<IMFCPCompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+//           "main", 9, "i", 42));
+//   doAnalysisAndCompareResults("basic_07_cpp.ll", GroundTruth, true);
+// }
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

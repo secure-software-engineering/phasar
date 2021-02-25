@@ -20,37 +20,51 @@
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
 
 namespace psr {
+struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
+
+  using FlowFactWrapper::FlowFactWrapper;
+
+  void print(std::ostream &OS,
+             const llvm::Value *const &NonZeroFact) const override {
+    OS << llvmIRToShortString(NonZeroFact) << '\n';
+  }
+};
 
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {
+  FlowFactManager<ValueFlowFactWrapper> ffManager;
+
 public:
   IFDSSimpleTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                          const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                          const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                           std::set<std::string> EntryPoints = {});
   ~IFDSSimpleTaintAnalysis() = default;
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+
+  const FlowFact *createZeroValue() const override;
+
+  FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallFlowFunction(const llvm::Instruction *callStmt,
                       const llvm::Function *destFun) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeFun,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite,
                            std::set<const llvm::Function *> callees) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+  std::map<const llvm::Instruction *, std::set<const FlowFact *>>
   initialSeeds() override;
 };
 

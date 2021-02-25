@@ -21,13 +21,13 @@
 #include <string>
 #include <unordered_map>
 
-#include <gtest/gtest_prod.h>
+#include "gtest/gtest_prod.h"
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/reverse_graph.hpp>
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/graph_traits.hpp"
+#include "boost/graph/reverse_graph.hpp"
 
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/TypeGraph.h>
+#include "phasar/PhasarLLVM/Pointer/TypeGraphs/TypeGraph.h"
 
 namespace llvm {
 class StructType;
@@ -71,7 +71,7 @@ protected:
   graph_t g;
   bool already_visited = false;
 
-  vertex_t addType(const llvm::StructType *new_type);
+  vertex_t addType(const llvm::StructType *NewType);
   void aggregateTypes();
 
 public:
@@ -88,7 +88,7 @@ public:
   virtual void
   printAsDot(const std::string &path = "typegraph.dot") const override;
   virtual std::set<const llvm::StructType *>
-  getTypes(const llvm::StructType *struct_type) override;
+  getTypes(const llvm::StructType *StructType) override;
 };
 } // namespace psr
 

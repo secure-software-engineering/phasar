@@ -9,19 +9,6 @@ set(LLVM_LINK_COMPONENTS
   Support
   Analysis
   Passes
-  # Core
-  # # Vectorize
-  # # ScalarOpts
-  # # Instrumentation
-  # # ObjCARCOpts
-  # # TransformUtils
-  # # CodeGen
-  # # Analysis
-  # # ipo
-  # IRReader
-  # # InstCombine
-  # # Linker
-  # BitWriter
 )
 
 # Handle the library files

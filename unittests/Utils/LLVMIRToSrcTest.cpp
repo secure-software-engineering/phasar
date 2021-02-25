@@ -1,40 +1,47 @@
-#include <gtest/gtest.h>
 #include <iostream>
-#include <llvm/IR/IntrinsicInst.h>
-#include <llvm/Support/raw_ostream.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMIRToSrc.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
+#include <memory>
 
+#include "gtest/gtest.h"
+
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMIRToSrc.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 
 class LLVMIRToSrcTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/llvmIRtoSrc/";
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMPointsToInfo *PT;
-  LLVMBasedICFG *ICFG;
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMPointsToSet> PT;
+  unique_ptr<LLVMBasedICFG> ICFG;
 
-  LLVMIRToSrcTest() {}
-  virtual ~LLVMIRToSrcTest() {}
+  LLVMIRToSrcTest() = default;
+  ~LLVMIRToSrcTest() override = default;
 
-  void Initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToInfo(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, {"main"}, TH, PT);
+  void initialize(const std::vector<std::string> &IRFiles) {
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    set<string> entry_points = {"main"};
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      entry_points, TH.get(), PT.get());
   }
 
   void SetUp() override {
@@ -42,12 +49,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete PT;
-    delete ICFG;
-  }
+  void TearDown() override {}
 }; // Test Fixture
 
 // TEST_F(LLVMIRToSrcTest, HandleInstructions) {
@@ -94,7 +96,7 @@ protected:
 //   }
 // }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

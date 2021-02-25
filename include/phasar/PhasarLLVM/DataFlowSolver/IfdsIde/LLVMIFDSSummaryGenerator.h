@@ -20,15 +20,15 @@
 #include <set>
 #include <vector>
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSummaryGenerator.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultIFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSummaryGenerator.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace psr {
 

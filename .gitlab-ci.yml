@@ -1,12 +1,10 @@
-image: debian:sid-slim
+image: pdschbrt/phasar-build-environment:latest
 
 stages:
   - build
 
 # install the necessary build tools 
 before_script: 
-  - apt update && apt-get install -y build-essential clang-5.0 libclang-5.0-dev llvm-5.0 libboost1.62-all-dev sqlite3 libsqlite3-dev bear python3 git cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost1.62-dev libboost-dev libmysqlcppconn-dev
-  - export PATH="/usr/lib/llvm-5.0/bin:$PATH"
   - git submodule update --init --recursive
   
 build:
@@ -19,10 +17,8 @@ build:
     - cat /proc/meminfo
     - echo "checking CPU(s)"
     - cat /proc/cpuinfo
-    - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
+    - CC=clang CXX=clang++ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
     - make -j4
-# Fix the unit tests first 
-#    - make test
 # Install Phasar and test the examples
     - make install
     - cd /builds/pdschbrt/sse_dfa_llvm/examples/llvm-hello_world/
@@ -33,17 +29,16 @@ build:
     - cd /builds/pdschbrt/sse_dfa_llvm/build
   only:
     - master
-    - develop
-    - restructure
+    - development
+    - variability
   tags:
     - shared
   # save the documentation and binary
   artifacts:
-    name: "PhasarFramework-$CI_BUILD_ID-$CI_BUILD_REF"
+    name: "PhASAR-$CI_BUILD_ID-$CI_BUILD_REF"
     expire_in: 1 week
     paths:
-      - build/docs/*
-      - build/phasar
+      - build/
   # depending on the build setup it's a good idea to cache outputs to reduce the build time
   cache:
     paths:

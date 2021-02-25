@@ -11,16 +11,40 @@
 #define PHASAR_UTILS_BITVECTORSET_H_
 
 #include <algorithm>
-#include <functional>
 #include <initializer_list>
-#include <iostream>
-#include <set>
-#include <vector>
 
-#include <boost/bimap.hpp>
-#include <boost/bimap/unordered_set_of.hpp>
+#include "boost/bimap.hpp"
+#include "boost/bimap/unordered_set_of.hpp"
+
+#include "llvm/ADT/BitVector.h"
+#include "llvm/Support/Compiler.h"
 
 namespace psr {
+namespace internal {
+inline bool isLess(const llvm::BitVector &Lhs, const llvm::BitVector &Rhs) {
+  unsigned LhsBits = Lhs.size();
+  unsigned RhsBits = Rhs.size();
+
+  if (LhsBits > RhsBits) {
+    if (Lhs.find_first_in(RhsBits, LhsBits) != -1) {
+      return false;
+    }
+  } else if (LhsBits < RhsBits) {
+    if (Rhs.find_first_in(LhsBits, RhsBits) != -1) {
+      return true;
+    }
+  }
+
+  // Compare every bit on both sides because Lhs and Rhs either have the same
+  // amount of bits or all other upper bits of the larger one are zero.
+  for (int i = static_cast<int>(std::min(LhsBits, RhsBits)) - 1; i >= 0; --i) {
+    if (LLVM_UNLIKELY(Lhs[i] != Rhs[i])) {
+      return Rhs[i];
+    }
+  }
+  return false;
+}
+} // namespace internal
 
 /**
  * BitVectorSet implements a set that requires minimal space. Elements are
@@ -35,65 +59,134 @@ private:
   //  -<llvm/ADT/Hashing.h>
   //  -<boost/functional/hash/extensions.hpp>
   //  -<boost/graph/adjacency_list.hpp>
-  typedef boost::bimap<boost::bimaps::unordered_set_of<T, std::hash<T>>,
-                       boost::bimaps::unordered_set_of<size_t>>
-      bimap_t;
+  using bimap_t = boost::bimap<boost::bimaps::unordered_set_of<T, std::hash<T>>,
+                               boost::bimaps::unordered_set_of<size_t>>;
   inline static bimap_t Position;
-  std::vector<bool> Bits;
+  llvm::BitVector Bits;
+
+  template <typename D> class BitVectorSetIterator {
+    llvm::BitVector Bits;
+
+  public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = D;
+    using difference_type = std::ptrdiff_t;
+    using pointer = D *;
+    using reference = D &;
+    BitVectorSetIterator(D ptr = nullptr) : pos_ptr(ptr) {}
+
+    BitVectorSetIterator<D> &operator=(D *Ptr) {
+      pos_ptr = Ptr;
+      return *this;
+    }
+
+    void setBits(const llvm::BitVector &OtherBits) { Bits = OtherBits; }
+
+    bool operator==(const BitVectorSetIterator<D> &OtherIterator) const {
+      return pos_ptr == OtherIterator.getPtr();
+    }
+
+    bool operator!=(const BitVectorSetIterator<D> &OtherIterator) const {
+      return !(*this == OtherIterator);
+    }
+
+    BitVectorSetIterator<D> &operator+=(const difference_type &Movement) {
+      for (difference_type i = 0; i < Movement; i++) {
+        pos_ptr++;
+      }
+      return *this;
+    }
+
+    BitVectorSetIterator<D> &operator++() {
+      do {
+        int NextIdx = Bits.find_next(pos_ptr->first);
+
+        if (NextIdx <= static_cast<int>(pos_ptr->first)) {
+          pos_ptr = Position.right.find(Bits.size());
+          break;
+        }
+
+        pos_ptr = Position.right.find(NextIdx);
+
+        assert(pos_ptr->first < Bits.size() &&
+               "pos_ptr->first index into BitVector out of range");
+      } while (!Bits[pos_ptr->first]);
+
+      return *this;
+    }
+
+    BitVectorSetIterator<D> operator++(int) {
+      auto Temp(*this);
+      ++*this;
+      return Temp;
+    }
+
+    BitVectorSetIterator<D> operator+(const difference_type &Movement) {
+      auto OldPtr = pos_ptr;
+      for (difference_type i = 0; i < Movement; i++) {
+        pos_ptr++;
+      }
+      auto Temp(*this);
+      pos_ptr = OldPtr;
+      return Temp;
+    }
+
+    difference_type operator-(const BitVectorSetIterator<D> &OtherIterator) {
+      return std::distance(OtherIterator.getPtr(), this->getPtr());
+    }
+
+    // T& operator*(){return pos_ptr->second;}
+
+    const T &operator*() const { return pos_ptr->second; }
+
+    D *operator->() { return pos_ptr; }
+
+    D getPtr() const { return pos_ptr; }
+
+    // const D* getConstPtr()const{return pos_ptr;}
+
+    // T getPos() {return pos_ptr->first;}
+
+    // T getVal() {return pos_ptr->second;}
+
+    [[nodiscard]] llvm::BitVector getBits() const { return Bits; }
+
+  private:
+    D pos_ptr;
+  };
+
+  using iterator = BitVectorSetIterator<typename bimap_t::right_iterator>;
+  using const_iterator =
+      BitVectorSetIterator<typename bimap_t::right_const_iterator>;
 
 public:
   BitVectorSet() = default;
 
   explicit BitVectorSet(size_t Count) : Bits(Count, false) {}
 
-  BitVectorSet(std::initializer_list<T> Ilist) {
-    for (auto &Item : Ilist) {
-      insert(Item);
-    }
+  BitVectorSet(std::initializer_list<T> IList) {
+    insert(IList.begin(), IList.end());
   }
 
   template <typename InputIt> BitVectorSet(InputIt First, InputIt Last) {
-    while (First != Last) {
-      insert(*First);
-      ++First;
-    }
+    insert(First, Last);
   }
 
-  ~BitVectorSet() = default;
-
   BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
-    const std::vector<bool> *Shorter, *Longer;
-    if (Bits.size() < Other.Bits.size()) {
-      Shorter = &Bits;
-      Longer = &Other.Bits;
-    } else {
-      Shorter = &Other.Bits;
-      Longer = &Bits;
-    }
-    BitVectorSet<T> Res(Longer->size());
-    size_t idx = 0;
-    for (; idx < Shorter->size(); ++idx) {
-      Res.Bits[idx] = ((*Shorter)[idx] || (*Longer)[idx]);
-    }
-    for (; idx < Longer->size(); ++idx) {
-      Res.Bits[idx] = (*Longer)[idx];
-    }
+    size_t MaxSize = std::max(Bits.size(), Other.Bits.size());
+    BitVectorSet<T> Res(MaxSize);
+    // temp variable necessary because return type of |= is not const
+    llvm::BitVector Temp = Bits;
+    Res.Bits = Temp |= Other.Bits;
     return Res;
   }
 
   BitVectorSet<T> setIntersect(const BitVectorSet<T> &Other) const {
-    const std::vector<bool> *Shorter, *Longer;
-    if (Bits.size() < Other.Bits.size()) {
-      Shorter = &Bits;
-      Longer = &Other.Bits;
-    } else {
-      Shorter = &Other.Bits;
-      Longer = &Bits;
-    }
-    BitVectorSet<T> Res(Shorter->size());
-    for (size_t idx = 0; idx < Shorter->size(); ++idx) {
-      Res.Bits[idx] = ((*Shorter)[idx] && (*Longer)[idx]);
-    }
+    size_t MaxSize = std::max(Bits.size(), Other.Bits.size());
+    BitVectorSet<T> Res(MaxSize);
+    // temp variable necessary because return type of &= is not const
+    llvm::BitVector Temp = Bits;
+    Res.Bits = Temp &= Other.Bits;
     return Res;
   }
 
@@ -165,23 +258,21 @@ public:
   void erase(const T &Data) noexcept {
     auto Search = Position.left.find(Data);
     if (Search != Position.left.end()) {
-      if (!(Bits.size() < Search->second - 1)) {
+      if (Bits.size() > Search->second) {
         Bits[Search->second] = false;
       }
     }
   }
 
-  void clear() noexcept { std::fill(Bits.begin(), Bits.end(), false); }
+  void clear() noexcept { Bits.reset(); }
 
-  bool empty() const noexcept {
-    return std::find(Bits.begin(), Bits.end(), true) == Bits.end();
-  }
+  [[nodiscard]] bool empty() const noexcept { return Bits.none(); }
 
   void reserve(size_t NewCap) { Bits.reserve(NewCap); }
 
-  bool find(const T &Data) const noexcept { return count(Data); }
+  [[nodiscard]] bool find(const T &Data) const noexcept { return count(Data); }
 
-  size_t count(const T &Data) const noexcept {
+  [[nodiscard]] size_t count(const T &Data) const noexcept {
     auto Search = Position.left.find(Data);
     if (Search != Position.left.end()) {
       if (Bits.size() > Search->second) {
@@ -191,32 +282,10 @@ public:
     return 0;
   }
 
-  size_t size() const noexcept {
-    return std::count_if(Bits.begin(), Bits.end(),
-                         [](bool b) { return b == true; });
-  }
+  [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
 
   friend bool operator==(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
-    if (Lhs.Bits.size() == Rhs.Bits.size()) {
-      for (size_t Idx = 0; Idx < Lhs.Bits.size(); ++Idx) {
-        if (Lhs.Bits[Idx] != Rhs.Bits[Idx]) {
-          return false;
-        }
-      }
-      return true;
-    }
-    const BitVectorSet &Shorter =
-        (Lhs.Bits.size() < Rhs.Bits.size()) ? Lhs : Rhs;
-    const BitVectorSet &Longer =
-        (Lhs.Bits.size() > Rhs.Bits.size()) ? Lhs : Rhs;
-    for (size_t Idx = 0; Idx < Shorter.Bits.size(); ++Idx) {
-      if (Lhs.Bits[Idx] != Rhs.Bits[Idx]) {
-        return false;
-      }
-    }
-    return std::count_if(std::next(Longer.Bits.begin(), Shorter.Bits.size()),
-                         Longer.Bits.end(),
-                         [](bool b) { return b == true; }) == 0;
+    return Lhs.Bits == Rhs.Bits;
   }
 
   friend bool operator!=(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
@@ -224,7 +293,7 @@ public:
   }
 
   friend bool operator<(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
-    return Lhs.Bits < Rhs.Bits;
+    return internal::isLess(Lhs.Bits, Rhs.Bits);
   }
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
@@ -243,17 +312,36 @@ public:
     return OS;
   }
 
-  std::set<T> getAsSet() const {
-    std::set<T> Elements;
-    for (size_t idx = 0; idx < Bits.size(); ++idx) {
-      if (Bits[idx]) {
-        auto e = Position.right.find(idx);
-        if (e != Position.right.end()) {
-          Elements.insert(e->second);
-        }
-      }
+  [[nodiscard]] iterator begin() {
+    int Index = Bits.find_first();
+    if (Index == -1) {
+      Index = Bits.size();
     }
-    return Elements;
+    iterator BeginIter(Position.right.find(Index));
+    BeginIter.setBits(Bits);
+    return BeginIter;
+  }
+
+  [[nodiscard]] iterator end() {
+    iterator EndIter(Position.right.find(Bits.size()));
+    EndIter.setBits(Bits);
+    return EndIter;
+  }
+
+  [[nodiscard]] const_iterator begin() const {
+    int Index = Bits.find_first();
+    if (Index == -1) {
+      Index = Bits.size();
+    }
+    const_iterator BeginIter(Position.right.find(Index));
+    BeginIter.setBits(Bits);
+    return BeginIter;
+  }
+
+  [[nodiscard]] const_iterator end() const {
+    const_iterator EndIter(Position.right.find(Bits.size()));
+    EndIter.setBits(Bits);
+    return EndIter;
   }
 };
 

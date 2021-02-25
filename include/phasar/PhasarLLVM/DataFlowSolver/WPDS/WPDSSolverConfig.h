@@ -12,7 +12,7 @@
 
 #include <iosfwd>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h"
 
 namespace psr {
 

@@ -19,30 +19,30 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/core/demangle.hpp>
-#include <boost/log/sources/record_ostream.hpp>
+#include "boost/core/demangle.hpp"
+#include "boost/log/sources/record_ostream.hpp"
 
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/transitive_closure.hpp>
-#include <boost/property_map/dynamic_property_map.hpp>
+#include "boost/graph/depth_first_search.hpp"
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
+#include "boost/graph/transitive_closure.hpp"
+#include "boost/property_map/dynamic_property_map.hpp"
 
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/GlobalVariable.h>
-#include <llvm/IR/InstIterator.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Module.h>
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/GraphExtensions.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMMMacros.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/GraphExtensions.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace psr;
 using namespace std;
@@ -71,9 +71,8 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_GET_INSTANCE;
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
-  for (auto M : IRDB.getAllModules()) {
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
+  for (auto *M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
   REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
@@ -82,8 +81,7 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
   PAMM_GET_INSTANCE;
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
   REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
@@ -98,10 +96,10 @@ std::string
 LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
   llvm::StringRef SR(TypeName);
   if (SR.startswith(StructPrefix)) {
-    return SR.ltrim(StructPrefix);
+    return SR.drop_front(StructPrefix.size());
   }
   if (SR.startswith(ClassPrefix)) {
-    return SR.ltrim(ClassPrefix);
+    return SR.drop_front(ClassPrefix.size());
   }
   return TypeName;
 }
@@ -109,10 +107,10 @@ LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
 std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(TypeInfoPrefixDemang)) {
-    return SR.ltrim(TypeInfoPrefixDemang);
+    return SR.drop_front(TypeInfoPrefixDemang.size());
   }
   if (SR.startswith(TypeInfoPrefix)) {
-    return SR.ltrim(TypeInfoPrefix);
+    return SR.drop_front(TypeInfoPrefix.size());
   }
   return VarName;
 }
@@ -120,20 +118,20 @@ std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
 std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(VTablePrefixDemang)) {
-    return SR.ltrim(VTablePrefixDemang);
+    return SR.drop_front(VTablePrefixDemang.size());
   }
   if (SR.startswith(VTablePrefix)) {
-    return SR.ltrim(VTablePrefix);
+    return SR.drop_front(VTablePrefix.size());
   }
   return VarName;
 }
 
-bool LLVMTypeHierarchy::isTypeInfo(std::string VarName) {
+bool LLVMTypeHierarchy::isTypeInfo(const std::string &VarName) {
   auto Demang = boost::core::demangle(VarName.c_str());
   return llvm::StringRef(Demang).startswith(TypeInfoPrefixDemang);
 }
 
-bool LLVMTypeHierarchy::isVTable(std::string VarName) {
+bool LLVMTypeHierarchy::isVTable(const std::string &VarName) {
   auto Demang = boost::core::demangle(VarName.c_str());
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
@@ -154,7 +152,6 @@ void LLVMTypeHierarchy::buildLLVMTypeHierarchy(const llvm::Module &M) {
   boost::transitive_closure(TypeGraph, TC);
   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
     for (auto OE : boost::make_iterator_range(boost::out_edges(V, TC))) {
-      auto Source = boost::source(OE, TC);
       auto Target = boost::target(OE, TC);
       TypeGraph[V].ReachableTypes.insert(TypeGraph[Target].Type);
     }
@@ -166,25 +163,32 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
                                const llvm::StructType &Type) {
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
-  if (auto TI = ClearNameTIMap[removeStructOrClassPrefix(Type)]) {
-    if (auto I = llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-      for (auto &Op : I->operands()) {
-        if (auto CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+  std::string ClearName = removeStructOrClassPrefix(Type);
+  if (const auto *TI = ClearNameTIMap[ClearName]) {
+    if (!TI->hasInitializer()) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << ClearName << " does not have initializer");
+      return SubTypes;
+    }
+    if (const auto *I =
+            llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+      for (const auto &Op : I->operands()) {
+        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
           // caution: getAsInstruction allocates, need to delete later
-          auto AsI = CE->getAsInstruction();
-          if (auto BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+          auto *AsI = CE->getAsInstruction();
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName = removeTypeInfoPrefix(
                     boost::core::demangle(Name.str().c_str()));
-                if (auto Type = ClearNameTypeMap[ClearName]) {
+                if (const auto *Type = ClearNameTypeMap[ClearName]) {
                   SubTypes.push_back(Type);
                 }
               }
             }
+            AsI->deleteValue();
           }
-          AsI->deleteValue();
         }
       }
     }
@@ -197,23 +201,35 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                                        const llvm::StructType &Type) {
   auto ClearName = removeStructOrClassPrefix(Type.getName().str());
   std::vector<const llvm::Function *> VFS;
-  if (auto TV = ClearNameTVMap[ClearName]) {
-    if (auto TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
-      if (auto I = llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        for (auto &Op : I->operands()) {
-          if (auto CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
+  if (const auto *TV = ClearNameTVMap[ClearName]) {
+    if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
+      if (!TI->hasInitializer()) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << ClearName << " does not have initializer");
+        return VFS;
+      }
+      if (const auto *I =
+              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+        for (const auto &Op : I->operands()) {
+          if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
             for (auto &COp : CA->operands()) {
-              if (auto CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
+              if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
                 // caution: getAsInstruction allocates, need to delete later
-                auto AsI = CE->getAsInstruction();
-                if (auto BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
-                  if (BC->getOperand(0)->hasName()) {
-                    if (auto F = M.getFunction(BC->getOperand(0)->getName())) {
+                auto *AsI = CE->getAsInstruction();
+                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                  // if the entry is a GlobalAlias, get its Aliasee
+                  auto *ENTRY = BC->getOperand(0);
+                  while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(ENTRY)) {
+                    ENTRY = GA->getAliasee();
+                  }
+
+                  if (ENTRY->hasName()) {
+                    if (auto *F = M.getFunction(ENTRY->getName())) {
                       VFS.push_back(F);
                     }
                   }
+                  AsI->deleteValue();
                 }
-                AsI->deleteValue();
               }
             }
           }
@@ -225,17 +241,16 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
 }
 
 void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Analyze types in module: " << M.getModuleIdentifier());
   // store analyzed module
   VisitedModules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();
   // build helper maps
-  for (auto StructType : StructTypes) {
+  for (auto *StructType : StructTypes) {
     ClearNameTypeMap[removeStructOrClassPrefix(*StructType)] = StructType;
   }
-  for (auto &Global : M.globals()) {
+  for (const auto &Global : M.globals()) {
     if (Global.hasName()) {
       if (isTypeInfo(Global.getName().str())) {
         auto Demang = boost::core::demangle(Global.getName().str().c_str());
@@ -250,7 +265,7 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
     }
   }
   // iterate struct types and add vertices
-  for (auto StructType : StructTypes) {
+  for (auto *StructType : StructTypes) {
     if (!TypeVertexMap.count(StructType)) {
       auto Vertex = boost::add_vertex(TypeGraph);
       TypeVertexMap[StructType] = Vertex;
@@ -259,24 +274,14 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
     }
   }
   // construct the edges between a type and its subtypes
-  for (auto StructType : StructTypes) {
+  for (auto *StructType : StructTypes) {
     // use type information to check if it is really a subtype
     auto SubTypes = getSubTypes(M, *StructType);
-    for (auto SubType : SubTypes) {
+    for (const auto *SubType : SubTypes) {
       boost::add_edge(TypeVertexMap[SubType], TypeVertexMap[StructType],
                       TypeGraph);
     }
   }
-}
-
-bool LLVMTypeHierarchy::hasType(const llvm::StructType *Type) const {
-  return TypeVertexMap.count(Type);
-}
-
-bool LLVMTypeHierarchy::isSubType(const llvm::StructType *Type,
-                                  const llvm::StructType *SubType) {
-  auto ReachableTypes = getSubTypes(Type);
-  return ReachableTypes.count(SubType);
 }
 
 std::set<const llvm::StructType *>
@@ -287,14 +292,10 @@ LLVMTypeHierarchy::getSubTypes(const llvm::StructType *Type) {
   return {};
 }
 
-bool LLVMTypeHierarchy::isSuperType(const llvm::StructType *Type,
-                                    const llvm::StructType *SuperType) {
-  return isSubType(SuperType, Type);
-}
-
 std::set<const llvm::StructType *>
 LLVMTypeHierarchy::getSuperTypes(const llvm::StructType *Type) {
   std::set<const llvm::StructType *> ReachableTypes;
+  // TODO (philipp): what does this function do?
   return ReachableTypes;
 }
 
@@ -334,28 +335,26 @@ LLVMTypeHierarchy::getVFTable(const llvm::StructType *Type) const {
   return nullptr;
 }
 
-size_t LLVMTypeHierarchy::size() const {
-  return boost::num_vertices(TypeGraph);
-}
-
-bool LLVMTypeHierarchy::empty() const { return size() == 0; }
-
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "Type Hierarchy:\n";
-  vertex_iterator ui, ui_end;
-  for (boost::tie(ui, ui_end) = boost::vertices(TypeGraph); ui != ui_end;
-       ++ui) {
-    OS << TypeGraph[*ui].getTypeName() << " --> ";
-    out_edge_iterator ei, ei_end;
-    for (boost::tie(ei, ei_end) = boost::out_edges(*ui, TypeGraph);
-         ei != ei_end; ++ei)
-      OS << TypeGraph[target(*ei, TypeGraph)].getTypeName() << " ";
+  vertex_iterator UI;
+
+  vertex_iterator UIEnd;
+  for (boost::tie(UI, UIEnd) = boost::vertices(TypeGraph); UI != UIEnd; ++UI) {
+    OS << TypeGraph[*UI].getTypeName() << " --> ";
+    out_edge_iterator EI;
+
+    out_edge_iterator EIEnd;
+    for (boost::tie(EI, EIEnd) = boost::out_edges(*UI, TypeGraph); EI != EIEnd;
+         ++EI) {
+      OS << TypeGraph[target(*EI, TypeGraph)].getTypeName() << " ";
+    }
     OS << '\n';
   }
   OS << "VFTables:\n";
   for (const auto &[Ty, VFT] : TypeVFTMap) {
     OS << "Virtual function table for: " << Ty->getName().str() << '\n';
-    for (auto F : VFT) {
+    for (const auto *F : VFT) {
       OS << "\t-" << F->getName().str() << '\n';
     }
   }
@@ -363,17 +362,21 @@ void LLVMTypeHierarchy::print(std::ostream &OS) const {
 
 nlohmann::json LLVMTypeHierarchy::getAsJson() const {
   nlohmann::json J;
-  vertex_iterator vi_v, vi_v_end;
-  out_edge_iterator ei, ei_end;
+  vertex_iterator VIv;
+
+  vertex_iterator VIvEnd;
+  out_edge_iterator EI;
+
+  out_edge_iterator EIEnd;
   // iterate all graph vertices
-  for (boost::tie(vi_v, vi_v_end) = boost::vertices(TypeGraph);
-       vi_v != vi_v_end; ++vi_v) {
-    J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*vi_v].getTypeName()];
+  for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
+       ++VIv) {
+    J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*VIv].getTypeName()];
     // iterate all out edges of vertex vi_v
-    for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, TypeGraph);
-         ei != ei_end; ++ei) {
-      J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*vi_v].getTypeName()] +=
-          TypeGraph[boost::target(*ei, TypeGraph)].getTypeName();
+    for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, TypeGraph); EI != EIEnd;
+         ++EI) {
+      J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*VIv].getTypeName()] +=
+          TypeGraph[boost::target(*EI, TypeGraph)].getTypeName();
     }
   }
   return J;
@@ -428,6 +431,10 @@ nlohmann::json LLVMTypeHierarchy::getAsJson() const {
 void LLVMTypeHierarchy::printAsDot(std::ostream &OS) const {
   boost::write_graphviz(OS, TypeGraph,
                         makeTypeHierarchyVertexWriter(TypeGraph));
+}
+
+void LLVMTypeHierarchy::printAsJson(std::ostream &OS) const {
+  OS << getAsJson();
 }
 
 // void LLVMTypeHierarchy::printGraphAsDot(ostream &out) {

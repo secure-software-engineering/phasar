@@ -6,7 +6,7 @@ PhASAR a LLVM-based Static Analysis Framework
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
-Version 0120
+Version 1220
 
 Secure Software Engineering Group
 ---------------------------------
@@ -21,7 +21,7 @@ Secure Software Engineering Group
 
 Currently supported version of LLVM
 -----------------------------------
-Phasar is currently set up to support LLVM-9.0.0. However, LLVM-8.0.0 still works fine with Phasar (`find_package(LLVM 9 REQUIRED CONFIG)` in the top-level CMakeLists.txt needs to be adjusted).
+Phasar is currently set up to support LLVM-10.0.0 and LLVM-9.0.0/1. However, LLVM-8.0.0 should still work fine with Phasar (`find_package(LLVM 9 REQUIRED CONFIG)` in the top-level CMakeLists.txt may needs adjustment).
 
 What is Phasar?
 ---------------
@@ -76,13 +76,27 @@ Done!
 Mac OS 10.13.1 or higher only!
 To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
-The needed packages are
+Please follow the instructions down below.
+
 ```
 $ brew install boost
 $ brew install python3
+# Install llvm version 10
+$ brew install llvm 
+# Setting the paths
+# Use LLVM's Clang rather than Apple's Clang compiler
+$ export CC=/usr/local/opt/llvm/bin/clang
+$ export CXX=/usr/local/opt/llvm/bin/clang++
+# Set PATH env variable to /usr/local/opt/llvm/bin
+# Go to Phasar directory run the following commands
+$ git submodule init
+$ git submodule update
+$ mkdir build
+$ cd build/
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
+$ make -j $(nproc) # or use a different number of cores to compile it
+$ sudo make install # if you wish a system-wise installation
 ```
-
-**To be continued.**
 
 ### Installing Phasar on a Windows system
 
@@ -128,12 +142,12 @@ set(CMAKE_CXX_STANDARD 14)
 
 After compilation using cmake the following two binaries can be found in the build/ directory:
 
-+ phasar - the actual Phasar command-line tool
++ phasar-llvm - the actual Phasar command-line tool
 + myphasartool - an example tool that shows how tools can be build on top of Phasar
 
 Use the command:
 
-`$ ./phasar --help`
+`$ ./phasar-llvm --help`
 
 in order to display the manual and help message.
 
@@ -163,7 +177,7 @@ C++'s long compile times are always a pain. As shown in the above, when using cm
 ### Running a test solver
 To test if everything works as expected please run the following command:
 
-`$ phasar --module test/build_systems_tests/installation_tests/module.ll -D IFDS_SolverTest`
+`$ phasar-llvm --module test/build_systems_tests/installation_tests/module.ll -D ifds-solvertest`
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 

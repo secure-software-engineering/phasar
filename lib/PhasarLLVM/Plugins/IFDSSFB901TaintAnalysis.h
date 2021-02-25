@@ -17,40 +17,50 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSSFB901TaintAnalysis_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSSFB901TaintAnalysis_H_
 
-#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+#include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h"
 
 namespace psr {
+struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
 
+  using FlowFactWrapper::FlowFactWrapper;
+  void print(std::ostream &os,
+             const llvm::Value *const &nonzeroFact) const override {
+    os << llvmIRToShortString(nonzeroFact) << '\n';
+  }
+};
 class IFDSSFB901TaintAnalysis : public IFDSTabulationProblemPlugin {
 public:
   IFDSSFB901TaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                          const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                          const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                           std::set<std::string> EntryPoints);
   ~IFDSSFB901TaintAnalysis() = default;
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+
+  const FlowFact *createZeroValue() const override;
+
+  FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallFlowFunction(const llvm::Instruction *callStmt,
                       const llvm::Function *destFun) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeFun,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite,
                            std::set<const llvm::Function *> callees) override;
 
-  std::shared_ptr<FlowFunction<const llvm::Value *>>
+  FlowFunctionPtrType
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+  std::map<const llvm::Instruction *, std::set<const FlowFact *>>
   initialSeeds() override;
 };
 
