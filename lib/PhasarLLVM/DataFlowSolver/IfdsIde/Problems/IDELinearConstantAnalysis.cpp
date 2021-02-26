@@ -130,8 +130,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
       const llvm::Function *DestFun;
-      LCAFF(const llvm::CallBase *CB,
-            IDELinearConstantAnalysis::f_t DestFun)
+      LCAFF(const llvm::CallBase *CB, IDELinearConstantAnalysis::f_t DestFun)
           : DestFun(DestFun) {
         // Set up the actual parameters
         for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
