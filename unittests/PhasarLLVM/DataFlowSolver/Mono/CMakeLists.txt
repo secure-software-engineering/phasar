@@ -1,5 +1,4 @@
 set(MonoSources
-	DistInterMonoSolverTest.cpp
 	InterMonoFullConstantPropagationTest.cpp
 	InterMonoTaintAnalysisTest.cpp
 	IntraMonoUninitVariablesTest.cpp

@@ -46,6 +46,9 @@ public:
   using i_t = typename AnalysisDomainTy::i_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
+  //  MonoCache<mono_container_t> Cache(10000); // cache capacity is currently
+  //  set to accommodate 10000 summaries
+
 protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<n_t, n_t>> Worklist;
@@ -348,61 +351,50 @@ public:
 
    mono_container_t summarize(f_t CalleeTarget, mono_container_t FactAtCall) {
     mono_container_t ResultSummary;
-   // auto EntryPoint = ICF->getFunctionName(CalleeTarget); //initialize the entrypoint to the name of CalleeTarget function
-    IntraMonoSolver<AnalysisDomainTy> IMSolver(&IMProblem); //I have problem here creating instance, I tried many ways but recieving error non-matching constructor
-   // providing the reference of IMProblem
+    // idea is to use callFlow function to map FactAtCall to CalleeTarget's
+    // scope
+    IntraMonoSolver<AnalysisDomainTy> IMSolver(IMProblem);
 
     IMSolver.solve(); //calling solve method to analyse the referred problem by IntraMonoSolver
-    
-    auto edges = ICF->getAllControlFlowEdges(CalleeTarget); //ControlflowEdges of CalleeTarget is stored in edges variable
-    for(auto &[Src, Dst]: edges){ //iterate through edges and find the exit statement
-      if(ICF->isExitStmt(Src)){  
-       ResultSummary = IMSolver.getResultsAt(Src);  //get the analysis result of Nth pr return instruction
+
+    for (auto retSites : ICF->getExitPointsOf(
+             CalleeTarget)) { // iterate through the returnSItes of Calleetarget
+      if (ICF->isExitStmt(
+              retSites)) { // double check if the retSite is an exitStmt
+        ResultSummary = IMSolver.getResultsAt(
+            retSites); // get the analysis result of return instruction
       }
     }
    return ResultSummary; //return the results
    }
 
-
-
-  bool isSensibleToSummarize(n_t functionNode) {
-    // use a heuristic to check whether we should compute a summary
-    // make use of the call-graph information
-
-    // first logic to check for leaf functions in a call graph
+   bool isSensibleToSummarize(n_t CallSite) {
+     // use a heuristic to check whether we should compute a summary
      auto isSensible = true;
-    if(ICF->isCallStmt(functionNode)){ // checks if the functionNode is CallStmt
-    auto callsites = ICF->getCallsFromWithin(ICF->getFunctionOf(functionNode)); //get the callsites within the function that is present in the functionNode
-    if(!callsites.empty()){ //if there are callsites, the function is not sensible to summarize and set to false
-      isSensible = false;
-    }
-    }
-    return isSensible; //will consider one among the three logics written here
-     
-    // make use of leafNode function
-  
-    
-  //   auto isSensible = true;
-  //   if(ICF->isCallStmt(functionNode)){ // checks if the functionNode is CallStmt
-  //   for(auto &[Src, Dst] : ICF->getAllControlFlowEdges(ICF->getFunctionOf(functionNode))){ //iterates through the control flow edges of interprocedural function present in functionNode
-  //   if(ICF->isCallStmt(Src)){ //checks for presence of callstmt in the interprocedural function
-  //   isSensible = false; //presence of call statement identifies that the interprocedural function is not a leaf node in call graph and hence not sensible to summarize
-  //   break;
-  //   }
-  //   }
-  //   }
-  //   return isSensible;  
-  // }
-  }
+     if (ICF->isCallStmt(
+             CallSite)) { // checks if the CallSite passed is a CallStmt
+       for (auto Callee : ICF->getCalleesOfCallAt(
+                CallSite)) { // iterate through the calless at CallSite
+         auto callsites = ICF->getCallsFromWithin(
+             Callee); // get the callsites within the function that is present
+                      // in the Callee
+         if (!callsites.empty()) { // if there are callsites, the function is
+                                   // not sensible to summarize
+           isSensible = false;
+         }
+       }
+     }
+     return isSensible;
+   }
 
   bool isleafFunction(f_t CalleeTarget){
     //determines if the function passed in the argument is the leaf node in Callgraph
     bool leafNode = true;
-    if(ICF->isCallStmt(CalleeTarget)){
-    auto callSites = ICF->getOutEdges(CalleeTarget);//returns the callsites within a given method directly from the callgraph
+    auto callSites =
+        ICF->getOutEdges(CalleeTarget); // returns the callsites within a given
+                                        // method directly from the callgraph
     if(!callSites.empty()){
       leafNode = false; //sets false if there are callsites present inside the given method
-    }
     }
     return leafNode;
   }
@@ -424,9 +416,11 @@ public:
           // real call
           for (auto &[Ctx, Facts] : Analysis[Src]) {
             if(isSensibleToSummarize(Src)){
-              mono_container_t summary =  summarize(ICF->getFunctionOf(Src),Facts);
-
-              // addSummary(summary);
+              // if(!Cache.hasSummary(Facts)){
+              mono_container_t summary =
+                  summarize(ICF->getFunctionOf(Src), Facts);
+              // Cache.addSummary(Facts,summary); //inserts summary into cache
+              // }
             }else{
               processCall(Edge); // TODO: decompose into processCall and
               }                 // processCallToRet
@@ -435,6 +429,12 @@ public:
           }
         else {
           // call-to-return
+          /**
+          for (auto &[Ctx, Facts] : Analysis[Src]){
+            if(Cache.hasSummary(Facts)) {
+              auto Summary = Cache.getSummary(Facts);
+            }
+          } in progress **/
           processCall(Edge); // TODO: decompose into processCall and processCallToRet
         }
       } else if (ICF->isExitStmt(Src)) {

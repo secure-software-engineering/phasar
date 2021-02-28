@@ -15,50 +15,75 @@
 #include<vector>
 
 namespace psr {
-  template <class K, class V>
-class MonoCache {
-  // TODO
+template <class K> class MonoCache {
+
+private:
+  std::unordered_map<K, std::pair<K, std::vector<K>::iterator>>
+      SummariesCache; // < key, < value, keyIterator>>
+  std::vector<K>
+      lru; // The most recently added or recently used key is placed last
+  int c;
+
+  void updateLRU(
+      std::unordered_map<K, std::pair<K, std::vector<K>::iterator>>::iterator
+          &it) {
+    lru.erase(it->second.second); // erase the key iterator
+    lru.push_back(it->first);     // push the key to the back of vector
+    it->second.second =
+        lru.end(); // update the key iterator to the back of vector
+  }
+
 public:
-        unordered_map<K, V> summaries;
-        vector<int> time; //The most recently added or recently used key is placed last
-        int c;
+  MonoCache(int capacity) { c = capacity; }
 
-        MonoCache(int capacity) {
-                c = capacity;
-        }
-
-void get(K key) {
-        unordered_map<K, V>::iterator iter = summaries.find(key);
-        if(iter == summaries.end())
-        return -1; //not found
-        else {
-                vector<int>::iterator it = std::find(time.begin(), time.end(), key);
-                time.erase(it); //The visited element is placed at the end
-                time.push_back(key);
-                return iter->second; //value
-        }
-
-}
-
-
-void put(K key, V value) {
-        if(summaries.count(key)) //key already exists in cache
-        {
-            summaries[key] = value; //key is set to the new value
-            vector<int>::iterator it = std::find(time.begin(), time.end(), key);
-            time.erase(it); //Update key usage time
-            time.push_back(key);
-        }
-        else { //Key is not in cache
-                if(time.size()==c) { //The cache is full, delete an element that has not been used for the longest time
-                        int pop = time[0];
-                        time.erase(time.begin()); //Delete the oldest unused element and put it at the beginning of time
-                        summaries.erase(pop);
-            }
-            time.push_back(K);
-            summaries[key] = value;
-        }
+  K getSummary(K key) {
+    auto summary = SummariesCache.find(key); // looks for key in cache
+    if (summary ==
+        SummariesCache.end()) { // if the key does not exist, return -1
+      return -1;
+    } else { // if the key exists, return value and update LRU cache
+      updateLRU(summary);
+      return summary->second.first; // returns the value
     }
+  }
+
+  void addSummary(K key, K value) {
+
+    auto summary =
+        SummariesCache.find(key); // checks if key already exists in cache
+    if (summary != SummariesCache.end()) {
+      updateLRU(summary);
+      SummariesCache[key] = {value,
+                             lru.end()}; // key is set to the new value and it
+                                         // will be in the end of vector
+      return;
+    } else { // Key is not in cache, check the capacity and insert the new
+             // summary value
+      if (SummariesCache.size() ==
+          c) { // The cache is full, delete a summary that has not been used for
+               // the longest time
+        auto pop = lru[0]; // least recently used summary is present in the
+                           // front of the vector
+        SummariesCache.erase(lru.begin()); // Delete the oldest unused element
+        lru.pop(pop);
+      }
+      lru.push_back(key); // push the key to the back of the vector
+      SummariesCache.insert(
+          {key,
+           {value, lru.end()}}); // insert the key, value and the key iterator
+                                 // which is present in the back of the vector
+    }
+  }
+
+  bool hasSummary(K key) {
+
+    auto summary = SummariesCache.find(key);
+    if (summary == SummariesCache.end()) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 };
 }
 #endif
