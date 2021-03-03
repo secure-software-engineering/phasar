@@ -32,6 +32,7 @@ struct Z3Less {
 template <typename L> using VarL = std::map<z3::expr, L, Z3Less>;
 
 template <typename L> bool ContainsZ3Expr(const VarL<L> &M, const z3::expr &E) {
+  // TODO: Why cannot we use M.count(E) here?
   bool FoundKey = false;
   for (auto &[Key, Value] : M) {
     if (z3::eq(Key, E)) {
@@ -51,6 +52,7 @@ bool operator==(
   }
   for (auto &[LhsConstraint, LhsEF] : Lhs) {
     bool FoundEntry = false;
+    // TODO: Use Rhs.find(LhsConstraint) ?
     for (auto &[RhsConstraint, RhsEF] : Rhs) {
       if (z3::eq(LhsConstraint, RhsConstraint)) {
         if (&*LhsEF == &*RhsEF || LhsEF->equal_to(RhsEF)) {
@@ -191,6 +193,8 @@ public:
           ResultUserEdgeFns = VEF->UserEdgeFns;
       for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
         bool FoundConstraint = false;
+
+        // TODO: Use VEF->UserEdgeFns.find(Constraint) ?
         for (auto &[InConstraint, InUserEdgeFn] : VEF->UserEdgeFns) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "z3::eq " << Constraint.to_string() << " <--> "
