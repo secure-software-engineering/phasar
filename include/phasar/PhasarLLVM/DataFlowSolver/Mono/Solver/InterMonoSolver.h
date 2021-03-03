@@ -30,6 +30,10 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 
 
 
@@ -351,22 +355,32 @@ public:
 
    mono_container_t summarize(f_t CalleeTarget, mono_container_t FactAtCall) {
     mono_container_t ResultSummary;
-    // idea is to use callFlow function to map FactAtCall to CalleeTarget's
-    // scope
-    IntraMonoSolver<AnalysisDomainTy> IMSolver(IMProblem);
+    const ProjectIRDB *IRDB = IMProblem.getProjectIRDB();
+    auto TH = IMProblem.getTypeHierarchy();
+    auto PT =  IMProblem.getPointstoInfo();
+    std::set<std::string> EntryPoints = {ICF->getFunctionName(CalleeTarget)}; //Entrypoint set to calleeTarget
+    auto ICFG = IMProblem.getCFG();
+
+    IntraMonoProblem<AnalysisDomainTy> IntraMProblem(IRDB, &TH, &ICFG, &PT, EntryPoints); //instance of IntraMonoProblem with entrypoint and other details
+
+    for (auto CallSites : ICF->getCallersOf(CalleeTarget)){
+      auto outFacts = IMProblem.callFlow(CallSites, CalleeTarget, FactAtCall); 
+    // callFlow function to map FactAtCall to CalleeTarget's scope
+    }
+
+    IntraMonoSolver<AnalysisDomainTy> IMSolver(IntraMProblem); //
 
     IMSolver.solve(); //calling solve method to analyse the referred problem by IntraMonoSolver
 
     for (auto retSites : ICF->getExitPointsOf(
-             CalleeTarget)) { // iterate through the returnSItes of Calleetarget
-      if (ICF->isExitStmt(
-              retSites)) { // double check if the retSite is an exitStmt
+             CalleeTarget)) { // iterate through the returnSites of Calleetarget, there will be only one return site
         ResultSummary = IMSolver.getResultsAt(
             retSites); // get the analysis result of return instruction
-      }
     }
    return ResultSummary; //return the results
    }
+
+   
 
    bool isSensibleToSummarize(n_t CallSite) {
      // use a heuristic to check whether we should compute a summary
@@ -419,6 +433,7 @@ public:
               // if(!Cache.hasSummary(Facts)){
               mono_container_t summary =
                   summarize(ICF->getFunctionOf(Src), Facts);
+                //  IMProblem.returnFlow(Src, ICF->getFunctionOf(Src));
               // Cache.addSummary(Facts,summary); //inserts summary into cache
               // }
             }else{
