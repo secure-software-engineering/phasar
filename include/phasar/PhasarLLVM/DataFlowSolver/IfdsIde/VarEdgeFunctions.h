@@ -53,7 +53,7 @@ bool operator==(
     bool FoundEntry = false;
     for (auto &[RhsConstraint, RhsEF] : Rhs) {
       if (z3::eq(LhsConstraint, RhsConstraint)) {
-        if (LhsEF->equal_to(RhsEF)) {
+        if (&*LhsEF == &*RhsEF || LhsEF->equal_to(RhsEF)) {
           FoundEntry = true;
           break;
         }
@@ -79,8 +79,8 @@ private:
       UserEdgeFns;
 
 public:
-  VarEdgeFunction(std::shared_ptr<EdgeFunction<user_l_t>> UserEdgeFn,
-                  z3::expr Constraint)
+  VarEdgeFunction(const std::shared_ptr<EdgeFunction<user_l_t>> &UserEdgeFn,
+                  const z3::expr &Constraint)
       : UserEdgeFns({std::make_pair(Constraint, UserEdgeFn)}) {
 
     // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -90,10 +90,28 @@ public:
                   << "construct VAREdgeFunction: " << this->str());
   }
 
+  VarEdgeFunction(const std::shared_ptr<EdgeFunction<user_l_t>> &UserEdgeFn,
+                  z3::expr &&Constraint)
+      : UserEdgeFns({std::make_pair(std::move(Constraint), UserEdgeFn)}) {
+
+    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+    //              << "construct VAREdgeFunction with '"
+    //              << Constraint.to_string() << "'");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "construct VAREdgeFunction: " << this->str());
+  }
+
   VarEdgeFunction(
-      std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
-          UserEdgeFns)
+      const std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
+          &UserEdgeFns)
       : UserEdgeFns(UserEdgeFns) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "construct VAREdgeFunction with existing UserEdgeFns");
+  }
+
+  VarEdgeFunction(std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>,
+                           Z3Less> &&UserEdgeFns)
+      : UserEdgeFns(std::move(UserEdgeFns)) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "construct VAREdgeFunction with existing UserEdgeFns");
   }
@@ -104,6 +122,8 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "computeTarget: Source.size(): " << Source.size()
                   << ", UserEdgeFns.size(): " << UserEdgeFns.size());
+    // TODO: Do we really need to copy Source here? It _is_ already a copy and
+    // each Constraint occurs only once in UserEdgeFns...
     auto ResSource = Source;
     for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -124,7 +144,7 @@ public:
   composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "VarEdgeFunction::composeWith");
-    if (auto VEF =
+    if (auto *VEF =
             dynamic_cast<VarEdgeFunction<user_l_t> *>(secondFunction.get())) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "UserEdgeFns.size(): " << UserEdgeFns.size()
@@ -150,7 +170,7 @@ public:
         ResultUserEdgeFns[ComposedConstraint.simplify()] =
             EF->composeWith(UserEdgeFn.second);
       }
-      return std::make_shared<VarEdgeFunction>(ResultUserEdgeFns);
+      return std::make_shared<VarEdgeFunction>(std::move(ResultUserEdgeFns));
     }
     llvm::report_fatal_error("found unexpected edge function");
   }
@@ -159,7 +179,7 @@ public:
   joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "VarEdgeFunction::joinWith");
-    if (auto VEF =
+    if (auto *VEF =
             dynamic_cast<VarEdgeFunction<user_l_t> *>(otherFunction.get())) {
       // We need to call user-joinWith for pair-wise equal constraints.
       // Otherwise, we need to add a new entry to the result map.
@@ -191,7 +211,8 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "ResultUserEdgeFns.size() --> "
                     << ResultUserEdgeFns.size());
-      return std::make_shared<VarEdgeFunction<user_l_t>>(ResultUserEdgeFns);
+      return std::make_shared<VarEdgeFunction<user_l_t>>(
+          std::move(ResultUserEdgeFns));
     }
     llvm::report_fatal_error("found unexpected edge function");
   }
@@ -199,7 +220,7 @@ public:
   bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "VarEdgeFunction::equal_to");
-    if (auto VEF = dynamic_cast<VarEdgeFunction<user_l_t> *>(other.get())) {
+    if (auto *VEF = dynamic_cast<VarEdgeFunction<user_l_t> *>(other.get())) {
       // calling overloaded operator==
       return UserEdgeFns == VEF->UserEdgeFns;
     }
