@@ -17,8 +17,8 @@ build:
     - cat /proc/meminfo
     - echo "checking CPU(s)"
     - cat /proc/cpuinfo
-    - CC=clang CXX=clang++ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
-    - make -j4
+    - CC=clang CXX=clang++ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON -G Ninja ..
+    - ninja
 # Install Phasar and test the examples
     - make install
     - cd /builds/pdschbrt/sse_dfa_llvm/examples/llvm-hello_world/
