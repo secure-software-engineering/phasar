@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <ostream>
 #include <string>
 
 #include "llvm/Bitcode/BitcodeReader.h"
@@ -61,10 +62,8 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
     : ProjectIRDB(Options | IRDBOptions::OWNS) {
   for (const auto &File : IRFiles) {
     // if we have a file that is already compiled to llvm ir
-    if ((File.find(".ll") != std::basic_string<char, std::char_traits<char>,
-                                               std::allocator<char>>::npos ||
-         File.find(".bc") != std::basic_string<char, std::char_traits<char>,
-                                               std::allocator<char>>::npos) &&
+    if ((File.find(".ll") != std::string::npos ||
+         File.find(".bc") != std::string::npos) &&
         boost::filesystem::exists(File)) {
       llvm::SMDiagnostic Diag;
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
@@ -251,6 +250,7 @@ void ProjectIRDB::print() const {
   for (const auto &[File, Module] : Modules) {
     std::cout << "Module: " << File << std::endl;
     llvm::outs() << *Module;
+    llvm::outs().flush();
   }
 }
 

@@ -56,6 +56,10 @@ public:
 
   std::set<n_t> getExitPointsOf(f_t fun) const override;
 
+  std::vector<f_t> getGlobalCtors() const override;
+
+  std::vector<f_t> getGlobalDtors() const override;
+
   bool isCallSite(n_t stmt) const override;
 
   bool isExitSite(n_t stmt) const override;

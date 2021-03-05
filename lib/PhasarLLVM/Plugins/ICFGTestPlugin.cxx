@@ -73,6 +73,14 @@ ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 
+std::vector<ICFGTestPlugin::f_t> ICFGTestPlugin::getGlobalCtors() const {
+  return {};
+}
+
+std::vector<ICFGTestPlugin::f_t> ICFGTestPlugin::getGlobalDtors() const {
+  return {};
+}
+
 bool ICFGTestPlugin::isExitSite(ICFGTestPlugin::n_t Stmt) const {
   return false;
 }

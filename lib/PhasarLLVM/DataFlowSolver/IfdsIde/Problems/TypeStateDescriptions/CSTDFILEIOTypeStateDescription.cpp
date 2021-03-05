@@ -10,6 +10,7 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
+#include <iostream>
 
 using namespace std;
 using namespace psr;
@@ -78,7 +79,7 @@ TypeStateDescription::State CSTDFILEIOTypeStateDescription::getNextState(
     auto Ret = Delta[X][S];
     // if (ret == error()) {
     //  std::cerr << "getNextState(" << Tok << ", " << stateToString(S)
-    //            << ") = ERROR" << std::endl;
+    //            << ") = " << stateToString(Ret) << std::endl;
     // }
     return Ret;
   } else {

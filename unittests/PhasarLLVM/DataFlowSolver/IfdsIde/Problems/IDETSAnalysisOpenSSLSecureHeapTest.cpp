@@ -7,6 +7,8 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
+#include <memory>
+
 #include "gtest/gtest.h"
 
 #include "phasar/DB/ProjectIRDB.h"
@@ -19,6 +21,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
@@ -29,16 +32,16 @@ protected:
       "build/test/llvm_test_code/openssl/secure_heap/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  OpenSSLSecureHeapDescription *Desc{};
-  IDETypeStateAnalysis *TSProblem{};
-  IDESolver<IDETypeStateAnalysisDomain> *Llvmtssolver{};
-  IDESolver<IDESecureHeapPropagationAnalysisDomain>
-      *SecureHeapPropagationResults{};
-  IDESecureHeapPropagation *SecureHeapPropagationProblem{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<OpenSSLSecureHeapDescription> Desc;
+  unique_ptr<IDETypeStateAnalysis> TSProblem;
+  unique_ptr<IDESolver<IDETypeStateAnalysisDomain>> Llvmtssolver;
+  unique_ptr<IDESolver<IDESecureHeapPropagationAnalysisDomain>>
+      SecureHeapPropagationResults;
+  unique_ptr<IDESecureHeapPropagation> SecureHeapPropagationProblem;
   enum OpenSSLSecureHeapState {
     TOP = 42,
     BOT = 0,
@@ -52,22 +55,24 @@ protected:
   ~IDETSAnalysisOpenSSLSecureHeapTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(), PT.get());
 
-    SecureHeapPropagationProblem =
-        new IDESecureHeapPropagation(IRDB, TH, ICFG, PT, EntryPoints);
+    SecureHeapPropagationProblem = make_unique<IDESecureHeapPropagation>(
+        IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
     SecureHeapPropagationResults =
-        new IDESolver<IDESecureHeapPropagationAnalysisDomain>(
+        make_unique<IDESolver<IDESecureHeapPropagationAnalysisDomain>>(
             *SecureHeapPropagationProblem);
 
-    Desc = new OpenSSLSecureHeapDescription(*SecureHeapPropagationResults);
-    TSProblem =
-        new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *Desc, EntryPoints);
-    Llvmtssolver = new IDESolver<IDETypeStateAnalysisDomain>(*TSProblem);
+    Desc = make_unique<OpenSSLSecureHeapDescription>(
+        *SecureHeapPropagationResults);
+    TSProblem = make_unique<IDETypeStateAnalysis>(
+        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *Desc, EntryPoints);
+    Llvmtssolver =
+        make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSProblem);
 
     SecureHeapPropagationResults->solve();
     Llvmtssolver->solve();
@@ -78,13 +83,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete ICFG;
-    delete TSProblem;
-    delete Llvmtssolver;
-  }
+  void TearDown() override {}
 
   /**
    * We map instruction id to value for the ground truth. ID has to be

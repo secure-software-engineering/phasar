@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
 
 #include <iostream>
+#include <llvm/IR/InstrTypes.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -23,6 +24,7 @@
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
+class CallBase;
 class Instruction;
 class Function;
 class Value;
@@ -197,13 +199,12 @@ public:
     // Do not use a reference here, since LLVM's StringRef's (obtained by str())
     // might turn to nullptr for whatever reason...
     const std::string Token;
-    l_t CurrentState;
     const llvm::CallBase *CB;
 
   public:
     TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok,
                    const llvm::CallBase *cb)
-        : TSD(tsd), Token(tok), CurrentState(TSD.top()), CB(cb){};
+        : TSD(tsd), Token(tok), CB(cb){};
 
     l_t computeTarget(l_t source) override;
 
@@ -216,8 +217,26 @@ public:
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
+  class TSConstant : public EdgeFunction<l_t>,
+                     public std::enable_shared_from_this<TSConstant> {
+    const TypeStateDescription &TSD;
+    l_t State;
 
-    l_t getCurrentState() const { return CurrentState; }
+  public:
+    TSConstant(const TypeStateDescription &TSD, l_t State);
+
+    l_t computeTarget(l_t source) override;
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 };
 

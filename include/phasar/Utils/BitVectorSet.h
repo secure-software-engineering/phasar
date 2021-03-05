@@ -259,7 +259,7 @@ public:
   void erase(const T &Data) noexcept {
     auto Search = Position.left.find(Data);
     if (Search != Position.left.end()) {
-      if (!(Bits.size() < Search->second - 1)) {
+      if (Bits.size() > Search->second) {
         Bits[Search->second] = false;
       }
     }

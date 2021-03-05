@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
 
 #include <iostream>
+#include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <type_traits>
@@ -104,7 +106,7 @@ public:
   }
 
   template <typename... Args>
-  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&... args) {
+  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&...args) {
     std::set<const FlowFact *> Ret;
     (Ret.insert(getOrCreateFlowFact(std::forward<Args>(args))), ...);
     return Ret;

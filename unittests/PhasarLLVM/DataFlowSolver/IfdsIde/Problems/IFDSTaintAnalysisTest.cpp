@@ -1,6 +1,8 @@
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
+#include <memory>
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -20,28 +22,30 @@ protected:
       unittest::PathToLLTestFiles + "taint_analysis/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMBasedICFG *ICFG{};
-  LLVMPointsToInfo *PT{};
-  IFDSTaintAnalysis *TaintProblem{};
-  TaintConfiguration<const llvm::Value *> *TSF{};
+  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<LLVMBasedICFG> ICFG;
+  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<IFDSTaintAnalysis> TaintProblem;
+  unique_ptr<TaintConfiguration<const llvm::Value *>> TSF;
 
   IFDSTaintAnalysisTest() = default;
   ~IFDSTaintAnalysisTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
-                             PT);
-    TSF = new TaintConfiguration<const llvm::Value *>(
-        {TaintConfiguration<const llvm::Value *>::SourceFunction("source()",
-                                                                 true)},
-        {TaintConfiguration<const llvm::Value *>::SinkFunction(
-            "sink(int)", std::vector<unsigned>({0}))});
-    TaintProblem = new IFDSTaintAnalysis(IRDB, TH, ICFG, PT, *TSF, EntryPoints);
+    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(), PT.get());
+    auto source = {TaintConfiguration<const llvm::Value *>::SourceFunction(
+        "source()", true)};
+    auto sink = {TaintConfiguration<const llvm::Value *>::SinkFunction(
+        "sink(int)", std::vector<unsigned>({0}))};
+    TSF = make_unique<TaintConfiguration<const llvm::Value *>>(source, sink);
+
+    TaintProblem = make_unique<IFDSTaintAnalysis>(
+        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *TSF, EntryPoints);
   }
 
   void SetUp() override {
@@ -49,13 +53,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete ICFG;
-    delete TaintProblem;
-    delete TSF;
-  }
+  void TearDown() override {}
 
   void compareResults(map<int, set<string>> &GroundTruth) {
     // std::map<n_t, std::set<d_t>> Leaks;
@@ -133,6 +131,120 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[5] = set<string>{"main.0"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[15] = set<string>{"14"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_m2r_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[6] = set<string>{"0"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[17] = set<string>{"16"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_03_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[11] = set<string>{"10"};
+  GroundTruth[21] = set<string>{"20"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_04_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[33] = set<string>{"32"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_05_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  const llvm::Function *entry =
+      TaintProblem->getProjectIRDB()->getFunction("main");
+
+  map<int, set<string>> GroundTruth;
+  GroundTruth[33] = set<string>{"32"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_06_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[15] = set<string>{"14"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_07_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[31] = set<string>{"30"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_08_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[33] = set<string>{"32"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_09_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[64] = set<string>{"63"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[62] = set<string>{"61"};
   compareResults(GroundTruth);
 }
 
