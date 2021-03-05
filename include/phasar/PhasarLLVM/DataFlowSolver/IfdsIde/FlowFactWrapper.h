@@ -104,7 +104,7 @@ public:
   }
 
   template <typename... Args>
-  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&...args) {
+  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&... args) {
     std::set<const FlowFact *> Ret;
     (Ret.insert(getOrCreateFlowFact(std::forward<Args>(args))), ...);
     return Ret;
