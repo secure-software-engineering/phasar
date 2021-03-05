@@ -77,7 +77,7 @@ protected:
   }
 
   bool isCallEdge(std::pair<n_t, n_t> Edge) {
-    return !isIntraEdge(Edge) && ICF->isCallStmt(Edge.first);
+    return !isIntraEdge(Edge) && ICF->isCallSite(Edge.first);
   }
 
   bool isReturnEdge(std::pair<n_t, n_t> Edge) {
@@ -139,7 +139,7 @@ protected:
       Worklist.push_back({Dst, Nprimeprime});
     }
     // add inter-procedural call edges again
-    if (ICF->isCallStmt(Dst)) {
+    if (ICF->isCallSite(Dst)) {
       for (auto Callee : ICF->getCalleesOfCallAt(Dst)) {
         for (auto StartPoint : ICF->getStartPointsOf(Callee)) {
           Worklist.push_back({Dst, StartPoint});
@@ -361,11 +361,11 @@ public:
       Worklist.pop_front();
       auto Src = Edge.first;
       auto Dst = Edge.second;
-      if (ICF->isCallStmt(Src)) {
+      if (ICF->isCallSite(Src)) {
         addCalleesToWorklist(Edge);
       }
       // Compute the data-flow facts using the respective kind of flows
-      if (ICF->isCallStmt(Src)) {
+      if (ICF->isCallSite(Src)) {
         // Handle call flow(s)
         if (!isIntraEdge(Edge)) {
           // real call

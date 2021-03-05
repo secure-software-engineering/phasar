@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
@@ -76,16 +77,16 @@ InterMonoFullConstantPropagation::callFlow(
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    llvm::ImmutableCallSite CS(CallSite);
+    const auto *CB = llvm::cast<llvm::CallBase>(CallSite);
     // early exit; varargs not handled yet
-    if (CS.getNumArgOperands() == 0 || Callee->isVarArg()) {
+    if (CB->getNumArgOperands() == 0 || Callee->isVarArg()) {
       return Out;
     }
     vector<const llvm::Value *> Actuals;
     vector<const llvm::Value *> Formals;
     // Set up the actual parameters
-    for (unsigned idx = 0; idx < CS.getNumArgOperands(); ++idx) {
-      Actuals.push_back(CS.getArgOperand(idx));
+    for (unsigned idx = 0; idx < CB->getNumArgOperands(); ++idx) {
+      Actuals.push_back(CB->getArgOperand(idx));
     }
     // Set up the formal parameters
     for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
@@ -122,7 +123,7 @@ InterMonoFullConstantPropagation::returnFlow(
     const InterMonoFullConstantPropagation::mono_container_t &In) {
   InterMonoFullConstantPropagation::mono_container_t Out;
 
-  if (const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
+  if (const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite)) {
     if (Return->getReturnValue()->getType()->isIntegerTy()) {
       // Return value is integer literal
       if (auto ConstInt =

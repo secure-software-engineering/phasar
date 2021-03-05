@@ -188,22 +188,22 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
         const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(&I);
         set<const llvm::Function *> PossibleTargets;
         // check if function call can be resolved statically
-        if (CS.getCalledFunction() != nullptr) {
-          PossibleTargets.insert(CS.getCalledFunction());
+        if (CS->getCalledFunction() != nullptr) {
+          PossibleTargets.insert(CS->getCalledFunction());
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Found static call-site: ");
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "  " << llvmIRToString(CS.getInstruction()));
+                        << "  " << llvmIRToString(CS));
         } else {
           // still try to resolve the called function statically
-          const llvm::Value *SV = CS.getCalledValue()->stripPointerCasts();
+          const llvm::Value *SV = CS->getCalledOperand()->stripPointerCasts();
           const llvm::Function *ValueFunction =
-              !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName());
+              !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName().str());
           if (ValueFunction) {
             PossibleTargets.insert(ValueFunction);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Found static call-site: "
-                          << llvmIRToString(CS.getInstruction()));
+                          << llvmIRToString(CS));
           } else {
             // the function call must be resolved dynamically
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -234,7 +234,7 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
             FunctionVertexMap[PossibleTarget] = TargetVertex;
           }
           boost::add_edge(ThisFunctionVertexDescriptor, TargetVertex,
-                          EdgeProperties(CS.getInstruction()), CallGraph);
+                          EdgeProperties(CS), CallGraph);
         }
 
         // continue resolving
@@ -270,17 +270,17 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
 
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
     Resolver.preCall(I);
-    llvm::ImmutableCallSite CS(I);
+    const auto *CB = llvm::cast<llvm::CallBase>(I);
     set<const llvm::Function *> PossibleTargets;
     // the function call must be resolved dynamically
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Looking into dynamic call-site: ");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << llvmIRToString(I));
     // call the resolve routine
-    if (LLVMBasedICFG::isVirtualFunctionCall(CS.getInstruction())) {
-      PossibleTargets = Resolver.resolveVirtualCall(CS);
+    if (LLVMBasedICFG::isVirtualFunctionCall(CB)) {
+      PossibleTargets = Resolver.resolveVirtualCall(CB);
     } else {
-      PossibleTargets = Resolver.resolveFunctionPointer(CS);
+      PossibleTargets = Resolver.resolveFunctionPointer(CB);
     }
     if (IndirectCalls.count(I) == 0 ||
         IndirectCalls[I] < PossibleTargets.size()) {
@@ -300,7 +300,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
         PossibleTargets.erase(CallGraph[boost::target(OE, CallGraph)].F);
       }
     }
-    Resolver.handlePossibleTargets(CS, PossibleTargets);
+    Resolver.handlePossibleTargets(CB, PossibleTargets);
     // Insert possible target inside the graph and add the link with
     // the current function
     for (const auto &PossibleTarget : PossibleTargets) {
