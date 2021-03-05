@@ -15,7 +15,6 @@
 #include <set>
 #include <string>
 
-
 namespace psr {
 
 /**

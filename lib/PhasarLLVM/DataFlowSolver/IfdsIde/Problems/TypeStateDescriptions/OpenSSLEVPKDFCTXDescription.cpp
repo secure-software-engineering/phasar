@@ -119,8 +119,7 @@ OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
       // cout << "## Factory-Call: ";
       // cout.flush();
       // cout << llvmIRToShortString(CS.getInstruction()) << endl;
-      auto KdfState = kdfAnalysisResults.resultAt(CB,
-                                                  CB->getArgOperand(0));
+      auto KdfState = kdfAnalysisResults.resultAt(CB, CB->getArgOperand(0));
       if (KdfState !=
           OpenSSLEVPKDFDescription::OpenSSLEVPKDFState::KDF_FETCHED) {
         return error();
