@@ -385,13 +385,13 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if (TSD.isFactoryFunction(DemangledFname)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Processing factory function");
-      if (isZeroValue(CallNode) && RetSiteNode == CS.getInstruction()) {
+      if (isZeroValue(CallNode) && RetSiteNode == CB) {
         struct TSFactoryEF : public TSConstant {
           TSFactoryEF(const TypeStateDescription &Tsd, l_t State)
               : TSConstant(Tsd, State) {}
         };
         return make_shared<TSFactoryEF>(
-            TSD, TSD.getNextState(DemangledFname, TSD.uninit(), CS));
+            TSD, TSD.getNextState(DemangledFname, TSD.uninit(), CB));
       }
     }
 
@@ -430,13 +430,15 @@ IDETypeStateAnalysis::l_t IDETypeStateAnalysis::bottomElement() {
 IDETypeStateAnalysis::l_t
 IDETypeStateAnalysis::join(IDETypeStateAnalysis::l_t Lhs,
                            IDETypeStateAnalysis::l_t Rhs) {
-  if (Lhs == Rhs)
+  if (Lhs == Rhs) {
     return Lhs;
-  if (Lhs == TOP)
+  }
+  if (Lhs == TOP) {
     return Rhs;
-  if (Rhs == TOP)
+  }
+  if (Rhs == TOP) {
     return Lhs;
-
+  }
   return BOTTOM;
 }
 
@@ -483,7 +485,7 @@ IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
   // assert((Source != TSD.top()) && "Error: call computeTarget with TOP\n");
 
   auto CurrentState =
-      TSD.getNextState(Token, Source == TSD.top() ? TSD.uninit() : Source, CS);
+      TSD.getNextState(Token, Source == TSD.top() ? TSD.uninit() : Source, CB);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "State machine transition: (" << Token << " , "
                 << TSD.stateToString(Source) << ") -> "
@@ -536,7 +538,7 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
 
 void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
                                                  bool IsForDebug) const {
-  OS << "TSEF(" << Token << " at " << llvmIRToShortString(CS.getInstruction())
+  OS << "TSEF(" << Token << " at " << llvmIRToShortString(CB)
      << ")";
 }
 

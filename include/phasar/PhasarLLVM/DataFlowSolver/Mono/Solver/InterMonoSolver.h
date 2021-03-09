@@ -81,7 +81,7 @@ protected:
   }
 
   bool isReturnEdge(std::pair<n_t, n_t> Edge) {
-    return !isIntraEdge(Edge) && ICF->isExitStmt(Edge.first);
+    return !isIntraEdge(Edge) && ICF->isExitSite(Edge.first);
   }
 
   void printWorkList() {
@@ -147,7 +147,7 @@ protected:
       }
     }
     // add inter-procedural return edges again
-    if (ICF->isExitStmt(Dst)) {
+    if (ICF->isExitSite(Dst)) {
       for (auto caller : ICF->getCallersOf(ICF->getFunctionOf(Dst))) {
         for (auto Nprimeprime : ICF->getSuccsOf(caller)) {
           Worklist.push_back({Dst, Nprimeprime});
@@ -378,7 +378,7 @@ public:
           processCall(
               Edge); // TODO: decompose into processCall and processCallToRet
         }
-      } else if (ICF->isExitStmt(Src)) {
+      } else if (ICF->isExitSite(Src)) {
         // Handle return flow
         processExit(Edge);
       } else {

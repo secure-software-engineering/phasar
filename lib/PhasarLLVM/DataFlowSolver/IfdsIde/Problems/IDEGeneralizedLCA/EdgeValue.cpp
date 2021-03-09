@@ -52,7 +52,7 @@ EdgeValue::EdgeValue(const llvm::Value *Val) : type(Top) {
       llvm::APFloat Apf(CnstFP);
       bool Unused;
       Apf.convert(llvm::APFloat::IEEEdouble(),
-                  llvm::APFloat::roundingMode::rmNearestTiesToEven, &Unused);
+                  llvm::APFloat::roundingMode::NearestTiesToEven, &Unused);
       value = llvm::APFloat(Apf);
     } else if (llvm::isa<llvm::ConstantPointerNull>(Cnst)) {
       type = String;
@@ -120,7 +120,7 @@ EdgeValue::EdgeValue(llvm::APFloat &&Vf) : type(EdgeValue::FloatingPoint) {
   llvm::APFloat Fp = llvm::APFloat(std::move(Vf));
   bool Unused;
   Fp.convert(llvm::APFloat::IEEEdouble(),
-             llvm::APFloat::roundingMode::rmNearestTiesToEven, &Unused);
+             llvm::APFloat::roundingMode::NearestTiesToEven, &Unused);
   value = Fp;
 }
 
@@ -461,7 +461,7 @@ EdgeValue EdgeValue::typecast(Type Dest, unsigned Bits) const {
       bool Unused;
       llvm::APSInt Ai;
       std::get<llvm::APFloat>(value).convertToInteger(
-          Ai, llvm::APFloat::roundingMode::rmNearestTiesToEven, &Unused);
+          Ai, llvm::APFloat::roundingMode::NearestTiesToEven, &Unused);
       return EdgeValue(Ai);
     }
     default:

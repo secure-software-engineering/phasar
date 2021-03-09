@@ -10,8 +10,8 @@
 #include <sstream>
 
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
@@ -58,8 +58,8 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
                                          IDEGeneralizedLCA::n_t Succ) {
   // std::cout << "## normal flow for: " << llvmIRToString(curr) <<
   // std::endl;
-  if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
-    llvm::ImmutableCallSite CS(Curr);
+  if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(Curr)) {
+    const llvm::CallBase *CB(Curr);
     if (isStringConstructor(CS.getCalledFunction())) {
       return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS.getArgOperand(0),
                                                            getZeroValue());
@@ -427,7 +427,7 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::d_t SrcNode,
                                        IDEGeneralizedLCA::f_t DestinationMethod,
                                        IDEGeneralizedLCA::d_t DestNode) {
-  llvm::ImmutableCallSite CS(CallStmt);
+  const llvm::CallBase *CB(CallStmt);
 
   if (isZeroValue(SrcNode)) {
     auto Len =
@@ -473,7 +473,7 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
     IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
     IDEGeneralizedLCA::n_t RetSite, IDEGeneralizedLCA::d_t RetSiteNode,
     std::set<IDEGeneralizedLCA::f_t> Callees) {
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CB(CallSite);
 
   // check for ctor and then demangle function name and check for
   // std::basic_string
@@ -671,13 +671,13 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
         LcaRes->line_nr = Lnr;
       }
       LcaRes->ir_trace.push_back(Stmt);
-      if (Stmt->isTerminator() && !ICF->isExitStmt(Stmt)) {
+      if (Stmt->isTerminator() && !ICF->isExitSite(Stmt)) {
         std::cout << "Delete result since stmt is Terminator or Exit!\n";
         FResults.erase(Lnr);
       } else {
         // check results of succ(stmt)
         std::unordered_map<d_t, l_t> Results;
-        if (ICF->isExitStmt(Stmt)) {
+        if (ICF->isExitSite(Stmt)) {
           Results = SR.resultsAt(Stmt, true);
         } else {
           // It's not a terminator inst, hence it has only a single successor
