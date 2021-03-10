@@ -34,6 +34,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 
 
 
@@ -355,29 +357,38 @@ public:
 
    mono_container_t summarize(f_t CalleeTarget, mono_container_t FactAtCall) {
     mono_container_t ResultSummary;
+    AnalysisDomainTy FCP;
+    std::set<std::string> EntryPoints = {ICF->getFunctionName(CalleeTarget)}; // Entrypoint set to calleeTarget
     const ProjectIRDB *IRDB = IMProblem.getProjectIRDB();
-    auto TH = IMProblem.getTypeHierarchy();
-    auto PT =  IMProblem.getPointstoInfo();
-    std::set<std::string> EntryPoints = {ICF->getFunctionName(CalleeTarget)}; //Entrypoint set to calleeTarget
-    auto ICFG = IMProblem.getCFG();
+    LLVMTypeHierarchy *TH = nullptr;
+    LLVMPointsToInfo *PT = nullptr;
+    TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH, PT); // no matching constructor for initialization of LLVMBasedICFG
 
-    IntraMonoProblem<AnalysisDomainTy> IntraMProblem(IRDB, &TH, &ICFG, &PT, EntryPoints); //instance of IntraMonoProblem with entrypoint and other details
-
-    for (auto CallSites : ICF->getCallersOf(CalleeTarget)){
-      auto outFacts = IMProblem.callFlow(CallSites, CalleeTarget, FactAtCall); 
+    for (auto CallSite : ICF->getCallersOf(CalleeTarget)) {
+      auto outFacts = IMProblem.callFlow(CallSite, CalleeTarget, FactAtCall); 
     // callFlow function to map FactAtCall to CalleeTarget's scope
     }
 
-    IntraMonoSolver<AnalysisDomainTy> IMSolver(IntraMProblem); //
+    if ( std::is_same<AnalysisDomainTy,InterMonoFullConstantPropagation>::value ) {
 
-    IMSolver.solve(); //calling solve method to analyse the referred problem by IntraMonoSolver
+       FCP = InterMonoFullConstantPropagation(IRDB, &TH , &ICFG, &PT, EntryPoints);
+
+    } else if ( std::is_same<AnalysisDomainTy,InterMonoTaintAnalysis>::value ) {
+
+       FCP = InterMonoTaintAnalysis(IRDB, &TH, &ICFG, &PT, TC, EntryPoints);
+
+    }
+    IntraMonoSolver<AnalysisDomainTy> IMSolver(FCP);
+
+    IMSolver.solve(); // calling solve method to analyse the referred problem by IntraMonoSolver
 
     for (auto retSites : ICF->getExitPointsOf(
              CalleeTarget)) { // iterate through the returnSites of Calleetarget, there will be only one return site
         ResultSummary = IMSolver.getResultsAt(
-            retSites); // get the analysis result of return instruction
+          retSites); // get the analysis result of return instruction
     }
-   return ResultSummary; //return the results
+   return ResultSummary; // return the results
    }
 
    
