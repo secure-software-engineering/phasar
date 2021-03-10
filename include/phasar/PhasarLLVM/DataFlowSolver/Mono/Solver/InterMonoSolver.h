@@ -363,7 +363,9 @@ public:
     LLVMTypeHierarchy *TH = nullptr;
     LLVMPointsToInfo *PT = nullptr;
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH, PT); // no matching constructor for initialization of LLVMBasedICFG
+    // below line is throwing an error
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH, PT);  // no matching constructor for initialization of LLVMBasedICFG
+
 
     for (auto CallSite : ICF->getCallersOf(CalleeTarget)) {
       auto outFacts = IMProblem.callFlow(CallSite, CalleeTarget, FactAtCall); 
