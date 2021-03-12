@@ -80,11 +80,16 @@ public:
       std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)>
           Predicate =
               [](llvm::ImmutableCallSite CS, const llvm::Value *V) {
+                // Globals are considered to be involved in this default
+                // implementation.
+                if (llvm::isa<llvm::GlobalVariable>(V)) {
+                  return true;
+                }
                 // Checks if a values is involved in a call, i.e., may be
                 // modified by a callee, in which case its flow is controlled by
                 // getCallFlowFunction() and getRetFlowFunction().
                 bool Involved = false;
-                for (auto &Arg : CS.args()) {
+                for (const auto &Arg : CS.args()) {
                   if (Arg == V && V->getType()->isPointerTy()) {
                     Involved = true;
                   }

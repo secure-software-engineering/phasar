@@ -23,6 +23,8 @@
 #include <variant>
 #include <vector>
 
+#include "llvm/IR/Attributes.h"
+#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -487,10 +489,34 @@ public:
       // We don't have anything that we could analyze, kill all facts.
       return KillAll<d_t>::getInstance();
     }
+    llvm::ImmutableCallSite CS(callStmt);
     // Map actual to formal parameters.
-    return std::make_shared<MapFactsToCallee<container_type>>(
+    auto AutoMapping = std::make_shared<MapFactsToCallee<container_type>>(
         llvm::ImmutableCallSite(callStmt), destMthd,
-        true /* map globals to callee, too */);
+        true /* map globals to callee, too */,
+        // Do not map parameters that have been artificially introduced by the
+        // compiler for RVO (return value optimization). Instead, these values
+        // need to be generated from the zero value.
+        [CS](const llvm::Value *V) {
+          bool PassParameter = true;
+          for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
+            if (V == CS.getArgOperand(Idx)) {
+              return !CS.paramHasAttr(Idx, llvm::Attribute::StructRet);
+            }
+          }
+          return PassParameter;
+        });
+    // Generate the artificially introduced RVO parameters from zero value.
+    std::set<d_t> SRetFormals;
+    for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
+      if (CS.paramHasAttr(Idx, llvm::Attribute::StructRet)) {
+        SRetFormals.insert(destMthd->getArg(Idx));
+      }
+    }
+    auto GenSRetFormals = std::make_shared<GenAllAndKillAllOthers<d_t>>(
+        SRetFormals, this->getZeroValue());
+    return std::make_shared<Union<d_t>>(
+        std::vector<FlowFunctionPtrType>({AutoMapping, GenSRetFormals}));
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
@@ -498,9 +524,29 @@ public:
                                                 n_t retSite) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
-    return std::make_shared<MapFactsToCaller<container_type>>(
+    auto AutoMapping = std::make_shared<MapFactsToCaller<container_type>>(
         llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
         true /* map globals back to caller, too */);
+    // We must also handle the special case if the returned value is a constant
+    // literal, e.g. ret i32 42.
+    if (exitStmt) {
+      if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(exitStmt)) {
+        const auto *RetVal = Ret->getReturnValue();
+        if (RetVal) {
+          if (const auto *CD = llvm::dyn_cast<llvm::ConstantData>(RetVal)) {
+            // Generate the respective callsite. The callsite will receive its
+            // value from this very return instruction cf.
+            // getReturnEdgeFunction().
+            auto ConstantRetGen = std::make_shared<GenAndKillAllOthers<d_t>>(
+                callSite, this->getZeroValue());
+            return std::make_shared<Union<d_t>>(
+                std::vector<FlowFunctionPtrType>(
+                    {AutoMapping, ConstantRetGen}));
+          }
+        }
+      }
+    }
+    return AutoMapping;
   }
 
   inline FlowFunctionPtrType
@@ -531,9 +577,29 @@ public:
     // Just use the auto mapping for values, pointer parameters and global
     // variables are killed and handled by getCallFlowfunction() and
     // getRetFlowFunction().
+    // However, if only declarations are available as callee targets we would
+    // lose the data-flow facts involved in the call which is usually not the
+    // behavior that is intended. In that case, we must propagate all data-flow
+    // facts alongside the call site.
+    bool OnlyDecls = true;
+    for (auto callee : callees) {
+      if (!callee->isDeclaration()) {
+        OnlyDecls = false;
+      }
+    }
+    // Declarations only case
     return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
         llvm::ImmutableCallSite(callSite),
-        false /* do not propagate globals */);
+        true /* propagate globals alongsite the call site */,
+        [](llvm::ImmutableCallSite CS, const llvm::Value *V) {
+          return false; // not involved in the call
+        });
+    // Otherwise
+    return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
+        llvm::ImmutableCallSite(callSite),
+        false // do not propagate globals (as they are propagated via call- and
+              // ret-functions)
+    );
   }
 
   inline FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
@@ -893,14 +959,70 @@ public:
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationMethod,
                       d_t destNode) override {
-    // Can be passed as identity.
+    // Handle the case in which a parameter that has been artificially
+    // introduced by the compiler is passed. Such a value must be generated from
+    // the zero value, to reflact the fact that the data flows from the callee
+    // to the caller (at least) according to the source code.
+    //
+    // Let a_i be an argument that is annotated by the sret attribute.
+    //
+    // 0 --> a_i
+    //
+    // Edge function:
+    //
+    //                      0
+    //                       \
+    // call/invoke f(a_i)     \ \x.{}
+    //                         v
+    //                         a_i
+    //
+    std::set<d_t> SRetParams;
+    llvm::ImmutableCallSite CS(callStmt);
+    for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
+      if (CS.paramHasAttr(Idx, llvm::Attribute::StructRet)) {
+        SRetParams.insert(CS.getArgOperand(Idx));
+      }
+    }
+    if (isZeroValue(srcNode) && SRetParams.count(destNode)) {
+      return IIAAAddLabelsEF::createEdgeFunction(BitVectorSet<e_t>());
+    }
+    // Everything else can be passed as identity.
     return EdgeIdentity<l_t>::getInstance();
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override {
-    // Can be passed as identity.
+    // Handle the case in which constant data is returned, e.g. ret i32 42.
+    //
+    // Let c be the return instruction's corresponding call site.
+    //
+    // 0 --> c
+    //
+    // Edge function:
+    //
+    //               0
+    //                \
+    // ret x           \ \x.x \cup { commit of('ret x') }
+    //                  v
+    //                  c
+    //
+    if (isZeroValue(exitNode) && retNode == callSite) {
+      const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(exitStmt);
+      if (const auto *CD =
+              llvm::dyn_cast<llvm::ConstantData>(Ret->getReturnValue())) {
+        // Check if the user has registered a fact generator function
+        l_t UserEdgeFacts = BitVectorSet<e_t>();
+        std::set<e_t> EdgeFacts;
+        if (edgeFactGen) {
+          EdgeFacts = edgeFactGen(exitStmt);
+          // fill BitVectorSet
+          UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
+        }
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      }
+    }
+    // Everything else can be passed as identity.
     return EdgeIdentity<l_t>::getInstance();
   }
 

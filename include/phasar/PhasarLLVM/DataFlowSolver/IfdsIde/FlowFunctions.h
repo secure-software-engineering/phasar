@@ -241,10 +241,8 @@ protected:
   D killValue;
 };
 
-/**
- * @brief Kills all facts for which the given predicate evaluates to true.
- * @tparam D The type of data-flow facts to be killed.
- */
+/// \brief Kills all facts for which the given predicate evaluates to true.
+/// \tparam D The type of data-flow facts to be killed.
 template <typename D, typename Container = std::set<D>>
 class KillIf : public FlowFunction<D, Container> {
 public:
@@ -301,6 +299,54 @@ public:
 private:
   KillAll() = default;
 };
+
+//===----------------------------------------------------------------------===//
+// Gen-and-kill flow functions
+
+template <typename D, typename Container = std::set<D>>
+class GenAndKillAllOthers : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  GenAndKillAllOthers(D genValue, D zeroValue)
+      : genValue(genValue), zeroValue(zeroValue) {}
+  virtual ~GenAndKillAllOthers() = default;
+  container_type computeTargets(D source) override {
+    if (source == zeroValue) {
+      return {zeroValue, genValue};
+    }
+    return {};
+  }
+
+private:
+  D genValue;
+  D zeroValue;
+};
+
+template <typename D, typename Container = std::set<D>>
+class GenAllAndKillAllOthers : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  GenAllAndKillAllOthers(container_type genValues, D zeroValue)
+      : genValues(genValues), zeroValue(zeroValue) {}
+  virtual ~GenAllAndKillAllOthers() = default;
+  container_type computeTargets(D source) override {
+    if (source == zeroValue) {
+      genValues.insert(source);
+      return genValues;
+    } else {
+      return {};
+    }
+  }
+
+protected:
+  container_type genValues;
+  D zeroValue;
+};
+
+//===----------------------------------------------------------------------===//
+// Miscellaneous flow functions
 
 template <typename D, typename Container = std::set<D>>
 class Transfer : public FlowFunction<D, Container> {
