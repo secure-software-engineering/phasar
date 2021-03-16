@@ -228,6 +228,12 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       }
     }
   }
+  // Consider globals
+  for (auto &Global : F->getParent()->globals()) {
+    if (auto *GlobalVariable = llvm::dyn_cast<llvm::GlobalVariable>(&Global)) {
+      Pointers.insert(GlobalVariable);
+    }
+  }
   // introduce a singleton set for each pointer
   // those sets will be merged as we discover aliases
   for (auto *Pointer : Pointers) {
