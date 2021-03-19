@@ -538,8 +538,7 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
 
 void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
                                                  bool IsForDebug) const {
-  OS << "TSEF(" << Token << " at " << llvmIRToShortString(CB)
-     << ")";
+  OS << "TSEF(" << Token << " at " << llvmIRToShortString(CB) << ")";
 }
 
 IDETypeStateAnalysis::TSConstant::TSConstant(const TypeStateDescription &TSD,

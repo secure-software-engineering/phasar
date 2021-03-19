@@ -23,7 +23,7 @@ class Function;
 class Instruction;
 class ReturnInst;
 class Value;
-}
+} // namespace llvm
 namespace psr {
 
 class MapFactsToCallerFlowFunction : public FlowFunction<const llvm::Value *> {
