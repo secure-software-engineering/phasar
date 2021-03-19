@@ -100,6 +100,16 @@ LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
   return ReturnSites;
 }
 
+std::vector<const llvm::Function *>
+LLVMBasedBackwardsICFG::getGlobalCtors() const {
+  return ForwardICFG.getGlobalCtors();
+}
+
+std::vector<const llvm::Function *>
+LLVMBasedBackwardsICFG::getGlobalDtors() const {
+  return ForwardICFG.getGlobalDtors();
+}
+
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::allNonCallStartNodes() const {
   return ForwardICFG.allNonCallStartNodes();
