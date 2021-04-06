@@ -41,6 +41,8 @@ build/*
 # CLion
 .idea/*
 
+.cache/*
+
 ##### ignored files
 
 # dot files
