@@ -257,38 +257,35 @@ z3::expr LLVMBasedVarCFG::inferCondition(const llvm::CmpInst *cmp) const {
 LLVMBasedVarCFG::LLVMBasedVarCFG(
     const ProjectIRDB &IRDB, const stringstringmap_t *StaticBackwardRenaming)
     : staticBackwardRenaming(StaticBackwardRenaming) {
-  // void __static_condition_renaming(globName, smt2lib_solver)
-  auto staticRenamingFn = IRDB.getFunction("__static_condition_renaming");
-  // We need to check if staticRenamingFn is null. In case no static
+  const auto *StaticRenamingFun =
+      IRDB.getFunction("__static_condition_renaming");
+  // We need to check if StaticRenamingFun is null. In case no static
   // preprocessor conditionals are beeing used, this function does not exist and
   // thus the ProjectIRDB returns a nullptr.
-  if (staticRenamingFn) {
-    for (auto use : staticRenamingFn->users()) {
-      if (auto call = llvm::dyn_cast<llvm::CallBase>(use);
-          call && call->getCalledFunction() == staticRenamingFn) {
-        auto globName =
-            extractConstantStringFromValue(call->getArgOperand(0)).value();
-        auto smt2lib_solver =
-            extractConstantStringFromValue(call->getArgOperand(1)).value();
-
+  if (StaticRenamingFun) {
+    for (const auto *User : StaticRenamingFun->users()) {
+      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
+          Call && Call->getCalledFunction() == StaticRenamingFun) {
+        auto GlobName = extractConstantStringFromValue(Call->getArgOperand(0));
+        assert(GlobName && "Expect non-empty optional!");
+        auto SMT2LibSolverStrRep =
+            extractConstantStringFromValue(Call->getArgOperand(1));
+        assert(SMT2LibSolverStrRep && "Expect non-empty optional!");
         z3::solver Solver(CTX);
-        Solver.from_string(smt2lib_solver.data());
-        auto singleAssertion = [&] {
-          auto assertions = Solver.assertions();
-          assert(assertions.size() &&
-                 "Must have at least one assertion for any PP "
-                 "condition");
-          auto it = assertions.begin();
-          const auto end = assertions.end();
-          auto ret = *it;
-
-          for (++it; it != end; ++it) {
-            ret = ret && *it;
+        Solver.from_string(SMT2LibSolverStrRep.value().data());
+        auto CombinedAssertions = [&] {
+          auto Assertions = Solver.assertions();
+          assert(Assertions.size() && "Must have at least one assertion for "
+                                      "any preprocessor conditional!");
+          auto It = Assertions.begin();
+          const auto EndIt = Assertions.end();
+          auto Combined = *It;
+          for (++It; It != EndIt; ++It) {
+            Combined = Combined && *It;
           }
-
-          return ret.simplify();
+          return Combined.simplify();
         }();
-        AvailablePPConditions.insert({globName, singleAssertion});
+        AvailablePPConditions.insert({GlobName.value(), CombinedAssertions});
       }
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

@@ -57,17 +57,15 @@ protected:
   }
 
   /**
-   * We map instruction id to value for the ground truth. ID has to be
-   * a string since Argument ID's are not integer type (e.g. main.0 for argc).
-   * @param groundTruth results to compare against
-   * @param solver provides the results
+   * @param Result actual result
+   * @param GroundTruth expected results
    */
-  void compareResults(const z3::expr &groundTruth, const z3::expr &result) {
-    std::stringstream s1, s2;
-    s1 << groundTruth;
-    s2 << result;
+  void compareResults(const z3::expr &Result, const z3::expr &GroundTruth) {
+    std::stringstream SS1, SS2;
+    SS1 << Result;
+    SS2 << GroundTruth;
     // find better way of comparing
-    EXPECT_EQ(s1.str(), s2.str());
+    EXPECT_EQ(SS1.str(), SS2.str());
   }
 }; // Test Fixture
 
@@ -76,23 +74,13 @@ TEST_F(VariabilityCFGTest, Basic02) {
   const auto *Main = IRDB->getFunctionDefinition("__main_0");
   const auto *currInst = getNthInstruction(Main, 5);
   const auto *succInst = getNthInstruction(Main, 6);
-  llvm::outs() << "\n\nTEST-DATA:\n";
-  currInst->print(llvm::outs());
-  llvm::outs() << '\n';
-  succInst->print(llvm::outs());
-  llvm::outs() << "\n\n";
-  // ASSERT_NE(currInst, nullptr);
-  // ASSERT_NE(succInst, nullptr);
-  // EXPECT_TRUE(VCFG->isBranchTarget(currInst, succInst));
-  // EXPECT_TRUE(VCFG->isPPBranchTarget(currInst, succInst));
-  // auto &ctx = VICFG->getContext();
-  // auto res = VICFG->getPPConstraintOrTrue(currInst, succInst);
-  // std::stringstream resstr;
-  // resstr << res;
-  // std::cout << "actual constraint: " << resstr.str() << std::endl;
-  // compareResults(VICFG->getPPConstraintOrTrue(currInst, succInst),
-  //  ctx.bool_const("(declare-fun |(defined A)| () Bool)(assert |(defined
-  //  A)|)"));
+  ASSERT_NE(currInst, nullptr);
+  ASSERT_NE(succInst, nullptr);
+  EXPECT_TRUE(VCFG->isBranchTarget(currInst, succInst));
+  EXPECT_TRUE(VCFG->isPPBranchTarget(currInst, succInst));
+  auto &CTX = VCFG->getContext();
+  compareResults(VCFG->getPPConstraintOrTrue(currInst, succInst),
+                 CTX.bool_const("|(defined A)|"));
 }
 // main function for the test case/*  */
 int main(int argc, char **argv) {

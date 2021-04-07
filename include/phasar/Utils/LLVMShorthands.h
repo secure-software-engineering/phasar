@@ -194,7 +194,7 @@ std::size_t computeModuleHash(const llvm::Module *M);
  * @brief Returns the constant string that is represented by V. If V is no
  * constant string, returns std::nullopt.
  * @remarks Expects V to be a getelementptr of a global variable that is
- * initialized with a c-string
+ * initialized with a C-string.
  */
 std::optional<llvm::StringRef>
 extractConstantStringFromValue(const llvm::Value *V);

@@ -24,12 +24,14 @@
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/CallSite.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
@@ -320,21 +322,26 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
 
 std::optional<llvm::StringRef>
 extractConstantStringFromValue(const llvm::Value *V) {
-  auto gep = llvm::dyn_cast<llvm::ConstantExpr>(V); // constant GEP
-  if (!gep)
+  // Check if the value is a C-string.
+  if (const auto *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(V)) {
+    return CDA->getAsCString();
+  }
+  // Check if the value is a gep into a C string.
+  const auto *GEP = llvm::dyn_cast<llvm::ConstantExpr>(V);
+  if (!GEP) {
     return std::nullopt;
-
-  auto gv = llvm::dyn_cast<llvm::GlobalVariable>(
-      gep->getOperand(0)); // Pointer operand of the constant GEP
-  if (!gv)
+  }
+  const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(
+      GEP->getOperand(0)); // Pointer operand of the constant GEP
+  if (!GV) {
     return std::nullopt;
-
-  auto init =
-      llvm::dyn_cast_or_null<llvm::ConstantDataArray>(gv->getInitializer());
-  if (!init)
+  }
+  const auto *Init =
+      llvm::dyn_cast_or_null<llvm::ConstantDataArray>(GV->getInitializer());
+  if (!Init) {
     return std::nullopt;
-
-  return init->getAsCString();
+  }
+  return Init->getAsCString();
 }
 
 } // namespace psr
