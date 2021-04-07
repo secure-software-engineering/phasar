@@ -66,7 +66,6 @@ class OpenSSLEVPMDCTXDescription : public TypeStateDescription {
 
 public:
   OpenSSLEVPMDCTXDescription(
-
       const stringstringmap_t *staticRenaming = nullptr,
       llvm::StringRef typenameOfInterest = "evp_md_ctx_st");
   bool isFactoryFunction(const std::string &F) const override;

@@ -120,6 +120,15 @@ static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
   return *ModuleToSlotTracker[M];
 }
 
+std::string llvmTypeToString(const llvm::Type *Ty) {
+  std::string ret;
+  llvm::raw_string_ostream OS(ret);
+
+  Ty->print(OS, /*IsForDebug*/ false, /*NoDetails*/ true);
+
+  return OS.str();
+}
+
 std::string llvmIRToString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);

@@ -1,8 +1,10 @@
+#include <iostream>
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <llvm/ADT/SmallVector.h>
 
 using namespace std;
 
@@ -125,6 +127,9 @@ TypeStateDescription::State
 OpenSSLEVPMDCTXDescription::getNextState(std::string Tok,
                                          TypeStateDescription::State S) const {
   auto tok = funcNameToToken(Tok);
+
+  // std::cerr << "nextState(" << Tok << ", " << stateToString(S)
+  //           << ") = " << stateToString(Delta[enum2int(tok)][S]) << "\n";
 
   return Delta[enum2int(tok)][S];
 }

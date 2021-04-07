@@ -29,6 +29,7 @@ function(add_phasar_unittest test_name)
     # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
     phasar_plugins
     # ${PHASAR_PLUGINS_LIB}
+    phasar_varalyzer_utils
     phasar_pointer
     phasar_typehierarchy
     ${SQLITE3_LIBRARY}

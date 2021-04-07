@@ -59,6 +59,11 @@ bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 
 /**
+ * @brief Returns a string representation of the type
+ */
+std::string llvmTypeToString(const llvm::Type *Ty);
+
+/**
  * @brief Returns a string representation of a LLVM Value.
  */
 std::string llvmIRToString(const llvm::Value *V);
