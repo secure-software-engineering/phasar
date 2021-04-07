@@ -35,7 +35,6 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/variability/hashing/";
-  const std::set<std::string> EntryPoints = {"__main_9"};
 
   // inst ID => value ID => {Z3Constraint x typestate}
   using TSAVarResults_t = std::map<
@@ -58,10 +57,11 @@ protected:
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
-  void doAnalysisAndCompareResults(const std::string &llvmFilePath,
+  void doAnalysisAndCompareResults(const std::string &LLVMFilePath,
+                                   const std::set<std::string> &EntryPoints,
                                    TSAVarResults_t &GroundTruth,
                                    bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+    IRDB = new ProjectIRDB({pathToLLFiles + LLVMFilePath}, IRDBOptions::WPA);
     /*if (printDump) {
        IRDB->emitPreprocessedIR(std::cout, false);
      }*/
@@ -85,6 +85,9 @@ protected:
     if (printDump) {
       TSASolver.dumpResults();
     }
+
+    // TODO remove once the unit tests have been fixed
+    IRDB->print();
 
     for (auto &[instId, Truth] : GroundTruth) {
       auto Inst = IRDB->getInstruction(instId);
@@ -134,7 +137,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash01) {
   GroundTruth[62]["53"] = {{"true", FREED}};
   GroundTruth[62]["57"] = {{"true", FREED}};
 
-  doAnalysisAndCompareResults("hash01_c_dbg_xtc.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("hash01_c_dbg_xtc.ll", {"__main_21"}, GroundTruth, false);
 }
 
 TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
@@ -153,7 +156,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
   GroundTruth[59]["54"] = {{"true", ERROR}};
   GroundTruth[59]["57"] = {{"true", ERROR}};
 
-  doAnalysisAndCompareResults("hash02_c_dbg_xtc.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("hash02_c_dbg_xtc.ll", {"__main_21"}, GroundTruth, false);
 }
 
 TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
@@ -165,7 +168,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
 
   // TODO: more GT
 
-  doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", GroundTruth, true);
+  doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", {"__main_21"}, GroundTruth, true);
 }
 
 // main function for the test case/*  */
