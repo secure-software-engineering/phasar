@@ -63,9 +63,9 @@ protected:
                                    TSAVarResults_t &GroundTruth,
                                    bool printDump = false) {
     IRDB = new ProjectIRDB({pathToLLFiles + LLVMFilePath}, IRDBOptions::WPA);
-    /*if (printDump) {
-       IRDB->emitPreprocessedIR(std::cout, false);
-     }*/
+    if (printDump) {
+      IRDB->emitPreprocessedIR(std::cout, false);
+    }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
@@ -106,8 +106,12 @@ protected:
         if (has) {
           auto &TruthOfFact = Truth[FactId];
           EXPECT_LE(TruthOfFact.size(), CondState.size());
+
           for (auto &[Cond, State] : CondState) {
-            EXPECT_TRUE(TruthOfFact.count({Cond.to_string(), State}));
+            EXPECT_TRUE(TruthOfFact.count({Cond.to_string(), State}))
+                << "Result (" << Cond.to_string() << ", "
+                << Desc.stateToString(State) << ") not in GroundTruth["
+                << instId << "]";
           }
         }
       }
@@ -153,28 +157,32 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash01) {
       {"true", FREED}}; // the load that gets directly passed to the free mthd
 
   doAnalysisAndCompareResults("hash01_c_dbg_xtc.ll", {"__main_21"}, GroundTruth,
-                              true);
+                              false);
 }
 
 TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
   TSAVarResults_t GroundTruth;
   GroundTruth[46]["45"] = {{"true", ALLOCATED}};
 
+  // TODO: No results??
   // GroundTruth[52]["45"] = {{"true", ERROR}};
   // GroundTruth[52]["50"] = {{"true", ERROR}};
+  // GroundTruth[52]["41"] = {{"true", ERROR}};
 
+  // TODO: No results??
   // GroundTruth[56]["45"] = {{"true", ERROR}};
   // GroundTruth[56]["50"] = {{"true", ERROR}};
   // GroundTruth[56]["54"] = {{"true", ERROR}};
+  // GroundTruth[56]["41"] = {{"true", ERROR}};
 
-  // TODO
-  // GroundTruth[59]["45"] = {{"true", ERROR}};
-  // GroundTruth[59]["50"] = {{"true", ERROR}};
-  // GroundTruth[59]["54"] = {{"true", ERROR}};
-  // GroundTruth[59]["57"] = {{"true", ERROR}};
+  // GroundTruth[59]["45"] = {{"true", ERROR}}; // not in alias set
+  GroundTruth[59]["50"] = {{"true", ERROR}};
+  GroundTruth[59]["54"] = {{"true", ERROR}};
+  GroundTruth[59]["57"] = {{"true", ERROR}};
+  GroundTruth[59]["41"] = {{"true", ERROR}};
 
   doAnalysisAndCompareResults("hash02_c_dbg_xtc.ll", {"__main_21"}, GroundTruth,
-                              false);
+                              true);
 }
 
 TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
