@@ -316,8 +316,9 @@ std::optional<z3::expr> LLVMBasedVarCFG::getConditionIfIsPPVariable(
 }
 
 bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br) const {
-  if (!br->isConditional())
+  if (!br->isConditional()) {
     return false;
+  }
   // cond will most likely be an 'icmp ne i32 ..., 0'
   // it cannot be some logical con/disjunction, since this is modelled as
   // chained branches
@@ -411,8 +412,9 @@ z3::expr LLVMBasedVarCFG::getTrueConstraint() const {
 bool LLVMBasedVarCFG::isPPBranchTarget(const llvm::Instruction *Stmt,
                                        const llvm::Instruction *Succ) const {
   if (auto *T = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
-    if (!isPPBranchNode(T))
+    if (!isPPBranchNode(T)) {
       return false;
+    }
     for (auto Successor : T->successors()) {
       if (&Successor->front() == Succ) {
         return true;

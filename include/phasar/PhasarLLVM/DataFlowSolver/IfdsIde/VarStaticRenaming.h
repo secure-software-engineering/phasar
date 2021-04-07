@@ -10,10 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VARSTATICRENAMING_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VARSTATICRENAMING_H_
 
-#include "phasar/DB/ProjectIRDB.h"
-#include <llvm/ADT/StringMap.h>
 #include <map>
 #include <string>
+
+#include "llvm/ADT/StringMap.h"
+
+#include "phasar/DB/ProjectIRDB.h"
 
 namespace psr {
 
@@ -24,8 +26,8 @@ using stringstringmap_t = // std::map<std::string, T>;
 /// ProjectIRDB
 stringstringmap_t extractStaticRenaming(const ProjectIRDB *IRDB);
 
-/// Extracts the mappings (unmangledName -> ctx_mangledName;  ctx_mangledName ->
-/// unmangledName) from the given ProjectIRDB
+/// Extracts the mappings (unmangledName -> ctx_mangledName and ctx_mangledName
+/// -> unmangledName) from the given ProjectIRDB
 std::pair<stringstringmap_t, stringstringmap_t>
 extractBiDiStaticRenaming(const ProjectIRDB *IRDB);
 
