@@ -9,6 +9,7 @@
 
 #include <cassert>
 
+#include "llvm/ADT/APFloat.h
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/Support/raw_ostream.h"
