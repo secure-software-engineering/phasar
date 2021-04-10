@@ -30,7 +30,7 @@ ClangController::ClangController(
   }
   clang::tooling::ClangTool Tool(OptionsParser.getCompilations(),
                                  OptionsParser.getCompilations().getAllFiles());
-  int Result = Tool.run(
+  Tool.run(
       clang::tooling::newFrontendActionFactory<RandomChangeFrontendAction>()
           .get());
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
