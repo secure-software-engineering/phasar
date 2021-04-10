@@ -9,13 +9,10 @@
 
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
-
-namespace llvm {
-class Value;
-class Instruction;
-class Function;
-class StructType;
-} // namespace llvm
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
 
 namespace psr {
 class LLVMBasedCFG;
