@@ -492,7 +492,6 @@ IFDSUninitializedVariables::aggregateResults() {
   unsigned int LineNr = 0;
 
   unsigned int CurrLineNr = 0;
-  size_t Count;
   UninitResult UR;
   for (const auto &User : UndefValueUses) {
     // new line nr idicates a new uninit use on source code level
