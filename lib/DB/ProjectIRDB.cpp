@@ -354,7 +354,7 @@ ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) const {
 
 std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(V)) {
-    return LLVMZeroValue::getInstance()->getName()->str();
+    return LLVMZeroValue::getInstance()->getName().str();
   } else if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
   } else if (const auto *A = llvm::dyn_cast<llvm::Argument>(V)) {
