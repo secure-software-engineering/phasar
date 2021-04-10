@@ -96,10 +96,10 @@ std::string
 LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
   llvm::StringRef SR(TypeName);
   if (SR.startswith(StructPrefix)) {
-    return SR.drop_front(StructPrefix.size());
+    return SR.drop_front(StructPrefix.size()).str();
   }
   if (SR.startswith(ClassPrefix)) {
-    return SR.drop_front(ClassPrefix.size());
+    return SR.drop_front(ClassPrefix.size()).str();
   }
   return TypeName;
 }
