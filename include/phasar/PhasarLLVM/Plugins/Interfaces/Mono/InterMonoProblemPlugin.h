@@ -33,7 +33,7 @@ public:
       : InterMonoProblem(IRDB, TH, ICF, PT, EntryPoints) {}
 
   void printNode(std::ostream &OS, n_t Inst) const override {
-    OS << llvmIRToString(Inst);
+    OS << llvmIRToString((llvm::Value *)Inst);
   }
   void printDataFlowFact(std::ostream &OS, d_t Fact) const override {
     OS << llvmIRToString(Fact);
