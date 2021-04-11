@@ -12,7 +12,7 @@
 #include <string>
 #include <utility>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <llvm/Support/raw_ostream.h>
 
