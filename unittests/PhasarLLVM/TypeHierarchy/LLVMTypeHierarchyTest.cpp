@@ -350,7 +350,7 @@ TEST(LTHTest, VTableConstruction) {
 
   ASSERT_TRUE(demangle(TH1.getVFTable(TH1.getType("struct.Base"))
                            ->getFunction(0)
-                           ->getName().str().str()) == "Base::foo()");
+                           ->getName().str()) == "Base::foo()");
   ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Base"))->size() == 1U);
   ASSERT_TRUE(demangle(TH1.getVFTable(TH1.getType("struct.Child"))
                            ->getFunction(0)
