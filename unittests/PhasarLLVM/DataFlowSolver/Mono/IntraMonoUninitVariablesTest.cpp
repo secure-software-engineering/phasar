@@ -27,15 +27,17 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 
+#include "TestConfig.h"
+
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class IntraMonoUninitVariablesTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/uninitialized_variables/";
-
+       unittest::PathToLLTestFiles +
+      "/uninitialized_variables/";
+  
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
   const std::set<std::string> EntryPoints = {"main"};
