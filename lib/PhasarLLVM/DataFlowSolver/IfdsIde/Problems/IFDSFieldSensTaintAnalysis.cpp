@@ -169,7 +169,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    * Exclude blacklisted functions here.
    */
 
-  if (taintConfig.isSink(DestFunName)) {
+  if (taintConfig.isSink(DestFunName.str())) {
     return std::make_shared<IdentityFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
   }
