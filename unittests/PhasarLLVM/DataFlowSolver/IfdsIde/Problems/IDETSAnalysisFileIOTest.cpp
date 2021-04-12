@@ -18,6 +18,8 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
+#include "TestConfig.h"
+
 #include "gtest/gtest.h"
 
 using namespace std;
@@ -27,8 +29,8 @@ using namespace psr;
 class IDETSAnalysisFileIOTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/typestate_analysis_fileio/";
+      unittest::PathToLLTestFiles +
+      "typestate_analysis_fileio/";
   const std::set<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
