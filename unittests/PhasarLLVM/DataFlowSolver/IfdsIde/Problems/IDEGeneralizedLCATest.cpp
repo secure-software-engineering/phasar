@@ -23,6 +23,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
+#include "TestConfig.h"
+
 using namespace psr;
 
 typedef std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>
