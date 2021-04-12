@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_PATHTRACKINGIFDSSOLVER_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_PATHTRACKINGIFDSSOLVER_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
+
 namespace psr {
 
 /**
