@@ -111,7 +111,6 @@ struct hash<std::pair<
   size_t operator()(const std::pair<const llvm::Value *,
                                     psr::LatticeDomain<int64_t>> &P) const {
     std::hash<const llvm::Value *> hash_ptr;
-    std::hash<int64_t> hash_unsigned;
     size_t hp = hash_ptr(P.first);
     size_t hu = 0;
     // returns nullptr if P.second is Top or Bottom, a valid pointer otherwise
