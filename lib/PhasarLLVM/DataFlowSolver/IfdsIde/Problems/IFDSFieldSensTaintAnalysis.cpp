@@ -200,7 +200,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   /*
    * Provide summary for tainted functions.
    */
-  if (taintConfig.isSource(DestFunName)) {
+  if (taintConfig.isSource(DestFunName.str())) {
     return std::make_shared<GenerateFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
   }
