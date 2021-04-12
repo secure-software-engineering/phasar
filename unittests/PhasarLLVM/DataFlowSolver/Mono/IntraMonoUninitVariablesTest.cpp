@@ -12,9 +12,9 @@
 #include <string>
 #include <utility>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/DB/ProjectIRDB.h>
