@@ -28,7 +28,6 @@ TEST(LLVMBasedICFG_CHATest, StaticCallSite_1) {
     for (const auto &I : BB) {
       // inspect call-sites
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
-        llvm::ImmutableCallSite CS(&I);
         auto Callees = ICFG.getCalleesOfCallAt(&I);
         ASSERT_EQ(Callees.size(), 1U);
         ASSERT_TRUE(Callees.count(Foo));
