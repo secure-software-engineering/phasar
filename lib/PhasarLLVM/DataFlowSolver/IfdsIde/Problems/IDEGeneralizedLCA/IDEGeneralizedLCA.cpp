@@ -266,17 +266,16 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
                                          IDEGeneralizedLCA::d_t CurrNode,
                                          IDEGeneralizedLCA::n_t Succ,
                                          IDEGeneralizedLCA::d_t SuccNode) {
-  auto &Lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IDEGeneralizedLCA::getNormalEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(Curr));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(D) Curr Node :   "
                 << IDEGeneralizedLCA::DtoString(CurrNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(N) Succ Inst : " << IDEGeneralizedLCA::NtoString(Succ));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(D) Succ Node :   "
                 << IDEGeneralizedLCA::DtoString(SuccNode));
 
@@ -310,9 +309,9 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
       isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
       llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Case: Intialize global variable at entry point.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     auto GV = llvm::cast<llvm::GlobalVariable>(CurrNode);
     if (GV->getLinkage() != llvm::GlobalValue::LinkageTypes::
                                 CommonLinkage) { // clang uses common linkage
