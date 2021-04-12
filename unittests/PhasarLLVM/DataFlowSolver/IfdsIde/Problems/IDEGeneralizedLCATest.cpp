@@ -34,9 +34,9 @@ class IDEGeneralizedLCATest : public ::testing::Test {
 
 protected:
   const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/general_linear_constant/";
-
+      unittest::PathToLLTestFiles +
+      "general_linear_constant/";
+    
   ProjectIRDB *IRDB = nullptr;
   IDESolver<IDEGeneralizedLCADomain> *LCASolver = nullptr;
 
