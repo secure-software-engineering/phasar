@@ -156,34 +156,34 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   // Using the logging guard explicitly since we are printing allocated types
   // manually
   if (boost::log::core::get()->get_logging_enabled()) {
-    BOOST_LOG_SEV(lg::get(), INFO)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
         << "GeneralStatisticsAnalysis summary for module: '"
-        << M.getName().str() << "'";
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Instructions       : " << Stats.instructions;
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Allocated Types    : " << Stats.allocatedTypes.size();
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Allocation Sites   : " << Stats.allocationsites;
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Basic Blocks       : " << Stats.basicblocks;
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Calls Sites        : " << Stats.callsites;
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Functions          : " << Stats.functions;
-    BOOST_LOG_SEV(lg::get(), INFO) << "Globals            : " << Stats.globals;
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Global Pointer     : " << Stats.globalPointers;
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Memory Intrinsics  : " << Stats.memIntrinsic;
-    BOOST_LOG_SEV(lg::get(), INFO)
-        << "Store Instructions : " << Stats.storeInstructions;
-    BOOST_LOG_SEV(lg::get(), INFO) << ' ';
+        << M.getName().str() << "'");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Instructions       : " << Stats.instructions);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Allocated Types    : " << Stats.allocatedTypes.size());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Allocation Sites   : " << Stats.allocationsites);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Basic Blocks       : " << Stats.basicblocks);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Calls Sites        : " << Stats.callsites);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Functions          : " << Stats.functions);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Globals            : " << Stats.globals);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Global Pointer     : " << Stats.globalPointers);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Memory Intrinsics  : " << Stats.memIntrinsic);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+        << "Store Instructions : " << Stats.storeInstructions);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << ' ');
     for (const auto *Type : Stats.allocatedTypes) {
       std::string TypeStr;
       llvm::raw_string_ostream Rso(TypeStr);
       Type->print(Rso);
-      BOOST_LOG_SEV(lg::get(), INFO) << "  " << Rso.str();
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "  " << Rso.str());
     }
   }
   // now we are done and can return the results
