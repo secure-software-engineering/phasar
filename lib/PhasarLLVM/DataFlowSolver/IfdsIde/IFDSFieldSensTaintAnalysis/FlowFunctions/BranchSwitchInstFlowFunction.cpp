@@ -38,7 +38,7 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       const auto *const EndBasicBlock =
           DataFlowUtils::getEndOfTaintedBlock(StartBasicBlock);
       const auto EndBasicBlockLabel =
-          EndBasicBlock ? EndBasicBlock->getName() : "";
+          EndBasicBlock ? EndBasicBlock->getName().str() : "";
 
       LOG_DEBUG("End of block label: " << EndBasicBlockLabel);
 
