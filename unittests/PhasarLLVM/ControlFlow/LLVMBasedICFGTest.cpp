@@ -144,11 +144,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_4) {
           for (const auto &I2 : BB2) {
             if (llvm::isa<llvm::CallInst>(&I2)) {
               CalleesOfCallAtInside = ICFG.getCalleesOfCallAt(&I2);
-              for (const llvm::Function *Func2 : CalleesOfCallAtInside) {
-                CountFunc++;
-                ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I));
-                ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I2));
-              }
+              CountFunc = CountFunc + CalleesOfCallAtInside.size();
+              ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I));
+              ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I2));
             }
           }
         }
