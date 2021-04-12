@@ -23,6 +23,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
+#include "TestConfig.h"
+
 using namespace psr;
 
 typedef std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>
@@ -34,9 +36,9 @@ class IDEGeneralizedLCATest : public ::testing::Test {
 
 protected:
   const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/general_linear_constant/";
-
+      unittest::PathToLLTestFiles +
+      "general_linear_constant/";
+    
   ProjectIRDB *IRDB = nullptr;
   IDESolver<IDEGeneralizedLCADomain> *LCASolver = nullptr;
 
