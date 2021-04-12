@@ -188,7 +188,7 @@ unsigned int getLineFromIR(const llvm::Value *V) {
 std::string getDirectoryFromIR(const llvm::Value *V) {
   // Argument and Instruction
   if (auto *DILoc = getDILocation(V)) {
-    return DILoc->getDirectory();
+    return DILoc->getDirectory().str();
   } else if (auto *DISubpr = getDISubprogram(V)) { // Function
     return DISubpr->getDirectory();
   } else if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
