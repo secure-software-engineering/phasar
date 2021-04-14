@@ -228,8 +228,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                       VFS.push_back(F);
                     }
                   }
-                  AsI->deleteValue();
                 }
+                AsI->deleteValue();
               }
             }
           }
