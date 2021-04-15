@@ -180,7 +180,7 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
           for (const auto &Op : ConstAggregateItem->operands()) {
             if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
               auto *AsI = CE->getAsInstruction();
-              if (AsI->getType()->getPointerElementType() == FTy) {
+              if (AsI->getType()->isPointerTy() && AsI->getType()->getPointerElementType() == FTy) {
                 if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
                   if (auto *F =
                           llvm::dyn_cast<llvm::Function>(BC->getOperand(0))) {
