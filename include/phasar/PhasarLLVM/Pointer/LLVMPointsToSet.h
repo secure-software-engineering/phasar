@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <memory>
+#include <mutex>  // For std::unique_lock
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
@@ -45,6 +46,7 @@ private:
   LLVMBasedPointsToAnalysis PTA;
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
   PointsToSetMap PointsToSets;
+  std::shared_mutex m_pointsToSets;  
 
   void computeValuesPointsToSet(const llvm::Value *V);
 
