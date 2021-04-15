@@ -10,6 +10,7 @@
 #include <cassert>
 #include <iostream>
 #include <type_traits>
+#include <shared_mutex>
 #include <unordered_set>
 
 #include "llvm/ADT/SetVector.h"
@@ -40,8 +41,12 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     : PTA(IRDB, UseLazyEvaluation, PATy) {
   for (llvm::Module *M : IRDB.getAllModules()) {
     // compute points-to information for all globals
+    #pragma omp parallel
+    #pragma omp single    
     for (const auto &G : M->globals()) {
+      #pragma omp task shared(G)
       computeValuesPointsToSet(&G);
+      #pragma omp taskwait
     }
     if (!UseLazyEvaluation) {
       // compute points-to information for all functions
@@ -94,6 +99,7 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
 }
 
 void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
+  std::unique_lock<std::shared_mutex> lock(m_pointsToSets);  
   if (PointsToSets.find(V) != PointsToSets.end()) {
     PointsToSets[V]->insert(V);
   } else {
@@ -104,6 +110,7 @@ void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
 
 void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
                                         const llvm::Value *V2) {
+  std::unique_lock<std::shared_mutex> lock(m_pointsToSets);
   auto SearchV1 = PointsToSets.find(V1);
   assert(SearchV1 != PointsToSets.end());
   auto SearchV2 = PointsToSets.find(V2);
@@ -249,6 +256,7 @@ AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
   }
   computeValuesPointsToSet(V1);
   computeValuesPointsToSet(V2);
+  std::unique_lock<std::shared_mutex> lock(m_pointsToSets);  
   return PointsToSets[V1]->count(V2) ? AliasResult::MustAlias
                                      : AliasResult::NoAlias;
 }
@@ -332,6 +340,8 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
 
 void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
   const auto *OtherPTI = dynamic_cast<const LLVMPointsToSet *>(&PTI);
+  // Note that the this locking doesn't help with the source PTI
+  std::unique_lock<std::shared_mutex> lock(m_pointsToSets);  
   if (!OtherPTI) {
     llvm::report_fatal_error(
         "LLVMPointsToSet can only be merged with another LLVMPointsToSet!");
