@@ -358,4 +358,23 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
   return nullptr;
 }
 
+const bool isVarAnnotationIntrinsic(const llvm::Function *F) {
+    static const llvm::StringRef kVarAnnotationName("llvm.var.annotation");
+    return F->getName() == kVarAnnotationName;
+}
+
+const llvm::StringRef getVarAnnotationIntrinsicValue(const llvm::CallInst *CallInst) {
+  const int kPointerGlobalStringIdx = 1;
+  llvm::ConstantExpr *ce = llvm::cast<llvm::ConstantExpr>(CallInst->getOperand(kPointerGlobalStringIdx));
+  assert(ce != nullptr);
+  assert(ce->getOpcode() == llvm::Instruction::GetElementPtr);
+  assert(llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0)) != nullptr);
+  llvm::GlobalVariable *annoteStr = llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
+  assert(llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer()));
+  llvm::ConstantDataSequential *data = llvm::dyn_cast<llvm::ConstantDataSequential>(
+                  annoteStr->getInitializer());
+  assert(data->isString());
+  return data->getAsString();
+}
+  
 } // namespace psr
