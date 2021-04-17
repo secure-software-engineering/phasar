@@ -363,7 +363,7 @@ const bool isVarAnnotationIntrinsic(const llvm::Function *F) {
     return F->getName() == kVarAnnotationName;
 }
 
-const llvm::StringRef getVarAnnotationIntrinsicValue(const llvm::CallInst *CallInst) {
+const llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   const int kPointerGlobalStringIdx = 1;
   llvm::ConstantExpr *ce = llvm::cast<llvm::ConstantExpr>(CallInst->getOperand(kPointerGlobalStringIdx));
   assert(ce != nullptr);
