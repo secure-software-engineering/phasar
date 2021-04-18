@@ -41,8 +41,11 @@ protected:
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
   }
 
-  void SetUp() override {
+  static void SetUpTestSuite() {
     initializeLogger(false);
+  }
+
+  void SetUp() override {
     ValueAnnotationPass::resetValueID();
   }
 
