@@ -78,6 +78,8 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
             LOG_IF_ENABLE(
                 BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Store Instruction sets up or updates vtable - ignored!");
+            CFInst->deleteValue();
+            CEInst->deleteValue();
             return Identity<IFDSConstAnalysis::d_t>::getInstance();
           }
         }
