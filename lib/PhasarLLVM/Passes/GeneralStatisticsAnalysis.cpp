@@ -138,20 +138,20 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   // the counter with the values of the counter varibles, i.e. PAMM simply
   // holds the results.
   PAMM_GET_INSTANCE;
-  REG_COUNTER("GS Instructions", instructions, PAMM_SEVERITY_LEVEL::Core);
-  REG_COUNTER("GS Allocated Types", allocatedTypes.size(),
+  REG_COUNTER("GS Instructions", Stats.instructions, PAMM_SEVERITY_LEVEL::Core);
+  REG_COUNTER("GS Allocated Types", Stats.allocatedTypes.size(),
               PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Allocation-Sites", allocationsites,
+  REG_COUNTER("GS Allocation-Sites", Stats.allocationsites,
               PAMM_SEVERITY_LEVEL::Core);
-  REG_COUNTER("GS Basic Blocks", basicblocks, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Call-Sites", callsites, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Functions", functions, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Globals", globals, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Global Pointer", globalPointers, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Memory Intrinsics", memIntrinsic, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Store Instructions", storeInstructions,
+  REG_COUNTER("GS Basic Blocks", Stats.basicblocks, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Call-Sites", Stats.callsites, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Functions", Stats.functions, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Globals", Stats.globals, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Global Pointer", Stats.globalPointers, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Memory Intrinsics", Stats.memIntrinsic, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Store Instructions", Stats.storeInstructions,
               PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Load Instructions", loadInstructions,
+  REG_COUNTER("GS Load Instructions", Stats.loadInstructions,
               PAMM_SEVERITY_LEVEL::Full);
   // Using the logging guard explicitly since we are printing allocated types
   // manually
