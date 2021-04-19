@@ -71,7 +71,7 @@ protected:
 
 TEST_F(VariabilityCFGTest, Basic02) {
   initialize("basic_02_c_dbg_xtc.ll");
-  const auto *Main = IRDB->getFunctionDefinition("__main_0");
+  const auto *Main = IRDB->getFunctionDefinition("__main_3");
   const auto *currInst = getNthInstruction(Main, 5);
   const auto *succInst = getNthInstruction(Main, 6);
   ASSERT_NE(currInst, nullptr);

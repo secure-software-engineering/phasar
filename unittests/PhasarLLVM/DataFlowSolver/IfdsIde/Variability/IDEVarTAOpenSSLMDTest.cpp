@@ -97,7 +97,7 @@ protected:
       auto Results = TSASolver.resultsAt(Inst);
 
       EXPECT_LE(Truth.size(), Results.size())
-          << "No results at " << llvmIRToShortString(Inst);
+          << "No results at " << llvmIRToString(Inst);
 
       for (auto &[Fact, CondState] : Results) {
         auto FactId = getMetaDataID(Fact);
@@ -156,7 +156,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash01) {
   GroundTruth[62]["60"] = {
       {"true", FREED}}; // the load that gets directly passed to the free mthd
 
-  doAnalysisAndCompareResults("hash01_c_dbg_xtc.ll", {"__main_21"}, GroundTruth,
+  doAnalysisAndCompareResults("hash01_c_dbg_xtc.ll", {"__main_24"}, GroundTruth,
                               false);
 }
 
@@ -181,7 +181,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
   GroundTruth[59]["57"] = {{"true", ERROR}};
   GroundTruth[59]["41"] = {{"true", ERROR}};
 
-  doAnalysisAndCompareResults("hash02_c_dbg_xtc.ll", {"__main_21"}, GroundTruth,
+  doAnalysisAndCompareResults("hash02_c_dbg_xtc.ll", {"__main_24"}, GroundTruth,
                               true);
 }
 
@@ -194,7 +194,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
 
   // TODO: more GT
 
-  doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", {"__main_21"}, GroundTruth,
+  doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", {"__main_28"}, GroundTruth,
                               true);
 }
 

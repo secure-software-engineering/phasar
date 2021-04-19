@@ -3,7 +3,7 @@ set(ArrayVarSources
   array_02.c
   # TODO XTC unsupported feature
   # array_03.c
-  array_04.c
+  # array_04.c
 )
 
 foreach(TEST_SRC ${ArrayVarSources})
