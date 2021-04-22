@@ -42,6 +42,17 @@ CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
+protected:
+  std::vector<F> GlobalCtors, GlobalDtors, GlobalInitializers, RegisteredDtors;
+
+  virtual void collectGlobalCtors() = 0;
+
+  virtual void collectGlobalDtors() = 0;
+
+  virtual void collectGlobalInitializers() = 0;
+
+  virtual void collectRegisteredDtors() = 0;
+
 public:
   ~ICFG() override = default;
 
@@ -63,9 +74,15 @@ public:
 
   virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
 
-  virtual std::vector<F> getGlobalCtors() const = 0;
+  const std::vector<F> &getGlobalCtors() const { return GlobalCtors; }
 
-  virtual std::vector<F> getGlobalDtors() const = 0;
+  const std::vector<F> &getGlobalDtors() const { return GlobalDtors; }
+
+  const std::vector<F> &getGlobalInitializers() const {
+    return GlobalInitializers;
+  }
+
+  const std::vector<F> &getRegisteredDtors() const { return RegisteredDtors; }
 
   using CFG<N, F>::print; // tell the compiler we wish to have both prints
   virtual void print(std::ostream &OS = std::cout) const = 0;

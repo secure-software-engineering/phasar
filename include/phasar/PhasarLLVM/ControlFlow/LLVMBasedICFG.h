@@ -227,16 +227,6 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
-  [[nodiscard]] std::vector<const llvm::Function *>
-  getGlobalCtors() const override;
-
-  [[nodiscard]] std::vector<const llvm::Function *>
-  getGlobalDtors() const override;
-
-  std::vector<const llvm::Function *> getGlobalInitializers() const;
-
-  std::vector<const llvm::Function *> getRegisteredDtors() const;
-
   [[nodiscard]] std::set<const llvm::Instruction *>
   allNonCallStartNodes() const override;
 
@@ -263,6 +253,15 @@ public:
   [[nodiscard]] unsigned getNumOfEdges();
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
+
+protected:
+  void collectGlobalCtors() override;
+
+  void collectGlobalDtors() override;
+
+  void collectGlobalInitializers() override;
+
+  void collectRegisteredDtors() override;
 };
 
 } // namespace psr

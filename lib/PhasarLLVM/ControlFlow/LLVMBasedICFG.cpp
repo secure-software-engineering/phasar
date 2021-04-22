@@ -83,11 +83,11 @@ private:
 
 std::vector<const llvm::Function *>
 getGlobalCtorsDtorsImpl(const llvm::Module *M, llvm::StringRef Fun) {
-  std::vector<const llvm::Function *> Result;
   const auto *Gtors = M->getGlobalVariable(Fun);
   if (Gtors == nullptr) {
-    return Result;
+    return {};
   }
+  std::vector<const llvm::Function *> Result;
   if (const auto *FunArray = llvm::dyn_cast<llvm::ArrayType>(
           Gtors->getType()->getPointerElementType())) {
     if (const auto *ConstFunArray =
@@ -167,6 +167,10 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
 
   if (IncludeGlobals) {
+    collectGlobalCtors();
+    collectGlobalDtors();
+    collectGlobalInitializers();
+    collectRegisteredDtors();
     // push registered destructors to function worklist
     for (const auto &RegisteredDtor : getRegisteredDtors()) {
       FunctionWL.push(RegisteredDtor);
@@ -615,45 +619,35 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
   return ReturnSites;
 }
 
-std::vector<const llvm::Function *> LLVMBasedICFG::getGlobalCtors() const {
-  std::vector<const llvm::Function *> Result;
+void LLVMBasedICFG::collectGlobalCtors() {
   for (const auto *Module : IRDB.getAllModules()) {
     auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_ctors");
-    Result.insert(Result.begin(), Part.begin(), Part.end());
+    GlobalCtors.insert(GlobalCtors.begin(), Part.begin(), Part.end());
   }
-  return Result;
 }
 
-std::vector<const llvm::Function *> LLVMBasedICFG::getGlobalDtors() const {
-  std::vector<const llvm::Function *> Result;
+void LLVMBasedICFG::collectGlobalDtors() {
   for (const auto *Module : IRDB.getAllModules()) {
     auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_dtors");
-    Result.insert(Result.begin(), Part.begin(), Part.end());
+    GlobalDtors.insert(GlobalDtors.begin(), Part.begin(), Part.end());
   }
-  return Result;
 }
 
-std::vector<const llvm::Function *>
-LLVMBasedICFG::getGlobalInitializers() const {
+void LLVMBasedICFG::collectGlobalInitializers() {
   // get all functions used to initialize global variables
-  std::vector<const llvm::Function *> Result;
   for (const auto &GlobalCtor : getGlobalCtors()) {
-    if (GlobalCtor->getName().startswith("_GLOBAL__sub_I_")) {
-      for (const auto &BB : *GlobalCtor) {
-        for (const auto &I : BB) {
-          if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
-            Result.push_back(Call->getCalledFunction());
-          }
+    for (const auto &BB : *GlobalCtor) {
+      for (const auto &I : BB) {
+        if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
+          GlobalInitializers.push_back(Call->getCalledFunction());
         }
       }
     }
   }
-  return Result;
 }
 
-std::vector<const llvm::Function *> LLVMBasedICFG::getRegisteredDtors() const {
+void LLVMBasedICFG::collectRegisteredDtors() {
   // get all destructors that are registered with __cxa_atexit
-  std::vector<const llvm::Function *> Result;
   for (const auto &F : getGlobalInitializers()) {
     for (const auto &BB : *F) {
       for (const auto &I : BB) {
@@ -661,16 +655,20 @@ std::vector<const llvm::Function *> LLVMBasedICFG::getRegisteredDtors() const {
           llvm::ImmutableCallSite CS(Call);
           if (CS.getCalledFunction()->getName() == "__cxa_atexit") {
             // dtor is operand in call to __cxa_atexit
+            auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(CS.getArgOperand(0));
+            if (CE == nullptr) {
+              continue;
+            }
+            auto *AsI = CE->getAsInstruction();
             const llvm::Function *Dtor = llvm::cast<llvm::Function>(
-                llvm::cast<llvm::BitCastInst>(CS.getArgOperand(0))
-                    ->getOperand(0));
-            Result.push_back(Dtor);
+                llvm::cast<llvm::BitCastInst>(AsI)->getOperand(0));
+            RegisteredDtors.push_back(Dtor);
+            AsI->deleteValue();
           }
         }
       }
     }
   }
-  return Result;
 }
 
 /**
