@@ -134,4 +134,20 @@ LLVMBasedBackwardsICFG::getDependencyOrderedFunctions() {
   return ForwardICFG.getDependencyOrderedFunctions();
 }
 
+void LLVMBasedBackwardsICFG::collectGlobalCtors() {
+  ForwardICFG.collectGlobalCtors();
+}
+
+void LLVMBasedBackwardsICFG::collectGlobalDtors() {
+  ForwardICFG.collectGlobalDtors();
+}
+
+void LLVMBasedBackwardsICFG::collectGlobalInitializers() {
+  ForwardICFG.collectGlobalInitializers();
+}
+
+void LLVMBasedBackwardsICFG::collectRegisteredDtors() {
+  ForwardICFG.collectRegisteredDtors();
+}
+
 } // namespace psr

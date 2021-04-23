@@ -94,6 +94,15 @@ public:
   unsigned getNumOfEdges();
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
+
+protected:
+  void collectGlobalCtors() override;
+
+  void collectGlobalDtors() override;
+
+  void collectGlobalInitializers() override;
+
+  void collectRegisteredDtors() override;
 };
 
 } // namespace psr
