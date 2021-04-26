@@ -182,7 +182,7 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
               }
             }
           }
-          AsI->deleteValue();          
+          AsI->deleteValue();
         }
       }
     }

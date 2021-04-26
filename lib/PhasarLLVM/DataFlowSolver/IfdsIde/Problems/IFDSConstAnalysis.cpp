@@ -250,11 +250,11 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
   LOG_IF_ENABLE(
       BOOST_LOG_SEV(lg::get(), DEBUG)
       << "Printing all initialized memory location (or one of its alias)");
-  #ifdef DYNAMIC_LOG
+#ifdef DYNAMIC_LOG
   for (const auto *Stmt : IFDSConstAnalysis::Initialized) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << llvmIRToString(Stmt));
   }
-  #endif
+#endif
 }
 
 set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(

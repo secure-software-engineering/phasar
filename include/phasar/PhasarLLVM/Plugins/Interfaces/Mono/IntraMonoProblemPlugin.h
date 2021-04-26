@@ -20,7 +20,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-
 namespace psr {
 
 struct IntraMonoProblemPluginDomain : LLVMAnalysisDomainDefault {
@@ -36,7 +35,7 @@ public:
       : IntraMonoProblem(IRDB, TH, CF, PT, EntryPoints) {}
 
   void printNode(std::ostream &os, n_t n) const override {
-    os << llvmIRToString((llvm::Value *) n);
+    os << llvmIRToString((llvm::Value *)n);
   }
   void printDataFlowFact(std::ostream &os, d_t d) const override {
     os << llvmIRToString(d);

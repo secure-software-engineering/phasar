@@ -35,7 +35,6 @@ using namespace std;
 using namespace psr;
 namespace attrs = boost::log::attributes;
 
-
 namespace psr {
 
 SeverityLevel LogFilterLevel = DEBUG;
@@ -77,8 +76,10 @@ void logFormatter(const boost::log::record_view &View,
                   boost::log::formatting_ostream &OS) {
 #ifdef DYNAMIC_LOG
   // OS << View.attribute_values()["LineCounter"].extract<int>() << " "
-     OS << View.attribute_values()["Duration"].extract<boost::posix_time::ptime::time_duration_type>()
-      //<< " " View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
+  OS << View.attribute_values()["Duration"]
+            .extract<boost::posix_time::ptime::time_duration_type>()
+     //<< " "
+     //View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
      << " - [" << View.attribute_values()["Severity"].extract<SeverityLevel>()
      << "] " << View.attribute_values()["Message"].extract<std::string>();
 #endif
@@ -103,7 +104,7 @@ void initializeLogger(bool UseLogger, const string &LogFile) {
   Sink->locked_backend()->add_stream(Stream);
   Sink->set_filter(&logFilter);
   Sink->set_formatter(&logFormatter);
-  Sink->locked_backend()->auto_flush(true);  
+  Sink->locked_backend()->auto_flush(true);
   boost::log::core::get()->add_sink(Sink);
   boost::log::core::get()->add_global_attribute(
       "LineCounter", boost::log::attributes::counter<int>{});
@@ -112,7 +113,7 @@ void initializeLogger(bool UseLogger, const string &LogFile) {
   boost::log::core::get()->set_exception_handler(
       boost::log::make_exception_handler<std::exception>(
           LoggerExceptionHandler()));
-  boost::log::core::get()->add_global_attribute("Duration", attrs::timer());  
+  boost::log::core::get()->add_global_attribute("Duration", attrs::timer());
 #endif
 }
 

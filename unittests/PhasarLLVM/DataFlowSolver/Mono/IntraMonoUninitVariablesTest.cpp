@@ -35,9 +35,8 @@ using namespace psr;
 class IntraMonoUninitVariablesTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-       unittest::PathToLLTestFiles +
-      "/uninitialized_variables/";
-  
+      unittest::PathToLLTestFiles + "/uninitialized_variables/";
+
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
   const std::set<std::string> EntryPoints = {"main"};

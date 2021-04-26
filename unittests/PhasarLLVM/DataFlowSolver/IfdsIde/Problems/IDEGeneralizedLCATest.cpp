@@ -36,9 +36,8 @@ class IDEGeneralizedLCATest : public ::testing::Test {
 
 protected:
   const std::string pathToLLFiles =
-      unittest::PathToLLTestFiles +
-      "general_linear_constant/";
-    
+      unittest::PathToLLTestFiles + "general_linear_constant/";
+
   ProjectIRDB *IRDB = nullptr;
   IDESolver<IDEGeneralizedLCADomain> *LCASolver = nullptr;
 
@@ -158,9 +157,9 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
   // bl::core::get()->set_logging_enabled(true);
   Initialize("Imprecision_c.ll", 2);
-//   auto xInst = IRDB->getInstruction(0); // foo.x
-//   auto yInst = IRDB->getInstruction(1); // foo.y
-//  auto barInst = IRDB->getInstruction(7);
+  //   auto xInst = IRDB->getInstruction(0); // foo.x
+  //   auto yInst = IRDB->getInstruction(1); // foo.y
+  //  auto barInst = IRDB->getInstruction(7);
 
   // std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) <<
   // std::endl; std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst)

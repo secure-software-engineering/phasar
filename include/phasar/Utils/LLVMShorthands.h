@@ -197,7 +197,7 @@ std::size_t computeModuleHash(const llvm::Module *M);
  * int boo __attribute__((annotate("bar"));
  * @param F The function to test - Target of the call instruction
  */
-const bool isVarAnnotationIntrinsic(const llvm::Function *F);
+bool isVarAnnotationIntrinsic(const llvm::Function *F);
 
 /**
  * Retrieves String annotation value as per
@@ -205,8 +205,8 @@ const bool isVarAnnotationIntrinsic(const llvm::Function *F);
  * Test the call function be tested by isVarAnnotationIntrinsic
  *
  */
-const llvm::StringRef getVarAnnotationIntrinsicName(
-    const llvm::CallInst *CallInst);  
+const llvm::StringRef
+getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
 } // namespace psr
 
 #endif

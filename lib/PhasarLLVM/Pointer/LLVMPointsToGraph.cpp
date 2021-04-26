@@ -28,8 +28,7 @@
 #include "phasar/Utils/GraphExtensions.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/
-Macros.h"
+#include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
 using namespace std;
@@ -387,7 +386,8 @@ LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
     ResultSet->insert(PAG[Vertex].V);
   }
   PAUSE_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);
-  ADD_TO_HISTOGRAM("Points-to", ResultSet->size(), 1, PAMM_SEVERITY_LEVEL::Full);
+  ADD_TO_HISTOGRAM("Points-to", ResultSet->size(), 1,
+                   PAMM_SEVERITY_LEVEL::Full);
   return ResultSet;
 }
 
