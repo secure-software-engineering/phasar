@@ -57,9 +57,9 @@ protected:
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto *PT = new LLVMPointsToSet(*IRDB);
+    auto PT = LLVMPointsToSet(*IRDB);
     LLVMBasedCFG CFG;
-    IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, PT, EntryPoints);
+    IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, &PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);
     Solver.solve();
     if (printDump) {
