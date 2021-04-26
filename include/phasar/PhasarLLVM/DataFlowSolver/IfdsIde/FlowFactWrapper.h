@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
 
 #include <iostream>
+#include <map>
 #include <optional>
 #include <set>
 #include <type_traits>

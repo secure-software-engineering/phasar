@@ -18,6 +18,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 
 namespace psr {
@@ -35,7 +36,7 @@ public:
       : IntraMonoProblem(IRDB, TH, CF, PT, EntryPoints) {}
 
   void printNode(std::ostream &os, n_t n) const override {
-    os << llvmIRToString(n);
+    os << llvmIRToString((llvm::Value *) n);
   }
   void printDataFlowFact(std::ostream &os, d_t d) const override {
     os << llvmIRToString(d);
