@@ -70,21 +70,15 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  PAMM_GET_INSTANCE;
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
   for (auto *M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
-  REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
-  PAMM_GET_INSTANCE;
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
-  REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
 }
 
 std::string
@@ -187,8 +181,8 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
                 }
               }
             }
-            AsI->deleteValue();
           }
+          AsI->deleteValue();
         }
       }
     }
@@ -228,8 +222,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                       VFS.push_back(F);
                     }
                   }
-                  AsI->deleteValue();
                 }
+                AsI->deleteValue();
               }
             }
           }

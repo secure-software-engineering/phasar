@@ -9,6 +9,8 @@
 
 #include <memory>
 
+#include "gtest/gtest.h"
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
@@ -18,7 +20,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
-#include "gtest/gtest.h"
+#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
@@ -27,8 +29,7 @@ using namespace psr;
 class IDETSAnalysisFileIOTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/typestate_analysis_fileio/";
+      unittest::PathToLLTestFiles + "typestate_analysis_fileio/";
   const std::set<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;

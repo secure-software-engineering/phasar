@@ -163,21 +163,22 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
   // propagating the return value into the caller context, we also propagate
   // all related alloca's of the formal parameter and the return value.
   struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
-    const llvm::CallBase *CB;
+    const llvm::CallBase *CallSite;
     const llvm::Function *CalleeFun;
     const llvm::ReturnInst *ExitSite;
     IDETypeStateAnalysis *Analysis;
     std::vector<const llvm::Value *> Actuals;
     std::vector<const llvm::Value *> Formals;
-    TSFlowFunction(const llvm::CallBase *CB, const llvm::Function *CalleeFun,
+    TSFlowFunction(const llvm::CallBase *CallSite,
+                   const llvm::Function *CalleeFun,
                    const llvm::Instruction *ExitSite,
                    IDETypeStateAnalysis *Analysis)
-        : CB(CB), CalleeFun(CalleeFun),
+        : CallSite(CallSite), CalleeFun(CalleeFun),
           ExitSite(llvm::dyn_cast<llvm::ReturnInst>(ExitSite)),
           Analysis(Analysis) {
       // Set up the actual parameters
-      for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-        Actuals.push_back(CB->getArgOperand(Idx));
+      for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+        Actuals.push_back(CallSite->getArgOperand(Idx));
       }
       // Set up the formal parameters
       for (unsigned Idx = 0; Idx < CalleeFun->arg_size(); ++Idx) {
@@ -228,7 +229,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
         }
         // Collect the return value
         if (Source == ExitSite->getReturnValue()) {
-          Res.insert(CB);
+          Res.insert(CallSite);
         }
         // Collect all relevant alloca's to map into caller context
         std::set<IDETypeStateAnalysis::d_t> RelAllocas;
@@ -251,7 +252,7 @@ IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::n_t RetSite,
     set<IDETypeStateAnalysis::f_t> Callees) {
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
     // Generate the return value of factory functions from zero value
@@ -259,9 +260,9 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
         IDETypeStateAnalysis::d_t CallSite, ZeroValue;
 
-        TSFlowFunction(IDETypeStateAnalysis::d_t CB,
+        TSFlowFunction(IDETypeStateAnalysis::d_t CallSite,
                        IDETypeStateAnalysis::d_t Z)
-            : CallSite(CB), ZeroValue(Z) {}
+            : CallSite(CallSite), ZeroValue(Z) {}
         ~TSFlowFunction() override = default;
         set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t Source) override {
@@ -288,7 +289,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     // that the return value will be used afterwards, i.e. is stored to memory
     // pointed to by related alloca's.
     if (!TSD.isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
-      for (const auto &Arg : CB->args()) {
+      for (const auto &Arg : CallSite->args()) {
         if (hasMatchingType(Arg)) {
           std::set<IDETypeStateAnalysis::d_t> FactsToKill =
               getWMAliasesAndAllocas(Arg.get());
@@ -376,7 +377,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t RetSite, IDETypeStateAnalysis::d_t RetSiteNode,
     std::set<IDETypeStateAnalysis::f_t> Callees) {
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
 
@@ -385,13 +386,13 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if (TSD.isFactoryFunction(DemangledFname)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Processing factory function");
-      if (isZeroValue(CallNode) && RetSiteNode == CB) {
+      if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
         struct TSFactoryEF : public TSConstant {
           TSFactoryEF(const TypeStateDescription &Tsd, l_t State)
               : TSConstant(Tsd, State) {}
         };
         return make_shared<TSFactoryEF>(
-            TSD, TSD.getNextState(DemangledFname, TSD.uninit(), CB));
+            TSD, TSD.getNextState(DemangledFname, TSD.uninit(), CallSite));
       }
     }
 
@@ -402,11 +403,11 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
                     << "Processing consuming function");
       for (auto Idx : TSD.getConsumerParamIdx(DemangledFname)) {
         std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
-            getWMAliasesAndAllocas(CB->getArgOperand(Idx));
+            getWMAliasesAndAllocas(CallSite->getArgOperand(Idx));
 
         if (CallNode == RetSiteNode &&
             PointsToAndAllocas.find(CallNode) != PointsToAndAllocas.end()) {
-          return make_shared<TSEdgeFunction>(TSD, DemangledFname, CB);
+          return make_shared<TSEdgeFunction>(TSD, DemangledFname, CallSite);
         }
       }
     }
@@ -484,8 +485,8 @@ IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
 
   // assert((Source != TSD.top()) && "Error: call computeTarget with TOP\n");
 
-  auto CurrentState =
-      TSD.getNextState(Token, Source == TSD.top() ? TSD.uninit() : Source, CB);
+  auto CurrentState = TSD.getNextState(
+      Token, Source == TSD.top() ? TSD.uninit() : Source, CallSite);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "State machine transition: (" << Token << " , "
                 << TSD.stateToString(Source) << ") -> "
@@ -538,7 +539,7 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
 
 void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
                                                  bool IsForDebug) const {
-  OS << "TSEF(" << Token << " at " << llvmIRToShortString(CB) << ")";
+  OS << "TSEF(" << Token << " at " << llvmIRToShortString(CallSite) << ")";
 }
 
 IDETypeStateAnalysis::TSConstant::TSConstant(const TypeStateDescription &TSD,

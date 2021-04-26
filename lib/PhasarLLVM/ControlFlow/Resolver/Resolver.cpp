@@ -29,10 +29,11 @@ using namespace psr;
 
 namespace psr {
 
-int getVFTIndex(const llvm::CallBase *CB) {
+int getVFTIndex(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
-  const auto *Load = llvm::dyn_cast<llvm::LoadInst>(CB->getCalledOperand());
+  const auto *Load =
+      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
   if (Load == nullptr) {
     return -1;
   }
@@ -47,9 +48,9 @@ int getVFTIndex(const llvm::CallBase *CB) {
   return -3;
 }
 
-const llvm::StructType *getReceiverType(const llvm::CallBase *CB) {
-  if (CB->getNumArgOperands() > 0) {
-    const llvm::Value *Receiver = CB->getArgOperand(0);
+const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
+  if (CallSite->getNumArgOperands() > 0) {
+    const llvm::Value *Receiver = CallSite->getArgOperand(0);
     if (Receiver->getType()->isPointerTy()) {
       if (const llvm::StructType *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
               Receiver->getType()->getPointerElementType())) {
@@ -60,8 +61,8 @@ const llvm::StructType *getReceiverType(const llvm::CallBase *CB) {
   return nullptr;
 }
 
-std::string getReceiverTypeName(const llvm::CallBase *CB) {
-  const auto *const RT = getReceiverType(CB);
+std::string getReceiverTypeName(const llvm::CallBase *CallSite) {
+  const auto *const RT = getReceiverType(CallSite);
   if (RT) {
     return RT->getName().str();
   }
@@ -75,8 +76,8 @@ Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    const llvm::CallBase *CB) {
-  if (TH->hasVFTable(T)) {
+                                    llvm::ImmutableCallSite CS) {
+  if (TH && TH->hasVFTable(T)) {
     const auto *Target = TH->getVFTable(T)->getFunction(Idx);
     if (Target->getName() != "__cxa_pure_virtual") {
       return Target;
@@ -88,25 +89,25 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
 void Resolver::preCall(const llvm::Instruction *Inst) {}
 
 void Resolver::handlePossibleTargets(
-    const llvm::CallBase *CB,
+    const llvm::CallBase *CallSite,
     std::set<const llvm::Function *> &PossibleTargets) {}
 
 void Resolver::postCall(const llvm::Instruction *Inst) {}
 
 std::set<const llvm::Function *>
-Resolver::resolveFunctionPointer(const llvm::CallBase *CB) {
+Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call function pointer: " << llvmIRToString(CB));
+                << "Call function pointer: " << llvmIRToString(CallSite));
   std::set<const llvm::Function *> CalleeTargets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)
-  if (CB->getCalledOperand() != nullptr &&
-      CB->getCalledOperand()->getType()->isPointerTy()) {
+  if (CallSite->getCalledOperand() != nullptr &&
+      CallSite->getCalledOperand()->getType()->isPointerTy()) {
     if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
-            CB->getCalledOperand()->getType()->getPointerElementType())) {
+            CallSite->getCalledOperand()->getType()->getPointerElementType())) {
       for (const auto *F : IRDB.getAllFunctions()) {
         if (matchesSignature(F, FTy)) {
           CalleeTargets.insert(F);

@@ -12,7 +12,7 @@
 
 #include <memory>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/Utils/Table.h"
 
 namespace psr {

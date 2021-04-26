@@ -21,10 +21,10 @@
 namespace psr {
 
 MapFactsToCalleeFlowFunction::MapFactsToCalleeFlowFunction(
-    const llvm::CallBase *CB, const llvm::Function *Callee)
-    : CB(CB), Callee(Callee) {
-  for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CB->getArgOperand(Idx));
+    const llvm::CallBase *CallSite, const llvm::Function *Callee)
+    : CallSite(CallSite), Callee(Callee) {
+  for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+    Actuals.push_back(CallSite->getArgOperand(Idx));
   }
   // Set up the formal parameters
   for (unsigned Idx = 0; Idx < Callee->arg_size(); ++Idx) {

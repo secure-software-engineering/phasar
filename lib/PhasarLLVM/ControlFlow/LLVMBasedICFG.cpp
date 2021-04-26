@@ -207,7 +207,6 @@ LLVMBasedICFG::~LLVMBasedICFG() {
 
 void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
                                     bool &FixpointReached) {
-  PAMM_GET_INSTANCE;
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Walking in function: " << F->getName().str());
   if (F->isDeclaration() || !VisitedFunctions.insert(F).second) {
@@ -300,7 +299,6 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
 
 bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
                                          Resolver &Resolver) {
-  PAMM_GET_INSTANCE;
   bool NewTargetsFound = false;
   // Find vertex of calling function.
   vertex_t ThisFunctionVertexDescriptor;
@@ -318,17 +316,17 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
 
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
     Resolver.preCall(I);
-    const auto *CB = llvm::cast<llvm::CallBase>(I);
+    const auto *CallSite = llvm::cast<llvm::CallBase>(I);
     set<const llvm::Function *> PossibleTargets;
     // the function call must be resolved dynamically
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Looking into dynamic call-site: ");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << llvmIRToString(I));
     // call the resolve routine
-    if (LLVMBasedICFG::isVirtualFunctionCall(CB)) {
-      PossibleTargets = Resolver.resolveVirtualCall(CB);
+    if (LLVMBasedICFG::isVirtualFunctionCall(CallSite)) {
+      PossibleTargets = Resolver.resolveVirtualCall(CallSite);
     } else {
-      PossibleTargets = Resolver.resolveFunctionPointer(CB);
+      PossibleTargets = Resolver.resolveFunctionPointer(CallSite);
     }
     if (IndirectCalls.count(I) == 0 ||
         IndirectCalls[I] < PossibleTargets.size()) {
@@ -348,7 +346,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
         PossibleTargets.erase(CallGraph[boost::target(OE, CallGraph)].F);
       }
     }
-    Resolver.handlePossibleTargets(CB, PossibleTargets);
+    Resolver.handlePossibleTargets(CallSite, PossibleTargets);
     // Insert possible target inside the graph and add the link with
     // the current function
     for (const auto &PossibleTarget : PossibleTargets) {
@@ -404,14 +402,14 @@ std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
 }
 
 bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *N) const {
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(N);
-  return CB->isIndirectCall();
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(N);
+  return CallSite->isIndirectCall();
 }
 
 bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(N);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(N);
   // check potential receiver type
-  const auto *RecType = getReceiverType(CB);
+  const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
     return false;
   }
@@ -421,7 +419,7 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
   if (!TH->hasVFTable(RecType)) {
     return false;
   }
-  return getVFTIndex(CB) >= 0;
+  return getVFTIndex(CallSite) >= 0;
 }
 
 const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {

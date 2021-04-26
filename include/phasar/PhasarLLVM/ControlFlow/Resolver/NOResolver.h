@@ -25,9 +25,9 @@ namespace psr {
 
 class NOResolver final : public Resolver {
 protected:
-  const llvm::Function *getNonPureVirtualVFTEntry(const llvm::StructType *T,
-                                                  unsigned Idx,
-                                                  const llvm::CallBase *CB);
+  const llvm::Function *
+  getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+                            const llvm::CallBase *CallSite);
 
 public:
   NOResolver(ProjectIRDB &IRDB);
@@ -37,16 +37,16 @@ public:
   void preCall(const llvm::Instruction *Inst) override;
 
   void handlePossibleTargets(
-      const llvm::CallBase *CB,
+      const llvm::CallBase *CallSite,
       std::set<const llvm::Function *> &PossibleTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::CallBase *CB) override;
+  resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   std::set<const llvm::Function *>
-  resolveFunctionPointer(const llvm::CallBase *CB) override;
+  resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
 };

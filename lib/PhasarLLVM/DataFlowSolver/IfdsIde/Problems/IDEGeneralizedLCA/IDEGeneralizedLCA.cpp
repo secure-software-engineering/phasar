@@ -181,13 +181,13 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t RetSite,
                                             std::set<f_t> Callees) {
   // std::cout << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
-  if (const auto *CB = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+  if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
     // std::basic_string
-    if (isStringConstructor(CB->getCalledFunction())) {
+    if (isStringConstructor(CallSite->getCalledFunction())) {
       // found std::string ctor
-      return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CB->getArgOperand(0),
-                                                           getZeroValue());
+      return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(
+          CallSite->getArgOperand(0), getZeroValue());
     }
     // return flow([Call](IDEGeneralizedLCA::d_t Source)
     //                 -> std::set<IDEGeneralizedLCA::d_t> {
@@ -258,24 +258,23 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
                                          IDEGeneralizedLCA::d_t CurrNode,
                                          IDEGeneralizedLCA::n_t Succ,
                                          IDEGeneralizedLCA::d_t SuccNode) {
-  auto &Lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IDEGeneralizedLCA::getNormalEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(Curr));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(D) Curr Node :   "
                 << IDEGeneralizedLCA::DtoString(CurrNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(N) Succ Inst : " << IDEGeneralizedLCA::NtoString(Succ));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "(D) Succ Node :   "
                 << IDEGeneralizedLCA::DtoString(SuccNode));
   // Initialize global variables at entry point
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
       isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
       llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Case: Intialize global variable at entry point.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG) << ' ');
     const auto *GV = llvm::cast<llvm::GlobalVariable>(CurrNode);
@@ -393,14 +392,14 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::d_t SrcNode,
                                        IDEGeneralizedLCA::f_t DestinationMethod,
                                        IDEGeneralizedLCA::d_t DestNode) {
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallStmt);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallStmt);
   if (isZeroValue(SrcNode)) {
-    auto Len = std::min<size_t>(CB->getNumArgOperands(),
+    auto Len = std::min<size_t>(CallSite->getNumArgOperands(),
                                 DestinationMethod->arg_size());
     for (size_t I = 0; I < Len; ++I) {
       const auto *FormalArg = getNthFunctionArgument(DestinationMethod, I);
       if (DestNode == FormalArg) {
-        const auto *ActualArg = CB->getArgOperand(I);
+        const auto *ActualArg = CallSite->getArgOperand(I);
         // if (isConstant(actualArg))  // -> always const, since srcNode is zero
         return std::make_shared<GenConstant>(l_t({EdgeValue(ActualArg)}),
                                              maxSetSize);
@@ -438,15 +437,16 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
     IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
     IDEGeneralizedLCA::n_t RetSite, IDEGeneralizedLCA::d_t RetSiteNode,
     std::set<IDEGeneralizedLCA::f_t> Callees) {
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
 
   // check for ctor and then demangle function name and check for
   // std::basic_string
-  if (isStringConstructor(CB->getCalledFunction())) {
+  if (isStringConstructor(CallSite->getCalledFunction())) {
     // found correct place and time
-    if (CallNode == getZeroValue() && RetSiteNode == CB->getArgOperand(0)) {
+    if (CallNode == getZeroValue() &&
+        RetSiteNode == CallSite->getArgOperand(0)) {
       // find string literal that is used to initialize the string
-      if (auto User = llvm::dyn_cast<llvm::User>(CB->getArgOperand(1))) {
+      if (auto User = llvm::dyn_cast<llvm::User>(CallSite->getArgOperand(1))) {
         if (auto GV =
                 llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
           if (!GV->hasInitializer()) {

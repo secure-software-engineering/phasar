@@ -21,13 +21,13 @@ class Value;
 namespace psr {
 
 class MapFactsToCalleeFlowFunction : public FlowFunction<const llvm::Value *> {
-  const llvm::CallBase *CB;
+  const llvm::CallBase *CallSite;
   const llvm::Function *Callee;
   std::vector<const llvm::Value *> Actuals;
   std::vector<const llvm::Value *> Formals;
 
 public:
-  MapFactsToCalleeFlowFunction(const llvm::CallBase *CB,
+  MapFactsToCalleeFlowFunction(const llvm::CallBase *CallSite,
                                const llvm::Function *Callee);
   std::set<const llvm::Value *>
   computeTargets(const llvm::Value *source) override;

@@ -18,11 +18,12 @@
 namespace psr {
 
 MapFactsToCallerFlowFunction::MapFactsToCallerFlowFunction(
-    const llvm::CallBase *CB, const llvm::Instruction *ExitStmt,
+    const llvm::CallBase *CallSite, const llvm::Instruction *ExitStmt,
     const llvm::Function *Callee)
-    : CB(CB), ExitStmt(llvm::cast<llvm::ReturnInst>(ExitStmt)), Callee(Callee) {
-  for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CB->getArgOperand(Idx));
+    : CallSite(CallSite), ExitStmt(llvm::cast<llvm::ReturnInst>(ExitStmt)),
+      Callee(Callee) {
+  for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+    Actuals.push_back(CallSite->getArgOperand(Idx));
   }
   // Set up the formal parameters
   for (unsigned Idx = 0; Idx < Callee->arg_size(); ++Idx) {
@@ -70,7 +71,7 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *Source) {
   if (Source == ExitStmt->getReturnValue() ||
       (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
        ExitStmt->getReturnValue() && isConstant(ExitStmt->getReturnValue()))) {
-    Res.insert(CB);
+    Res.insert(CallSite);
   }
   return Res;
 }

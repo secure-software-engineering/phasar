@@ -54,22 +54,22 @@ public:
   void preCall(const llvm::Instruction *Inst) override;
 
   void handlePossibleTargets(
-      const llvm::CallBase *CB,
+      const llvm::CallBase *CallSite,
       std::set<const llvm::Function *> &CalleeTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::CallBase *CB) override;
+  resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   std::set<const llvm::Function *>
-  resolveFunctionPointer(const llvm::CallBase *CB) override;
+  resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   static std::set<const llvm::Type *>
   getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
 
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-  getActualFormalPointerPairs(const llvm::CallBase *CB,
+  getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                               const llvm::Function *CalleeTarget);
 };
 } // namespace psr

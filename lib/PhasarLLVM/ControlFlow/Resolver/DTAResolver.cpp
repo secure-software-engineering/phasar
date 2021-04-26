@@ -153,26 +153,26 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
 }
 
 set<const llvm::Function *>
-DTAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
+DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   set<const llvm::Function *> PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: " << llvmIRToString(CB));
+                << "Call virtual function: " << llvmIRToString(CallSite));
 
-  auto VtableIndex = getVFTIndex(CB);
+  auto VtableIndex = getVFTIndex(CallSite);
   if (VtableIndex < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CB) << "\n");
+                  << llvmIRToString(CallSite) << "\n");
     return {};
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CB);
+  const auto *ReceiverType = getReceiverType(CallSite);
 
   auto PossibleTypes = typegraph.getTypes(ReceiverType);
 
@@ -185,7 +185,7 @@ DTAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
       const auto *Target =
-          getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CB);
+          getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CallSite);
       if (Target) {
         PossibleCallTargets.insert(Target);
       }
@@ -193,13 +193,15 @@ DTAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
   }
 
   if (PossibleCallTargets.empty()) {
-    PossibleCallTargets = CHAResolver::resolveVirtualCall(CB);
+    PossibleCallTargets = CHAResolver::resolveVirtualCall(CallSite);
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible targets are:");
+#ifdef DYNAMIC_LOG
   for (const auto *Entry : PossibleCallTargets) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << Entry);
   }
+#endif
 
   return PossibleCallTargets;
 }

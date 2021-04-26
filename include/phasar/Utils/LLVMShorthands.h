@@ -23,6 +23,7 @@
 #include "phasar/Utils/Utilities.h"
 
 namespace llvm {
+class CallInst;
 class Value;
 class FunctionType;
 class Function;
@@ -190,6 +191,22 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  */
 std::size_t computeModuleHash(const llvm::Module *M);
 
+/**
+ * Tests for https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic
+ * e.g.
+ * int boo __attribute__((annotate("bar"));
+ * @param F The function to test - Target of the call instruction
+ */
+bool isVarAnnotationIntrinsic(const llvm::Function *F);
+
+/**
+ * Retrieves String annotation value as per
+ * https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic
+ * Test the call function be tested by isVarAnnotationIntrinsic
+ *
+ */
+const llvm::StringRef
+getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
 } // namespace psr
 
 #endif

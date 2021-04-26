@@ -13,6 +13,12 @@
 #include <set>
 #include <vector>
 
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -29,12 +35,12 @@ namespace psr {
 class MapFactsToCallerFlowFunction : public FlowFunction<const llvm::Value *> {
   std::vector<const llvm::Value *> Actuals;
   std::vector<const llvm::Value *> Formals;
-  const llvm::CallBase *CB;
+  const llvm::CallBase *CallSite;
   const llvm::ReturnInst *ExitStmt;
   const llvm::Function *Callee;
 
 public:
-  MapFactsToCallerFlowFunction(const llvm::CallBase *CB,
+  MapFactsToCallerFlowFunction(const llvm::CallBase *CallSite,
                                const llvm::Instruction *ExitStmt,
                                const llvm::Function *Callee);
   std::set<const llvm::Value *>

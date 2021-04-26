@@ -5,7 +5,6 @@
 #include <set>
 #include <string>
 #include <utility>
-
 #include <vector>
 
 #include "llvm/IR/IntrinsicInst.h"
@@ -169,8 +168,8 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    * Exclude blacklisted functions here.
    */
 
-  if (taintConfig.isSink(DestFunName)) {
-    return std::make_shared<IdentityFlowFunction>(CallSite, traceStats,
+  if (taintConfig.isSink(DestFunName.str())) {
+    return std::make_shared<IdentityFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
   }
 
@@ -200,8 +199,8 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   /*
    * Provide summary for tainted functions.
    */
-  if (taintConfig.isSource(DestFunName)) {
-    return std::make_shared<GenerateFlowFunction>(CallSite, traceStats,
+  if (taintConfig.isSource(DestFunName.str())) {
+    return std::make_shared<GenerateFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
   }
 

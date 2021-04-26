@@ -76,7 +76,6 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e. kills previous fact (= pointer operand).
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    IDELinearConstantAnalysis::d_t PointerOp = Store->getPointerOperand();
     IDELinearConstantAnalysis::d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
@@ -130,11 +129,12 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
       const llvm::Function *DestFun;
-      LCAFF(const llvm::CallBase *CB, IDELinearConstantAnalysis::f_t DestFun)
+      LCAFF(const llvm::CallBase *CallSite,
+            IDELinearConstantAnalysis::f_t DestFun)
           : DestFun(DestFun) {
         // Set up the actual parameters
-        for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-          Actuals.push_back(CB->getArgOperand(Idx));
+        for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+          Actuals.push_back(CallSite->getArgOperand(Idx));
         }
         // Set up the formal parameters
         for (unsigned Idx = 0; Idx < DestFun->arg_size(); ++Idx) {
@@ -414,8 +414,8 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
-      const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
-      const auto *Actual = CB->getArgOperand(getFunctionArgumentNr(A));
+      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+      const auto *Actual = CallSite->getArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);

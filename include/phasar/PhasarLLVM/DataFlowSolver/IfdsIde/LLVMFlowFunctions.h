@@ -73,27 +73,27 @@ class MapFactsAlongsideCallSite
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 protected:
-  const llvm::CallBase *CB;
+  const llvm::CallBase *CallSite;
   std::function<bool(const llvm::CallBase *, const llvm::Value *)> Predicate;
 
 public:
   MapFactsAlongsideCallSite(
-      const llvm::CallBase *CB,
+      const llvm::CallBase *CallSite,
       std::function<bool(const llvm::CallBase *, const llvm::Value *)>
           Predicate =
-              [](const llvm::CallBase *CB, const llvm::Value *V) {
+              [](const llvm::CallBase *CallSite, const llvm::Value *V) {
                 // Checks if a values is involved in a call, i.e. may be
                 // modified by a callee, in which case its flow is controlled by
                 // getCallFlowFunction() and getRetFlowFunction().
                 bool Involved = false;
-                for (auto &Arg : CB->args()) {
+                for (auto &Arg : CallSite->args()) {
                   if (Arg == V && V->getType()->isPointerTy()) {
                     Involved = true;
                   }
                 }
                 return Involved;
               })
-      : CB(CB), Predicate(std::move(Predicate)){};
+      : CallSite(CallSite), Predicate(std::move(Predicate)){};
   virtual ~MapFactsAlongsideCallSite() = default;
 
   container_type computeTargets(const llvm::Value *Source) override {
@@ -103,7 +103,7 @@ public:
     }
     // propagate if predicate does not hold, i.e. fact is not involved in the
     // call
-    if (!Predicate(CB, Source)) {
+    if (!Predicate(CallSite, Source)) {
       return {Source};
     }
     // Pass ZeroValue as is
@@ -132,12 +132,12 @@ protected:
 
 public:
   MapFactsToCallee(
-      const llvm::CallBase *CB, const llvm::Function *DestFun,
+      const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       std::function<bool(const llvm::Value *)> Predicate =
           [](const llvm::Value *) { return true; })
       : DestFun(DestFun), Predicate(std::move(Predicate)) {
     // Set up the actual parameters
-    for (const auto &Actual : CB->args()) {
+    for (const auto &Actual : CallSite->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -223,7 +223,7 @@ class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 private:
-  const llvm::CallBase *CB;
+  const llvm::CallBase *CallSite;
   const llvm::Function *CalleeFun;
   const llvm::ReturnInst *ExitSite;
   std::vector<const llvm::Value *> Actuals;
@@ -233,19 +233,19 @@ private:
 
 public:
   MapFactsToCaller(
-      const llvm::CallBase *CB, const llvm::Function *CalleeFun,
+      const llvm::CallBase *CallSite, const llvm::Function *CalleeFun,
       const llvm::Instruction *ExitSite,
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
           [](const llvm::Function *) { return true; })
-      : CB(CB), CalleeFun(CalleeFun),
+      : CallSite(CallSite), CalleeFun(CalleeFun),
         ExitSite(llvm::dyn_cast<llvm::ReturnInst>(ExitSite)),
         ParamPredicate(std::move(ParamPredicate)),
         ReturnPredicate(std::move(ReturnPredicate)) {
     assert(ExitSite && "Should not be null");
     // Set up the actual parameters
-    for (const auto &Actual : CB->args()) {
+    for (const auto &Actual : CallSite->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -300,7 +300,7 @@ public:
       }
       // Collect return value facts
       if (Source == ExitSite->getReturnValue() && ReturnPredicate(CalleeFun)) {
-        Res.insert(CB);
+        Res.insert(CallSite);
       }
       return Res;
     } else {

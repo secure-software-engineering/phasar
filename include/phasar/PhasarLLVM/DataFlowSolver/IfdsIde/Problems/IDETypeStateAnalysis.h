@@ -199,12 +199,12 @@ public:
     // Do not use a reference here, since LLVM's StringRef's (obtained by str())
     // might turn to nullptr for whatever reason...
     const std::string Token;
-    const llvm::CallBase *CB;
+    const llvm::CallBase *CallSite;
 
   public:
     TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok,
                    const llvm::CallBase *cb)
-        : TSD(tsd), Token(tok), CB(cb){};
+        : TSD(tsd), Token(tok), CallSite(cb){};
 
     l_t computeTarget(l_t source) override;
 

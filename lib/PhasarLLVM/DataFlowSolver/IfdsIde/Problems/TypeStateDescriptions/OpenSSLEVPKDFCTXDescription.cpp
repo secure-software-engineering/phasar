@@ -102,10 +102,9 @@ OpenSSLEVPKDFCTXDescription::getNextState(std::string Tok,
     return OpenSSLEVPKDFState::BOT;
   }
 }
-TypeStateDescription::State
-OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
-                                          TypeStateDescription::State S,
-                                          const llvm::CallBase *CB) const {
+TypeStateDescription::State OpenSSLEVPKDFCTXDescription::getNextState(
+    const std::string &Tok, TypeStateDescription::State S,
+    const llvm::CallBase *CallSite) const {
   if (isAPIFunction(Tok)) {
     auto NameToTok = funcNameToToken(Tok);
     auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
@@ -119,7 +118,8 @@ OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
       // cout << "## Factory-Call: ";
       // cout.flush();
       // cout << llvmIRToShortString(CS.getInstruction()) << endl;
-      auto KdfState = kdfAnalysisResults.resultAt(CB, CB->getArgOperand(0));
+      auto KdfState =
+          kdfAnalysisResults.resultAt(CallSite, CallSite->getArgOperand(0));
       if (KdfState !=
           OpenSSLEVPKDFDescription::OpenSSLEVPKDFState::KDF_FETCHED) {
         return error();

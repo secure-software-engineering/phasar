@@ -68,14 +68,16 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
     // check for heap allocation
     if (llvm::isa<llvm::CallInst>(G[U].V) ||
         llvm::isa<llvm::InvokeInst>(G[U].V)) {
-      const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(G[U].V);
-      if (CB->getCalledFunction() != nullptr &&
-          HeapAllocatingFunctions.count(CB->getCalledFunction()->getName())) {
+      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(G[U].V);
+      if (CallSite->getCalledFunction() != nullptr &&
+          HeapAllocatingFunctions.count(
+              CallSite->getCalledFunction()->getName())) {
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matchesStack(G) || CallStack.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Found heap allocation: " << llvmIRToString(CB));
+                        << "Found heap allocation: "
+                        << llvmIRToString(CallSite));
           AllocationSites.insert(G[U].V);
         }
       }
@@ -385,7 +387,8 @@ LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
     ResultSet->insert(PAG[Vertex].V);
   }
   PAUSE_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);
-  ADD_TO_HISTOGRAM("Points-to", Result.size(), 1, PAMM_SEVERITY_LEVEL::Full);
+  ADD_TO_HISTOGRAM("Points-to", ResultSet->size(), 1,
+                   PAMM_SEVERITY_LEVEL::Full);
   return ResultSet;
 }
 

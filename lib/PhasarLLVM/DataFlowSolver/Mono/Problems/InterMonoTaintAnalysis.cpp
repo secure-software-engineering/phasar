@@ -89,12 +89,12 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
   InterMonoTaintAnalysis::mono_container_t Out;
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
   vector<InterMonoTaintAnalysis::d_t> Actuals;
   vector<InterMonoTaintAnalysis::d_t> Formals;
   // set up the actual parameters
-  for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CB->getArgOperand(Idx));
+  for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+    Actuals.push_back(CallSite->getArgOperand(Idx));
   }
   // set up the formal parameters
   /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
@@ -125,11 +125,11 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
   }
   // propagate pointer arguments to the caller, since this callee may modify
   // them
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
   unsigned Index = 0;
   for (const auto &Arg : Callee->args()) {
     if (Arg.getType()->isPointerTy() && In.count(&Arg)) {
-      Out.insert(CB->getArgOperand(Index));
+      Out.insert(CallSite->getArgOperand(Index));
     }
     Index++;
   }
@@ -143,7 +143,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
   InterMonoTaintAnalysis::mono_container_t Out(In);
-  const llvm::CallBase *CB = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
   //-----------------------------------------------------------------------------
   // Handle virtual calls in the loop
   //-----------------------------------------------------------------------------
@@ -153,21 +153,21 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
                   << Callee->getName().str());
 
     if (TSF.isSink(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
+      for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
         if (TSF.getSink(Callee->getName().str()).isLeakedArg(Idx) &&
-            In.count(CB->getArgOperand(Idx))) {
+            In.count(CallSite->getArgOperand(Idx))) {
           cout << "FOUND LEAK AT: " << llvmIRToString(CallSite) << '\n';
-          cout << "LEAKED VALUE: " << llvmIRToString(CB->getArgOperand(Idx))
-               << '\n'
+          cout << "LEAKED VALUE: "
+               << llvmIRToString(CallSite->getArgOperand(Idx)) << '\n'
                << endl;
-          Leaks[CallSite].insert(CB->getArgOperand(Idx));
+          Leaks[CallSite].insert(CallSite->getArgOperand(Idx));
         }
       }
     }
     if (TSF.isSource(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
+      for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
         if (TSF.getSource(Callee->getName().str()).isTaintedArg(Idx)) {
-          Out.insert(CB->getArgOperand(Idx));
+          Out.insert(CallSite->getArgOperand(Idx));
         }
       }
       if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
@@ -177,9 +177,9 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   }
 
   // erase pointer arguments, since they are now propagated in the retFF
-  for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-    if (CB->getArgOperand(Idx)->getType()->isPointerTy()) {
-      Out.erase(CB->getArgOperand(Idx));
+  for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+    if (CallSite->getArgOperand(Idx)->getType()->isPointerTy()) {
+      Out.erase(CallSite->getArgOperand(Idx));
     }
   }
   return Out;

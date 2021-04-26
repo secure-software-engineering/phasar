@@ -77,16 +77,16 @@ InterMonoFullConstantPropagation::callFlow(
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    const auto *CB = llvm::cast<llvm::CallBase>(CallSite);
+    const auto *CallSite = llvm::cast<llvm::CallBase>(CallSite);
     // early exit; varargs not handled yet
-    if (CB->getNumArgOperands() == 0 || Callee->isVarArg()) {
+    if (CallSite->getNumArgOperands() == 0 || Callee->isVarArg()) {
       return Out;
     }
     vector<const llvm::Value *> Actuals;
     vector<const llvm::Value *> Formals;
     // Set up the actual parameters
-    for (unsigned idx = 0; idx < CB->getNumArgOperands(); ++idx) {
-      Actuals.push_back(CB->getArgOperand(idx));
+    for (unsigned idx = 0; idx < CallSite->getNumArgOperands(); ++idx) {
+      Actuals.push_back(CallSite->getArgOperand(idx));
     }
     // Set up the formal parameters
     for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {

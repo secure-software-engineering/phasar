@@ -42,7 +42,8 @@ OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
 void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 
 void OTFResolver::handlePossibleTargets(
-    const llvm::CallBase *CB, std::set<const llvm::Function *> &CalleeTargets) {
+    const llvm::CallBase *CallSite,
+    std::set<const llvm::Function *> &CalleeTargets) {
   // if we have no inter-procedural points-to information, use call-graph
   // information to simulate inter-procedural points-to information
   if (!PT.isInterProcedural()) {
@@ -53,9 +54,9 @@ void OTFResolver::handlePossibleTargets(
       // only if they are available
       if (!CalleeTarget->isDeclaration()) {
         // handle parameter pairs
-        auto Pairs = getActualFormalPointerPairs(CB, CalleeTarget);
+        auto Pairs = getActualFormalPointerPairs(CallSite, CalleeTarget);
         for (auto &[Actual, Formal] : Pairs) {
-          PT.introduceAlias(Actual, Formal, CB);
+          PT.introduceAlias(Actual, Formal, CallSite);
         }
         // handle return value
         if (CalleeTarget->getReturnType()->isPointerTy()) {
@@ -63,7 +64,7 @@ void OTFResolver::handlePossibleTargets(
             // get the function's return value
             if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
               // introduce alias to the returned value
-              PT.introduceAlias(CB, Ret->getReturnValue(), CB);
+              PT.introduceAlias(CallSite, Ret->getReturnValue(), CallSite);
             }
           }
         }
@@ -75,32 +76,32 @@ void OTFResolver::handlePossibleTargets(
 void OTFResolver::postCall(const llvm::Instruction *Inst) {}
 
 set<const llvm::Function *>
-OTFResolver::resolveVirtualCall(const llvm::CallBase *CB) {
+OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   set<const llvm::Function *> PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: " << llvmIRToString(CB));
+                << "Call virtual function: " << llvmIRToString(CallSite));
 
-  auto VtableIndex = getVFTIndex(CB);
+  auto VtableIndex = getVFTIndex(CallSite);
   if (VtableIndex < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CB) << "\n");
+                  << llvmIRToString(CallSite) << "\n");
     return {};
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  const llvm::Value *Receiver = CB->getArgOperand(0);
+  const llvm::Value *Receiver = CallSite->getArgOperand(0);
 
   // Use points-to information to resolve the indirect call
   auto AllocSites = PT.getReachableAllocationSites(Receiver);
   auto PossibleAllocatedTypes = getReachableTypes(*AllocSites);
 
-  const auto *ReceiverType = getReceiverType(CB);
+  const auto *ReceiverType = getReceiverType(CallSite);
 
   // Now we must check if we have found some allocated struct types
   set<const llvm::StructType *> PossibleTypes;
@@ -113,26 +114,26 @@ OTFResolver::resolveVirtualCall(const llvm::CallBase *CB) {
 
   for (const auto *PossibleTypeStruct : PossibleTypes) {
     const auto *Target =
-        getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CB);
+        getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CallSite);
     if (Target) {
       PossibleCallTargets.insert(Target);
     }
   }
   if (PossibleCallTargets.empty()) {
-    return CHAResolver::resolveVirtualCall(CB);
+    return CHAResolver::resolveVirtualCall(CallSite);
   }
 
   return PossibleCallTargets;
 }
 
 std::set<const llvm::Function *>
-OTFResolver::resolveFunctionPointer(const llvm::CallBase *CB) {
+OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
   std::set<const llvm::Function *> Callees;
-  if (CB->getCalledOperand() &&
-      CB->getCalledOperand()->getType()->isPointerTy()) {
+  if (CallSite->getCalledOperand() &&
+      CallSite->getCalledOperand()->getType()->isPointerTy()) {
     if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
-            CB->getCalledOperand()->getType()->getPointerElementType())) {
-      const auto PTS = PT.getPointsToSet(CB->getCalledOperand());
+            CallSite->getCalledOperand()->getType()->getPointerElementType())) {
+      const auto PTS = PT.getPointsToSet(CallSite->getCalledOperand());
       for (const auto *P : *PTS) {
         if (P->getType()->isPointerTy() &&
             P->getType()->getPointerElementType()->isFunctionTy()) {
@@ -179,7 +180,8 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CB) {
           for (const auto &Op : ConstAggregateItem->operands()) {
             if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
               auto *AsI = CE->getAsInstruction();
-              if (AsI->getType()->getPointerElementType() == FTy) {
+              if (AsI->getType()->isPointerTy() &&
+                  AsI->getType()->getPointerElementType() == FTy) {
                 if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
                   if (auto *F =
                           llvm::dyn_cast<llvm::Function>(BC->getOperand(0))) {
@@ -238,19 +240,20 @@ std::set<const llvm::Type *> OTFResolver::getReachableTypes(
 }
 
 std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CB,
+OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                                          const llvm::Function *CalleeTarget) {
   std::vector<std::pair<const llvm::Value *, const llvm::Value *>> Pairs;
   // ordinary case
   if (!CalleeTarget->isVarArg()) {
-    Pairs.reserve(CB->getNumArgOperands());
+    Pairs.reserve(CallSite->getNumArgOperands());
     for (unsigned Idx = 0;
-         Idx < CB->getNumArgOperands() && Idx < CalleeTarget->arg_size();
+         Idx < CallSite->getNumArgOperands() && Idx < CalleeTarget->arg_size();
          ++Idx) {
       // only collect pointer typed pairs
-      if (CB->getArgOperand(Idx)->getType()->isPointerTy() &&
+      if (CallSite->getArgOperand(Idx)->getType()->isPointerTy() &&
           CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
-        Pairs.emplace_back(CB->getArgOperand(Idx), CalleeTarget->getArg(Idx));
+        Pairs.emplace_back(CallSite->getArgOperand(Idx),
+                           CalleeTarget->getArg(Idx));
       }
     }
   } else {
@@ -275,9 +278,9 @@ OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CB,
       }
     }
     if (VarArgs) {
-      for (unsigned Idx = 0; Idx < CB->getNumArgOperands(); ++Idx) {
-        if (CB->getArgOperand(Idx)->getType()->isPointerTy()) {
-          Pairs.emplace_back(CB->getArgOperand(Idx), VarArgs);
+      for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+        if (CallSite->getArgOperand(Idx)->getType()->isPointerTy()) {
+          Pairs.emplace_back(CallSite->getArgOperand(Idx), VarArgs);
         }
       }
     }

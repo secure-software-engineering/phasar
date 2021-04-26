@@ -27,18 +27,18 @@ NOResolver::NOResolver(ProjectIRDB &IRDB) : Resolver(IRDB) {}
 void NOResolver::preCall(const llvm::Instruction *Inst) {}
 
 void NOResolver::handlePossibleTargets(
-    const llvm::CallBase *CB,
+    const llvm::CallBase *CallSite,
     std::set<const llvm::Function *> &PossibleTargets) {}
 
 void NOResolver::postCall(const llvm::Instruction *Inst) {}
 
 std::set<const llvm::Function *>
-NOResolver::resolveVirtualCall(const llvm::CallBase *CB) {
+NOResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   return {};
 }
 
 std::set<const llvm::Function *>
-NOResolver::resolveFunctionPointer(const llvm::CallBase *CB) {
+NOResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
   return {};
 }
 

@@ -34,7 +34,7 @@ public:
   ~CHAResolver() override = default;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::CallBase *CB) override;
+  resolveVirtualCall(const llvm::CallBase *CallSite) override;
 };
 } // namespace psr
 

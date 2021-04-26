@@ -52,12 +52,12 @@ protected:
       TaintSolver.dumpResults();
     }
     auto Leaks = TaintProblem.getAllLeaks();
-    for (auto &[Inst, Values] : Leaks) {
-      // std::cout << "I: " << llvmIRToShortString(Inst) << '\n';
-      for (const auto *Value : Values) {
-        // std::cout << "V: " << llvmIRToShortString(Value) << '\n';
-      }
-    }
+    // for (auto &[Inst, Values] : Leaks) {
+    //   // std::cout << "I: " << llvmIRToShortString(Inst) << '\n';
+    //   for (const auto *Value : Values) {
+    //     // std::cout << "V: " << llvmIRToShortString(Value) << '\n';
+    //   }
+    // }
     return Leaks;
   }
 

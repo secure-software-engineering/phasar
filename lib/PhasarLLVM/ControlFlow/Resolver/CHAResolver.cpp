@@ -32,12 +32,12 @@ CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : Resolver(IRDB, TH) {}
 
 set<const llvm::Function *>
-CHAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
+CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Call virtual function: ");
   // Leading to SEGFAULT in Unittests. Error only when run in Debug mode
-  // << llvmIRToString(CB));
+  // << llvmIRToString(CallSite));
 
-  auto VFTIdx = getVFTIndex(CB);
+  auto VFTIdx = getVFTIndex(CallSite);
   if (VFTIdx < 0) {
     // An error occured
     LOG_IF_ENABLE(
@@ -45,7 +45,7 @@ CHAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
         << "Error with resolveVirtualCall : impossible to retrieve "
            "the vtable index\n"
         // Leading to SEGFAULT in Unittests. Error only when run in Debug mode
-        // << llvmIRToString(CB)
+        // << llvmIRToString(CallSite)
         << "\n");
     return {};
   }
@@ -53,7 +53,7 @@ CHAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VFTIdx);
 
-  const auto *ReceiverTy = getReceiverType(CB);
+  const auto *ReceiverTy = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
   auto FallbackTys = Resolver::TH->getSubTypes(ReceiverTy);
@@ -61,7 +61,8 @@ CHAResolver::resolveVirtualCall(const llvm::CallBase *CB) {
   set<const llvm::Function *> PossibleCallees;
 
   for (const auto &FallbackTy : FallbackTys) {
-    const auto *Target = getNonPureVirtualVFTEntry(FallbackTy, VFTIdx, CB);
+    const auto *Target =
+        getNonPureVirtualVFTEntry(FallbackTy, VFTIdx, CallSite);
     if (Target) {
       PossibleCallees.insert(Target);
     }
