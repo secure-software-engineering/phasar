@@ -87,6 +87,9 @@ int main(int argc, char **argv) {
         "EVP_CIPHER_CTX", DesugaredIR, ForwardRenaming,
         "error: analysis target EVP_CIPHER_CTX not found in the LLVM IR "
         "file\n");
+    if (typenameOfInterest == "") {
+      return 0;
+    }
     OpenSSLEVPCIPHERCTXDescription VarCipherCTXDesc(&ForwardRenaming,
                                                     typenameOfInterest);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
@@ -153,6 +156,9 @@ int main(int argc, char **argv) {
         "EVP_MD_CTX", DesugaredIR, ForwardRenaming,
         "error: analysis target EVP_MD_CTX not found in the LLVM IR "
         "file\n");
+    if (typenameOfInterest == "") {
+      return 0;
+    }
     OpenSSLEVPMDCTXDescription VarMdCTXDesc(&ForwardRenaming,
                                             typenameOfInterest);
     auto VarAnalysisEntryPoints = getEntryPointsForCallersOfDesugared(

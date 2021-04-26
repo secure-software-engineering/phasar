@@ -162,11 +162,9 @@ llvm::StringRef extractDesugaredTypeNameOfInterestOrFail(
     const stringstringmap_t &ForwardRenaming, llvm::StringRef ErrorMsg,
     int errorExitCode) {
   if (auto ret = extractDesugaredTypeNameOfInterest(OriginalTOI, IRDB,
-                                                    ForwardRenaming))
+                                                    ForwardRenaming)) {
     return *ret;
-
-  llvm::errs() << ErrorMsg;
-  exit(errorExitCode);
+  }
   return "";
 }
 

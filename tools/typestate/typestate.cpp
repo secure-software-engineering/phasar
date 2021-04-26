@@ -72,6 +72,9 @@ int main(int argc, char **argv) {
                                       "EVP_CIPHER_CTX", IR, ForwardRenaming,
                                       "error: could not retrieve desugared "
                                       "typenameOfInterest for EVP_CIPHER_CTX");
+    if (typeNameOfInterest == "") {
+      return 0;
+    }
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(
         ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
         typeNameOfInterest);
@@ -79,8 +82,8 @@ int main(int argc, char **argv) {
         "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, typeNameOfInterest);
 
     if (AnalysisEntryPoints.empty()) {
-      std::cerr << "warning: could not retrieve analysis' entry points because "
-                   "the module does not use the EVP library\n";
+      // std::cerr << "warning: could not retrieve analysis' entry points because "
+                  //  "the module does not use the EVP library\n";
       return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
@@ -97,6 +100,9 @@ int main(int argc, char **argv) {
                                         "EVP_MD_CTX", IR, ForwardRenaming,
                                         "error: could not retrieve desugared "
                                         "typenameOfInterest for EVP_MD_CTX");
+    if (typeNameOfInterest == "") {
+      return 0;
+    }
     OpenSSLEVPMDCTXDescription MdCTXDesc(
         ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
         typeNameOfInterest);
@@ -105,8 +111,8 @@ int main(int argc, char **argv) {
         MdCTXDesc.getTypeNameOfInterest());
 
     if (AnalysisEntryPoints.empty()) {
-      std::cerr << "warning: could not retrieve analysis' entry points because "
-                   "the module does not use the EVP library\n";
+      // std::cerr << "warning: could not retrieve analysis' entry points because "
+                  //  "the module does not use the EVP library\n";
       return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,

@@ -97,9 +97,12 @@ void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
 void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
                                         const llvm::Value *V2) {
   auto SearchV1 = PointsToSets.find(V1);
-  assert(SearchV1 != PointsToSets.end());
+  // assert(SearchV1 != PointsToSets.end());
   auto SearchV2 = PointsToSets.find(V2);
-  assert(SearchV2 != PointsToSets.end());
+  // assert(SearchV2 != PointsToSets.end());
+  if (SearchV1 == PointsToSets.end() || SearchV2 == PointsToSets.end()) {
+    return;
+  }
   const auto *V1Ptr = SearchV1->first;
   const auto *V2Ptr = SearchV2->first;
   if (V1Ptr == V2Ptr) {

@@ -72,6 +72,9 @@ int main(int argc, char **argv) {
         "EVP_CIPHER_CTX", IR, ForwardRenaming,
         "error: analysis target EVP_CIPHER_CTX not found in the LLVM IR "
         "file\n");
+    if (typenameOfInterest == "") {
+      return 0;
+    }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Found TypeNameOfInterest: " << typenameOfInterest.str());
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(&ForwardRenaming,
@@ -79,8 +82,8 @@ int main(int argc, char **argv) {
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, typenameOfInterest);
     if (AnalysisEntryPoints.empty()) {
-      std::cerr << "warning: could not retrieve analysis' entry points because "
-                   "the module does not use the EVP library\n";
+      // std::cerr << "warning: could not retrieve analysis' entry points because "
+                  //  "the module does not use the EVP library\n";
       return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
@@ -95,14 +98,17 @@ int main(int argc, char **argv) {
         "EVP_MD_CTX", IR, ForwardRenaming,
         "error: analysis target EVP_MD_CTX not found in the LLVM IR "
         "file\n");
+    if (typenameOfInterest == "") {
+      return 0;
+    }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Found TypeNameOfInterest: " << typenameOfInterest.str());
     OpenSSLEVPMDCTXDescription MdCTXDesc(&ForwardRenaming, typenameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", IR, ICF, ForwardRenaming, typenameOfInterest);
     if (AnalysisEntryPoints.empty()) {
-      std::cerr << "warning: could not retrieve analysis' entry points because "
-                   "the module does not use the EVP library\n";
+      // std::cerr << "warning: could not retrieve analysis' entry points because "
+                  //  "the module does not use the EVP library\n";
       return 0;
     }
     IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,

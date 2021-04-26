@@ -54,6 +54,7 @@ std::optional<llvm::StringRef>
 extractDesugaredTypeNameOfInterest(llvm::StringRef OriginalTOI,
                                    const ProjectIRDB &IRDB,
                                    const stringstringmap_t &ForwardRenaming);
+
 llvm::StringRef extractDesugaredTypeNameOfInterestOrFail(
     llvm::StringRef OriginalTOI, const ProjectIRDB &IRDB,
     const stringstringmap_t &ForwardRenaming, llvm::StringRef ErrorMsg,
