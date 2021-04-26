@@ -76,7 +76,6 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e. kills previous fact (= pointer operand).
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    IDELinearConstantAnalysis::d_t PointerOp = Store->getPointerOperand();
     IDELinearConstantAnalysis::d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {

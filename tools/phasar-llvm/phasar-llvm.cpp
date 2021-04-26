@@ -179,7 +179,7 @@ int main(int Argc, const char **Argv) {
 			("data-flow-analysis,D", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()/*->notifier(&validateParamDataFlowAnalysis)*/, "Set the analysis to be run")
 			("analysis-strategy", boost::program_options::value<std::string>()->default_value("WPA")->notifier(&validateParamAnalysisStrategy))
       ("analysis-config", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamAnalysisConfig), "Set the analysis's configuration (if required)")
-      ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
+      ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders).  CFLSteens is ~O(N) but inaccurate while CFLAnders O(N^3) but more accurate.")
       ("call-graph-analysis,C", boost::program_options::value<std::string>()->notifier(&validateParamCallGraphAnalysis)->default_value("OTF"), "Set the call-graph algorithm to be used (NORESOLVE, CHA, RTA, DTA, VTA, OTF)")
       ("soundness", boost::program_options::value<std::string>()->notifier(&validateSoundnessFlag)->default_value("SOUNDY"), "Set the soundiness level to be used (SOUND,SOUNDY,UNSOUND)")
 			("classhierarchy-analysis,H", "Class-hierarchy analysis")

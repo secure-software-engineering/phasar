@@ -199,9 +199,11 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible targets are:");
+#ifdef DYNAMIC_LOG
   for (const auto *Entry : PossibleCallTargets) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << Entry);
   }
+#endif
 
   return PossibleCallTargets;
 }

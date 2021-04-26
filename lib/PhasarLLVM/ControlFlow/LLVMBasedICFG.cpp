@@ -207,7 +207,6 @@ LLVMBasedICFG::~LLVMBasedICFG() {
 
 void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
                                     bool &FixpointReached) {
-  PAMM_GET_INSTANCE;
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Walking in function: " << F->getName().str());
   if (F->isDeclaration() || !VisitedFunctions.insert(F).second) {
@@ -247,7 +246,7 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
           // still try to resolve the called function statically
           const llvm::Value *SV = CS.getCalledValue()->stripPointerCasts();
           const llvm::Function *ValueFunction =
-              !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName());
+              !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName().str());
           if (ValueFunction) {
             PossibleTargets.insert(ValueFunction);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -301,7 +300,6 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
 
 bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
                                          Resolver &Resolver) {
-  PAMM_GET_INSTANCE;
   bool NewTargetsFound = false;
   // Find vertex of calling function.
   vertex_t ThisFunctionVertexDescriptor;

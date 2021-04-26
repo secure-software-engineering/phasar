@@ -104,8 +104,6 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   auto AllocSites = PT.getReachableAllocationSites(Receiver);
   auto PossibleAllocatedTypes = getReachableTypes(*AllocSites);
 
-  const auto *ReceiverType = getReceiverType(CS);
-
   // Now we must check if we have found some allocated struct types
   set<const llvm::StructType *> PossibleTypes;
   for (const auto *Type : PossibleAllocatedTypes) {
@@ -182,7 +180,8 @@ OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
           for (const auto &Op : ConstAggregateItem->operands()) {
             if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
               auto *AsI = CE->getAsInstruction();
-              if (AsI->getType()->getPointerElementType() == FTy) {
+              if (AsI->getType()->isPointerTy() &&
+                  AsI->getType()->getPointerElementType() == FTy) {
                 if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
                   if (auto *F =
                           llvm::dyn_cast<llvm::Function>(BC->getOperand(0))) {
