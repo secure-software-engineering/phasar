@@ -22,12 +22,9 @@
 #include <string>
 #include <vector>
 
-#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
+#include "llvm/IR/Function.h"
 
-namespace llvm {
-class Function;
-class Instruction;
-} // namespace llvm
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
 
 namespace psr {
 
