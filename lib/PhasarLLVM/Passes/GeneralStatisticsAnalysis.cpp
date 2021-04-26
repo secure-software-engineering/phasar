@@ -179,6 +179,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
         << "Store Instructions : " << Stats.storeInstructions);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Allocated Types << "<< Stats.allocatedTypes.size());    
     for (const auto *Type : Stats.allocatedTypes) {
       std::string TypeStr;
       llvm::raw_string_ostream Rso(TypeStr);
