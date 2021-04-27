@@ -186,8 +186,8 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
     // std::basic_string
     if (isStringConstructor(CS->getCalledFunction())) {
       // found std::string ctor
-      return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(
-          CS->getArgOperand(0), getZeroValue());
+      return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS->getArgOperand(0),
+                                                           getZeroValue());
     }
     // return flow([Call](IDEGeneralizedLCA::d_t Source)
     //                 -> std::set<IDEGeneralizedLCA::d_t> {
@@ -443,8 +443,7 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
   // std::basic_string
   if (isStringConstructor(CS->getCalledFunction())) {
     // found correct place and time
-    if (CallNode == getZeroValue() &&
-        RetSiteNode == CS->getArgOperand(0)) {
+    if (CallNode == getZeroValue() && RetSiteNode == CS->getArgOperand(0)) {
       // find string literal that is used to initialize the string
       if (auto User = llvm::dyn_cast<llvm::User>(CS->getArgOperand(1))) {
         if (auto GV =

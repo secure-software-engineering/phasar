@@ -8,7 +8,7 @@ readonly PHASAR_INSTALL_DIR="/usr/local/phasar"
 readonly LLVM_INSTALL_DIR="/usr/local/llvm-11"
 
 NUM_THREADS=$(nproc)
-LLVM_RELEASE=llvmorg-11.0.0
+LLVM_RELEASE=llvmorg-11.1.0
 DO_UNIT_TEST=false
 
 
