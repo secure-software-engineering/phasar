@@ -414,8 +414,8 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
-      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
-      const auto *Actual = CallSite->getArgOperand(getFunctionArgumentNr(A));
+      const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+      const auto *Actual = CS->getArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);

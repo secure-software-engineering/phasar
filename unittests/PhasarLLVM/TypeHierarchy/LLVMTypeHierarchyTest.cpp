@@ -736,10 +736,9 @@ TEST(LTHTest, HandleSTLString) {
   LLVMTypeHierarchy TH(IRDB);
   EXPECT_EQ(TH.getAllTypes().size(), 4U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
-  EXPECT_TRUE(
-      TH.hasType(TH.getType("struct.std::__cxx11::basic_string<char, "
-                            "std::char_traits<char>, std::allocator<char>"
-                            ">::_Alloc_hider")));
+  EXPECT_TRUE(TH.hasType(TH.getType(
+      "struct.std::__cxx11::basic_string<char, std::char_traits<char>, "
+      "std::allocator<char> >::_Alloc_hider")));
   EXPECT_TRUE(TH.hasType(TH.getType("union.anon")));
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::allocator")));
   // (virtual) inheritance is not used in STL types

@@ -137,12 +137,12 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Plugin SOURCE effects");
       auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
-      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+      const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
       if (auto *Pval =
               std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
                   &Source.TaintedArgs)) {
-        for (unsigned I = 0; I < CallSite->getNumArgOperands(); ++I) {
-          IFDSTaintAnalysis::d_t V = CallSite->getArgOperand(I);
+        for (unsigned I = 0; I < CS->getNumArgOperands(); ++I) {
+          IFDSTaintAnalysis::d_t V = CS->getArgOperand(I);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -158,7 +158,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       } else if (auto *Pval =
                      std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
         for (auto FormalIndex : *Pval) {
-          IFDSTaintAnalysis::d_t V = CallSite->getArgOperand(FormalIndex);
+          IFDSTaintAnalysis::d_t V = CS->getArgOperand(FormalIndex);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -172,7 +172,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       }
 
       if (Source.TaintsReturn) {
-        ToGenerate.insert(CallSite);
+        ToGenerate.insert(CS);
       }
       return make_shared<GenAll<IFDSTaintAnalysis::d_t>>(ToGenerate,
                                                          getZeroValue());

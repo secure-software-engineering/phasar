@@ -240,7 +240,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
     IFDSUninitializedVariables::f_t DestFun) {
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+    const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::Function *DestFun;
       const llvm::CallBase *CallSite;
@@ -313,7 +313,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(DestFun, CallSite, ZeroValue);
+    return make_shared<UVFF>(DestFun, CS, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -326,7 +326,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::n_t RetSite) {
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+    const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::CallBase *Call;
       const llvm::Instruction *Exit;
@@ -357,7 +357,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return make_shared<UVFF>(CallSite, ExitSite);
+    return make_shared<UVFF>(CS, ExitSite);
   }
   // kill everything else
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
@@ -373,12 +373,12 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   //----------------------------------------------------------------------
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+    const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
     return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
-        [CallSite](IFDSUninitializedVariables::d_t Source)
+        [CS](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
-            for (const auto &Arg : CallSite->args()) {
+            for (const auto &Arg : CS->args()) {
               if (Arg.get() == Source) {
                 // do not propagate pointer arguments, since the function may
                 // initialize them (would be much more precise with
