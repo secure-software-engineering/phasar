@@ -857,7 +857,7 @@ protected:
         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
     if (!ICF->isCallSite(edge.getTarget())) {
-      if (ICF->isExitSite(edge.getTarget())) {
+      if (ICF->isExitInst(edge.getTarget())) {
         processExit(edge);
       }
       if (!ICF->getSuccsOf(edge.getTarget()).empty()) {
@@ -1588,7 +1588,7 @@ protected:
        * the caller, we have to increase the number of generated facts by one.
        * Zero value does not count towards generated/killed facts.
        */
-      if (ICF->isExitSite(cell.getRowKey())) {
+      if (ICF->isExitInst(cell.getRowKey())) {
         for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1712,7 +1712,7 @@ public:
       DOTNode N2(fnName, n2_label, n2_stmtId);
       // Add control flow node(s) to function subgraph
       FG->stmts.insert(N1);
-      if (ICF->isExitSite(Edge.second)) {
+      if (ICF->isExitInst(Edge.second)) {
         FG->stmts.insert(N2);
       }
 

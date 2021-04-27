@@ -252,30 +252,30 @@ IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::n_t RetSite,
     set<IDETypeStateAnalysis::f_t> Callees) {
-  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
     // Generate the return value of factory functions from zero value
     if (TSD.isFactoryFunction(DemangledFname)) {
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
-        IDETypeStateAnalysis::d_t CallSite, ZeroValue;
+        IDETypeStateAnalysis::d_t CS, ZeroValue;
 
-        TSFlowFunction(IDETypeStateAnalysis::d_t CallSite,
+        TSFlowFunction(IDETypeStateAnalysis::d_t CS,
                        IDETypeStateAnalysis::d_t Z)
-            : CallSite(CallSite), ZeroValue(Z) {}
+            : CS(CS), ZeroValue(Z) {}
         ~TSFlowFunction() override = default;
         set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t Source) override {
-          if (Source == CallSite) {
+          if (Source == CS) {
             return {};
           }
           if (Source == ZeroValue) {
-            return {Source, CallSite};
+            return {Source, CS};
           }
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(CallSite, getZeroValue());
+      return make_shared<TSFlowFunction>(CS, getZeroValue());
     }
 
     // Handle all functions that are not modeld with special semantics.
@@ -289,7 +289,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     // that the return value will be used afterwards, i.e. is stored to memory
     // pointed to by related alloca's.
     if (!TSD.isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
-      for (const auto &Arg : CallSite->args()) {
+      for (const auto &Arg : CS->args()) {
         if (hasMatchingType(Arg)) {
           std::set<IDETypeStateAnalysis::d_t> FactsToKill =
               getWMAliasesAndAllocas(Arg.get());
@@ -377,7 +377,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t RetSite, IDETypeStateAnalysis::d_t RetSiteNode,
     std::set<IDETypeStateAnalysis::f_t> Callees) {
-  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
 
@@ -386,13 +386,13 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if (TSD.isFactoryFunction(DemangledFname)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Processing factory function");
-      if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
+      if (isZeroValue(CallNode) && RetSiteNode == CS) {
         struct TSFactoryEF : public TSConstant {
           TSFactoryEF(const TypeStateDescription &Tsd, l_t State)
               : TSConstant(Tsd, State) {}
         };
         return make_shared<TSFactoryEF>(
-            TSD, TSD.getNextState(DemangledFname, TSD.uninit(), CallSite));
+            TSD, TSD.getNextState(DemangledFname, TSD.uninit(), CS));
       }
     }
 
@@ -403,11 +403,11 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
                     << "Processing consuming function");
       for (auto Idx : TSD.getConsumerParamIdx(DemangledFname)) {
         std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
-            getWMAliasesAndAllocas(CallSite->getArgOperand(Idx));
+            getWMAliasesAndAllocas(CS->getArgOperand(Idx));
 
         if (CallNode == RetSiteNode &&
             PointsToAndAllocas.find(CallNode) != PointsToAndAllocas.end()) {
-          return make_shared<TSEdgeFunction>(TSD, DemangledFname, CallSite);
+          return make_shared<TSEdgeFunction>(TSD, DemangledFname, CS);
         }
       }
     }
@@ -761,7 +761,7 @@ void IDETypeStateAnalysis::emitTextReport(
     for (const auto &BB : *F) {
       for (const auto &I : BB) {
         auto Results = SR.resultsAt(&I, true);
-        if (ICF->isExitSite(&I)) {
+        if (ICF->isExitInst(&I)) {
           OS << "\nAt exit stmt: " << NtoString(&I) << '\n';
           for (auto Res : Results) {
             if (const auto *Alloca =

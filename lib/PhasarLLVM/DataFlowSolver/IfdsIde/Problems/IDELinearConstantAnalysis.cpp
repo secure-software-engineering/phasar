@@ -906,13 +906,13 @@ IDELinearConstantAnalysis::getLCAResults(
         LcaRes->line_nr = Lnr;
       }
       LcaRes->ir_trace.push_back(Stmt);
-      if (Stmt->isTerminator() && !ICF->isExitSite(Stmt)) {
+      if (Stmt->isTerminator() && !ICF->isExitInst(Stmt)) {
         std::cout << "Delete result since stmt is Terminator or Exit!\n";
         FResults.erase(Lnr);
       } else {
         // check results of succ(stmt)
         std::unordered_map<d_t, l_t> Results;
-        if (ICF->isExitSite(Stmt)) {
+        if (ICF->isExitInst(Stmt)) {
           Results = SR.resultsAt(Stmt, true);
         } else {
           // It's not a terminator inst, hence it has only a single successor

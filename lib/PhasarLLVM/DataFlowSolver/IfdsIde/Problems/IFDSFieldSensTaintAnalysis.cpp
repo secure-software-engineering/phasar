@@ -151,16 +151,16 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Function *DestFun) {
-  const auto DestFunName = DestFun->getName().str();
+  const auto DestFunName = DestFun->getName();
 
   /*
    * We exclude function ptr calls as they will be applied to every
    * function matching its signature (@see LLVMBasedICFG.cpp:217).
    */
-  const auto *const CallInst = llvm::cast<llvm::CallInst>(CallSite);
-  bool IsStaticCallSite = CallInst->getCalledFunction();
+  const auto *const CS = llvm::cast<llvm::CallInst>(CallSite);
+  bool IsStaticCallSite = CS->getCalledFunction();
   if (!IsStaticCallSite) {
-    return std::make_shared<IdentityFlowFunction>(CallSite, traceStats,
+    return std::make_shared<IdentityFlowFunction>(CS, traceStats,
                                                   getZeroValue());
   }
 
@@ -169,7 +169,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    */
 
   if (taintConfig.isSink(DestFunName.str())) {
-    return std::make_shared<IdentityFlowFunction>(CallStmt, traceStats,
+    return std::make_shared<IdentityFlowFunction>(CS, traceStats,
                                                   getZeroValue());
   }
 
@@ -200,7 +200,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    * Provide summary for tainted functions.
    */
   if (taintConfig.isSource(DestFunName.str())) {
-    return std::make_shared<GenerateFlowFunction>(CallStmt, traceStats,
+    return std::make_shared<GenerateFlowFunction>(CallSite, traceStats,
                                                   getZeroValue());
   }
 

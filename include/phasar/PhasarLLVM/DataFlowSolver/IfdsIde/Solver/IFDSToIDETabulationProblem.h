@@ -83,8 +83,8 @@ public:
   }
 
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitSite, n_t retSite) override {
-    return Problem.getRetFlowFunction(callSite, calleeFun, exitSite, retSite);
+                                         n_t exitInst, n_t retSite) override {
+    return Problem.getRetFlowFunction(callSite, calleeFun, exitInst, retSite);
   }
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
@@ -139,7 +139,7 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitSite,
+  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitInst,
                         d_t exitNode, n_t returnSite, d_t retNode) override {
     if (Problem.isZeroValue(exitNode)) {
       return ALLBOTTOM;

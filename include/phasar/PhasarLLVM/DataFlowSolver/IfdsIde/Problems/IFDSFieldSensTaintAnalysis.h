@@ -63,7 +63,7 @@ public:
   FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeFun,
-                     const llvm::Instruction *exitSite,
+                     const llvm::Instruction *exitInst,
                      const llvm::Instruction *retSite) override;
 
   FlowFunctionPtrType

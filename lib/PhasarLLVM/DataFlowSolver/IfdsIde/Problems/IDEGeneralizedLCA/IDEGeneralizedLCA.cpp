@@ -181,13 +181,13 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t RetSite,
                                             std::set<f_t> Callees) {
   // std::cout << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
-  if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+  if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
     // std::basic_string
-    if (isStringConstructor(CallSite->getCalledFunction())) {
+    if (isStringConstructor(CS->getCalledFunction())) {
       // found std::string ctor
       return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(
-          CallSite->getArgOperand(0), getZeroValue());
+          CS->getArgOperand(0), getZeroValue());
     }
     // return flow([Call](IDEGeneralizedLCA::d_t Source)
     //                 -> std::set<IDEGeneralizedLCA::d_t> {
@@ -276,7 +276,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
       llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Case: Intialize global variable at entry point.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(Lg, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     const auto *GV = llvm::cast<llvm::GlobalVariable>(CurrNode);
     if (GV->getLinkage() != llvm::GlobalValue::LinkageTypes::
                                 CommonLinkage) { // clang uses common linkage
@@ -437,16 +437,16 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(
     IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
     IDEGeneralizedLCA::n_t RetSite, IDEGeneralizedLCA::d_t RetSiteNode,
     std::set<IDEGeneralizedLCA::f_t> Callees) {
-  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(CallSite);
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
 
   // check for ctor and then demangle function name and check for
   // std::basic_string
-  if (isStringConstructor(CallSite->getCalledFunction())) {
+  if (isStringConstructor(CS->getCalledFunction())) {
     // found correct place and time
     if (CallNode == getZeroValue() &&
-        RetSiteNode == CallSite->getArgOperand(0)) {
+        RetSiteNode == CS->getArgOperand(0)) {
       // find string literal that is used to initialize the string
-      if (auto User = llvm::dyn_cast<llvm::User>(CallSite->getArgOperand(1))) {
+      if (auto User = llvm::dyn_cast<llvm::User>(CS->getArgOperand(1))) {
         if (auto GV =
                 llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
           if (!GV->hasInitializer()) {
@@ -636,13 +636,13 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
         LcaRes->line_nr = Lnr;
       }
       LcaRes->ir_trace.push_back(Stmt);
-      if (Stmt->isTerminator() && !ICF->isExitSite(Stmt)) {
+      if (Stmt->isTerminator() && !ICF->isExitInst(Stmt)) {
         std::cout << "Delete result since stmt is Terminator or Exit!\n";
         FResults.erase(Lnr);
       } else {
         // check results of succ(stmt)
         std::unordered_map<d_t, l_t> Results;
-        if (ICF->isExitSite(Stmt)) {
+        if (ICF->isExitInst(Stmt)) {
           Results = SR.resultsAt(Stmt, true);
         } else {
           // It's not a terminator inst, hence it has only a single successor

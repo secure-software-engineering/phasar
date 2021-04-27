@@ -110,11 +110,11 @@ public:
    * @brief Processing a function return.
    * @param callSite Call site.
    * @param calleeFun Callee function.
-   * @param exitSite Exit statement in callee.
+   * @param exitInst Exit statement in callee.
    * @param retSite Return site.
    */
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitSite, n_t retSite) override;
+                                         n_t exitInst, n_t retSite) override;
 
   /**
    * If the called function is a llvm memory intrinsic function, appropriate

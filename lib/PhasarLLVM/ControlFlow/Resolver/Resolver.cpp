@@ -18,6 +18,7 @@
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/InstrTypes.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
@@ -76,7 +77,7 @@ Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    llvm::ImmutableCallSite CS) {
+                                    const llvm::CallBase *CallSite) {
   if (TH && TH->hasVFTable(T)) {
     const auto *Target = TH->getVFTable(T)->getFunction(Idx);
     if (Target->getName() != "__cxa_pure_virtual") {

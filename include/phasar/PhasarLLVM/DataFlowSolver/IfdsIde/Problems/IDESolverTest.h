@@ -63,7 +63,7 @@ public:
   FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
 
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitSite, n_t retSite) override;
+                                         n_t exitInst, n_t retSite) override;
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
                                                std::set<f_t> callees) override;
@@ -88,7 +88,7 @@ public:
                       d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitSite,
+  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitInst,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>

@@ -37,7 +37,7 @@ public:
   ~LLVMBasedCFG() override = default;
 
   [[nodiscard]] const llvm::Function *
-  getFunctionOf(const llvm::Instruction *Stmt) const override;
+  getFunctionOf(const llvm::Instruction *Inst) const override;
 
   [[nodiscard]] std::vector<const llvm::Instruction *>
   getPredsOf(const llvm::Instruction *Inst) const override;
@@ -58,22 +58,22 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;
 
-  [[nodiscard]] bool isCallSite(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isCallSite(const llvm::Instruction *Inst) const override;
 
-  [[nodiscard]] bool isExitSite(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isExitInst(const llvm::Instruction *Inst) const override;
 
-  [[nodiscard]] bool isStartPoint(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isStartPoint(const llvm::Instruction *Inst) const override;
 
-  [[nodiscard]] bool isFieldLoad(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isFieldLoad(const llvm::Instruction *Inst) const override;
 
-  [[nodiscard]] bool isFieldStore(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isFieldStore(const llvm::Instruction *Inst) const override;
 
   [[nodiscard]] bool
-  isFallThroughSuccessor(const llvm::Instruction *Stmt,
+  isFallThroughSuccessor(const llvm::Instruction *Inst,
                          const llvm::Instruction *succ) const override;
 
   [[nodiscard]] bool
-  isBranchTarget(const llvm::Instruction *Stmt,
+  isBranchTarget(const llvm::Instruction *Inst,
                  const llvm::Instruction *succ) const override;
 
   [[nodiscard]] bool
@@ -86,7 +86,7 @@ public:
   getSpecialMemberFunctionType(const llvm::Function *Fun) const override;
 
   [[nodiscard]] std::string
-  getStatementId(const llvm::Instruction *Stmt) const override;
+  getStatementId(const llvm::Instruction *Inst) const override;
 
   [[nodiscard]] std::string
   getFunctionName(const llvm::Function *Fun) const override;

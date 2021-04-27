@@ -414,12 +414,12 @@ public:
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
-                                                n_t exitSite,
+                                                n_t exitInst,
                                                 n_t retSite) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
     return std::make_shared<MapFactsToCaller<container_type>>(
-        llvm::cast<llvm::CallBase>(callSite), calleeMthd, exitSite);
+        llvm::cast<llvm::CallBase>(callSite), calleeMthd, exitInst);
   }
 
   inline FlowFunctionPtrType
@@ -661,7 +661,7 @@ public:
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitSite,
+  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitInst,
                         d_t exitNode, n_t reSite, d_t retNode) override {
     // Can be passed as identity.
     return EdgeIdentity<l_t>::getInstance();
