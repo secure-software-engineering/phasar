@@ -30,6 +30,10 @@
 #include "boost/container/flat_set.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Module.h"
+
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -64,6 +68,7 @@ private:
   LLVMPointsToInfo *PT;
   std::unique_ptr<Resolver> Res;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
+  llvm::SmallPtrSet<const llvm::Function *, 2> UserEntryPoints;
   /// Keeps track of the call-sites already resolved
   // std::vector<const llvm::Instruction *> CallStack;
 
@@ -74,7 +79,7 @@ private:
   // std::set<const llvm::StructType*> unsound_types;
 
   // The worklist for direct callee resolution.
-  std::stack<const llvm::Function *> FunctionWL;
+  std::vector<const llvm::Function *> FunctionWL;
 
   // Map indirect calls to the number of possible targets found for it. Fixpoint
   // is not reached when more targets are found.
@@ -124,6 +129,34 @@ private:
                                          LLVMTypeHierarchy &TH,
                                          LLVMPointsToInfo &PT);
 
+  template <typename MapTy>
+  static void insertGlobalCtorsDtorsImpl(MapTy &Into, const llvm::Module *M,
+                                         llvm::StringRef Fun) {
+    const auto *Gtors = M->getGlobalVariable(Fun);
+    if (Gtors == nullptr) {
+      return;
+    }
+
+    if (const auto *FunArray = llvm::dyn_cast<llvm::ArrayType>(
+            Gtors->getType()->getPointerElementType())) {
+      if (const auto *ConstFunArray =
+              llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer())) {
+        for (const auto &Op : ConstFunArray->operands()) {
+          if (const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op)) {
+            const auto *Fun =
+                llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1));
+            const auto *Prio =
+                llvm::dyn_cast<llvm::ConstantInt>(FunDesc->getOperand(0));
+            if (Fun && Prio) {
+              auto PrioInt = size_t(Prio->getLimitedValue(SIZE_MAX));
+              Into.emplace(PrioInt, Fun);
+            }
+          }
+        }
+      }
+    }
+  }
+
   struct dependency_visitor;
 
 public:
@@ -135,6 +168,9 @@ public:
   using OutEdgesAndTargets = std::unordered_multimap<const llvm::Instruction *,
                                                      const llvm::Function *>;
 
+  using ICFG<const llvm::Instruction *, const llvm::Function *>::GlobalCtorTy;
+  using ICFG<const llvm::Instruction *, const llvm::Function *>::GlobalDtorTy;
+
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
                 LLVMTypeHierarchy *TH = nullptr, LLVMPointsToInfo *PT = nullptr,
@@ -143,6 +179,14 @@ public:
   LLVMBasedICFG(const LLVMBasedICFG &);
 
   ~LLVMBasedICFG() override;
+
+  // Re-override getSuccsOf and getPredsOf from LLVMBasedCFG to incorporate
+  // information about global ctors and globale dtors
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getPredsOf(const llvm::Instruction *Inst) const override;
+
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getSuccsOf(const llvm::Instruction *Inst) const override;
 
   /**
    * \return all of the functions in the IRDB, this may include some not in the

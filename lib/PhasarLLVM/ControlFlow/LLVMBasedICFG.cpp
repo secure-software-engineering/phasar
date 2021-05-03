@@ -81,30 +81,6 @@ private:
   const graphType &CGraph;
 };
 
-std::vector<const llvm::Function *>
-getGlobalCtorsDtorsImpl(const llvm::Module *M, llvm::StringRef Fun) {
-  const auto *Gtors = M->getGlobalVariable(Fun);
-  if (Gtors == nullptr) {
-    return {};
-  }
-  std::vector<const llvm::Function *> Result;
-  if (const auto *FunArray = llvm::dyn_cast<llvm::ArrayType>(
-          Gtors->getType()->getPointerElementType())) {
-    if (const auto *ConstFunArray =
-            llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer())) {
-      for (const auto &Op : ConstFunArray->operands()) {
-        if (const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op)) {
-          if (const auto *Fun =
-                  llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1))) {
-            Result.push_back(Fun);
-          }
-        }
-      }
-    }
-  }
-  return Result;
-}
-
 } // anonymous namespace
 
 namespace psr {
@@ -173,35 +149,38 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     collectRegisteredDtors();
     // push registered destructors to function worklist
     for (const auto &RegisteredDtor : getRegisteredDtors()) {
-      FunctionWL.push(RegisteredDtor);
+      FunctionWL.push_back(RegisteredDtor);
     }
     // push global destructors to function worklist
-    for (const auto &GlobalDtor : getGlobalDtors()) {
-      FunctionWL.push(GlobalDtor);
-    }
+    // for (const auto &GlobalDtor : getGlobalDtors()) {
+    //   FunctionWL.push(GlobalDtor);
+    // }
+    appendGlobalDtors(FunctionWL);
   }
 
   for (const auto &EntryPoint : EntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
+    UserEntryPoints.insert(F);
     if (F == nullptr) {
       llvm::report_fatal_error("Could not retrieve function for entry point");
     }
-    FunctionWL.push(F);
+    FunctionWL.push_back(F);
   }
 
   if (IncludeGlobals) {
     // push global constructors to function worklist
-    for (const auto &GlobalCtor : getGlobalCtors()) {
-      FunctionWL.push(GlobalCtor);
-    }
+    // for (const auto &GlobalCtor : getGlobalCtors()) {
+    //   FunctionWL.push(GlobalCtor);
+    // }
+    appendGlobalCtors(FunctionWL);
   }
 
   bool FixpointReached;
   do {
     FixpointReached = true;
     while (!FunctionWL.empty()) {
-      const llvm::Function *F = FunctionWL.top();
-      FunctionWL.pop();
+      const llvm::Function *F = FunctionWL.back();
+      FunctionWL.pop_back();
       processFunction(F, *Res, FixpointReached);
     }
     for (const auto &[Callsite, _] : IndirectCalls) {
@@ -315,7 +294,7 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
 
         // continue resolving
         for (const auto *PossibleTarget : PossibleTargets) {
-          FunctionWL.push(PossibleTarget);
+          FunctionWL.push_back(PossibleTarget);
         }
 
         Resolver.postCall(&I);
@@ -395,7 +374,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
 
     // continue resolving
     for (const auto *PossibleTarget : PossibleTargets) {
-      FunctionWL.push(PossibleTarget);
+      FunctionWL.push_back(PossibleTarget);
     }
 
     Resolver.postCall(I);
@@ -454,6 +433,90 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
 
 const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {
   return IRDB.getFunction(Fun);
+}
+
+std::vector<const llvm::Instruction *>
+LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
+  // TODO implement getPredsOf similar to getSuccsOf
+  return this->LLVMBasedCFG::getPredsOf(Inst);
+}
+
+std::vector<const llvm::Instruction *>
+LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
+  vector<const llvm::Instruction *> Successors;
+  // case we wish to consider LLVM's debug instructions
+  if (!IgnoreDbgInstructions) {
+    if (Inst->getNextNode()) {
+      Successors.push_back(Inst->getNextNode());
+    }
+  } else {
+    if (Inst->getNextNonDebugInstruction()) {
+      Successors.push_back(Inst->getNextNonDebugInstruction());
+    }
+  }
+
+  if (!Inst->isTerminator())
+    return Successors;
+
+  // TODO: Do we have more (e.g. exceptional) flows apart from ret?
+  if (llvm::isa<llvm::ReturnInst>(Inst)) {
+    // Handle artificial intraprocedural flow between global(C|D)tors
+    if (auto globCtorIt = GlobalCtorFn.find(Inst->getFunction());
+        globCtorIt != GlobalCtorFn.end()) {
+      auto it = std::next(globCtorIt->second);
+      if (it != GlobalCtors.end()) {
+        // Flow to next global ctor
+        Successors.push_back(&it->second->front().front());
+      } else {
+        // The end of the global ctor chain has been reached.
+        // => start with the user entrypoints
+        Successors.reserve(UserEntryPoints.size());
+        for (const auto *F : UserEntryPoints) {
+          Successors.push_back(&F->front().front());
+        }
+      }
+    } else if (auto globDtorIt = GlobalDtorFn.find(Inst->getFunction());
+               globDtorIt != GlobalDtorFn.end()) {
+
+      if (auto it = std::next(globDtorIt->second); it != GlobalDtors.end()) {
+        // Flow to next global dtor
+        Successors.push_back(&it->second->front().front());
+      } else if (!RegisteredDtors.empty()) {
+        // We have no further regular global dtor, but at least one that was
+        // registered using __cxa_atexit
+        Successors.push_back(&RegisteredDtors[0]->front().front());
+      }
+      // else: we have reached the end of the program
+    } else if (auto registeredIt = NextRegisteredDtor.find(Inst->getFunction());
+               registeredIt != NextRegisteredDtor.end()) {
+      // Flow to next registered dtor
+      Successors.push_back(&registeredIt->second->front().front());
+    } else if (UserEntryPoints.count(Inst->getFunction())) {
+      if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
+        // The end of the user-entrypoint has been reached
+        // => start with first global dtor
+        // Ignore unbalanced returns for now
+        Successors.push_back(&it->second->front().front());
+      } else if (!RegisteredDtors.empty()) {
+        // We have no regular global dtor, but at least one that was registered
+        // using __cxa_atexit
+        Successors.push_back(&RegisteredDtors[0]->front().front());
+      }
+    }
+  } else if (auto Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+             Call && Call->getCalledFunction() &&
+             Call->getCalledFunction()->getName() == "exit") {
+    if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
+      Successors.push_back(&it->second->front().front());
+    }
+  }
+
+  Successors.reserve(Inst->getNumSuccessors() + Successors.size());
+  std::transform(llvm::succ_begin(Inst), llvm::succ_end(Inst),
+                 back_inserter(Successors),
+                 [](const llvm::BasicBlock *BB) { return &BB->front(); });
+
+  return Successors;
 }
 
 set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
@@ -621,21 +684,33 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
 
 void LLVMBasedICFG::collectGlobalCtors() {
   for (const auto *Module : IRDB.getAllModules()) {
-    auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_ctors");
-    GlobalCtors.insert(GlobalCtors.begin(), Part.begin(), Part.end());
+    insertGlobalCtorsDtorsImpl(GlobalCtors, Module, "llvm.global_ctors");
+    // auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_ctors");
+    // GlobalCtors.insert(GlobalCtors.begin(), Part.begin(), Part.end());
+  }
+
+  for (auto it = GlobalCtors.cbegin(), end = GlobalCtors.cend(); it != end;
+       ++it) {
+    GlobalCtorFn.try_emplace(it->second, it);
   }
 }
 
 void LLVMBasedICFG::collectGlobalDtors() {
   for (const auto *Module : IRDB.getAllModules()) {
-    auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_dtors");
-    GlobalDtors.insert(GlobalDtors.begin(), Part.begin(), Part.end());
+    insertGlobalCtorsDtorsImpl(GlobalDtors, Module, "llvm.global_dtors");
+    // auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_dtors");
+    // GlobalDtors.insert(GlobalDtors.begin(), Part.begin(), Part.end());
+  }
+
+  for (auto it = GlobalDtors.cbegin(), end = GlobalDtors.cend(); it != end;
+       ++it) {
+    GlobalDtorFn.try_emplace(it->second, it);
   }
 }
 
 void LLVMBasedICFG::collectGlobalInitializers() {
   // get all functions used to initialize global variables
-  for (const auto &GlobalCtor : getGlobalCtors()) {
+  forEachGlobalCtor([this](auto *GlobalCtor) {
     for (const auto &BB : *GlobalCtor) {
       for (const auto &I : BB) {
         if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
@@ -643,7 +718,7 @@ void LLVMBasedICFG::collectGlobalInitializers() {
         }
       }
     }
-  }
+  });
 }
 
 void LLVMBasedICFG::collectRegisteredDtors() {
@@ -659,15 +734,29 @@ void LLVMBasedICFG::collectRegisteredDtors() {
             if (CE == nullptr) {
               continue;
             }
-            auto *AsI = CE->getAsInstruction();
+
+            // auto *AsI = CE->getAsInstruction();
+            assert(CE->isCast());
             const llvm::Function *Dtor = llvm::cast<llvm::Function>(
-                llvm::cast<llvm::BitCastInst>(AsI)->getOperand(0));
+                // llvm::cast<llvm::BitCastInst>(AsI)->getOperand(0)
+                CE->getOperand(0));
             RegisteredDtors.push_back(Dtor);
-            AsI->deleteValue();
+            // AsI->deleteValue();
           }
         }
       }
     }
+  }
+
+  if (RegisteredDtors.empty())
+    return;
+
+  auto prevIt = RegisteredDtors.begin();
+
+  for (auto it = std::next(prevIt), end = RegisteredDtors.end(); it != end;
+       prevIt = it++) {
+    // Global dtors are executed in reverse order of their registration
+    NextRegisteredDtor.try_emplace(*it, *prevIt);
   }
 }
 

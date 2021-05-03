@@ -103,7 +103,7 @@ public:
   [[nodiscard]] nlohmann::json
   getAsJson(const llvm::Function *Fun) const override;
 
-private:
+protected:
   // Ignores debug instructions in control flow if set to true.
   const bool IgnoreDbgInstructions;
 };
