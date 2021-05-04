@@ -73,13 +73,13 @@ MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callSite,
 
 MyIFDSProblem::FlowFunctionPtrType MyIFDSProblem::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
-    const llvm::Instruction *exitSite, const llvm::Instruction *retSite) {
+    const llvm::Instruction *ExitInst, const llvm::Instruction *retSite) {
   cout << "MyIFDSProblem::getRetFlowFunction()\n";
   // TODO: Must be modeled to map the return value back into the caller's
   // context. When dealing with pointer parameters one must also map the
   // formals at callee-side back into the actuals at caller-side. All other
   // facts that do not influence the caller must be killed.
-  // 'callSite' can be handled by using llvm::ImmutableCallSite, 'exitSite' is
+  // 'callSite' can be handled by using llvm::CallBase, 'ExitInst' is
   // the function's return instruction - llvm::ReturnInst may be used.
   // The 'retSite' is - in case of LLVM - the call-site and it is possible
   // to wrap it into an llvm::ImmutableCallSite.

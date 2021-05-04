@@ -38,10 +38,10 @@ IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallFlowFunction(n_t CallSite, f_t DestMthd) {
   return Identity<d_t>::getInstance();
 }
-// TODO - change to ExitSite
+
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
-                                             n_t ExitSite, n_t RetSite) {
+                                             n_t ExitInst, n_t RetSite) {
   return Identity<d_t>::getInstance();
 }
 
@@ -124,7 +124,7 @@ IDESecureHeapPropagation::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::getReturnEdgeFunction(n_t CallSite, f_t CalleeMethod,
-                                                n_t ExitSite, d_t ExitNode,
+                                                n_t ExitInst, d_t ExitNode,
                                                 n_t ReSite, d_t RetNode) {
   return IdentityEdgeFunction::getInstance();
 }

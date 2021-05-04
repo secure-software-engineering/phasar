@@ -11,12 +11,13 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
 
 #include <iostream>
-#include <llvm/IR/InstrTypes.h>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
+
+#include "llvm/IR/InstrTypes.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
