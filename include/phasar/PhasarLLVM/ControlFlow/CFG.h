@@ -43,11 +43,11 @@ template <typename N, typename F> class CFG {
 public:
   virtual ~CFG() = default;
 
-  virtual F getFunctionOf(N Stmt) const = 0;
+  virtual F getFunctionOf(N Inst) const = 0;
 
-  virtual std::vector<N> getPredsOf(N Stmt) const = 0;
+  virtual std::vector<N> getPredsOf(N Inst) const = 0;
 
-  virtual std::vector<N> getSuccsOf(N Stmt) const = 0;
+  virtual std::vector<N> getSuccsOf(N Inst) const = 0;
 
   virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(F Fun) const = 0;
 
@@ -57,19 +57,19 @@ public:
 
   virtual std::set<N> getExitPointsOf(F Fun) const = 0;
 
-  virtual bool isCallStmt(N Stmt) const = 0;
+  virtual bool isCallSite(N Inst) const = 0;
 
-  virtual bool isExitStmt(N Stmt) const = 0;
+  virtual bool isExitInst(N Inst) const = 0;
 
-  virtual bool isStartPoint(N Stmt) const = 0;
+  virtual bool isStartPoint(N Inst) const = 0;
 
-  virtual bool isFieldLoad(N Stmt) const = 0;
+  virtual bool isFieldLoad(N Inst) const = 0;
 
-  virtual bool isFieldStore(N Stmt) const = 0;
+  virtual bool isFieldStore(N Inst) const = 0;
 
-  virtual bool isFallThroughSuccessor(N Stmt, N Succ) const = 0;
+  virtual bool isFallThroughSuccessor(N Inst, N Succ) const = 0;
 
-  virtual bool isBranchTarget(N Stmt, N Succ) const = 0;
+  virtual bool isBranchTarget(N Inst, N Succ) const = 0;
 
   virtual bool isHeapAllocatingFunction(F Fun) const = 0;
 
@@ -78,7 +78,7 @@ public:
   virtual SpecialMemberFunctionType
   getSpecialMemberFunctionType(F Fun) const = 0;
 
-  virtual std::string getStatementId(N Stmt) const = 0;
+  virtual std::string getStatementId(N Inst) const = 0;
 
   virtual std::string getFunctionName(F Fun) const = 0;
 

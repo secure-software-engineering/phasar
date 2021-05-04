@@ -50,14 +50,14 @@ IDEProtoAnalysis::getNormalFlowFunction(IDEProtoAnalysis::n_t Curr,
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType
-IDEProtoAnalysis::getCallFlowFunction(IDEProtoAnalysis::n_t CallStmt,
+IDEProtoAnalysis::getCallFlowFunction(IDEProtoAnalysis::n_t CallSite,
                                       IDEProtoAnalysis::f_t DestFun) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType IDEProtoAnalysis::getRetFlowFunction(
     IDEProtoAnalysis::n_t CallSite, IDEProtoAnalysis::f_t CalleeFun,
-    IDEProtoAnalysis::n_t ExitStmt, IDEProtoAnalysis::n_t RetSite) {
+    IDEProtoAnalysis::n_t ExitSite, IDEProtoAnalysis::n_t RetSite) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
@@ -69,7 +69,7 @@ IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t CallSite,
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType
-IDEProtoAnalysis::getSummaryFlowFunction(IDEProtoAnalysis::n_t CallStmt,
+IDEProtoAnalysis::getSummaryFlowFunction(IDEProtoAnalysis::n_t CallSite,
                                          IDEProtoAnalysis::f_t DestFun) {
   return nullptr;
 }
@@ -106,7 +106,7 @@ IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t Curr,
 }
 
 shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
-IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t CallStmt,
+IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t CallSite,
                                       IDEProtoAnalysis::d_t SrcNode,
                                       IDEProtoAnalysis::f_t DestinationFunction,
                                       IDEProtoAnalysis::d_t DestNode) {
@@ -116,7 +116,7 @@ IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t CallStmt,
 shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getReturnEdgeFunction(IDEProtoAnalysis::n_t CallSite,
                                         IDEProtoAnalysis::f_t CalleeFunction,
-                                        IDEProtoAnalysis::n_t ExitStmt,
+                                        IDEProtoAnalysis::n_t ExitSite,
                                         IDEProtoAnalysis::d_t ExitNode,
                                         IDEProtoAnalysis::n_t ReSite,
                                         IDEProtoAnalysis::d_t RetNode) {

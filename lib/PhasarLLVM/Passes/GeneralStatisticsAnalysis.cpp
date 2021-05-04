@@ -18,7 +18,7 @@
 
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
@@ -89,10 +89,10 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         // check for function calls
         if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
           ++Stats.callsites;
-          llvm::ImmutableCallSite CS(&I);
-          if (CS.getCalledFunction()) {
-            if (MemAllocatingFunctions.count(
-                    llvm::demangle(CS.getCalledFunction()->getName().str()))) {
+          const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(&I);
+          if (CallSite->getCalledFunction()) {
+            if (MemAllocatingFunctions.count(llvm::demangle(
+                    CallSite->getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
               Stats.allocaInstructions.insert(&I);
               ++Stats.allocationsites;
@@ -108,9 +108,10 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
                       if (llvm::isa<llvm::CallInst>(User) ||
                           llvm::isa<llvm::InvokeInst>(User)) {
                         // potential call to the structures ctor
-                        llvm::ImmutableCallSite CTor(User);
-                        if (CTor.getCalledFunction() &&
-                            getNthFunctionArgument(CTor.getCalledFunction(), 0)
+                        const llvm::CallBase *CTor =
+                            llvm::cast<llvm::CallBase>(User);
+                        if (CTor->getCalledFunction() &&
+                            getNthFunctionArgument(CTor->getCalledFunction(), 0)
                                     ->getType() == Cast->getDestTy()) {
                           Stats.allocatedTypes.insert(
                               Cast->getDestTy()->getPointerElementType());

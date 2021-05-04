@@ -170,7 +170,7 @@ TEST(LLVMBasedICFGTest, StaticCallSite_5) {
 
   for (const auto &BB : *F) {
     for (const auto &I : BB) {
-      if (ICFG.isCallStmt(&I)) {
+      if (ICFG.isCallSite(&I)) {
         set<const llvm::Instruction *> CallsFromWithin =
             ICFG.getCallsFromWithin(ICFG.getFunctionOf(&I));
         ASSERT_EQ(CallsFromWithin.size(), 1U);
@@ -191,7 +191,7 @@ TEST(LLVMBasedICFGTest, StaticCallSite_6) {
   ASSERT_TRUE(FooF);
 
   const llvm::Instruction *I = getNthInstruction(F, 1);
-  if (ICFG.isCallStmt(I) || llvm::isa<llvm::InvokeInst>(I)) {
+  if (ICFG.isCallSite(I) || llvm::isa<llvm::InvokeInst>(I)) {
     set<const llvm::Instruction *> StartPoints = ICFG.getStartPointsOf(FooF);
     set<const llvm::Instruction *> CallsFromWithin =
         ICFG.getCallsFromWithin(ICFG.getFunctionOf(getNthInstruction(F, 2)));

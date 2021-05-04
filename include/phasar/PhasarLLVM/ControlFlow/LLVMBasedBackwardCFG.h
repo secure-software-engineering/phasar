@@ -37,10 +37,10 @@ public:
   ~LLVMBasedBackwardCFG() override = default;
 
   [[nodiscard]] std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *Stmt) const override;
+  getPredsOf(const llvm::Instruction *Inst) const override;
 
   [[nodiscard]] std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *Stmt) const override;
+  getSuccsOf(const llvm::Instruction *Inst) const override;
 
   [[nodiscard]] std::set<const llvm::Instruction *>
   getStartPointsOf(const llvm::Function *Fun) const override;
@@ -48,17 +48,17 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;
 
-  [[nodiscard]] bool isExitStmt(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isExitInst(const llvm::Instruction *Inst) const override;
 
-  [[nodiscard]] bool isStartPoint(const llvm::Instruction *Stmt) const override;
+  [[nodiscard]] bool isStartPoint(const llvm::Instruction *Inst) const override;
 
   [[nodiscard]] bool
   isFallThroughSuccessor(const llvm::Instruction *Inst,
-                         const llvm::Instruction *succ) const override;
+                         const llvm::Instruction *Succ) const override;
 
   [[nodiscard]] bool
-  isBranchTarget(const llvm::Instruction *Stmt,
-                 const llvm::Instruction *succ) const override;
+  isBranchTarget(const llvm::Instruction *Inst,
+                 const llvm::Instruction *Succ) const override;
 };
 } // namespace psr
 

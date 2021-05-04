@@ -37,13 +37,13 @@ public:
                         const llvm::Instruction *succ) override;
 
   FlowFunctionPtrType
-  getCallFlowFunction(const llvm::Instruction *callStmt,
+  getCallFlowFunction(const llvm::Instruction *callSite,
                       const llvm::Function *destFun) override;
 
   FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeFun,
-                     const llvm::Instruction *exitStmt,
+                     const llvm::Instruction *exitSite,
                      const llvm::Instruction *retSite) override;
 
   FlowFunctionPtrType
@@ -52,7 +52,7 @@ public:
                            std::set<const llvm::Function *> callees) override;
 
   FlowFunctionPtrType
-  getSummaryFlowFunction(const llvm::Instruction *callStmt,
+  getSummaryFlowFunction(const llvm::Instruction *callSite,
                          const llvm::Function *destFun) override;
 
   std::map<const llvm::Instruction *, std::set<const FlowFact *>>
@@ -60,11 +60,11 @@ public:
 
   EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                                             d_t succNode) override;
-  EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
+  EdgeFunctionPtrType getCallEdgeFunction(n_t callSite, d_t srcNode,
                                           f_t destinationFunction,
                                           d_t destNode) override;
   EdgeFunctionPtrType getReturnEdgeFunction(n_t callSite, f_t calleeFunction,
-                                            n_t exitStmt, d_t exitNode,
+                                            n_t exitSite, d_t exitNode,
                                             n_t reSite, d_t retNode) override;
   EdgeFunctionPtrType getCallToRetEdgeFunction(n_t callSite, d_t callNode,
                                                n_t retSite, d_t retSiteNode,

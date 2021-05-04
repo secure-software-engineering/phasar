@@ -38,14 +38,14 @@ WPDSSolverTest::getNormalFlowFunction(WPDSSolverTest::n_t Curr,
 }
 
 WPDSSolverTest::FlowFunctionPtrType
-WPDSSolverTest::getCallFlowFunction(WPDSSolverTest::n_t CallStmt,
+WPDSSolverTest::getCallFlowFunction(WPDSSolverTest::n_t CallSite,
                                     WPDSSolverTest::f_t DestFun) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
 WPDSSolverTest::FlowFunctionPtrType WPDSSolverTest::getRetFlowFunction(
     WPDSSolverTest::n_t CallSite, WPDSSolverTest::f_t CalleeFun,
-    WPDSSolverTest::n_t ExitStmt, WPDSSolverTest::n_t RetSite) {
+    WPDSSolverTest::n_t ExitSite, WPDSSolverTest::n_t RetSite) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
@@ -71,7 +71,7 @@ WPDSSolverTest::getNormalEdgeFunction(WPDSSolverTest::n_t Curr,
 }
 
 shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::getCallEdgeFunction(WPDSSolverTest::n_t CallStmt,
+WPDSSolverTest::getCallEdgeFunction(WPDSSolverTest::n_t CallSite,
                                     WPDSSolverTest::d_t SrcNode,
                                     WPDSSolverTest::f_t DestinationFunction,
                                     WPDSSolverTest::d_t DestNode) {
@@ -81,7 +81,7 @@ WPDSSolverTest::getCallEdgeFunction(WPDSSolverTest::n_t CallStmt,
 shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
 WPDSSolverTest::getReturnEdgeFunction(WPDSSolverTest::n_t CallSite,
                                       WPDSSolverTest::f_t CalleeFunction,
-                                      WPDSSolverTest::n_t ExitStmt,
+                                      WPDSSolverTest::n_t ExitSite,
                                       WPDSSolverTest::d_t ExitNode,
                                       WPDSSolverTest::n_t ReSite,
                                       WPDSSolverTest::d_t RetNode) {

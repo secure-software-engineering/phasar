@@ -9,7 +9,7 @@
 
 #include <utility>
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -236,23 +236,23 @@ IFDSUninitializedVariables::getNormalFlowFunction(
 
 IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getCallFlowFunction(
-    IFDSUninitializedVariables::n_t CallStmt,
+    IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t DestFun) {
-  if (llvm::isa<llvm::CallInst>(CallStmt) ||
-      llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    llvm::ImmutableCallSite CallSite(CallStmt);
+  if (llvm::isa<llvm::CallInst>(CallSite) ||
+      llvm::isa<llvm::InvokeInst>(CallSite)) {
+    const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::Function *DestFun;
-      llvm::ImmutableCallSite CallSite;
+      const llvm::CallBase *CallSite;
       const llvm::Value *Zerovalue;
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
-      UVFF(const llvm::Function *DM, llvm::ImmutableCallSite CS,
+      UVFF(const llvm::Function *DM, const llvm::CallBase *CallSite,
            const llvm::Value *ZV)
-          : DestFun(DM), CallSite(CS), Zerovalue(ZV) {
+          : DestFun(DM), CallSite(CallSite), Zerovalue(ZV) {
         // set up the actual parameters
-        for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
-          Actuals.push_back(CallSite.getArgOperand(Idx));
+        for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+          Actuals.push_back(CallSite->getArgOperand(Idx));
         }
         // set up the formal parameters
         /*for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
@@ -313,7 +313,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(DestFun, CallSite, ZeroValue);
+    return make_shared<UVFF>(DestFun, CS, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -322,32 +322,32 @@ IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t CalleeFun,
-    IFDSUninitializedVariables::n_t ExitStmt,
+    IFDSUninitializedVariables::n_t ExitSite,
     IFDSUninitializedVariables::n_t RetSite) {
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    llvm::ImmutableCallSite CS(CallSite);
+    const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
-      llvm::ImmutableCallSite Call;
+      const llvm::CallBase *Call;
       const llvm::Instruction *Exit;
-      UVFF(llvm::ImmutableCallSite C, const llvm::Instruction *E)
+      UVFF(const llvm::CallBase *C, const llvm::Instruction *E)
           : Call(C), Exit(E) {}
       set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
         // check if we return an uninitialized value
         set<IFDSUninitializedVariables::d_t> Ret;
         if (Exit->getNumOperands() > 0 && Exit->getOperand(0) == Source) {
-          Ret.insert(Call.getInstruction());
+          Ret.insert(Call);
         }
         //----------------------------------------------------------------------
         // Handle pointer/reference parameters
         //----------------------------------------------------------------------
-        if (Call.getCalledFunction()) {
+        if (Call->getCalledFunction()) {
           unsigned I = 0;
-          for (const auto &Arg : Call.getCalledFunction()->args()) {
+          for (const auto &Arg : Call->getCalledFunction()->args()) {
             // auto arg = getNthFunctionArgument(call.getCalledFunction(), i);
             if (&Arg == Source && Arg.getType()->isPointerTy()) {
-              Ret.insert(Call.getArgument(I));
+              Ret.insert(Call->getArgOperand(I));
             }
             I++;
           }
@@ -357,7 +357,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return make_shared<UVFF>(CS, ExitStmt);
+    return make_shared<UVFF>(CS, ExitSite);
   }
   // kill everything else
   return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
@@ -373,12 +373,12 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   //----------------------------------------------------------------------
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    llvm::ImmutableCallSite CS(CallSite);
+    const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
     return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
         [CS](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
-            for (const auto &Arg : CS.args()) {
+            for (const auto &Arg : CS->args()) {
               if (Arg.get() == Source) {
                 // do not propagate pointer arguments, since the function may
                 // initialize them (would be much more precise with
@@ -395,7 +395,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
 
 IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getSummaryFlowFunction(
-    IFDSUninitializedVariables::n_t CallStmt,
+    IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::f_t DestFun) {
   return nullptr;
 }

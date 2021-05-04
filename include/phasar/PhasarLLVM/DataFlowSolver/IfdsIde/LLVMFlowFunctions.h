@@ -14,7 +14,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Instructions.h"
 
 #include <functional>
@@ -73,20 +73,20 @@ class MapFactsAlongsideCallSite
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 protected:
-  llvm::ImmutableCallSite CallSite;
-  std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)> Predicate;
+  const llvm::CallBase *CallSite;
+  std::function<bool(const llvm::CallBase *, const llvm::Value *)> Predicate;
 
 public:
   MapFactsAlongsideCallSite(
-      llvm::ImmutableCallSite CallSite,
-      std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)>
+      const llvm::CallBase *CallSite,
+      std::function<bool(const llvm::CallBase *, const llvm::Value *)>
           Predicate =
-              [](llvm::ImmutableCallSite CS, const llvm::Value *V) {
+              [](const llvm::CallBase *CallSite, const llvm::Value *V) {
                 // Checks if a values is involved in a call, i.e. may be
                 // modified by a callee, in which case its flow is controlled by
                 // getCallFlowFunction() and getRetFlowFunction().
                 bool Involved = false;
-                for (auto &Arg : CS.args()) {
+                for (auto &Arg : CallSite->args()) {
                   if (Arg == V && V->getType()->isPointerTy()) {
                     Involved = true;
                   }
@@ -132,12 +132,12 @@ protected:
 
 public:
   MapFactsToCallee(
-      llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
+      const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       std::function<bool(const llvm::Value *)> Predicate =
           [](const llvm::Value *) { return true; })
       : DestFun(DestFun), Predicate(std::move(Predicate)) {
     // Set up the actual parameters
-    for (const auto &Actual : CallSite.args()) {
+    for (const auto &Actual : CallSite->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -223,9 +223,9 @@ class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 private:
-  llvm::ImmutableCallSite CallSite;
+  const llvm::CallBase *CallSite;
   const llvm::Function *CalleeFun;
-  const llvm::ReturnInst *ExitStmt;
+  const llvm::ReturnInst *ExitInst;
   std::vector<const llvm::Value *> Actuals;
   std::vector<const llvm::Value *> Formals;
   std::function<bool(const llvm::Value *)> ParamPredicate;
@@ -233,19 +233,19 @@ private:
 
 public:
   MapFactsToCaller(
-      llvm::ImmutableCallSite CS, const llvm::Function *CalleeFun,
-      const llvm::Instruction *ExitStmt,
+      const llvm::CallBase *CallSite, const llvm::Function *CalleeFun,
+      const llvm::Instruction *ExitInst,
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
           [](const llvm::Function *) { return true; })
-      : CallSite(CS), CalleeFun(CalleeFun),
-        ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
+      : CallSite(CallSite), CalleeFun(CalleeFun),
+        ExitInst(llvm::dyn_cast<llvm::ReturnInst>(ExitInst)),
         ParamPredicate(std::move(ParamPredicate)),
         ReturnPredicate(std::move(ReturnPredicate)) {
-    assert(ExitStmt && "Should not be null");
+    assert(ExitInst && "Should not be null");
     // Set up the actual parameters
-    for (const auto &Actual : CallSite.args()) {
+    for (const auto &Actual : CallSite->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -299,8 +299,8 @@ public:
         }
       }
       // Collect return value facts
-      if (Source == ExitStmt->getReturnValue() && ReturnPredicate(CalleeFun)) {
-        Res.insert(CallSite.getInstruction());
+      if (Source == ExitInst->getReturnValue() && ReturnPredicate(CalleeFun)) {
+        Res.insert(CallSite);
       }
       return Res;
     } else {

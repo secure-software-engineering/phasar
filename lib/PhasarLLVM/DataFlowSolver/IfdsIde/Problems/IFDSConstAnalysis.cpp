@@ -10,7 +10,7 @@
 #include <utility>
 
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -127,25 +127,25 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
-IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallStmt,
+IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
                                        IFDSConstAnalysis::f_t DestFun) {
   // Handle one of the three llvm memory intrinsics (memcpy, memmove or memset)
-  if (llvm::isa<llvm::MemIntrinsic>(CallStmt)) {
+  if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call statement is a LLVM MemIntrinsic!");
     return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   }
   // Check if its a Call Instruction or an Invoke Instruction. If so, we
   // need to map all actual parameters into formal parameters.
-  if (llvm::isa<llvm::CallInst>(CallStmt) ||
-      llvm::isa<llvm::InvokeInst>(CallStmt)) {
+  if (llvm::isa<llvm::CallInst>(CallSite) ||
+      llvm::isa<llvm::InvokeInst>(CallSite)) {
     // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Call statement: " << llvmIRToString(CallStmt));
+                  << "Call statement: " << llvmIRToString(CallSite));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Destination method: " << DestFun->getName().str());
     return make_shared<MapFactsToCallee<>>(
-        llvm::ImmutableCallSite(CallStmt), DestFun,
+        llvm::cast<llvm::CallBase>(CallSite), DestFun,
         [](IFDSConstAnalysis::d_t Actual) {
           return Actual->getType()->isPointerTy();
         });
@@ -157,11 +157,11 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallStmt,
 
 IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
     IFDSConstAnalysis::n_t CallSite, IFDSConstAnalysis::f_t CalleeFun,
-    IFDSConstAnalysis::n_t ExitStmt, IFDSConstAnalysis::n_t RetSite) {
+    IFDSConstAnalysis::n_t ExitSite, IFDSConstAnalysis::n_t RetSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
   return make_shared<MapFactsToCaller<>>(
-      llvm::ImmutableCallSite(CallSite), CalleeFun, ExitStmt,
+      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitSite,
       [](IFDSConstAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
       },
@@ -205,7 +205,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
-IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t CallStmt,
+IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t CallSite,
                                           IFDSConstAnalysis::f_t DestFun) {
   return nullptr;
 }

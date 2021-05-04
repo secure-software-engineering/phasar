@@ -15,10 +15,10 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
@@ -206,7 +206,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     }
     llvm::Instruction &Inst = *I;
     if (auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
-      llvm::Value *Callee = Call->getCalledValue();
+      llvm::Value *Callee = Call->getCalledOperand();
       // Skip actual functions for direct function calls.
       if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee)) {
         Pointers.insert(Callee);
@@ -328,10 +328,11 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
         AllocSites->insert(Alloca);
       }
       if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+        const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(P);
+        if (CallSite->getCalledFunction() != nullptr &&
+            CallSite->getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(
+                CallSite->getCalledFunction()->getName())) {
           AllocSites->insert(P);
         }
       }
@@ -354,11 +355,12 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
         }
       }
       if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-          if (VFun && VFun == CS.getInstruction()->getFunction()) {
+        const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(P);
+        if (CallSite->getCalledFunction() != nullptr &&
+            CallSite->getCalledFunction()->hasName() &&
+            HeapAllocatingFunctions.count(
+                CallSite->getCalledFunction()->getName())) {
+          if (VFun && VFun == CallSite->getFunction()) {
             AllocSites->insert(P);
           }
           if (VG) {

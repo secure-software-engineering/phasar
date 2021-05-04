@@ -68,15 +68,16 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
     // check for heap allocation
     if (llvm::isa<llvm::CallInst>(G[U].V) ||
         llvm::isa<llvm::InvokeInst>(G[U].V)) {
-      llvm::ImmutableCallSite CS(G[U].V);
-      if (CS.getCalledFunction() != nullptr &&
-          HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
+      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(G[U].V);
+      if (CallSite->getCalledFunction() != nullptr &&
+          HeapAllocatingFunctions.count(
+              CallSite->getCalledFunction()->getName())) {
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matchesStack(G) || CallStack.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Found heap allocation: "
-                        << llvmIRToString(CS.getInstruction()));
+                        << llvmIRToString(CallSite));
           AllocationSites.insert(G[U].V);
         }
       }
@@ -185,7 +186,7 @@ void LLVMPointsToGraph::computePointsToGraph(llvm::Function *F) {
     }
     llvm::Instruction &Inst = *I;
     if (auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
-      llvm::Value *Callee = Call->getCalledValue();
+      llvm::Value *Callee = Call->getCalledOperand();
       // Skip actual functions for direct function calls.
       if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee)) {
         Pointers.insert(Callee);

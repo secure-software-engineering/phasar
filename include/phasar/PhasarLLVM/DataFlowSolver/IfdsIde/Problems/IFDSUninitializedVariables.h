@@ -60,15 +60,15 @@ public:
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
 
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitStmt, n_t retSite) override;
+                                         n_t exitInst, n_t retSite) override;
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
                                                std::set<f_t> callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                              f_t destFun) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
