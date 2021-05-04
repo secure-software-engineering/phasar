@@ -1,39 +1,43 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.6)
 
 # Check if we build within the llvm source tree
-if (DEFINED LLVM_MAIN_SRC_DIR)
+if(DEFINED LLVM_MAIN_SRC_DIR)
   set(PHASAR_IN_TREE 1)
 endif()
 
-if (NOT PHASAR_IN_TREE)
+if(NOT PHASAR_IN_TREE)
   project (phasar)
   set(CMAKE_PROJECT_NAME "phasar")
-endif ()
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release',
-  default is 'Debug')" FORCE)
-endif ()
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
+# Set up the various build types
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "DebugSan" CACHE STRING "Build mode ('DebugSan', 'Debug' or 'Release', default is 'DebugSan')" FORCE)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
+# Debug build with address and undefined behavior sanitizers enabled
+  message(STATUS "Select Debug Build with Sanitizers")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fstack-protector-strong -g -fno-omit-frame-pointer -fsanitize=address,undefined")
+  set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address,undefined")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+# Standard debug build
+  message(STATUS "Select Debug Build")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fstack-protector-strong -g")
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
+# Release build
+  message(STATUS "Select Release Build")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fstack-protector-strong -march=native")
 endif()
 
 # Enable testing
 enable_testing()
-
-# TODO: allow Phasar to be build as a llvm drop-in as well
-# if (NOT DEFINED LLVM_MAIN_SRC_DIR)
-#  message(FATAL_ERROR "Phasar is not a llvm drop-in, abort!")
-# endif()
 
 set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
@@ -42,18 +46,19 @@ file(STRINGS ${PHASAR_SRC_DIR}/include/phasar/Config/Version.h VERSION_NUMBER_FI
 string(REPLACE " " ";" VERSION_NUMBER_FILE ${VERSION_NUMBER_FILE})
 list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
 
-
 include("phasar_macros")
 
-option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
+option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Enable clang-tidy during build (default is OFF)" OFF)
+
+option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
+
+option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
-option(PHASAR_BUILD_IR "Build IR test code (default is OFF)" OFF)
+option(PHASAR_BUILD_DOC "Build documentation (default is OFF)" OFF)
 
-option(PHASAR_BUILD_DOC "Build documentation" OFF)
-
-option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage, default is OFF)" OFF)
 
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 
@@ -62,7 +67,7 @@ if (PHASAR_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage ")
 endif (PHASAR_ENABLE_WARNINGS)
 
-option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
+option(PHASAR_ENABLE_PIC "Build position-independed code (default is ON)" ON)
 if (PHASAR_ENABLE_PIC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif (PHASAR_ENABLE_PIC)
@@ -83,7 +88,7 @@ else()
   message("PAMM metric severity level: Off")
 endif()
 
-option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime (default is ON)" ON)
+option(PHASAR_ENABLE_DYNAMIC_LOG "Allows for switching the logger on or off at runtime (default is ON)" ON)
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
   message(STATUS "Dynamic log enabled")
@@ -94,7 +99,6 @@ endif()
 
 configure_file(config.h.in config.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
@@ -112,13 +116,16 @@ find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log
 #find_package(Boost 1.72.0 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
+# Disable clang-tidy for the external projects
+set(CMAKE_CXX_CLANG_TIDY "")
+
 # JSON library
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
 include_directories(external/json/single_include/)
 
 # Googletest
-if (NOT PHASAR_IN_TREE)
+if(NOT PHASAR_IN_TREE)
   add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
   include_directories(external/googletest/googletest/include)
   include_directories(external/googletest/googlemock/include)
@@ -134,7 +141,7 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 include_directories(${SQLITE3_INCLUDE_DIR})
 
 # LLVM
-if (NOT PHASAR_IN_TREE)
+if(NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
   find_package(LLVM 10 REQUIRED CONFIG)
   include_directories(${LLVM_INCLUDE_DIRS})
@@ -143,7 +150,7 @@ endif()
 
 add_definitions(${LLVM_DEFINITIONS})
 
-if (NOT PHASAR_IN_TREE)
+if(NOT PHASAR_IN_TREE)
   find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
   if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
     message(STATUS "Found consolidated shared LLVM lib " ${LLVM_LIBRARY} " that will be linked against.")
@@ -202,8 +209,17 @@ endif()
 add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
+# Set up clang-tidy to run during PhASAR's compilation to indicate code smells
+if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
+  message(STATUS "Enabled clang-tidy during build")
+  set(CMAKE_CXX_CLANG_TIDY
+    clang-tidy;
+    -header-filter=.;
+    -warnings-as-errors=*;
+  )
+endif ()
 
-# Add the Phasar subdirectories
+# Add PhASAR's subdirectories
 add_subdirectory(include)
 add_subdirectory(lib)
 
