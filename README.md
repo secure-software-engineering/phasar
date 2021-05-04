@@ -166,14 +166,14 @@ Use the following command(s) to run clang-tidy separately from the build process
 ```
 # Assuming you already build the project
 $ cd build/
-$ run-clang-tidy.py -header-filter='.*'
+$ run-clang-tidy.py -header-filter='phasar.*'
 ```
 
 Add the additional `-fix` and `-format` switches to automatically apply fixes suggested by clang-tidy.
 ```
 # Assuming you already build the project
 $ cd build/
-$ run-clang-tidy.py -header-filter='.*' -fix -format
+$ run-clang-tidy.py -header-filter='phasar.*' -fix -format
 ```
 
 clang-tidy is configured to run slightly less checks on the unit tests as clang-tidy would otherwise complain about the code of the Google Test framework.
