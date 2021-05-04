@@ -437,8 +437,78 @@ const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {
 
 std::vector<const llvm::Instruction *>
 LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
-  // TODO implement getPredsOf similar to getSuccsOf
-  return this->LLVMBasedCFG::getPredsOf(Inst);
+  if (!IgnoreDbgInstructions) {
+    if (Inst->getPrevNode()) {
+      return {Inst->getPrevNode()};
+    }
+  } else {
+    if (Inst->getPrevNonDebugInstruction()) {
+      return {Inst->getPrevNonDebugInstruction()};
+    }
+  }
+  // If we do not have a predecessor yet, look for basic blocks which
+  // lead to our instruction in question!
+  {
+    vector<const llvm::Instruction *> Preds;
+    std::transform(llvm::pred_begin(Inst->getParent()),
+                   llvm::pred_end(Inst->getParent()), back_inserter(Preds),
+                   [](const llvm::BasicBlock *BB) {
+                     assert(BB && "BB under analysis was not well formed.");
+                     return BB->getTerminator();
+                   });
+
+    if (!Preds.empty())
+      return Preds;
+  }
+
+  auto getAllUserExitPoints = [](const auto &UserEntryPoints, auto &IRDB) {
+    // goto all exit points of the UserEntryPoints and all calls of
+    // std::exit()
+    std::vector<const llvm::Instruction *> ret;
+
+    for (const llvm::Function *UserEntry : UserEntryPoints) {
+      appendAllExitPoints(UserEntry, ret);
+    }
+
+    const llvm::Function *ExitFn = IRDB.getFunction("exit");
+    if (!ExitFn)
+      return ret;
+
+    for (auto *ExitCall : ExitFn->users()) {
+      if (auto ExitInst = llvm::dyn_cast<llvm::Instruction>(ExitCall)) {
+        ret.push_back(ExitInst);
+      }
+    }
+
+    return ret;
+  };
+
+  if (auto globCtorIt = GlobalCtorFn.find(Inst->getFunction());
+      globCtorIt != GlobalCtorFn.end()) {
+    auto it = globCtorIt->second;
+    if (it != GlobalCtors.begin()) {
+      return getAllExitPoints(std::prev(it)->second);
+    } // else: all global ctors have been completed
+  } else if (auto globDtorIt = GlobalDtorFn.find(Inst->getFunction());
+             globDtorIt != GlobalDtorFn.end()) {
+    auto it = globDtorIt->second;
+    if (it != GlobalDtors.begin()) {
+      return getAllExitPoints(std::prev(it)->second);
+    } else {
+      return getAllUserExitPoints(UserEntryPoints, IRDB);
+    }
+  } else if (auto registeredIt = RegisteredDtorIndex.find(Inst->getFunction());
+             registeredIt != RegisteredDtorIndex.end()) {
+    if (registeredIt->second > 0) {
+      return getAllExitPoints(RegisteredDtors[registeredIt->second - 1]);
+    } else if (!GlobalDtors.empty()) {
+      return getAllExitPoints(GlobalDtors.rbegin()->second);
+    } else {
+      return getAllUserExitPoints(UserEntryPoints, IRDB);
+    }
+  }
+
+  return {};
 }
 
 std::vector<const llvm::Instruction *>
@@ -487,10 +557,14 @@ LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
         Successors.push_back(&RegisteredDtors[0]->front().front());
       }
       // else: we have reached the end of the program
-    } else if (auto registeredIt = NextRegisteredDtor.find(Inst->getFunction());
-               registeredIt != NextRegisteredDtor.end()) {
-      // Flow to next registered dtor
-      Successors.push_back(&registeredIt->second->front().front());
+    } else if (auto registeredIt =
+                   RegisteredDtorIndex.find(Inst->getFunction());
+               registeredIt != RegisteredDtorIndex.end()) {
+      if (registeredIt->second < RegisteredDtors.size() - 1) {
+        // Flow to next registered dtor
+        Successors.push_back(
+            &RegisteredDtors[registeredIt->second + 1]->front().front());
+      }
     } else if (UserEntryPoints.count(Inst->getFunction())) {
       if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
         // The end of the user-entrypoint has been reached
@@ -751,12 +825,10 @@ void LLVMBasedICFG::collectRegisteredDtors() {
   if (RegisteredDtors.empty())
     return;
 
-  auto prevIt = RegisteredDtors.begin();
-
-  for (auto it = std::next(prevIt), end = RegisteredDtors.end(); it != end;
-       prevIt = it++) {
-    // Global dtors are executed in reverse order of their registration
-    NextRegisteredDtor.try_emplace(*it, *prevIt);
+  // Dtors are called in reverse order of their registration
+  std::reverse(RegisteredDtors.begin(), RegisteredDtors.end());
+  for (size_t i = 0; i < RegisteredDtors.size(); ++i) {
+    RegisteredDtorIndex.try_emplace(RegisteredDtors[i], i);
   }
 }
 

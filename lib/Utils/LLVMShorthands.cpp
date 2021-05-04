@@ -270,6 +270,28 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
   return nullptr;
 }
 
+std::vector<const llvm::Instruction *>
+getAllExitPoints(const llvm::Function *F) {
+  std::vector<const llvm::Instruction *> ret;
+  appendAllExitPoints(F, ret);
+  return ret;
+}
+
+void appendAllExitPoints(const llvm::Function *F,
+                         std::vector<const llvm::Instruction *> &ExitPoints) {
+  if (!F)
+    return;
+
+  for (auto &BB : *F) {
+    auto term = BB.getTerminator();
+    assert(term &&
+           "Invalid IR: Each BasicBlock must have a terminator instruction at "
+           "the end");
+    if (llvm::isa<llvm::ReturnInst>(term))
+      ExitPoints.push_back(term);
+  }
+}
+
 const llvm::Module *getModuleFromVal(const llvm::Value *V) {
   if (const auto *MA = llvm::dyn_cast<llvm::Argument>(V)) {
     return MA->getParent() ? MA->getParent()->getParent() : nullptr;

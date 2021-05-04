@@ -56,7 +56,7 @@ protected:
 
   llvm::SmallDenseMap<F, typename GlobalCtorTy::const_iterator, 2> GlobalCtorFn;
   llvm::SmallDenseMap<F, typename GlobalDtorTy::const_iterator, 2> GlobalDtorFn;
-  llvm::SmallDenseMap<F, F, 8> NextRegisteredDtor;
+  llvm::SmallDenseMap<F, size_t, 8> RegisteredDtorIndex;
 
   virtual void collectGlobalCtors() = 0;
 
