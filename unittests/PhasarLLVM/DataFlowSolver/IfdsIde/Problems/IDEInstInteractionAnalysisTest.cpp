@@ -468,22 +468,37 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
   doAnalysisAndCompareResults("call_06_cpp.ll", GroundTruth, false);
 }
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
-//   std::set<IIACompactResult_t> GroundTruth;
+TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+      BitVectorSet<std::string>>(
+          "main", 9, "retval", {"1", "3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+      BitVectorSet<std::string>>(
+          "main", 9, "i", {"0", "7", "8"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+      BitVectorSet<std::string>>(
+          "main", 9, "j", {"2", "6", "5", "0"}));
+  doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
+  std::set<IIACompactResult_t> GroundTruth;
 //   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 9, "retval", {"1", "3"}));
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "retval", {"0", "3"}));
 //   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 9, "i", {"0", "7", "8"}));
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "i", {"1", "6", "7", "8", "11"}));
 //   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 9, "j", {"2", "6", "5", "0"}));
-//   doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, true);
-// }
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "j", {"1", "2", "6", "7", "8", "10", "9", "17"}));
+  doAnalysisAndCompareResults("global_02_cpp.ll", GroundTruth, true);
+}
+
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
@@ -502,7 +517,22 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
   doAnalysisAndCompareResults("KillTest_cpp.ll", GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleHeap_01) {
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleReturnTest_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "retval", {"0", "3"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "i", {"1", "6", "7", "8", "11"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "j", {"1", "2", "6", "7", "8", "10", "9", "17"}));
+  doAnalysisAndCompareResults("return_01_cpp.ll", GroundTruth, true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
@@ -514,6 +544,20 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeap_01) {
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 19, "j", {"1", "2", "6", "7", "8", "10", "9", "17"}));
   doAnalysisAndCompareResults("heap_01_cpp.ll", GroundTruth, false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "retval", {"0", "3"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "i", {"1", "6", "7", "8", "11"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 19, "j", {"1", "2", "6", "7", "8", "10", "9", "17"}));
+  doAnalysisAndCompareResults("rvo_01_cpp.ll", GroundTruth, true);
 }
 
 // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
