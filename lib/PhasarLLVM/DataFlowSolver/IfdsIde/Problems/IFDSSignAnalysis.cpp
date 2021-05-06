@@ -43,14 +43,14 @@ IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t Curr,
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType
-IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t CallStmt,
+IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t CallSite,
                                       IFDSSignAnalysis::f_t DestFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType IFDSSignAnalysis::getRetFlowFunction(
     IFDSSignAnalysis::n_t CallSite, IFDSSignAnalysis::f_t CalleeFun,
-    IFDSSignAnalysis::n_t ExitStmt, IFDSSignAnalysis::n_t RetSite) {
+    IFDSSignAnalysis::n_t ExitSite, IFDSSignAnalysis::n_t RetSite) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
@@ -62,7 +62,7 @@ IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t CallSite,
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType
-IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t CallStmt,
+IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t CallSite,
                                          IFDSSignAnalysis::f_t DestFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }

@@ -781,7 +781,7 @@ static std::vector<llvm::BasicBlock *> getPostDominators(
     return {CurrentBasicBlock};
   }
 
-  for (auto *const PostDomTreeChild : PostDomTreeNode->getChildren()) {
+  for (auto *const PostDomTreeChild : PostDomTreeNode->children()) {
     auto ChildNodes = getPostDominators(PostDomTreeChild, StartBasicBlock);
     if (!ChildNodes.empty()) {
       ChildNodes.push_back(CurrentBasicBlock);

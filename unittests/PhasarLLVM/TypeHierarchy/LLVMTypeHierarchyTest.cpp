@@ -729,16 +729,16 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 // //   EXPECT_TRUE(ChildsChildReachable.count("struct.ChildsChild"));
 // // }
 
+// Failing test case
 TEST(LTHTest, HandleSTLString) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_13_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
   EXPECT_EQ(TH.getAllTypes().size(), 4U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
-  EXPECT_TRUE(
-      TH.hasType(TH.getType("struct.std::__cxx11::basic_string<char, "
-                            "std::char_traits<char>, std::allocator<char> "
-                            ">::_Alloc_hider")));
+  EXPECT_TRUE(TH.hasType(TH.getType(
+      "struct.std::__cxx11::basic_string<char, std::char_traits<char>, "
+      "std::allocator<char> >::_Alloc_hider")));
   EXPECT_TRUE(TH.hasType(TH.getType("union.anon")));
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::allocator")));
   // (virtual) inheritance is not used in STL types

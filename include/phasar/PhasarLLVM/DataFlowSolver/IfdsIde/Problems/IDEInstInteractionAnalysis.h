@@ -24,11 +24,11 @@
 #include <vector>
 
 #include "llvm/IR/Attributes.h"
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
@@ -480,7 +480,7 @@ public:
     return std::make_shared<IIAFlowFunction>(curr);
   }
 
-  inline FlowFunctionPtrType getCallFlowFunction(n_t callStmt,
+  inline FlowFunctionPtrType getCallFlowFunction(n_t callSite,
                                                  f_t destMthd) override {
     if (this->ICF->isHeapAllocatingFunction(destMthd)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
@@ -489,27 +489,26 @@ public:
       // We don't have anything that we could analyze, kill all facts.
       return KillAll<d_t>::getInstance();
     }
-    llvm::ImmutableCallSite CS(callStmt);
+    const auto *CS = llvm::cast<llvm::CallBase>(callSite);
     // Map actual to formal parameters.
     auto AutoMapping = std::make_shared<MapFactsToCallee<container_type>>(
-        llvm::ImmutableCallSite(callStmt), destMthd,
-        true /* map globals to callee, too */,
+        CS, destMthd, true /* map globals to callee, too */,
         // Do not map parameters that have been artificially introduced by the
         // compiler for RVO (return value optimization). Instead, these values
         // need to be generated from the zero value.
         [CS](const llvm::Value *V) {
           bool PassParameter = true;
-          for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
-            if (V == CS.getArgOperand(Idx)) {
-              return !CS.paramHasAttr(Idx, llvm::Attribute::StructRet);
+          for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
+            if (V == CS->getArgOperand(Idx)) {
+              return !CS->paramHasAttr(Idx, llvm::Attribute::StructRet);
             }
           }
           return PassParameter;
         });
     // Generate the artificially introduced RVO parameters from zero value.
     std::set<d_t> SRetFormals;
-    for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
-      if (CS.paramHasAttr(Idx, llvm::Attribute::StructRet)) {
+    for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
+      if (CS->paramHasAttr(Idx, llvm::Attribute::StructRet)) {
         SRetFormals.insert(destMthd->getArg(Idx));
       }
     }
@@ -520,17 +519,17 @@ public:
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
-                                                n_t exitStmt,
+                                                n_t exitInst,
                                                 n_t retSite) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
     auto AutoMapping = std::make_shared<MapFactsToCaller<container_type>>(
-        llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
+        llvm::cast<llvm::CallBase>(callSite), calleeMthd, exitInst,
         true /* map globals back to caller, too */);
     // We must also handle the special case if the returned value is a constant
     // literal, e.g. ret i32 42.
-    if (exitStmt) {
-      if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(exitStmt)) {
+    if (exitInst) {
+      if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(exitInst)) {
         const auto *RetVal = Ret->getReturnValue();
         if (RetVal) {
           if (const auto *CD = llvm::dyn_cast<llvm::ConstantData>(RetVal)) {
@@ -589,20 +588,20 @@ public:
     }
     // Declarations only case
     return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        llvm::ImmutableCallSite(callSite),
+        llvm::cast<llvm::CallBase>(callSite),
         true /* propagate globals alongsite the call site */,
-        [](llvm::ImmutableCallSite CS, const llvm::Value *V) {
+        [](const llvm::CallBase *CS, const llvm::Value *V) {
           return false; // not involved in the call
         });
     // Otherwise
     return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        llvm::ImmutableCallSite(callSite),
+        llvm::cast<llvm::CallBase>(callSite),
         false // do not propagate globals (as they are propagated via call- and
               // ret-functions)
     );
   }
 
-  inline FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+  inline FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                                     f_t destMthd) override {
     // Do not use user-crafted summaries.
     return nullptr;
@@ -957,7 +956,7 @@ public:
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationMethod,
+  getCallEdgeFunction(n_t callSite, d_t srcNode, f_t destinationMethod,
                       d_t destNode) override {
     // Handle the case in which a parameter that has been artificially
     // introduced by the compiler is passed. Such a value must be generated from
@@ -977,10 +976,10 @@ public:
     //                         a_i
     //
     std::set<d_t> SRetParams;
-    llvm::ImmutableCallSite CS(callStmt);
-    for (unsigned Idx = 0; Idx < CS.arg_size(); ++Idx) {
-      if (CS.paramHasAttr(Idx, llvm::Attribute::StructRet)) {
-        SRetParams.insert(CS.getArgOperand(Idx));
+    const auto *CS = llvm::cast<llvm::CallBase>(callSite);
+    for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
+      if (CS->paramHasAttr(Idx, llvm::Attribute::StructRet)) {
+        SRetParams.insert(CS->getArgOperand(Idx));
       }
     }
     if (isZeroValue(srcNode) && SRetParams.count(destNode)) {
@@ -991,7 +990,7 @@ public:
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitInst,
                         d_t exitNode, n_t reSite, d_t retNode) override {
     // Handle the case in which constant data is returned, e.g. ret i32 42.
     //
@@ -1008,14 +1007,14 @@ public:
     //                  c
     //
     if (isZeroValue(exitNode) && retNode == callSite) {
-      const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(exitStmt);
+      const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(exitInst);
       if (const auto *CD =
               llvm::dyn_cast<llvm::ConstantData>(Ret->getReturnValue())) {
         // Check if the user has registered a fact generator function
         l_t UserEdgeFacts = BitVectorSet<e_t>();
         std::set<e_t> EdgeFacts;
         if (edgeFactGen) {
-          EdgeFacts = edgeFactGen(exitStmt);
+          EdgeFacts = edgeFactGen(exitInst);
           // fill BitVectorSet
           UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
         }

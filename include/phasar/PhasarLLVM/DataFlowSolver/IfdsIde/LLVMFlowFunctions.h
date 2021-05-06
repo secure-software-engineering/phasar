@@ -15,8 +15,8 @@
 #include <set>
 #include <vector>
 
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -70,16 +70,16 @@ class MapFactsAlongsideCallSite
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 protected:
-  llvm::ImmutableCallSite CallSite;
+  const llvm::CallBase *CallSite;
   bool PropagateGlobals;
-  std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)> Predicate;
+  std::function<bool(const llvm::CallBase *, const llvm::Value *)> Predicate;
 
 public:
   MapFactsAlongsideCallSite(
-      llvm::ImmutableCallSite CallSite, bool PropagateGlobals,
-      std::function<bool(llvm::ImmutableCallSite, const llvm::Value *)>
+      const llvm::CallBase *CallSite, bool PropagateGlobals,
+      std::function<bool(const llvm::CallBase *, const llvm::Value *)>
           Predicate =
-              [](llvm::ImmutableCallSite CS, const llvm::Value *V) {
+              [](const llvm::CallBase *CallSite, const llvm::Value *V) {
                 // Globals are considered to be involved in this default
                 // implementation.
                 if (llvm::isa<llvm::GlobalVariable>(V)) {
@@ -89,7 +89,7 @@ public:
                 // modified by a callee, in which case its flow is controlled by
                 // getCallFlowFunction() and getRetFlowFunction().
                 bool Involved = false;
-                for (const auto &Arg : CS.args()) {
+                for (const auto &Arg : CallSite->args()) {
                   if (Arg == V && V->getType()->isPointerTy()) {
                     Involved = true;
                   }
@@ -135,14 +135,14 @@ protected:
 
 public:
   MapFactsToCallee(
-      llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
+      const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       bool PropagateGlobals = true,
       std::function<bool(const llvm::Value *)> Predicate =
           [](const llvm::Value *) { return true; })
       : DestFun(DestFun), PropagateGlobals(PropagateGlobals),
         Predicate(std::move(Predicate)) {
     // Set up the actual parameters
-    for (const auto &Actual : CallSite.args()) {
+    for (const auto &Actual : CallSite->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -229,9 +229,9 @@ class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
   using typename FlowFunction<const llvm::Value *, Container>::container_type;
 
 private:
-  llvm::ImmutableCallSite CallSite;
+  const llvm::CallBase *CallSite;
   const llvm::Function *CalleeFun;
-  const llvm::ReturnInst *ExitStmt;
+  const llvm::ReturnInst *ExitInst;
   bool PropagateGlobals;
   std::vector<const llvm::Value *> Actuals;
   std::vector<const llvm::Value *> Formals;
@@ -240,20 +240,20 @@ private:
 
 public:
   MapFactsToCaller(
-      llvm::ImmutableCallSite CS, const llvm::Function *CalleeFun,
-      const llvm::Instruction *ExitStmt, bool PropagateGlobals = true,
+      const llvm::CallBase *CallSite, const llvm::Function *CalleeFun,
+      const llvm::Instruction *ExitInst, bool PropagateGlobals = true,
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
           [](const llvm::Function *) { return true; })
-      : CallSite(CS), CalleeFun(CalleeFun),
-        ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
+      : CallSite(CallSite), CalleeFun(CalleeFun),
+        ExitInst(llvm::dyn_cast<llvm::ReturnInst>(ExitInst)),
         PropagateGlobals(PropagateGlobals),
         ParamPredicate(std::move(ParamPredicate)),
         ReturnPredicate(std::move(ReturnPredicate)) {
-    assert(ExitStmt && "Should not be null");
+    assert(ExitInst && "Should not be null");
     // Set up the actual parameters
-    for (const auto &Actual : CallSite.args()) {
+    for (const auto &Actual : CallSite->args()) {
       Actuals.push_back(Actual);
     }
     // Set up the formal parameters
@@ -314,8 +314,8 @@ public:
       }
     }
     // Collect return value facts
-    if (Source == ExitStmt->getReturnValue() && ReturnPredicate(CalleeFun)) {
-      Res.insert(CallSite.getInstruction());
+    if (Source == ExitInst->getReturnValue() && ReturnPredicate(CalleeFun)) {
+      Res.insert(CallSite);
     }
     return Res;
   }

@@ -60,15 +60,15 @@ public:
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destMthd) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destMthd) override;
 
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
-                                         n_t exitStmt, n_t retSite) override;
+                                         n_t exitInst, n_t retSite) override;
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
                                                std::set<f_t> callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                              f_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
@@ -89,13 +89,13 @@ public:
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
+  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callSite,
                                                          d_t srcNode,
                                                          f_t destinationMethod,
                                                          d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitInst,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
@@ -103,7 +103,7 @@ public:
                            d_t retSiteNode, std::set<f_t> callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
+  getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                          d_t retSiteNode) override;
 
   l_t topElement() override;
