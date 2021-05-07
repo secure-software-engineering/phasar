@@ -9,6 +9,7 @@ set(LLVM_LINK_COMPONENTS
   Support
   Analysis
   Passes
+  Demangle
 )
 
 # Handle the library files
