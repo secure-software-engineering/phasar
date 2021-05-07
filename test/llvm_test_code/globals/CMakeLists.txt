@@ -1,6 +1,7 @@
 set(NoMem2regSources
   globals_1.cpp
   globals_2.cpp
+  globals_ctor_1.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})

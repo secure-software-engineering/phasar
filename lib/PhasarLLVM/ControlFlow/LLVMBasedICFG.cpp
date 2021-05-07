@@ -593,6 +593,24 @@ LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
   return Successors;
 }
 
+const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
+  auto it = GlobalCtors.begin();
+  if (it != GlobalCtors.end())
+    return it->second;
+
+  return nullptr;
+}
+const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
+  if (!RegisteredDtors.empty())
+    return RegisteredDtors.back();
+
+  auto it = GlobalDtors.rbegin();
+  if (it != GlobalDtors.rend())
+    return it->second;
+
+  return nullptr;
+}
+
 set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
   return IRDB.getAllFunctions();
 }
