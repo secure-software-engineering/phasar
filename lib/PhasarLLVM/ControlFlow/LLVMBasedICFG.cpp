@@ -506,6 +506,10 @@ LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
     } else {
       return getAllUserExitPoints(UserEntryPoints, IRDB);
     }
+  } else if (UserEntryPoints.count(Inst->getFunction())) {
+    if (!GlobalCtors.empty()) {
+      return getAllExitPoints(GlobalCtors.rbegin()->second);
+    }
   }
 
   return {};
