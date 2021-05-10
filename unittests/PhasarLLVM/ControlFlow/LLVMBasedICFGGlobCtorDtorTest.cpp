@@ -184,7 +184,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
                          {{MainFn, GlobalDtor}, {GlobalDtorInit, MainFn}});
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest1) {
+TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
   boost::log::core::get()->set_logging_enabled(false);
   ValueAnnotationPass::resetValueID();
 
@@ -193,20 +193,29 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest1) {
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::SOUNDY, /*IncludeGlobals*/ true);
-  IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {"main", "_GLOBAL__sub_I_globals_lca_1.cpp"});
+  IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT,
+                                    {"_GLOBAL__sub_I_globals_lca_1.cpp"});
 
   IDESolver_P<IDELinearConstantAnalysis> Solver(Problem);
 
   Solver.solve();
 
+  // Solver.dumpResults();
+
+  auto *FooInit = IRDB.getInstruction(6);
   auto *LoadX = IRDB.getInstruction(11);
-  auto *PrintF = IRDB.getInstruction(12);
+  auto *End = IRDB.getInstruction(13);
+  auto Foo = IRDB.getGlobalVariableDefinition("foo");
 
-  auto XValueAtPrintF = Solver.resultAt(PrintF, LoadX);
+  auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
 
-  // Currently computes 1
-  EXPECT_EQ(43, XValueAtPrintF);
+  EXPECT_EQ(42, FooValueAfterInit);
+
+  auto XValueAtEnd = Solver.resultAt(End, LoadX);
+  auto FooValueAtEnd = Solver.resultAt(End, Foo);
+
+  EXPECT_EQ(42, FooValueAtEnd);
+  EXPECT_EQ(43, XValueAtEnd);
 }
 
 int main(int Argc, char **Argv) {
