@@ -1,8 +1,20 @@
+/******************************************************************************
+ * Copyright (c) 2021 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert, Fabian Schiebel and others
+ *****************************************************************************/
+
 #include "gtest/gtest.h"
 
+#include <array>
 #include <string>
 #include <vector>
 
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
@@ -23,6 +35,84 @@ using namespace psr;
 static const std::string PathToLLFiles =
     unittest::PathToLLTestFiles + "globals/";
 
+static void EnsureFunctionOrdering(
+    LLVMBasedICFG &ICFG,
+    llvm::SmallDenseSet<const llvm::Function *, 4> Functions,
+    std::vector<std::array<const llvm::Function *, 2>> FixedOrdering = {}) {
+  if (Functions.size() < 2)
+    return;
+
+  llvm::SmallDenseMap<const llvm::Function *, const llvm::Function *, 8> next,
+      prev;
+
+  // Construct ordering between the functions...
+  for (auto *Fun : Functions) {
+    auto succ = ICFG.getSuccsOf(&Fun->back().back());
+    auto pred = ICFG.getPredsOf(&Fun->front().front());
+
+    EXPECT_TRUE(succ.size() < 2);
+    EXPECT_TRUE(pred.size() < 2);
+
+    if (succ.empty()) {
+      ASSERT_EQ(1, pred.size());
+    } else if (pred.empty()) {
+      ASSERT_EQ(1, succ.size());
+    }
+
+    auto succFn = succ.empty() ? nullptr : succ.front()->getFunction();
+    auto predFn = pred.empty() ? nullptr : pred.front()->getFunction();
+
+    if (Fun != succFn)
+      EXPECT_TRUE(next.insert({Fun, succFn}).second);
+    if (Fun != predFn)
+      EXPECT_TRUE(prev.insert({Fun, predFn}).second);
+
+    llvm::outs() << (predFn ? predFn->getName() : "null") << " < "
+                 << Fun->getName() << " < "
+                 << (succFn ? succFn->getName() : "null") << "\n";
+
+    if (!predFn) {
+      EXPECT_TRUE(next.insert({nullptr, Fun}).second);
+    } else if (!succFn) {
+      EXPECT_TRUE(prev.insert({nullptr, Fun}).second);
+    }
+  }
+
+  // Check that the ordering is indeed total
+
+  llvm::SmallDenseSet<const llvm::Function *, 8> visited;
+  llvm::SmallDenseMap<const llvm::Function *, size_t, 8> FunIdx;
+
+  auto Curr = next[nullptr];
+  bool finished = false;
+  size_t idx = 0;
+
+  do {
+    FunIdx[Curr] = idx++;
+
+    finished = !visited.insert(Curr).second;
+    Curr = next[Curr];
+  } while (Curr && !finished);
+
+  EXPECT_EQ(Functions.size(), visited.size());
+
+  visited.clear();
+
+  Curr = prev[nullptr];
+  do {
+    finished = !visited.insert(Curr).second;
+    Curr = prev[Curr];
+  } while (Curr && !finished);
+
+  EXPECT_EQ(Functions.size(), visited.size());
+
+  // Ensure the fixed ordering
+
+  for (auto &[From, To] : FixedOrdering) {
+    EXPECT_LT(FunIdx[From], FunIdx[To]);
+  }
+}
+
 TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
   boost::log::core::get()->set_logging_enabled(false);
   ValueAnnotationPass::resetValueID();
@@ -41,22 +131,10 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
   EXPECT_EQ(ExpectedGlobalCtor, GlobalCtor);
 
-  auto *FirstCtorInst = &ExpectedGlobalCtor->front().front();
-  auto *SecondCtorInst = FirstCtorInst->getNextNode();
   auto *MainFn = IRDB.getFunction("main");
-  auto *FirstMainInst = &MainFn->front().front();
 
-  auto NextOfFirstCtorInst = ICFG.getSuccsOf(FirstCtorInst);
-  ASSERT_EQ(1, NextOfFirstCtorInst.size());
-  EXPECT_EQ(SecondCtorInst, *NextOfFirstCtorInst.begin());
-
-  auto NextOfSecondCtorInst = ICFG.getSuccsOf(SecondCtorInst);
-  ASSERT_EQ(1, NextOfSecondCtorInst.size());
-  EXPECT_EQ(FirstMainInst, *NextOfSecondCtorInst.begin());
-
-  auto PrevOfFirstMainInst = ICFG.getPredsOf(FirstMainInst);
-  ASSERT_EQ(1, PrevOfFirstMainInst.size());
-  EXPECT_EQ(SecondCtorInst, *PrevOfFirstMainInst.begin());
+  EnsureFunctionOrdering(ICFG, {MainFn, ExpectedGlobalCtor},
+                         {{ExpectedGlobalCtor, MainFn}});
 }
 
 TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
@@ -80,50 +158,28 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
   auto *SecondGlobCtor =
       IRDB.getFunction("_GLOBAL__sub_I_globals_ctor_2_2.cpp");
 
-  auto *LastCtor1Inst = &FirstGlobCtor->back().back();
-  auto *LastCtor2Inst = &SecondGlobCtor->back().back();
+  auto *MainFn = IRDB.getFunction("main");
 
-  auto *FirstCtor1Inst = &FirstGlobCtor->front().front();
-  auto *FirstCtor2Inst = &SecondGlobCtor->front().front();
-  auto *FirstMainInst = &IRDB.getFunction("main")->front().front();
+  EnsureFunctionOrdering(ICFG, {FirstGlobCtor, SecondGlobCtor, MainFn},
+                         {{FirstGlobCtor, MainFn}, {SecondGlobCtor, MainFn}});
+}
 
-  auto _NextOfLastCtor1Inst = ICFG.getSuccsOf(LastCtor1Inst);
-  auto _NextOfLastCtor2Inst = ICFG.getSuccsOf(LastCtor2Inst);
+TEST(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
+  boost::log::core::get()->set_logging_enabled(false);
+  ValueAnnotationPass::resetValueID();
 
-  auto _PrevOfFirstMainInst = ICFG.getPredsOf(FirstMainInst);
-  auto _PrevOfFirstCtor1Inst = ICFG.getPredsOf(FirstCtor1Inst);
-  auto _PrevOfFirstCtor2Inst = ICFG.getPredsOf(FirstCtor2Inst);
+  ProjectIRDB IRDB({PathToLLFiles + "globals_dtor_1_cpp.ll"});
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
+                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
 
-  ASSERT_EQ(1, _NextOfLastCtor1Inst.size());
-  ASSERT_EQ(1, _NextOfLastCtor2Inst.size());
-  ASSERT_EQ(1, _PrevOfFirstMainInst.size());
-  ASSERT_EQ(1, _PrevOfFirstCtor1Inst.size() + _PrevOfFirstCtor2Inst.size());
+  auto *GlobalDtor = IRDB.getFunction("_ZN3FooD2Ev");
+  auto *MainFn = IRDB.getFunction("main");
+  auto *GlobalDtorInit = IRDB.getFunction("_GLOBAL__sub_I_globals_dtor_1.cpp");
 
-  auto *NextOfLastCtor1Inst = *_NextOfLastCtor1Inst.begin();
-  auto *NextOfLastCtor2Inst = *_NextOfLastCtor2Inst.begin();
-
-  // Ctor1 and Ctor2 have the same priority, so their order is undefined
-
-  EXPECT_TRUE(NextOfLastCtor1Inst == FirstCtor2Inst ||
-              NextOfLastCtor1Inst == FirstMainInst);
-  EXPECT_TRUE(NextOfLastCtor2Inst == FirstCtor1Inst ||
-              NextOfLastCtor2Inst == FirstMainInst);
-
-  if (NextOfLastCtor1Inst == FirstCtor2Inst) {
-    // Ctor1 comes before Ctor2
-    EXPECT_EQ(FirstMainInst, NextOfLastCtor2Inst);
-
-    EXPECT_EQ(LastCtor2Inst, *_PrevOfFirstMainInst.begin());
-    ASSERT_EQ(1, _PrevOfFirstCtor2Inst.size());
-    EXPECT_EQ(LastCtor1Inst, *_PrevOfFirstCtor2Inst.begin());
-
-  } else { // Ctor2 comes before Ctor1
-    EXPECT_EQ(FirstCtor1Inst, NextOfLastCtor2Inst);
-
-    EXPECT_EQ(LastCtor1Inst, *_PrevOfFirstMainInst.begin());
-    ASSERT_EQ(1, _PrevOfFirstCtor1Inst.size());
-    EXPECT_EQ(LastCtor2Inst, *_PrevOfFirstCtor1Inst.begin());
-  }
+  EnsureFunctionOrdering(ICFG, {MainFn, GlobalDtor, GlobalDtorInit},
+                         {{MainFn, GlobalDtor}, {GlobalDtorInit, MainFn}});
 }
 
 int main(int Argc, char **Argv) {
