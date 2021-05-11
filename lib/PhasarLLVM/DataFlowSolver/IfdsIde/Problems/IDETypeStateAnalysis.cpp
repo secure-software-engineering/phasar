@@ -87,7 +87,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return make_shared<LambdaFlow<d_t>>([=](d_t Source) -> set<d_t> {
+      return makeLambdaFlow<d_t>([=](d_t Source) -> set<d_t> {
         // if (Source == Gep->getPointerOperand()) {
         //  return {Source, Gep};
         //}

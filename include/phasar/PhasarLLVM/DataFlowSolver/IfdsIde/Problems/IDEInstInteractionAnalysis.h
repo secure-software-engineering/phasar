@@ -152,7 +152,7 @@ public:
     if (EnableIndirectTaints) {
       if (auto br = llvm::dyn_cast<llvm::BranchInst>(curr);
           br && br->isConditional()) {
-        return std::make_shared<LambdaFlow<d_t>>([=](d_t src) {
+        return makeLambdaFlow<d_t>([=](d_t src) {
           container_type ret = {src, br};
           if (src == br->getCondition()) {
             for (auto succ : br->successors()) {

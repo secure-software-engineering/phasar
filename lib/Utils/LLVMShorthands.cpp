@@ -227,28 +227,15 @@ bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
-  int ArgNr = 0;
-  for (const auto &A : Arg->getParent()->args()) {
-    if (&A == Arg) {
-      return ArgNr;
-    }
-    ++ArgNr;
-  }
-  return -1;
+  return int(Arg->getArgNo());
 }
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned ArgNo) {
-  if (ArgNo < F->arg_size()) {
-    unsigned Current = 0;
-    for (const auto &A : F->args()) {
-      if (ArgNo == Current) {
-        return &A;
-      }
-      ++Current;
-    }
-  }
-  return nullptr;
+  if (ArgNo >= F->arg_size())
+    return nullptr;
+
+  return F->getArg(ArgNo);
 }
 
 const llvm::Instruction *getLastInstructionOf(const llvm::Function *F) {
@@ -284,9 +271,8 @@ void appendAllExitPoints(const llvm::Function *F,
 
   for (auto &BB : *F) {
     auto term = BB.getTerminator();
-    assert(term &&
-           "Invalid IR: Each BasicBlock must have a terminator instruction at "
-           "the end");
+    assert(term && "Invalid IR: Each BasicBlock must have a terminator "
+                   "instruction at the end");
     if (llvm::isa<llvm::ReturnInst>(term))
       ExitPoints.push_back(term);
   }

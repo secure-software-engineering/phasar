@@ -69,7 +69,7 @@ IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
                                                const llvm::Instruction *Succ) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    return make_shared<LambdaFlow<const FlowFact *>>(
+    return makeLambdaFlow<const FlowFact *>(
         [this, Store](const FlowFact *source) -> set<const FlowFact *> {
           // auto VFW = static_cast<const ValueFlowFactWrapper *>(source);
           if (Store->getValueOperand() ==

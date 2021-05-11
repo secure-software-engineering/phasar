@@ -35,10 +35,10 @@
 
 namespace psr {
 
-inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-flow(std::function<std::set<IDEGeneralizedLCA::d_t>(IDEGeneralizedLCA::d_t)>
-         Fn) {
-  return std::make_shared<LambdaFlow<IDEGeneralizedLCA::d_t>>(Fn);
+template <typename Fn, typename = std::enable_if_t<
+                           std::is_invocable_v<Fn, IDEGeneralizedLCA::d_t>>>
+inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>> flow(Fn fn) {
+  return makeLambdaFlow<IDEGeneralizedLCA::d_t>(std::forward<Fn>(fn));
 }
 
 IDEGeneralizedLCA::IDEGeneralizedLCA(

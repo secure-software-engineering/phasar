@@ -146,7 +146,15 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
     return {};
   }
   if (!Fun->isDeclaration()) {
-    return {&Fun->back().back()};
+    // A function can have more than one exit point
+    std::set<const llvm::Instruction *> ExitPoints;
+    auto ExitPointVector = psr::getAllExitPoints(Fun);
+
+    for (auto *ExitPoint : ExitPointVector) {
+      ExitPoints.insert(ExitPoint);
+    }
+
+    return ExitPoints;
   } else {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Could not get exit points of '" << Fun->getName().str()
@@ -156,7 +164,7 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
 }
 
 bool LLVMBasedCFG::isCallStmt(const llvm::Instruction *Stmt) const {
-  return llvm::isa<llvm::CallInst>(Stmt) || llvm::isa<llvm::InvokeInst>(Stmt);
+  return llvm::isa<llvm::CallBase>(Stmt);
 }
 
 bool LLVMBasedCFG::isExitStmt(const llvm::Instruction *Stmt) const {

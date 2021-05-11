@@ -169,9 +169,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
 
   if (IncludeGlobals) {
     // push global constructors to function worklist
-    // for (const auto &GlobalCtor : getGlobalCtors()) {
-    //   FunctionWL.push(GlobalCtor);
-    // }
     appendGlobalCtors(FunctionWL);
   }
 
@@ -323,7 +320,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
     std::terminate();
   }
 
-  if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
+  if (llvm::isa<llvm::CallBase>(I)) {
     Resolver.preCall(I);
     llvm::ImmutableCallSite CS(I);
     set<const llvm::Function *> PossibleTargets;
@@ -706,28 +703,29 @@ size_t LLVMBasedICFG::getCallerCount(const llvm::Function *F) const {
 
 set<const llvm::Function *>
 LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *N) const {
-  if (llvm::isa<llvm::CallInst>(N) || llvm::isa<llvm::InvokeInst>(N)) {
-    set<const llvm::Function *> Callees;
-    auto MapEntry = FunctionVertexMap.find(N->getFunction());
-    if (MapEntry == FunctionVertexMap.end()) {
-      return Callees;
-    }
-    out_edge_iterator EI;
-
-    out_edge_iterator EIEnd;
-    for (boost::tie(EI, EIEnd) = boost::out_edges(MapEntry->second, CallGraph);
-         EI != EIEnd; ++EI) {
-      auto Edge = CallGraph[*EI];
-      if (N == Edge.CS) {
-        auto Target = boost::target(*EI, CallGraph);
-        Callees.insert(CallGraph[Target].F);
-      }
-    }
-    return Callees;
-  } else {
+  if (!llvm::isa<llvm::CallBase>(N)) {
     return {};
   }
-}
+
+  auto MapEntry = FunctionVertexMap.find(N->getFunction());
+  if (MapEntry == FunctionVertexMap.end()) {
+    return {};
+  }
+
+  set<const llvm::Function *> Callees;
+
+  out_edge_iterator EI;
+  out_edge_iterator EIEnd;
+  for (boost::tie(EI, EIEnd) = boost::out_edges(MapEntry->second, CallGraph);
+       EI != EIEnd; ++EI) {
+    auto Edge = CallGraph[*EI];
+    if (N == Edge.CS) {
+      auto Target = boost::target(*EI, CallGraph);
+      Callees.insert(CallGraph[Target].F);
+    }
+  }
+  return Callees;
+} // namespace psr
 
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
@@ -752,7 +750,7 @@ LLVMBasedICFG::getCallsFromWithin(const llvm::Function *F) const {
   set<const llvm::Instruction *> CallSites;
   for (llvm::const_inst_iterator I = llvm::inst_begin(F), E = llvm::inst_end(F);
        I != E; ++I) {
-    if (llvm::isa<llvm::CallInst>(*I) || llvm::isa<llvm::InvokeInst>(*I)) {
+    if (llvm::isa<llvm::CallBase>(*I)) {
       CallSites.insert(&(*I));
     }
   }
@@ -863,8 +861,7 @@ set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
     for (auto &F : *M) {
       for (auto &BB : F) {
         for (auto &I : BB) {
-          if ((!llvm::isa<llvm::CallInst>(&I)) &&
-              (!llvm::isa<llvm::InvokeInst>(&I)) && (!isStartPoint(&I))) {
+          if ((!llvm::isa<llvm::CallBase>(&I)) && (!isStartPoint(&I))) {
             NonCallStartNodes.insert(&I);
           }
         }
@@ -1008,10 +1005,12 @@ vector<const llvm::Function *> LLVMBasedICFG::getDependencyOrderedFunctions() {
   return Functions;
 }
 
-unsigned LLVMBasedICFG::getNumOfVertices() {
+unsigned LLVMBasedICFG::getNumOfVertices() const {
   return boost::num_vertices(CallGraph);
 }
 
-unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(CallGraph); }
+unsigned LLVMBasedICFG::getNumOfEdges() const {
+  return boost::num_edges(CallGraph);
+}
 
 } // namespace psr

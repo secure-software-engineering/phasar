@@ -295,9 +295,9 @@ public:
 
   void printAsJson(std::ostream &OS = std::cout) const;
 
-  [[nodiscard]] unsigned getNumOfVertices();
+  [[nodiscard]] unsigned getNumOfVertices() const;
 
-  [[nodiscard]] unsigned getNumOfEdges();
+  [[nodiscard]] unsigned getNumOfEdges() const;
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 

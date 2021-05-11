@@ -21,7 +21,7 @@ namespace psr {
 
 /// A Wrapper over your dataflow-fact. It already contains a special treatment
 /// for the ZERO (Λ) value. Please create a subclass of this template and
-/// overwrite the print function if necessary. Note, that yout dataflow-fact
+/// overwrite the print function if necessary. Note, that your dataflow-fact
 /// must be copy- and move constructible
 template <typename T> class FlowFactWrapper : public FlowFact {
   static_assert(std::is_copy_constructible_v<T> &&
