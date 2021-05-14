@@ -95,7 +95,7 @@ public:
     }
   }
 
-  void appendGlobalCtors(std::vector<F> &CtorsList) const {
+  template <typename VecTy> void appendGlobalCtors(VecTy &CtorsList) const {
     CtorsList.reserve(CtorsList.size() + GlobalCtors.size());
     forEachGlobalCtor([&](auto *Fun) { CtorsList.push_back(Fun); });
   }
@@ -108,7 +108,7 @@ public:
     }
   }
 
-  void appendGlobalDtors(std::vector<F> &DtorsList) const {
+  template <typename VecTy> void appendGlobalDtors(VecTy &DtorsList) const {
     DtorsList.reserve(DtorsList.size() + GlobalDtors.size());
     forEachGlobalDtor([&](auto *Fun) { DtorsList.push_back(Fun); });
   }

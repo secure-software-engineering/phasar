@@ -191,33 +191,7 @@ public:
   }
 
   bool includes(const BitVectorSet<T> &Other) const {
-    // check if Other contains 1's at positions where this does not
-    // Other is longer
-    if (Bits.size() < Other.Bits.size()) {
-      size_t idx = 0;
-      for (; idx < Bits.size(); ++idx) {
-        if (Other.Bits[idx] && !Bits[idx]) {
-          return false;
-        }
-      }
-      // Check if Other's additional bits are non-zero
-      for (; idx < Other.Bits.size(); ++idx) {
-        if (Other.Bits[idx]) {
-          return false;
-        }
-      }
-      // additional zeros are fine
-      return true;
-    } else {
-      // this is longer or they have the same length
-      // check if Other contains 1's at positions where this does not
-      for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
-        if (Other.Bits[idx] && !Bits[idx]) {
-          return false;
-        }
-      }
-      return true;
-    }
+    return !Other.Bits.test(Bits);
   }
 
   void insert(const T &Data) {
@@ -240,12 +214,7 @@ public:
   }
 
   void insert(const BitVectorSet<T> &Other) {
-    if (Other.Bits.size() > Bits.size()) {
-      Bits.resize(Other.Bits.size());
-    }
-    for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
-      Bits[idx] = (Bits[idx] || Other.Bits[idx]);
-    }
+    Bits |= Other.Bits;
   }
 
   template <typename InputIt> void insert(InputIt First, InputIt Last) {

@@ -188,8 +188,9 @@ public:
   [[nodiscard]] std::vector<const llvm::Instruction *>
   getSuccsOf(const llvm::Instruction *Inst) const override;
 
-  const llvm::Function *getFirstGlobalCtorOrNull() const;
-  const llvm::Function *getLastGlobalDtorOrNull() const;
+  [[nodiscard]] const llvm::Function *getFirstGlobalCtorOrNull() const;
+
+  [[nodiscard]] const llvm::Function *getLastGlobalDtorOrNull() const;
 
   /**
    * \return all of the functions in the IRDB, this may include some not in the

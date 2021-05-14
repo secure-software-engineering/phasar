@@ -196,7 +196,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
   IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT,
                                     {"_GLOBAL__sub_I_globals_lca_1.cpp"});
 
-  IDESolver_P<IDELinearConstantAnalysis> Solver(Problem);
+  IDESolver Solver(Problem);
 
   Solver.solve();
 
