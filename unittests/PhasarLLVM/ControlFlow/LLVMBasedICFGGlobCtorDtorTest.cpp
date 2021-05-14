@@ -261,6 +261,122 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
   EXPECT_EQ(45, BarValueAtEnd);
 }
 
+TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
+  boost::log::core::get()->set_logging_enabled(false);
+  ValueAnnotationPass::resetValueID();
+
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_3_cpp.ll"});
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
+                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+
+  ASSERT_TRUE(ICFG.getFirstGlobalCtorOrNull() != nullptr);
+
+  IDELinearConstantAnalysis Problem(
+      &IRDB, &TH, &ICFG, &PT,
+      {ICFG.getFirstGlobalCtorOrNull()->getName().str()});
+
+  IDESolver Solver(Problem);
+
+  Solver.solve();
+
+  // Solver.dumpResults();
+
+  auto *FooInit = IRDB.getInstruction(7);
+  auto *BarInit = IRDB.getInstruction(9);
+  auto *LoadX = IRDB.getInstruction(18);
+  auto *LoadY = IRDB.getInstruction(19);
+  auto *End = IRDB.getInstruction(21);
+  auto Foo = IRDB.getGlobalVariableDefinition("foo");
+  auto Bar = IRDB.getGlobalVariableDefinition("bar");
+
+  auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
+  auto BarValueAfterInit = Solver.resultAt(BarInit, Bar);
+
+  EXPECT_EQ(42, FooValueAfterInit);
+  EXPECT_EQ(45, BarValueAfterInit);
+
+  auto XValueAtEnd = Solver.resultAt(End, LoadX);
+  auto FooValueAtEnd = Solver.resultAt(End, Foo);
+  auto YValueAtEnd = Solver.resultAt(End, LoadY);
+  auto BarValueAtEnd = Solver.resultAt(End, Bar);
+
+  EXPECT_EQ(42, FooValueAtEnd);
+  EXPECT_EQ(43, XValueAtEnd);
+  EXPECT_EQ(44, YValueAtEnd);
+  EXPECT_EQ(45, BarValueAtEnd);
+}
+
+// Fails due to exception handling
+TEST(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
+  boost::log::core::get()->set_logging_enabled(false);
+  ValueAnnotationPass::resetValueID();
+
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_cpp.ll"});
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(
+      IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::SOUNDY,
+      /*IncludeGlobals*/ true); // We have no real global initializers here, but
+                                // just keep the flag IncludeGlobals=true
+  IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT, {"main"});
+
+  IDESolver Solver(Problem);
+
+  Solver.solve();
+
+  // Solver.dumpResults();
+
+  auto *FooGet = IRDB.getInstruction(17);
+  auto *LoadFoo = IRDB.getInstruction(16);
+  auto *LoadX = IRDB.getInstruction(34);
+  auto *End = IRDB.getInstruction(36);
+
+  auto FooValueAfterGet = Solver.resultAt(FooGet, LoadFoo);
+
+  EXPECT_EQ(42, FooValueAfterGet)
+      << "Invalid value of " << llvmIRToString(LoadFoo);
+
+  auto XValueAtEnd = Solver.resultAt(End, LoadX);
+
+  EXPECT_EQ(43, XValueAtEnd) << "Invalid value of " << llvmIRToString(LoadX);
+}
+
+TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
+  boost::log::core::get()->set_logging_enabled(false);
+  ValueAnnotationPass::resetValueID();
+
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_1_cpp.ll"});
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(
+      IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::SOUNDY,
+      /*IncludeGlobals*/ true); // We have no real global initializers here, but
+                                // just keep the flag IncludeGlobals=true
+  IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT, {"main"});
+
+  IDESolver Solver(Problem);
+
+  Solver.solve();
+
+  // Solver.dumpResults();
+
+  auto *FooGet = IRDB.getInstruction(15);
+  auto *LoadFoo = IRDB.getInstruction(14);
+  auto *LoadX = IRDB.getInstruction(20);
+  auto *End = IRDB.getInstruction(22);
+
+  auto FooValueAfterGet = Solver.resultAt(FooGet, LoadFoo);
+
+  EXPECT_EQ(42, FooValueAfterGet)
+      << "Invalid value of " << llvmIRToString(LoadFoo);
+
+  auto XValueAtEnd = Solver.resultAt(End, LoadX);
+
+  EXPECT_EQ(43, XValueAtEnd) << "Invalid value of " << llvmIRToString(LoadX);
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

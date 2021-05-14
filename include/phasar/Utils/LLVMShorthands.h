@@ -32,6 +32,7 @@ class TerminatorInst;
 class StoreInst;
 class Module;
 class StringRef;
+class BranchInst;
 } // namespace llvm
 
 namespace psr {
@@ -194,6 +195,14 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  * @return
  */
 std::size_t computeModuleHash(const llvm::Module *M);
+
+/// True, iff V is the compiler-generated guard variable for the thread-safe
+/// initialization of function-local static variables.
+bool isGuardVariable(const llvm::Value *V);
+
+/// True, iff V is the compiler-generated branch that leads to the lazy
+/// initialization of a function-local static variable.
+bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
 } // namespace psr
 

@@ -152,18 +152,17 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       FunctionWL.push_back(RegisteredDtor);
     }
     // push global destructors to function worklist
-    // for (const auto &GlobalDtor : getGlobalDtors()) {
-    //   FunctionWL.push(GlobalDtor);
-    // }
+
     appendGlobalDtors(FunctionWL);
   }
 
   for (const auto &EntryPoint : EntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
-    UserEntryPoints.insert(F);
+
     if (F == nullptr) {
       llvm::report_fatal_error("Could not retrieve function for entry point");
     }
+    UserEntryPoints.insert(F);
     FunctionWL.push_back(F);
   }
 
@@ -290,9 +289,8 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
         }
 
         // continue resolving
-        for (const auto *PossibleTarget : PossibleTargets) {
-          FunctionWL.push_back(PossibleTarget);
-        }
+        FunctionWL.insert(FunctionWL.end(), PossibleTargets.begin(),
+                          PossibleTargets.end());
 
         Resolver.postCall(&I);
       } else {
@@ -370,9 +368,8 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
     }
 
     // continue resolving
-    for (const auto *PossibleTarget : PossibleTargets) {
-      FunctionWL.push_back(PossibleTarget);
-    }
+    FunctionWL.insert(FunctionWL.end(), PossibleTargets.begin(),
+                      PossibleTargets.end());
 
     Resolver.postCall(I);
   } else {
@@ -584,6 +581,15 @@ LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
     if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
       Successors.push_back(&it->second->front().front());
     }
+  }
+
+  if (auto Branch = llvm::dyn_cast<llvm::BranchInst>(Inst);
+      Branch && isStaticVariableLazyInitializationBranch(Branch)) {
+    // Skip the "already initialized" case, such that the analysis is always
+    // aware of the initialized value.
+    Successors.push_back(&Branch->getSuccessor(0)->front());
+
+    return Successors;
   }
 
   Successors.reserve(Inst->getNumSuccessors() + Successors.size());

@@ -15,7 +15,6 @@
  */
 
 #include <cstdlib>
-#include <llvm/IR/Instruction.h>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -26,6 +25,7 @@
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
@@ -365,6 +365,42 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
     }
   }
   return nullptr;
+}
+
+bool isGuardVariable(const llvm::Value *V) {
+  if (auto ConstBitcast = llvm::dyn_cast<llvm::ConstantExpr>(V);
+      ConstBitcast && ConstBitcast->isCast()) {
+    V = ConstBitcast->getOperand(0);
+  }
+  if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    // ZGV is the encoding of "GuardVariable"
+    return GV->getName().startswith("_ZGV");
+  }
+  return false;
+}
+
+bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst) {
+  if (Inst->isUnconditional())
+    return false;
+
+  auto *Condition = Inst->getCondition();
+
+  if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
+      Cmp && Cmp->isEquality(Cmp->getPredicate())) {
+    for (auto *Op : Cmp->operand_values()) {
+      if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Op);
+          Load && Load->isAtomic()) {
+
+        if (isGuardVariable(Load->getPointerOperand()))
+          return true;
+      } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
+        if (Call->getCalledFunction()->getName() == "__cxa_guard_acquire")
+          return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 } // namespace psr
