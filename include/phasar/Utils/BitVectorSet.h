@@ -174,19 +174,19 @@ public:
 
   BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
     size_t MaxSize = std::max(Bits.size(), Other.Bits.size());
-    BitVectorSet<T> Res(MaxSize);
-    // temp variable necessary because return type of |= is not const
-    llvm::BitVector Temp = Bits;
-    Res.Bits = Temp |= Other.Bits;
+    BitVectorSet<T> Res;
+    Res.Bits.reserve(MaxSize);
+    Res.Bits = Bits;
+    Res.Bits |= Other.Bits;
     return Res;
   }
 
   BitVectorSet<T> setIntersect(const BitVectorSet<T> &Other) const {
-    size_t MaxSize = std::max(Bits.size(), Other.Bits.size());
-    BitVectorSet<T> Res(MaxSize);
-    // temp variable necessary because return type of &= is not const
-    llvm::BitVector Temp = Bits;
-    Res.Bits = Temp &= Other.Bits;
+    BitVectorSet Res = Bits.size() > Other.Bits.size() ? Other : *this;
+    const BitVectorSet &Larger =
+        Bits.size() > Other.Bits.size() ? *this : Other;
+
+    Res.Bits &= Larger.Bits;
     return Res;
   }
 
@@ -213,9 +213,7 @@ public:
     }
   }
 
-  void insert(const BitVectorSet<T> &Other) {
-    Bits |= Other.Bits;
-  }
+  void insert(const BitVectorSet<T> &Other) { Bits |= Other.Bits; }
 
   template <typename InputIt> void insert(InputIt First, InputIt Last) {
     while (First != Last) {

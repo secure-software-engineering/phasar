@@ -218,6 +218,49 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
   EXPECT_EQ(43, XValueAtEnd);
 }
 
+TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
+  boost::log::core::get()->set_logging_enabled(false);
+  ValueAnnotationPass::resetValueID();
+
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_2_cpp.ll"});
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
+                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+  IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT,
+                                    {"_GLOBAL__sub_I_globals_lca_2.cpp"});
+
+  IDESolver Solver(Problem);
+
+  Solver.solve();
+
+  // Solver.dumpResults();
+
+  auto *FooInit = IRDB.getInstruction(7);
+  auto *BarInit = IRDB.getInstruction(11);
+  auto *LoadX = IRDB.getInstruction(20);
+  auto *LoadY = IRDB.getInstruction(21);
+  auto *End = IRDB.getInstruction(23);
+  auto Foo = IRDB.getGlobalVariableDefinition("foo");
+  auto Bar = IRDB.getGlobalVariableDefinition("bar");
+
+  auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
+  auto BarValueAfterInit = Solver.resultAt(BarInit, Bar);
+
+  EXPECT_EQ(42, FooValueAfterInit);
+  EXPECT_EQ(45, BarValueAfterInit);
+
+  auto XValueAtEnd = Solver.resultAt(End, LoadX);
+  auto FooValueAtEnd = Solver.resultAt(End, Foo);
+  auto YValueAtEnd = Solver.resultAt(End, LoadY);
+  auto BarValueAtEnd = Solver.resultAt(End, Bar);
+
+  EXPECT_EQ(42, FooValueAtEnd);
+  EXPECT_EQ(43, XValueAtEnd);
+  EXPECT_EQ(44, YValueAtEnd);
+  EXPECT_EQ(45, BarValueAtEnd);
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
