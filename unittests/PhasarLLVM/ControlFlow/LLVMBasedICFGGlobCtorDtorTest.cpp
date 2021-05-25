@@ -183,7 +183,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
   ASSERT_NE(nullptr, GlobalDtor);
 
-  GlobalDtor->print(llvm::outs());
+  // GlobalDtor->print(llvm::outs());
 
   auto *MainFn = IRDB.getFunction("main");
   auto *GlobalDtorInit = IRDB.getFunction("_GLOBAL__sub_I_globals_dtor_1.cpp");

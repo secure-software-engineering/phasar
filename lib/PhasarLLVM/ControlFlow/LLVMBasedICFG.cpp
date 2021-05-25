@@ -494,8 +494,7 @@ LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
     } else {
       return getAllUserExitPoints(UserEntryPoints, IRDB);
     }
-  }
-  else if (UserEntryPoints.count(Inst->getFunction())) {
+  } else if (UserEntryPoints.count(Inst->getFunction())) {
     if (!GlobalCtors.empty()) {
       return getAllExitPoints(GlobalCtors.rbegin()->second);
     }
@@ -803,7 +802,7 @@ void LLVMBasedICFG::collectGlobalInitializers() {
 llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
 collectRegisteredDtorsForModule(const llvm::Module *Mod) {
   llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
-      RegisteredDtors;
+      RegisteredDtors, RegisteredLocalStaticDtors;
 
   auto *CxaAtExitFn = Mod->getFunction("__cxa_atexit");
   if (!CxaAtExitFn)
@@ -829,8 +828,16 @@ collectRegisteredDtorsForModule(const llvm::Module *Mod) {
     if (!DtorOp || !DtorArgOp)
       continue;
 
-    RegisteredDtors.emplace_back(DtorOp, DtorArgOp);
+    if (Call->getFunction()->getName().contains("__cxx_global_var_init"))
+      RegisteredDtors.emplace_back(DtorOp, DtorArgOp);
+    else
+      RegisteredLocalStaticDtors.emplace_back(DtorOp, DtorArgOp);
   }
+
+  // Destructors of local static variables are registered last, no matter where
+  // they are declared in the source code
+  RegisteredDtors.append(RegisteredLocalStaticDtors.begin(),
+                         RegisteredLocalStaticDtors.end());
 
   return RegisteredDtors;
 }
