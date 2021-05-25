@@ -5,7 +5,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
-Version 1220
+Version 0521
 
 ## Secure Software Engineering Group
 
@@ -18,8 +18,7 @@ Version 1220
 | development | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=development"> |
 
 ## Supported Version(s) of LLVM
-Phasar is currently set up to support LLVM-10.0.0 and LLVM-9.0.0/1.
-However, LLVM-8.0.0 should still work fine with Phasar; (`find_package(LLVM 9 REQUIRED CONFIG)` in the top-level CMakeLists.txt may needs adjustment).
+Phasar is currently set up to support LLVM-12.0.
 
 ## What Is Phasar?
 Phasar is an LLVM-based static analysis framework written in C++.
@@ -48,7 +47,6 @@ $ sudo ./bootstrap.sh
 ```
 
 Done!
-
 
 ### Installing Phasar on a MacOS System
 Mac OS 10.13.1 or higher only!

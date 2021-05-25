@@ -161,7 +161,7 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
   return make_shared<MapFactsToCaller<>>(
-      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitSite,
+      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitSite, true,
       [](IFDSConstAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
       },
