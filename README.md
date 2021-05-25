@@ -4,7 +4,8 @@ PhASAR a LLVM-based Static Analysis Framework
 =============================================
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
+[![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
 Version 0521
 
@@ -18,6 +19,10 @@ Secure Software Engineering Group
 | :---: | :---: |
 | master | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=master"> |
 | development | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=development"> |
+
+Required version of the C++ standard
+------------------------------------
+Phasar requires C++-17.
 
 Currently supported version of LLVM
 -----------------------------------
@@ -133,12 +138,6 @@ $ sudo make install # if you wish to install Phasar system wide
 
 When you have used the `bootstrap.sh` script to install Phasar, the above steps are already done.
 Use them as a reference if you wish to modify Phasar and recompile it.
-
-Depending on your system, you may get some compiler errors from the json library. If this is the case please change the C++ standard in the top-level CMakeLists.txt:
-
-```
-set(CMAKE_CXX_STANDARD 14)
-```
 
 After compilation using cmake the following two binaries can be found in the build/ directory:
 
