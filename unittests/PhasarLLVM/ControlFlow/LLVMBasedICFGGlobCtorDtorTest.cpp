@@ -56,9 +56,11 @@ static void EnsureFunctionOrdering(
     EXPECT_TRUE(pred.size() < 2);
 
     if (succ.empty()) {
-      ASSERT_EQ(1, pred.size());
+      ASSERT_EQ(1, pred.size()) << "Invalid number of Preds for "
+                                << Fun->getName().str() << " with no succs";
     } else if (pred.empty()) {
-      ASSERT_EQ(1, succ.size());
+      ASSERT_EQ(1, succ.size()) << "Invalid number of succs for "
+                                << Fun->getName().str() << " with no preds";
     }
 
     auto succFn = succ.empty() ? nullptr : succ.front()->getFunction();
@@ -176,7 +178,13 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::SOUNDY, /*IncludeGlobals*/ true);
 
-  auto *GlobalDtor = IRDB.getFunction("_ZN3FooD2Ev");
+  auto *GlobalDtor = // IRDB.getFunction("_ZN3FooD2Ev");
+      ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
+
+  ASSERT_NE(nullptr, GlobalDtor);
+
+  GlobalDtor->print(llvm::outs());
+
   auto *MainFn = IRDB.getFunction("main");
   auto *GlobalDtorInit = IRDB.getFunction("_GLOBAL__sub_I_globals_dtor_1.cpp");
 

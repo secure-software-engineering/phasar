@@ -62,6 +62,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
     : ProjectIRDB(Options | IRDBOptions::OWNS) {
   for (const auto &File : IRFiles) {
     // if we have a file that is already compiled to llvm ir
+
     if ((File.find(".ll") != std::string::npos ||
          File.find(".bc") != std::string::npos) &&
         boost::filesystem::exists(File)) {

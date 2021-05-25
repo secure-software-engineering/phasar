@@ -69,6 +69,9 @@ private:
   std::unique_ptr<Resolver> Res;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
   llvm::SmallPtrSet<const llvm::Function *, 2> UserEntryPoints;
+
+  llvm::SmallDenseMap<const llvm::Module *, const llvm::Function *>
+      GlobalRegisteredDtorsCaller;
   /// Keeps track of the call-sites already resolved
   // std::vector<const llvm::Instruction *> CallStack;
 
@@ -301,6 +304,9 @@ public:
   [[nodiscard]] unsigned getNumOfEdges() const;
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
+
+  [[nodiscard]] const llvm::Function *
+  getRegisteredDtorsCallerOrNull(const llvm::Module *Mod);
 
 protected:
   void collectGlobalCtors() override;

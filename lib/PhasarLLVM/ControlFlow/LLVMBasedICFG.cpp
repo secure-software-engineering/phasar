@@ -20,6 +20,7 @@
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
@@ -147,10 +148,10 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     collectGlobalDtors();
     collectGlobalInitializers();
     collectRegisteredDtors();
-    // push registered destructors to function worklist
-    for (const auto &RegisteredDtor : getRegisteredDtors()) {
-      FunctionWL.push_back(RegisteredDtor);
-    }
+    // // push registered destructors to function worklist
+    // for (const auto &RegisteredDtor : getRegisteredDtors()) {
+    //   FunctionWL.push_back(RegisteredDtor);
+    // }
     // push global destructors to function worklist
 
     appendGlobalDtors(FunctionWL);
@@ -451,6 +452,8 @@ LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
                      return BB->getTerminator();
                    });
 
+    // TODO: Add function-local static variable initialization workaround here
+
     if (!Preds.empty())
       return Preds;
   }
@@ -491,16 +494,8 @@ LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
     } else {
       return getAllUserExitPoints(UserEntryPoints, IRDB);
     }
-  } else if (auto registeredIt = RegisteredDtorIndex.find(Inst->getFunction());
-             registeredIt != RegisteredDtorIndex.end()) {
-    if (registeredIt->second > 0) {
-      return getAllExitPoints(RegisteredDtors[registeredIt->second - 1]);
-    } else if (!GlobalDtors.empty()) {
-      return getAllExitPoints(GlobalDtors.rbegin()->second);
-    } else {
-      return getAllUserExitPoints(UserEntryPoints, IRDB);
-    }
-  } else if (UserEntryPoints.count(Inst->getFunction())) {
+  }
+  else if (UserEntryPoints.count(Inst->getFunction())) {
     if (!GlobalCtors.empty()) {
       return getAllExitPoints(GlobalCtors.rbegin()->second);
     }
@@ -549,30 +544,14 @@ LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
       if (auto it = std::next(globDtorIt->second); it != GlobalDtors.end()) {
         // Flow to next global dtor
         Successors.push_back(&it->second->front().front());
-      } else if (!RegisteredDtors.empty()) {
-        // We have no further regular global dtor, but at least one that was
-        // registered using __cxa_atexit
-        Successors.push_back(&RegisteredDtors[0]->front().front());
       }
       // else: we have reached the end of the program
-    } else if (auto registeredIt =
-                   RegisteredDtorIndex.find(Inst->getFunction());
-               registeredIt != RegisteredDtorIndex.end()) {
-      if (registeredIt->second < RegisteredDtors.size() - 1) {
-        // Flow to next registered dtor
-        Successors.push_back(
-            &RegisteredDtors[registeredIt->second + 1]->front().front());
-      }
     } else if (UserEntryPoints.count(Inst->getFunction())) {
       if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
         // The end of the user-entrypoint has been reached
         // => start with first global dtor
         // Ignore unbalanced returns for now
         Successors.push_back(&it->second->front().front());
-      } else if (!RegisteredDtors.empty()) {
-        // We have no regular global dtor, but at least one that was registered
-        // using __cxa_atexit
-        Successors.push_back(&RegisteredDtors[0]->front().front());
       }
     }
   } else if (auto Call = llvm::dyn_cast<llvm::CallBase>(Inst);
@@ -608,8 +587,8 @@ const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
   return nullptr;
 }
 const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
-  if (!RegisteredDtors.empty())
-    return RegisteredDtors.back();
+  // if (!RegisteredDtors.empty())
+  //   return RegisteredDtors.back();
 
   auto it = GlobalDtors.rbegin();
   if (it != GlobalDtors.rend())
@@ -821,40 +800,86 @@ void LLVMBasedICFG::collectGlobalInitializers() {
   });
 }
 
-void LLVMBasedICFG::collectRegisteredDtors() {
-  // get all destructors that are registered with __cxa_atexit
-  for (const auto &F : getGlobalInitializers()) {
-    for (const auto &BB : *F) {
-      for (const auto &I : BB) {
-        if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
-          llvm::ImmutableCallSite CS(Call);
-          if (CS.getCalledFunction()->getName() == "__cxa_atexit") {
-            // dtor is operand in call to __cxa_atexit
-            auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(CS.getArgOperand(0));
-            if (CE == nullptr) {
-              continue;
-            }
+llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
+collectRegisteredDtorsForModule(const llvm::Module *Mod) {
+  llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
+      RegisteredDtors;
 
-            // auto *AsI = CE->getAsInstruction();
-            assert(CE->isCast());
-            const llvm::Function *Dtor = llvm::cast<llvm::Function>(
-                // llvm::cast<llvm::BitCastInst>(AsI)->getOperand(0)
-                CE->getOperand(0));
-            RegisteredDtors.push_back(Dtor);
-            // AsI->deleteValue();
-          }
-        }
-      }
-    }
+  auto *CxaAtExitFn = Mod->getFunction("__cxa_atexit");
+  if (!CxaAtExitFn)
+    return RegisteredDtors;
+
+  auto getConstantBitcastArgument = [](llvm::Value *V) -> llvm::Value * {
+    auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(V);
+    if (!CE)
+      return V;
+
+    return CE->getOperand(0);
+  };
+
+  for (auto *User : CxaAtExitFn->users()) {
+    auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
+    if (!Call)
+      continue;
+
+    auto *DtorOp = llvm::dyn_cast_or_null<llvm::Function>(
+        getConstantBitcastArgument(Call->getArgOperand(0)));
+    auto *DtorArgOp = getConstantBitcastArgument(Call->getArgOperand(1));
+
+    if (!DtorOp || !DtorArgOp)
+      continue;
+
+    RegisteredDtors.emplace_back(DtorOp, DtorArgOp);
   }
 
-  if (RegisteredDtors.empty())
-    return;
+  return RegisteredDtors;
+}
 
-  // Dtors are called in reverse order of their registration
-  std::reverse(RegisteredDtors.begin(), RegisteredDtors.end());
-  for (size_t i = 0; i < RegisteredDtors.size(); ++i) {
-    RegisteredDtorIndex.try_emplace(RegisteredDtors[i], i);
+llvm::Function *createDtorCallerForModule(
+    llvm::Module *Mod,
+    const llvm::SmallVectorImpl<std::pair<llvm::FunctionCallee, llvm::Value *>>
+        &RegisteredDtors) {
+  auto *PhasarDtorCaller = llvm::cast<llvm::Function>(
+      Mod->getOrInsertFunction("__PHASAR_DTOR_CALLER",
+                               llvm::Type::getVoidTy(Mod->getContext()))
+          .getCallee());
+
+  auto *BB =
+      llvm::BasicBlock::Create(Mod->getContext(), "entry", PhasarDtorCaller);
+
+  llvm::IRBuilder<> IRB(BB);
+
+  for (auto it = RegisteredDtors.rbegin(), end = RegisteredDtors.rend();
+       it != end; ++it) {
+    IRB.CreateCall(it->first, {it->second});
+  }
+
+  IRB.CreateRetVoid();
+
+  return PhasarDtorCaller;
+}
+
+void LLVMBasedICFG::collectRegisteredDtors() {
+
+  for (auto *Mod : IRDB.getAllModules()) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Collect Registered Dtors for Module "
+                  << Mod->getName().str());
+
+    auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
+
+    if (RegisteredDtors.empty())
+      continue;
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "> Found " << RegisteredDtors.size()
+                  << " Registered Dtors");
+
+    auto *RegisteredDtorCaller =
+        createDtorCallerForModule(Mod, RegisteredDtors);
+    auto it = GlobalDtors.emplace(0, RegisteredDtorCaller);
+    GlobalDtorFn.try_emplace(RegisteredDtorCaller, it);
+    GlobalRegisteredDtorsCaller.try_emplace(Mod, RegisteredDtorCaller);
   }
 }
 
@@ -1017,6 +1042,15 @@ unsigned LLVMBasedICFG::getNumOfVertices() const {
 
 unsigned LLVMBasedICFG::getNumOfEdges() const {
   return boost::num_edges(CallGraph);
+}
+
+const llvm::Function *
+LLVMBasedICFG::getRegisteredDtorsCallerOrNull(const llvm::Module *Mod) {
+  auto it = GlobalRegisteredDtorsCaller.find(Mod);
+  if (it != GlobalRegisteredDtorsCaller.end())
+    return it->second;
+
+  return nullptr;
 }
 
 } // namespace psr

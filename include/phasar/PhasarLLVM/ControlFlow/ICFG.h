@@ -49,14 +49,13 @@ public:
   using GlobalDtorTy = std::multimap<size_t, F, std::greater<size_t>>;
 
 protected:
-  std::vector<F> GlobalInitializers, RegisteredDtors;
+  std::vector<F> GlobalInitializers;
 
   GlobalCtorTy GlobalCtors;
   GlobalDtorTy GlobalDtors;
 
   llvm::SmallDenseMap<F, typename GlobalCtorTy::const_iterator, 2> GlobalCtorFn;
   llvm::SmallDenseMap<F, typename GlobalDtorTy::const_iterator, 2> GlobalDtorFn;
-  llvm::SmallDenseMap<F, size_t, 8> RegisteredDtorIndex;
 
   virtual void collectGlobalCtors() = 0;
 
@@ -116,8 +115,6 @@ public:
   const std::vector<F> &getGlobalInitializers() const {
     return GlobalInitializers;
   }
-
-  const std::vector<F> &getRegisteredDtors() const { return RegisteredDtors; }
 
   using CFG<N, F>::print; // tell the compiler we wish to have both prints
   virtual void print(std::ostream &OS = std::cout) const = 0;
