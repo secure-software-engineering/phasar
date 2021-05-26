@@ -735,10 +735,10 @@ public:
         //                v
         //                x
         //
-        auto LoadPTS = this->PT->getReachableAllocationSites(
-            Load->getPointerOperand(), OnlyConsiderLocalAliases);
         if ((currNode == Load->getPointerOperand() ||
-             LoadPTS->count(currNode)) &&
+             this->PT->isInReachableAllocationSites(
+                 Load->getPointerOperand(), currNode,
+                 OnlyConsiderLocalAliases)) &&
             Load == succNode) {
           IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         } else {
@@ -829,13 +829,7 @@ public:
         }
       } else {
         // Use points-to information to find all possible overriding edges.
-        std::shared_ptr<std::unordered_set<d_t>> ValuePTS = nullptr;
-        if (Store->getValueOperand()->getType()->isPointerTy()) {
-          ValuePTS = this->PT->getReachableAllocationSites(
-              Store->getValueOperand(), OnlyConsiderLocalAliases);
-        }
-        auto PointerPTS = this->PT->getReachableAllocationSites(
-            Store->getPointerOperand(), OnlyConsiderLocalAliases);
+
         // Overriding edge with literal: kill all labels that are propagated
         // along the edge of the value that is overridden.
         //
@@ -853,7 +847,9 @@ public:
         //
         if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
             currNode == succNode &&
-            (PointerPTS->count(currNode) ||
+            (this->PT->isInReachableAllocationSites(Store->getPointerOperand(),
+                                                    currNode,
+                                                    OnlyConsiderLocalAliases) ||
              Store->getPointerOperand() == currNode)) {
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
@@ -870,9 +866,16 @@ public:
         //               v
         //               y
         //
+        bool StoreValOpIsPointerTy =
+            Store->getValueOperand()->getType()->isPointerTy();
         if ((currNode == Store->getValueOperand() ||
-             (ValuePTS && ValuePTS->count(Store->getValueOperand()))) &&
-            PointerPTS->count(Store->getPointerOperand())) {
+             (StoreValOpIsPointerTy &&
+              this->PT->isInReachableAllocationSites(
+                  Store->getValueOperand(), Store->getValueOperand(),
+                  OnlyConsiderLocalAliases))) &&
+            this->PT->isInReachableAllocationSites(Store->getPointerOperand(),
+                                                   Store->getPointerOperand(),
+                                                   OnlyConsiderLocalAliases)) {
           return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
         // Kill all labels that are propagated along the edge of the
@@ -888,7 +891,9 @@ public:
         //            v
         //            y
         //
-        if (currNode == succNode && PointerPTS->count(currNode)) {
+        if (currNode == succNode && this->PT->isInReachableAllocationSites(
+                                        Store->getPointerOperand(), currNode,
+                                        OnlyConsiderLocalAliases)) {
           return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
         }
       }
