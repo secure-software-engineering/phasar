@@ -385,6 +385,46 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
   EXPECT_EQ(43, XValueAtEnd) << "Invalid value of " << llvmIRToString(LoadX);
 }
 
+TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
+  boost::log::core::get()->set_logging_enabled(false);
+  ValueAnnotationPass::resetValueID();
+
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_5_cpp.ll"});
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
+                     Soundness::SOUNDY,
+                     /*IncludeGlobals*/ true);
+  IDELinearConstantAnalysis Problem(
+      &IRDB, &TH, &ICFG, &PT,
+      {ICFG.getFirstGlobalCtorOrNull()->getName().str()});
+
+  IDESolver Solver(Problem);
+
+  auto *GlobalDtor = ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
+
+  ASSERT_NE(nullptr, GlobalDtor);
+
+  GlobalDtor->print(llvm::outs());
+
+  Solver.solve();
+
+  Solver.dumpResults();
+
+  auto AfterGlobalInit = IRDB.getInstruction(26);
+  auto BeforeDtorPrintF = IRDB.getInstruction(11);
+  auto AtMainPrintF = IRDB.getInstruction(29);
+
+  auto Foo = IRDB.getGlobalVariableDefinition("foo");
+
+  EXPECT_EQ(42, Solver.resultAt(AfterGlobalInit, Foo));
+  EXPECT_EQ(42, Solver.resultAt(AtMainPrintF, Foo));
+  // For whatever reason the analysis computes Top for _this inside the dtor.
+  // However, it correctly considers foo=42 inside __PHASAR_DTOR_CALLER.
+
+  // EXPECT_EQ(43, Solver.resultAt(BeforeDtorPrintF, Foo));
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

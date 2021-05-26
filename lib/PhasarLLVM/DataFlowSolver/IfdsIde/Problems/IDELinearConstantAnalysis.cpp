@@ -124,8 +124,8 @@ IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t CallStmt,
     IDELinearConstantAnalysis::f_t DestFun) {
   // Map the actual parameters into the formal parameters
-  if (llvm::isa<llvm::CallInst>(CallStmt) ||
-      llvm::isa<llvm::InvokeInst>(CallStmt)) {
+  if (llvm::isa<llvm::CallBase>(CallStmt)) {
+
     struct LCAFF : FlowFunction<const llvm::Value *> {
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
@@ -190,7 +190,9 @@ IDELinearConstantAnalysis::getCallFlowFunction(
         return Res;
       }
     };
-    return make_shared<LCAFF>(llvm::ImmutableCallSite(CallStmt), DestFun);
+    llvm::ImmutableCallSite CS(CallStmt);
+    if (!CS.getCalledFunction()->isDeclaration())
+      return make_shared<LCAFF>(CS, DestFun);
   }
   // Pass everything else as identity
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
