@@ -142,10 +142,11 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   SmallerSet->clear();
 }
 
-bool LLVMPointsToSet::interFoobar(const llvm::Value *V, const llvm::Value *P) {
+bool LLVMPointsToSet::interIsReachableAllocationSiteTy(const llvm::Value *V,
+                                                       const llvm::Value *P) {
   // consider the full inter-procedural points-to/alias information
 
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
+  if (llvm::isa<llvm::AllocaInst>(P)) {
     return true;
   }
   if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
@@ -160,13 +161,12 @@ bool LLVMPointsToSet::interFoobar(const llvm::Value *V, const llvm::Value *P) {
   return false;
 }
 
-bool LLVMPointsToSet::intraFoobar(const llvm::Value *V, const llvm::Value *P) {
-  // consider the full inter-procedural points-to/alias information
-
+bool LLVMPointsToSet::intraIsReachableAllocationSiteTy(
+    const llvm::Value *V, const llvm::Value *P, const llvm::Function *VFun,
+    const llvm::GlobalObject *VG) {
   // consider the function-local, i.e. intra-procedural, points-to/alias
   // information only
-  const auto *VFun = retrieveFunction(V);
-  const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+
   // We may not be able to retrieve a function for the given value since some
   // pointer values can exist outside functions, for instance, in case of
   // vtables, etc.
@@ -376,16 +376,8 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
     for (const auto *P : *PTS) {
-      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
-        AllocSites->insert(Alloca);
-      }
-      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-          AllocSites->insert(P);
-        }
+      if (interIsReachableAllocationSiteTy(V, P)) {
+        AllocSites->insert(P);
       }
     }
   } else {
@@ -397,27 +389,8 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
     // pointer values can exist outside functions, for instance, in case of
     // vtables, etc.
     for (const auto *P : *PTS) {
-      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
-        // only add function local allocation sites
-        if (VFun && VFun == Alloca->getFunction()) {
-          AllocSites->insert(Alloca);
-        }
-        if (VG) {
-          AllocSites->insert(Alloca);
-        }
-      }
-      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-          if (VFun && VFun == CS.getInstruction()->getFunction()) {
-            AllocSites->insert(P);
-          }
-          if (VG) {
-            AllocSites->insert(P);
-          }
-        }
+      if (intraIsReachableAllocationSiteTy(V, P, VFun, VG)) {
+        AllocSites->insert(P);
       }
     }
   }
@@ -433,15 +406,18 @@ bool LLVMPointsToSet::isInReachableAllocationSites(
   }
   computeValuesPointsToSet(V);
 
-  // TODO (sattlerf): rename
-  bool IsX = false;
+  bool PVIsReachableAllocationSiteType = false;
   if (IntraProcOnly) {
-    IsX = intraFoobar(V, PotentialValue);
+    const auto *VFun = retrieveFunction(V);
+    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+    PVIsReachableAllocationSiteType =
+        intraIsReachableAllocationSiteTy(V, PotentialValue, VFun, VG);
   } else {
-    IsX = interFoobar(V, PotentialValue);
+    PVIsReachableAllocationSiteType =
+        interIsReachableAllocationSiteTy(V, PotentialValue);
   }
 
-  if (IsX) {
+  if (PVIsReachableAllocationSiteType) {
     const auto PTS = PointsToSets[V];
     return PTS->count(PotentialValue);
   }

@@ -146,12 +146,9 @@ public:
 
   [[nodiscard]] bool
   isInReachableAllocationSites(const llvm::Value *V,
-                              const llvm::Value *PotentialValue,
-                              bool IntraProcOnly = false,
-                              const llvm::Instruction *I = nullptr) override {
-    // TODO(sattlerf): implement
-    return false;
-  }
+                               const llvm::Value *PotentialValue,
+                               bool IntraProcOnly = false,
+                               const llvm::Instruction *I = nullptr) override;
 
   void mergeWith(const PointsToInfo<const llvm::Value *,
                                     const llvm::Instruction *> &PTI) override;

@@ -54,11 +54,13 @@ private:
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 
-  // TODO (sattlerf): rename
-  bool interFoobar(const llvm::Value *V, const llvm::Value *P);
+  bool interIsReachableAllocationSiteTy(const llvm::Value *V,
+                                        const llvm::Value *P);
 
-  // TODO (sattlerf): rename
-  bool intraFoobar(const llvm::Value *V, const llvm::Value *P);
+  bool intraIsReachableAllocationSiteTy(const llvm::Value *V,
+                                        const llvm::Value *P,
+                                        const llvm::Function *VFun,
+                                        const llvm::GlobalObject *VG);
 
 public:
   /**

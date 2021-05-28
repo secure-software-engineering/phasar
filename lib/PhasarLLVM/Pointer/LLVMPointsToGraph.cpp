@@ -279,6 +279,13 @@ LLVMPointsToGraph::getReachableAllocationSites(const llvm::Value *V,
   return AllocSites;
 }
 
+[[nodiscard]] bool LLVMPointsToGraph::isInReachableAllocationSites(
+    const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
+    const llvm::Instruction *I) {
+  return getReachableAllocationSites(V, IntraProcOnly, I)
+      ->count(PotentialValue);
+}
+
 void LLVMPointsToGraph::mergeWith(
     const LLVMPointsToGraph::PointsToInfo<const llvm::Value *,
                                           const llvm::Instruction *> &PTI) {
