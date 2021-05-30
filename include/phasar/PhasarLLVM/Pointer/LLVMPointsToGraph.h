@@ -144,6 +144,12 @@ public:
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
 
+  [[nodiscard]] bool
+  isInReachableAllocationSites(const llvm::Value *V,
+                               const llvm::Value *PotentialValue,
+                               bool IntraProcOnly = false,
+                               const llvm::Instruction *I = nullptr) override;
+
   void mergeWith(const PointsToInfo<const llvm::Value *,
                                     const llvm::Instruction *> &PTI) override;
 
