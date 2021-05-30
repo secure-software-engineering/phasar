@@ -14,6 +14,8 @@
  *      Author: nicolas bellec
  */
 
+#include <memory>
+
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -145,25 +147,24 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
         }
         std::vector<const llvm::GlobalVariable *> GlobalVariableWL;
         std::stack<const llvm::ConstantAggregate *> ConstantAggregateWL;
-        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
-          // Unfortunately this allocates
-          auto *AsI = CE->getAsInstruction();
+        if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
+          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+              CE->getAsInstruction(), &deleteValue);
           for (auto &Op : AsI->operands()) {
-            if (auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
+            if (const auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
               GlobalVariableWL.push_back(GVOp);
             }
           }
-          AsI->deleteValue();
         }
-        if (auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
+        if (const auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
           GlobalVariableWL.push_back(GVP);
         }
-        for (auto *GV : GlobalVariableWL) {
+        for (const auto *GV : GlobalVariableWL) {
           if (!GV->hasInitializer()) {
             continue;
           }
-          auto InitConst = GV->getInitializer();
-          if (auto *InitConstAggregate =
+          const auto *InitConst = GV->getInitializer();
+          if (const auto *InitConstAggregate =
                   llvm::dyn_cast<llvm::ConstantAggregate>(InitConst)) {
             ConstantAggregateWL.push(InitConstAggregate);
           }
@@ -171,7 +172,7 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
         std::unordered_set<const llvm::ConstantAggregate *>
             VisitedConstantAggregates;
         while (!ConstantAggregateWL.empty()) {
-          auto ConstAggregateItem = ConstantAggregateWL.top();
+          const auto *ConstAggregateItem = ConstantAggregateWL.top();
           ConstantAggregateWL.pop();
           // We may have already processed the item, avoid an infinite loop
           if (!VisitedConstantAggregates.insert(ConstAggregateItem).second) {
@@ -179,17 +180,17 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
           }
           for (const auto &Op : ConstAggregateItem->operands()) {
             if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-              auto *AsI = CE->getAsInstruction();
+              std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+                  CE->getAsInstruction(), &deleteValue);
               if (AsI->getType()->isPointerTy() &&
                   AsI->getType()->getPointerElementType() == FTy) {
-                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
                   if (auto *F =
                           llvm::dyn_cast<llvm::Function>(BC->getOperand(0))) {
                     Callees.insert(F);
                   }
                 }
               }
-              AsI->deleteValue();
             }
             if (auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
               if (matchesSignature(F, FTy, false)) {

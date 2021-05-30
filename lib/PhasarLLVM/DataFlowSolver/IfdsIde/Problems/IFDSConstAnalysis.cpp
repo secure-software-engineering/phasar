@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <memory>
 #include <utility>
 
 #include "llvm/Demangle/Demangle.h"
@@ -66,10 +67,12 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     if (const auto *CE =
             llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
       // llvm::ConstantExpr *CE = const_cast<llvm::ConstantExpr *>(ConstCE);
-      auto *CEInst = const_cast<llvm::ConstantExpr *>(CE)->getAsInstruction();
+      std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> CEInst(
+          CE->getAsInstruction(), &deleteValue);
       if (auto *CF =
               llvm::dyn_cast<llvm::ConstantExpr>(CEInst->getOperand(0))) {
-        auto *CFInst = CF->getAsInstruction();
+        std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> CFInst(
+            CF->getAsInstruction(), &deleteValue);
         if (auto *VTable =
                 llvm::dyn_cast<llvm::GlobalVariable>(CFInst->getOperand(0))) {
           if (VTable->hasName() &&
@@ -78,14 +81,10 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
             LOG_IF_ENABLE(
                 BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Store Instruction sets up or updates vtable - ignored!");
-            CFInst->deleteValue();
-            CEInst->deleteValue();
             return Identity<IFDSConstAnalysis::d_t>::getInstance();
           }
         }
-        CFInst->deleteValue();
       }
-      CEInst->deleteValue();
     } /* end vtable set-up instruction */
     IFDSConstAnalysis::d_t PointerOp = Store->getPointerOperand();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

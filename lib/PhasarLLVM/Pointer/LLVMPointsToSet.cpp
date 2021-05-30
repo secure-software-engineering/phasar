@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <type_traits>
 #include <unordered_set>
 
@@ -243,8 +244,10 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
           mergePointsToSets(SVO, SPO);
         }
         if (auto *SVOCE = llvm::dyn_cast<llvm::ConstantExpr>(SVO)) {
-          auto *AsI = SVOCE->getAsInstruction();
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+
+          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+              SVOCE->getAsInstruction(), &deleteValue);
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
             auto *RHS = BC->getOperand(0);
             addSingletonPointsToSet(RHS);
             addSingletonPointsToSet(SVOCE);
@@ -252,7 +255,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
             mergePointsToSets(RHS, SPO);
             mergePointsToSets(SVOCE, SPO);
           }
-          AsI->deleteValue();
         }
       }
     }

@@ -14,6 +14,8 @@
  *      Author: nicolas bellec
  */
 
+#include <memory>
+
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -111,16 +113,16 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
         if (BitcastExpr->isCast()) {
           if (auto *ConstGep = llvm::dyn_cast<llvm::ConstantExpr>(
                   BitcastExpr->getOperand(0))) {
-            auto *GepAsInst = ConstGep->getAsInstruction();
+            std::unique_ptr<llvm::Instruction, decltype(&deleteValue)>
+                GepAsInst(ConstGep->getAsInstruction(), &deleteValue);
             if (auto *Gep =
-                    llvm::dyn_cast<llvm::GetElementPtrInst>(GepAsInst)) {
+                    llvm::dyn_cast<llvm::GetElementPtrInst>(GepAsInst.get())) {
               if (auto *Vtable = llvm::dyn_cast<llvm::Constant>(
                       Gep->getPointerOperand())) {
                 // We can here assume that we found a vtable
                 VtableNum = Idx;
               }
             }
-            GepAsInst->deleteValue();
           }
         }
       }
