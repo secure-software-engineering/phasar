@@ -168,9 +168,9 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          // caution: getAsInstruction allocates, need to delete later
-          auto *AsI = CE->getAsInstruction();
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+              CE->getAsInstruction(), &deleteValue);
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
@@ -182,7 +182,6 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
               }
             }
           }
-          AsI->deleteValue();
         }
       }
     }
@@ -208,9 +207,9 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
           if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
             for (auto &COp : CA->operands()) {
               if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-                // caution: getAsInstruction allocates, need to delete later
-                auto *AsI = CE->getAsInstruction();
-                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+                    CE->getAsInstruction(), &deleteValue);
+                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
                   // if the entry is a GlobalAlias, get its Aliasee
                   auto *ENTRY = BC->getOperand(0);
                   while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(ENTRY)) {
@@ -223,7 +222,6 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                     }
                   }
                 }
-                AsI->deleteValue();
               }
             }
           }

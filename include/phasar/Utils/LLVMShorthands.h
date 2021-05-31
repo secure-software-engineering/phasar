@@ -20,11 +20,12 @@
 #include <string>
 #include <vector>
 
+#include "llvm/IR/Value.h"
+
 #include "phasar/Utils/Utilities.h"
 
 namespace llvm {
 class CallInst;
-class Value;
 class FunctionType;
 class Function;
 class Argument;
@@ -36,6 +37,8 @@ class StringRef;
 } // namespace llvm
 
 namespace psr {
+
+static inline void deleteValue(llvm::Value *V) { V->deleteValue(); }
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.

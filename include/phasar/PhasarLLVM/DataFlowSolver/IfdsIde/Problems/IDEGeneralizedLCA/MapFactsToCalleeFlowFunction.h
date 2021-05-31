@@ -21,6 +21,7 @@ class Value;
 namespace psr {
 
 class MapFactsToCalleeFlowFunction : public FlowFunction<const llvm::Value *> {
+protected:
   const llvm::CallBase *CallSite;
   const llvm::Function *Callee;
   std::vector<const llvm::Value *> Actuals;

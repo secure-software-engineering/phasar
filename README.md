@@ -3,7 +3,8 @@
 # PhASAR a LLVM-based Static Analysis Framework
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
+[![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
 Version 0521
 
@@ -16,6 +17,9 @@ Version 0521
 | :---: | :---: |
 | master | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=master"> |
 | development | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=development"> |
+
+## Required version of the C++ standard
+Phasar requires C++-17.
 
 ## Supported Version(s) of LLVM
 Phasar is currently set up to support LLVM-12.0.
