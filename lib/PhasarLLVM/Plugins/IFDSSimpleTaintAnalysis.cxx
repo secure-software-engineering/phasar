@@ -85,9 +85,9 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
 }
 
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
-IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallStmt,
+IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallSite,
                                              const llvm::Function *DestFun) {
-  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(CallStmt)) {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     if (DestFun->getName().str() == "taint") {
       return make_shared<Gen<const FlowFact *>>(
           ffManager.getOrCreateFlowFact(Call), getZeroValue());
@@ -101,7 +101,7 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallStmt,
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getRetFlowFunction(const llvm::Instruction *CallSite,
                                             const llvm::Function *CalleeFun,
-                                            const llvm::Instruction *ExitStmt,
+                                            const llvm::Instruction *ExitSite,
                                             const llvm::Instruction *RetSite) {
   return Identity<const FlowFact *>::getInstance();
 }
@@ -115,7 +115,7 @@ IFDSSimpleTaintAnalysis::getCallToRetFlowFunction(
 
 IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getSummaryFlowFunction(
-    const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
+    const llvm::Instruction *CallSite, const llvm::Function *DestFun) {
   return nullptr;
 }
 

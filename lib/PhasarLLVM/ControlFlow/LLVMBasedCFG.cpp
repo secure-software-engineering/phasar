@@ -38,8 +38,8 @@ using namespace psr;
 namespace psr {
 
 const llvm::Function *
-LLVMBasedCFG::getFunctionOf(const llvm::Instruction *Stmt) const {
-  return Stmt->getFunction();
+LLVMBasedCFG::getFunctionOf(const llvm::Instruction *Inst) const {
+  return Inst->getFunction();
 }
 
 vector<const llvm::Instruction *>
@@ -163,20 +163,20 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
   }
 }
 
-bool LLVMBasedCFG::isCallStmt(const llvm::Instruction *Stmt) const {
-  return llvm::isa<llvm::CallBase>(Stmt);
+bool LLVMBasedCFG::isCallSite(const llvm::Instruction *Inst) const {
+  return llvm::isa<llvm::CallBase>(Inst);
 }
 
-bool LLVMBasedCFG::isExitStmt(const llvm::Instruction *Stmt) const {
-  return llvm::isa<llvm::ReturnInst>(Stmt);
+bool LLVMBasedCFG::isExitInst(const llvm::Instruction *Inst) const {
+  return llvm::isa<llvm::ReturnInst>(Inst);
 }
 
-bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *Stmt) const {
-  return (Stmt == &Stmt->getFunction()->front().front());
+bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *Inst) const {
+  return (Inst == &Inst->getFunction()->front().front());
 }
 
-bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *Stmt) const {
-  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
+bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *Inst) const {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Inst)) {
     if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Load->getPointerOperand())) {
       return true;
@@ -185,8 +185,8 @@ bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *Stmt) const {
   return false;
 }
 
-bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *Stmt) const {
-  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
+bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *Inst) const {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Inst)) {
     if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Store->getPointerOperand())) {
       return true;
@@ -195,10 +195,10 @@ bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *Stmt) const {
   return false;
 }
 
-bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *Stmt,
+bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *Inst,
                                           const llvm::Instruction *Succ) const {
   // assert(false && "FallThrough not valid in LLVM IR");
-  if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
+  if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Inst)) {
     if (B->isConditional()) {
       return &B->getSuccessor(1)->front() == Succ;
     } else {
@@ -208,10 +208,10 @@ bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *Stmt,
   return false;
 }
 
-bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *Stmt,
+bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *Inst,
                                   const llvm::Instruction *Succ) const {
-  if (Stmt->isTerminator()) {
-    for (const auto *BB : llvm::successors(Stmt->getParent())) {
+  if (Inst->isTerminator()) {
+    for (const auto *BB : llvm::successors(Inst->getParent())) {
       if (&BB->front() == Succ) {
         return true;
       }
@@ -299,9 +299,9 @@ LLVMBasedCFG::getSpecialMemberFunctionType(const llvm::Function *Fun) const {
   return SpecialMemberFunctionType::None;
 }
 
-string LLVMBasedCFG::getStatementId(const llvm::Instruction *Stmt) const {
+string LLVMBasedCFG::getStatementId(const llvm::Instruction *Inst) const {
   return llvm::cast<llvm::MDString>(
-             Stmt->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
+             Inst->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
       ->getString()
       .str();
 }

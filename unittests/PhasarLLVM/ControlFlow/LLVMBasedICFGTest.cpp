@@ -144,11 +144,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_4) {
           for (const auto &I2 : BB2) {
             if (llvm::isa<llvm::CallInst>(&I2)) {
               CalleesOfCallAtInside = ICFG.getCalleesOfCallAt(&I2);
-              for (const llvm::Function *Func2 : CalleesOfCallAtInside) {
-                CountFunc++;
-                ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I));
-                ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I2));
-              }
+              CountFunc = CountFunc + CalleesOfCallAtInside.size();
+              ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I));
+              ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I2));
             }
           }
         }
@@ -172,7 +170,7 @@ TEST(LLVMBasedICFGTest, StaticCallSite_5) {
 
   for (const auto &BB : *F) {
     for (const auto &I : BB) {
-      if (ICFG.isCallStmt(&I)) {
+      if (ICFG.isCallSite(&I)) {
         set<const llvm::Instruction *> CallsFromWithin =
             ICFG.getCallsFromWithin(ICFG.getFunctionOf(&I));
         ASSERT_EQ(CallsFromWithin.size(), 1U);
@@ -193,7 +191,7 @@ TEST(LLVMBasedICFGTest, StaticCallSite_6) {
   ASSERT_TRUE(FooF);
 
   const llvm::Instruction *I = getNthInstruction(F, 1);
-  if (ICFG.isCallStmt(I) || llvm::isa<llvm::InvokeInst>(I)) {
+  if (ICFG.isCallSite(I) || llvm::isa<llvm::InvokeInst>(I)) {
     set<const llvm::Instruction *> StartPoints = ICFG.getStartPointsOf(FooF);
     set<const llvm::Instruction *> CallsFromWithin =
         ICFG.getCallsFromWithin(ICFG.getFunctionOf(getNthInstruction(F, 2)));

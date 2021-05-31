@@ -15,6 +15,10 @@ set(lca_files_mem2reg
 )
 
 foreach(TEST_SRC ${lca_files})
+  generate_ll_file(FILE ${TEST_SRC})
+endforeach(TEST_SRC)
+
+foreach(TEST_SRC ${lca_files})
   generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
 

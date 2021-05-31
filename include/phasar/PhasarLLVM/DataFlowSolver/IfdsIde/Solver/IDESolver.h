@@ -632,37 +632,37 @@ protected:
           }
         }
       }
-      // line 17-19 of Naeem/Lhotak/Rodriguez
-      // process intra-procedural flows along call-to-return flow functions
-      for (n_t returnSiteN : returnSiteNs) {
-        FlowFunctionPtrType callToReturnFlowFunction =
-            cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
-                                                             callees);
-        INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        container_type returnFacts =
-            computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
-        ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
-                         PAMM_SEVERITY_LEVEL::Full);
-        saveEdges(n, returnSiteN, d2, returnFacts, false);
-        for (d_t d3 : returnFacts) {
-          EdgeFunctionPtrType edgeFnE =
-              cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
-                  n, d2, returnSiteN, d3, callees);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Queried Call-to-Return Edge Function: "
-                        << edgeFnE->str());
-          if (SolverConfig.emitESG()) {
-            intermediateEdgeFunctions[std::make_tuple(n, d2, returnSiteN, d3)]
-                .push_back(edgeFnE);
-          }
-          INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          auto fPrime = f->composeWith(edgeFnE);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                            << "Compose: " << edgeFnE->str() << " * "
-                            << f->str() << " = " << fPrime->str();
-                        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-          propagate(d1, returnSiteN, d3, fPrime, n, false);
+    }
+    // line 17-19 of Naeem/Lhotak/Rodriguez
+    // process intra-procedural flows along call-to-return flow functions
+    for (n_t returnSiteN : returnSiteNs) {
+      FlowFunctionPtrType callToReturnFlowFunction =
+          cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
+                                                           callees);
+      INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
+      container_type returnFacts =
+          computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
+      ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
+                       PAMM_SEVERITY_LEVEL::Full);
+      saveEdges(n, returnSiteN, d2, returnFacts, false);
+      for (d_t d3 : returnFacts) {
+        EdgeFunctionPtrType edgeFnE =
+            cachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, returnSiteN,
+                                                             d3, callees);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Queried Call-to-Return Edge Function: "
+                      << edgeFnE->str());
+        if (SolverConfig.emitESG()) {
+          intermediateEdgeFunctions[std::make_tuple(n, d2, returnSiteN, d3)]
+              .push_back(edgeFnE);
         }
+        INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
+        auto fPrime = f->composeWith(edgeFnE);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "Compose: " << edgeFnE->str() << " * " << f->str()
+                          << " = " << fPrime->str();
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+        propagate(d1, returnSiteN, d3, fPrime, n, false);
       }
     }
   }
@@ -856,8 +856,8 @@ protected:
         << "  D target: " << IDEProblem.DtoString(edge.factAtTarget()) << " >";
         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-    if (!ICF->isCallStmt(edge.getTarget())) {
-      if (ICF->isExitStmt(edge.getTarget())) {
+    if (!ICF->isCallSite(edge.getTarget())) {
+      if (ICF->isExitInst(edge.getTarget())) {
         processExit(edge);
       }
       if (!ICF->getSuccsOf(edge.getTarget()).empty()) {
@@ -878,7 +878,7 @@ protected:
         unbalancedRetSites.count(n)) {
       propagateValueAtStart(nAndD, n);
     }
-    if (ICF->isCallStmt(n)) {
+    if (ICF->isCallSite(n)) {
       propagateValueAtCall(nAndD, n);
     }
   }
@@ -1502,7 +1502,7 @@ protected:
           }
         }
         // Store all valid facts after call-to-return flow
-        if (ICF->isCallStmt(Edge.first)) {
+        if (ICF->isCallSite(Edge.first)) {
           ValidInCallerContext[Edge.second].insert(D2Set.begin(), D2Set.end());
         }
         LOG_IF_ENABLE([&]() {
@@ -1542,7 +1542,7 @@ protected:
        * Special Case: Summary was applied for a particular call
        *   Process the summary's #gen and #kill.
        */
-      if (ICF->isCallStmt(Edge.first)) {
+      if (ICF->isCallSite(Edge.first)) {
         for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1588,7 +1588,7 @@ protected:
        * the caller, we have to increase the number of generated facts by one.
        * Zero value does not count towards generated/killed facts.
        */
-      if (ICF->isExitStmt(cell.getRowKey())) {
+      if (ICF->isExitInst(cell.getRowKey())) {
         for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1712,7 +1712,7 @@ public:
       DOTNode N2(fnName, n2_label, n2_stmtId);
       // Add control flow node(s) to function subgraph
       FG->stmts.insert(N1);
-      if (ICF->isExitStmt(Edge.second)) {
+      if (ICF->isExitInst(Edge.second)) {
         FG->stmts.insert(N2);
       }
 

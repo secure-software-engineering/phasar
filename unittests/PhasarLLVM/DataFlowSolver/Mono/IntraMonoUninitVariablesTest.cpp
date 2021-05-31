@@ -12,20 +12,22 @@
 #include <string>
 #include <utility>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+
+#include "TestConfig.h"
 
 using namespace psr;
 
@@ -33,8 +35,7 @@ using namespace psr;
 class IntraMonoUninitVariablesTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/uninitialized_variables/";
+      unittest::PathToLLTestFiles + "/uninitialized_variables/";
 
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
@@ -55,9 +56,9 @@ protected:
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto *PT = new LLVMPointsToSet(*IRDB);
+    auto PT = LLVMPointsToSet(*IRDB);
     LLVMBasedCFG CFG;
-    IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, PT, EntryPoints);
+    IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, &PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);
     Solver.solve();
     if (printDump) {

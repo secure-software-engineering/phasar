@@ -20,10 +20,12 @@
 #include <string>
 #include <vector>
 
+#include "llvm/IR/Value.h"
+
 #include "phasar/Utils/Utilities.h"
 
 namespace llvm {
-class Value;
+class CallInst;
 class FunctionType;
 class Function;
 class Argument;
@@ -36,6 +38,8 @@ class BranchInst;
 } // namespace llvm
 
 namespace psr {
+
+static inline void deleteValue(llvm::Value *V) { V->deleteValue(); }
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -196,14 +200,34 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  */
 std::size_t computeModuleHash(const llvm::Module *M);
 
-/// True, iff V is the compiler-generated guard variable for the thread-safe
-/// initialization of function-local static variables.
+/**
+ * @brief True, iff V is the compiler-generated guard variable for the
+ * thread-safe initialization of function-local static variables.
+ */
 bool isGuardVariable(const llvm::Value *V);
 
-/// True, iff V is the compiler-generated branch that leads to the lazy
-/// initialization of a function-local static variable.
+/**
+ * @brief True, iff V is the compiler-generated branch that leads to the lazy
+ * initialization of a function-local static variable.
+ */
 bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
+/**
+ * Tests for https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic
+ * e.g.
+ * int boo __attribute__((annotate("bar"));
+ * @param F The function to test - Target of the call instruction
+ */
+bool isVarAnnotationIntrinsic(const llvm::Function *F);
+
+/**
+ * Retrieves String annotation value as per
+ * https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic
+ * Test the call function be tested by isVarAnnotationIntrinsic
+ *
+ */
+const llvm::StringRef
+getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
 } // namespace psr
 
 #endif

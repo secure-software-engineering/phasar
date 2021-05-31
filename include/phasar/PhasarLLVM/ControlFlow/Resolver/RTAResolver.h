@@ -22,7 +22,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
 namespace llvm {
-class ImmutableCallSite;
+class CallBase;
 class StructType;
 class Function;
 } // namespace llvm
@@ -35,7 +35,7 @@ public:
   ~RTAResolver() override = default;
 
   virtual std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+  resolveVirtualCall(const llvm::CallBase *CallSite) override;
 };
 } // namespace psr
 

@@ -49,7 +49,7 @@ template <typename GraphTy, typename VertexTy, typename EdgeProp,
 void merge_by_stitching(
     GraphTy &g1, const GraphTy &g2,
     std::vector<std::pair<VertexTy, VertexTy>> vs_in_g1_us_in_g2,
-    Args &&... args) {
+    Args &&...args) {
   typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
       index_map_t;
   // for simple adjacency_list<> this type would be more efficient:
@@ -75,7 +75,7 @@ template <typename GraphTy, typename VertexTy, typename EdgeProperty,
           typename... Args>
 void merge_graphs(GraphTy &g1, const GraphTy &g2,
                   std::vector<std::pair<VertexTy, VertexTy>> v_in_g1_u_in_g2,
-                  Args &&... args) {
+                  Args &&...args) {
   typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
       index_map_t;
   // for simple adjacency_list<> this type would be more efficient:

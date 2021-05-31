@@ -221,15 +221,15 @@ public:
     }
   }
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) {
+  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Call flow function factory call";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Stmt : " << problem.NtoString(callStmt);
+                  << "(N) Call Stmt : " << problem.NtoString(callSite);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(F) Dest Fun : " << problem.FtoString(destFun));
-    auto Key = std::tie(callStmt, destFun);
+    auto Key = std::tie(callSite, destFun);
     auto SearchCallFlowFunction = CallFlowFunctionCache.find(Key);
     if (SearchCallFlowFunction != CallFlowFunctionCache.end()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -242,8 +242,8 @@ public:
       auto ff =
           (autoAddZero)
               ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
-                    problem.getCallFlowFunction(callStmt, destFun), zeroValue)
-              : problem.getCallFlowFunction(callStmt, destFun);
+                    problem.getCallFlowFunction(callSite, destFun), zeroValue)
+              : problem.getCallFlowFunction(callSite, destFun);
       CallFlowFunctionCache.insert(std::make_pair(Key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Flow function constructed";
@@ -253,7 +253,7 @@ public:
   }
 
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitStmt, n_t retSite) {
+                                         n_t exitInst, n_t retSite) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Return flow function factory call";
@@ -262,10 +262,10 @@ public:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(F) Callee    : " << problem.FtoString(calleeFun);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Exit Stmt : " << problem.NtoString(exitStmt);
+                  << "(N) Exit Stmt : " << problem.NtoString(exitInst);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(N) Ret Site  : " << problem.NtoString(retSite));
-    auto Key = std::tie(callSite, calleeFun, exitStmt, retSite);
+    auto Key = std::tie(callSite, calleeFun, exitInst, retSite);
     auto SearchReturnFlowFunction = ReturnFlowFunctionCache.find(Key);
     if (SearchReturnFlowFunction != ReturnFlowFunctionCache.end()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -278,9 +278,9 @@ public:
       auto ff = (autoAddZero)
                     ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
                           problem.getRetFlowFunction(callSite, calleeFun,
-                                                     exitStmt, retSite),
+                                                     exitInst, retSite),
                           zeroValue)
-                    : problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
+                    : problem.getRetFlowFunction(callSite, calleeFun, exitInst,
                                                  retSite);
       ReturnFlowFunctionCache.insert(std::make_pair(Key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -329,17 +329,17 @@ public:
     }
   }
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt, f_t destFun) {
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite, f_t destFun) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Summary flow function factory call";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Stmt : " << problem.NtoString(callStmt);
+                  << "(N) Call Stmt : " << problem.NtoString(callSite);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(F) Dest Mthd : " << problem.FtoString(destFun);
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    auto ff = problem.getSummaryFlowFunction(callStmt, destFun);
+    auto ff = problem.getSummaryFlowFunction(callSite, destFun);
     return ff;
   }
 
@@ -393,21 +393,21 @@ public:
     return ef;
   }
 
-  EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
+  EdgeFunctionPtrType getCallEdgeFunction(n_t callSite, d_t srcNode,
                                           f_t destinationFunction,
                                           d_t destNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(
         BOOST_LOG_SEV(lg::get(), DEBUG) << "Call edge function factory call";
         BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(N) Call Stmt : " << problem.NtoString(callStmt);
+        << "(N) Call Stmt : " << problem.NtoString(callSite);
         BOOST_LOG_SEV(lg::get(), DEBUG)
         << "(D) Src Node  : " << problem.DtoString(srcNode);
         BOOST_LOG_SEV(lg::get(), DEBUG)
         << "(F) Dest Fun : " << problem.FtoString(destinationFunction);
         BOOST_LOG_SEV(lg::get(), DEBUG)
         << "(D) Dest Node : " << problem.DtoString(destNode));
-    auto Key = std::tie(callStmt, srcNode, destinationFunction, destNode);
+    auto Key = std::tie(callSite, srcNode, destinationFunction, destNode);
     auto SearchCallEdgeFunction = CallEdgeFunctionCache.find(Key);
     if (SearchCallEdgeFunction != CallEdgeFunctionCache.end()) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -417,7 +417,7 @@ public:
       return SearchCallEdgeFunction->second;
     } else {
       INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
+      auto ef = problem.getCallEdgeFunction(callSite, srcNode,
                                             destinationFunction, destNode);
       CallEdgeFunctionCache.insert(std::make_pair(Key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -428,7 +428,7 @@ public:
   }
 
   EdgeFunctionPtrType getReturnEdgeFunction(n_t callSite, f_t calleeFunction,
-                                            n_t exitStmt, d_t exitNode,
+                                            n_t exitInst, d_t exitNode,
                                             n_t reSite, d_t retNode) {
     PAMM_GET_INSTANCE;
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -438,7 +438,7 @@ public:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(F) Callee    : " << problem.FtoString(calleeFunction);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Exit Stmt : " << problem.NtoString(exitStmt);
+                  << "(N) Exit Stmt : " << problem.NtoString(exitInst);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Exit Node : " << problem.DtoString(exitNode);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -446,7 +446,7 @@ public:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "(D) Ret Node  : " << problem.DtoString(retNode));
     auto Key =
-        std::tie(callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
+        std::tie(callSite, calleeFunction, exitInst, exitNode, reSite, retNode);
     auto SearchReturnEdgeFunction = ReturnEdgeFunctionCache.find(Key);
     if (SearchReturnEdgeFunction != ReturnEdgeFunctionCache.end()) {
       INC_COUNTER("Return-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -457,7 +457,7 @@ public:
     } else {
       INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getReturnEdgeFunction(
-          callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
+          callSite, calleeFunction, exitInst, exitNode, reSite, retNode);
       ReturnEdgeFunctionCache.insert(std::make_pair(Key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";

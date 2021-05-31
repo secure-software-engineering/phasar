@@ -12,20 +12,24 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 
-#include "llvm/IR/CallSite.h"
-#include "llvm/IR/Value.h"
+namespace llvm {
+class CallBase;
+class Function;
+class Value;
+} // namespace llvm
 
 namespace psr {
 
 class MapFactsToCalleeFlowFunction : public FlowFunction<const llvm::Value *> {
-  llvm::ImmutableCallSite cs;
-  const llvm::Function *destMthd;
-  std::vector<const llvm::Value *> actuals;
-  std::vector<const llvm::Value *> formals;
+protected:
+  const llvm::CallBase *CallSite;
+  const llvm::Function *Callee;
+  std::vector<const llvm::Value *> Actuals;
+  std::vector<const llvm::Value *> Formals;
 
 public:
-  MapFactsToCalleeFlowFunction(llvm::ImmutableCallSite cs,
-                               const llvm::Function *destMthd);
+  MapFactsToCalleeFlowFunction(const llvm::CallBase *CallSite,
+                               const llvm::Function *Callee);
   std::set<const llvm::Value *>
   computeTargets(const llvm::Value *source) override;
 };

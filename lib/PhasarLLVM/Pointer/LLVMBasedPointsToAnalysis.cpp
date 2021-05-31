@@ -182,7 +182,7 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
       }
       const llvm::Instruction &Inst = *I;
       if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
-        llvm::Value *Callee = Call->getCalledValue();
+        llvm::Value *Callee = Call->getCalledOperand();
         // Skip actual functions for direct function calls.
         if (!llvm::isa<llvm::Function>(Callee) &&
             isInterestingPointer(Callee)) {
@@ -216,14 +216,14 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
 
     // iterate over the worklist, and run the full (n^2)/2 disambiguations
     for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
-      auto I1Size = llvm::LocationSize::unknown();
+      auto I1Size = llvm::LocationSize::beforeOrAfterPointer();
       llvm::Type *I1ElTy =
           llvm::cast<llvm::PointerType>((*I1)->getType())->getElementType();
       if (I1ElTy->isSized()) {
         I1Size = llvm::LocationSize::precise(DL.getTypeStoreSize(I1ElTy));
       }
       for (auto I2 = Pointers.begin(); I2 != I1; ++I2) {
-        auto I2Size = llvm::LocationSize::unknown();
+        auto I2Size = llvm::LocationSize::beforeOrAfterPointer();
         llvm::Type *I2ElTy =
             llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
         if (I2ElTy->isSized()) {
@@ -304,7 +304,7 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
     // Mod/ref alias analysis: compare all pairs of calls and values
     for (const llvm::CallBase *Call : Calls) {
       for (const auto *Pointer : Pointers) {
-        auto Size = llvm::LocationSize::unknown();
+        auto Size = llvm::LocationSize::beforeOrAfterPointer();
         llvm::Type *ElTy =
             llvm::cast<llvm::PointerType>(Pointer->getType())->getElementType();
         if (ElTy->isSized()) {

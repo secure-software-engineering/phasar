@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
@@ -35,13 +35,13 @@ IDESecureHeapPropagation::getNormalFlowFunction(n_t Curr, n_t Succ) {
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getCallFlowFunction(n_t CallStmt, f_t DestMthd) {
+IDESecureHeapPropagation::getCallFlowFunction(n_t CallSite, f_t DestMthd) {
   return Identity<d_t>::getInstance();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
-                                             n_t ExitStmt, n_t RetSite) {
+                                             n_t ExitInst, n_t RetSite) {
   return Identity<d_t>::getInstance();
 }
 
@@ -49,9 +49,10 @@ IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                    std::set<f_t> Callees) {
 
-  llvm::ImmutableCallSite CS(CallSite);
+  // Change to CallSite everywhere
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
 
-  auto FName = CS.getCalledFunction()->getName();
+  auto FName = CS->getCalledFunction()->getName();
   if (FName == initializerFn) {
     return std::make_shared<Gen<d_t>>(SecureHeapFact::INITIALIZED,
                                       getZeroValue());
@@ -59,7 +60,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
   return Identity<d_t>::getInstance();
 }
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getSummaryFlowFunction(n_t CallStmt, f_t DestMthd) {
+IDESecureHeapPropagation::getSummaryFlowFunction(n_t CallSite, f_t DestMthd) {
   return nullptr;
 }
 
@@ -115,7 +116,7 @@ IDESecureHeapPropagation::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   return IdentityEdgeFunction::getInstance();
 }
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getCallEdgeFunction(n_t CallStmt, d_t SrcNode,
+IDESecureHeapPropagation::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
                                               f_t DestinationMethod,
                                               d_t DestNode) {
   return IdentityEdgeFunction::getInstance();
@@ -123,7 +124,7 @@ IDESecureHeapPropagation::getCallEdgeFunction(n_t CallStmt, d_t SrcNode,
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::getReturnEdgeFunction(n_t CallSite, f_t CalleeMethod,
-                                                n_t ExitStmt, d_t ExitNode,
+                                                n_t ExitInst, d_t ExitNode,
                                                 n_t ReSite, d_t RetNode) {
   return IdentityEdgeFunction::getInstance();
 }
@@ -138,9 +139,9 @@ IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
     // std::endl;
     return SHPGenEdgeFn::getInstance(l_t::INITIALIZED);
   }
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
   if (CallNode != ZeroValue &&
-      CS.getCalledFunction()->getName() == shutdownFn) {
+      CS->getCalledFunction()->getName() == shutdownFn) {
     // std::cerr << "Kill at " << llvmIRToShortString(callSite) << std::endl;
     return SHPGenEdgeFn::getInstance(l_t::BOT);
   }
@@ -148,7 +149,7 @@ IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
 }
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getSummaryEdgeFunction(n_t CallStmt, d_t CallNode,
+IDESecureHeapPropagation::getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
                                                  n_t RetSite, d_t RetSiteNode) {
   return nullptr;
 }

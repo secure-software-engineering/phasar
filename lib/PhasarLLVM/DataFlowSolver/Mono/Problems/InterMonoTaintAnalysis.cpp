@@ -11,8 +11,8 @@
 #include <unordered_map>
 #include <utility>
 
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
@@ -89,12 +89,12 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
   InterMonoTaintAnalysis::mono_container_t Out;
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
   vector<InterMonoTaintAnalysis::d_t> Actuals;
   vector<InterMonoTaintAnalysis::d_t> Formals;
   // set up the actual parameters
-  for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CS.getArgOperand(Idx));
+  for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
+    Actuals.push_back(CS->getArgOperand(Idx));
   }
   // set up the formal parameters
   /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
@@ -125,11 +125,11 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
   }
   // propagate pointer arguments to the caller, since this callee may modify
   // them
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
   unsigned Index = 0;
   for (const auto &Arg : Callee->args()) {
     if (Arg.getType()->isPointerTy() && In.count(&Arg)) {
-      Out.insert(CS.getArgOperand(Index));
+      Out.insert(CS->getArgOperand(Index));
     }
     Index++;
   }
@@ -143,7 +143,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
   InterMonoTaintAnalysis::mono_container_t Out(In);
-  llvm::ImmutableCallSite CS(CallSite);
+  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
   //-----------------------------------------------------------------------------
   // Handle virtual calls in the loop
   //-----------------------------------------------------------------------------
@@ -153,33 +153,33 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
                   << Callee->getName().str());
 
     if (TSF.isSink(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
+      for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
         if (TSF.getSink(Callee->getName().str()).isLeakedArg(Idx) &&
-            In.count(CS.getArgOperand(Idx))) {
-          cout << "FOUND LEAK AT: " << llvmIRToString(CallSite) << '\n';
-          cout << "LEAKED VALUE: " << llvmIRToString(CS.getArgOperand(Idx))
+            In.count(CS->getArgOperand(Idx))) {
+          cout << "FOUND LEAK AT: " << llvmIRToString(CS) << '\n';
+          cout << "LEAKED VALUE: " << llvmIRToString(CS->getArgOperand(Idx))
                << '\n'
                << endl;
-          Leaks[CallSite].insert(CS.getArgOperand(Idx));
+          Leaks[CS].insert(CS->getArgOperand(Idx));
         }
       }
     }
     if (TSF.isSource(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
+      for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
         if (TSF.getSource(Callee->getName().str()).isTaintedArg(Idx)) {
-          Out.insert(CS.getArgOperand(Idx));
+          Out.insert(CS->getArgOperand(Idx));
         }
       }
       if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
-        Out.insert(CallSite);
+        Out.insert(CS);
       }
     }
   }
 
   // erase pointer arguments, since they are now propagated in the retFF
-  for (unsigned Idx = 0; Idx < CS.getNumArgOperands(); ++Idx) {
-    if (CS.getArgOperand(Idx)->getType()->isPointerTy()) {
-      Out.erase(CS.getArgOperand(Idx));
+  for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
+    if (CS->getArgOperand(Idx)->getType()->isPointerTy()) {
+      Out.erase(CS->getArgOperand(Idx));
     }
   }
   return Out;

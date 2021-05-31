@@ -43,14 +43,14 @@ IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t Curr,
 }
 
 IFDSSolverTest::FlowFunctionPtrType
-IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t CallStmt,
+IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t CallSite,
                                     IFDSSolverTest::f_t DestFun) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
 IFDSSolverTest::FlowFunctionPtrType IFDSSolverTest::getRetFlowFunction(
     IFDSSolverTest::n_t CallSite, IFDSSolverTest::f_t CalleeFun,
-    IFDSSolverTest::n_t ExitStmt, IFDSSolverTest::n_t RetSite) {
+    IFDSSolverTest::n_t ExitSite, IFDSSolverTest::n_t RetSite) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
@@ -62,7 +62,7 @@ IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t CallSite,
 }
 
 IFDSSolverTest::FlowFunctionPtrType
-IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t CallStmt,
+IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t CallSite,
                                        IFDSSolverTest::f_t DestFun) {
   return nullptr;
 }

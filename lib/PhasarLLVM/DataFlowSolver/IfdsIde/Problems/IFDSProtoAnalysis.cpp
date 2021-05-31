@@ -48,14 +48,14 @@ IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
 }
 
 IFDSProtoAnalysis::FlowFunctionPtrType
-IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t CallStmt,
+IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t CallSite,
                                        IFDSProtoAnalysis::f_t DestFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 IFDSProtoAnalysis::FlowFunctionPtrType IFDSProtoAnalysis::getRetFlowFunction(
     IFDSProtoAnalysis::n_t CallSite, IFDSProtoAnalysis::f_t CalleeFun,
-    IFDSProtoAnalysis::n_t ExitStmt, IFDSProtoAnalysis::n_t RetSite) {
+    IFDSProtoAnalysis::n_t ExitSite, IFDSProtoAnalysis::n_t RetSite) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
@@ -67,7 +67,7 @@ IFDSProtoAnalysis::getCallToRetFlowFunction(
 }
 
 IFDSProtoAnalysis::FlowFunctionPtrType
-IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t CallStmt,
+IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t CallSite,
                                           IFDSProtoAnalysis::f_t DestFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }

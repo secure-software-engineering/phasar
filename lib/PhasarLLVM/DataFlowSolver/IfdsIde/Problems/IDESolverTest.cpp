@@ -49,14 +49,14 @@ IDESolverTest::getNormalFlowFunction(IDESolverTest::n_t Curr,
 }
 
 IDESolverTest::FlowFunctionPtrType
-IDESolverTest::getCallFlowFunction(IDESolverTest::n_t CallStmt,
+IDESolverTest::getCallFlowFunction(IDESolverTest::n_t CallSite,
                                    IDESolverTest::f_t DestFun) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
 IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
     IDESolverTest::n_t CallSite, IDESolverTest::f_t CalleeFun,
-    IDESolverTest::n_t ExitStmt, IDESolverTest::n_t RetSite) {
+    IDESolverTest::n_t ExitSite, IDESolverTest::n_t RetSite) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
@@ -68,7 +68,7 @@ IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t CallSite,
 }
 
 IDESolverTest::FlowFunctionPtrType
-IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t CallStmt,
+IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t CallSite,
                                       IDESolverTest::f_t DestFun) {
   return nullptr;
 }
@@ -104,7 +104,7 @@ IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t Curr,
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::getCallEdgeFunction(
-    IDESolverTest::n_t CallStmt, IDESolverTest::d_t SrcNode,
+    IDESolverTest::n_t CallSite, IDESolverTest::d_t SrcNode,
     IDESolverTest::f_t DestinationFunction, IDESolverTest::d_t DestNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
@@ -112,7 +112,7 @@ shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::getCallEdgeFunction(
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t CallSite,
                                      IDESolverTest::f_t CalleeFunction,
-                                     IDESolverTest::n_t ExitStmt,
+                                     IDESolverTest::n_t ExitSite,
                                      IDESolverTest::d_t ExitNode,
                                      IDESolverTest::n_t ReSite,
                                      IDESolverTest::d_t RetNode) {
@@ -129,7 +129,7 @@ IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t CallSite,
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getSummaryEdgeFunction(IDESolverTest::n_t CallStmt,
+IDESolverTest::getSummaryEdgeFunction(IDESolverTest::n_t CallSite,
                                       IDESolverTest::d_t CallNode,
                                       IDESolverTest::n_t RetSite,
                                       IDESolverTest::d_t RetSiteNode) {

@@ -23,6 +23,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
+#include "TestConfig.h"
+
 using namespace psr;
 
 typedef std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>
@@ -34,8 +36,7 @@ class IDEGeneralizedLCATest : public ::testing::Test {
 
 protected:
   const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/general_linear_constant/";
+      unittest::PathToLLTestFiles + "general_linear_constant/";
 
   ProjectIRDB *IRDB = nullptr;
   IDESolver<IDEGeneralizedLCADomain> *LCASolver = nullptr;
@@ -149,16 +150,16 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
   Initialize("GlobalVariableTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(50)}, 7, 13});       // i
-  groundTruth.push_back({{EdgeValue(nullptr)}, 10, 13}); // j
+  groundTruth.push_back({{EdgeValue(8)}, 10, 13}); // j
   compareResults(groundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
   // bl::core::get()->set_logging_enabled(true);
   Initialize("Imprecision_c.ll", 2);
-  auto xInst = IRDB->getInstruction(0); // foo.x
-  auto yInst = IRDB->getInstruction(1); // foo.y
-  auto barInst = IRDB->getInstruction(7);
+  //   auto xInst = IRDB->getInstruction(0); // foo.x
+  //   auto yInst = IRDB->getInstruction(1); // foo.y
+  //  auto barInst = IRDB->getInstruction(7);
 
   // std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) <<
   // std::endl; std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst)

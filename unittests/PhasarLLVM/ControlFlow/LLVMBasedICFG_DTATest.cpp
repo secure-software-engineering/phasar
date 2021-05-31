@@ -53,7 +53,6 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
 
   const llvm::Instruction *I = getNthInstruction(F, 6);
   set<const llvm::Instruction *> Callers = ICFG.getCallersOf(VFuncA);
-  llvm::ImmutableCallSite CS(I);
   ASSERT_EQ(Callers.size(), 1U);
   ASSERT_TRUE(Callers.count(I));
 }

@@ -92,11 +92,11 @@ public:
   std::multiset<D> destinationSet() { return sed.values(); }
 
   void loadHexaStoreGraphFromDB(const std::string &tablename) {
-    cerr << "Not implemented yet!" << std::endl;
+    std::cerr << "Not implemented yet!" << std::endl;
   }
 
   void storeHexaStoreGraphToDB(const std::string &tablename) {
-    cerr << "Not implemented yet!" << std::endl;
+    std::cerr << "Not implemented yet!" << std::endl;
   }
 
   friend bool operator==(const HexaStoreGraph<S, E, D> &lhs,
