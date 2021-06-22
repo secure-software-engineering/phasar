@@ -42,6 +42,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
@@ -1331,6 +1332,60 @@ public:
     // } else {
     // TODO: implement better report in case debug information are available
     //   }
+  }
+
+  /// Computes all variables for which an empty set has been computed using the
+  /// edge functions (and respective value domain).
+  inline std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
+      const SolverResults<n_t, d_t, l_t> &Solution) {
+    std::unordered_set<d_t> Variables;
+    // collect all variables that are available
+    for (const auto *M : this->IRDB->getAllModules()) {
+      for (const auto *G : M->globals()) {
+        Variables.insert(G);
+      }
+      for (const auto &F : *M) {
+        for (const auto &BB : F) {
+          for (const auto &I : BB) {
+            if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+              Variables.insert(A);
+            }
+            if (const auto *H = llvm::dyn_cast<llvm::CallBase>(&I)) {
+              if (!H->isIndirectCall() && H->getCalledFunction() &&
+                  this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
+                Variables.insert(H);
+              }
+            }
+          }
+        }
+      }
+    }
+    // next, check the solver results and remove all variables for which a
+    // non-empty set has been computed
+    auto Results = Solution.getAllResultEntries();
+    for (const auto &Result : Results) {
+      // We do not care for the concrete instruction at which data-flow facts
+      // hold, instead we just wish to find out if a variable has been generated
+      // at some point. Therefore, we only care for the variables and their
+      // associated values and ignore at which point a variable may holds as a
+      // data-flow fact.
+      const auto *Variable = Result.getColumnKey();
+      const auto &Value = Result.getValue();
+      // skip result entry if variable is not in the set of all variables
+      if (Variables.find(Variable) == Variables.end()) {
+        continue;
+      }
+      // skip result entry if the computed value is not of type BitVectorSet
+      if (!std::holds_alternative<BitVectorSet<e_t>>(Value)) {
+        continue;
+      }
+      // remove variable from result set if a non-empty that has been computed
+      auto &Values = std::get<BitVectorSet<e_t>>(Value);
+      if (!Values.empty()) {
+        Variables.erase(Variable);
+      }
+    }
+    return Variables;
   }
 
 protected:
