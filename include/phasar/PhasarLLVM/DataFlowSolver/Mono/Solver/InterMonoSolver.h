@@ -93,21 +93,36 @@ protected:
     }
     std::cout << "-----------------\n";
   }
-
+/*
+Modified by: Aakash Khatri (akhatri@campus.uni-paderborn.de)
+Description: - This method is called only when the analysis encounters a call-stmt. This method will add
+             the inter-procedural calls to the worklist at the right place in the queue, rather than
+             adding the calls at the end of queue. 
+             - This removes duplication of statements in the worklist queue.
+*/
   void addCalleesToWorklist(std::pair<n_t, n_t> Edge) {
     auto Src = Edge.first;
     auto Dst = Edge.second;
     // Add inter- and intra-edges of callee(s)
-    for (auto Callee : ICF->getCalleesOfCallAt(Src)) {
-      std::cout << "Callees to add into Worklist " << Callee << '\n';
+    for (const llvm::Function * Callee : ICF->getCalleesOfCallAt(Src)) {
+      if(Callee->hasName()){
+        std::cout << "Callees to add into Worklist " << (Callee->getName()).str() << '\n';
+      }else{
+        std::cout << "Callees to add into Worklist, function without name " << Callee << '\n';
+      }
       if (AddedFunctions.find(Callee) != AddedFunctions.end()) {
+        std::cout << "Callee already added to functions before!\n";
         break;
       }
       AddedFunctions.insert(Callee);
-      // Add call Edge(s)
-      for (auto StartPoint : ICF->getStartPointsOf(Callee)) {
-        Worklist.push_back({Src, StartPoint});
+
+      // Add return Edge(s) to the front of the queue.
+      for (auto Ret : ICF->getExitPointsOf(Callee)) {
+        for (auto RetSite : ICF->getReturnSitesOfCallAt(Src)) {
+          Worklist.push_front({Ret, RetSite});
+        }
       }
+
       // Add intra edges of callee
       auto Edges = ICF->getAllControlFlowEdges(Callee);
       Worklist.insert(Worklist.begin(), Edges.begin(), Edges.end());
@@ -121,11 +136,10 @@ protected:
         Analysis[Edges.back().second][CallStringCTX<n_t, K>()] =
             IMProblem.allTop();
       }
-      // Add return Edge(s)
-      for (auto Ret : ICF->getExitPointsOf(Callee)) {
-        for (auto RetSite : ICF->getReturnSitesOfCallAt(Src)) {
-          Worklist.push_back({Ret, RetSite});
-        }
+      // Add call Edge(s) to the front
+      for (auto StartPoint : ICF->getStartPointsOf(Callee)) {
+        // Worklist.push_back({Src, StartPoint});
+        Worklist.push_front({Src, StartPoint});
       }
     }
     // The (intra-procedural) call-to-return Edge of the caller is already in
@@ -216,7 +230,7 @@ public:
         IMProblem.printContainer(std::cout, merged);
         std::cout << '\n';
         Analysis[Dst][Ctx] = merged;
-        addToWorklist({Src, Dst});
+        // addToWorklist({Src, Dst});
       }
     }
   }
@@ -250,7 +264,7 @@ public:
           IMProblem.printContainer(std::cout, merge);
           std::cout << '\n';
           Analysis[Dst][CTXAdd] = merge;
-          addToWorklist({Src, Dst});
+          // addToWorklist({Src, Dst});
         }
       }
     } else {
@@ -279,7 +293,7 @@ public:
           std::cout << '\n';
           Analysis[Dst][Ctx] =
               merge; // IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
-          addToWorklist({Src, Dst});
+          // addToWorklist({Src, Dst});
         }
       }
     }
