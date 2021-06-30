@@ -254,6 +254,8 @@ public:
 
   void printAsJson(std::ostream &OS = std::cout) const;
 
+  [[nodiscard]] nlohmann::json exportICFGAsJson() const;
+
   [[nodiscard]] unsigned getNumOfVertices();
 
   [[nodiscard]] unsigned getNumOfEdges();

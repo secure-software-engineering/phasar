@@ -17,12 +17,16 @@
 #include <cassert>
 #include <memory>
 
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "boost/graph/copy.hpp"
@@ -747,6 +751,52 @@ nlohmann::json LLVMBasedICFG::getAsJson() const {
 }
 
 void LLVMBasedICFG::printAsJson(std::ostream &OS) const { OS << getAsJson(); }
+
+nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
+  nlohmann::json J;
+
+  llvm::DenseSet<const llvm::Instruction *> handledCallSites;
+
+  auto getExitStatements = [](const llvm::Function *F) {
+    llvm::SmallVector<const llvm::Instruction *, 4> ret;
+    for (auto it = llvm::inst_begin(F), end = llvm::inst_end(F); it != end;
+         ++it) {
+      if (llvm::isa<llvm::ReturnInst>(&*it) ||
+          llvm::isa<llvm::ResumeInst>(&*it)) {
+        ret.push_back(&*it);
+      }
+    }
+    return ret;
+  };
+
+  for (const auto *F : getAllFunctions()) {
+    for (auto &[From, To] : getAllControlFlowEdges(F)) {
+      if (llvm::isa<llvm::UnreachableInst>(From)) {
+        continue;
+      }
+
+      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(From)) {
+
+        for (const auto *Callee : getCalleesOfCallAt(Call)) {
+          if (auto [unused, inserted] = handledCallSites.insert(Call);
+              inserted) {
+            J.push_back({{"from", llvmIRToString(From)},
+                         {"to", llvmIRToString(&Callee->front().front())}});
+          }
+          for (const auto *ExitInst : getExitStatements(Callee)) {
+            J.push_back({{"from", llvmIRToString(ExitInst)},
+                         {"to", llvmIRToString(To)}});
+          }
+        }
+      } else {
+        J.push_back(
+            {{"from", llvmIRToString(From)}, {"to", llvmIRToString(To)}});
+      }
+    }
+  }
+
+  return J;
+}
 
 vector<const llvm::Function *> LLVMBasedICFG::getDependencyOrderedFunctions() {
   vector<vertex_t> Vertices;
