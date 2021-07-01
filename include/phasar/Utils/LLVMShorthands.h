@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/Utils/Utilities.h"
@@ -208,8 +209,11 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F);
  * Test the call function be tested by isVarAnnotationIntrinsic
  *
  */
-const llvm::StringRef
-getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
+llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
+
+[[nodiscard]] llvm::SmallVector<const llvm::Instruction *, 4>
+getAllExitStatements(const llvm::Function *F);
+
 } // namespace psr
 
 #endif

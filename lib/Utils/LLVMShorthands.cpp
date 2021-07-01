@@ -15,7 +15,6 @@
  */
 
 #include <cstdlib>
-#include <llvm/IR/Instruction.h>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -26,6 +25,8 @@
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
@@ -58,7 +59,7 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
     if (llvm::isa<llvm::AllocaInst>(V)) {
       return true;
     } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
-      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(V);
+      const auto *CallSite = llvm::cast<llvm::CallBase>(V);
       return CallSite->getCalledFunction() != nullptr &&
              HeapAllocationFunctions.count(
                  CallSite->getCalledFunction()->getName().str());
@@ -363,22 +364,38 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F) {
   return F->getName() == kVarAnnotationName;
 }
 
-const llvm::StringRef
-getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
+llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   const int kPointerGlobalStringIdx = 1;
-  llvm::ConstantExpr *ce = llvm::cast<llvm::ConstantExpr>(
+  auto *ce = llvm::cast<llvm::ConstantExpr>(
       CallInst->getOperand(kPointerGlobalStringIdx));
   assert(ce != nullptr);
   assert(ce->getOpcode() == llvm::Instruction::GetElementPtr);
   assert(llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0)) != nullptr);
-  llvm::GlobalVariable *annoteStr =
-      llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
+  auto *annoteStr = llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
   assert(llvm::dyn_cast<llvm::ConstantDataSequential>(
       annoteStr->getInitializer()));
-  llvm::ConstantDataSequential *data =
+  auto *data =
       llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer());
   assert(data->isString());
   return data->getAsString();
+}
+
+llvm::SmallVector<const llvm::Instruction *, 4>
+getAllExitStatements(const llvm::Function *F) {
+  llvm::SmallVector<const llvm::Instruction *, 4> ret;
+
+  if (!F || F->isDeclaration()) {
+    return ret;
+  }
+
+  for (auto it = llvm::inst_begin(F), end = llvm::inst_end(F); it != end;
+       ++it) {
+    if (llvm::isa<llvm::ReturnInst>(&*it) ||
+        llvm::isa<llvm::ResumeInst>(&*it)) {
+      ret.push_back(&*it);
+    }
+  }
+  return ret;
 }
 
 } // namespace psr

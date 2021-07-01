@@ -14,6 +14,7 @@
 #include "boost/algorithm/string/trim.hpp"
 #include "boost/filesystem.hpp"
 
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Instruction.h"
@@ -241,6 +242,8 @@ std::string getModuleIDFromIR(const llvm::Value *V) {
 bool SourceCodeInfo::empty() const noexcept { return SourceCodeLine.empty(); }
 
 bool SourceCodeInfo::operator==(const SourceCodeInfo &Other) const noexcept {
+  // don't compare the SourceCodeFunctionName. It is directly derivable from
+  // line, column and filename
   return Line == Other.Line && Column == Other.Column &&
          SourceCodeLine == Other.SourceCodeLine &&
          SourceCodeFilename == Other.SourceCodeFilename;
@@ -249,6 +252,9 @@ bool SourceCodeInfo::operator==(const SourceCodeInfo &Other) const noexcept {
 void from_json(const nlohmann::json &J, SourceCodeInfo &Info) {
   J.at("sourceCodeLine").get_to(Info.SourceCodeLine);
   J.at("sourceCodeFileName").get_to(Info.SourceCodeFilename);
+  if (auto Fn = J.find("sourceCode"); Fn != J.end()) {
+    Fn->get_to(Info.SourceCodeFunctionName);
+  }
   J.at("line").get_to(Info.Line);
   J.at("column").get_to(Info.Column);
 }
@@ -256,6 +262,7 @@ void to_json(nlohmann::json &J, const SourceCodeInfo &Info) {
   J = nlohmann::json{
       {"sourceCodeLine", Info.SourceCodeLine},
       {"sourceCodeFileName", Info.SourceCodeFilename},
+      {"sourceCodeFunctionName", Info.SourceCodeFunctionName},
       {"line", Info.Line},
       {"column", Info.Column},
   };
@@ -265,6 +272,7 @@ SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V) {
   return SourceCodeInfo{
       getSrcCodeFromIR(V),
       getFilePathFromIR(V),
+      llvm::demangle(getFunctionNameFromIR(V)),
       getLineFromIR(V),
       getColumnFromIR(V),
   };

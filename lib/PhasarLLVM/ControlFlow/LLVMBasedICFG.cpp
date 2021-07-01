@@ -758,20 +758,6 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
 
   llvm::DenseSet<const llvm::Instruction *> handledCallSites;
 
-  /// TODO: Make this a utility function; Note: This is not equivalent to
-  /// LLVMBasedCFG::getExitPointsOf
-  auto getExitStatements = [](const llvm::Function *F) {
-    llvm::SmallVector<const llvm::Instruction *, 4> ret;
-    for (auto it = llvm::inst_begin(F), end = llvm::inst_end(F); it != end;
-         ++it) {
-      if (llvm::isa<llvm::ReturnInst>(&*it) ||
-          llvm::isa<llvm::ResumeInst>(&*it)) {
-        ret.push_back(&*it);
-      }
-    }
-    return ret;
-  };
-
   for (const auto *F : getAllFunctions()) {
     for (auto &[From, To] : getAllControlFlowEdges(F)) {
       if (llvm::isa<llvm::UnreachableInst>(From)) {
@@ -786,7 +772,7 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
             J.push_back({{"from", llvmIRToString(From)},
                          {"to", llvmIRToString(&Callee->front().front())}});
           }
-          for (const auto *ExitInst : getExitStatements(Callee)) {
+          for (const auto *ExitInst : getAllExitStatements(Callee)) {
             J.push_back({{"from", llvmIRToString(ExitInst)},
                          {"to", llvmIRToString(To)}});
           }
@@ -831,20 +817,6 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
     return Ret && !Ret->getReturnValue();
   };
 
-  /// TODO: Make this a utility function; Note: This is not equivalent to
-  /// LLVMBasedCFG::getExitPointsOf
-  auto getExitStatements = [](const llvm::Function *F) {
-    llvm::SmallVector<const llvm::Instruction *, 4> ret;
-    for (auto it = llvm::inst_begin(F), end = llvm::inst_end(F); it != end;
-         ++it) {
-      if (llvm::isa<llvm::ReturnInst>(&*it) ||
-          llvm::isa<llvm::ResumeInst>(&*it)) {
-        ret.push_back(&*it);
-      }
-    }
-    return ret;
-  };
-
   auto getLastNonEmpty = [&](const llvm::Instruction *Inst) {
     if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
       return getSrcCodeInfoFromIR(Inst);
@@ -873,7 +845,6 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
 
       const auto *FromInst = &*it;
 
-      std::cerr << "FromInst: " << llvmIRToString(FromInst) << "\n";
       ++it;
 
       // Normal edges
@@ -889,7 +860,7 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
             auto InterTo = getFirstNonEmpty(&Callee->front());
             J.push_back({{"from", From}, {"to", std::move(InterTo)}});
 
-            for (const auto *ExitInst : getExitStatements(Callee)) {
+            for (const auto *ExitInst : getAllExitStatements(Callee)) {
 
               J.push_back({{"from", getLastNonEmpty(ExitInst)}, {"to", To}});
             }
@@ -900,7 +871,6 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
         }
 
         FromInst = &*it;
-        std::cerr << "FromInst: " << llvmIRToString(FromInst) << "\n";
         From = std::move(To);
       }
 
