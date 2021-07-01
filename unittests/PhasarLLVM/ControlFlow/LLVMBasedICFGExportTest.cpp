@@ -26,25 +26,31 @@ using nlohmann::json;
 
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
-      unittest::PathToLLTestFiles + "call_graphs/";
+  const std::string pathToLLFiles = unittest::PathToLLTestFiles;
 
   void SetUp() override {
     boost::log::core::get()->set_logging_enabled(false);
     ValueAnnotationPass::resetValueID();
   }
 
-  json exportICFG(const std::string &testFile) {
+  json exportICFG(const std::string &testFile, bool asSrcCode = false) {
     ProjectIRDB IRDB({pathToLLFiles + testFile}, IRDBOptions::WPA);
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH);
 
-    return ICFG.exportICFGAsJson();
+    return asSrcCode ? ICFG.exportICFGAsSourceCodeJson()
+                     : ICFG.exportICFGAsJson();
   }
 };
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFG01) {
-  auto results = exportICFG("static_callsite_8_cpp.ll");
+  auto results = exportICFG("call_graphs/static_callsite_8_cpp.ll");
+  std::cerr << results.dump(4) << std::endl;
+  // TODO: Add ground truth
+}
+
+TEST_F(LLVMBasedICFGExportTest, ExportICFGSource01) {
+  auto results = exportICFG("linear_constant/call_01_cpp_dbg.ll", true);
   std::cerr << results.dump(4) << std::endl;
   // TODO: Add ground truth
 }

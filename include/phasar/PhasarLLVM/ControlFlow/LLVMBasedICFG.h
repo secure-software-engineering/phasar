@@ -256,6 +256,8 @@ public:
 
   [[nodiscard]] nlohmann::json exportICFGAsJson() const;
 
+  [[nodiscard]] nlohmann::json exportICFGAsSourceCodeJson() const;
+
   [[nodiscard]] unsigned getNumOfVertices();
 
   [[nodiscard]] unsigned getNumOfEdges();

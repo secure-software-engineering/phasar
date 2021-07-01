@@ -42,6 +42,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
+#include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -757,6 +758,8 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
 
   llvm::DenseSet<const llvm::Instruction *> handledCallSites;
 
+  /// TODO: Make this a utility function; Note: This is not equivalent to
+  /// LLVMBasedCFG::getExitPointsOf
   auto getExitStatements = [](const llvm::Function *F) {
     llvm::SmallVector<const llvm::Instruction *, 4> ret;
     for (auto it = llvm::inst_begin(F), end = llvm::inst_end(F); it != end;
@@ -791,6 +794,134 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
       } else {
         J.push_back(
             {{"from", llvmIRToString(From)}, {"to", llvmIRToString(To)}});
+      }
+    }
+  }
+
+  return J;
+}
+
+nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
+  nlohmann::json J;
+
+  struct GetFirstNonEmpty {
+    SourceCodeInfo operator()(llvm::BasicBlock::const_iterator &it,
+                              llvm::BasicBlock::const_iterator end) {
+      assert(it != end);
+
+      auto ret = getSrcCodeInfoFromIR(&*it);
+
+      // Assume, we aren't skipping relevant calls here
+
+      while (it != end && (ret.empty() || it->isDebugOrPseudoInst())) {
+        ret = getSrcCodeInfoFromIR(&*++it);
+      }
+
+      return ret;
+    }
+
+    SourceCodeInfo operator()(const llvm::BasicBlock *BB) {
+      auto it = BB->begin();
+      return (*this)(it, BB->end());
+    }
+  } getFirstNonEmpty;
+
+  auto isRetVoid = [](const llvm::Instruction *Inst) {
+    const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst);
+    return Ret && !Ret->getReturnValue();
+  };
+
+  /// TODO: Make this a utility function; Note: This is not equivalent to
+  /// LLVMBasedCFG::getExitPointsOf
+  auto getExitStatements = [](const llvm::Function *F) {
+    llvm::SmallVector<const llvm::Instruction *, 4> ret;
+    for (auto it = llvm::inst_begin(F), end = llvm::inst_end(F); it != end;
+         ++it) {
+      if (llvm::isa<llvm::ReturnInst>(&*it) ||
+          llvm::isa<llvm::ResumeInst>(&*it)) {
+        ret.push_back(&*it);
+      }
+    }
+    return ret;
+  };
+
+  auto getLastNonEmpty = [&](const llvm::Instruction *Inst) {
+    if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
+      return getSrcCodeInfoFromIR(Inst);
+    }
+    for (const auto *Prev = Inst->getPrevNode(); Prev;
+         Prev = Prev->getPrevNode()) {
+      auto Src = getSrcCodeInfoFromIR(Prev);
+      if (!Src.empty()) {
+        return Src;
+      }
+    }
+
+    return getSrcCodeInfoFromIR(Inst);
+  };
+
+  for (const auto *F : getAllFunctions()) {
+    for (const auto &BB : *F) {
+      assert(!BB.empty() && "Invalid IR: Empty BasicBlock");
+      auto it = BB.begin();
+      auto end = BB.end();
+      auto From = getFirstNonEmpty(it, end);
+
+      if (it == end) {
+        continue;
+      }
+
+      const auto *FromInst = &*it;
+
+      std::cerr << "FromInst: " << llvmIRToString(FromInst) << "\n";
+      ++it;
+
+      // Normal edges
+      for (; it != end; ++it) {
+        auto To = getFirstNonEmpty(it, end);
+        if (To.empty()) {
+          break;
+        }
+
+        if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(FromInst)) {
+          // Call Edge
+          for (const auto *Callee : getCalleesOfCallAt(FromInst)) {
+            auto InterTo = getFirstNonEmpty(&Callee->front());
+            J.push_back({{"from", From}, {"to", std::move(InterTo)}});
+
+            for (const auto *ExitInst : getExitStatements(Callee)) {
+
+              J.push_back({{"from", getLastNonEmpty(ExitInst)}, {"to", To}});
+            }
+          }
+        } else if (From != To && !isRetVoid(&*it)) {
+          // Normal Edge
+          J.push_back({{"from", From}, {"to", To}});
+        }
+
+        FromInst = &*it;
+        std::cerr << "FromInst: " << llvmIRToString(FromInst) << "\n";
+        From = std::move(To);
+      }
+
+      const auto *Term = BB.getTerminator();
+      assert(Term && "Invalid IR: BasicBlock without terminating instruction!");
+
+      auto numSuccessors = Term->getNumSuccessors();
+
+      if (numSuccessors == 0) {
+        // Return edges
+      } else {
+        // Branch or invoke edges
+        for (size_t i = 0; i < numSuccessors; ++i) {
+          auto *Succ = Term->getSuccessor(i);
+          assert(Succ && !Succ->empty());
+
+          auto To = getFirstNonEmpty(Succ);
+          if (From != To) {
+            J.push_back({{"from", From}, {"to", std::move(To)}});
+          }
+        }
       }
     }
   }

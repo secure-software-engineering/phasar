@@ -238,4 +238,36 @@ std::string getModuleIDFromIR(const llvm::Value *V) {
   return "";
 }
 
+bool SourceCodeInfo::empty() const noexcept { return SourceCodeLine.empty(); }
+
+bool SourceCodeInfo::operator==(const SourceCodeInfo &Other) const noexcept {
+  return Line == Other.Line && Column == Other.Column &&
+         SourceCodeLine == Other.SourceCodeLine &&
+         SourceCodeFilename == Other.SourceCodeFilename;
+}
+
+void from_json(const nlohmann::json &J, SourceCodeInfo &Info) {
+  J.at("sourceCodeLine").get_to(Info.SourceCodeLine);
+  J.at("sourceCodeFileName").get_to(Info.SourceCodeFilename);
+  J.at("line").get_to(Info.Line);
+  J.at("column").get_to(Info.Column);
+}
+void to_json(nlohmann::json &J, const SourceCodeInfo &Info) {
+  J = nlohmann::json{
+      {"sourceCodeLine", Info.SourceCodeLine},
+      {"sourceCodeFileName", Info.SourceCodeFilename},
+      {"line", Info.Line},
+      {"column", Info.Column},
+  };
+}
+
+SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V) {
+  return SourceCodeInfo{
+      getSrcCodeFromIR(V),
+      getFilePathFromIR(V),
+      getLineFromIR(V),
+      getColumnFromIR(V),
+  };
+}
+
 } // namespace psr
