@@ -1,0 +1,114 @@
+[
+    {
+        "from": {
+            "column": 14,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "void foo(int a) {"
+        },
+        "to": {
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        }
+    },
+    {
+        "from": {
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        },
+        "to": {
+            "column": 11,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        }
+    },
+    {
+        "from": {
+            "column": 11,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        },
+        "to": {
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        }
+    },
+    {
+        "from": {
+            "column": 7,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        },
+        "to": {
+            "column": 7,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        }
+    },
+    {
+        "from": {
+            "column": 7,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        },
+        "to": {
+            "column": 3,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        }
+    },
+    {
+        "from": {
+            "column": 3,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        },
+        "to": {
+            "column": 14,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "void foo(int a) {"
+        }
+    },
+    {
+        "from": {
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        },
+        "to": {
+            "column": 3,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return 0;"
+        }
+    }
+]

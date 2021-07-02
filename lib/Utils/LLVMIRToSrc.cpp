@@ -7,13 +7,17 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <boost/filesystem/path.hpp>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <string>
 
 #include "boost/algorithm/string/trim.hpp"
 #include "boost/filesystem.hpp"
 
+#include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
@@ -247,6 +251,26 @@ bool SourceCodeInfo::operator==(const SourceCodeInfo &Other) const noexcept {
   return Line == Other.Line && Column == Other.Column &&
          SourceCodeLine == Other.SourceCodeLine &&
          SourceCodeFilename == Other.SourceCodeFilename;
+}
+
+bool SourceCodeInfo::equivalentWith(const SourceCodeInfo &Other) const {
+  // Here, we need to compare the SourceCodeFunctionName, because we don't
+  // compare the complete SourceCodeFilename
+  if (Line != Other.Line || Column != Other.Column ||
+      SourceCodeLine != Other.SourceCodeLine ||
+      SourceCodeFunctionName != Other.SourceCodeFunctionName) {
+    return false;
+  }
+
+  auto Pos =
+      SourceCodeFilename.find_last_of(boost::filesystem::path::separator);
+  if (Pos == std::string::npos) {
+    Pos = 0;
+  }
+
+  return llvm::StringRef(Other.SourceCodeFilename)
+      .endswith(llvm::StringRef(SourceCodeFilename)
+                    .slice(Pos + 1, llvm::StringRef::npos));
 }
 
 void from_json(const nlohmann::json &J, SourceCodeInfo &Info) {

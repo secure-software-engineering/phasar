@@ -62,6 +62,10 @@ struct SourceCodeInfo {
   operator!=(const SourceCodeInfo &Other) const noexcept {
     return !(*this == Other);
   }
+
+  /// Similar to operator==, but takes different SourceCodeFileName locations
+  /// into account
+  [[nodiscard]] bool equivalentWith(const SourceCodeInfo &Other) const;
 };
 
 /// Used from the JSON library internally to implicitly convert between json and

@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include <algorithm>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
@@ -35,7 +37,9 @@ using MapTy = llvm::DenseMap<TKey, TValue>;
 
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles = unittest::PathToLLTestFiles;
+  const PSR_CONSTEXPR std::string pathToLLFiles = unittest::PathToLLTestFiles;
+  const PSR_CONSTEXPR std::string pathToJSONFiles =
+      unittest::PathToJSONTestFiles + "linear_constant/";
 
   void SetUp() override {
     boost::log::core::get()->set_logging_enabled(false);
@@ -120,17 +124,45 @@ protected:
     }
   }
 
+  void verifySourceCodeJSON(const json &ExportedICFG, const json &GroundTruth) {
+    ASSERT_TRUE(ExportedICFG.is_array());
+
+    EXPECT_EQ(GroundTruth.size(), ExportedICFG.size());
+
+    for (const auto &GTJson : GroundTruth) {
+      auto GTFrom = GTJson.at("from").get<SourceCodeInfo>();
+      auto GTTo = GTJson.at("to").get<SourceCodeInfo>();
+      EXPECT_TRUE(std::any_of(ExportedICFG.begin(), ExportedICFG.end(),
+                              [&](const json &ExportedInfoJson) {
+                                return ExportedInfoJson.at("from")
+                                           .get<SourceCodeInfo>()
+                                           .equivalentWith(GTFrom) &&
+                                       ExportedInfoJson.at("to")
+                                           .get<SourceCodeInfo>()
+                                           .equivalentWith(GTTo);
+                              }))
+          << "No exported equivalent to " << GTJson.dump(4);
+    }
+  }
+
+  json readJson(const std::string &jsonfileName) {
+    std::ifstream fIn(pathToJSONFiles + jsonfileName);
+    assert(fIn.good() && "Invalid JSON file");
+
+    json J;
+    fIn >> J;
+
+    assert(fIn.good() && "Error reading JSON file");
+    return J;
+  }
+
   template <bool WithDebugOutput = false>
-  void verifyExportICFG(const std::string &testFile, bool asSrcCode = false) {
+  void verifyExportICFG(const std::string &testFile) {
     ProjectIRDB IRDB({pathToLLFiles + testFile}, IRDBOptions::WPA);
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH);
 
-    if (asSrcCode) {
-      ASSERT_TRUE(false) << "Not implemented yet";
-    } else {
-      verifyIRJson<WithDebugOutput>(ICFG.exportICFGAsJson(), ICFG);
-    }
+    verifyIRJson<WithDebugOutput>(ICFG.exportICFGAsJson(), ICFG);
   }
 };
 
@@ -224,8 +256,8 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV9) {
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource01) {
   auto results = exportICFG("linear_constant/call_01_cpp_dbg.ll", true);
-  std::cerr << results.dump(4) << std::endl;
-  // TODO: Add ground truth
+  // std::cerr << results.dump(4) << std::endl;
+  verifySourceCodeJSON(results, readJson("call_01_cpp_icfg.json"));
 }
 
 int main(int Argc, char **Argv) {
