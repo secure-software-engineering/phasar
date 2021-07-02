@@ -407,12 +407,12 @@ std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
 }
 
 bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *N) const {
-  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(N);
+  const auto *CallSite = llvm::cast<llvm::CallBase>(N);
   return CallSite->isIndirectCall();
 }
 
 bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
-  const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(N);
+  const auto *CallSite = llvm::cast<llvm::CallBase>(N);
   // check potential receiver type
   const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
@@ -522,7 +522,7 @@ size_t LLVMBasedICFG::getCallerCount(const llvm::Function *F) const {
 
 set<const llvm::Function *>
 LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *N) const {
-  if (llvm::isa<llvm::CallInst>(N) || llvm::isa<llvm::InvokeInst>(N)) {
+  if (llvm::isa<llvm::CallBase>(N)) {
     set<const llvm::Function *> Callees;
     auto MapEntry = FunctionVertexMap.find(N->getFunction());
     if (MapEntry == FunctionVertexMap.end()) {
@@ -540,9 +540,9 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *N) const {
       }
     }
     return Callees;
-  } else {
-    return {};
   }
+
+  return {};
 }
 
 set<const llvm::Instruction *>
@@ -765,18 +765,23 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
       }
 
       if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(From)) {
+        auto [unused, inserted] = handledCallSites.insert(Call);
 
         for (const auto *Callee : getCalleesOfCallAt(Call)) {
-          if (auto [unused, inserted] = handledCallSites.insert(Call);
-              inserted) {
+          if (Callee->isDeclaration()) {
+            continue;
+          }
+          if (inserted) {
             J.push_back({{"from", llvmIRToString(From)},
                          {"to", llvmIRToString(&Callee->front().front())}});
           }
+
           for (const auto *ExitInst : getAllExitStatements(Callee)) {
             J.push_back({{"from", llvmIRToString(ExitInst)},
                          {"to", llvmIRToString(To)}});
           }
         }
+
       } else {
         J.push_back(
             {{"from", llvmIRToString(From)}, {"to", llvmIRToString(To)}});
@@ -857,6 +862,10 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
         if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(FromInst)) {
           // Call Edge
           for (const auto *Callee : getCalleesOfCallAt(FromInst)) {
+            if (Callee->isDeclaration()) {
+              continue;
+            }
+
             auto InterTo = getFirstNonEmpty(&Callee->front());
             J.push_back({{"from", From}, {"to", std::move(InterTo)}});
 
