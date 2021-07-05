@@ -219,23 +219,27 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   return nullptr;
 }
 
-std::map<const llvm::Instruction *, std::set<ExtendedValue>>
+InitialSeeds<const llvm::Instruction *, ExtendedValue,
+             IFDSFieldSensTaintAnalysis::l_t>
 IFDSFieldSensTaintAnalysis::initialSeeds() {
-  std::map<const llvm::Instruction *, std::set<ExtendedValue>> SeedMap;
+  InitialSeeds<const llvm::Instruction *, ExtendedValue,
+               IFDSFieldSensTaintAnalysis::l_t>
+      Seeds;
   for (const auto &EntryPoint : this->EntryPoints) {
     if (taintConfig.isSink(EntryPoint)) {
       continue;
     }
-    SeedMap.insert(
-        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                       std::set<ExtendedValue>({getZeroValue()})));
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue());
   }
   // additionally, add initial seeds if there are any
   auto TaintConfigSeeds = taintConfig.getInitialSeeds();
-  for (auto &Seed : TaintConfigSeeds) {
-    SeedMap[Seed.first].insert(Seed.second.begin(), Seed.second.end());
+  for (auto &[Node, Facts] : TaintConfigSeeds) {
+    for (const auto &Fact : Facts) {
+      Seeds.addSeed(Node, Fact);
+    }
   }
-  return SeedMap;
+  return Seeds;
 }
 
 void IFDSFieldSensTaintAnalysis::emitTextReport(

@@ -9,6 +9,13 @@
 
 #include <utility>
 
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -17,15 +24,10 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Value.h"
 
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 bool IDETaintAnalysis::setContainsStr(set<string> S, const string &Str) {
@@ -74,15 +76,18 @@ IDETaintAnalysis::getSummaryFlowFunction(IDETaintAnalysis::n_t CallSite,
   return nullptr;
 }
 
-map<IDETaintAnalysis::n_t, set<IDETaintAnalysis::d_t>>
+InitialSeeds<IDETaintAnalysis::n_t, IDETaintAnalysis::d_t,
+             IDETaintAnalysis::l_t>
 IDETaintAnalysis::initialSeeds() {
   // just start in main()
-  map<IDETaintAnalysis::n_t, set<IDETaintAnalysis::d_t>> SeedMap;
+  InitialSeeds<IDETaintAnalysis::n_t, IDETaintAnalysis::d_t,
+               IDETaintAnalysis::l_t>
+      Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                             set<IDETaintAnalysis::d_t>({getZeroValue()})));
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue(), bottomElement());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IDETaintAnalysis::d_t IDETaintAnalysis::createZeroValue() const {

@@ -89,16 +89,20 @@ IFDSTabulationProblemTestPlugin::getSummaryFlowFunction(
   return nullptr;
 }
 
-map<const llvm::Instruction *, set<const FlowFact *>>
+InitialSeeds<IFDSTabulationProblemTestPlugin::n_t,
+             IFDSTabulationProblemTestPlugin::d_t,
+             IFDSTabulationProblemTestPlugin::l_t>
 IFDSTabulationProblemTestPlugin::initialSeeds() {
   cout << "IFDSTabulationProblemTestPlugin::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const FlowFact *>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(
-        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                       set<const FlowFact *>({getZeroValue()})));
+  InitialSeeds<IFDSTabulationProblemTestPlugin::n_t,
+               IFDSTabulationProblemTestPlugin::d_t,
+               IFDSTabulationProblemTestPlugin::l_t>
+      Seeds;
+  for (const auto &EntryPoint : EntryPoints) {
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 } // namespace psr

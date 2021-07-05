@@ -32,7 +32,7 @@ class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
 class IFDSTypeAnalysis
-    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
+    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
   IFDSTypeAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
@@ -52,7 +52,7 @@ public:
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destFun) override;
 
-  std::map<n_t, std::set<d_t>> initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   d_t createZeroValue() const override;
 

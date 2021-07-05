@@ -60,8 +60,7 @@ public:
   getSummaryFlowFunction(const llvm::Instruction *callSite,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<const FlowFact *>>
-  initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 };
 
 extern "C" std::unique_ptr<IFDSTabulationProblemPlugin>

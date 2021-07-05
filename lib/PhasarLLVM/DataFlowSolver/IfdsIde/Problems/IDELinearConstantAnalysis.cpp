@@ -266,47 +266,41 @@ IDELinearConstantAnalysis::getSummaryFlowFunction(
   return nullptr;
 }
 
-map<IDELinearConstantAnalysis::n_t, set<IDELinearConstantAnalysis::d_t>>
+InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+             IDELinearConstantAnalysis::l_t>
 IDELinearConstantAnalysis::initialSeeds() {
   // Check commandline arguments, e.g. argc, and generate all integer
   // typed arguments.
-  map<IDELinearConstantAnalysis::n_t, set<IDELinearConstantAnalysis::d_t>>
-      SeedMap;
+  InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+               IDELinearConstantAnalysis::l_t>
+      Seeds;
   // Collect global variables of integer type
   for (const auto &EntryPoint : EntryPoints) {
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue(), bottomElement());
     set<IDELinearConstantAnalysis::d_t> Globals;
     for (const auto &G :
          IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer() &&
             llvm::isa<llvm::ConstantInt>(GV->getInitializer())) {
-          Globals.insert(GV);
+          Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), GV,
+                        bottomElement());
         }
       }
-    }
-    Globals.insert(getZeroValue());
-    if (!Globals.empty()) {
-      SeedMap.insert(
-          make_pair(&ICF->getFunction(EntryPoint)->front().front(), Globals));
     }
     // Collect commandline arguments of integer type
     if (EntryPoint == "main") {
       set<IDELinearConstantAnalysis::d_t> CmdArgs;
       for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
         if (Arg.getType()->isIntegerTy()) {
-          CmdArgs.insert(&Arg);
+          Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg,
+                        bottomElement());
         }
       }
-      CmdArgs.insert(getZeroValue());
-      SeedMap.insert(
-          make_pair(&ICF->getFunction(EntryPoint)->front().front(), CmdArgs));
-    } else {
-      SeedMap.insert(
-          make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                    set<IDELinearConstantAnalysis::d_t>({getZeroValue()})));
     }
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IDELinearConstantAnalysis::d_t

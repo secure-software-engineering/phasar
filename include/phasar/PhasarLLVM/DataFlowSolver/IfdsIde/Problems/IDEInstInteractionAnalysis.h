@@ -42,6 +42,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
@@ -607,16 +608,15 @@ public:
     return nullptr;
   }
 
-  inline std::map<n_t, container_type> initialSeeds() override {
-    std::map<n_t, container_type> SeedMap;
+  inline InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+    InitialSeeds<n_t, d_t, l_t> Seeds;
     for (const auto &EntryPoint : this->EntryPoints) {
       for (const auto *StartPoint :
            this->ICF->getStartPointsOf(this->ICF->getFunction(EntryPoint))) {
-        SeedMap.insert(
-            std::make_pair(StartPoint, container_type({this->getZeroValue()})));
+        Seeds.addSeed(StartPoint, this->getZeroValue(), this->bottomElement());
       }
     }
-    return SeedMap;
+    return Seeds;
   }
 
   [[nodiscard]] inline d_t createZeroValue() const override {
@@ -1333,6 +1333,44 @@ public:
     //   }
   }
 
+  /// Computes all variables where a result set has been computed using the
+  /// edge functions (and respective value domain).
+  inline std::unordered_set<d_t>
+  getAllVariables(const SolverResults<n_t, d_t, l_t> &Solution) const {
+    std::unordered_set<d_t> Variables;
+    // collect all variables that are available
+    for (const auto *M : this->IRDB->getAllModules()) {
+      for (const auto &G : M->globals()) {
+        Variables.insert(&G);
+      }
+      for (const auto &F : *M) {
+        for (const auto &BB : F) {
+          for (const auto &I : BB) {
+            if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+              Variables.insert(A);
+            }
+            if (const auto *H = llvm::dyn_cast<llvm::CallBase>(&I)) {
+              if (!H->isIndirectCall() && H->getCalledFunction() &&
+                  this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
+                Variables.insert(H);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return Variables;
+  }
+
+  /// Computes all variables for which an empty set has been computed using the
+  /// edge functions (and respective value domain).
+  inline std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
+      const SolverResults<n_t, d_t, l_t> &Solution) const {
+    return removeVariablesWithoutEmptySetValue(Solution,
+                                               getAllVariables(Solution));
+  }
+
 protected:
   static inline bool isZeroValueImpl(d_t d) {
     return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
@@ -1375,6 +1413,39 @@ protected:
   }
 
 private:
+  /// Filters out all variables that had a non empty set during edge functions
+  /// computations.
+  inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
+      const SolverResults<n_t, d_t, l_t> &Solution,
+      std::unordered_set<d_t> Variables) const {
+    // Check the solver results and remove all variables for which a
+    // non-empty set has been computed
+    auto Results = Solution.getAllResultEntries();
+    for (const auto &Result : Results) {
+      // We do not care for the concrete instruction at which data-flow facts
+      // hold, instead we just wish to find out if a variable has been generated
+      // at some point. Therefore, we only care for the variables and their
+      // associated values and ignore at which point a variable may holds as a
+      // data-flow fact.
+      const auto *Variable = Result.getColumnKey();
+      const auto &Value = Result.getValue();
+      // skip result entry if variable is not in the set of all variables
+      if (Variables.find(Variable) == Variables.end()) {
+        continue;
+      }
+      // skip result entry if the computed value is not of type BitVectorSet
+      if (!std::holds_alternative<BitVectorSet<e_t>>(Value)) {
+        continue;
+      }
+      // remove variable from result set if a non-empty that has been computed
+      auto &Values = std::get<BitVectorSet<e_t>>(Value);
+      if (!Values.empty()) {
+        Variables.erase(Variable);
+      }
+    }
+    return Variables;
+  }
+
   std::function<EdgeFactGeneratorTy> edgeFactGen;
   static inline const l_t BottomElement = Bottom{};
   static inline const l_t TopElement = Top{};
