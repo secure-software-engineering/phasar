@@ -159,7 +159,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
 
   for (const auto &EntryPoint : EntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
-
     if (F == nullptr) {
       llvm::report_fatal_error("Could not retrieve function for entry point");
     }
@@ -577,19 +576,16 @@ LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
 
 const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
   auto it = GlobalCtors.begin();
-  if (it != GlobalCtors.end())
+  if (it != GlobalCtors.end()) {
     return it->second;
-
+  }
   return nullptr;
 }
 const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
-  // if (!RegisteredDtors.empty())
-  //   return RegisteredDtors.back();
-
   auto it = GlobalDtors.rbegin();
-  if (it != GlobalDtors.rend())
+  if (it != GlobalDtors.rend()) {
     return it->second;
-
+  }
   return nullptr;
 }
 

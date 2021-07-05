@@ -272,34 +272,48 @@ IDELinearConstantAnalysis::initialSeeds() {
   InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
                IDELinearConstantAnalysis::l_t>
       Seeds;
-  // Generate zero value at each entry point
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
-                  getZeroValue(), bottomElement());
-    // Generate global integer typed values
-    for (const auto &G :
-         IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
-      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-        if (GV->hasInitializer()) {
-          if (const auto *ConstInt =
-                  llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
-            Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), GV,
-                          ConstInt->getSExtValue());
+  // The analysis' entry points
+  std::set<const llvm::Function *> EntryPointFuns;
+  // Check if we have global constructors in which our analysis has to start
+  if (const auto *Entry = ICF->getFirstGlobalCtorOrNull()) {
+    EntryPointFuns.insert(Entry);
+  } else {
+    // Otherwise, consider the user-defined entry point(s)
+    for (const auto &EntryPoint : EntryPoints) {
+      EntryPointFuns.insert(IRDB->getFunctionDefinition(EntryPoint));
+    }
+  }
+  // Set initial seeds at the required entry points and generate global
+  // integer-typed variables using generalized initial seeds
+  for (const auto *EntryPointFun : EntryPointFuns) {
+    Seeds.addSeed(&EntryPointFun->front().front(), getZeroValue(),
+                  bottomElement());
+    // Generate global integer-typed variables using generalized initial seeds
+    for (const auto *M : IRDB->getAllModules()) {
+      for (const auto &G : M->globals()) {
+        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+          if (GV->hasInitializer()) {
+            if (const auto *ConstInt =
+                    llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
+              Seeds.addSeed(&EntryPointFun->front().front(), GV,
+                            ConstInt->getSExtValue());
+            }
           }
         }
       }
     }
-    // Collect command-line arguments of integer type
-    if (EntryPoint == "main") {
-      set<IDELinearConstantAnalysis::d_t> CmdArgs;
-      for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
-        if (Arg.getType()->isIntegerTy()) {
-          Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg,
-                        bottomElement());
-        }
-      }
-    }
   }
+  //   // Collect command-line arguments of integer type
+  //   if (EntryPoint == "main") {
+  //     set<IDELinearConstantAnalysis::d_t> CmdArgs;
+  //     for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
+  //       if (Arg.getType()->isIntegerTy()) {
+  //         Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg,
+  //                       bottomElement());
+  //       }
+  //     }
+  //   }
+  // }
   return Seeds;
 }
 

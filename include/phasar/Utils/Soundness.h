@@ -16,7 +16,7 @@
 namespace psr {
 
 enum class Soundness {
-#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE) TYPE,
+#define SOUNDNESS_FLAG_TYPE(NAME, TYPE) TYPE,
 #include "phasar/Utils/Soundness.def"
   Invalid
 };

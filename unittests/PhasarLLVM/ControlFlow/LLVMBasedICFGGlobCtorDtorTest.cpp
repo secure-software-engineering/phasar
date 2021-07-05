@@ -125,7 +125,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
 
   auto *GlobalCtor = ICFG.getFirstGlobalCtorOrNull();
   EXPECT_TRUE(GlobalCtor != nullptr);
@@ -151,7 +151,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
 
   auto *GlobalCtor = ICFG.getFirstGlobalCtorOrNull();
   EXPECT_TRUE(GlobalCtor != nullptr);
@@ -176,7 +176,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
 
   auto *GlobalDtor = // IRDB.getFunction("_ZN3FooD2Ev");
       ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
@@ -200,7 +200,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT,
                                     {"_GLOBAL__sub_I_globals_lca_1.cpp"});
 
@@ -234,7 +234,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT,
                                     {"_GLOBAL__sub_I_globals_lca_2.cpp"});
 
@@ -277,7 +277,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                     Soundness::SOUNDY, /*IncludeGlobals*/ true);
+                     Soundness::Soundy, /*IncludeGlobals*/ true);
 
   ASSERT_TRUE(ICFG.getFirstGlobalCtorOrNull() != nullptr);
 
@@ -325,7 +325,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(
-      IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::SOUNDY,
+      IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::Soundy,
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
                                 // just keep the flag IncludeGlobals=true
   IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT, {"main"});
@@ -359,7 +359,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(
-      IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::SOUNDY,
+      IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::Soundy,
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
                                 // just keep the flag IncludeGlobals=true
   IDELinearConstantAnalysis Problem(&IRDB, &TH, &ICFG, &PT, {"main"});
@@ -393,7 +393,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                     Soundness::SOUNDY,
+                     Soundness::Soundy,
                      /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(
       &IRDB, &TH, &ICFG, &PT,

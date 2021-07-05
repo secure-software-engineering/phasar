@@ -51,7 +51,7 @@ public:
                          const std::set<std::string> &EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
                          LLVMPointsToInfo *PT = nullptr,
-                         Soundness S = Soundness::SOUNDY);
+                         Soundness S = Soundness::Soundy);
 
   ~LLVMBasedBackwardsICFG() override = default;
 

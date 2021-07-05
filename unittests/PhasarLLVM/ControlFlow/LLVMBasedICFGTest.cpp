@@ -258,7 +258,7 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_1) {
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, nullptr,
-                     Soundness::SOUNDY, true);
+                     Soundness::Soundy, true);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *BeforeMain =
       IRDB.getFunctionDefinition("_Z11before_mainv");
@@ -279,7 +279,7 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_2) {
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, nullptr,
-                     Soundness::SOUNDY, true);
+                     Soundness::Soundy, true);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *BeforeMain =
       IRDB.getFunctionDefinition("_Z11before_mainv");
@@ -304,7 +304,7 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_3) {
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, nullptr,
-                     Soundness::SOUNDY, true);
+                     Soundness::Soundy, true);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Ctor = IRDB.getFunctionDefinition("_ZN1SC2Ei");
   const llvm::Function *Dtor = IRDB.getFunctionDefinition("_ZN1SD2Ev");
@@ -326,7 +326,7 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_4) {
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, nullptr,
-                     Soundness::SOUNDY, true);
+                     Soundness::Soundy, true);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Ctor = IRDB.getFunctionDefinition("_ZN1SC2Ei");
   const llvm::Function *Dtor = IRDB.getFunctionDefinition("_ZN1SD2Ev");
