@@ -626,7 +626,30 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_08) {
   compareResults(Results, GroundTruth);
 }
 
-// main function for the test case/*  */
+TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_10) {
+  auto Results = doAnalysis("global_10_cpp_dbg.ll", true);
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("main", 5, "g1", 42);
+  GroundTruth.emplace("main", 5, "g2", 9001);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_11) {
+  auto Results = doAnalysis("global_11_cpp_dbg.ll", true);
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("main", 10, "a", 13);
+  GroundTruth.emplace("main", 10, "g1", 42);
+  GroundTruth.emplace("main", 10, "g2", 9001);
+  GroundTruth.emplace("_Z3fooi", 5, "x", 14);
+  GroundTruth.emplace("_Z3fooi", 5, "g1", 42);
+  GroundTruth.emplace("_Z3fooi", 5, "g2", 9001);
+  GroundTruth.emplace("main", 12, "a", 14);
+  GroundTruth.emplace("main", 12, "g1", 42);
+  GroundTruth.emplace("main", 12, "g2", 9001);
+  compareResults(Results, GroundTruth);
+}
+
+// main function for the test case
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

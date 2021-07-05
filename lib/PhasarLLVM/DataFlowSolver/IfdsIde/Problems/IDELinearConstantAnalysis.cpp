@@ -269,27 +269,27 @@ IDELinearConstantAnalysis::getSummaryFlowFunction(
 InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
              IDELinearConstantAnalysis::l_t>
 IDELinearConstantAnalysis::initialSeeds() {
-  // Check commandline arguments, e.g. argc, and generate all integer
-  // typed arguments.
   InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
                IDELinearConstantAnalysis::l_t>
       Seeds;
-  // Collect global variables of integer type
+  // Generate zero value at each entry point
   for (const auto &EntryPoint : EntryPoints) {
     Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
                   getZeroValue(), bottomElement());
-    set<IDELinearConstantAnalysis::d_t> Globals;
+    // Generate global integer typed values
     for (const auto &G :
          IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-        if (GV->hasInitializer() &&
-            llvm::isa<llvm::ConstantInt>(GV->getInitializer())) {
-          Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), GV,
-                        bottomElement());
+        if (GV->hasInitializer()) {
+          if (const auto *ConstInt =
+                  llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
+            Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), GV,
+                          ConstInt->getSExtValue());
+          }
         }
       }
     }
-    // Collect commandline arguments of integer type
+    // Collect command-line arguments of integer type
     if (EntryPoint == "main") {
       set<IDELinearConstantAnalysis::d_t> CmdArgs;
       for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
