@@ -82,7 +82,7 @@ public:
               [](const llvm::CallBase *CallSite, const llvm::Value *V) {
                 // Globals are considered to be involved in this default
                 // implementation.
-                // Need llvm::Constant here to cover also ConstantExpr 
+                // Need llvm::Constant here to cover also ConstantExpr
                 // and ConstantAggregate
                 if (llvm::isa<llvm::Constant>(V)) {
                   return true;

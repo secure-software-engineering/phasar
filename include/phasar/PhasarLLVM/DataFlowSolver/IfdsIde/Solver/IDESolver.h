@@ -40,6 +40,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
@@ -105,7 +106,7 @@ public:
         cachedFlowEdgeFunctions(Problem), allTop(Problem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
             allTop, IDEProblem)),
-        initialSeeds(Problem.initialSeeds()) {}
+        Seeds(Problem.initialSeeds()) {}
 
   IDESolver(const IDESolver &) = delete;
   IDESolver &operator=(const IDESolver &) = delete;
@@ -414,7 +415,7 @@ protected:
   // returns if SolverConfig.followReturnPastSeeds is enabled
   std::set<n_t> unbalancedRetSites;
 
-  std::map<n_t, std::set<d_t>> initialSeeds;
+  InitialSeeds<n_t, d_t, l_t> Seeds;
 
   Table<n_t, d_t, l_t> valtab;
 
@@ -439,7 +440,7 @@ protected:
         allTop(IDEProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
             allTop, IDEProblem)),
-        initialSeeds(IDEProblem.initialSeeds()) {}
+        Seeds(IDEProblem.initialSeeds()) {}
 
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
@@ -872,8 +873,7 @@ protected:
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
-    if (ICF->isStartPoint(n) || initialSeeds.count(n) ||
-        unbalancedRetSites.count(n)) {
+    if (ICF->isStartPoint(n) || Seeds.count(n) || unbalancedRetSites.count(n)) {
       propagateValueAtStart(nAndD, n);
     }
     if (ICF->isCallSite(n)) {
@@ -919,20 +919,19 @@ protected:
   void computeValues() {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Start computing values");
     // Phase II(i)
-    std::map<n_t, std::set<d_t>> allSeeds(initialSeeds);
+    std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
     for (n_t unbalancedRetSite : unbalancedRetSites) {
-      if (allSeeds[unbalancedRetSite].empty()) {
-        allSeeds.emplace(unbalancedRetSite, std::set<d_t>({ZeroValue}));
+      if (AllSeeds.find(unbalancedRetSite) == AllSeeds.end()) {
+        AllSeeds[unbalancedRetSite][ZeroValue] = IDEProblem.topElement();
       }
     }
     // do processing
-    for (const auto &seed : allSeeds) {
-      n_t startPoint = seed.first;
-      for (d_t val : seed.second) {
+    for (const auto &[StartPoint, Facts] : AllSeeds) {
+      for (auto &[Fact, Value] : Facts) {
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
-        setVal(startPoint, val, IDEProblem.topElement());
-        std::pair<n_t, d_t> superGraphNode(startPoint, val);
+        setVal(StartPoint, Fact, Value);
+        std::pair<n_t, d_t> superGraphNode(StartPoint, Fact);
         valuePropagationTask(superGraphNode);
       }
     }
@@ -949,10 +948,10 @@ protected:
   /// their own. Normally, solve() should be called instead.
   void submitInitialSeeds() {
     PAMM_GET_INSTANCE;
-    for (const auto &[StartPoint, Facts] : initialSeeds) {
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Start point: " << IDEProblem.NtoString(StartPoint));
-      for (const auto &Fact : Facts) {
+      for (const auto &[Fact, Value] : Facts) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "\tFact: " << IDEProblem.DtoString(Fact);
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');

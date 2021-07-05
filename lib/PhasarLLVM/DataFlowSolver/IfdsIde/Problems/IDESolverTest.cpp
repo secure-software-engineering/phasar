@@ -73,14 +73,16 @@ IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t CallSite,
   return nullptr;
 }
 
-map<IDESolverTest::n_t, set<IDESolverTest::d_t>> IDESolverTest::initialSeeds() {
+InitialSeeds<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::l_t>
+IDESolverTest::initialSeeds() {
   cout << "IDESolverTest::initialSeeds()\n";
-  map<IDESolverTest::n_t, set<IDESolverTest::d_t>> SeedMap;
+  InitialSeeds<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::l_t>
+      Seeds;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                             set<IDESolverTest::d_t>({getZeroValue()})));
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue(), topElement());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IDESolverTest::d_t IDESolverTest::createZeroValue() const {

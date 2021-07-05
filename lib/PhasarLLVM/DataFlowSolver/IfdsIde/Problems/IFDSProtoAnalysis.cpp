@@ -72,15 +72,18 @@ IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t CallSite,
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>>
+InitialSeeds<IFDSProtoAnalysis::n_t, IFDSProtoAnalysis::d_t,
+             IFDSProtoAnalysis::l_t>
 IFDSProtoAnalysis::initialSeeds() {
   cout << "IFDSProtoAnalysis::initialSeeds()\n";
-  map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>> SeedMap;
+  InitialSeeds<IFDSProtoAnalysis::n_t, IFDSProtoAnalysis::d_t,
+               IFDSProtoAnalysis::l_t>
+      Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                             set<IFDSProtoAnalysis::d_t>({getZeroValue()})));
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() const {

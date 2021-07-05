@@ -55,8 +55,7 @@ public:
   getSummaryFlowFunction(const llvm::Instruction *callSite,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<const FlowFact *>>
-  initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                                             d_t succNode) override;

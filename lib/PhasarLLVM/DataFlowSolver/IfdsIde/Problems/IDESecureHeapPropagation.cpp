@@ -64,13 +64,16 @@ IDESecureHeapPropagation::getSummaryFlowFunction(n_t CallSite, f_t DestMthd) {
   return nullptr;
 }
 
-std::map<IDESecureHeapPropagation::n_t, std::set<IDESecureHeapPropagation::d_t>>
+InitialSeeds<IDESecureHeapPropagation::n_t, IDESecureHeapPropagation::d_t,
+             IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::initialSeeds() {
-  std::map<n_t, std::set<d_t>> Seeds;
+  InitialSeeds<IDESecureHeapPropagation::n_t, IDESecureHeapPropagation::d_t,
+               IDESecureHeapPropagation::l_t>
+      Seeds;
   for (const auto &Entry : EntryPoints) {
     const auto *Fn = ICF->getFunction(Entry);
     if (Fn && !Fn->isDeclaration()) {
-      Seeds[&Fn->front().front()] = {getZeroValue()};
+      Seeds.addSeed(&Fn->front().front(), getZeroValue(), bottomElement());
     }
   }
   return Seeds;

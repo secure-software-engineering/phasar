@@ -608,16 +608,15 @@ public:
     return nullptr;
   }
 
-  inline std::map<n_t, container_type> initialSeeds() override {
-    std::map<n_t, container_type> SeedMap;
+  inline InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+    InitialSeeds<n_t, d_t, l_t> Seeds;
     for (const auto &EntryPoint : this->EntryPoints) {
       for (const auto *StartPoint :
            this->ICF->getStartPointsOf(this->ICF->getFunction(EntryPoint))) {
-        SeedMap.insert(
-            std::make_pair(StartPoint, container_type({this->getZeroValue()})));
+        Seeds.addSeed(StartPoint, this->getZeroValue(), this->bottomElement());
       }
     }
-    return SeedMap;
+    return Seeds;
   }
 
   [[nodiscard]] inline d_t createZeroValue() const override {

@@ -44,7 +44,7 @@ namespace psr {
 
 class ProjectIRDB;
 
-struct IFDSPluginAnalysisDomain : public LLVMAnalysisDomainDefault {
+struct IFDSPluginAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
   using d_t = const FlowFact *;
 };
 
