@@ -149,7 +149,7 @@ TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
 TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
   Initialize("GlobalVariableTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
-  groundTruth.push_back({{EdgeValue(50)}, 7, 13});       // i
+  groundTruth.push_back({{EdgeValue(50)}, 7, 13}); // i
   groundTruth.push_back({{EdgeValue(8)}, 10, 13}); // j
   compareResults(groundTruth);
 }

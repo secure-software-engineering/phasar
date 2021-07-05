@@ -32,9 +32,9 @@ namespace psr {
 /// completely when no performance evaluation is needed. Macros are defined
 /// in @see PAMMMacros.h
 ///
-/// Currently, PAMM can be run with all metrics (severity level 2 = Full) or only
-/// core metrics (severity level 1 = Core) enabled. The severity level can be
-/// changed when building PhASAR. The CMake option is
+/// Currently, PAMM can be run with all metrics (severity level 2 = Full) or
+/// only core metrics (severity level 1 = Core) enabled. The severity level can
+/// be changed when building PhASAR. The CMake option is
 /// -DPHASAR_ENABLE_PAMM=[Off/Core/Full]. Note that PAMM will be disabled
 /// (severity level 0 = Off) when building and running unittests.
 ///
@@ -43,9 +43,9 @@ namespace psr {
 ///
 /// @brief This class offers functionality to assist a performance analysis of
 /// the PhASAR framework.
-/// @note This class implements the Singleton Pattern - use the PAMM_GET_INSTANCE
-/// macro to retrieve an instance of PAMM before you use any other macro from
-/// this class.
+/// @note This class implements the Singleton Pattern - use the
+/// PAMM_GET_INSTANCE macro to retrieve an instance of PAMM before you use any
+/// other macro from this class.
 class PAMM {
 private:
   PAMM() = default;
