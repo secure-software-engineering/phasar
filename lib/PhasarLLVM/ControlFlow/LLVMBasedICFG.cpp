@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <memory>
+#include <ostream>
 
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
@@ -23,7 +24,9 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "boost/graph/copy.hpp"
@@ -450,8 +453,9 @@ LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
 
     // TODO: Add function-local static variable initialization workaround here
 
-    if (!Preds.empty())
+    if (!Preds.empty()) {
       return Preds;
+    }
   }
 
   auto getAllUserExitPoints = [](const auto &UserEntryPoints, auto &IRDB) {
@@ -464,17 +468,20 @@ LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
     }
 
     const llvm::Function *ExitFn = IRDB.getFunction("exit");
-    if (!ExitFn)
+    if (!ExitFn) {
       return ret;
+    }
 
-    for (auto *ExitCall : ExitFn->users()) {
-      if (auto ExitInst = llvm::dyn_cast<llvm::Instruction>(ExitCall)) {
+    for (const auto *ExitCall : ExitFn->users()) {
+      if (const auto *ExitInst = llvm::dyn_cast<llvm::Instruction>(ExitCall)) {
         ret.push_back(ExitInst);
       }
     }
 
     return ret;
   };
+
+  /// TODO: Do we need to exclude ret instructions here as well?
 
   if (auto globCtorIt = GlobalCtorFn.find(Inst->getFunction());
       globCtorIt != GlobalCtorFn.end()) {
@@ -501,6 +508,7 @@ LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
 
 std::vector<const llvm::Instruction *>
 LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
+
   vector<const llvm::Instruction *> Successors;
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
@@ -512,66 +520,96 @@ LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
       Successors.push_back(Inst->getNextNonDebugInstruction());
     }
   }
+  if (Successors.empty()) {
+    if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(Inst);
+        Branch && isStaticVariableLazyInitializationBranch(Branch)) {
+      // Skip the "already initialized" case, such that the analysis is always
+      // aware of the initialized value.
+      Successors.push_back(&Branch->getSuccessor(0)->front());
 
-  if (!Inst->isTerminator())
-    return Successors;
+    } else {
+      Successors.reserve(Inst->getNumSuccessors() + Successors.size());
+      std::transform(llvm::succ_begin(Inst), llvm::succ_end(Inst),
+                     std::back_inserter(Successors),
+                     [](const llvm::BasicBlock *BB) { return &BB->front(); });
+    }
+  }
 
-  // TODO: Do we have more (e.g. exceptional) flows apart from ret?
-  if (llvm::isa<llvm::ReturnInst>(Inst)) {
-    // Handle artificial intraprocedural flow between global(C|D)tors
-    if (auto globCtorIt = GlobalCtorFn.find(Inst->getFunction());
-        globCtorIt != GlobalCtorFn.end()) {
-      auto it = std::next(globCtorIt->second);
-      if (it != GlobalCtors.end()) {
-        // Flow to next global ctor
-        Successors.push_back(&it->second->front().front());
-      } else {
-        // The end of the global ctor chain has been reached.
-        // => start with the user entrypoints
-        Successors.reserve(UserEntryPoints.size());
-        for (const auto *F : UserEntryPoints) {
-          Successors.push_back(&F->front().front());
+  std::vector<const llvm::Instruction *> Ret;
+  Ret.reserve(Successors.size());
+  bool hasFirstGlobDtor = false;
+
+  for (const auto *Succ : Successors) {
+    if (llvm::isa<llvm::ReturnInst>(Succ) ||
+        llvm::isa<llvm::ResumeInst>(Succ)) {
+      // Handle artificial intraprocedural flow between global(C|D)tors
+      if (auto globCtorIt = GlobalCtorFn.find(Succ->getFunction());
+          globCtorIt != GlobalCtorFn.end()) {
+        auto it = std::next(globCtorIt->second);
+        if (it != GlobalCtors.end()) {
+          // Flow to next global ctor
+          Ret.push_back(&it->second->front().front());
+        } else {
+          // The end of the global ctor chain has been reached.
+          // => start with the user entrypoints
+          Ret.reserve(UserEntryPoints.size());
+          for (const auto *F : UserEntryPoints) {
+            Ret.push_back(&F->front().front());
+          }
         }
-      }
-    } else if (auto globDtorIt = GlobalDtorFn.find(Inst->getFunction());
-               globDtorIt != GlobalDtorFn.end()) {
+      } else if (auto globDtorIt = GlobalDtorFn.find(Succ->getFunction());
+                 globDtorIt != GlobalDtorFn.end()) {
 
-      if (auto it = std::next(globDtorIt->second); it != GlobalDtors.end()) {
-        // Flow to next global dtor
-        Successors.push_back(&it->second->front().front());
+        if (auto it = std::next(globDtorIt->second); it != GlobalDtors.end()) {
+          // Flow to next global dtor
+          Ret.push_back(&it->second->front().front());
+        }
+        // else: we have reached the end of the program
+      } else if (!hasFirstGlobDtor &&
+                 UserEntryPoints.count(Succ->getFunction())) {
+        if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
+          // The end of the user-entrypoint has been reached
+          // => start with first global dtor
+          // Ignore unbalanced returns for now
+          Ret.push_back(&it->second->front().front());
+          hasFirstGlobDtor = true;
+        } else {
+          Ret.push_back(Succ);
+        }
+      } else {
+        Ret.push_back(Succ);
       }
-      // else: we have reached the end of the program
-    } else if (UserEntryPoints.count(Inst->getFunction())) {
-      if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
-        // The end of the user-entrypoint has been reached
-        // => start with first global dtor
-        // Ignore unbalanced returns for now
-        Successors.push_back(&it->second->front().front());
+    } else if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Succ);
+               Call && Call->getCalledFunction() &&
+               Call->getCalledFunction()->getName() == "exit") {
+      if (auto it = GlobalDtors.begin();
+          !hasFirstGlobDtor && it != GlobalDtors.end()) {
+        Ret.push_back(&it->second->front().front());
+        hasFirstGlobDtor = true;
       }
-    }
-  } else if (auto Call = llvm::dyn_cast<llvm::CallBase>(Inst);
-             Call && Call->getCalledFunction() &&
-             Call->getCalledFunction()->getName() == "exit") {
-    if (auto it = GlobalDtors.begin(); it != GlobalDtors.end()) {
-      Successors.push_back(&it->second->front().front());
+    } else {
+      Ret.push_back(Succ);
     }
   }
 
-  if (auto Branch = llvm::dyn_cast<llvm::BranchInst>(Inst);
-      Branch && isStaticVariableLazyInitializationBranch(Branch)) {
-    // Skip the "already initialized" case, such that the analysis is always
-    // aware of the initialized value.
-    Successors.push_back(&Branch->getSuccessor(0)->front());
+  auto printSet = [](auto &&Set) {
+    if (Set.empty()) {
+      std::cerr << "{ }\n";
+      return;
+    }
+    std::cerr << "{\n";
+    for (const auto *Elem : Set) {
+      std::cerr << llvmIRToString(Elem) << "\n";
+    }
+    std::cerr << "}\n";
+  };
 
-    return Successors;
-  }
+  std::cerr << "Successors of " << llvmIRToString(Inst) << ": ";
+  printSet(Successors);
+  std::cerr << " ==> ";
+  printSet(Ret);
 
-  Successors.reserve(Inst->getNumSuccessors() + Successors.size());
-  std::transform(llvm::succ_begin(Inst), llvm::succ_end(Inst),
-                 back_inserter(Successors),
-                 [](const llvm::BasicBlock *BB) { return &BB->front(); });
-
-  return Successors;
+  return Ret;
 }
 
 const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
@@ -743,12 +781,12 @@ LLVMBasedICFG::getCallsFromWithin(const llvm::Function *F) const {
 set<const llvm::Instruction *>
 LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
   set<const llvm::Instruction *> ReturnSites;
-  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(N)) {
-    ReturnSites.insert(Call->getNextNode());
-  }
   if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
     ReturnSites.insert(&Invoke->getNormalDest()->front());
     ReturnSites.insert(&Invoke->getUnwindDest()->front());
+  } else {
+    auto Succs = getSuccsOf(N);
+    ReturnSites.insert(Succs.begin(), Succs.end());
   }
   return ReturnSites;
 }

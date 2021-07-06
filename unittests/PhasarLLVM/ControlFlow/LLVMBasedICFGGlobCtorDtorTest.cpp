@@ -47,9 +47,20 @@ static void EnsureFunctionOrdering(
   llvm::SmallDenseMap<const llvm::Function *, const llvm::Function *, 8> next,
       prev;
 
+  auto getLast = [](const llvm::Function *F) {
+    const auto &LastBB = F->back();
+    const auto &LastInst = LastBB.back();
+    if (LastInst.getPrevNode()) {
+      return LastInst.getPrevNode();
+    } else {
+      std::cerr << "WARNING: No prev of: " << llvmIRToString(&LastInst) << "\n";
+      return &LastInst;
+    }
+  };
+
   // Construct ordering between the functions...
-  for (auto *Fun : Functions) {
-    auto succ = ICFG.getSuccsOf(&Fun->back().back());
+  for (const auto *Fun : Functions) {
+    auto succ = ICFG.getSuccsOf(getLast(Fun));
     auto pred = ICFG.getPredsOf(&Fun->front().front());
 
     EXPECT_TRUE(succ.size() < 2);
@@ -289,10 +300,10 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
   Solver.solve();
 
-  // Solver.dumpResults();
+  Solver.dumpResults();
 
   auto *FooInit = IRDB.getInstruction(7);
-  auto *BarInit = IRDB.getInstruction(9);
+  auto *BarInit = IRDB.getInstruction(10);
   auto *LoadX = IRDB.getInstruction(18);
   auto *LoadY = IRDB.getInstruction(19);
   auto *End = IRDB.getInstruction(21);
