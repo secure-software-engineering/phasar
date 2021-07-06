@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace psr;
 
@@ -27,7 +28,7 @@ protected:
       std::tuple<std::string, std::size_t, std::string, int64_t>;
   std::unique_ptr<ProjectIRDB> IRDB;
 
-  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
+  void SetUp() override { boost::log::core::get()->set_logging_enabled(true); }
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
@@ -44,7 +45,43 @@ protected:
     LCASolver.solve();
     if (PrintDump) {
       ICFG.print();
+    //   std::cout << "Check out ICFG connectivity:\n";
+    //   const auto *GCtor = ICFG.getFirstGlobalCtorOrNull();
+    //   assert(GCtor);
+    //   std::cout << "global constructor's exit point(s) are:\n";
+    //   for (const auto *ExitPoint : ICFG.getExitPointsOf(GCtor)) {
+    //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
+    //     std::cout << "with successor(s):\n";
+    //     auto Succs = ICFG.getSuccsOf(ExitPoint);
+    //     for (const auto *Succ : Succs) {
+    //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
+    //     }
+    //   }
+    //   std::cout << "main's exit point(s) are:\n";
+    //   const auto *Main = ICFG.getFunction("main");
+    //   assert(Main);
+    //   for (const auto *ExitPoint : ICFG.getExitPointsOf(Main)) {
+    //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
+    //     std::cout << "with successor(s):\n";
+    //     auto Succs = ICFG.getSuccsOf(ExitPoint);
+    //     for (const auto *Succ : Succs) {
+    //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
+    //     }
+    //   }
+    //   std::cout << "MIN: "
+    //             << std::numeric_limits<IDELinearConstantAnalysis::l_t>::min()
+    //             << '\n';
+    //   std::cout << "MIX: "
+    //             << std::numeric_limits<IDELinearConstantAnalysis::l_t>::max()
+    //             << '\n';
       LCASolver.dumpResults();
+    //   const auto *CallToFoo = getNthInstruction(Main, 8);
+    //   std::cout << "Results at: " << llvmIRToString(CallToFoo) << '\n';
+    //   auto Results = LCASolver.resultsAt(CallToFoo);
+    //   for (auto &[Fact, Value] : Results) {
+    //     std::cout << "\tFact: " << llvmIRToString(Fact) << '\n';
+    //     std::cout << "\tValue: " << Value << '\n';
+    //   }
     }
     return LCAProblem.getLCAResults(LCASolver.getSolverResults());
   }
@@ -188,6 +225,12 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_11) {
   GroundTruth.emplace("main", 3, "j", 2);
   GroundTruth.emplace("main", 4, "i", 42);
   GroundTruth.emplace("main", 4, "j", 2);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_12) {
+  auto Results = doAnalysis("basic_12_cpp_dbg.ll", true);
+  std::set<LCACompactResult_t> GroundTruth;
   compareResults(Results, GroundTruth);
 }
 
@@ -491,7 +534,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleRecursionTest_03) {
 /* ============== GLOBAL VARIABLE TESTS ============== */
 
 TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_01) {
-  auto Results = doAnalysis("global_01_cpp_dbg.ll");
+  auto Results = doAnalysis("global_01_cpp_dbg.ll", true);
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "g1", 42);
   GroundTruth.emplace("main", 6, "g2", 1);

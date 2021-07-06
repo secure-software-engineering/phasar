@@ -122,6 +122,9 @@ IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t DestFun) {
+
+  std::cout << "found call at: " << llvmIRToString(CallSite) << '\n';
+
   // Map the actual parameters into the formal parameters
   if (auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
 
@@ -143,6 +146,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       }
       set<IDELinearConstantAnalysis::d_t>
       computeTargets(IDELinearConstantAnalysis::d_t Source) override {
+        std::cout << "call call-ff with: " << llvmIRToString(Source) << '\n';
         set<IDELinearConstantAnalysis::d_t> Res;
         for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
           if (Source == Actuals[Idx]) {
@@ -190,7 +194,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       }
     };
 
-    if (!CS->getCalledFunction()->isDeclaration())
+    if (!DestFun->isDeclaration())
       return make_shared<LCAFF>(CS, DestFun);
   }
   // Pass everything else as identity
@@ -252,8 +256,6 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
             return !isZeroValue(Source) &&
                    llvm::isa<llvm::GlobalVariable>(Source);
           });
-    } else {
-      return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
     }
   }
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -303,17 +305,6 @@ IDELinearConstantAnalysis::initialSeeds() {
       }
     }
   }
-  //   // Collect command-line arguments of integer type
-  //   if (EntryPoint == "main") {
-  //     set<IDELinearConstantAnalysis::d_t> CmdArgs;
-  //     for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
-  //       if (Arg.getType()->isIntegerTy()) {
-  //         Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg,
-  //                       bottomElement());
-  //       }
-  //     }
-  //   }
-  // }
   return Seeds;
 }
 
@@ -336,19 +327,6 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::d_t CurrNode,
     IDELinearConstantAnalysis::n_t Succ,
     IDELinearConstantAnalysis::d_t SuccNode) {
-  // Initialize global variables at entry point
-  if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
-      isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
-      llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Case: Intialize global variable at entry point.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(CurrNode);
-    const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer());
-    auto IntConst = CI->getSExtValue();
-    return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
-  }
-
   // ALL_BOTTOM for zero value
   if ((isZeroValue(CurrNode) && isZeroValue(SuccNode)) ||
       (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
@@ -421,6 +399,8 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::d_t SrcNode,
     IDELinearConstantAnalysis::f_t DestinationFunction,
     IDELinearConstantAnalysis::d_t DestNode) {
+  std::cout << "called getCallEdgeFunction at: " << llvmIRToString(CallSite) << '\n';
+  std::cout << llvmIRToString(SrcNode) << " ---> " << llvmIRToString(DestNode) << '\n';
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
@@ -471,7 +451,7 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::d_t CallNode,
     IDELinearConstantAnalysis::n_t RetSite,
     IDELinearConstantAnalysis::d_t RetSiteNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
+  return nullptr;
 }
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::topElement() {

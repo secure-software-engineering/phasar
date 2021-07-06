@@ -769,10 +769,9 @@ protected:
   l_t val(n_t nHashN, d_t nHashD) {
     if (valtab.contains(nHashN, nHashD)) {
       return valtab.get(nHashN, nHashD);
-    } else {
-      // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
-      return IDEProblem.topElement();
     }
+    // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
+    return IDEProblem.topElement();
   }
 
   void setVal(n_t nHashN, d_t nHashD, l_t l) {
