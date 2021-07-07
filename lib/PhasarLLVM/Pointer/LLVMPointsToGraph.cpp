@@ -231,13 +231,13 @@ void LLVMPointsToGraph::computePointsToGraph(llvm::Function *F) {
                                   ? DL.getTypeStoreSize(I2ElTy)
                                   : llvm::MemoryLocation::UnknownSize;
       switch (AA.alias(I1->first, I1Size, I2->first, I2Size)) {
-      case llvm::NoAlias:
+      case llvm::AliasResult::NoAlias:
         break;
-      case llvm::MayAlias: // no break
+      case llvm::AliasResult::MayAlias: // no break
         [[fallthrough]];
-      case llvm::PartialAlias: // no break
+      case llvm::AliasResult::PartialAlias: // no break
         [[fallthrough]];
-      case llvm::MustAlias:
+      case llvm::AliasResult::MustAlias:
         boost::add_edge(I1->second, I2->second, PAG);
         break;
       default:
