@@ -37,8 +37,8 @@ using MapTy = llvm::DenseMap<TKey, TValue>;
 
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
-  const PSR_CONSTEXPR std::string pathToLLFiles = unittest::PathToLLTestFiles;
-  const PSR_CONSTEXPR std::string pathToJSONFiles =
+  PSR_CONST_CONSTEXPR std::string pathToLLFiles = unittest::PathToLLTestFiles;
+  PSR_CONST_CONSTEXPR std::string pathToJSONFiles =
       unittest::PathToJSONTestFiles + "linear_constant/";
 
   void SetUp() override {
@@ -255,9 +255,16 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV9) {
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource01) {
-  auto results = exportICFG("linear_constant/call_01_cpp_dbg.ll", true);
-  // std::cerr << results.dump(4) << std::endl;
+  auto results =
+      exportICFG("linear_constant/call_01_cpp_dbg.ll", /*asSrcCode*/ true);
   verifySourceCodeJSON(results, readJson("call_01_cpp_icfg.json"));
+}
+
+TEST_F(LLVMBasedICFGExportTest, ExportICFGSource02) {
+  auto results =
+      exportICFG("linear_constant/call_07_cpp_dbg.ll", /*asSrcCode*/ true);
+  // std::cerr << results.dump(4) << std::endl;
+  verifySourceCodeJSON(results, readJson("call_07_cpp_icfg.json"));
 }
 
 int main(int Argc, char **Argv) {

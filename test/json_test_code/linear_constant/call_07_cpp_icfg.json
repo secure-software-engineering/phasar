@@ -1,0 +1,226 @@
+[
+    {
+        "from": {
+            "column": 19,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "int increment(int a) {"
+        },
+        "to": {
+            "column": 10,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        }
+    },
+    {
+        "from": {
+            "column": 10,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        },
+        "to": {
+            "column": 3,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        }
+    },
+    {
+        "from": {
+            "column": 6,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        },
+        "to": {
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "column": 6,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        }
+    },
+    {
+        "from": {
+            "column": 6,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        },
+        "to": {
+            "column": 20,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "column": 20,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "column": 10,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "column": 10,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "column": 19,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "int increment(int a) {"
+        }
+    },
+    {
+        "from": {
+            "column": 3,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        },
+        "to": {
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "column": 20,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "column": 20,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "column": 10,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "column": 10,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "column": 19,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "int increment(int a) {"
+        }
+    },
+    {
+        "from": {
+            "column": 3,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        },
+        "to": {
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "column": 3,
+            "line": 9,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return 0;"
+        }
+    }
+]
