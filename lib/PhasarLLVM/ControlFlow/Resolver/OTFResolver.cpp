@@ -103,8 +103,6 @@ OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   auto AllocSites = PT.getReachableAllocationSites(Receiver);
   auto PossibleAllocatedTypes = getReachableTypes(*AllocSites);
 
-  const auto *ReceiverType = getReceiverType(CallSite);
-
   // Now we must check if we have found some allocated struct types
   set<const llvm::StructType *> PossibleTypes;
   for (const auto *Type : PossibleAllocatedTypes) {
