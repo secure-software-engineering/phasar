@@ -265,15 +265,18 @@ getAllExitPoints(const llvm::Function *F) {
 
 void appendAllExitPoints(const llvm::Function *F,
                          std::vector<const llvm::Instruction *> &ExitPoints) {
-  if (!F)
+  if (!F) {
     return;
+  }
 
-  for (auto &BB : *F) {
-    auto term = BB.getTerminator();
+  for (const auto &BB : *F) {
+    const auto *term = BB.getTerminator();
     assert(term && "Invalid IR: Each BasicBlock must have a terminator "
                    "instruction at the end");
-    if (llvm::isa<llvm::ReturnInst>(term))
+    if (llvm::isa<llvm::ReturnInst>(term) ||
+        llvm::isa<llvm::ResumeInst>(term)) {
       ExitPoints.push_back(term);
+    }
   }
 }
 

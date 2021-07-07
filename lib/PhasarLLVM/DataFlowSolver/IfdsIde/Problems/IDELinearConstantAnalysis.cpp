@@ -19,6 +19,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -67,6 +68,10 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t Curr, IDELinearConstantAnalysis::n_t Succ) {
+
+  std::cerr << "Normal-Flow from " << llvmIRToString(Curr) << " --> "
+            << llvmIRToString(Succ) << "\n";
+
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
       return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
@@ -124,7 +129,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t DestFun) {
 
-  std::cout << "found call at: " << llvmIRToString(CallSite) << '\n';
+  // std::cout << "found call at: " << llvmIRToString(CallSite) << '\n';
 
   // Map the actual parameters into the formal parameters
   if (auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
@@ -147,7 +152,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       }
       set<IDELinearConstantAnalysis::d_t>
       computeTargets(IDELinearConstantAnalysis::d_t Source) override {
-        std::cout << "call call-ff with: " << llvmIRToString(Source) << '\n';
+        // std::cout << "call call-ff with: " << llvmIRToString(Source) << '\n';
         set<IDELinearConstantAnalysis::d_t> Res;
         for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
           if (Source == Actuals[Idx]) {
@@ -208,6 +213,9 @@ IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::f_t CalleeFun,
     IDELinearConstantAnalysis::n_t ExitSite,
     IDELinearConstantAnalysis::n_t RetSite) {
+
+  std::cerr << "Ret-Flow from " << llvmIRToString(ExitSite) << " --> "
+            << llvmIRToString(RetSite) << "\n";
   // Handle the case: %x = call i32 ...
   if (CallSite->getType()->isIntegerTy()) {
     const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
@@ -428,9 +436,9 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::d_t RetNode) {
   // Case: Returning constant integer
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
-    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
+    const auto *Return = llvm::cast<llvm::ReturnInst>(ExitSite);
     auto *ReturnValue = Return->getReturnValue();
-    if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
+    if (auto *CI = llvm::dyn_cast_or_null<llvm::ConstantInt>(ReturnValue)) {
       auto IntConst = CI->getSExtValue();
       return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
     }
