@@ -45,43 +45,45 @@ protected:
     LCASolver.solve();
     if (PrintDump) {
       ICFG.print();
-    //   std::cout << "Check out ICFG connectivity:\n";
-    //   const auto *GCtor = ICFG.getFirstGlobalCtorOrNull();
-    //   assert(GCtor);
-    //   std::cout << "global constructor's exit point(s) are:\n";
-    //   for (const auto *ExitPoint : ICFG.getExitPointsOf(GCtor)) {
-    //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
-    //     std::cout << "with successor(s):\n";
-    //     auto Succs = ICFG.getSuccsOf(ExitPoint);
-    //     for (const auto *Succ : Succs) {
-    //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
-    //     }
-    //   }
-    //   std::cout << "main's exit point(s) are:\n";
-    //   const auto *Main = ICFG.getFunction("main");
-    //   assert(Main);
-    //   for (const auto *ExitPoint : ICFG.getExitPointsOf(Main)) {
-    //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
-    //     std::cout << "with successor(s):\n";
-    //     auto Succs = ICFG.getSuccsOf(ExitPoint);
-    //     for (const auto *Succ : Succs) {
-    //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
-    //     }
-    //   }
-    //   std::cout << "MIN: "
-    //             << std::numeric_limits<IDELinearConstantAnalysis::l_t>::min()
-    //             << '\n';
-    //   std::cout << "MIX: "
-    //             << std::numeric_limits<IDELinearConstantAnalysis::l_t>::max()
-    //             << '\n';
+      //   std::cout << "Check out ICFG connectivity:\n";
+      //   const auto *GCtor = ICFG.getFirstGlobalCtorOrNull();
+      //   assert(GCtor);
+      //   std::cout << "global constructor's exit point(s) are:\n";
+      //   for (const auto *ExitPoint : ICFG.getExitPointsOf(GCtor)) {
+      //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
+      //     std::cout << "with successor(s):\n";
+      //     auto Succs = ICFG.getSuccsOf(ExitPoint);
+      //     for (const auto *Succ : Succs) {
+      //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
+      //     }
+      //   }
+      //   std::cout << "main's exit point(s) are:\n";
+      //   const auto *Main = ICFG.getFunction("main");
+      //   assert(Main);
+      //   for (const auto *ExitPoint : ICFG.getExitPointsOf(Main)) {
+      //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
+      //     std::cout << "with successor(s):\n";
+      //     auto Succs = ICFG.getSuccsOf(ExitPoint);
+      //     for (const auto *Succ : Succs) {
+      //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
+      //     }
+      //   }
+      //   std::cout << "MIN: "
+      //             <<
+      //             std::numeric_limits<IDELinearConstantAnalysis::l_t>::min()
+      //             << '\n';
+      //   std::cout << "MIX: "
+      //             <<
+      //             std::numeric_limits<IDELinearConstantAnalysis::l_t>::max()
+      //             << '\n';
       LCASolver.dumpResults();
-    //   const auto *CallToFoo = getNthInstruction(Main, 8);
-    //   std::cout << "Results at: " << llvmIRToString(CallToFoo) << '\n';
-    //   auto Results = LCASolver.resultsAt(CallToFoo);
-    //   for (auto &[Fact, Value] : Results) {
-    //     std::cout << "\tFact: " << llvmIRToString(Fact) << '\n';
-    //     std::cout << "\tValue: " << Value << '\n';
-    //   }
+      //   const auto *CallToFoo = getNthInstruction(Main, 8);
+      //   std::cout << "Results at: " << llvmIRToString(CallToFoo) << '\n';
+      //   auto Results = LCASolver.resultsAt(CallToFoo);
+      //   for (auto &[Fact, Value] : Results) {
+      //     std::cout << "\tFact: " << llvmIRToString(Fact) << '\n';
+      //     std::cout << "\tValue: " << Value << '\n';
+      //   }
     }
     return LCAProblem.getLCAResults(LCASolver.getSolverResults());
   }
@@ -536,12 +538,12 @@ TEST_F(IDELinearConstantAnalysisTest, HandleRecursionTest_03) {
 TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_01) {
   auto Results = doAnalysis("global_01_cpp_dbg.ll", true);
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("main", 6, "g1", 42);
+  GroundTruth.emplace("main", 6, "i", 666);
+  GroundTruth.emplace("main", 6, "g1", 10);
   GroundTruth.emplace("main", 6, "g2", 1);
-  GroundTruth.emplace("main", 7, "g1", 42);
-  GroundTruth.emplace("main", 7, "g2", 42);
-  GroundTruth.emplace("main", 8, "g1", 42);
-  GroundTruth.emplace("main", 8, "g2", 42);
+  GroundTruth.emplace("main", 9, "i", 666);
+  GroundTruth.emplace("main", 9, "g1", 42);
+  GroundTruth.emplace("main", 9, "g2", 42);
   compareResults(Results, GroundTruth);
 }
 

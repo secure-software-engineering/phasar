@@ -44,7 +44,17 @@ public:
 
   void addSeed(N Node, D Fact, L Value) { Seeds[Node][Fact] = Value; }
 
-  size_t count(N Node) const { return Seeds.count(Node); }
+  [[nodiscard]] size_t countInitialSeeds() const {
+    size_t NumSeeds = 0;
+    for (const auto &[Node, Facts] : Seeds) {
+      NumSeeds += Facts.size();
+    }
+    return NumSeeds;
+  }
+
+  [[nodiscard]] size_t countInitialSeeds(N Node) const {
+    return Seeds.count(Node);
+  }
 
   [[nodiscard]] bool empty() const { return Seeds.empty(); }
 

@@ -872,7 +872,8 @@ protected:
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
-    if (ICF->isStartPoint(n) || Seeds.count(n) || unbalancedRetSites.count(n)) {
+    if (ICF->isStartPoint(n) || Seeds.countInitialSeeds(n) ||
+        unbalancedRetSites.count(n)) {
       propagateValueAtStart(nAndD, n);
     }
     if (ICF->isCallSite(n)) {
@@ -947,21 +948,49 @@ protected:
   /// their own. Normally, solve() should be called instead.
   void submitInitialSeeds() {
     PAMM_GET_INSTANCE;
+    // Check if the initial seeds contain the zero value at every starting
+    // point. If not, the zero value needs to be added to allow for correct
+    // solving of the problem.
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
+      if (Facts.find(ZeroValue) == Facts.end()) {
+        // Add zero value if it's not in the set of facts.
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "Zero-Value has been added automatically to start point: "
+            << IDEProblem.NtoString(StartPoint));
+        Seeds.addSeed(StartPoint, ZeroValue, IDEProblem.bottomElement());
+      }
+    }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Number of initial seeds: " << Seeds.countInitialSeeds());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "List of initial seeds: ");
     for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Start point: " << IDEProblem.NtoString(StartPoint));
       for (const auto &[Fact, Value] : Facts) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "\tFact: " << IDEProblem.DtoString(Fact);
-                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                      << "\tFact: " << IDEProblem.DtoString(Fact));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tValue: " << IDEProblem.LtoString(Value));
+      }
+    }
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
+      for (const auto &[Fact, Value] : Facts) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Submit seed at: "
+                      << IDEProblem.NtoString(StartPoint));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tFact: " << IDEProblem.DtoString(Fact));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tValue: " << IDEProblem.LtoString(Value));
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, PAMM_SEVERITY_LEVEL::Core);
         }
-        propagate(ZeroValue, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
+        propagate(Fact, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
                   nullptr, false);
+        jumpFn->addFunction(Fact, StartPoint, Fact,
+                            EdgeIdentity<l_t>::getInstance());
       }
-      jumpFn->addFunction(ZeroValue, StartPoint, ZeroValue,
-                          EdgeIdentity<l_t>::getInstance());
     }
   }
 
