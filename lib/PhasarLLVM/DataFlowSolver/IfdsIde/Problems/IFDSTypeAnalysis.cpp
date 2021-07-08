@@ -46,7 +46,7 @@ IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t Curr,
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
-IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallStmt,
+IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallSite,
                                       IFDSTypeAnalysis::f_t DestFun) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
@@ -59,7 +59,7 @@ IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallStmt,
 
 IFDSTypeAnalysis::FlowFunctionPtrType IFDSTypeAnalysis::getRetFlowFunction(
     IFDSTypeAnalysis::n_t CallSite, IFDSTypeAnalysis::f_t CalleeFun,
-    IFDSTypeAnalysis::n_t ExitStmt, IFDSTypeAnalysis::n_t RetSite) {
+    IFDSTypeAnalysis::n_t ExitSite, IFDSTypeAnalysis::n_t RetSite) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
     computeTargets(IFDSTypeAnalysis::d_t Source) override {

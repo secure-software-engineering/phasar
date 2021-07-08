@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
 
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <initializer_list>
 #include <iomanip>
@@ -284,8 +285,10 @@ public:
    * @param FilePath path to JSON file holdind source and sink function
    * definitions.
    */
-  TaintConfiguration(const std::string &FilePath) {
-    importSourceSinkFunctions(FilePath);
+  TaintConfiguration(const std::string &FilePath) : TaintConfiguration() {
+    if (std::filesystem::exists(FilePath)) {
+      importSourceSinkFunctions(FilePath);
+    }
   }
   /**
    * @brief Specify functions as sources and sinks
@@ -320,11 +323,11 @@ public:
                                               std::vector<unsigned>({0})),
           TaintConfiguration<D>::SinkFunction("write",
                                               std::vector<unsigned>({1}))}) {
-    for (auto elem : SourceFunctions) {
-      Sources.insert(make_pair(elem.Name, elem));
+    for (auto Source : SourceFunctions) {
+      addSource(Source);
     }
-    for (auto elem : SinkFunctions) {
-      Sinks.insert(make_pair(elem.Name, elem));
+    for (auto Sink : SinkFunctions) {
+      addSink(Sink);
     }
   }
   // clang-format on

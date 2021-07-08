@@ -176,7 +176,7 @@ TEST(BitVectorSet, equality) {
   A.insert(1);
   A.insert(2);
   A.insert(3);
-  EXPECT_EQ((A == E), 1);
+  EXPECT_EQ((A == E), true);
 }
 
 TEST(BitVectorSet, size) {

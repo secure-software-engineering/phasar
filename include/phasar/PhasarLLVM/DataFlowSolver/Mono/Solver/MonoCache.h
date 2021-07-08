@@ -10,9 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_MONO_SOLVER_MONOCACHE_H_
 #define PHASAR_PHASARLLVM_MONO_SOLVER_MONOCACHE_H_
 
-#include<iostream>
-#include<unordered_map>
-#include<vector>
+#include <iostream>
+#include <unordered_map>
+#include <vector>
 
 namespace psr {
 template <class K> class MonoCache {
@@ -85,5 +85,5 @@ public:
     }
   }
 };
-}
+} // namespace psr
 #endif

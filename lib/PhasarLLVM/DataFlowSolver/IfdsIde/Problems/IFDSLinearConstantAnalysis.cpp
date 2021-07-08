@@ -65,7 +65,7 @@ IFDSLinearConstantAnalysis::getNormalFlowFunction(
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getCallFlowFunction(
-    IFDSLinearConstantAnalysis::n_t CallStmt,
+    IFDSLinearConstantAnalysis::n_t CallSite,
     IFDSLinearConstantAnalysis::f_t DestFun) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
@@ -74,7 +74,7 @@ IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t CallSite,
     IFDSLinearConstantAnalysis::f_t CalleeFun,
-    IFDSLinearConstantAnalysis::n_t ExitStmt,
+    IFDSLinearConstantAnalysis::n_t ExitSite,
     IFDSLinearConstantAnalysis::n_t RetSite) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
@@ -89,7 +89,7 @@ IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getSummaryFlowFunction(
-    IFDSLinearConstantAnalysis::n_t CallStmt,
+    IFDSLinearConstantAnalysis::n_t CallSite,
     IFDSLinearConstantAnalysis::f_t DestFun) {
   return nullptr;
 }

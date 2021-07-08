@@ -86,7 +86,7 @@ public:
   getNextState(std::string Tok, TypeStateDescription::State S) const override;
   TypeStateDescription::State
   getNextState(const std::string &Tok, TypeStateDescription::State S,
-               llvm::ImmutableCallSite CS) const override;
+               const llvm::CallBase *CallSite) const override;
   std::string getTypeNameOfInterest() const override;
   std::set<int> getConsumerParamIdx(const std::string &F) const override;
   std::set<int> getFactoryParamIdx(const std::string &F) const override;

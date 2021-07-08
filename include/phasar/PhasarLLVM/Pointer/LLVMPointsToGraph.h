@@ -17,7 +17,7 @@
 
 #include "boost/graph/adjacency_list.hpp"
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 
 #include "nlohmann/json.hpp"
 
@@ -143,6 +143,12 @@ public:
   std::shared_ptr<std::unordered_set<const llvm::Value *>>
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
+
+  [[nodiscard]] bool
+  isInReachableAllocationSites(const llvm::Value *V,
+                               const llvm::Value *PotentialValue,
+                               bool IntraProcOnly = false,
+                               const llvm::Instruction *I = nullptr) override;
 
   void mergeWith(const PointsToInfo<const llvm::Value *,
                                     const llvm::Instruction *> &PTI) override;

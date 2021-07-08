@@ -54,6 +54,14 @@ private:
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 
+  bool interIsReachableAllocationSiteTy(const llvm::Value *V,
+                                        const llvm::Value *P);
+
+  bool intraIsReachableAllocationSiteTy(const llvm::Value *V,
+                                        const llvm::Value *P,
+                                        const llvm::Function *VFun,
+                                        const llvm::GlobalObject *VG);
+
 public:
   /**
    * Creates points-to set(s) based on the computed alias results.
@@ -89,6 +97,13 @@ public:
   [[nodiscard]] std::shared_ptr<std::unordered_set<const llvm::Value *>>
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
+
+  // Checks if PotentialValue is in the reachable allocation sites of V.
+  [[nodiscard]] bool
+  isInReachableAllocationSites(const llvm::Value *V,
+                               const llvm::Value *PotentialValue,
+                               bool IntraProcOnly = false,
+                               const llvm::Instruction *I = nullptr) override;
 
   void mergeWith(const PointsToInfo &PTI) override;
 

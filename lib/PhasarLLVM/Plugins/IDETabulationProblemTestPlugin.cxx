@@ -52,14 +52,14 @@ IDETabulationProblemTestPlugin::getNormalFlowFunction(
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getCallFlowFunction(
-    const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
+    const llvm::Instruction *CallSite, const llvm::Function *DestFun) {
   return Identity<const FlowFact *>::getInstance();
 }
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getRetFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Function *CalleeFun,
-    const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite) {
+    const llvm::Instruction *ExitSite, const llvm::Instruction *RetSite) {
   return Identity<const FlowFact *>::getInstance();
 }
 
@@ -72,7 +72,7 @@ IDETabulationProblemTestPlugin::getCallToRetFlowFunction(
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getSummaryFlowFunction(
-    const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
+    const llvm::Instruction *CallSite, const llvm::Function *DestFun) {
   return nullptr;
 }
 
@@ -94,7 +94,7 @@ IDETabulationProblemTestPlugin::getNormalEdgeFunction(n_t curr, d_t currNode,
   return EdgeIdentity<l_t>::getInstance();
 }
 IDETabulationProblemTestPlugin::EdgeFunctionPtrType
-IDETabulationProblemTestPlugin::getCallEdgeFunction(n_t callStmt, d_t srcNode,
+IDETabulationProblemTestPlugin::getCallEdgeFunction(n_t callSite, d_t srcNode,
                                                     f_t destinationFunction,
                                                     d_t destNode) {
   return EdgeIdentity<l_t>::getInstance();
@@ -102,7 +102,7 @@ IDETabulationProblemTestPlugin::getCallEdgeFunction(n_t callStmt, d_t srcNode,
 IDETabulationProblemTestPlugin::EdgeFunctionPtrType
 IDETabulationProblemTestPlugin::getReturnEdgeFunction(n_t callSite,
                                                       f_t calleeFunction,
-                                                      n_t exitStmt,
+                                                      n_t exitSite,
                                                       d_t exitNode, n_t reSite,
                                                       d_t retNode) {
   return EdgeIdentity<l_t>::getInstance();

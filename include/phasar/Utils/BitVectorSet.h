@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_BITVECTORSET_H_
 
 #include <algorithm>
+#include <cassert>
 #include <initializer_list>
 
 #include "boost/bimap.hpp"
@@ -264,7 +265,10 @@ public:
     }
   }
 
-  void clear() noexcept { Bits.reset(); }
+  void clear() noexcept {
+    Bits.clear();
+    Bits.resize(0);
+  }
 
   [[nodiscard]] bool empty() const noexcept { return Bits.none(); }
 

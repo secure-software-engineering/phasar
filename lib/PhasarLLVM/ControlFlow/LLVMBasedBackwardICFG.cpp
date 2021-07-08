@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
@@ -98,6 +98,16 @@ LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
     ReturnSites.insert(&Invoke->getUnwindDest()->back());
   }
   return ReturnSites;
+}
+
+std::vector<const llvm::Function *>
+LLVMBasedBackwardsICFG::getGlobalCtors() const {
+  return ForwardICFG.getGlobalCtors();
+}
+
+std::vector<const llvm::Function *>
+LLVMBasedBackwardsICFG::getGlobalDtors() const {
+  return ForwardICFG.getGlobalDtors();
 }
 
 std::set<const llvm::Instruction *>

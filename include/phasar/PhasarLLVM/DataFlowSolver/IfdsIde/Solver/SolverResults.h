@@ -17,10 +17,10 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_SOLVERRESULTS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_SOLVERRESULTS_H_
 
-#include <map>
 #include <set>
 #include <type_traits>
 #include <unordered_map>
+#include <vector>
 
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 #include "phasar/Utils/Table.h"
@@ -64,6 +64,10 @@ public:
       KeySet.insert(FlowFact.first);
     }
     return KeySet;
+  }
+
+  std::vector<typename Table<N, D, L>::Cell> getAllResultEntries() const {
+    return results.cellVec();
   }
 };
 

@@ -23,7 +23,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
@@ -33,7 +33,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -59,10 +58,10 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
     if (llvm::isa<llvm::AllocaInst>(V)) {
       return true;
     } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
-      llvm::ImmutableCallSite CS(V);
-      return CS.getCalledFunction() != nullptr &&
+      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(V);
+      return CallSite->getCalledFunction() != nullptr &&
              HeapAllocationFunctions.count(
-                 CS.getCalledFunction()->getName().str());
+                 CallSite->getCalledFunction()->getName().str());
     }
     return false;
   }
@@ -357,6 +356,29 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
     }
   }
   return nullptr;
+}
+
+bool isVarAnnotationIntrinsic(const llvm::Function *F) {
+  static const llvm::StringRef kVarAnnotationName("llvm.var.annotation");
+  return F->getName() == kVarAnnotationName;
+}
+
+const llvm::StringRef
+getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
+  const int kPointerGlobalStringIdx = 1;
+  llvm::ConstantExpr *ce = llvm::cast<llvm::ConstantExpr>(
+      CallInst->getOperand(kPointerGlobalStringIdx));
+  assert(ce != nullptr);
+  assert(ce->getOpcode() == llvm::Instruction::GetElementPtr);
+  assert(llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0)) != nullptr);
+  llvm::GlobalVariable *annoteStr =
+      llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
+  assert(llvm::dyn_cast<llvm::ConstantDataSequential>(
+      annoteStr->getInitializer()));
+  llvm::ConstantDataSequential *data =
+      llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer());
+  assert(data->isString());
+  return data->getAsString();
 }
 
 } // namespace psr

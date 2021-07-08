@@ -41,47 +41,51 @@ public:
 
   // CFG parts
 
-  f_t getFunctionOf(n_t stmt) const override;
+  f_t getFunctionOf(n_t Inst) const override;
 
-  std::vector<n_t> getPredsOf(n_t stmt) const override;
+  std::vector<n_t> getPredsOf(n_t Inst) const override;
 
-  std::vector<n_t> getSuccsOf(n_t stmt) const override;
+  std::vector<n_t> getSuccsOf(n_t Inst) const override;
 
   std::vector<std::pair<n_t, n_t>>
-  getAllControlFlowEdges(f_t fun) const override;
+  getAllControlFlowEdges(f_t Fun) const override;
 
-  std::vector<n_t> getAllInstructionsOf(f_t fun) const override;
+  std::vector<n_t> getAllInstructionsOf(f_t Fun) const override;
 
-  std::set<n_t> getStartPointsOf(f_t fun) const override;
+  std::set<n_t> getStartPointsOf(f_t Fun) const override;
 
-  std::set<n_t> getExitPointsOf(f_t fun) const override;
+  std::set<n_t> getExitPointsOf(f_t Fun) const override;
 
-  bool isCallStmt(n_t stmt) const override;
+  std::vector<f_t> getGlobalCtors() const override;
 
-  bool isExitStmt(n_t stmt) const override;
+  std::vector<f_t> getGlobalDtors() const override;
 
-  bool isStartPoint(n_t stmt) const override;
+  bool isCallSite(n_t Inst) const override;
 
-  bool isFieldLoad(n_t stmt) const override;
+  bool isExitInst(n_t Inst) const override;
 
-  bool isFieldStore(n_t stmt) const override;
+  bool isStartPoint(n_t Inst) const override;
 
-  bool isFallThroughSuccessor(n_t stmt, n_t succ) const override;
+  bool isFieldLoad(n_t Inst) const override;
 
-  bool isBranchTarget(n_t stmt, n_t succ) const override;
+  bool isFieldStore(n_t Inst) const override;
 
-  bool isHeapAllocatingFunction(f_t fun) const override;
+  bool isFallThroughSuccessor(n_t Inst, n_t Succ) const override;
 
-  bool isSpecialMemberFunction(f_t fun) const override;
+  bool isBranchTarget(n_t Inst, n_t Succ) const override;
+
+  bool isHeapAllocatingFunction(f_t Fun) const override;
+
+  bool isSpecialMemberFunction(f_t Fun) const override;
 
   SpecialMemberFunctionType
-  getSpecialMemberFunctionType(f_t fun) const override;
+  getSpecialMemberFunctionType(f_t Fun) const override;
 
-  std::string getStatementId(n_t stmt) const override;
+  std::string getStatementId(n_t Inst) const override;
 
-  std::string getFunctionName(f_t fun) const override;
+  std::string getFunctionName(f_t Fun) const override;
 
-  std::string getDemangledFunctionName(f_t fun) const override;
+  std::string getDemangledFunctionName(f_t Fun) const override;
 
   void print(f_t F, std::ostream &OS = std::cout) const override;
 
@@ -91,21 +95,21 @@ public:
 
   std::set<f_t> getAllFunctions() const override;
 
-  f_t getFunction(const std::string &fun) const override;
+  f_t getFunction(const std::string &Fun) const override;
 
-  bool isIndirectFunctionCall(n_t stmt) const override;
+  bool isIndirectFunctionCall(n_t Inst) const override;
 
-  bool isVirtualFunctionCall(n_t stmt) const override;
+  bool isVirtualFunctionCall(n_t Inst) const override;
 
   std::set<n_t> allNonCallStartNodes() const override;
 
-  std::set<f_t> getCalleesOfCallAt(n_t stmt) const override;
+  std::set<f_t> getCalleesOfCallAt(n_t Inst) const override;
 
-  std::set<n_t> getCallersOf(f_t fun) const override;
+  std::set<n_t> getCallersOf(f_t Fun) const override;
 
-  std::set<n_t> getCallsFromWithin(f_t fun) const override;
+  std::set<n_t> getCallsFromWithin(f_t Fun) const override;
 
-  std::set<n_t> getReturnSitesOfCallAt(n_t stmt) const override;
+  std::set<n_t> getReturnSitesOfCallAt(n_t Inst) const override;
 
   void print(std::ostream &OS = std::cout) const override;
 

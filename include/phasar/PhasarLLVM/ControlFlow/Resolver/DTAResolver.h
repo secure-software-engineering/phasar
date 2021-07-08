@@ -20,6 +20,8 @@
 #include <set>
 #include <string>
 
+#include "llvm/IR/Instructions.h"
+
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
 // To switch the TypeGraph
@@ -27,7 +29,7 @@
 
 namespace llvm {
 class Instruction;
-class ImmutableCallSite;
+class CallBase;
 class Function;
 } // namespace llvm
 
@@ -60,7 +62,7 @@ public:
   ~DTAResolver() override = default;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+  resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
 };

@@ -19,6 +19,7 @@ RUN pip3 install Pygments pyyaml
 RUN apt install libboost-all-dev -y
 
 # installing LLVM
+COPY utils/safeCommandsSet.sh /usr/src/phasar/utils/safeCommandsSet.sh
 COPY utils/install-llvm.sh /usr/src/phasar/utils/install-llvm.sh
 RUN ./utils/install-llvm.sh $(nproc) . ${LLVM_INSTALL_DIR} "llvmorg-10.0.0"
 

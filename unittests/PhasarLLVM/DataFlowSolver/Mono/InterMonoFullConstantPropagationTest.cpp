@@ -68,7 +68,7 @@ protected:
                                          EntryPoints);
     InterMonoSolver_P<InterMonoFullConstantPropagation, 3> IMSolver(FCP);
     IMSolver.solve();
-    
+
     if (PrintDump) {
       IMSolver.dumpResults();
     }

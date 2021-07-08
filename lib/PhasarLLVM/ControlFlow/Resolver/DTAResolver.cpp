@@ -14,7 +14,8 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/CallSite.h"
+#include <memory>
+
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -112,16 +113,16 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
         if (BitcastExpr->isCast()) {
           if (auto *ConstGep = llvm::dyn_cast<llvm::ConstantExpr>(
                   BitcastExpr->getOperand(0))) {
-            auto *GepAsInst = ConstGep->getAsInstruction();
+            std::unique_ptr<llvm::Instruction, decltype(&deleteValue)>
+                GepAsInst(ConstGep->getAsInstruction(), &deleteValue);
             if (auto *Gep =
-                    llvm::dyn_cast<llvm::GetElementPtrInst>(GepAsInst)) {
+                    llvm::dyn_cast<llvm::GetElementPtrInst>(GepAsInst.get())) {
               if (auto *Vtable = llvm::dyn_cast<llvm::Constant>(
                       Gep->getPointerOperand())) {
                 // We can here assume that we found a vtable
                 VtableNum = Idx;
               }
             }
-            GepAsInst->deleteValue();
           }
         }
       }
@@ -154,27 +155,26 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
 }
 
 set<const llvm::Function *>
-DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   set<const llvm::Function *> PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: "
-                << llvmIRToString(CS.getInstruction()));
+                << "Call virtual function: " << llvmIRToString(CallSite));
 
-  auto VtableIndex = getVFTIndex(CS);
+  auto VtableIndex = getVFTIndex(CallSite);
   if (VtableIndex < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CS.getInstruction()) << "\n");
+                  << llvmIRToString(CallSite) << "\n");
     return {};
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CS);
+  const auto *ReceiverType = getReceiverType(CallSite);
 
   auto PossibleTypes = typegraph.getTypes(ReceiverType);
 
@@ -187,7 +187,7 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
       const auto *Target =
-          getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
+          getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CallSite);
       if (Target) {
         PossibleCallTargets.insert(Target);
       }
@@ -195,13 +195,15 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   }
 
   if (PossibleCallTargets.empty()) {
-    PossibleCallTargets = CHAResolver::resolveVirtualCall(CS);
+    PossibleCallTargets = CHAResolver::resolveVirtualCall(CallSite);
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible targets are:");
+#ifdef DYNAMIC_LOG
   for (const auto *Entry : PossibleCallTargets) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << Entry);
   }
+#endif
 
   return PossibleCallTargets;
 }

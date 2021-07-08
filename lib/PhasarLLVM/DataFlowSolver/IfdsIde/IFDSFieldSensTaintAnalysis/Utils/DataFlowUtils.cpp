@@ -2,16 +2,13 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h"
-
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <iterator>
+#include <memory>
 #include <queue>
 #include <set>
 #include <sstream>
@@ -21,6 +18,8 @@
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/IntrinsicInst.h"
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
 using namespace psr;
@@ -781,7 +780,7 @@ static std::vector<llvm::BasicBlock *> getPostDominators(
     return {CurrentBasicBlock};
   }
 
-  for (auto *const PostDomTreeChild : PostDomTreeNode->getChildren()) {
+  for (auto *const PostDomTreeChild : PostDomTreeNode->children()) {
     auto ChildNodes = getPostDominators(PostDomTreeChild, StartBasicBlock);
     if (!ChildNodes.empty()) {
       ChildNodes.push_back(CurrentBasicBlock);
