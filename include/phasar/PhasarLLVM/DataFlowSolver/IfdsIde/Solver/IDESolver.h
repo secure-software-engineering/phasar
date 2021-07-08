@@ -874,6 +874,12 @@ protected:
     // an unbalanced problem
     if (ICF->isStartPoint(n) || Seeds.countInitialSeeds(n) ||
         unbalancedRetSites.count(n)) {
+      // FIXME: is currently not executed for main!!!
+      // initial seeds are set in the global constructor, and main is also not
+      // officially called by any other function
+      std::cout << "propagate value at start: " << IDEProblem.NtoString(n)
+                << ", with fact: " << IDEProblem.DtoString(nAndD.second)
+                << '\n';
       propagateValueAtStart(nAndD, n);
     }
     if (ICF->isCallSite(n)) {
@@ -895,6 +901,21 @@ protected:
           d_t d = sourceValTargetValAndFunction.getColumnKey();
           EdgeFunctionPtrType fPrime = sourceValTargetValAndFunction.getValue();
           l_t targetVal = val(sP, dPrime);
+          std::cout << "compute at: " << llvmIRToString(n) << '\n';
+          std::cout << "\tsource fact: " << IDEProblem.DtoString(dPrime)
+                    << '\n';
+          std::cout << "\ttarget fact: " << IDEProblem.DtoString(d) << '\n';
+          std::cout << "\tstart val: " << IDEProblem.LtoString(targetVal)
+                    << '\n';
+          std::cout << "\texisting target val: "
+                    << IDEProblem.LtoString(val(n, d)) << '\n';
+          std::cout << "\ttarget val: "
+                    << IDEProblem.LtoString(fPrime->computeTarget(targetVal))
+                    << '\n';
+          std::cout << "\tupdated target val: "
+                    << IDEProblem.LtoString(IDEProblem.join(
+                           val(n, d), fPrime->computeTarget(targetVal)))
+                    << '\n';
           setVal(n, d,
                  IDEProblem.join(val(n, d),
                                  fPrime->computeTarget(std::move(targetVal))));
@@ -922,12 +943,16 @@ protected:
     std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
     for (n_t unbalancedRetSite : unbalancedRetSites) {
       if (AllSeeds.find(unbalancedRetSite) == AllSeeds.end()) {
+        std::cout << "found unbalanced return site!\n";
         AllSeeds[unbalancedRetSite][ZeroValue] = IDEProblem.topElement();
       }
     }
     // do processing
     for (const auto &[StartPoint, Facts] : AllSeeds) {
       for (auto &[Fact, Value] : Facts) {
+        std::cout << "set initial seed at: " << IDEProblem.NtoString(StartPoint)
+                  << ", fact: " << IDEProblem.DtoString(Fact)
+                  << ", value: " << IDEProblem.LtoString(Value) << '\n';
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
         setVal(StartPoint, Fact, Value);
