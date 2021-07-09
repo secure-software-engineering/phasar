@@ -145,6 +145,7 @@
     },
     {
         "from": {
+            "IR": "ret i32 %inc, !dbg !21, !psr.id !22 | ID: 6",
             "column": 3,
             "line": 2,
             "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
@@ -216,6 +217,7 @@
     },
     {
         "from": {
+            "IR": "ret i32 %inc, !dbg !21, !psr.id !22 | ID: 6",
             "column": 3,
             "line": 2,
             "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",

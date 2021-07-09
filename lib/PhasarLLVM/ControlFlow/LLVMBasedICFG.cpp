@@ -836,19 +836,20 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
     return Ret && !Ret->getReturnValue();
   };
 
-  auto getLastNonEmpty = [&](const llvm::Instruction *Inst) {
+  auto getLastNonEmpty =
+      [&](const llvm::Instruction *Inst) -> SourceCodeInfoWithIR {
     if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
-      return getSrcCodeInfoFromIR(Inst);
+      return {getSrcCodeInfoFromIR(Inst), llvmIRToString(Inst)};
     }
     for (const auto *Prev = Inst->getPrevNode(); Prev;
          Prev = Prev->getPrevNode()) {
       auto Src = getSrcCodeInfoFromIR(Prev);
       if (!Src.empty()) {
-        return Src;
+        return {Src, llvmIRToString(Prev)};
       }
     }
 
-    return getSrcCodeInfoFromIR(Inst);
+    return {getSrcCodeInfoFromIR(Inst), llvmIRToString(Inst)};
   };
 
   for (const auto *F : getAllFunctions()) {
