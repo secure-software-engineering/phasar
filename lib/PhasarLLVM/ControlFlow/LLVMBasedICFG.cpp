@@ -34,6 +34,7 @@
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 
+#include "nlohmann/json.hpp"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
@@ -792,12 +793,25 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
   return J;
 }
 
+struct SourceCodeInfoWithIR : public SourceCodeInfo {
+  std::string IR;
+};
+
+void from_json(const nlohmann::json &J, SourceCodeInfoWithIR &Info) {
+  from_json(J, static_cast<SourceCodeInfo &>(Info));
+  J.at("IR").get_to(Info.IR);
+}
+void to_json(nlohmann::json &J, const SourceCodeInfoWithIR &Info) {
+  to_json(J, static_cast<const SourceCodeInfo &>(Info));
+  J["IR"] = Info.IR;
+}
+
 nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
   nlohmann::json J;
 
   struct GetFirstNonEmpty {
-    SourceCodeInfo operator()(llvm::BasicBlock::const_iterator &it,
-                              llvm::BasicBlock::const_iterator end) {
+    SourceCodeInfoWithIR operator()(llvm::BasicBlock::const_iterator &it,
+                                    llvm::BasicBlock::const_iterator end) {
       assert(it != end);
 
       auto ret = getSrcCodeInfoFromIR(&*it);
@@ -808,10 +822,10 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
         ret = getSrcCodeInfoFromIR(&*++it);
       }
 
-      return ret;
+      return {ret, llvmIRToString(&*it)};
     }
 
-    SourceCodeInfo operator()(const llvm::BasicBlock *BB) {
+    SourceCodeInfoWithIR operator()(const llvm::BasicBlock *BB) {
       auto it = BB->begin();
       return (*this)(it, BB->end());
     }
