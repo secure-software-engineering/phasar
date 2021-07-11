@@ -13,7 +13,7 @@
 #include <set>
 #include <string>
 
-#include "llvm/IR/CallSite.h"
+#include "llvm/IR/InstrTypes.h"
 
 namespace psr {
 
@@ -45,7 +45,7 @@ struct TypeStateDescription {
    */
   virtual State getNextState(std::string Tok, State S) const = 0;
   virtual State getNextState(const std::string &Tok, State S,
-                             llvm::ImmutableCallSite CS) const {
+                             const llvm::CallBase *CallSite) const {
     return getNextState(Tok, S);
   }
   virtual std::string getTypeNameOfInterest() const = 0;

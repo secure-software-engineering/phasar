@@ -53,7 +53,7 @@ MyIFDSProblem::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 MyIFDSProblem::FlowFunctionPtrType
-MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callStmt,
+MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callSite,
                                    const llvm::Function *destMthd) {
   cout << "MyIFDSProblem::getCallFlowFunction()\n";
   // TODO: Must be modeled to perform parameter passing:
@@ -61,7 +61,7 @@ MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callStmt,
   // LLVM distinguishes between a ordinary function call and a function call
   // that might throw (llvm::CallInst, llvm::InvokeInst). To be able to easily
   // inspect both, a variable of type llvm::ImmutableCallSite may be
-  // constructed using 'callStmt'.
+  // constructed using 'callSite'.
   // Important: getCallFlowFunction() can also be used in combination with
   // getCallToRetFlowFunction() in order to model a function's effect without
   // actually following call targets. This must be used to model sources and
@@ -73,13 +73,13 @@ MyIFDSProblem::getCallFlowFunction(const llvm::Instruction *callStmt,
 
 MyIFDSProblem::FlowFunctionPtrType MyIFDSProblem::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
-    const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
+    const llvm::Instruction *ExitInst, const llvm::Instruction *retSite) {
   cout << "MyIFDSProblem::getRetFlowFunction()\n";
   // TODO: Must be modeled to map the return value back into the caller's
   // context. When dealing with pointer parameters one must also map the
   // formals at callee-side back into the actuals at caller-side. All other
   // facts that do not influence the caller must be killed.
-  // 'callSite' can be handled by using llvm::ImmutableCallSite, 'exitStmt' is
+  // 'callSite' can be handled by using llvm::CallBase, 'ExitInst' is
   // the function's return instruction - llvm::ReturnInst may be used.
   // The 'retSite' is - in case of LLVM - the call-site and it is possible
   // to wrap it into an llvm::ImmutableCallSite.
@@ -101,7 +101,7 @@ MyIFDSProblem::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 // for which no implementation is accessible. If nullptr is returned it applies
 // identity on all flow facts that are present.
 MyIFDSProblem::FlowFunctionPtrType
-MyIFDSProblem::getSummaryFlowFunction(const llvm::Instruction *callStmt,
+MyIFDSProblem::getSummaryFlowFunction(const llvm::Instruction *callSite,
                                       const llvm::Function *destMthd) {
   cout << "MyIFDSProblem::getSummaryFlowFunction()\n";
   return nullptr;

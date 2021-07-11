@@ -99,10 +99,10 @@ public:
    * caller into the callee context.
    * @brief Processing call/invoke instructions and llvm memory intrinsic
    * functions.
-   * @param callStmt Call statement.
+   * @param callSite Call statement.
    * @param destFun Callee function.
    */
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
 
   /**
    * Maps formal parameters back into actual parameters. Data-flow fact(s)
@@ -110,11 +110,11 @@ public:
    * @brief Processing a function return.
    * @param callSite Call site.
    * @param calleeFun Callee function.
-   * @param exitStmt Exit statement in callee.
+   * @param exitInst Exit statement in callee.
    * @param retSite Return site.
    */
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitStmt, n_t retSite) override;
+                                         n_t exitInst, n_t retSite) override;
 
   /**
    * If the called function is a llvm memory intrinsic function, appropriate
@@ -133,7 +133,7 @@ public:
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.
    */
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                              f_t destFun) override;
 
   /**

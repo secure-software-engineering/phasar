@@ -21,6 +21,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 
@@ -61,6 +62,10 @@ public:
   virtual std::set<N> getCallsFromWithin(F Fun) const = 0;
 
   virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
+
+  virtual std::vector<F> getGlobalCtors() const = 0;
+
+  virtual std::vector<F> getGlobalDtors() const = 0;
 
   using CFG<N, F>::print; // tell the compiler we wish to have both prints
   virtual void print(std::ostream &OS = std::cout) const = 0;

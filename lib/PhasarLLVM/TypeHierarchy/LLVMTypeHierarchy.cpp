@@ -70,21 +70,15 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  PAMM_GET_INSTANCE;
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
   for (auto *M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
-  REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
-  PAMM_GET_INSTANCE;
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
-  REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
 }
 
 std::string
@@ -96,10 +90,10 @@ std::string
 LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
   llvm::StringRef SR(TypeName);
   if (SR.startswith(StructPrefix)) {
-    return SR.drop_front(StructPrefix.size());
+    return SR.drop_front(StructPrefix.size()).str();
   }
   if (SR.startswith(ClassPrefix)) {
-    return SR.drop_front(ClassPrefix.size());
+    return SR.drop_front(ClassPrefix.size()).str();
   }
   return TypeName;
 }
@@ -107,10 +101,10 @@ LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
 std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(TypeInfoPrefixDemang)) {
-    return SR.drop_front(TypeInfoPrefixDemang.size());
+    return SR.drop_front(TypeInfoPrefixDemang.size()).str();
   }
   if (SR.startswith(TypeInfoPrefix)) {
-    return SR.drop_front(TypeInfoPrefix.size());
+    return SR.drop_front(TypeInfoPrefix.size()).str();
   }
   return VarName;
 }
@@ -118,10 +112,10 @@ std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
 std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
   llvm::StringRef SR(VarName);
   if (SR.startswith(VTablePrefixDemang)) {
-    return SR.drop_front(VTablePrefixDemang.size());
+    return SR.drop_front(VTablePrefixDemang.size()).str();
   }
   if (SR.startswith(VTablePrefix)) {
-    return SR.drop_front(VTablePrefix.size());
+    return SR.drop_front(VTablePrefix.size()).str();
   }
   return VarName;
 }
@@ -174,9 +168,9 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          // caution: getAsInstruction allocates, need to delete later
-          auto *AsI = CE->getAsInstruction();
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+              CE->getAsInstruction(), &deleteValue);
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
@@ -187,7 +181,6 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
                 }
               }
             }
-            AsI->deleteValue();
           }
         }
       }
@@ -214,9 +207,9 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
           if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
             for (auto &COp : CA->operands()) {
               if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-                // caution: getAsInstruction allocates, need to delete later
-                auto *AsI = CE->getAsInstruction();
-                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+                    CE->getAsInstruction(), &deleteValue);
+                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
                   // if the entry is a GlobalAlias, get its Aliasee
                   auto *ENTRY = BC->getOperand(0);
                   while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(ENTRY)) {
@@ -228,7 +221,6 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                       VFS.push_back(F);
                     }
                   }
-                  AsI->deleteValue();
                 }
               }
             }

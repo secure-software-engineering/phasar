@@ -57,13 +57,13 @@ public:
                         const llvm::Instruction *succ) override;
 
   FlowFunctionPtrType
-  getCallFlowFunction(const llvm::Instruction *callStmt,
+  getCallFlowFunction(const llvm::Instruction *callSite,
                       const llvm::Function *destFun) override;
 
   FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeFun,
-                     const llvm::Instruction *exitStmt,
+                     const llvm::Instruction *exitInst,
                      const llvm::Instruction *retSite) override;
 
   FlowFunctionPtrType
@@ -72,7 +72,7 @@ public:
                            std::set<const llvm::Function *> callees) override;
 
   FlowFunctionPtrType
-  getSummaryFlowFunction(const llvm::Instruction *callStmt,
+  getSummaryFlowFunction(const llvm::Instruction *callSite,
                          const llvm::Function *destFun) override;
 
   std::map<const llvm::Instruction *, std::set<ExtendedValue>>

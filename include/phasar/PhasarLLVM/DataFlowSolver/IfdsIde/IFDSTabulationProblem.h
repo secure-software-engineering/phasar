@@ -80,45 +80,64 @@ public:
 
   ~IFDSTabulationProblem() override = default;
 
+  /// Returns the tautological lambda (or zero) data-flow fact.
   virtual d_t createZeroValue() const = 0;
 
+  /// Checks if the given data-flow fact is the special tautological lambda (or
+  /// zero) fact.
   virtual bool isZeroValue(d_t d) const = 0;
 
+  /// Returns initial seeds to be used for the analysis. This is a mapping of
+  /// statements to initial analysis facts.
   virtual std::map<n_t, std::set<d_t>> initialSeeds() = 0;
 
+  /// Returns the special tautological lambda (or zero) fact.
   d_t getZeroValue() const { return ZeroValue; }
 
+  /// Returns the analysis' entry points.
   [[nodiscard]] std::set<std::string> getEntryPoints() const {
     return EntryPoints;
   }
 
+  /// Returns the underlying IR.
   const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
+  /// Returns the underlying type hierarchy.
   const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const { return TH; }
 
+  /// Returns the underlying inter-procedural control-flow graph.
   const i_t *getICFG() const { return ICF; }
 
+  /// Returns the underlying points-to information.
   PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
 
+  /// Sets the configuration to be used by the IFDS/IDE solver.
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
     SolverConfig = Config;
   }
 
+  /// Returns the configuration of the IFDS/IDE solver.
   [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() {
     return SolverConfig;
   }
 
+  /// Generates a text report of the results that is written to the specified
+  /// output stream.
   virtual void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                               std::ostream &OS = std::cout) {
     OS << "No text report available!\n";
   }
 
+  /// Generates a graphical report, e.g. in html or other markup languages, of
+  /// the results that is written to the specified output stream.
   virtual void
   emitGraphicalReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                       std::ostream &OS = std::cout) {
     OS << "No graphical report available!\n";
   }
 
+  /// Sets the level of soundness to be used by the analysis. Returns false if
+  /// the level of soundness is ignored. Otherwise, true.
   virtual bool setSoundness(Soundness S) { return false; }
 };
 } // namespace psr

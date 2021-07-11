@@ -16,8 +16,6 @@
 
 #include <set>
 
-#include "llvm/IR/CallSite.h"
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 
 using namespace psr;
@@ -29,18 +27,18 @@ NOResolver::NOResolver(ProjectIRDB &IRDB) : Resolver(IRDB) {}
 void NOResolver::preCall(const llvm::Instruction *Inst) {}
 
 void NOResolver::handlePossibleTargets(
-    llvm::ImmutableCallSite CS,
+    const llvm::CallBase *CallSite,
     std::set<const llvm::Function *> &PossibleTargets) {}
 
 void NOResolver::postCall(const llvm::Instruction *Inst) {}
 
 std::set<const llvm::Function *>
-NOResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+NOResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   return {};
 }
 
 std::set<const llvm::Function *>
-NOResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+NOResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
   return {};
 }
 

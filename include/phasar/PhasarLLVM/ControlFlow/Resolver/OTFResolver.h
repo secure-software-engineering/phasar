@@ -28,7 +28,7 @@
 
 namespace llvm {
 class Instruction;
-class ImmutableCallSite;
+class CallBase;
 class Function;
 class Type;
 class Value;
@@ -54,22 +54,22 @@ public:
   void preCall(const llvm::Instruction *Inst) override;
 
   void handlePossibleTargets(
-      llvm::ImmutableCallSite CS,
+      const llvm::CallBase *CallSite,
       std::set<const llvm::Function *> &CalleeTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 
   std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+  resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   std::set<const llvm::Function *>
-  resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
+  resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   static std::set<const llvm::Type *>
   getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
 
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-  getActualFormalPointerPairs(llvm::ImmutableCallSite CS,
+  getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                               const llvm::Function *CalleeTarget);
 };
 } // namespace psr

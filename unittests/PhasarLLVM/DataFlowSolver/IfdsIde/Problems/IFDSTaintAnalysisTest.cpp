@@ -134,6 +134,120 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   compareResults(GroundTruth);
 }
 
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[15] = set<string>{"14"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_m2r_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[6] = set<string>{"0"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[17] = set<string>{"16"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_03_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[11] = set<string>{"10"};
+  GroundTruth[21] = set<string>{"20"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_04_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[33] = set<string>{"32"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_05_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  const llvm::Function *entry =
+      TaintProblem->getProjectIRDB()->getFunction("main");
+
+  map<int, set<string>> GroundTruth;
+  GroundTruth[33] = set<string>{"32"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_06_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[15] = set<string>{"14"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_07_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[31] = set<string>{"30"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_08_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[33] = set<string>{"32"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_09_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[64] = set<string>{"63"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
+  initialize(
+      {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
+  IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[62] = set<string>{"61"};
+  compareResults(GroundTruth);
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

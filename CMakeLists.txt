@@ -18,8 +18,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release',
-  default is 'Debug')" FORCE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
@@ -136,7 +135,7 @@ include_directories(${SQLITE3_INCLUDE_DIR})
 # LLVM
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
-  find_package(LLVM 10 REQUIRED CONFIG)
+  find_package(LLVM 12 REQUIRED CONFIG)
   include_directories(${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
 endif()

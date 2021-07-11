@@ -48,9 +48,9 @@ public:
   ~WPDSAliasCollector() override = default;
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitStmt, n_t retSite) override;
+                                         n_t ExitInst, n_t retSite) override;
   FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
                                                std::set<f_t> callees) override;
   FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destFun) override;
@@ -59,10 +59,10 @@ public:
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
   std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
+  getCallEdgeFunction(n_t callSite, d_t srcNode, f_t destinationFunction,
                       d_t destNode) override;
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t ExitInst,
                         d_t exitNode, n_t reSite, d_t retNode) override;
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,

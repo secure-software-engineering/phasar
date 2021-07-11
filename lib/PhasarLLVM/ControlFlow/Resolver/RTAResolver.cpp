@@ -14,7 +14,6 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -48,30 +47,29 @@ RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 // }
 
 set<const llvm::Function *>
-RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   // throw runtime_error("RTA is currently unabled to deal with already built "
   //                     "library, it has been disable until this is fixed");
 
   set<const llvm::Function *> PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: "
-                << llvmIRToString(CS.getInstruction()));
+                << "Call virtual function: " << llvmIRToString(CallSite));
 
-  auto VtableIndex = getVFTIndex(CS);
+  auto VtableIndex = getVFTIndex(CallSite);
   if (VtableIndex < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CS.getInstruction()) << "\n");
+                  << llvmIRToString(CallSite) << "\n");
     return {};
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CS);
+  const auto *ReceiverType = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
   auto ReachableTypes = Resolver::TH->getSubTypes(ReceiverType);
@@ -84,8 +82,8 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
     if (const auto *PossibleTypeStruct =
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       if (ReachableTypes.find(PossibleTypeStruct) != EndIt) {
-        const auto *Target =
-            getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
+        const auto *Target = getNonPureVirtualVFTEntry(PossibleTypeStruct,
+                                                       VtableIndex, CallSite);
         if (Target) {
           PossibleCallTargets.insert(Target);
         }
@@ -94,7 +92,7 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   }
 
   if (PossibleCallTargets.empty()) {
-    return CHAResolver::resolveVirtualCall(CS);
+    return CHAResolver::resolveVirtualCall(CallSite);
   }
 
   return PossibleCallTargets;

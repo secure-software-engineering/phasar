@@ -54,6 +54,11 @@ public:
   virtual std::shared_ptr<std::unordered_set<V>>
   getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
 
+  // Checks if V2 is a reachable allocation in the points to set of V1.
+  virtual bool isInReachableAllocationSites(V V1, V V2,
+                                            bool IntraProcOnly = false,
+                                            N I = N{}) = 0;
+
   virtual void print(std::ostream &OS = std::cout) const = 0;
 
   virtual nlohmann::json getAsJson() const = 0;

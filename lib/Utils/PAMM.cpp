@@ -192,8 +192,7 @@ void PAMM::regHistogram(const std::string &HistogramId) {
 void PAMM::addToHistogram(const std::string &HistogramId,
                           const std::string &DataPointId,
                           unsigned long DataPointValue) {
-  bool ValidHistoId = Histogram.count(HistogramId);
-  assert(ValidHistoId &&
+  assert(Histogram.count(HistogramId) &&
          "adding data point to histogram failed due to invalid id");
   if (Histogram[HistogramId].count(DataPointId)) {
     Histogram[HistogramId][DataPointId] += DataPointValue;

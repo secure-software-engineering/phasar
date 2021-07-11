@@ -68,7 +68,7 @@ protected:
                                          EntryPoints);
     InterMonoSolver_P<InterMonoFullConstantPropagation, 3> IMSolver(FCP);
     IMSolver.solve();
-    
+
     if (PrintDump) {
       IMSolver.dumpResults();
     }
@@ -93,7 +93,6 @@ protected:
   }
 
 }; // Test Fixture
-
 // Test for Case I of Store
 TEST_F(InterMonoFullConstantPropagationTest, BasicTest_01) {
   std::set<IMFCPCompactResult_t> GroundTruth;

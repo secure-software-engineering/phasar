@@ -84,15 +84,15 @@ public:
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
 
   FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitStmt, n_t retSite) override;
+                                         n_t exitInst, n_t retSite) override;
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
                                                std::set<f_t> callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
+  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                              f_t destFun) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
@@ -108,11 +108,11 @@ public:
                         d_t succNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
+  getCallEdgeFunction(n_t callSite, d_t srcNode, f_t destinationFunction,
                       d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitInst,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
@@ -120,7 +120,7 @@ public:
                            d_t retSiteNode, std::set<f_t> callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
+  getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                          d_t retSiteNode) override;
 
   l_t topElement() override;

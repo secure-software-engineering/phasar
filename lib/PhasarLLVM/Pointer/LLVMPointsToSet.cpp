@@ -9,15 +9,17 @@
 
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <type_traits>
 #include <unordered_set>
 
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/IR/CallSite.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
@@ -42,6 +44,9 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     // compute points-to information for all globals
     for (const auto &G : M->globals()) {
       computeValuesPointsToSet(&G);
+    }
+    for (const auto &F : M->functions()) {
+      computeValuesPointsToSet(&F);
     }
     if (!UseLazyEvaluation) {
       // compute points-to information for all functions
@@ -73,7 +78,7 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
         if (Inst->getParent()) {
           computeFunctionsPointsToSet(
               const_cast<llvm::Function *>(Inst->getFunction()));
-          if (isInterestingPointer(User)) {
+          if (!llvm::isa<llvm::Function>(G) && isInterestingPointer(User)) {
             mergePointsToSets(User, G);
           } else if (const auto *Store =
                          llvm::dyn_cast<llvm::StoreInst>(User)) {
@@ -138,6 +143,58 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   SmallerSet->clear();
 }
 
+bool LLVMPointsToSet::interIsReachableAllocationSiteTy(const llvm::Value *V,
+                                                       const llvm::Value *P) {
+  // consider the full inter-procedural points-to/alias information
+
+  if (llvm::isa<llvm::AllocaInst>(P)) {
+    return true;
+  }
+  if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
+    const llvm::CallBase *CS = llvm::dyn_cast<llvm::CallBase>(P);
+    if (CS->getCalledFunction() != nullptr &&
+        CS->getCalledFunction()->hasName() &&
+        HeapAllocatingFunctions.count(CS->getCalledFunction()->getName())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool LLVMPointsToSet::intraIsReachableAllocationSiteTy(
+    const llvm::Value *V, const llvm::Value *P, const llvm::Function *VFun,
+    const llvm::GlobalObject *VG) {
+  // consider the function-local, i.e. intra-procedural, points-to/alias
+  // information only
+
+  // We may not be able to retrieve a function for the given value since some
+  // pointer values can exist outside functions, for instance, in case of
+  // vtables, etc.
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
+    // only add function local allocation sites
+    if ((VFun && VFun == Alloca->getFunction())) {
+      return true;
+    }
+    if (VG) {
+      return true;
+    }
+  } else if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
+    const llvm::CallBase *CS = llvm::dyn_cast<llvm::CallBase>(P);
+    if (CS->getCalledFunction() != nullptr &&
+        CS->getCalledFunction()->hasName() &&
+        HeapAllocatingFunctions.count(CS->getCalledFunction()->getName())) {
+      if (VFun && VFun == CS->getFunction()) {
+        return true;
+      } else if (VG) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   // F may be null
   if (!F) {
@@ -177,10 +234,33 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     }
     if (EvalAAMD && llvm::isa<llvm::StoreInst>(&*I)) {
       Stores.insert(&*I);
+      auto *Store = llvm::cast<llvm::StoreInst>(&*I);
+      auto *SVO = Store->getValueOperand();
+      auto *SPO = Store->getPointerOperand();
+      if (SVO->getType()->isPointerTy()) {
+        if (llvm::isa<llvm::Function>(SVO)) {
+          addSingletonPointsToSet(SVO);
+          addSingletonPointsToSet(SPO);
+          mergePointsToSets(SVO, SPO);
+        }
+        if (auto *SVOCE = llvm::dyn_cast<llvm::ConstantExpr>(SVO)) {
+
+          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
+              SVOCE->getAsInstruction(), &deleteValue);
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
+            auto *RHS = BC->getOperand(0);
+            addSingletonPointsToSet(RHS);
+            addSingletonPointsToSet(SVOCE);
+            addSingletonPointsToSet(SPO);
+            mergePointsToSets(RHS, SPO);
+            mergePointsToSets(SVOCE, SPO);
+          }
+        }
+      }
     }
     llvm::Instruction &Inst = *I;
     if (auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
-      llvm::Value *Callee = Call->getCalledValue();
+      llvm::Value *Callee = Call->getCalledOperand();
       // Skip actual functions for direct function calls.
       if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee)) {
         Pointers.insert(Callee);
@@ -203,11 +283,26 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       }
     }
   }
+  // Consider globals
+  for (auto &Global : F->getParent()->globals()) {
+    if (auto *GlobalVariable = llvm::dyn_cast<llvm::GlobalVariable>(&Global)) {
+      Pointers.insert(GlobalVariable);
+    }
+  }
   // introduce a singleton set for each pointer
   // those sets will be merged as we discover aliases
   for (auto *Pointer : Pointers) {
     addSingletonPointsToSet(Pointer);
   }
+
+  const int kWarningPointers = 100;
+  if (Pointers.size() > kWarningPointers) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                  << "Large number of pointers detected - Perf is O(N^2) here: "
+                  << Pointers.size() << " for "
+                  << llvm::demangle(F->getName().str()));
+  }
+
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
   for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
     llvm::Type *I1ElTy =
@@ -283,16 +378,8 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
     for (const auto *P : *PTS) {
-      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
-        AllocSites->insert(Alloca);
-      }
-      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-          AllocSites->insert(P);
-        }
+      if (interIsReachableAllocationSiteTy(V, P)) {
+        AllocSites->insert(P);
       }
     }
   } else {
@@ -300,34 +387,44 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
     // information only
     const auto *VFun = retrieveFunction(V);
     const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
-    // VFun and VG are mutally exclusive
-    assert(VFun != VG && "VFun and VG must be mutally exclusive!");
+    // We may not be able to retrieve a function for the given value since some
+    // pointer values can exist outside functions, for instance, in case of
+    // vtables, etc.
     for (const auto *P : *PTS) {
-      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(P)) {
-        // only add function local allocation sites
-        if (VFun && VFun == Alloca->getFunction()) {
-          AllocSites->insert(Alloca);
-        }
-        if (VG) {
-          AllocSites->insert(Alloca);
-        }
-      }
-      if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-        llvm::ImmutableCallSite CS(P);
-        if (CS.getCalledFunction() != nullptr &&
-            CS.getCalledFunction()->hasName() &&
-            HeapAllocatingFunctions.count(CS.getCalledFunction()->getName())) {
-          if (VFun && VFun == CS.getInstruction()->getFunction()) {
-            AllocSites->insert(P);
-          }
-          if (VG) {
-            AllocSites->insert(P);
-          }
-        }
+      if (intraIsReachableAllocationSiteTy(V, P, VFun, VG)) {
+        AllocSites->insert(P);
       }
     }
   }
   return AllocSites;
+}
+
+bool LLVMPointsToSet::isInReachableAllocationSites(
+    const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
+    const llvm::Instruction *I) {
+  // if V is not a (interesting) pointer we can return an empty set
+  if (!isInterestingPointer(V)) {
+    return false;
+  }
+  computeValuesPointsToSet(V);
+
+  bool PVIsReachableAllocationSiteType = false;
+  if (IntraProcOnly) {
+    const auto *VFun = retrieveFunction(V);
+    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+    PVIsReachableAllocationSiteType =
+        intraIsReachableAllocationSiteTy(V, PotentialValue, VFun, VG);
+  } else {
+    PVIsReachableAllocationSiteType =
+        interIsReachableAllocationSiteTy(V, PotentialValue);
+  }
+
+  if (PVIsReachableAllocationSiteType) {
+    const auto PTS = PointsToSets[V];
+    return PTS->count(PotentialValue);
+  }
+
+  return false;
 }
 
 void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
