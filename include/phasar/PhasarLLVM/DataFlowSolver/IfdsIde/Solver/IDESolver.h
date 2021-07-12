@@ -712,6 +712,8 @@ protected:
 
   void propagateValueAtStart(const std::pair<n_t, d_t> nAndD, n_t n) {
     PAMM_GET_INSTANCE;
+    std::cout << "propagateValueAtStart at: " << IDEProblem.NtoString(n)
+              << ", with fact: " << IDEProblem.DtoString(nAndD.second) << '\n';
     d_t d = nAndD.second;
     f_t p = ICF->getFunctionOf(n);
     for (const n_t c : ICF->getCallsFromWithin(p)) {
@@ -732,6 +734,8 @@ protected:
 
   void propagateValueAtCall(const std::pair<n_t, d_t> nAndD, n_t n) {
     PAMM_GET_INSTANCE;
+    std::cout << "propagateValueAtCall at: " << IDEProblem.NtoString(n)
+              << ", with fact: " << IDEProblem.DtoString(nAndD.second) << '\n';
     d_t d = nAndD.second;
     for (const f_t q : ICF->getCalleesOfCallAt(n)) {
       FlowFunctionPtrType callFlowFunction =
@@ -758,6 +762,9 @@ protected:
   }
 
   void propagateValue(n_t nHashN, d_t nHashD, const l_t &l) {
+    std::cout << "propagateValue at: " << IDEProblem.NtoString(nHashN)
+              << ", with fact: " << IDEProblem.DtoString(nHashD)
+              << ", with value: " << IDEProblem.LtoString(l) << '\n';
     l_t valNHash = val(nHashN, nHashD);
     l_t lPrime = joinValueAt(nHashN, nHashD, valNHash, l);
     if (!(lPrime == valNHash)) {
@@ -771,6 +778,7 @@ protected:
       return valtab.get(nHashN, nHashD);
     }
     // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
+    std::cout << "requested val not found, return top\n";
     return IDEProblem.topElement();
   }
 
@@ -877,9 +885,6 @@ protected:
       // FIXME: is currently not executed for main!!!
       // initial seeds are set in the global constructor, and main is also not
       // officially called by any other function
-      std::cout << "propagate value at start: " << IDEProblem.NtoString(n)
-                << ", with fact: " << IDEProblem.DtoString(nAndD.second)
-                << '\n';
       propagateValueAtStart(nAndD, n);
     }
     if (ICF->isCallSite(n)) {
