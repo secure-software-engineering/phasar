@@ -82,7 +82,7 @@ public:
               [](const llvm::CallBase *CallSite, const llvm::Value *V) {
                 // Globals are considered to be involved in this default
                 // implementation.
-                // Need llvm::Constant here to cover also ConstantExpr 
+                // Need llvm::Constant here to cover also ConstantExpr
                 // and ConstantAggregate
                 if (llvm::isa<llvm::Constant>(V)) {
                   return true;
@@ -206,19 +206,18 @@ public:
           }
         }
       }
-      return Res;
-    } else {
-      // Handle ordinary case
-      // Map actual parameters to corresponding formal parameters.
-      for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-        if (Source == Actuals[Idx] && Predicate(Actuals[Idx])) {
-          assert(Idx < Formals.size() &&
-                 "Out of bound access to formal parameters!");
-          Res.insert(Formals[Idx]); // corresponding formal
-        }
-      }
-      return Res;
     }
+    // Handle ordinary case
+    // Map actual parameters to corresponding formal parameters.
+    for (unsigned Idx = 0; Idx < Actuals.size() && Idx < DestFun->arg_size();
+         ++Idx) {
+      if (Source == Actuals[Idx] && ActualPredicate(Actuals[Idx])) {
+        assert(Idx < Formals.size() &&
+               "Out of bound access to formal parameters!");
+        Res.insert(Formals[Idx]); // corresponding formal
+      }
+    }
+    return Res;
   }
 }; // namespace psr
 
