@@ -466,14 +466,14 @@ std::vector<const llvm::Value *>
 getVaListMemoryLocationSeq(const llvm::Value *Value) {
   if (const auto *const PhiNodeInst = llvm::dyn_cast<llvm::PHINode>(Value)) {
     const auto PhiNodeName = PhiNodeInst->getName();
-    bool IsVarArgAddr = PhiNodeName.contains_lower("vaarg.addr");
+    bool IsVarArgAddr = PhiNodeName.contains("vaarg.addr");
     if (!IsVarArgAddr) {
       return EmptySeq;
     }
 
     for (const auto &Block : PhiNodeInst->blocks()) {
       const auto BlockName = Block->getName();
-      bool IsVarArgInMem = BlockName.contains_lower("vaarg.in_mem");
+      bool IsVarArgInMem = BlockName.contains("vaarg.in_mem");
       if (!IsVarArgInMem) {
         continue;
       }
