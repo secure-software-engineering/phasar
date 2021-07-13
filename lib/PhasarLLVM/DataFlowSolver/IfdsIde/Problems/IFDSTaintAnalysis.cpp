@@ -114,7 +114,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
   return make_shared<MapFactsToCaller<>>(
-      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitSite,
+      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitSite, true,
       [](IFDSTaintAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
       });
