@@ -45,43 +45,45 @@ protected:
     LCASolver.solve();
     if (PrintDump) {
       ICFG.print();
-    //   std::cout << "Check out ICFG connectivity:\n";
-    //   const auto *GCtor = ICFG.getFirstGlobalCtorOrNull();
-    //   assert(GCtor);
-    //   std::cout << "global constructor's exit point(s) are:\n";
-    //   for (const auto *ExitPoint : ICFG.getExitPointsOf(GCtor)) {
-    //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
-    //     std::cout << "with successor(s):\n";
-    //     auto Succs = ICFG.getSuccsOf(ExitPoint);
-    //     for (const auto *Succ : Succs) {
-    //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
-    //     }
-    //   }
-    //   std::cout << "main's exit point(s) are:\n";
-    //   const auto *Main = ICFG.getFunction("main");
-    //   assert(Main);
-    //   for (const auto *ExitPoint : ICFG.getExitPointsOf(Main)) {
-    //     std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
-    //     std::cout << "with successor(s):\n";
-    //     auto Succs = ICFG.getSuccsOf(ExitPoint);
-    //     for (const auto *Succ : Succs) {
-    //       std::cout << '\t' << llvmIRToString(Succ) << '\n';
-    //     }
-    //   }
-    //   std::cout << "MIN: "
-    //             << std::numeric_limits<IDELinearConstantAnalysis::l_t>::min()
-    //             << '\n';
-    //   std::cout << "MIX: "
-    //             << std::numeric_limits<IDELinearConstantAnalysis::l_t>::max()
-    //             << '\n';
+      // std::cout << "Check out ICFG connectivity:\n";
+      // const auto *GCtor = ICFG.getFirstGlobalCtorOrNull();
+      // assert(GCtor);
+      // std::cout << "global constructor's exit point(s) are:\n";
+      // const auto *Last = getNthInstruction(GCtor, 1);
+      // std::cout << "analyzing control-flow of: " << llvmIRToString(Last) <<
+      // '\n'; for (const auto *Succ : ICFG.getSuccsOf(Last)) {
+      //   std::cout << "succ: " << llvmIRToString(Succ) << '\n';
+      // }
+      // std::cout << "main's exit point(s) are:\n";
+      const auto *Main = ICFG.getFunction("main");
+      // assert(Main);
+      // for (const auto *ExitPoint : ICFG.getExitPointsOf(Main)) {
+      //   std::cout << '\t' << llvmIRToString(ExitPoint) << '\n';
+      //   std::cout << "with successor(s):\n";
+      //   auto Succs = ICFG.getSuccsOf(ExitPoint);
+      //   for (const auto *Succ : Succs) {
+      //     std::cout << '\t' << llvmIRToString(Succ) << '\n';
+      //   }
+      // }
+      //   std::cout << "MIN: "
+      //             <<
+      //             std::numeric_limits<IDELinearConstantAnalysis::l_t>::min()
+      //             << '\n';
+      //   std::cout << "MIX: "
+      //             <<
+      //             std::numeric_limits<IDELinearConstantAnalysis::l_t>::max()
+      //             << '\n';
       LCASolver.dumpResults();
-    //   const auto *CallToFoo = getNthInstruction(Main, 8);
-    //   std::cout << "Results at: " << llvmIRToString(CallToFoo) << '\n';
-    //   auto Results = LCASolver.resultsAt(CallToFoo);
-    //   for (auto &[Fact, Value] : Results) {
-    //     std::cout << "\tFact: " << llvmIRToString(Fact) << '\n';
-    //     std::cout << "\tValue: " << Value << '\n';
-    //   }
+      const auto *CallToFoo = getNthInstruction(Main, 8);
+      std::cout << "Results at: " << llvmIRToString(CallToFoo) << '\n';
+      auto Results = LCASolver.resultsAt(CallToFoo);
+      if (Results.empty()) {
+        std::cout << "\tempty!\n";
+      }
+      for (auto &[Fact, Value] : Results) {
+        std::cout << "\tFact: " << llvmIRToString(Fact) << '\n';
+        std::cout << "\tValue: " << Value << '\n';
+      }
     }
     return LCAProblem.getLCAResults(LCASolver.getSolverResults());
   }
@@ -536,12 +538,12 @@ TEST_F(IDELinearConstantAnalysisTest, HandleRecursionTest_03) {
 TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_01) {
   auto Results = doAnalysis("global_01_cpp_dbg.ll", true);
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("main", 6, "g1", 42);
+  GroundTruth.emplace("main", 6, "i", 666);
+  GroundTruth.emplace("main", 6, "g1", 10);
   GroundTruth.emplace("main", 6, "g2", 1);
-  GroundTruth.emplace("main", 7, "g1", 42);
-  GroundTruth.emplace("main", 7, "g2", 42);
-  GroundTruth.emplace("main", 8, "g1", 42);
-  GroundTruth.emplace("main", 8, "g2", 42);
+  GroundTruth.emplace("main", 9, "i", 666);
+  GroundTruth.emplace("main", 9, "g1", 42);
+  GroundTruth.emplace("main", 9, "g2", 42);
   compareResults(Results, GroundTruth);
 }
 
@@ -679,7 +681,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_10) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_11) {
-  auto Results = doAnalysis("global_11_cpp_dbg.ll");
+  auto Results = doAnalysis("global_11_cpp_dbg.ll", true);
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 10, "a", 13);
   GroundTruth.emplace("main", 10, "g1", 42);
@@ -687,6 +689,9 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_11) {
   GroundTruth.emplace("_Z3fooi", 5, "x", 14);
   GroundTruth.emplace("_Z3fooi", 5, "g1", 42);
   GroundTruth.emplace("_Z3fooi", 5, "g2", 9001);
+  GroundTruth.emplace("main", 11, "a", 14);
+  GroundTruth.emplace("main", 11, "g1", 42);
+  GroundTruth.emplace("main", 11, "g2", 9001);
   GroundTruth.emplace("main", 12, "a", 14);
   GroundTruth.emplace("main", 12, "g1", 42);
   GroundTruth.emplace("main", 12, "g2", 9001);
@@ -697,10 +702,10 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_12) {
   auto Results = doAnalysis("global_12_cpp_dbg.ll", true);
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z11global_ctorv", 3, "g", 42);
+  GroundTruth.emplace("_Z3fooi", 6, "x", 43);
+  GroundTruth.emplace("_Z3fooi", 6, "g", 42);
   GroundTruth.emplace("main", 11, "a", 42);
   GroundTruth.emplace("main", 11, "g", 42);
-  // GroundTruth.emplace("_Z3fooi", 6, "x", 43);
-  // GroundTruth.emplace("_Z3fooi", 6, "g", 42);
   GroundTruth.emplace("main", 13, "a", 43);
   GroundTruth.emplace("main", 13, "g", 42);
   compareResults(Results, GroundTruth);
@@ -723,6 +728,19 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_12) {
 //   std::set<LCACompactResult_t> GroundTruth;
 //   compareResults(Results, GroundTruth);
 // }
+
+TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_16) {
+  auto Results = doAnalysis("global_16_cpp_dbg.ll", true);
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("_Z11global_ctorv", 3, "g", 42);
+  GroundTruth.emplace("_Z3fooi", 6, "x", 43);
+  GroundTruth.emplace("_Z3fooi", 6, "g", 42);
+  GroundTruth.emplace("main", 11, "a", 42);
+  GroundTruth.emplace("main", 11, "g", 42);
+  GroundTruth.emplace("main", 13, "a", 43);
+  GroundTruth.emplace("main", 13, "g", 42);
+  compareResults(Results, GroundTruth);
+}
 
 // main function for the test case
 int main(int Argc, char **Argv) {

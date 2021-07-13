@@ -712,6 +712,8 @@ protected:
 
   void propagateValueAtStart(const std::pair<n_t, d_t> nAndD, n_t n) {
     PAMM_GET_INSTANCE;
+    std::cout << "propagateValueAtStart at: " << IDEProblem.NtoString(n)
+              << ", with fact: " << IDEProblem.DtoString(nAndD.second) << '\n';
     d_t d = nAndD.second;
     f_t p = ICF->getFunctionOf(n);
     for (const n_t c : ICF->getCallsFromWithin(p)) {
@@ -732,6 +734,8 @@ protected:
 
   void propagateValueAtCall(const std::pair<n_t, d_t> nAndD, n_t n) {
     PAMM_GET_INSTANCE;
+    std::cout << "propagateValueAtCall at: " << IDEProblem.NtoString(n)
+              << ", with fact: " << IDEProblem.DtoString(nAndD.second) << '\n';
     d_t d = nAndD.second;
     for (const f_t q : ICF->getCalleesOfCallAt(n)) {
       FlowFunctionPtrType callFlowFunction =
@@ -758,6 +762,9 @@ protected:
   }
 
   void propagateValue(n_t nHashN, d_t nHashD, const l_t &l) {
+    std::cout << "propagateValue at: " << IDEProblem.NtoString(nHashN)
+              << ", with fact: " << IDEProblem.DtoString(nHashD)
+              << ", with value: " << IDEProblem.LtoString(l) << '\n';
     l_t valNHash = val(nHashN, nHashD);
     l_t lPrime = joinValueAt(nHashN, nHashD, valNHash, l);
     if (!(lPrime == valNHash)) {
@@ -771,6 +778,7 @@ protected:
       return valtab.get(nHashN, nHashD);
     }
     // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
+    std::cout << "requested val not found, return top\n";
     return IDEProblem.topElement();
   }
 
@@ -872,7 +880,11 @@ protected:
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
-    if (ICF->isStartPoint(n) || Seeds.count(n) || unbalancedRetSites.count(n)) {
+    if (ICF->isStartPoint(n) || Seeds.countInitialSeeds(n) ||
+        unbalancedRetSites.count(n)) {
+      // FIXME: is currently not executed for main!!!
+      // initial seeds are set in the global constructor, and main is also not
+      // officially called by any other function
       propagateValueAtStart(nAndD, n);
     }
     if (ICF->isCallSite(n)) {
@@ -894,6 +906,21 @@ protected:
           d_t d = sourceValTargetValAndFunction.getColumnKey();
           EdgeFunctionPtrType fPrime = sourceValTargetValAndFunction.getValue();
           l_t targetVal = val(sP, dPrime);
+          std::cout << "compute at: " << llvmIRToString(n) << '\n';
+          std::cout << "\tsource fact: " << IDEProblem.DtoString(dPrime)
+                    << '\n';
+          std::cout << "\ttarget fact: " << IDEProblem.DtoString(d) << '\n';
+          std::cout << "\tstart val: " << IDEProblem.LtoString(targetVal)
+                    << '\n';
+          std::cout << "\texisting target val: "
+                    << IDEProblem.LtoString(val(n, d)) << '\n';
+          std::cout << "\ttarget val: "
+                    << IDEProblem.LtoString(fPrime->computeTarget(targetVal))
+                    << '\n';
+          std::cout << "\tupdated target val: "
+                    << IDEProblem.LtoString(IDEProblem.join(
+                           val(n, d), fPrime->computeTarget(targetVal)))
+                    << '\n';
           setVal(n, d,
                  IDEProblem.join(val(n, d),
                                  fPrime->computeTarget(std::move(targetVal))));
@@ -921,12 +948,16 @@ protected:
     std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
     for (n_t unbalancedRetSite : unbalancedRetSites) {
       if (AllSeeds.find(unbalancedRetSite) == AllSeeds.end()) {
+        std::cout << "found unbalanced return site!\n";
         AllSeeds[unbalancedRetSite][ZeroValue] = IDEProblem.topElement();
       }
     }
     // do processing
     for (const auto &[StartPoint, Facts] : AllSeeds) {
       for (auto &[Fact, Value] : Facts) {
+        std::cout << "set initial seed at: " << IDEProblem.NtoString(StartPoint)
+                  << ", fact: " << IDEProblem.DtoString(Fact)
+                  << ", value: " << IDEProblem.LtoString(Value) << '\n';
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
         setVal(StartPoint, Fact, Value);
@@ -947,21 +978,49 @@ protected:
   /// their own. Normally, solve() should be called instead.
   void submitInitialSeeds() {
     PAMM_GET_INSTANCE;
+    // Check if the initial seeds contain the zero value at every starting
+    // point. If not, the zero value needs to be added to allow for correct
+    // solving of the problem.
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
+      if (Facts.find(ZeroValue) == Facts.end()) {
+        // Add zero value if it's not in the set of facts.
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "Zero-Value has been added automatically to start point: "
+            << IDEProblem.NtoString(StartPoint));
+        Seeds.addSeed(StartPoint, ZeroValue, IDEProblem.bottomElement());
+      }
+    }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Number of initial seeds: " << Seeds.countInitialSeeds());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "List of initial seeds: ");
     for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Start point: " << IDEProblem.NtoString(StartPoint));
       for (const auto &[Fact, Value] : Facts) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "\tFact: " << IDEProblem.DtoString(Fact);
-                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                      << "\tFact: " << IDEProblem.DtoString(Fact));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tValue: " << IDEProblem.LtoString(Value));
+      }
+    }
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
+      for (const auto &[Fact, Value] : Facts) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Submit seed at: "
+                      << IDEProblem.NtoString(StartPoint));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tFact: " << IDEProblem.DtoString(Fact));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tValue: " << IDEProblem.LtoString(Value));
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, PAMM_SEVERITY_LEVEL::Core);
         }
-        propagate(ZeroValue, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
+        propagate(Fact, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
                   nullptr, false);
+        jumpFn->addFunction(Fact, StartPoint, Fact,
+                            EdgeIdentity<l_t>::getInstance());
       }
-      jumpFn->addFunction(ZeroValue, StartPoint, ZeroValue,
-                          EdgeIdentity<l_t>::getInstance());
     }
   }
 

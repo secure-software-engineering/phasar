@@ -158,7 +158,7 @@ public:
     //
     static auto Seeds = this->initialSeeds();
     static bool initGlobals = true;
-    if (initGlobals && Seeds.count(curr)) {
+    if (initGlobals && Seeds.countInitialSeeds(curr)) {
       initGlobals = false;
       std::set<d_t> Globals;
       for (const auto *Mod : this->IRDB->getAllModules()) {
@@ -697,7 +697,8 @@ public:
       }
       return Globals;
     }();
-    if (Seeds.count(curr) && isZeroValue(currNode) && Globals.count(succNode)) {
+    if (Seeds.countInitialSeeds(curr) && isZeroValue(currNode) &&
+        Globals.count(succNode)) {
       if (const auto *GlobalVarDef =
               llvm::dyn_cast<llvm::GlobalVariable>(succNode)) {
         EdgeFacts = edgeFactGen(GlobalVarDef);
