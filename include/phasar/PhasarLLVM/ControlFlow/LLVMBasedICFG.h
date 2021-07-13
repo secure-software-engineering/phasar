@@ -30,6 +30,7 @@
 #include "boost/container/flat_set.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
@@ -58,6 +59,9 @@ class LLVMBasedICFG
       public virtual LLVMBasedCFG {
   friend class LLVMBasedBackwardsICFG;
 
+  using GlobalCtorTy = std::multimap<size_t, llvm::Function *>;
+  using GlobalDtorTy = std::multimap<size_t, llvm::Function *, std::greater<>>;
+
 private:
   ProjectIRDB &IRDB;
   CallGraphAnalysisType CGType;
@@ -68,9 +72,18 @@ private:
   LLVMPointsToInfo *PT;
   std::unique_ptr<Resolver> Res;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
-  llvm::SmallPtrSet<const llvm::Function *, 2> UserEntryPoints;
+  llvm::SmallPtrSet<llvm::Function *, 2> UserEntryPoints;
 
-  llvm::SmallDenseMap<const llvm::Module *, const llvm::Function *>
+  GlobalCtorTy GlobalCtors;
+  GlobalDtorTy GlobalDtors;
+
+  // llvm::SmallDenseMap<F, typename GlobalCtorTy::const_iterator, 2>
+  // GlobalCtorFn; llvm::SmallDenseMap<F, typename GlobalDtorTy::const_iterator,
+  // 2> GlobalDtorFn;
+
+  llvm::Function *GlobalCleanupFn = nullptr;
+
+  llvm::SmallDenseMap<const llvm::Module *, llvm::Function *>
       GlobalRegisteredDtorsCaller;
   /// Keeps track of the call-sites already resolved
   // std::vector<const llvm::Instruction *> CallStack;
@@ -146,8 +159,7 @@ private:
               llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer())) {
         for (const auto &Op : ConstFunArray->operands()) {
           if (const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op)) {
-            const auto *Fun =
-                llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1));
+            auto *Fun = llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1));
             const auto *Prio =
                 llvm::dyn_cast<llvm::ConstantInt>(FunDesc->getOperand(0));
             if (Fun && Prio) {
@@ -160,9 +172,15 @@ private:
     }
   }
 
+  llvm::Function *buildCRuntimeGlobalDtorsModel(llvm::Module &M);
+  const llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M);
+
   struct dependency_visitor;
 
 public:
+  static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
+      "__psrCRuntimeGlobalCtorsModel";
+
   /**
    * Why a multimap?  A given instruction might have multiple target functions.
    * For example, if the points-to analysis indicates that a pointer could
@@ -170,9 +188,6 @@ public:
    */
   using OutEdgesAndTargets = std::unordered_multimap<const llvm::Instruction *,
                                                      const llvm::Function *>;
-
-  using ICFG<const llvm::Instruction *, const llvm::Function *>::GlobalCtorTy;
-  using ICFG<const llvm::Instruction *, const llvm::Function *>::GlobalDtorTy;
 
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
@@ -307,6 +322,18 @@ public:
 
   [[nodiscard]] const llvm::Function *
   getRegisteredDtorsCallerOrNull(const llvm::Module *Mod);
+
+  template <typename Fn> void forEachGlobalCtor(Fn &&fn) const {
+    for (auto [Prio, Fun] : GlobalCtors) {
+      fn(static_cast<const llvm::Function *>(Fun));
+    }
+  }
+
+  template <typename Fn> void forEachGlobalDtor(Fn &&fn) const {
+    for (auto [Prio, Fun] : GlobalDtors) {
+      fn(static_cast<const llvm::Function *>(Fun));
+    }
+  }
 
 protected:
   void collectGlobalCtors() override;

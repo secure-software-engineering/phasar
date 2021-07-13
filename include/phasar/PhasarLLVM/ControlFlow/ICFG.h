@@ -44,18 +44,9 @@ CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
-public:
-  using GlobalCtorTy = std::multimap<size_t, F>;
-  using GlobalDtorTy = std::multimap<size_t, F, std::greater<size_t>>;
 
 protected:
   std::vector<F> GlobalInitializers;
-
-  GlobalCtorTy GlobalCtors;
-  GlobalDtorTy GlobalDtors;
-
-  llvm::SmallDenseMap<F, typename GlobalCtorTy::const_iterator, 2> GlobalCtorFn;
-  llvm::SmallDenseMap<F, typename GlobalDtorTy::const_iterator, 2> GlobalDtorFn;
 
   virtual void collectGlobalCtors() = 0;
 
@@ -85,32 +76,6 @@ public:
   virtual std::set<N> getCallsFromWithin(F Fun) const = 0;
 
   virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
-
-  const GlobalCtorTy &getGlobalCtors() const { return GlobalCtors; }
-
-  template <typename Fn> void forEachGlobalCtor(Fn &&fn) const {
-    for (auto [Prio, Fun] : GlobalCtors) {
-      fn(Fun);
-    }
-  }
-
-  template <typename VecTy> void appendGlobalCtors(VecTy &CtorsList) const {
-    CtorsList.reserve(CtorsList.size() + GlobalCtors.size());
-    forEachGlobalCtor([&](auto *Fun) { CtorsList.push_back(Fun); });
-  }
-
-  const GlobalDtorTy &getGlobalDtors() const { return GlobalDtors; }
-
-  template <typename Fn> void forEachGlobalDtor(Fn &&fn) const {
-    for (auto [Prio, Fun] : GlobalDtors) {
-      fn(Fun);
-    }
-  }
-
-  template <typename VecTy> void appendGlobalDtors(VecTy &DtorsList) const {
-    DtorsList.reserve(DtorsList.size() + GlobalDtors.size());
-    forEachGlobalDtor([&](auto *Fun) { DtorsList.push_back(Fun); });
-  }
 
   const std::vector<F> &getGlobalInitializers() const {
     return GlobalInitializers;

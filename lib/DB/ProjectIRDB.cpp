@@ -298,8 +298,8 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
   }
 }
 
-const llvm::Function *
-ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
+llvm::Function *
+ProjectIRDB::internalGetFunctionDefinition(llvm::StringRef FunctionName) const {
   for (const auto &[File, Module] : Modules) {
     auto *F = Module->getFunction(FunctionName);
     if (F && !F->isDeclaration()) {
@@ -310,7 +310,17 @@ ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
 }
 
 const llvm::Function *
-ProjectIRDB::getFunction(const std::string &FunctionName) const {
+ProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) const {
+  return internalGetFunctionDefinition(FunctionName);
+}
+
+llvm::Function *
+ProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) {
+  return internalGetFunctionDefinition(FunctionName);
+}
+
+llvm::Function *
+ProjectIRDB::internalGetFunction(llvm::StringRef FunctionName) const {
   for (const auto &[File, Module] : Modules) {
     auto *F = Module->getFunction(FunctionName);
     if (F) {
@@ -318,6 +328,15 @@ ProjectIRDB::getFunction(const std::string &FunctionName) const {
     }
   }
   return nullptr;
+}
+
+const llvm::Function *
+ProjectIRDB::getFunction(llvm::StringRef FunctionName) const {
+  return internalGetFunction(FunctionName);
+}
+
+llvm::Function *ProjectIRDB::getFunction(llvm::StringRef FunctionName) {
+  return internalGetFunction(FunctionName);
 }
 
 const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(

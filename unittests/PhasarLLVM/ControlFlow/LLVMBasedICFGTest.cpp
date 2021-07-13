@@ -259,6 +259,13 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_1) {
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, nullptr,
                      Soundness::Soundy, true);
+
+  auto *GlobCtorFn = IRDB.getFunction(LLVMBasedICFG::GlobalCRuntimeModelName);
+
+  ASSERT_TRUE(GlobCtorFn);
+
+  // GlobCtorFn->print(llvm::outs());
+
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *BeforeMain =
       IRDB.getFunctionDefinition("_Z11before_mainv");
