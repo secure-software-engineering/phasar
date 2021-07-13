@@ -13,13 +13,13 @@ GEPInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
 
   bool IsVarArgFact = Fact.isVarArg();
   if (IsVarArgFact) {
-    bool KillFact = GepInstPtr->getName().contains_lower("reg_save_area");
+    bool KillFact = GepInstPtr->getName().contains("reg_save_area");
     if (KillFact) {
       return {};
     }
 
     bool IncrementCurrentVarArgIndex =
-        GepInst->getName().contains_lower("overflow_arg_area.next");
+        GepInst->getName().contains("overflow_arg_area.next");
     if (IncrementCurrentVarArgIndex) {
       const auto GepVaListMemLocationSeq =
           DataFlowUtils::getMemoryLocationSeqFromMatr(GepInstPtr);

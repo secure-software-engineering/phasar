@@ -252,6 +252,9 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Found static call-site: " << llvmIRToString(CS));
           } else {
+            if (llvm::isa<llvm::InlineAsm>(SV)) {
+              continue;
+            }
             // the function call must be resolved dynamically
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Found dynamic call-site: ");
