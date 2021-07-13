@@ -253,34 +253,32 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
-  IRDB.print();
-  // IDELinearConstantAnalysis Problem(
-  //     &IRDB, &TH, &ICFG, &PT,
-  //     {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+  IDELinearConstantAnalysis Problem(
+      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  // IDESolver Solver(Problem);
+  IDESolver Solver(Problem);
 
-  // Solver.solve();
+  Solver.solve();
 
-  // Solver.dumpResults();
+  Solver.dumpResults();
 
-  // auto *FooInit = IRDB.getInstruction(6);
-  // auto *LoadX = IRDB.getInstruction(11);
-  // auto *End = IRDB.getInstruction(13);
-  // auto Foo = IRDB.getGlobalVariableDefinition("foo");
+  auto *FooInit = IRDB.getInstruction(6);
+  auto *LoadX = IRDB.getInstruction(11);
+  auto *End = IRDB.getInstruction(13);
+  auto Foo = IRDB.getGlobalVariableDefinition("foo");
 
-  // auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
+  auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
 
-  // EXPECT_EQ(42, FooValueAfterInit)
-  //     << "Value of foo at " << llvmIRToString(FooInit) << " is not 42";
+  EXPECT_EQ(42, FooValueAfterInit)
+      << "Value of foo at " << llvmIRToString(FooInit) << " is not 42";
 
-  // auto XValueAtEnd = Solver.resultAt(End, LoadX);
-  // auto FooValueAtEnd = Solver.resultAt(End, Foo);
+  auto XValueAtEnd = Solver.resultAt(End, LoadX);
+  auto FooValueAtEnd = Solver.resultAt(End, Foo);
 
-  // EXPECT_EQ(42, FooValueAtEnd)
-  //     << "Value of foo at " << llvmIRToString(End) << " is not 42";
-  // EXPECT_EQ(43, XValueAtEnd)
-  //     << "Value of x at " << llvmIRToString(End) << " is not 43";
+  EXPECT_EQ(42, FooValueAtEnd)
+      << "Value of foo at " << llvmIRToString(End) << " is not 42";
+  EXPECT_EQ(43, XValueAtEnd)
+      << "Value of x at " << llvmIRToString(End) << " is not 43";
 }
 
 TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {

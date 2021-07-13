@@ -10,11 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
 
+#include <iostream>
 #include <map>
 #include <set>
 #include <type_traits>
 
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace psr {
 
@@ -26,15 +28,15 @@ public:
 
   template <typename LL = L, typename = typename std::enable_if_t<
                                  std::is_same_v<LL, BinaryDomain>>>
-  InitialSeeds(std::map<N, std::set<D>> Seeds) {
-    for (auto &[Node, Facts] : Seeds) {
-      for (auto &Fact : Facts) {
+  InitialSeeds(const std::map<N, std::set<D>> &Seeds) {
+    for (const auto &[Node, Facts] : Seeds) {
+      for (const auto &Fact : Facts) {
         this->Seeds[Node][Fact] = BinaryDomain::TOP;
       }
     }
   }
 
-  InitialSeeds(GeneralizedSeeds Seeds) : Seeds(Seeds) {}
+  InitialSeeds(GeneralizedSeeds Seeds) : Seeds(std::move(Seeds)) {}
 
   template <typename LL = L, typename = typename std::enable_if_t<
                                  std::is_same_v<LL, BinaryDomain>>>
@@ -59,6 +61,39 @@ public:
   [[nodiscard]] bool empty() const { return Seeds.empty(); }
 
   [[nodiscard]] GeneralizedSeeds getSeeds() { return Seeds; }
+
+  void dump(std::ostream &OS = std::cerr) {
+
+    auto printNode = [&](auto &&Node) {
+      if constexpr (std::is_same_v<const llvm::Instruction *, N>) {
+        OS << llvmIRToString(Node);
+      } else {
+        OS << Node;
+      }
+    };
+
+    auto printFact = [&](auto &&Node) {
+      if constexpr (std::is_same_v<const llvm::Value *, D>) {
+        OS << llvmIRToString(Node);
+      } else {
+        OS << Node;
+      }
+    };
+
+    OS << "======================== Initial Seeds ========================\n";
+    for (const auto &[Node, Facts] : Seeds) {
+      OS << "At ";
+      printNode(Node);
+      OS << "\n";
+      for (const auto &[Fact, Value] : Facts) {
+        OS << "> ";
+        printFact(Fact);
+        OS << " --> \\." << Value << "\n";
+      }
+      OS << "\n";
+    }
+    OS << "========================== End Seeds ==========================\n";
+  }
 
 private:
   GeneralizedSeeds Seeds;

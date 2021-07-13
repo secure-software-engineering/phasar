@@ -285,15 +285,12 @@ IDELinearConstantAnalysis::initialSeeds() {
       Seeds;
   // The analysis' entry points
   std::set<const llvm::Function *> EntryPointFuns;
-  // Check if we have global constructors in which our analysis has to start
-  if (const auto *Entry = ICF->getFirstGlobalCtorOrNull()) {
-    EntryPointFuns.insert(Entry);
-  } else {
-    // Otherwise, consider the user-defined entry point(s)
-    for (const auto &EntryPoint : EntryPoints) {
-      EntryPointFuns.insert(IRDB->getFunctionDefinition(EntryPoint));
-    }
+
+  // Otherwise, consider the user-defined entry point(s)
+  for (const auto &EntryPoint : EntryPoints) {
+    EntryPointFuns.insert(IRDB->getFunctionDefinition(EntryPoint));
   }
+
   // Set initial seeds at the required entry points and generate global
   // integer-typed variables using generalized initial seeds
   for (const auto *EntryPointFun : EntryPointFuns) {
@@ -314,6 +311,7 @@ IDELinearConstantAnalysis::initialSeeds() {
       }
     }
   }
+
   return Seeds;
 }
 
