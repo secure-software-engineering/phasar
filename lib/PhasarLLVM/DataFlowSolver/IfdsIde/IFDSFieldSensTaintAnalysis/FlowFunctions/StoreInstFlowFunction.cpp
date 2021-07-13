@@ -47,7 +47,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
     bool PatchMemLocation = !DstMemLocationSeq.empty();
     if (PatchMemLocation) {
       bool IsArgCoerced =
-          SrcMemLocationMatr->getName().str().contains_lower("coerce");
+          SrcMemLocationMatr->getName().contains_lower("coerce");
       if (IsArgCoerced) {
         assert(DstMemLocationSeq.size() > 1);
         DstMemLocationSeq.pop_back();
