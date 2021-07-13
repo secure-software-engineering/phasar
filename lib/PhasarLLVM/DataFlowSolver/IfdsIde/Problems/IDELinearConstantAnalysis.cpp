@@ -84,11 +84,11 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
-      return Identity<d_t>::getInstance();
-      // return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
-      //     Store, [this](IDELinearConstantAnalysis::d_t Source) {
-      //       return Source == getZeroValue();
-      //     });
+      // return Identity<d_t>::getInstance();
+      return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
+          Store, [this](IDELinearConstantAnalysis::d_t Source) {
+            return Source == getZeroValue();
+          });
     }
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
@@ -349,7 +349,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::d_t ValueOperand = Store->getValueOperand();
     if (PointerOperand == SuccNode) {
       // Case I: Storing a constant integer.
-      if (CurrNode == SuccNode && llvm::isa<llvm::ConstantInt>(ValueOperand)) {
+      if (isZeroValue(CurrNode) && llvm::isa<llvm::ConstantInt>(ValueOperand)) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Case: Storing constant integer.");
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
