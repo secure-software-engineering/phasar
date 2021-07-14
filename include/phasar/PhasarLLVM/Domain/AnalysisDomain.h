@@ -13,10 +13,10 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 
 namespace psr {
-class LLVMBasedCFG;
-class LLVMBasedICFG;
 
 // AnalysisDomain - This class should be specialized by different static
 // analyses types... which is why the default version declares all analysis
