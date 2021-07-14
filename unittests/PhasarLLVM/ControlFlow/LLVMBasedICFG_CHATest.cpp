@@ -72,7 +72,6 @@ TEST(LLVMBasedICFG_CHATest, VirtualCallSite_9) {
 
   const llvm::Instruction *I = getNthInstruction(F, 11);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(I);
     set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
     set<string> CalleeNames;
     for (const llvm::Function *F : Callees) {
