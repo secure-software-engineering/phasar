@@ -33,12 +33,12 @@ template <typename AnalysisDomainTy> struct NodePrinter {
   NodePrinter &operator=(NodePrinter &&) = delete;
   virtual ~NodePrinter() = default;
 
-  virtual void printNode(std::ostream &os, N n) const = 0;
+  virtual void printNode(std::ostream &Os, N N) const = 0;
 
-  virtual std::string NtoString(N n) const {
-    std::stringstream ss;
-    printNode(ss, n);
-    return ss.str();
+  virtual std::string ntoString(N N) const {
+    std::stringstream Ss;
+    printNode(Ss, N);
+    return Ss.str();
   }
 };
 
@@ -52,12 +52,12 @@ template <typename AnalysisDomainTy> struct DataFlowFactPrinter {
   DataFlowFactPrinter &operator=(DataFlowFactPrinter &&) = delete;
   virtual ~DataFlowFactPrinter() = default;
 
-  virtual void printDataFlowFact(std::ostream &os, D d) const = 0;
+  virtual void printDataFlowFact(std::ostream &Os, D D) const = 0;
 
-  virtual std::string DtoString(D d) const {
-    std::stringstream ss;
-    printDataFlowFact(ss, d);
-    return ss.str();
+  virtual std::string dtoString(D D) const {
+    std::stringstream Ss;
+    printDataFlowFact(Ss, D);
+    return Ss.str();
   }
 };
 
@@ -69,12 +69,12 @@ template <typename V> struct ValuePrinter {
   ValuePrinter &operator=(ValuePrinter &&) = delete;
   virtual ~ValuePrinter() = default;
 
-  virtual void printValue(std::ostream &os, V v) const = 0;
+  virtual void printValue(std::ostream &Os, V V) const = 0;
 
-  virtual std::string VtoString(V v) const {
-    std::stringstream ss;
-    printValue(ss, v);
-    return ss.str();
+  virtual std::string vtoString(V V) const {
+    std::stringstream Ss;
+    printValue(Ss, V);
+    return Ss.str();
   }
 };
 
@@ -86,12 +86,12 @@ template <typename T> struct TypePrinter {
   TypePrinter &operator=(TypePrinter &&) = delete;
   virtual ~TypePrinter() = default;
 
-  virtual void printType(std::ostream &os, T t) const = 0;
+  virtual void printType(std::ostream &Os, T T) const = 0;
 
-  virtual std::string TtoString(T t) const {
-    std::stringstream ss;
-    printType(ss, t);
-    return ss.str();
+  virtual std::string ttoString(T T) const {
+    std::stringstream Ss;
+    printType(Ss, T);
+    return Ss.str();
   }
 };
 
@@ -105,12 +105,12 @@ template <typename AnalysisDomainTy> struct EdgeFactPrinter {
   EdgeFactPrinter &operator=(EdgeFactPrinter &&) = delete;
   virtual ~EdgeFactPrinter() = default;
 
-  virtual void printEdgeFact(std::ostream &os, l_t l) const = 0;
+  virtual void printEdgeFact(std::ostream &Os, l_t L) const = 0;
 
-  [[nodiscard]] virtual std::string LtoString(l_t l) const {
-    std::stringstream ss;
-    printEdgeFact(ss, l);
-    return ss.str();
+  [[nodiscard]] virtual std::string ltoString(l_t L) const {
+    std::stringstream Ss;
+    printEdgeFact(Ss, L);
+    return Ss.str();
   }
 };
 
@@ -124,12 +124,12 @@ template <typename AnalysisDomainTy> struct FunctionPrinter {
   FunctionPrinter &operator=(FunctionPrinter &&) = delete;
   virtual ~FunctionPrinter() = default;
 
-  virtual void printFunction(std::ostream &os, F f) const = 0;
+  virtual void printFunction(std::ostream &Os, F F) const = 0;
 
-  virtual std::string FtoString(F f) const {
-    std::stringstream ss;
-    printFunction(ss, f);
-    return ss.str();
+  virtual std::string ftoString(F F) const {
+    std::stringstream Ss;
+    printFunction(Ss, F);
+    return Ss.str();
   }
 };
 
@@ -141,12 +141,12 @@ template <typename ContainerTy> struct ContainerPrinter {
   ContainerPrinter &operator=(ContainerPrinter &&) = delete;
   virtual ~ContainerPrinter() = default;
 
-  virtual void printContainer(std::ostream &os, ContainerTy c) const = 0;
+  virtual void printContainer(std::ostream &Os, ContainerTy C) const = 0;
 
-  virtual std::string ContainertoString(ContainerTy c) const {
-    std::stringstream ss;
-    printContainer(ss, c);
-    return ss.str();
+  virtual std::string containertoString(ContainerTy C) const {
+    std::stringstream Ss;
+    printContainer(Ss, C);
+    return Ss.str();
   }
 };
 

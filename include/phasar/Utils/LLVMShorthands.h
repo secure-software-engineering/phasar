@@ -100,10 +100,10 @@ std::string getMetaDataID(const llvm::Value *V);
  * This is useful, since Instructions/Globals and Arguments have different
  * underlying types for their ID's, size_t and string respectively.
  */
-struct llvmValueIDLess {
-  stringIDLess sless;
-  llvmValueIDLess();
-  bool operator()(const llvm::Value *lhs, const llvm::Value *rhs) const;
+struct LlvmValueIdLess {
+  StringIdLess Sless;
+  LlvmValueIdLess();
+  bool operator()(const llvm::Value *Lhs, const llvm::Value *Rhs) const;
 };
 
 /**
@@ -122,7 +122,7 @@ int getFunctionArgumentNr(const llvm::Argument *Arg);
  * @return LLVM Argument or nullptr, if argNo invalid.
  */
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
-                                             unsigned argNo);
+                                             unsigned ArgNo);
 
 /**
  * The Instruction count starts with one (not zero, as in Function arguments).
@@ -148,7 +148,7 @@ const llvm::Instruction *getLastInstructionOf(const llvm::Function *F);
  * @return LLVM Instruction or nullptr, if termInstNo invalid.
  */
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
-                                               unsigned termInstNo);
+                                               unsigned TermInstNo);
 /**
  * The Store Instruction count starts with one (not zero, as in Function
  * arguments).
@@ -160,7 +160,7 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
  * @return LLVM Store Instruction or nullptr, if stoNo invalid.
  */
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
-                                              unsigned stoNo);
+                                              unsigned StoNo);
 
 /**
  * @brief Returns the LLVM Module to which the given LLVM Value belongs to.
@@ -184,7 +184,7 @@ std::string getModuleNameFromVal(const llvm::Value *V);
  * hash computation.
  * @return Hash value.
  */
-std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
+std::size_t computeModuleHash(llvm::Module *M, bool ConsiderIdentifier);
 
 /**
  * @brief Computes a hash value for a given LLVM Module.

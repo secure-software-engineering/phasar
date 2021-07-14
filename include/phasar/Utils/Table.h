@@ -30,144 +30,144 @@ namespace psr {
 
 template <typename R, typename C, typename V> class Table {
 private:
-  std::unordered_map<R, std::unordered_map<C, V>> table;
+  std::unordered_map<R, std::unordered_map<C, V>> Table;
 
 public:
   struct Cell {
     Cell() = default;
-    Cell(R row, C col, V val) : r(row), c(col), v(val) {}
+    Cell(R Row, C Col, V Val) : R(Row), C(Col), V(Val) {}
     ~Cell() = default;
     Cell(const Cell &) = default;
     Cell &operator=(const Cell &) = default;
     Cell(Cell &&) noexcept = default;
     Cell &operator=(Cell &&) noexcept = default;
 
-    R getRowKey() const { return r; }
-    C getColumnKey() const { return c; }
-    V getValue() const { return v; }
+    R getRowKey() const { return R; }
+    C getColumnKey() const { return C; }
+    V getValue() const { return V; }
 
-    friend std::ostream &operator<<(std::ostream &os, const Cell &c) {
-      return os << "Cell: " << c.r << ", " << c.c << ", " << c.v;
+    friend std::ostream &operator<<(std::ostream &Os, const Cell &C) {
+      return Os << "Cell: " << C.R << ", " << C.C << ", " << C.V;
     }
-    friend bool operator<(const Cell &lhs, const Cell &rhs) {
-      return std::tie(lhs.r, lhs.c, lhs.v) < std::tie(rhs.r, rhs.c, rhs.v);
+    friend bool operator<(const Cell &Lhs, const Cell &Rhs) {
+      return std::tie(Lhs.R, Lhs.C, Lhs.V) < std::tie(Rhs.R, Rhs.C, Rhs.V);
     }
-    friend bool operator==(const Cell &lhs, const Cell &rhs) {
-      return std::tie(lhs.r, lhs.c, lhs.v) == std::tie(rhs.r, rhs.c, rhs.v);
+    friend bool operator==(const Cell &Lhs, const Cell &Rhs) {
+      return std::tie(Lhs.R, Lhs.C, Lhs.V) == std::tie(Rhs.R, Rhs.C, Rhs.V);
     }
 
   private:
-    R r;
-    C c;
-    V v;
+    R R;
+    C C;
+    V V;
   };
 
   Table() = default;
-  Table(const Table &t) = default;
-  Table &operator=(const Table &t) = default;
-  Table(Table &&t) noexcept = default;
-  Table &operator=(Table &&t) noexcept = default;
+  Table(const Table &T) = default;
+  Table &operator=(const Table &T) = default;
+  Table(Table &&T) noexcept = default;
+  Table &operator=(Table &&T) noexcept = default;
   ~Table() = default;
 
-  void insert(R r, C c, V v) {
+  void insert(R R, C C, V V) {
     // Associates the specified value with the specified keys.
-    table[r][c] = std::move(v);
+    Table[R][C] = std::move(V);
   }
 
-  void insert(const Table &t) { table.insert(t.table.begin(), t.table.end()); }
+  void insert(const Table &T) { Table.insert(T.Table.begin(), T.Table.end()); }
 
-  void clear() { table.clear(); }
+  void clear() { Table.clear(); }
 
-  [[nodiscard]] bool empty() const { return table.empty(); }
+  [[nodiscard]] bool empty() const { return Table.empty(); }
 
-  [[nodiscard]] size_t size() const { return table.size(); }
+  [[nodiscard]] size_t size() const { return Table.size(); }
 
   [[nodiscard]] std::set<Cell> cellSet() const {
     // Returns a set of all row key / column key / value triplets.
-    std::set<Cell> s;
-    for (const auto &m1 : table) {
-      for (const auto &m2 : m1.second) {
-        s.emplace(m1.first, m2.first, m2.second);
+    std::set<Cell> S;
+    for (const auto &M1 : Table) {
+      for (const auto &M2 : M1.second) {
+        S.emplace(M1.first, M2.first, M2.second);
       }
     }
-    return s;
+    return S;
   }
 
   [[nodiscard]] std::vector<Cell> cellVec() const {
     // Returns a vector of all row key / column key / value triplets.
-    std::vector<Cell> v;
-    for (const auto &m1 : table) {
-      for (const auto &m2 : m1.second) {
-        v.emplace_back(m1.first, m2.first, m2.second);
+    std::vector<Cell> V;
+    for (const auto &M1 : Table) {
+      for (const auto &M2 : M1.second) {
+        V.emplace_back(M1.first, M2.first, M2.second);
       }
     }
-    return v;
+    return V;
   }
 
-  [[nodiscard]] std::unordered_map<R, V> column(C columnKey) const {
+  [[nodiscard]] std::unordered_map<R, V> column(C ColumnKey) const {
     // Returns a view of all mappings that have the given column key.
-    std::unordered_map<R, V> column;
-    for (const auto &row : table) {
-      if (row.second.count(columnKey)) {
-        column[row.first] = row.second[columnKey];
+    std::unordered_map<R, V> Column;
+    for (const auto &Row : Table) {
+      if (Row.second.count(ColumnKey)) {
+        Column[Row.first] = Row.second[ColumnKey];
       }
     }
-    return column;
+    return Column;
   }
 
   [[nodiscard]] std::multiset<C> columnKeySet() const {
     // Returns a set of column keys that have one or more values in the table.
-    std::multiset<C> colkeys;
-    for (const auto &m1 : table) {
-      for (const auto &m2 : m1.second) {
-        colkeys.insert(m2.first);
+    std::multiset<C> Colkeys;
+    for (const auto &M1 : Table) {
+      for (const auto &M2 : M1.second) {
+        Colkeys.insert(M2.first);
       }
     }
-    return colkeys;
+    return Colkeys;
   }
 
   [[nodiscard]] std::unordered_map<C, std::unordered_map<R, V>>
   columnMap() const {
     // Returns a view that associates each column key with the corresponding map
     // from row keys to values.
-    std::unordered_map<C, std::unordered_map<R, V>> columnmap;
-    for (const auto &m1 : table) {
-      for (const auto &m2 : table.second) {
-        columnmap[m2.first][m1.first] = m2.second;
+    std::unordered_map<C, std::unordered_map<R, V>> Columnmap;
+    for (const auto &M1 : Table) {
+      for (const auto &M2 : Table.second) {
+        Columnmap[M2.first][M1.first] = M2.second;
       }
     }
-    return columnmap;
+    return Columnmap;
   }
 
-  [[nodiscard]] bool contains(R rowKey, C columnKey) const {
+  [[nodiscard]] bool contains(R RowKey, C ColumnKey) const {
     // Returns true if the table contains a mapping with the specified row and
     // column keys.
-    if (auto RowIter = table.find(rowKey); RowIter != table.end()) {
-      return RowIter->second.find(columnKey) != RowIter->second.end();
+    if (auto RowIter = Table.find(RowKey); RowIter != Table.end()) {
+      return RowIter->second.find(ColumnKey) != RowIter->second.end();
     }
     return false;
   }
 
-  [[nodiscard]] bool containsColumn(C columnKey) const {
+  [[nodiscard]] bool containsColumn(C ColumnKey) const {
     // Returns true if the table contains a mapping with the specified column.
-    for (const auto &m1 : table) {
-      if (m1.second.count(columnKey)) {
+    for (const auto &M1 : Table) {
+      if (M1.second.count(ColumnKey)) {
         return true;
       }
     }
     return false;
   }
 
-  [[nodiscard]] bool containsRow(R rowKey) const {
+  [[nodiscard]] bool containsRow(R RowKey) const {
     // Returns true if the table contains a mapping with the specified row key.
-    return table.count(rowKey);
+    return Table.count(RowKey);
   }
 
-  [[nodiscard]] bool containsValue(const V &value) const {
+  [[nodiscard]] bool containsValue(const V &Value) const {
     // Returns true if the table contains a mapping with the specified value.
-    for (const auto &m1 : table) {
-      for (const auto &m2 : m1.second) {
-        if (value == m2.second) {
+    for (const auto &M1 : Table) {
+      for (const auto &M2 : M1.second) {
+        if (Value == M2.second) {
           return true;
         }
       }
@@ -175,68 +175,68 @@ public:
     return false;
   }
 
-  [[nodiscard]] V &get(R rowKey, C columnKey) {
+  [[nodiscard]] V &get(R RowKey, C ColumnKey) {
     // Returns the value corresponding to the given row and column keys, or null
     // if no such mapping exists.
-    return table[rowKey][columnKey];
+    return Table[RowKey][ColumnKey];
   }
 
-  V remove(R rowKey, C columnKey) {
+  V remove(R RowKey, C ColumnKey) {
     // Removes the mapping, if any, associated with the given keys.
-    V v = table[rowKey][columnKey];
-    table[rowKey].erase(columnKey);
-    return v;
+    V V = Table[RowKey][ColumnKey];
+    Table[RowKey].erase(ColumnKey);
+    return V;
   }
 
-  void remove(R rowKey) { table.erase(rowKey); }
+  void remove(R RowKey) { Table.erase(RowKey); }
 
-  [[nodiscard]] std::unordered_map<C, V> &row(R rowKey) {
+  [[nodiscard]] std::unordered_map<C, V> &row(R RowKey) {
     // Returns a view of all mappings that have the given row key.
-    return table[rowKey];
+    return Table[RowKey];
   }
 
   [[nodiscard]] std::multiset<R> rowKeySet() const {
     // Returns a set of row keys that have one or more values in the table.
-    std::multiset<R> s;
-    for (const auto &m1 : table) {
-      s.insert(m1.first);
+    std::multiset<R> S;
+    for (const auto &M1 : Table) {
+      S.insert(M1.first);
     }
-    return s;
+    return S;
   }
 
   [[nodiscard]] std::unordered_map<R, std::unordered_map<C, V>> rowMap() const {
     // Returns a view that associates each row key with the corresponding map
     // from column keys to values.
-    return table;
+    return Table;
   }
 
   [[nodiscard]] std::multiset<V> values() const {
     // Returns a collection of all values, which may contain duplicates.
-    std::multiset<V> s;
-    for (const auto &m1 : table) {
-      for (const auto &m2 : m1.second) {
-        s.insert(m2.second);
+    std::multiset<V> S;
+    for (const auto &M1 : Table) {
+      for (const auto &M2 : M1.second) {
+        S.insert(M2.second);
       }
     }
-    return s;
+    return S;
   }
 
-  friend bool operator==(const Table<R, C, V> &lhs, const Table<R, C, V> &rhs) {
-    return lhs.table == rhs.table;
+  friend bool operator==(const Table<R, C, V> &Lhs, const Table<R, C, V> &Rhs) {
+    return Lhs.Table == Rhs.Table;
   }
 
-  friend bool operator<(const Table<R, C, V> &lhs, const Table<R, C, V> &rhs) {
-    return lhs.table < rhs.table;
+  friend bool operator<(const Table<R, C, V> &Lhs, const Table<R, C, V> &Rhs) {
+    return Lhs.Table < Rhs.Table;
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const Table<R, C, V> &t) {
-    for (const auto &m1 : t.table) {
-      for (const auto &m2 : m1.second) {
-        os << "< " << m1.first << " , " << m2.first << " , " << m2.second
+  friend std::ostream &operator<<(std::ostream &Os, const Table<R, C, V> &T) {
+    for (const auto &M1 : T.Table) {
+      for (const auto &M2 : M1.second) {
+        Os << "< " << M1.first << " , " << M2.first << " , " << M2.second
            << " >\n";
       }
     }
-    return os;
+    return Os;
   }
 };
 

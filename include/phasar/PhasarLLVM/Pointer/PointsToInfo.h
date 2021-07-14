@@ -36,15 +36,15 @@ std::string toString(const PointerAnalysisType &PA);
 
 PointerAnalysisType toPointerAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
+std::ostream &operator<<(std::ostream &Os, const PointerAnalysisType &PA);
 
 template <typename V, typename N> class PointsToInfo {
 public:
   virtual ~PointsToInfo() = default;
 
-  virtual bool isInterProcedural() const = 0;
+  [[nodiscard]] virtual bool isInterProcedural() const = 0;
 
-  virtual PointerAnalysisType getPointerAnalysistype() const = 0;
+  [[nodiscard]] virtual PointerAnalysisType getPointerAnalysistype() const = 0;
 
   virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
 
@@ -61,7 +61,7 @@ public:
 
   virtual void print(std::ostream &OS = std::cout) const = 0;
 
-  virtual nlohmann::json getAsJson() const = 0;
+  [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 
   virtual void printAsJson(std::ostream &OS) const = 0;
 

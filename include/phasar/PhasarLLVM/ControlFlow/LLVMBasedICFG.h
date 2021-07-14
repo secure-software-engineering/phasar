@@ -244,7 +244,7 @@ public:
   void print(std::ostream &OS = std::cout) const override;
 
   void printAsDot(std::ostream &OS = std::cout,
-                  bool printEdgeLabels = true) const;
+                  bool PrintEdgeLabels = true) const;
 
   void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
 

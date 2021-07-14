@@ -70,11 +70,11 @@ public:
 
   [[nodiscard]] bool
   isFallThroughSuccessor(const llvm::Instruction *Inst,
-                         const llvm::Instruction *succ) const override;
+                         const llvm::Instruction *Succ) const override;
 
   [[nodiscard]] bool
   isBranchTarget(const llvm::Instruction *Inst,
-                 const llvm::Instruction *succ) const override;
+                 const llvm::Instruction *Succ) const override;
 
   [[nodiscard]] bool
   isHeapAllocatingFunction(const llvm::Function *Fun) const override;

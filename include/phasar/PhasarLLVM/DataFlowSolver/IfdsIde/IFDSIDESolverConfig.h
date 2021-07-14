@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H
 
 #include <iosfwd>
 
@@ -35,7 +35,7 @@ enum class SolverConfigOptions : uint32_t {
   EmitESG = 16,
   ComputePersistedSummaries = 32,
 
-  All = ~0u
+  All = ~0U
 };
 
 struct IFDSIDESolverConfig {
@@ -47,12 +47,12 @@ struct IFDSIDESolverConfig {
   IFDSIDESolverConfig(IFDSIDESolverConfig &&) = default;
   IFDSIDESolverConfig &operator=(IFDSIDESolverConfig &&) = default;
 
-  bool followReturnsPastSeeds() const;
-  bool autoAddZero() const;
-  bool computeValues() const;
-  bool recordEdges() const;
-  bool emitESG() const;
-  bool computePersistedSummaries() const;
+  [[nodiscard]] bool followReturnsPastSeeds() const;
+  [[nodiscard]] bool autoAddZero() const;
+  [[nodiscard]] bool computeValues() const;
+  [[nodiscard]] bool recordEdges() const;
+  [[nodiscard]] bool emitESG() const;
+  [[nodiscard]] bool computePersistedSummaries() const;
 
   void setFollowReturnsPastSeeds(bool Set = true);
   void setAutoAddZero(bool Set = true);

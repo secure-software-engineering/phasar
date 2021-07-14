@@ -25,17 +25,17 @@ std::string createTimeStamp();
 
 bool isConstructor(const std::string &MangledName);
 
-std::string debasify(const std::string &name);
+std::string debasify(const std::string &Name);
 
-const llvm::Type *stripPointer(const llvm::Type *pointer);
+const llvm::Type *stripPointer(const llvm::Type *Pointer);
 
-bool isMangled(const std::string &name);
+bool isMangled(const std::string &Name);
 
-std::vector<std::string> splitString(const std::string &str,
-                                     const std::string &delimiter);
+std::vector<std::string> splitString(const std::string &Str,
+                                     const std::string &Delimiter);
 
 template <typename T>
-std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
+std::set<std::set<T>> computePowerSet(const std::set<T> &S) {
   // compute all subsets of {a, b, c, d}
   //  bit-pattern - {d, c, b, a}
   //  0000  {}
@@ -54,25 +54,25 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
   //  1101  {a, c, d}
   //  1110  {b, c, d}
   //  1111  {a, b, c, d}
-  std::set<std::set<T>> powerset;
-  for (std::size_t i = 0; i < (1 << s.size()); ++i) {
-    std::set<T> subset;
-    for (std::size_t j = 0; j < s.size(); ++j) {
-      if ((i & (1 << j)) > 0) {
-        auto it = s.begin();
-        advance(it, j);
-        subset.insert(*it);
+  std::set<std::set<T>> Powerset;
+  for (std::size_t I = 0; I < (1 << S.size()); ++I) {
+    std::set<T> Subset;
+    for (std::size_t J = 0; J < S.size(); ++J) {
+      if ((I & (1 << J)) > 0) {
+        auto It = S.begin();
+        advance(It, J);
+        Subset.insert(*It);
       }
-      powerset.insert(subset);
+      Powerset.insert(Subset);
     }
   }
-  return powerset;
+  return Powerset;
 }
 
-std::ostream &operator<<(std::ostream &os, const std::vector<bool> &bits);
+std::ostream &operator<<(std::ostream &Os, const std::vector<bool> &Bits);
 
-struct stringIDLess {
-  bool operator()(const std::string &lhs, const std::string &rhs) const;
+struct StringIdLess {
+  bool operator()(const std::string &Lhs, const std::string &Rhs) const;
 };
 
 } // namespace psr

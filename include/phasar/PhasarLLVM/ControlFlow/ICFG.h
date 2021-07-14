@@ -39,21 +39,21 @@ std::string toString(const CallGraphAnalysisType &CGA);
 
 CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
+std::ostream &operator<<(std::ostream &Os, const CallGraphAnalysisType &CGA);
 
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
 public:
   ~ICFG() override = default;
 
-  virtual std::set<F> getAllFunctions() const = 0;
+  [[nodiscard]] virtual std::set<F> getAllFunctions() const = 0;
 
-  virtual F getFunction(const std::string &Fun) const = 0;
+  [[nodiscard]] virtual F getFunction(const std::string &Fun) const = 0;
 
   virtual bool isIndirectFunctionCall(N Stmt) const = 0;
 
   virtual bool isVirtualFunctionCall(N Stmt) const = 0;
 
-  virtual std::set<N> allNonCallStartNodes() const = 0;
+  [[nodiscard]] virtual std::set<N> allNonCallStartNodes() const = 0;
 
   virtual std::set<F> getCalleesOfCallAt(N Stmt) const = 0;
 
@@ -63,15 +63,15 @@ public:
 
   virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
 
-  virtual std::vector<F> getGlobalCtors() const = 0;
+  [[nodiscard]] virtual std::vector<F> getGlobalCtors() const = 0;
 
-  virtual std::vector<F> getGlobalDtors() const = 0;
+  [[nodiscard]] virtual std::vector<F> getGlobalDtors() const = 0;
 
   using CFG<N, F>::print; // tell the compiler we wish to have both prints
   virtual void print(std::ostream &OS = std::cout) const = 0;
 
   using CFG<N, F>::getAsJson; // tell the compiler we wish to have both prints
-  virtual nlohmann::json getAsJson() const = 0;
+  [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 };
 
 } // namespace psr

@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMZEROVALUE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_LLVMZEROVALUE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMZEROVALUE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMZEROVALUE_H
 
 #include <memory>
 
@@ -63,9 +63,11 @@ public:
   LLVMZeroValue(LLVMZeroValue &&Z) = delete;
   LLVMZeroValue &operator=(LLVMZeroValue &&Z) = delete;
 
-  llvm::StringRef getName() const { return LLVMZeroValueInternalName; }
+  [[nodiscard]] static llvm::StringRef getName() {
+    return LLVMZeroValueInternalName;
+  }
 
-  bool isLLVMZeroValue(const llvm::Value *V) {
+  static bool isLLVMZeroValue(const llvm::Value *V) {
     if (V && V->hasName()) {
       // checks if V's name start with "zero_value"
       return V->getName().find(LLVMZeroValueInternalName) !=
@@ -76,8 +78,8 @@ public:
 
   // Do not specify a destructor (at all)!
   static LLVMZeroValue *getInstance() {
-    static LLVMZeroValue *zv = new LLVMZeroValue;
-    return zv;
+    static auto *Zv = new LLVMZeroValue;
+    return Zv;
   }
 };
 } // namespace psr
