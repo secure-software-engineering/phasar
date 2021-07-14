@@ -267,6 +267,13 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGSource02) {
   verifySourceCodeJSON(results, readJson("call_07_cpp_icfg.json"));
 }
 
+TEST_F(LLVMBasedICFGExportTest, ExportICFGSource03) {
+  auto results =
+      exportICFG("exceptions/exceptions_01_cpp_dbg.ll", /*asSrcCode*/ true);
+  std::cerr << results.dump(4) << std::endl;
+  // verifySourceCodeJSON(results, readJson("call_07_cpp_icfg.json"));
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

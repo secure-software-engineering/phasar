@@ -15,6 +15,7 @@
  */
 
 #include <cassert>
+#include <initializer_list>
 #include <memory>
 
 #include "llvm/ADT/DenseSet.h"
@@ -622,8 +623,7 @@ set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
     for (auto &F : *M) {
       for (auto &BB : F) {
         for (auto &I : BB) {
-          if ((!llvm::isa<llvm::CallInst>(&I)) &&
-              (!llvm::isa<llvm::InvokeInst>(&I)) && (!isStartPoint(&I))) {
+          if (!llvm::isa<llvm::CallBase>(&I) && !isStartPoint(&I)) {
             NonCallStartNodes.insert(&I);
           }
         }
@@ -814,15 +814,17 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
                                     llvm::BasicBlock::const_iterator end) {
       assert(it != end);
 
-      auto ret = getSrcCodeInfoFromIR(&*it);
+      const auto *Inst = &*it;
+      auto ret = getSrcCodeInfoFromIR(Inst);
 
       // Assume, we aren't skipping relevant calls here
 
-      while (it != end && (ret.empty() || it->isDebugOrPseudoInst())) {
-        ret = getSrcCodeInfoFromIR(&*++it);
+      while ((ret.empty() || it->isDebugOrPseudoInst()) && ++it != end) {
+        Inst = &*it;
+        ret = getSrcCodeInfoFromIR(Inst);
       }
 
-      return {ret, llvmIRToString(&*it)};
+      return {ret, llvmIRToString(Inst)};
     }
 
     SourceCodeInfoWithIR operator()(const llvm::BasicBlock *BB) {
@@ -852,6 +854,32 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
     return {getSrcCodeInfoFromIR(Inst), llvmIRToString(Inst)};
   };
 
+  auto createInterEdges = [&](const llvm::Instruction *CS,
+                              const SourceCodeInfoWithIR &From,
+                              std::initializer_list<SourceCodeInfoWithIR> Tos) {
+    for (const auto *Callee : getCalleesOfCallAt(CS)) {
+      if (Callee->isDeclaration()) {
+        continue;
+      }
+
+      // Call Edge
+      auto InterTo = getFirstNonEmpty(&Callee->front());
+      J.push_back({{"from", From}, {"to", std::move(InterTo)}});
+
+      // Return Edges
+      for (const auto *ExitInst : getAllExitStatements(Callee)) {
+        for (const auto &To : Tos) {
+          J.push_back({{"from", getLastNonEmpty(ExitInst)}, {"to", To}});
+        }
+      }
+    }
+  };
+
+  auto getSrcCodeInfoWithIRFromIR =
+      [](const llvm::Value *V) -> SourceCodeInfoWithIR {
+    return {getSrcCodeInfoFromIR(V), llvmIRToString(V)};
+  };
+
   for (const auto *F : getAllFunctions()) {
     for (const auto &BB : *F) {
       assert(!BB.empty() && "Invalid IR: Empty BasicBlock");
@@ -867,7 +895,7 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
 
       ++it;
 
-      // Normal edges
+      // Edges inside the BasicBlock
       for (; it != end; ++it) {
         auto To = getFirstNonEmpty(it, end);
         if (To.empty()) {
@@ -875,20 +903,24 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
         }
 
         if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(FromInst)) {
-          // Call Edge
-          for (const auto *Callee : getCalleesOfCallAt(FromInst)) {
-            if (Callee->isDeclaration()) {
-              continue;
-            }
 
-            auto InterTo = getFirstNonEmpty(&Callee->front());
-            J.push_back({{"from", From}, {"to", std::move(InterTo)}});
+          // for (const auto *Callee : getCalleesOfCallAt(FromInst)) {
+          //   if (Callee->isDeclaration()) {
+          //     continue;
+          //   }
 
-            for (const auto *ExitInst : getAllExitStatements(Callee)) {
+          //   // Call Edge
+          //   auto InterTo = getFirstNonEmpty(&Callee->front());
+          //   J.push_back({{"from", From}, {"to", std::move(InterTo)}});
 
-              J.push_back({{"from", getLastNonEmpty(ExitInst)}, {"to", To}});
-            }
-          }
+          //   // Return Edges
+          //   for (const auto *ExitInst : getAllExitStatements(Callee)) {
+
+          //     J.push_back({{"from", getLastNonEmpty(ExitInst)}, {"to", To}});
+          //   }
+          // }
+
+          createInterEdges(FromInst, From, {To});
         } else if (From != To && !isRetVoid(&*it)) {
           // Normal Edge
           J.push_back({{"from", From}, {"to", To}});
@@ -904,9 +936,19 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
       auto numSuccessors = Term->getNumSuccessors();
 
       if (numSuccessors == 0) {
-        // Return edges
+        // Return edges already handled
+      } else if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(Term)) {
+        // Invoke Edges (they are not handled by the Call edges, because they
+        // are always terminator instructions)
+
+        // Note: The unwindDest is never reachable from a return instruction.
+        // However, this is how it is modeled in the ICFG at the moment
+        createInterEdges(Term, getSrcCodeInfoWithIRFromIR(Term),
+                         {getFirstNonEmpty(Invoke->getNormalDest()),
+                          getFirstNonEmpty(Invoke->getUnwindDest())});
+        // Call Edges
       } else {
-        // Branch or invoke edges
+        // Branch Edges
         for (size_t i = 0; i < numSuccessors; ++i) {
           auto *Succ = Term->getSuccessor(i);
           assert(Succ && !Succ->empty());

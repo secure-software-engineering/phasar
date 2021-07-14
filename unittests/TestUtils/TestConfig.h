@@ -8,9 +8,9 @@
 
 namespace psr::unittest {
 
-inline const PSR_CONSTEXPR std::string
+inline PSR_CONST_CONSTEXPR std::string
     PathToLLTestFiles(PHASAR_BUILD_DIR "/test/llvm_test_code/");
-inline const PSR_CONSTEXPR std::string
+inline PSR_CONST_CONSTEXPR std::string
     PathToJSONTestFiles(PHASAR_SRC_DIR "/test/json_test_code/");
 
 } // namespace psr::unittest
