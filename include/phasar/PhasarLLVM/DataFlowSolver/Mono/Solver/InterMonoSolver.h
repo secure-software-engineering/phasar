@@ -28,6 +28,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 namespace psr {
 
@@ -106,12 +107,12 @@ Description: - This method is called only when the analysis encounters a call-st
     // Add inter- and intra-edges of callee(s)
     for (const llvm::Function * Callee : ICF->getCalleesOfCallAt(Src)) {
       if(Callee->hasName()){
-        std::cout << "Callees to add into Worklist " << (Callee->getName()).str() << '\n';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Callees to add into Worklist " << (Callee->getName()).str() << '\n');
       }else{
-        std::cout << "Callees to add into Worklist, function without name " << Callee << '\n';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Callees to add into Worklist, function without name " << Callee << '\n');
       }
       if (AddedFunctions.find(Callee) != AddedFunctions.end()) {
-        std::cout << "Callee already added to functions before!\n";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Callee already added to functions before!\n");
         break;
       }
       AddedFunctions.insert(Callee);
@@ -193,17 +194,19 @@ public:
   }
 
   void processNormal(std::pair<n_t, n_t> Edge) {
-    std::cout << "Handle normal flow\n";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Handle normal flow\n");
     auto Src = Edge.first;
     auto Dst = Edge.second;
-    std::cout << "Src: " << llvmIRToString(Src) << '\n';
-    std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Src: " << llvmIRToString(Src) << '\n');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Dst: " << llvmIRToString(Dst) << '\n');
+    
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
     for (auto &[Ctx, Facts] : Analysis[Src]) {
       Out[Ctx] = IMProblem.normalFlow(Src, Analysis[Src][Ctx]);
       // need to merge if Dst is a branch target
       if (ICF->isBranchTarget(Src, Dst)) {
-        std::cout << "Num preds: " << ICF->getPredsOf(Dst).size() << '\n';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Num preds: " << ICF->getPredsOf(Dst).size() << '\n');
         for (auto Pred : ICF->getPredsOf(Dst)) {
           if (Pred != Src) {
             // we need to compute the out set of Pred and merge it with the
@@ -217,18 +220,14 @@ public:
       }
       // Check if data-flow facts have changed and if so, add Edge(s) to
       // worklist again.
-      std::cout << "\nNormal Out[Ctx]:\n";
       IMProblem.printContainer(std::cout, Out[Ctx]);
-      std::cout << "\nAnalysis[Dst][Ctx]:\n";
       IMProblem.printContainer(std::cout, Analysis[Dst][Ctx]);
       bool FlowFactStabilized =
           IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
+          
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "\nNormal stabilized? --> " << FlowFactStabilized << '\n');
       if (!FlowFactStabilized) {
-        std::cout << "\nNormal stabilized? --> " << FlowFactStabilized << '\n';
         auto merged = Out[Ctx];
-        std::cout << "Normal merged:\n";
-        IMProblem.printContainer(std::cout, merged);
-        std::cout << '\n';
         Analysis[Dst][Ctx] = merged;
         // addToWorklist({Src, Dst});
       }
@@ -240,9 +239,7 @@ public:
     auto Dst = Edge.second;
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
     if (!isIntraEdge(Edge)) {
-      std::cout << "Handle call flow\n";
-      std::cout << "Src: " << llvmIRToString(Src) << '\n';
-      std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Handle call flow\n");
       for (auto &[Ctx, Facts] : Analysis[Src]) {
         auto CTXAdd(Ctx);
         CTXAdd.push_back(Src);
@@ -250,49 +247,29 @@ public:
                                          Analysis[Src][Ctx]);
         bool FlowFactStabilized =
             IMProblem.equal_to(Out[CTXAdd], Analysis[Dst][CTXAdd]);
-        std::cout << "Call Out[CTXAdd]:\n";
-        IMProblem.printContainer(std::cout, Out[CTXAdd]);
-        std::cout << '\n';
-        std::cout << "Call Analysis[Dst][CTXAdd]:\n";
-        IMProblem.printContainer(std::cout, Analysis[Dst][CTXAdd]);
-        std::cout << '\n';
-        std::cout << "Call stabilized? --> " << FlowFactStabilized << '\n';
+
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Call stabilized? --> " << FlowFactStabilized << '\n');
         if (!FlowFactStabilized) {
           // auto merge = IMProblem.merge(Analysis[Dst][CTXAdd], Out[CTXAdd]);
           auto merge = Out[CTXAdd];
-          std::cout << "Call merge:\n";
-          IMProblem.printContainer(std::cout, merge);
-          std::cout << '\n';
           Analysis[Dst][CTXAdd] = merge;
           // addToWorklist({Src, Dst});
         }
       }
     } else {
       // Handle call-to-ret flow
-      std::cout << "Handle call to ret flow\n";
-      std::cout << "Src: " << llvmIRToString(Src) << '\n';
-      std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Handle call to ret flow\n");
       for (auto &[Ctx, Facts] : Analysis[Src]) {
         // call-to-ret flow does not modify contexts
         Out[Ctx] = IMProblem.callToRetFlow(
             Src, Dst, ICF->getCalleesOfCallAt(Src), Analysis[Src][Ctx]);
         bool FlowFactStabilized =
             IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
-        std::cout << "Call to ret stabilized? --> " << FlowFactStabilized
-                  << '\n';
-        std::cout << "Call Out[Ctx]:\n";
-        IMProblem.printContainer(std::cout, Out[Ctx]);
-        std::cout << '\n';
-        std::cout << "Call Analysis[Dst][CTX]:\n";
-        IMProblem.printContainer(std::cout, Analysis[Dst][Ctx]);
-        std::cout << '\n';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Call to ret stabilized? --> " << FlowFactStabilized << '\n');
+        
         if (!FlowFactStabilized) {
           auto merge = Out[Ctx];
-          std::cout << "Call to ret merge:\n";
-          IMProblem.printContainer(std::cout, merge);
-          std::cout << '\n';
-          Analysis[Dst][Ctx] =
-              merge; // IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
+          Analysis[Dst][Ctx] = merge; // IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
           // addToWorklist({Src, Dst});
         }
       }
@@ -303,13 +280,10 @@ public:
     auto Src = Edge.first;
     auto Dst = Edge.second;
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
-    std::cout << "\nHandle ret flow in: "
-              << ICF->getFunctionName(ICF->getFunctionOf(Src)) << '\n';
-    std::cout << "Src: " << llvmIRToString(Src) << '\n';
-    std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "\nHandle ret flow in: "
+              << ICF->getFunctionName(ICF->getFunctionOf(Src)) << '\n');
     for (auto &[Ctx, Facts] : Analysis[Src]) {
       auto CTXRm(Ctx);
-      std::cout << "CTXRm: " << CTXRm << '\n';
       // we need to use several call- and retsites if the context is empty
       std::set<n_t> CallSites;
       std::set<n_t> RetSites;
@@ -331,18 +305,11 @@ public:
         Out[CTXRm].insert(RetFactsPerCall.begin(), RetFactsPerCall.end());
       }
       // TODO!
-      std::cout << "ResSites.size(): " << RetSites.size() << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "ResSites.size(): " << RetSites.size() << '\n');
       for (auto RetSite : RetSites) {
-        std::cout << "RetSite: " << llvmIRToString(RetSite) << '\n';
-        std::cout << "Return facts: ";
-        IMProblem.printContainer(std::cout, Out[CTXRm]);
-        std::cout << '\n';
-        std::cout << "RetSite facts: ";
-        IMProblem.printContainer(std::cout, Analysis[RetSite][CTXRm]);
-        std::cout << '\n';
-        bool FlowFactStabilized =
-            IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
-        std::cout << "Ret stabilized? --> " << FlowFactStabilized << '\n';
+        bool FlowFactStabilized = IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
+        
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Ret stabilized? --> " << FlowFactStabilized << '\n');
         if (!FlowFactStabilized) {
           mono_container_t merge;
           merge.insert(Analysis[RetSite][CTXRm].begin(),
@@ -351,9 +318,6 @@ public:
           Analysis[RetSite][CTXRm] = merge;
           Analysis[Dst][CTXRm] = merge;
           // IMProblem.merge(Analysis[RetSite][CTXRm], Out[CTXRm]);
-          std::cout << "Merged to: ";
-          IMProblem.printContainer(std::cout, merge);
-          std::cout << '\n';
           // addToWorklist({Src, RetSite});
         }
       }

@@ -26,6 +26,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace std;
 using namespace psr;
@@ -101,7 +102,7 @@ InterMonoFullConstantPropagation::callFlow(
       // check for integer literals
       if (const auto *ConstInt =
               llvm::dyn_cast<llvm::ConstantInt>(Actuals[idx])) {
-        std::cout << "Found literal!\n";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Found literal!\n");
         Out.insert({Formals[idx], ConstInt->getSExtValue()});
       }
     }
@@ -133,7 +134,7 @@ InterMonoFullConstantPropagation::returnFlow(
         // handle return of integer variable
         auto Search = In.find(Return->getReturnValue());
         if (Search != In.end()) {
-          std::cout << "Found const return variable\n";
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Found const return variable\n");
           Out.insert({CallSite, Search->second});
         }
       }
