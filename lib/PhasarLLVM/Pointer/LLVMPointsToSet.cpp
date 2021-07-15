@@ -317,15 +317,15 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
                                   ? DL.getTypeStoreSize(I2ElTy)
                                   : llvm::MemoryLocation::UnknownSize;
       switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
-      case llvm::NoAlias:
+      case llvm::AliasResult::NoAlias:
         // both pointers already have corresponding points-to sets, we are
         // fine
         break;
-      case llvm::MayAlias: // NOLINT
+      case llvm::AliasResult::MayAlias: // NOLINT
         [[fallthrough]];
-      case llvm::PartialAlias: // NOLINT
+      case llvm::AliasResult::PartialAlias: // NOLINT
         [[fallthrough]];
-      case llvm::MustAlias:
+      case llvm::AliasResult::MustAlias:
         // merge points to sets
         mergePointsToSets(*I1, *I2);
         break;
