@@ -875,11 +875,6 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
     }
   };
 
-  auto getSrcCodeInfoWithIRFromIR =
-      [](const llvm::Value *V) -> SourceCodeInfoWithIR {
-    return {getSrcCodeInfoFromIR(V), llvmIRToString(V)};
-  };
-
   for (const auto *F : getAllFunctions()) {
     for (const auto &BB : *F) {
       assert(!BB.empty() && "Invalid IR: Empty BasicBlock");
@@ -903,23 +898,7 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
         }
 
         if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(FromInst)) {
-
-          // for (const auto *Callee : getCalleesOfCallAt(FromInst)) {
-          //   if (Callee->isDeclaration()) {
-          //     continue;
-          //   }
-
-          //   // Call Edge
-          //   auto InterTo = getFirstNonEmpty(&Callee->front());
-          //   J.push_back({{"from", From}, {"to", std::move(InterTo)}});
-
-          //   // Return Edges
-          //   for (const auto *ExitInst : getAllExitStatements(Callee)) {
-
-          //     J.push_back({{"from", getLastNonEmpty(ExitInst)}, {"to", To}});
-          //   }
-          // }
-
+          // Call- and Return Edges
           createInterEdges(FromInst, From, {To});
         } else if (From != To && !isRetVoid(&*it)) {
           // Normal Edge
@@ -943,7 +922,9 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
 
         // Note: The unwindDest is never reachable from a return instruction.
         // However, this is how it is modeled in the ICFG at the moment
-        createInterEdges(Term, getSrcCodeInfoWithIRFromIR(Term),
+        createInterEdges(Term,
+                         SourceCodeInfoWithIR{getSrcCodeInfoFromIR(Term),
+                                              llvmIRToString(Term)},
                          {getFirstNonEmpty(Invoke->getNormalDest()),
                           getFirstNonEmpty(Invoke->getUnwindDest())});
         // Call Edges
