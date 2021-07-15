@@ -1,0 +1,290 @@
+[
+    {
+        "from": {
+            "IR": "store i32 42, i32* %x, align 4, !dbg !15, !psr.id !17 | ID: 3",
+            "column": 7,
+            "line": 5,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "int x = 42;"
+        },
+        "to": {
+            "IR": "%call = call i32 @rand(), !dbg !18, !psr.id !20 | ID: 4",
+            "column": 7,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "if (rand()) {"
+        }
+    },
+    {
+        "from": {
+            "IR": "br i1 %tobool, label %if.then, label %if.else, !dbg !22, !psr.id !23 | ID: 6",
+            "column": 7,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "if (rand()) {"
+        },
+        "to": {
+            "IR": "%0 = load i32, i32* %x, align 4, !dbg !24, !psr.id !26 | ID: 7",
+            "column": 7,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "x += 4;"
+        }
+    },
+    {
+        "from": {
+            "IR": "br i1 %tobool, label %if.then, label %if.else, !dbg !22, !psr.id !23 | ID: 6",
+            "column": 7,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "if (rand()) {"
+        },
+        "to": {
+            "IR": "%exception = call i8* @__cxa_allocate_exception(i64 4) #4, !dbg !31, !psr.id !33 | ID: 11",
+            "column": 5,
+            "line": 9,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "throw 2353782;"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 %add, i32* %x, align 4, !dbg !24, !psr.id !28 | ID: 9",
+            "column": 7,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "x += 4;"
+        },
+        "to": {
+            "IR": "br label %if.end, !dbg !29, !psr.id !30 | ID: 10",
+            "column": 3,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "} else {"
+        }
+    },
+    {
+        "from": {
+            "IR": "br label %if.end, !dbg !29, !psr.id !30 | ID: 10",
+            "column": 3,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "} else {"
+        },
+        "to": {
+            "IR": "%2 = load i32, i32* %x, align 4, !dbg !38, !psr.id !39 | ID: 16",
+            "column": 10,
+            "line": 12,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "return x;"
+        }
+    },
+    {
+        "from": {
+            "IR": "%2 = load i32, i32* %x, align 4, !dbg !38, !psr.id !39 | ID: 16",
+            "column": 10,
+            "line": 12,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "return x;"
+        },
+        "to": {
+            "IR": "ret i32 %2, !dbg !40, !psr.id !41 | ID: 17",
+            "column": 3,
+            "line": 12,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "return x;"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 3, i32* %a, align 4, !dbg !49, !psr.id !51 | ID: 24",
+            "column": 7,
+            "line": 16,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int a = 3;"
+        },
+        "to": {
+            "IR": "%call = invoke i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad, !dbg !52, !psr.id !54 | ID: 25",
+            "column": 9,
+            "line": 18,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "a = foo();"
+        }
+    },
+    {
+        "from": {
+            "IR": "%call = invoke i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad, !dbg !52, !psr.id !54 | ID: 25",
+            "column": 9,
+            "line": 18,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "a = foo();"
+        },
+        "to": {
+            "IR": "%x = alloca i32, align 4, !psr.id !13 | ID: 1",
+            "column": 7,
+            "line": 5,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "int x = 42;"
+        }
+    },
+    {
+        "from": {
+            "IR": "ret i32 %2, !dbg !40, !psr.id !41 | ID: 17",
+            "column": 3,
+            "line": 12,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "return x;"
+        },
+        "to": {
+            "IR": "store i32 %call, i32* %a, align 4, !dbg !55, !psr.id !56 | ID: 26",
+            "column": 7,
+            "line": 18,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "a = foo();"
+        }
+    },
+    {
+        "from": {
+            "IR": "ret i32 %2, !dbg !40, !psr.id !41 | ID: 17",
+            "column": 3,
+            "line": 12,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "foo()",
+            "sourceCodeLine": "return x;"
+        },
+        "to": {
+            "IR": "%0 = landingpad { i8*, i32 }\n          catch i8* null, !dbg !59, !psr.id !60 | ID: 28",
+            "column": 1,
+            "line": 23,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "}"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 %call, i32* %a, align 4, !dbg !55, !psr.id !56 | ID: 26",
+            "column": 7,
+            "line": 18,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "a = foo();"
+        },
+        "to": {
+            "IR": "br label %try.cont, !dbg !57, !psr.id !58 | ID: 27",
+            "column": 3,
+            "line": 19,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "} catch (...) {"
+        }
+    },
+    {
+        "from": {
+            "IR": "br label %try.cont, !dbg !57, !psr.id !58 | ID: 27",
+            "column": 3,
+            "line": 19,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "} catch (...) {"
+        },
+        "to": {
+            "IR": "%4 = load i32, i32* %a, align 4, !dbg !74, !psr.id !75 | ID: 39",
+            "column": 10,
+            "line": 22,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return a;"
+        }
+    },
+    {
+        "from": {
+            "IR": "br label %catch, !dbg !59, !psr.id !65 | ID: 33",
+            "column": 1,
+            "line": 23,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "}"
+        },
+        "to": {
+            "IR": "%exn = load i8*, i8** %exn.slot, align 8, !dbg !57, !psr.id !66 | ID: 34",
+            "column": 3,
+            "line": 19,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "} catch (...) {"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 -1, i32* %a, align 4, !dbg !68, !psr.id !70 | ID: 36",
+            "column": 7,
+            "line": 20,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "a = -1;"
+        },
+        "to": {
+            "IR": "call void @__cxa_end_catch(), !dbg !71, !psr.id !72 | ID: 37",
+            "column": 3,
+            "line": 21,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "}"
+        }
+    },
+    {
+        "from": {
+            "IR": "br label %try.cont, !dbg !71, !psr.id !73 | ID: 38",
+            "column": 3,
+            "line": 21,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "}"
+        },
+        "to": {
+            "IR": "%4 = load i32, i32* %a, align 4, !dbg !74, !psr.id !75 | ID: 39",
+            "column": 10,
+            "line": 22,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return a;"
+        }
+    },
+    {
+        "from": {
+            "IR": "%4 = load i32, i32* %a, align 4, !dbg !74, !psr.id !75 | ID: 39",
+            "column": 10,
+            "line": 22,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return a;"
+        },
+        "to": {
+            "IR": "ret i32 %4, !dbg !76, !psr.id !77 | ID: 40",
+            "column": 3,
+            "line": 22,
+            "sourceCodeFileName": "test/llvm_test_code/exceptions/exceptions_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return a;"
+        }
+    }
+]

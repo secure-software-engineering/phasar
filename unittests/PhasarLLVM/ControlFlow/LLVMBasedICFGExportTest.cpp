@@ -39,7 +39,7 @@ class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
   PSR_CONST_CONSTEXPR std::string pathToLLFiles = unittest::PathToLLTestFiles;
   PSR_CONST_CONSTEXPR std::string pathToJSONFiles =
-      unittest::PathToJSONTestFiles + "linear_constant/";
+      unittest::PathToJSONTestFiles;
 
   void SetUp() override {
     boost::log::core::get()->set_logging_enabled(false);
@@ -257,21 +257,24 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV9) {
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource01) {
   auto results =
       exportICFG("linear_constant/call_01_cpp_dbg.ll", /*asSrcCode*/ true);
-  verifySourceCodeJSON(results, readJson("call_01_cpp_icfg.json"));
+  verifySourceCodeJSON(results,
+                       readJson("linear_constant/call_01_cpp_icfg.json"));
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource02) {
   auto results =
       exportICFG("linear_constant/call_07_cpp_dbg.ll", /*asSrcCode*/ true);
   // std::cerr << results.dump(4) << std::endl;
-  verifySourceCodeJSON(results, readJson("call_07_cpp_icfg.json"));
+  verifySourceCodeJSON(results,
+                       readJson("linear_constant/call_07_cpp_icfg.json"));
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource03) {
   auto results =
       exportICFG("exceptions/exceptions_01_cpp_dbg.ll", /*asSrcCode*/ true);
-  std::cerr << results.dump(4) << std::endl;
-  // verifySourceCodeJSON(results, readJson("call_07_cpp_icfg.json"));
+  // std::cerr << results.dump(4) << std::endl;
+  verifySourceCodeJSON(results,
+                       readJson("exceotions/exceptions_01_cpp_icfg.json"));
 }
 
 int main(int Argc, char **Argv) {
