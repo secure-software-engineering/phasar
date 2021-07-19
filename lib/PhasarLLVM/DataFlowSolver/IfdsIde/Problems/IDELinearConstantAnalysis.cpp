@@ -68,10 +68,6 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t Curr, IDELinearConstantAnalysis::n_t Succ) {
-
-  std::cerr << "Normal-Flow from " << llvmIRToString(Curr) << " --> "
-            << llvmIRToString(Succ) << "\n";
-
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
       return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
@@ -213,9 +209,6 @@ IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::f_t CalleeFun,
     IDELinearConstantAnalysis::n_t ExitSite,
     IDELinearConstantAnalysis::n_t RetSite) {
-
-  std::cerr << "Ret-Flow from " << llvmIRToString(ExitSite) << " --> "
-            << llvmIRToString(RetSite) << "\n";
   // Handle the case: %x = call i32 ...
   if (CallSite->getType()->isIntegerTy()) {
     const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
@@ -406,10 +399,6 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::d_t SrcNode,
     IDELinearConstantAnalysis::f_t DestinationFunction,
     IDELinearConstantAnalysis::d_t DestNode) {
-  std::cout << "called getCallEdgeFunction at: " << llvmIRToString(CallSite)
-            << '\n';
-  std::cout << llvmIRToString(SrcNode) << " ---> " << llvmIRToString(DestNode)
-            << '\n';
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
