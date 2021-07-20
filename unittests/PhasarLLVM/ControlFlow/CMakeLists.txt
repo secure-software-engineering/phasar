@@ -7,6 +7,7 @@ set(ControlFlowSources
 	LLVMBasedICFG_RTATest.cpp
 	LLVMBasedBackwardCFGTest.cpp
 	LLVMBasedBackwardICFGTest.cpp
+	LLVMBasedICFGGlobCtorDtorTest.cpp
 )
 
 foreach(TEST_SRC ${ControlFlowSources})

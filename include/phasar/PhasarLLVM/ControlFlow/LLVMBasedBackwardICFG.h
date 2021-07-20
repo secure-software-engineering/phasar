@@ -51,7 +51,7 @@ public:
                          const std::set<std::string> &EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
                          LLVMPointsToInfo *PT = nullptr,
-                         Soundness S = Soundness::SOUNDY);
+                         Soundness S = Soundness::Soundy);
 
   ~LLVMBasedBackwardsICFG() override = default;
 
@@ -75,12 +75,6 @@ public:
   std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
-  [[nodiscard]] std::vector<const llvm::Function *>
-  getGlobalCtors() const override;
-
-  [[nodiscard]] std::vector<const llvm::Function *>
-  getGlobalDtors() const override;
-
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
   void mergeWith(const LLVMBasedBackwardsICFG &other);
@@ -100,6 +94,15 @@ public:
   unsigned getNumOfEdges();
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
+
+protected:
+  void collectGlobalCtors() override;
+
+  void collectGlobalDtors() override;
+
+  void collectGlobalInitializers() override;
+
+  void collectRegisteredDtors() override;
 };
 
 } // namespace psr

@@ -487,7 +487,7 @@ public:
 //
 // EdgeFunction that have constant data only need to be allocated once and can
 // be turned into a singleton, which save large amounts of memory. The
-// automatic singleton creation can be enbaled for a EdgeFunction class by
+// automatic singleton creation can be enabled for a EdgeFunction class by
 // inheriting from EdgeFunctionSingletonFactory and only allocating
 // EdgeFunction throught the provided createEdgeFunction method.
 //

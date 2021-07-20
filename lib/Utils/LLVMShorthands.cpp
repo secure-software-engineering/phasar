@@ -15,7 +15,6 @@
  */
 
 #include <cstdlib>
-#include <llvm/IR/Instruction.h>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -26,6 +25,7 @@
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
@@ -226,28 +226,15 @@ bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
-  int ArgNr = 0;
-  for (const auto &A : Arg->getParent()->args()) {
-    if (&A == Arg) {
-      return ArgNr;
-    }
-    ++ArgNr;
-  }
-  return -1;
+  return int(Arg->getArgNo());
 }
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned ArgNo) {
-  if (ArgNo < F->arg_size()) {
-    unsigned Current = 0;
-    for (const auto &A : F->args()) {
-      if (ArgNo == Current) {
-        return &A;
-      }
-      ++Current;
-    }
-  }
-  return nullptr;
+  if (ArgNo >= F->arg_size())
+    return nullptr;
+
+  return F->getArg(ArgNo);
 }
 
 const llvm::Instruction *getLastInstructionOf(const llvm::Function *F) {
@@ -267,6 +254,30 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
     }
   }
   return nullptr;
+}
+
+std::vector<const llvm::Instruction *>
+getAllExitPoints(const llvm::Function *F) {
+  std::vector<const llvm::Instruction *> ret;
+  appendAllExitPoints(F, ret);
+  return ret;
+}
+
+void appendAllExitPoints(const llvm::Function *F,
+                         std::vector<const llvm::Instruction *> &ExitPoints) {
+  if (!F) {
+    return;
+  }
+
+  for (const auto &BB : *F) {
+    const auto *term = BB.getTerminator();
+    assert(term && "Invalid IR: Each BasicBlock must have a terminator "
+                   "instruction at the end");
+    if (llvm::isa<llvm::ReturnInst>(term) ||
+        llvm::isa<llvm::ResumeInst>(term)) {
+      ExitPoints.push_back(term);
+    }
+  }
 }
 
 const llvm::Module *getModuleFromVal(const llvm::Value *V) {
@@ -356,6 +367,42 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
     }
   }
   return nullptr;
+}
+
+bool isGuardVariable(const llvm::Value *V) {
+  if (auto ConstBitcast = llvm::dyn_cast<llvm::ConstantExpr>(V);
+      ConstBitcast && ConstBitcast->isCast()) {
+    V = ConstBitcast->getOperand(0);
+  }
+  if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    // ZGV is the encoding of "GuardVariable"
+    return GV->getName().startswith("_ZGV");
+  }
+  return false;
+}
+
+bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst) {
+  if (Inst->isUnconditional())
+    return false;
+
+  auto *Condition = Inst->getCondition();
+
+  if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
+      Cmp && Cmp->isEquality(Cmp->getPredicate())) {
+    for (auto *Op : Cmp->operand_values()) {
+      if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Op);
+          Load && Load->isAtomic()) {
+
+        if (isGuardVariable(Load->getPointerOperand()))
+          return true;
+      } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
+        if (Call->getCalledFunction()->getName() == "__cxa_guard_acquire")
+          return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 bool isVarAnnotationIntrinsic(const llvm::Function *F) {

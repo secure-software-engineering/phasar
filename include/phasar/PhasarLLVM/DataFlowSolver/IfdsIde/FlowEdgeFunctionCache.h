@@ -367,6 +367,9 @@ public:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Edge function fetched from cache";
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Provide Edge Function: "
+                      << SearchEdgeFunc->second->str());
         return SearchEdgeFunc->second;
       }
       INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -378,6 +381,8 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: " << ef->str());
       return ef;
     }
     INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -390,6 +395,8 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Edge function constructed";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Provide Edge Function: " << ef->str());
     return ef;
   }
 
@@ -414,6 +421,9 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: "
+                    << SearchCallEdgeFunction->second->str());
       return SearchCallEdgeFunction->second;
     } else {
       INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -423,6 +433,8 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: " << ef->str());
       return ef;
     }
   }
@@ -453,6 +465,9 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: "
+                    << SearchReturnEdgeFunction->second->str());
       return SearchReturnEdgeFunction->second;
     } else {
       INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -462,6 +477,8 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: " << ef->str());
       return ef;
     }
   }
@@ -496,6 +513,9 @@ public:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Edge function fetched from cache";
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Provide Edge Function: "
+                      << SearchEdgeFunc->second->str());
         return SearchEdgeFunc->second;
       }
       INC_COUNTER("CallToRet-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -508,6 +528,8 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: " << ef->str());
       return ef;
     }
 
@@ -522,6 +544,8 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Edge function constructed";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Provide Edge Function: " << ef->str());
     return ef;
   }
 
@@ -546,6 +570,9 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function fetched from cache";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: "
+                    << SearchSummaryEdgeFunction->second->str());
       return SearchSummaryEdgeFunction->second;
     } else {
       INC_COUNTER("Summary-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -555,6 +582,8 @@ public:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Edge function constructed";
                     BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Provide Edge Function: " << ef->str());
       return ef;
     }
   }

@@ -60,6 +60,7 @@ class IFDSToIDETabulationProblem
   using n_t = typename AnalysisDomainExtender<AnalysisDomainTy>::n_t;
   using f_t = typename AnalysisDomainExtender<AnalysisDomainTy>::f_t;
   using d_t = typename AnalysisDomainExtender<AnalysisDomainTy>::d_t;
+  using l_t = typename AnalysisDomainExtender<AnalysisDomainTy>::l_t;
 
 public:
   IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem;
@@ -97,7 +98,7 @@ public:
     return Problem.getSummaryFlowFunction(callSite, destFun);
   }
 
-  std::map<n_t, std::set<d_t>> initialSeeds() override {
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return Problem.initialSeeds();
   }
 

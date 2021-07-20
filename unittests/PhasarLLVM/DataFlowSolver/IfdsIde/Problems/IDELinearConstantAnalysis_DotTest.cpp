@@ -84,7 +84,7 @@ protected:
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
-  auto Results = doAnalysis("basic_01_cpp_dbg.ll", false, true);
+  auto Results = doAnalysis("basic_01_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 13);
   GroundTruth.emplace("main", 3, "i", 13);
@@ -499,12 +499,15 @@ TEST_F(IDELinearConstantAnalysisTest, HandleRecursionTest_03) {
 TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_01) {
   auto Results = doAnalysis("global_01_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("main", 6, "g1", 42);
+  GroundTruth.emplace("main", 6, "g1", 10);
   GroundTruth.emplace("main", 6, "g2", 1);
+  GroundTruth.emplace("main", 6, "i", 666);
   GroundTruth.emplace("main", 7, "g1", 42);
-  GroundTruth.emplace("main", 7, "g2", 42);
+  GroundTruth.emplace("main", 7, "g2", 1);
+  GroundTruth.emplace("main", 7, "i", 666);
   GroundTruth.emplace("main", 8, "g1", 42);
   GroundTruth.emplace("main", 8, "g2", 42);
+  GroundTruth.emplace("main", 8, "i", 666);
   compareResults(Results, GroundTruth);
 }
 

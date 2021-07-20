@@ -741,14 +741,18 @@ TEST(LTHTest, HandleSTLString) {
   EXPECT_TRUE(TH.hasType(TH.getType("union.anon")));
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::allocator")));
   // (virtual) inheritance is not used in STL types
-  EXPECT_FALSE(
-      TH.isSubType(TH.getType("struct.std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider"),
-                   TH.getType("class.std::__cxx11::basic_string")));
+  EXPECT_FALSE(TH.isSubType(
+      TH.getType(
+          "struct.std::__cxx11::basic_string<char, std::char_traits<char>, "
+          "std::allocator<char> >::_Alloc_hider"),
+      TH.getType("class.std::__cxx11::basic_string")));
   EXPECT_FALSE(TH.isSubType(TH.getType("union.anon"),
                             TH.getType("class.std::__cxx11::basic_string")));
-  EXPECT_FALSE(
-      TH.isSuperType(TH.getType("class.std::__cxx11::basic_string"),
-                     TH.getType("struct.std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider")));
+  EXPECT_FALSE(TH.isSuperType(
+      TH.getType("class.std::__cxx11::basic_string"),
+      TH.getType(
+          "struct.std::__cxx11::basic_string<char, std::char_traits<char>, "
+          "std::allocator<char> >::_Alloc_hider")));
   EXPECT_TRUE(TH.isSuperType(TH.getType("class.std::allocator"),
                              TH.getType("class.std::allocator")));
 }

@@ -36,7 +36,7 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
-struct IFDSFieldSensTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
+struct IFDSFieldSensTaintAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
   using d_t = ExtendedValue;
 };
 
@@ -75,7 +75,7 @@ public:
   getSummaryFlowFunction(const llvm::Instruction *callSite,
                          const llvm::Function *destFun) override;
 
-  std::map<const llvm::Instruction *, std::set<ExtendedValue>>
+  InitialSeeds<const llvm::Instruction *, ExtendedValue, l_t>
   initialSeeds() override;
 
   void

@@ -8,13 +8,13 @@
  *****************************************************************************/
 
 #ifndef SOUNDNESS_FLAG_TYPE
-#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)
+#define SOUNDNESS_FLAG_TYPE(NAME, TYPE)
 #endif
 
-SOUNDNESS_FLAG_TYPE("SOUND", "sound", SOUND)
-SOUNDNESS_FLAG_TYPE("SOUNDY", "soundy", SOUNDY)
-SOUNDNESS_FLAG_TYPE("UNSOUND", "unsound", UNSOUND)
-SOUNDNESS_FLAG_TYPE("UNUSED", "unused", UNUSED)
+SOUNDNESS_FLAG_TYPE("Sound", Sound)
+SOUNDNESS_FLAG_TYPE("Soundy", Soundy)
+SOUNDNESS_FLAG_TYPE("Unsound", Unsound)
+SOUNDNESS_FLAG_TYPE("Unused", Unused)
 
 #undef SOUNDNESS_FLAG_TYPE
 
