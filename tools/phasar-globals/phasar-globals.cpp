@@ -263,5 +263,6 @@ int main(int Argc, char **Argv) {
     return 1;
   }
   Ofs << ResultsJson.dump(2) << '\n';
+  Ofs << "----\n";
   return 0;
 }
