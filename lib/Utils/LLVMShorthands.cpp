@@ -57,8 +57,9 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {
       return true;
-    } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
-      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(V);
+    }
+    if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
+      const auto *CallSite = llvm::cast<llvm::CallBase>(V);
       return CallSite->getCalledFunction() != nullptr &&
              HeapAllocationFunctions.count(
                  CallSite->getCalledFunction()->getName().str());
@@ -231,8 +232,9 @@ int getFunctionArgumentNr(const llvm::Argument *Arg) {
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned ArgNo) {
-  if (ArgNo >= F->arg_size())
+  if (ArgNo >= F->arg_size()) {
     return nullptr;
+  }
 
   return F->getArg(ArgNo);
 }
@@ -248,9 +250,9 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
     for (const auto &I : BB) {
       if (Current == Idx) {
         return &I;
-      } else {
-        ++Current;
       }
+
+      ++Current;
     }
   }
   return nullptr;
@@ -370,11 +372,11 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
 }
 
 bool isGuardVariable(const llvm::Value *V) {
-  if (auto ConstBitcast = llvm::dyn_cast<llvm::ConstantExpr>(V);
+  if (const auto *ConstBitcast = llvm::dyn_cast<llvm::ConstantExpr>(V);
       ConstBitcast && ConstBitcast->isCast()) {
     V = ConstBitcast->getOperand(0);
   }
-  if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+  if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     // ZGV is the encoding of "GuardVariable"
     return GV->getName().startswith("_ZGV");
   }
