@@ -236,6 +236,11 @@ TEST(LLVMBasedCFGTest, HandleFieldStoreField) {
 }
 
 TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
+
+// If we use libcxx this won't work since internal implementation is different
+#ifdef _LIBCPP_VERSION
+  GTEST_SKIP();
+#endif
   ProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "name_mangling/special_members_2_cpp.ll"});
 
