@@ -255,7 +255,8 @@ int main(int Argc, char **Argv) {
     std::cout << "========\n";
     std::cout << ResultsJson.dump(2) << '\n';
   }
-  std::ofstream Ofs(Vars["output-file"].as<std::string>());
+  std::ofstream Ofs(Vars["output-file"].as<std::string>(),
+                    std::fstream::out | std::fstream::app);
   if (!Ofs) {
     std::cout << "Could not create output file '"
               << Vars["output-file"].as<std::string>() << "'\n";
