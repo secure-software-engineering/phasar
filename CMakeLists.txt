@@ -102,6 +102,12 @@ include_directories(
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+if (LLVM_ENABLE_LIBCXX)
+  set(PHASAR_STD_FILESYSTEM c++fs)
+else()
+  set(PHASAR_STD_FILESYSTEM stdc++fs)
+endif()
+
 ### Adding external libraries
 # Threads
 find_package(Threads)
