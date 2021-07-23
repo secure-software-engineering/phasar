@@ -59,11 +59,13 @@ public:
 
   static const l_t TOP;
   static const l_t BOTTOM;
+  const bool IncludeGlobals;
 
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
                             const LLVMTypeHierarchy *TH,
                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                            std::set<std::string> EntryPoints = {"main"});
+                            std::set<std::string> EntryPoints = {"main"},
+                            bool IncludeGlobals = false);
 
   ~IDELinearConstantAnalysis() override;
 

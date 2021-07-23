@@ -335,6 +335,10 @@ public:
     }
   }
 
+  [[nodiscard]] inline GlobalCtorTy getGlobalCtors() { return GlobalCtors; }
+
+  [[nodiscard]] inline GlobalDtorTy getGlobalDtors() { return GlobalDtors; }
+
 protected:
   void collectGlobalCtors() override;
 

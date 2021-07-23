@@ -52,8 +52,9 @@ const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+    std::set<std::string> EntryPoints, bool IncludeGlobals)
+    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
+      IncludeGlobals(IncludeGlobals) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
@@ -289,15 +290,17 @@ IDELinearConstantAnalysis::initialSeeds() {
   for (const auto *EntryPointFun : EntryPointFuns) {
     Seeds.addSeed(&EntryPointFun->front().front(), getZeroValue(),
                   bottomElement());
-    // Generate global integer-typed variables using generalized initial seeds
-    for (const auto *M : IRDB->getAllModules()) {
-      for (const auto &G : M->globals()) {
-        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-          if (GV->hasInitializer()) {
-            if (const auto *ConstInt =
-                    llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
-              Seeds.addSeed(&EntryPointFun->front().front(), GV,
-                            ConstInt->getSExtValue());
+    if (IncludeGlobals) {
+      // Generate global integer-typed variables using generalized initial seeds
+      for (const auto *M : IRDB->getAllModules()) {
+        for (const auto &G : M->globals()) {
+          if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+            if (GV->hasInitializer()) {
+              if (const auto *ConstInt =
+                      llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
+                Seeds.addSeed(&EntryPointFun->front().front(), GV,
+                              ConstInt->getSExtValue());
+              }
             }
           }
         }
