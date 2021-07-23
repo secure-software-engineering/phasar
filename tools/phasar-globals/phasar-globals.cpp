@@ -1,3 +1,4 @@
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -169,6 +170,8 @@ int main(int Argc, char **Argv) {
     }
     EntryPoints.insert("main");
   }
+  // Analysis start
+  auto start = std::chrono::steady_clock::now();
   psr::LLVMTypeHierarchy Th(IR);
   psr::LLVMPointsToSet Pts(IR, true);
   bool UseAutoGlobals = Vars["auto-globals"].as<bool>();
@@ -190,12 +193,16 @@ int main(int Argc, char **Argv) {
 
   psr::IDESolver Solver(Lca);
   Solver.solve();
+  // Analysis end
+  auto end = std::chrono::steady_clock::now();
   if (Vars.count("verbose")) {
     Solver.dumpResults();
   }
   nlohmann::json ResultsJson;
   // Set program under analysis
   ResultsJson["program"] = Vars["module"].as<std::string>();
+  ResultsJson["runtime-in-seconds"] =
+      std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
   std::string Eps = StrStr.str();
   Eps.erase(std::remove(Eps.begin(), Eps.end(), '\n'), Eps.end());
   ResultsJson["entry-points"] = Eps;
