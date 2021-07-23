@@ -34,6 +34,8 @@ target_link_libraries(phasar-llvm
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
+  LINK_PRIVATE
+  ${PHASAR_STD_FILESYSTEM}
 )
 
 if(USE_LLVM_FAT_LIB)
