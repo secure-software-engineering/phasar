@@ -382,22 +382,27 @@ bool isGuardVariable(const llvm::Value *V) {
 }
 
 bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst) {
-  if (Inst->isUnconditional())
+  if (Inst->isUnconditional()) {
     return false;
+  }
 
   auto *Condition = Inst->getCondition();
 
   if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
-      Cmp && Cmp->isEquality(Cmp->getPredicate())) {
+      Cmp && llvm::ICmpInst::isEquality(Cmp->getPredicate())) {
     for (auto *Op : Cmp->operand_values()) {
-      if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Op);
+      if (auto *Load = llvm::dyn_cast<llvm::LoadInst>(Op);
           Load && Load->isAtomic()) {
 
-        if (isGuardVariable(Load->getPointerOperand()))
+        if (isGuardVariable(Load->getPointerOperand())) {
           return true;
+        }
       } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
-        if (Call->getCalledFunction()->getName() == "__cxa_guard_acquire")
+        auto *CalledFunction = Call->getCalledFunction();
+        if (CalledFunction &&
+            CalledFunction->getName() == "__cxa_guard_acquire") {
           return true;
+        }
       }
     }
   }
