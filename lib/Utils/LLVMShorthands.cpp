@@ -415,21 +415,22 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F) {
   return F->getName() == kVarAnnotationName;
 }
 
-const llvm::StringRef
-getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
+llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   const int kPointerGlobalStringIdx = 1;
-  llvm::ConstantExpr *ce = llvm::cast<llvm::ConstantExpr>(
+  auto *ce = llvm::cast<llvm::ConstantExpr>(
       CallInst->getOperand(kPointerGlobalStringIdx));
   assert(ce != nullptr);
   assert(ce->getOpcode() == llvm::Instruction::GetElementPtr);
   assert(llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0)) != nullptr);
-  llvm::GlobalVariable *annoteStr =
-      llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
+
+  auto *annoteStr = llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
   assert(llvm::dyn_cast<llvm::ConstantDataSequential>(
       annoteStr->getInitializer()));
-  llvm::ConstantDataSequential *data =
+
+  auto *data =
       llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer());
   assert(data->isString());
+
   return data->getAsString();
 }
 
