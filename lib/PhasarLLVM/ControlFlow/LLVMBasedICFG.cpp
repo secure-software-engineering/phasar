@@ -142,6 +142,11 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     this->PT = new LLVMPointsToSet(IRDB);
     UserPTInfos = false;
   }
+
+  if (PT == nullptr) {
+    llvm::report_fatal_error("LLVMPointsToInfo not passed and CallGraphAnalysisType::OTF was not specified.");
+  }
+
   // instantiate the respective resolver type
   Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
