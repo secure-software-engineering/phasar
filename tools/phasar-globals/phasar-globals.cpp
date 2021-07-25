@@ -91,7 +91,7 @@ int main(int Argc, char **Argv) {
   // clang-format off
   Config.add_options()
     ("module,m", boost::program_options::value<std::string>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamModule), "Path to the module under analysis")
-    ("entry-points,E", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used (=default is 'main')")
+    ("entry-points,E", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used (=default is 'main'; if 'main' is not present, all functions are treated as entry points)")
     ("auto-globals,g", boost::program_options::value<bool>()->default_value(false), "Enable automated handling of global variables (=default is false)")
     ("verbose,v", "Print output to the command line (=default is false)")
     ("output-file,o", boost::program_options::value<std::string>()->notifier(&validateParamOutput), "Output file; all results are written to the specified output file");
@@ -136,7 +136,7 @@ int main(int Argc, char **Argv) {
   if (Vars.count("entry-points")) {
     EntryPointsAsVec = Vars["entry-points"].as<std::vector<std::string>>();
   } else {
-    EntryPointsAsVec.emplace_back("main");
+    EntryPointsAsVec.emplace_back("main (or all, if there is no main)");
   }
   for (const auto &EntryPoint : EntryPointsAsVec) {
     StrStr << EntryPoint;
@@ -152,9 +152,9 @@ int main(int Argc, char **Argv) {
             << '\n';
   // Parse LLVM IR
   psr::ProjectIRDB IR({Vars["module"].as<std::string>()});
-  // If entry points other than 'main' are specified better check their
-  // existence.
+  // Check entry points' existence.
   std::set<std::string> EntryPoints;
+  // Check if the user specified entry points using the command-line parameters.
   if (Vars.count("entry-points")) {
     for (const auto &EntryPoint : EntryPointsAsVec) {
       if (!IR.getFunctionDefinition(EntryPoint)) {
@@ -164,11 +164,18 @@ int main(int Argc, char **Argv) {
       EntryPoints.insert(EntryPoint);
     }
   } else {
-    if (!IR.getFunctionDefinition("main")) {
-      std::cout << "Cannot retrieve entry point 'main'\n";
-      return 0;
+    // Default entry points
+    if (IR.getFunctionDefinition("main")) {
+      EntryPoints.insert("main");
+    } else {
+      std::cout << "Cannot retrieve entry point 'main', use all functions as "
+                   "entry points.\n";
+      for (const auto *Fun : IR.getAllFunctions()) {
+        if (!Fun->isDeclaration()) {
+          EntryPoints.insert(Fun->getName().str());
+        }
+      }
     }
-    EntryPoints.insert("main");
   }
   // Analysis start
   auto start = std::chrono::steady_clock::now();
@@ -177,18 +184,19 @@ int main(int Argc, char **Argv) {
   bool UseAutoGlobals = Vars["auto-globals"].as<bool>();
   psr::LLVMBasedICFG Icfg(IR, psr::CallGraphAnalysisType::OTF, EntryPoints, &Th,
                           &Pts, psr::Soundness::Sound, UseAutoGlobals);
+  // IR.print();
 
   const auto *GlobalCRuntimeModel =
       IR.getFunctionDefinition(psr::LLVMBasedICFG::GlobalCRuntimeModelName);
-  std::set<std::string> GlobalCRuntimeModelEntries;
+  std::set<std::string> GlobalCRuntimeModelEntry;
   if (GlobalCRuntimeModel) {
-    GlobalCRuntimeModelEntries.insert(
+    GlobalCRuntimeModelEntry.insert(
         psr::LLVMBasedICFG::GlobalCRuntimeModelName.str());
   }
 
   psr::IDELinearConstantAnalysis Lca(
       &IR, &Th, &Icfg, &Pts,
-      (GlobalCRuntimeModel) ? GlobalCRuntimeModelEntries : EntryPoints,
+      (GlobalCRuntimeModel) ? GlobalCRuntimeModelEntry : EntryPoints,
       UseAutoGlobals);
 
   psr::IDESolver Solver(Lca);
@@ -226,24 +234,25 @@ int main(int Argc, char **Argv) {
   ResultsJson["#required-globals-generation"] = GenGlobals.size();
   // Check effects of global ctors on global integer variables
   const auto *Main = IR.getFunctionDefinition("main");
-  assert(Main);
-  const auto *FirstMainInst = &Main->front().front();
-  const auto *LastMainInst = &Main->back().back();
-  size_t NumNonTopValuesAtStart = 0;
-  size_t NumNonTopValuesAtEnd = 0;
-  for (const auto *GenGlobal : GenGlobals) {
-    auto ResAtStart = Solver.resultsAt(FirstMainInst);
-    if (ResAtStart.find(GenGlobal) != ResAtStart.end()) {
-      auto ValAtStart = Solver.resultAt(FirstMainInst, GenGlobal);
-      if (ValAtStart != Lca.topElement()) {
-        ++NumNonTopValuesAtStart;
+  ssize_t NumNonTopValuesAtStart = -1;
+  ssize_t NumNonTopValuesAtEnd = -1;
+  if (Main) {
+    const auto *FirstMainInst = &Main->front().front();
+    const auto *LastMainInst = &Main->back().back();
+    for (const auto *GenGlobal : GenGlobals) {
+      auto ResAtStart = Solver.resultsAt(FirstMainInst);
+      if (ResAtStart.find(GenGlobal) != ResAtStart.end()) {
+        auto ValAtStart = Solver.resultAt(FirstMainInst, GenGlobal);
+        if (ValAtStart != Lca.topElement()) {
+          ++NumNonTopValuesAtStart;
+        }
       }
-    }
-    auto ResAtEnd = Solver.resultsAt(LastMainInst);
-    if (ResAtEnd.find(GenGlobal) != ResAtEnd.end()) {
-      auto ValAtEnd = Solver.resultAt(LastMainInst, GenGlobal);
-      if (ValAtEnd != Lca.topElement()) {
-        ++NumNonTopValuesAtEnd;
+      auto ResAtEnd = Solver.resultsAt(LastMainInst);
+      if (ResAtEnd.find(GenGlobal) != ResAtEnd.end()) {
+        auto ValAtEnd = Solver.resultAt(LastMainInst, GenGlobal);
+        if (ValAtEnd != Lca.topElement()) {
+          ++NumNonTopValuesAtEnd;
+        }
       }
     }
   }

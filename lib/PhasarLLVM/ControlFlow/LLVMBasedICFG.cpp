@@ -144,7 +144,8 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   }
 
   if (PT == nullptr) {
-    llvm::report_fatal_error("LLVMPointsToInfo not passed and CallGraphAnalysisType::OTF was not specified.");
+    llvm::report_fatal_error("LLVMPointsToInfo not passed and "
+                             "CallGraphAnalysisType::OTF was not specified.");
   }
 
   // instantiate the respective resolver type
@@ -868,16 +869,16 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
       break;
     case 2:
       if (UEntry->getName() != "main") {
-        std::cerr << "ERROR: The only entrypoint, where parameters are "
-                     "supported, is main\n";
+        // std::cerr << "ERROR: The only entrypoint, where parameters are "
+        //              "supported, is main\n";
         break;
       }
 
       IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
       break;
     default:
-      std::cerr << "ERROR: Entrypoints with parameters are not supported, "
-                   "except for argc and argv in main\n";
+      // std::cerr << "ERROR: Entrypoints with parameters are not supported, "
+      //              "except for argc and argv in main\n";
       break;
     }
 
@@ -926,6 +927,7 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
     /// After all user-entries have been called, we are done
 
     IRB.SetInsertPoint(SwitchEnd);
+    IRB.CreateCall(GlobalCleanupFn);
     IRB.CreateRetVoid();
   }
 

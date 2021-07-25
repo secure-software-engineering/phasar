@@ -43,8 +43,8 @@ protected:
                              LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
     IDELinearConstantAnalysis LCAProblem(
         IRDB.get(), &TH, &ICFG, &PT,
-        {hasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
-                       : "main"});
+        {hasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str() : "main"},
+        true);
     IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
     LCASolver.solve();
     if (PrintDump) {

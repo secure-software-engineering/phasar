@@ -41,7 +41,7 @@ protected:
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
                        &PT);
     IDELinearConstantAnalysis LCAProblem(IRDB.get(), &TH, &ICFG, &PT,
-                                         EntryPoints);
+                                         EntryPoints, true);
     IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
     LCASolver.solve();
     if (emitESG) {
