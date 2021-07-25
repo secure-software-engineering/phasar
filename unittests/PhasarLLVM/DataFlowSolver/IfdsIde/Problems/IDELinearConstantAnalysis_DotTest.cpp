@@ -46,7 +46,8 @@ protected:
     LCASolver.solve();
     if (emitESG) {
       boost::log::core::get()->set_logging_enabled(true);
-      LCASolver.emitESGAsDot(std::cout, "");
+      const std::string PhasarRootPath = "./";
+      LCASolver.emitESGAsDot(std::cout, PhasarRootPath);
       boost::log::core::get()->set_logging_enabled(false);
     }
     if (PrintDump) {
