@@ -57,8 +57,9 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {
       return true;
-    } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
-      const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(V);
+    }
+    if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
+      const auto *CallSite = llvm::cast<llvm::CallBase>(V);
       return CallSite->getCalledFunction() != nullptr &&
              HeapAllocationFunctions.count(
                  CallSite->getCalledFunction()->getName().str());
@@ -231,8 +232,9 @@ int getFunctionArgumentNr(const llvm::Argument *Arg) {
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned ArgNo) {
-  if (ArgNo >= F->arg_size())
+  if (ArgNo >= F->arg_size()) {
     return nullptr;
+  }
 
   return F->getArg(ArgNo);
 }
@@ -248,9 +250,9 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
     for (const auto &I : BB) {
       if (Current == Idx) {
         return &I;
-      } else {
-        ++Current;
       }
+
+      ++Current;
     }
   }
   return nullptr;
@@ -370,11 +372,11 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
 }
 
 bool isGuardVariable(const llvm::Value *V) {
-  if (auto ConstBitcast = llvm::dyn_cast<llvm::ConstantExpr>(V);
+  if (const auto *ConstBitcast = llvm::dyn_cast<llvm::ConstantExpr>(V);
       ConstBitcast && ConstBitcast->isCast()) {
     V = ConstBitcast->getOperand(0);
   }
-  if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+  if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     // ZGV is the encoding of "GuardVariable"
     return GV->getName().startswith("_ZGV");
   }
@@ -382,22 +384,27 @@ bool isGuardVariable(const llvm::Value *V) {
 }
 
 bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst) {
-  if (Inst->isUnconditional())
+  if (Inst->isUnconditional()) {
     return false;
+  }
 
   auto *Condition = Inst->getCondition();
 
   if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
-      Cmp && Cmp->isEquality(Cmp->getPredicate())) {
+      Cmp && llvm::ICmpInst::isEquality(Cmp->getPredicate())) {
     for (auto *Op : Cmp->operand_values()) {
-      if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Op);
+      if (auto *Load = llvm::dyn_cast<llvm::LoadInst>(Op);
           Load && Load->isAtomic()) {
 
-        if (isGuardVariable(Load->getPointerOperand()))
+        if (isGuardVariable(Load->getPointerOperand())) {
           return true;
+        }
       } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
-        if (Call->getCalledFunction()->getName() == "__cxa_guard_acquire")
+        auto *CalledFunction = Call->getCalledFunction();
+        if (CalledFunction &&
+            CalledFunction->getName() == "__cxa_guard_acquire") {
           return true;
+        }
       }
     }
   }
@@ -410,21 +417,22 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F) {
   return F->getName() == kVarAnnotationName;
 }
 
-const llvm::StringRef
-getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
+llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   const int kPointerGlobalStringIdx = 1;
-  llvm::ConstantExpr *ce = llvm::cast<llvm::ConstantExpr>(
+  auto *ce = llvm::cast<llvm::ConstantExpr>(
       CallInst->getOperand(kPointerGlobalStringIdx));
   assert(ce != nullptr);
   assert(ce->getOpcode() == llvm::Instruction::GetElementPtr);
   assert(llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0)) != nullptr);
-  llvm::GlobalVariable *annoteStr =
-      llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
+
+  auto *annoteStr = llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
   assert(llvm::dyn_cast<llvm::ConstantDataSequential>(
       annoteStr->getInitializer()));
-  llvm::ConstantDataSequential *data =
+
+  auto *data =
       llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer());
   assert(data->isString());
+
   return data->getAsString();
 }
 
