@@ -6,7 +6,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h>
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
 #include "TestConfig.h"
