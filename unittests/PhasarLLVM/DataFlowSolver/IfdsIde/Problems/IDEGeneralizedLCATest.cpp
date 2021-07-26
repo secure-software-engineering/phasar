@@ -45,17 +45,23 @@ protected:
   std::unique_ptr<LLVMBasedICFG> ICFG;
   std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
-
   IDEGeneralizedLCATest() {}
   virtual ~IDEGeneralizedLCATest() {}
 
   void Initialize(const std::string &llFile, size_t maxSetSize = 2) {
-    IRDB = std::make_unique<ProjectIRDB>((const std::vector<std::string>){pathToLLFiles + llFile}, IRDBOptions::WPA);
+    IRDB = std::make_unique<ProjectIRDB>(
+        (const std::vector<std::string>){pathToLLFiles + llFile},
+        IRDBOptions::WPA);
     TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = std::make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = std::make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::RTA, (const std::set<std::string>){"main"}, TH.get(), PT.get());
-    LCAProblem = std::make_unique<IDEGeneralizedLCA>(IRDB.get(), TH.get(), ICFG.get(), PT.get(), (const std::set<std::string>){"main"}, maxSetSize);
-    LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(*LCAProblem.get());
+    ICFG = std::make_unique<LLVMBasedICFG>(
+        *IRDB, CallGraphAnalysisType::RTA,
+        (const std::set<std::string>){"main"}, TH.get(), PT.get());
+    LCAProblem = std::make_unique<IDEGeneralizedLCA>(
+        IRDB.get(), TH.get(), ICFG.get(), PT.get(),
+        (const std::set<std::string>){"main"}, maxSetSize);
+    LCASolver =
+        std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(*LCAProblem.get());
 
     LCASolver->solve();
   }
@@ -65,8 +71,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {
-  }
+  void TearDown() override {}
 
   //  compare results
   /// \brief compares the computed results with every given tuple (value,
@@ -80,7 +85,8 @@ protected:
       auto result = LCASolver->resultAt(inst, vr);
       std::ostringstream ss;
       LCASolver->dumpResults(ss);
-      EXPECT_EQ(val, result) << "vr:" << vrId  << " inst:" << instId << " LCASolver:" << ss.str();
+      EXPECT_EQ(val, result)
+          << "vr:" << vrId << " inst:" << instId << " LCASolver:" << ss.str();
     }
   }
 
@@ -130,8 +136,11 @@ TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
 TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   Initialize("StringTest_cpp.ll");
   std::vector<groundTruth_t> groundTruth;
-  const auto* lastMainInstrution = getLastInstructionOf(IRDB->getFunction("main"));
-  groundTruth.push_back({{EdgeValue("Hello, World")}, 2, std::stoi(getMetaDataID(lastMainInstrution))});
+  const auto *lastMainInstrution =
+      getLastInstructionOf(IRDB->getFunction("main"));
+  groundTruth.push_back({{EdgeValue("Hello, World")},
+                         2,
+                         std::stoi(getMetaDataID(lastMainInstrution))});
   compareResults(groundTruth);
 }
 

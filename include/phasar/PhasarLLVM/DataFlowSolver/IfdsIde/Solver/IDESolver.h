@@ -1924,9 +1924,9 @@ public:
 };
 
 template <typename AnalysisDomainTy, typename Container>
-std::ostream &operator<<(
-    std::ostream &os,
-    const IDESolver<AnalysisDomainTy, Container> &ide_solver) {
+std::ostream &
+operator<<(std::ostream &os,
+           const IDESolver<AnalysisDomainTy, Container> &ide_solver) {
   ide_solver.dumpResults(os);
   return os;
 }
