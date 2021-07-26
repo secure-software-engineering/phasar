@@ -25,6 +25,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 
 #include "IFDSSimpleTaintAnalysis.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
 using namespace std;
 using namespace psr;
@@ -69,7 +70,7 @@ IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
                                                const llvm::Instruction *Succ) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    return make_shared<LambdaFlow<const FlowFact *>>(
+    return makeLambdaFlow<const FlowFact *>(
         [this, Store](const FlowFact *source) -> set<const FlowFact *> {
           // auto VFW = static_cast<const ValueFlowFactWrapper *>(source);
           if (Store->getValueOperand() ==
@@ -119,16 +120,15 @@ IFDSSimpleTaintAnalysis::getSummaryFlowFunction(
   return nullptr;
 }
 
-map<const llvm::Instruction *, set<const FlowFact *>>
+InitialSeeds<const llvm::Instruction *, const FlowFact *, BinaryDomain>
 IFDSSimpleTaintAnalysis::initialSeeds() {
   cout << "IFDSSimpleTaintAnalysis::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const FlowFact *>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(
-        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                       set<const FlowFact *>({getZeroValue()})));
+  InitialSeeds<const llvm::Instruction *, const FlowFact *, BinaryDomain> Seeds;
+  for (const auto &EntryPoint : EntryPoints) {
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 } // namespace psr

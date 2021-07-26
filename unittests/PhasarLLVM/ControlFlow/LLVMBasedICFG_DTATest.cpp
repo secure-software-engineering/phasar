@@ -1,9 +1,11 @@
+#include "gtest/gtest.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
-#include "gtest/gtest.h"
 
 #include "TestConfig.h"
 
@@ -15,7 +17,8 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_5_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FuncA = IRDB.getFunctionDefinition("_ZN1A4funcEv");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
@@ -43,7 +46,8 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_6_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
   const llvm::Function *VFuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");

@@ -100,16 +100,6 @@ LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
   return ReturnSites;
 }
 
-std::vector<const llvm::Function *>
-LLVMBasedBackwardsICFG::getGlobalCtors() const {
-  return ForwardICFG.getGlobalCtors();
-}
-
-std::vector<const llvm::Function *>
-LLVMBasedBackwardsICFG::getGlobalDtors() const {
-  return ForwardICFG.getGlobalDtors();
-}
-
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::allNonCallStartNodes() const {
   return ForwardICFG.allNonCallStartNodes();
@@ -142,6 +132,22 @@ unsigned LLVMBasedBackwardsICFG::getNumOfEdges() {
 std::vector<const llvm::Function *>
 LLVMBasedBackwardsICFG::getDependencyOrderedFunctions() {
   return ForwardICFG.getDependencyOrderedFunctions();
+}
+
+void LLVMBasedBackwardsICFG::collectGlobalCtors() {
+  ForwardICFG.collectGlobalCtors();
+}
+
+void LLVMBasedBackwardsICFG::collectGlobalDtors() {
+  ForwardICFG.collectGlobalDtors();
+}
+
+void LLVMBasedBackwardsICFG::collectGlobalInitializers() {
+  ForwardICFG.collectGlobalInitializers();
+}
+
+void LLVMBasedBackwardsICFG::collectRegisteredDtors() {
+  ForwardICFG.collectRegisteredDtors();
 }
 
 } // namespace psr

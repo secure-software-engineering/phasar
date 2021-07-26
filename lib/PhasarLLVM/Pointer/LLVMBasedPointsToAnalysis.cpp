@@ -282,7 +282,7 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I1)),
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I2)));
           switch (AR) {
-            case llvm::AliasResult::NoAlias:
+          case llvm::AliasResult::NoAlias:
             PrintLoadStoreResults(AR, PrintNoAlias, *I1, *I2, Fn->getParent());
             break;
           case llvm::AliasResult::MayAlias:

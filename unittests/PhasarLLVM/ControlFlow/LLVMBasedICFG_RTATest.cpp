@@ -3,6 +3,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
@@ -16,7 +17,8 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_9_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooD = IRDB.getFunctionDefinition("_ZN1D3fooEv");
   ASSERT_TRUE(FooD);
@@ -42,7 +44,8 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_3_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *AptrFoo = IRDB.getFunctionDefinition("_ZN5AImpl3fooEv");
   ASSERT_TRUE(F);
@@ -62,7 +65,8 @@ TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
       {unittest::PathToLLTestFiles + "call_graphs/static_callsite_13_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Vfunc = IRDB.getFunctionDefinition("_Z5VfuncP1A");
   const llvm::Function *VfuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");

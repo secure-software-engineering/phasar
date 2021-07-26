@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
-#define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
+#ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
+#define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -17,6 +17,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
 namespace psr {
 
@@ -71,6 +72,10 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using v_t = const llvm::Value *;
   using c_t = LLVMBasedCFG;
   using i_t = LLVMBasedICFG;
+};
+
+struct LLVMIFDSAnalysisDomainDefault : LLVMAnalysisDomainDefault {
+  using l_t = BinaryDomain;
 };
 
 } // namespace psr

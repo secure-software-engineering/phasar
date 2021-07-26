@@ -19,6 +19,8 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/MathExtras.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -74,11 +76,12 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     }
   }
   // Check store instructions. Store instructions override previous value
-  // of their pointer operand, i.e. kills previous fact (= pointer operand).
+  // of their pointer operand, i.e., kills previous fact (= pointer operand).
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     IDELinearConstantAnalysis::d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
+      // return Identity<d_t>::getInstance();
       return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
           Store, [this](IDELinearConstantAnalysis::d_t Source) {
             return Source == getZeroValue();
@@ -122,9 +125,12 @@ IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::f_t DestFun) {
+
+  // std::cout << "found call at: " << llvmIRToString(CallSite) << '\n';
+
   // Map the actual parameters into the formal parameters
-  if (llvm::isa<llvm::CallInst>(CallSite) ||
-      llvm::isa<llvm::InvokeInst>(CallSite)) {
+  if (auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+
     struct LCAFF : FlowFunction<const llvm::Value *> {
       vector<const llvm::Value *> Actuals;
       vector<const llvm::Value *> Formals;
@@ -143,6 +149,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       }
       set<IDELinearConstantAnalysis::d_t>
       computeTargets(IDELinearConstantAnalysis::d_t Source) override {
+        // std::cout << "call call-ff with: " << llvmIRToString(Source) << '\n';
         set<IDELinearConstantAnalysis::d_t> Res;
         for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
           if (Source == Actuals[Idx]) {
@@ -189,7 +196,9 @@ IDELinearConstantAnalysis::getCallFlowFunction(
         return Res;
       }
     };
-    return make_shared<LCAFF>(llvm::cast<llvm::CallBase>(CallSite), DestFun);
+
+    if (!DestFun->isDeclaration())
+      return make_shared<LCAFF>(CS, DestFun);
   }
   // Pass everything else as identity
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -250,8 +259,6 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
             return !isZeroValue(Source) &&
                    llvm::isa<llvm::GlobalVariable>(Source);
           });
-    } else {
-      return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
     }
   }
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -264,47 +271,42 @@ IDELinearConstantAnalysis::getSummaryFlowFunction(
   return nullptr;
 }
 
-map<IDELinearConstantAnalysis::n_t, set<IDELinearConstantAnalysis::d_t>>
+InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+             IDELinearConstantAnalysis::l_t>
 IDELinearConstantAnalysis::initialSeeds() {
-  // Check commandline arguments, e.g. argc, and generate all integer
-  // typed arguments.
-  map<IDELinearConstantAnalysis::n_t, set<IDELinearConstantAnalysis::d_t>>
-      SeedMap;
-  // Collect global variables of integer type
+  InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+               IDELinearConstantAnalysis::l_t>
+      Seeds;
+  // The analysis' entry points
+  std::set<const llvm::Function *> EntryPointFuns;
+
+  // Otherwise, consider the user-defined entry point(s)
   for (const auto &EntryPoint : EntryPoints) {
-    set<IDELinearConstantAnalysis::d_t> Globals;
-    for (const auto &G :
-         IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
-      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-        if (GV->hasInitializer() &&
-            llvm::isa<llvm::ConstantInt>(GV->getInitializer())) {
-          Globals.insert(GV);
+    EntryPointFuns.insert(IRDB->getFunctionDefinition(EntryPoint));
+  }
+
+  // Set initial seeds at the required entry points and generate global
+  // integer-typed variables using generalized initial seeds
+  for (const auto *EntryPointFun : EntryPointFuns) {
+    Seeds.addSeed(&EntryPointFun->front().front(), getZeroValue(),
+                  bottomElement());
+    // Generate global integer-typed variables using generalized initial seeds
+    for (const auto *M : IRDB->getAllModules()) {
+      for (const auto &G : M->globals()) {
+        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+          if (GV->hasInitializer()) {
+            if (const auto *ConstInt =
+                    llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
+              Seeds.addSeed(&EntryPointFun->front().front(), GV,
+                            ConstInt->getSExtValue());
+            }
+          }
         }
       }
-    }
-    Globals.insert(getZeroValue());
-    if (!Globals.empty()) {
-      SeedMap.insert(
-          make_pair(&ICF->getFunction(EntryPoint)->front().front(), Globals));
-    }
-    // Collect commandline arguments of integer type
-    if (EntryPoint == "main") {
-      set<IDELinearConstantAnalysis::d_t> CmdArgs;
-      for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
-        if (Arg.getType()->isIntegerTy()) {
-          CmdArgs.insert(&Arg);
-        }
-      }
-      CmdArgs.insert(getZeroValue());
-      SeedMap.insert(
-          make_pair(&ICF->getFunction(EntryPoint)->front().front(), CmdArgs));
-    } else {
-      SeedMap.insert(
-          make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                    set<IDELinearConstantAnalysis::d_t>({getZeroValue()})));
     }
   }
-  return SeedMap;
+
+  return Seeds;
 }
 
 IDELinearConstantAnalysis::d_t
@@ -326,19 +328,6 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::d_t CurrNode,
     IDELinearConstantAnalysis::n_t Succ,
     IDELinearConstantAnalysis::d_t SuccNode) {
-  // Initialize global variables at entry point
-  if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
-      isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
-      llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Case: Intialize global variable at entry point.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(CurrNode);
-    const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer());
-    auto IntConst = CI->getSExtValue();
-    return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
-  }
-
   // ALL_BOTTOM for zero value
   if ((isZeroValue(CurrNode) && isZeroValue(SuccNode)) ||
       (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
@@ -435,9 +424,9 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::d_t RetNode) {
   // Case: Returning constant integer
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
-    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
+    const auto *Return = llvm::cast<llvm::ReturnInst>(ExitSite);
     auto *ReturnValue = Return->getReturnValue();
-    if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
+    if (auto *CI = llvm::dyn_cast_or_null<llvm::ConstantInt>(ReturnValue)) {
       auto IntConst = CI->getSExtValue();
       return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
     }
@@ -461,7 +450,7 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::d_t CallNode,
     IDELinearConstantAnalysis::n_t RetSite,
     IDELinearConstantAnalysis::d_t RetSiteNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
+  return nullptr;
 }
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::topElement() {
@@ -753,28 +742,46 @@ bool IDELinearConstantAnalysis::isEntryPoint(
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned Op, IDELinearConstantAnalysis::l_t Lop,
     IDELinearConstantAnalysis::l_t Rop) {
+
   // default initialize with BOTTOM (all information)
   IDELinearConstantAnalysis::l_t Res = BOTTOM;
   switch (Op) {
   case llvm::Instruction::Add:
-    Res = Lop + Rop;
+    if (llvm::AddOverflow(Lop, Rop, Res)) {
+      Res = TOP;
+    }
     break;
 
   case llvm::Instruction::Sub:
-    Res = Lop - Rop;
+    if (llvm::SubOverflow(Lop, Rop, Res)) {
+      Res = TOP;
+    }
     break;
 
   case llvm::Instruction::Mul:
-    Res = Lop * Rop;
+    if (llvm::MulOverflow(Lop, Rop, Res)) {
+      Res = TOP;
+    }
     break;
 
   case llvm::Instruction::UDiv:
   case llvm::Instruction::SDiv:
+    if (Lop == std::numeric_limits<IDELinearConstantAnalysis::l_t>::min() &&
+        Rop == -1) { // Would produce and overflow, as the complement of min is
+                     // not representable in a signed type.
+      return TOP;
+    }
+    if (Rop == 0) { // Division by zero is UB, so we return TOP
+      return TOP;
+    }
     Res = Lop / Rop;
     break;
 
   case llvm::Instruction::URem:
   case llvm::Instruction::SRem:
+    if (Rop == 0) { // Division by zero is UB, so we return TOP
+      return TOP;
+    }
     Res = Lop % Rop;
     break;
 

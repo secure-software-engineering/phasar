@@ -40,6 +40,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
@@ -105,7 +106,7 @@ public:
         cachedFlowEdgeFunctions(Problem), allTop(Problem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
             allTop, IDEProblem)),
-        initialSeeds(Problem.initialSeeds()) {}
+        Seeds(Problem.initialSeeds()) {}
 
   IDESolver(const IDESolver &) = delete;
   IDESolver &operator=(const IDESolver &) = delete;
@@ -414,7 +415,7 @@ protected:
   // returns if SolverConfig.followReturnPastSeeds is enabled
   std::set<n_t> unbalancedRetSites;
 
-  std::map<n_t, std::set<d_t>> initialSeeds;
+  InitialSeeds<n_t, d_t, l_t> Seeds;
 
   Table<n_t, d_t, l_t> valtab;
 
@@ -439,7 +440,7 @@ protected:
         allTop(IDEProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
             allTop, IDEProblem)),
-        initialSeeds(IDEProblem.initialSeeds()) {}
+        Seeds(IDEProblem.initialSeeds()) {}
 
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
@@ -768,10 +769,9 @@ protected:
   l_t val(n_t nHashN, d_t nHashD) {
     if (valtab.contains(nHashN, nHashD)) {
       return valtab.get(nHashN, nHashD);
-    } else {
-      // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
-      return IDEProblem.topElement();
     }
+    // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
+    return IDEProblem.topElement();
   }
 
   void setVal(n_t nHashN, d_t nHashD, l_t l) {
@@ -872,8 +872,11 @@ protected:
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
-    if (ICF->isStartPoint(n) || initialSeeds.count(n) ||
+    if (ICF->isStartPoint(n) || Seeds.countInitialSeeds(n) ||
         unbalancedRetSites.count(n)) {
+      // FIXME: is currently not executed for main!!!
+      // initial seeds are set in the global constructor, and main is also not
+      // officially called by any other function
       propagateValueAtStart(nAndD, n);
     }
     if (ICF->isCallSite(n)) {
@@ -919,20 +922,24 @@ protected:
   void computeValues() {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Start computing values");
     // Phase II(i)
-    std::map<n_t, std::set<d_t>> allSeeds(initialSeeds);
+    std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
     for (n_t unbalancedRetSite : unbalancedRetSites) {
-      if (allSeeds[unbalancedRetSite].empty()) {
-        allSeeds.emplace(unbalancedRetSite, std::set<d_t>({ZeroValue}));
+      if (AllSeeds.find(unbalancedRetSite) == AllSeeds.end()) {
+        AllSeeds[unbalancedRetSite][ZeroValue] = IDEProblem.topElement();
       }
     }
     // do processing
-    for (const auto &seed : allSeeds) {
-      n_t startPoint = seed.first;
-      for (d_t val : seed.second) {
+    for (const auto &[StartPoint, Facts] : AllSeeds) {
+      for (auto &[Fact, Value] : Facts) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "set initial seed at: "
+                      << IDEProblem.NtoString(StartPoint)
+                      << ", fact: " << IDEProblem.DtoString(Fact)
+                      << ", value: " << IDEProblem.LtoString(Value));
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
-        setVal(startPoint, val, IDEProblem.topElement());
-        std::pair<n_t, d_t> superGraphNode(startPoint, val);
+        setVal(StartPoint, Fact, Value);
+        std::pair<n_t, d_t> superGraphNode(StartPoint, Fact);
         valuePropagationTask(superGraphNode);
       }
     }
@@ -949,21 +956,49 @@ protected:
   /// their own. Normally, solve() should be called instead.
   void submitInitialSeeds() {
     PAMM_GET_INSTANCE;
-    for (const auto &[StartPoint, Facts] : initialSeeds) {
+    // Check if the initial seeds contain the zero value at every starting
+    // point. If not, the zero value needs to be added to allow for correct
+    // solving of the problem.
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
+      if (Facts.find(ZeroValue) == Facts.end()) {
+        // Add zero value if it's not in the set of facts.
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "Zero-Value has been added automatically to start point: "
+            << IDEProblem.NtoString(StartPoint));
+        Seeds.addSeed(StartPoint, ZeroValue, IDEProblem.bottomElement());
+      }
+    }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Number of initial seeds: " << Seeds.countInitialSeeds());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "List of initial seeds: ");
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Start point: " << IDEProblem.NtoString(StartPoint));
-      for (const auto &Fact : Facts) {
+      for (const auto &[Fact, Value] : Facts) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "\tFact: " << IDEProblem.DtoString(Fact);
-                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                      << "\tFact: " << IDEProblem.DtoString(Fact));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tValue: " << IDEProblem.LtoString(Value));
+      }
+    }
+    for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
+      for (const auto &[Fact, Value] : Facts) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Submit seed at: "
+                      << IDEProblem.NtoString(StartPoint));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tFact: " << IDEProblem.DtoString(Fact));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "\tValue: " << IDEProblem.LtoString(Value));
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, PAMM_SEVERITY_LEVEL::Core);
         }
-        propagate(ZeroValue, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
+        propagate(Fact, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
                   nullptr, false);
+        jumpFn->addFunction(Fact, StartPoint, Fact,
+                            EdgeIdentity<l_t>::getInstance());
       }
-      jumpFn->addFunction(ZeroValue, StartPoint, ZeroValue,
-                          EdgeIdentity<l_t>::getInstance());
     }
   }
 

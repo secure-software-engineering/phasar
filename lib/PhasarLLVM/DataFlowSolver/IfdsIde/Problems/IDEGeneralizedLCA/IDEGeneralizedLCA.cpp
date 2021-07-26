@@ -35,10 +35,10 @@
 
 namespace psr {
 
-inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-flow(std::function<std::set<IDEGeneralizedLCA::d_t>(IDEGeneralizedLCA::d_t)>
-         Fn) {
-  return std::make_shared<LambdaFlow<IDEGeneralizedLCA::d_t>>(Fn);
+template <typename Fn, typename = std::enable_if_t<
+                           std::is_invocable_v<Fn, IDEGeneralizedLCA::d_t>>>
+inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>> flow(Fn fn) {
+  return makeLambdaFlow<IDEGeneralizedLCA::d_t>(std::forward<Fn>(fn));
 }
 
 IDEGeneralizedLCA::IDEGeneralizedLCA(
@@ -214,34 +214,32 @@ IDEGeneralizedLCA::getSummaryFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
   return nullptr;
 }
 
-std::map<IDEGeneralizedLCA::n_t, std::set<IDEGeneralizedLCA::d_t>>
+InitialSeeds<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
+             IDEGeneralizedLCA::l_t>
 IDEGeneralizedLCA::initialSeeds() {
-  std::map<IDEGeneralizedLCA::n_t, std::set<IDEGeneralizedLCA::d_t>> SeedMap;
+  InitialSeeds<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
+               IDEGeneralizedLCA::l_t>
+      Seeds;
   // For now, out only entrypoint is main:
   std::vector<std::string> EntryPoints = {"main"};
   for (auto &EntryPoint : EntryPoints) {
     std::set<IDEGeneralizedLCA::d_t> Globals;
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue(), bottomElement());
     for (const auto &G :
          IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer()) {
           if (llvm::isa<llvm::ConstantInt>(GV->getInitializer()) ||
-              llvm::isa<llvm::ConstantDataArray>(GV->getInitializer()))
-            Globals.insert(GV);
+              llvm::isa<llvm::ConstantDataArray>(GV->getInitializer())) {
+            Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), GV,
+                          bottomElement());
+          }
         }
       }
     }
-
-    Globals.insert(ZeroValue);
-    if (!Globals.empty()) {
-      SeedMap.insert(std::make_pair(
-          &ICF->getFunction(EntryPoint)->front().front(), Globals));
-    }
   }
-  // SeedMap.insert(
-  //    make_pair(&icfg.getMethod("main")->front().front(),
-  //              set<IDEGeneralizedLCA::d_t>({zeroValue()})));
-  return SeedMap;
+  return Seeds;
 }
 
 IDEGeneralizedLCA::d_t IDEGeneralizedLCA::createZeroValue() const {

@@ -236,28 +236,27 @@ IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallSite,
   }
 }
 
-map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>>
+InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
+             IFDSTaintAnalysis::l_t>
 IFDSTaintAnalysis::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
-  map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> SeedMap;
+  InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
+               IFDSTaintAnalysis::l_t>
+      Seeds;
   for (const auto &EntryPoint : EntryPoints) {
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue());
     if (EntryPoint == "main") {
       set<IFDSTaintAnalysis::d_t> CmdArgs;
       for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
-        CmdArgs.insert(&Arg);
+        Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg);
       }
-      CmdArgs.insert(getZeroValue());
-      SeedMap.insert(
-          make_pair(&ICF->getFunction(EntryPoint)->front().front(), CmdArgs));
-    } else {
-      SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                               set<IFDSTaintAnalysis::d_t>({getZeroValue()})));
     }
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {

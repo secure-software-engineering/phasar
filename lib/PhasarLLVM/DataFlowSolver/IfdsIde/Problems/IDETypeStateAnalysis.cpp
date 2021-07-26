@@ -87,7 +87,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return make_shared<LambdaFlow<d_t>>([=](d_t Source) -> set<d_t> {
+      return makeLambdaFlow<d_t>([=](d_t Source) -> set<d_t> {
         // if (Source == Gep->getPointerOperand()) {
         //  return {Source, Gep};
         //}
@@ -308,15 +308,18 @@ IDETypeStateAnalysis::getSummaryFlowFunction(
   return nullptr;
 }
 
-map<IDETypeStateAnalysis::n_t, set<IDETypeStateAnalysis::d_t>>
+InitialSeeds<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+             IDETypeStateAnalysis::l_t>
 IDETypeStateAnalysis::initialSeeds() {
   // just start in main()
-  map<IDETypeStateAnalysis::n_t, set<IDETypeStateAnalysis::d_t>> SeedMap;
+  InitialSeeds<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+               IDETypeStateAnalysis::l_t>
+      Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                             set<IDETypeStateAnalysis::d_t>({getZeroValue()})));
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue(), bottomElement());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() const {

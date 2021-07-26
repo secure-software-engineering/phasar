@@ -39,6 +39,8 @@ target_link_libraries(phasar-clang
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
   # ${CLANG_LIBRARY}
+  LINK_PRIVATE
+  ${PHASAR_STD_FILESYSTEM}
 )
 
 set(LLVM_LINK_COMPONENTS

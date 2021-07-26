@@ -45,7 +45,7 @@ struct HasNoConfigurationType;
  * taint-sensitive source and sink functions.
  */
 class IFDSTaintAnalysis
-    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault> {
+    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 private:
   const TaintConfiguration<const llvm::Value *> &SourceSinkFunctions;
 
@@ -82,7 +82,7 @@ public:
   FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                              f_t destFun) override;
 
-  std::map<n_t, std::set<d_t>> initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   d_t createZeroValue() const override;
 
