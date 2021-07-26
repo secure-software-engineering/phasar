@@ -1,3 +1,4 @@
+set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_BIN}")
 add_subdirectory(PhasarLLVM)
 add_subdirectory(PhasarPass)
 add_subdirectory(PhasarClang)

@@ -17,6 +17,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
+
+if(NOT CLANG_TIDY_BIN)
+  find_program(CLANG_TIDY_BIN clang-tidy)
+endif()
+
+if(NOT CLANG_TIDY_BIN)
+  message(FATAL_ERROR "clang-tidy is not installed. Aborting...")
+else()
+  message(STATUS "clang-tidy has been found: ${CLANG_TIDY_BIN}")
+endif()
+
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()

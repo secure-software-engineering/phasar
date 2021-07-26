@@ -1,3 +1,4 @@
+set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_BIN}")
 add_custom_target(PhasarUnitTests)
 set_target_properties(PhasarUnitTests PROPERTIES FOLDER "Unittests")
 add_dependencies(PhasarUnitTests LLFileGeneration)
