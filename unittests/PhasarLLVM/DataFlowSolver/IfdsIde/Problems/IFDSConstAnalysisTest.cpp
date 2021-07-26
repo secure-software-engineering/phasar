@@ -363,6 +363,10 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
+  // If we use libcxx this won't work since internal implementation is different
+  #ifdef _LIBCPP_VERSION
+  GTEST_SKIP();
+  #endif
   initialize({PathToLlFiles + "array/stl_array/stl_array_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
