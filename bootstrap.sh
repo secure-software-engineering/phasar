@@ -9,7 +9,7 @@ readonly LLVM_INSTALL_DIR="/usr/local/llvm-12"
 
 NUM_THREADS=$(nproc)
 LLVM_RELEASE=llvmorg-12.0.0
-DO_UNIT_TEST=false
+DO_UNIT_TEST=true
 
 
 # Parsing command-line-parameters
