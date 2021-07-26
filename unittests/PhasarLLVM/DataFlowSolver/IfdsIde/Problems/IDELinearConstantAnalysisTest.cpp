@@ -782,20 +782,18 @@ TEST_F(IDELinearConstantAnalysisTest, HandleDivOverflowForMinIntDivByOne) {
 /* ============== ERROR TESTS ============== */
 
 TEST_F(IDELinearConstantAnalysisTest, HandleDivisionByZero) {
-  auto Results = doAnalysis("ub_division_by_zero.ll");
+  auto Results = doAnalysis("ub_division_by_zero_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-
-  // TODO: philipp encode
-
+  GroundTruth.emplace("main", 4, "i", 42);
+  GroundTruth.emplace("main", 4, "j", IDELinearConstantAnalysis::TOP);
   compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleModuloByZero) {
-  auto Results = doAnalysis("ub_modulo_by_zero.ll");
+  auto Results = doAnalysis("ub_modulo_by_zero_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-
-  // TODO: philipp encode
-
+  GroundTruth.emplace("main", 4, "i", 42);
+  GroundTruth.emplace("main", 4, "j", IDELinearConstantAnalysis::TOP);
   compareResults(Results, GroundTruth);
 }
 
