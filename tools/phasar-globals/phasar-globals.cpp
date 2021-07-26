@@ -233,10 +233,12 @@ int main(int Argc, char **Argv) {
   }
   ResultsJson["#required-globals-generation"] = GenGlobals.size();
   // Check effects of global ctors on global integer variables
-  const auto *Main = IR.getFunctionDefinition("main");
   ssize_t NumNonTopValuesAtStart = -1;
   ssize_t NumNonTopValuesAtEnd = -1;
+  const auto *Main = IR.getFunctionDefinition("main");
   if (Main) {
+    NumNonTopValuesAtStart = 0;
+    NumNonTopValuesAtEnd = 0;
     const auto *FirstMainInst = &Main->front().front();
     const auto *LastMainInst = &Main->back().back();
     for (const auto *GenGlobal : GenGlobals) {

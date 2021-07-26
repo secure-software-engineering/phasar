@@ -797,26 +797,6 @@ TEST_F(IDELinearConstantAnalysisTest, HandleModuloByZero) {
   compareResults(Results, GroundTruth);
 }
 
-/* ============== ERROR TESTS ============== */
-
-TEST_F(IDELinearConstantAnalysisTest, HandleDivisionByZero) {
-  auto Results = doAnalysis("ub_division_by_zero.ll");
-  std::set<LCACompactResult_t> GroundTruth;
-
-  // TODO: philipp encode
-
-  compareResults(Results, GroundTruth);
-}
-
-TEST_F(IDELinearConstantAnalysisTest, HandleModuloByZero) {
-  auto Results = doAnalysis("ub_modulo_by_zero.ll");
-  std::set<LCACompactResult_t> GroundTruth;
-
-  // TODO: philipp encode
-
-  compareResults(Results, GroundTruth);
-}
-
 // main function for the test case
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
