@@ -744,6 +744,44 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_16) {
   compareResults(Results, GroundTruth);
 }
 
+/* ============== OVERFLOW TESTS ============== */
+
+TEST_F(IDELinearConstantAnalysisTest, HandleAddOverflow) {
+  auto Results = doAnalysis("overflow_add.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+
+  // TODO: philipp encode
+
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleSubOverflow) {
+  auto Results = doAnalysis("overflow_sub.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+
+  // TODO: philipp encode
+
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleMulOverflow) {
+  auto Results = doAnalysis("overflow_mul.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+
+  // TODO: philipp encode
+
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleDivOverflowForMinIntDivByOne) {
+  auto Results = doAnalysis("overflow_div_min_by_neg_one.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+
+  // TODO: philipp encode
+
+  compareResults(Results, GroundTruth);
+}
+
 // main function for the test case
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
