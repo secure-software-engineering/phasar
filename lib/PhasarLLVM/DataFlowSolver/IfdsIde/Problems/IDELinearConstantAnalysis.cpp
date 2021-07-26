@@ -957,18 +957,7 @@ IDELinearConstantAnalysis::getLCAResults(
 }
 
 void IDELinearConstantAnalysis::LCAResult::print(std::ostream &OS) {
-  OS << "Line " << line_nr << ": " << src_code << '\n';
-  OS << "Var(s): ";
-  for (auto It = variableToValue.begin(); It != variableToValue.end(); ++It) {
-    if (It != variableToValue.begin()) {
-      OS << ", ";
-    }
-    OS << It->first << " = " << It->second;
-  }
-  OS << "\nCorresponding IR Instructions:\n";
-  for (const auto *Ir : ir_trace) {
-    OS << "  " << llvmIRToString(Ir) << '\n';
-  }
+  OS << this;
 }
 
 } // namespace psr
