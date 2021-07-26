@@ -9,10 +9,12 @@
 
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H_
+
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 
