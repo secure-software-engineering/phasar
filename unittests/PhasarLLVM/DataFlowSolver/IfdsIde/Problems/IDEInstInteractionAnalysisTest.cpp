@@ -247,6 +247,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+  // If we use libcxx this won't work since internal implementation is different
+  #ifdef _LIBCPP_VERSION
+  GTEST_SKIP();
+  #endif
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
@@ -544,6 +548,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
+  // If we use libcxx this won't work since internal implementation is different
+  #ifdef _LIBCPP_VERSION
+  GTEST_SKIP();
+  #endif
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
