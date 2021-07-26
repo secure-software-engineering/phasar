@@ -341,7 +341,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_01) {
   GroundTruth.emplace("main", 7, "i", 42);
   GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["_Z3fooi"].find(3) == Results["_Z3fooi"].end());
+  EXPECT_EQ(Results["_Z3fooi"].find(4),  Results["_Z3fooi"].end());
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_02) {
