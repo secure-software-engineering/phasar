@@ -771,11 +771,17 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
                      // not representable in a signed type.
       return TOP;
     }
+    if (Rop == 0) { // Division by zero is UB, so we return TOP
+      return TOP;
+    }
     Res = Lop / Rop;
     break;
 
   case llvm::Instruction::URem:
   case llvm::Instruction::SRem:
+    if (Rop == 0) { // Division by zero is UB, so we return TOP
+      return TOP;
+    }
     Res = Lop % Rop;
     break;
 
