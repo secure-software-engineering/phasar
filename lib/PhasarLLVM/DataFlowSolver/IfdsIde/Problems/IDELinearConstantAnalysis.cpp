@@ -743,10 +743,6 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned Op, IDELinearConstantAnalysis::l_t Lop,
     IDELinearConstantAnalysis::l_t Rop) {
 
-  if (Rop == TOP || Lop == TOP) {
-    return TOP;
-  }
-
   // default initialize with BOTTOM (all information)
   IDELinearConstantAnalysis::l_t Res = BOTTOM;
   switch (Op) {
@@ -770,6 +766,11 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
 
   case llvm::Instruction::UDiv:
   case llvm::Instruction::SDiv:
+    if (Lop == std::numeric_limits<IDELinearConstantAnalysis::l_t>::min() &&
+        Rop == -1) { // Would produce and overflow, as the complement of min is
+                     // not representable in a signed type.
+      return TOP;
+    }
     Res = Lop / Rop;
     break;
 
