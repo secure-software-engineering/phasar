@@ -745,6 +745,11 @@ bool IDELinearConstantAnalysis::isEntryPoint(
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned Op, IDELinearConstantAnalysis::l_t Lop,
     IDELinearConstantAnalysis::l_t Rop) {
+
+  if (Rop == TOP || Lop == TOP) {
+    return TOP;
+  }
+
   // default initialize with BOTTOM (all information)
   IDELinearConstantAnalysis::l_t Res = BOTTOM;
   switch (Op) {
