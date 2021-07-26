@@ -46,7 +46,8 @@ protected:
     LCASolver.solve();
     if (emitESG) {
       boost::log::core::get()->set_logging_enabled(true);
-      LCASolver.emitESGAsDot(std::cout, "");
+      const std::string PhasarRootPath = "./";
+      LCASolver.emitESGAsDot(std::cout, PhasarRootPath);
       boost::log::core::get()->set_logging_enabled(false);
     }
     if (PrintDump) {
@@ -335,7 +336,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_01) {
   GroundTruth.emplace("main", 7, "i", 42);
   GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["_Z3fooi"].find(3) == Results["_Z3fooi"].end());
+  EXPECT_TRUE(Results["_Z3fooi"].find(4) == Results["_Z3fooi"].end());
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_02) {

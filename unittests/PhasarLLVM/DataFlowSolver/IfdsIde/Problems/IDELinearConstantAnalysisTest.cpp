@@ -341,7 +341,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_01) {
   GroundTruth.emplace("main", 7, "i", 42);
   GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["_Z3fooi"].find(3) == Results["_Z3fooi"].end());
+  EXPECT_EQ(Results["_Z3fooi"].find(4), Results["_Z3fooi"].end());
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_02) {
@@ -747,38 +747,53 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_16) {
 /* ============== OVERFLOW TESTS ============== */
 
 TEST_F(IDELinearConstantAnalysisTest, HandleAddOverflow) {
-  auto Results = doAnalysis("overflow_add.ll");
+  auto Results = doAnalysis("overflow_add_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-
-  // TODO: philipp encode
-
+  GroundTruth.emplace("main", 6, "i", 9223372036854775806);
+  GroundTruth.emplace("main", 6, "j", IDELinearConstantAnalysis::TOP);
   compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleSubOverflow) {
-  auto Results = doAnalysis("overflow_sub.ll");
+  auto Results = doAnalysis("overflow_sub_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-
-  // TODO: philipp encode
-
+  GroundTruth.emplace("main", 6, "i", -9223372036854775807);
+  GroundTruth.emplace("main", 6, "j", IDELinearConstantAnalysis::TOP);
   compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleMulOverflow) {
-  auto Results = doAnalysis("overflow_mul.ll");
+  auto Results = doAnalysis("overflow_mul_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-
-  // TODO: philipp encode
-
+  GroundTruth.emplace("main", 6, "i", 9223372036854775806);
+  GroundTruth.emplace("main", 6, "j", IDELinearConstantAnalysis::TOP);
   compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleDivOverflowForMinIntDivByOne) {
-  auto Results = doAnalysis("overflow_div_min_by_neg_one.ll");
+  auto Results = doAnalysis("overflow_div_min_by_neg_one_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("main", 6, "i", -9223372036854775807);
+  GroundTruth.emplace("main", 6, "j", IDELinearConstantAnalysis::TOP);
+  GroundTruth.emplace("main", 6, "k", IDELinearConstantAnalysis::TOP);
+  compareResults(Results, GroundTruth);
+}
 
-  // TODO: philipp encode
+/* ============== ERROR TESTS ============== */
 
+TEST_F(IDELinearConstantAnalysisTest, HandleDivisionByZero) {
+  auto Results = doAnalysis("ub_division_by_zero_cpp_dbg.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("main", 4, "i", 42);
+  GroundTruth.emplace("main", 4, "j", IDELinearConstantAnalysis::TOP);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleModuloByZero) {
+  auto Results = doAnalysis("ub_modulo_by_zero_cpp_dbg.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("main", 4, "i", 42);
+  GroundTruth.emplace("main", 4, "j", IDELinearConstantAnalysis::TOP);
   compareResults(Results, GroundTruth);
 }
 

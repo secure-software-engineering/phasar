@@ -44,11 +44,11 @@ list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
 
 include("phasar_macros")
 
-option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
+option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
-option(PHASAR_BUILD_IR "Build IR test code (default is OFF)" OFF)
+option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
