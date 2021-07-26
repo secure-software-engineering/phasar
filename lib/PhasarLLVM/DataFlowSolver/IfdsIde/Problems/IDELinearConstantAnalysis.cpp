@@ -20,6 +20,7 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/MathExtras.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -745,15 +746,21 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
   IDELinearConstantAnalysis::l_t Res = BOTTOM;
   switch (Op) {
   case llvm::Instruction::Add:
-    Res = Lop + Rop;
+    if (llvm::AddOverflow(Lop, Rop, Res)) {
+      Res = TOP;
+    }
     break;
 
   case llvm::Instruction::Sub:
-    Res = Lop - Rop;
+    if (llvm::SubOverflow(Lop, Rop, Res)) {
+      Res = TOP;
+    }
     break;
 
   case llvm::Instruction::Mul:
-    Res = Lop * Rop;
+    if (llvm::MulOverflow(Lop, Rop, Res)) {
+      Res = TOP;
+    }
     break;
 
   case llvm::Instruction::UDiv:
