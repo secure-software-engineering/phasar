@@ -865,17 +865,17 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
   auto callUEntry = [&](llvm::Function *UEntry) {
     switch (UEntry->arg_size()) {
     case 0:
-      IRB.CreateCall(UEntry);
+      if (UEntry->getName() == "main") {
+        IRB.CreateCall(UEntry);
+      }
       break;
     case 2:
       if (UEntry->getName() == "main") {
         IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
         break;
       }
-      IRB.CreateCall(UEntry);
       break;
     default:
-      IRB.CreateCall(UEntry);
       break;
     }
 

@@ -192,6 +192,9 @@ int main(int Argc, char **Argv) {
   if (GlobalCRuntimeModel) {
     GlobalCRuntimeModelEntry.insert(
         psr::LLVMBasedICFG::GlobalCRuntimeModelName.str());
+    if (!IR.getFunctionDefinition("main")) {
+      GlobalCRuntimeModelEntry.insert(EntryPoints.begin(), EntryPoints.end());
+    }
   }
 
   psr::IDELinearConstantAnalysis Lca(
