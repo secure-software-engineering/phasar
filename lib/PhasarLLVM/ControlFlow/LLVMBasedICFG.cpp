@@ -868,17 +868,14 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
       IRB.CreateCall(UEntry);
       break;
     case 2:
-      if (UEntry->getName() != "main") {
-        // std::cerr << "ERROR: The only entrypoint, where parameters are "
-        //              "supported, is main\n";
+      if (UEntry->getName() == "main") {
+        IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
         break;
       }
-
-      IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
+      IRB.CreateCall(UEntry);
       break;
     default:
-      // std::cerr << "ERROR: Entrypoints with parameters are not supported, "
-      //              "except for argc and argv in main\n";
+      IRB.CreateCall(UEntry);
       break;
     }
 
