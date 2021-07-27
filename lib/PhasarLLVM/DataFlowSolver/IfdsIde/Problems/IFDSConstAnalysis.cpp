@@ -27,6 +27,7 @@
 
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/LLVMCXXShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
@@ -55,37 +56,10 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     // If the store instruction sets up or updates the vtable, i.e. value
     // operand is vtable pointer, ignore it!
-    // Setting up the vtable is counted towards the initialization of an
-    // object - the object stays immutable.
-    // To identifiy such a store instruction, we need to check the stored
-    // value, which is of i32 (...)** type, e.g.
-    //   i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]*
-    //                           @_ZTV5Child, i32 0, i32 2) to i32 (...)**)
-    //
-    // WARNING: The VTT could also be stored, which would make this analysis
-    // fail
-    if (const auto *CE =
-            llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
-      // llvm::ConstantExpr *CE = const_cast<llvm::ConstantExpr *>(ConstCE);
-      std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> CEInst(
-          CE->getAsInstruction(), &deleteValue);
-      if (auto *CF =
-              llvm::dyn_cast<llvm::ConstantExpr>(CEInst->getOperand(0))) {
-        std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> CFInst(
-            CF->getAsInstruction(), &deleteValue);
-        if (auto *VTable =
-                llvm::dyn_cast<llvm::GlobalVariable>(CFInst->getOperand(0))) {
-          if (VTable->hasName() &&
-              llvm::demangle(VTable->getName().str()).find("vtable") !=
-                  string::npos) {
-            LOG_IF_ENABLE(
-                BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Store Instruction sets up or updates vtable - ignored!");
-            return Identity<IFDSConstAnalysis::d_t>::getInstance();
-          }
-        }
-      }
-    } /* end vtable set-up instruction */
+    if (isTouchVTableInst(Store)) {
+      return Identity<IFDSConstAnalysis::d_t>::getInstance();
+    }
+
     IFDSConstAnalysis::d_t PointerOp = Store->getPointerOperand();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Pointer operand of store Instruction: "
