@@ -215,32 +215,35 @@ IDELinearConstantAnalysis::getRetFlowFunction(
   if (CallSite->getType()->isIntegerTy()) {
     const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
     auto *ReturnValue = Return->getReturnValue();
-    struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
-      IDELinearConstantAnalysis::n_t CallSite;
-      IDELinearConstantAnalysis::d_t ReturnValue;
-      LCAFF(IDELinearConstantAnalysis::n_t CS,
-            IDELinearConstantAnalysis::d_t RetVal)
-          : CallSite(CS), ReturnValue(RetVal) {}
-      set<IDELinearConstantAnalysis::d_t>
-      computeTargets(IDELinearConstantAnalysis::d_t Source) override {
-        set<IDELinearConstantAnalysis::d_t> Res;
-        // Collect return value fact
-        if (Source == ReturnValue) {
-          Res.insert(CallSite);
+
+    if (ReturnValue) {
+      struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
+        IDELinearConstantAnalysis::n_t CallSite;
+        IDELinearConstantAnalysis::d_t ReturnValue;
+        LCAFF(IDELinearConstantAnalysis::n_t CS,
+              IDELinearConstantAnalysis::d_t RetVal)
+            : CallSite(CS), ReturnValue(RetVal) {}
+        set<IDELinearConstantAnalysis::d_t>
+        computeTargets(IDELinearConstantAnalysis::d_t Source) override {
+          set<IDELinearConstantAnalysis::d_t> Res;
+          // Collect return value fact
+          if (Source == ReturnValue) {
+            Res.insert(CallSite);
+          }
+          // Return value is integer literal
+          if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
+              llvm::isa<llvm::ConstantInt>(ReturnValue)) {
+            Res.insert(CallSite);
+          }
+          if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
+              llvm::isa<llvm::GlobalVariable>(Source)) {
+            Res.insert(Source);
+          }
+          return Res;
         }
-        // Return value is integer literal
-        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
-            llvm::isa<llvm::ConstantInt>(ReturnValue)) {
-          Res.insert(CallSite);
-        }
-        if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
-            llvm::isa<llvm::GlobalVariable>(Source)) {
-          Res.insert(Source);
-        }
-        return Res;
-      }
-    };
-    return make_shared<LCAFF>(CallSite, ReturnValue);
+      };
+      return make_shared<LCAFF>(CallSite, ReturnValue);
+    }
   }
   // All other facts except GlobalVariables are killed at this point
   return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
