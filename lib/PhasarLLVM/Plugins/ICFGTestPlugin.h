@@ -116,9 +116,9 @@ protected:
 
   void collectGlobalDtors() override;
 
-  void collectGlobalInitializers() override;
+  void collectGlobalInitializers() override {}
 
-  void collectRegisteredDtors() override;
+  void collectRegisteredDtors() override {}
 };
 
 extern "C" std::unique_ptr<ICFGPlugin>
