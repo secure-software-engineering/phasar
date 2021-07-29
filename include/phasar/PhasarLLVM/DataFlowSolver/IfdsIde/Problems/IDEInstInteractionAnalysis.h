@@ -158,7 +158,7 @@ public:
     //
     static auto Seeds = this->initialSeeds();
     static bool initGlobals = true;
-    if (initGlobals && Seeds.count(curr)) {
+    if (initGlobals && Seeds.countInitialSeeds(curr)) {
       initGlobals = false;
       std::set<d_t> Globals;
       for (const auto *Mod : this->IRDB->getAllModules()) {
@@ -608,16 +608,15 @@ public:
     return nullptr;
   }
 
-  inline std::map<n_t, container_type> initialSeeds() override {
-    std::map<n_t, container_type> SeedMap;
+  inline InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+    InitialSeeds<n_t, d_t, l_t> Seeds;
     for (const auto &EntryPoint : this->EntryPoints) {
       for (const auto *StartPoint :
            this->ICF->getStartPointsOf(this->ICF->getFunction(EntryPoint))) {
-        SeedMap.insert(
-            std::make_pair(StartPoint, container_type({this->getZeroValue()})));
+        Seeds.addSeed(StartPoint, this->getZeroValue(), this->bottomElement());
       }
     }
-    return SeedMap;
+    return Seeds;
   }
 
   [[nodiscard]] inline d_t createZeroValue() const override {
@@ -698,7 +697,8 @@ public:
       }
       return Globals;
     }();
-    if (Seeds.count(curr) && isZeroValue(currNode) && Globals.count(succNode)) {
+    if (Seeds.countInitialSeeds(curr) && isZeroValue(currNode) &&
+        Globals.count(succNode)) {
       if (const auto *GlobalVarDef =
               llvm::dyn_cast<llvm::GlobalVariable>(succNode)) {
         EdgeFacts = edgeFactGen(GlobalVarDef);

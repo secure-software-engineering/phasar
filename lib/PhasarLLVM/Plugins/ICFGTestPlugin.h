@@ -56,10 +56,6 @@ public:
 
   std::set<n_t> getExitPointsOf(f_t Fun) const override;
 
-  std::vector<f_t> getGlobalCtors() const override;
-
-  std::vector<f_t> getGlobalDtors() const override;
-
   bool isCallSite(n_t Inst) const override;
 
   bool isExitInst(n_t Inst) const override;
@@ -114,6 +110,15 @@ public:
   void print(std::ostream &OS = std::cout) const override;
 
   nlohmann::json getAsJson() const override;
+
+protected:
+  void collectGlobalCtors() override;
+
+  void collectGlobalDtors() override;
+
+  void collectGlobalInitializers() override;
+
+  void collectRegisteredDtors() override;
 };
 
 extern "C" std::unique_ptr<ICFGPlugin>

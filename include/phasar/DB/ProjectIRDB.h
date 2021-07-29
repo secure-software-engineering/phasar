@@ -71,6 +71,11 @@ private:
 
   void preprocessAllModules();
 
+  [[nodiscard]] llvm::Function *
+  internalGetFunction(llvm::StringRef FunctionName) const;
+  [[nodiscard]] llvm::Function *
+  internalGetFunctionDefinition(llvm::StringRef FunctionName) const;
+
 public:
   /// Constructs an empty ProjectIRDB
   ProjectIRDB(IRDBOptions Options);
@@ -117,10 +122,13 @@ public:
   [[nodiscard]] std::set<const llvm::Function *> getAllFunctions() const;
 
   [[nodiscard]] const llvm::Function *
-  getFunctionDefinition(const std::string &FunctionName) const;
+  getFunctionDefinition(llvm::StringRef FunctionName) const;
+  [[nodiscard]] llvm::Function *
+  getFunctionDefinition(llvm::StringRef FunctionName);
 
   [[nodiscard]] const llvm::Function *
-  getFunction(const std::string &FunctionName) const;
+  getFunction(llvm::StringRef FunctionName) const;
+  [[nodiscard]] llvm::Function *getFunction(llvm::StringRef FunctionName);
 
   [[nodiscard]] const llvm::GlobalVariable *
   getGlobalVariableDefinition(const std::string &GlobalVariableName) const;

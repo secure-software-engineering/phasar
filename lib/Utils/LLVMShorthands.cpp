@@ -58,8 +58,8 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {
       return true;
-    } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
-      const auto *CallSite = llvm::cast<llvm::CallBase>(V);
+    }
+    if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(V)) {
       return CallSite->getCalledFunction() != nullptr &&
              HeapAllocationFunctions.count(
                  CallSite->getCalledFunction()->getName().str());
@@ -227,28 +227,16 @@ bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
-  int ArgNr = 0;
-  for (const auto &A : Arg->getParent()->args()) {
-    if (&A == Arg) {
-      return ArgNr;
-    }
-    ++ArgNr;
-  }
-  return -1;
+  return int(Arg->getArgNo());
 }
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned ArgNo) {
-  if (ArgNo < F->arg_size()) {
-    unsigned Current = 0;
-    for (const auto &A : F->args()) {
-      if (ArgNo == Current) {
-        return &A;
-      }
-      ++Current;
-    }
+  if (ArgNo >= F->arg_size()) {
+    return nullptr;
   }
-  return nullptr;
+
+  return F->getArg(ArgNo);
 }
 
 const llvm::Instruction *getLastInstructionOf(const llvm::Function *F) {
@@ -262,12 +250,36 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
     for (const auto &I : BB) {
       if (Current == Idx) {
         return &I;
-      } else {
-        ++Current;
       }
+
+      ++Current;
     }
   }
   return nullptr;
+}
+
+std::vector<const llvm::Instruction *>
+getAllExitPoints(const llvm::Function *F) {
+  std::vector<const llvm::Instruction *> ret;
+  appendAllExitPoints(F, ret);
+  return ret;
+}
+
+void appendAllExitPoints(const llvm::Function *F,
+                         std::vector<const llvm::Instruction *> &ExitPoints) {
+  if (!F) {
+    return;
+  }
+
+  for (const auto &BB : *F) {
+    const auto *term = BB.getTerminator();
+    assert(term && "Invalid IR: Each BasicBlock must have a terminator "
+                   "instruction at the end");
+    if (llvm::isa<llvm::ReturnInst>(term) ||
+        llvm::isa<llvm::ResumeInst>(term)) {
+      ExitPoints.push_back(term);
+    }
+  }
 }
 
 const llvm::Module *getModuleFromVal(const llvm::Value *V) {
@@ -359,6 +371,47 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
   return nullptr;
 }
 
+bool isGuardVariable(const llvm::Value *V) {
+  if (const auto *ConstBitcast = llvm::dyn_cast<llvm::ConstantExpr>(V);
+      ConstBitcast && ConstBitcast->isCast()) {
+    V = ConstBitcast->getOperand(0);
+  }
+  if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    // ZGV is the encoding of "GuardVariable"
+    return GV->getName().startswith("_ZGV");
+  }
+  return false;
+}
+
+bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst) {
+  if (Inst->isUnconditional()) {
+    return false;
+  }
+
+  auto *Condition = Inst->getCondition();
+
+  if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
+      Cmp && llvm::ICmpInst::isEquality(Cmp->getPredicate())) {
+    for (auto *Op : Cmp->operand_values()) {
+      if (auto *Load = llvm::dyn_cast<llvm::LoadInst>(Op);
+          Load && Load->isAtomic()) {
+
+        if (isGuardVariable(Load->getPointerOperand())) {
+          return true;
+        }
+      } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
+        auto *CalledFunction = Call->getCalledFunction();
+        if (CalledFunction &&
+            CalledFunction->getName() == "__cxa_guard_acquire") {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 bool isVarAnnotationIntrinsic(const llvm::Function *F) {
   static const llvm::StringRef kVarAnnotationName("llvm.var.annotation");
   return F->getName() == kVarAnnotationName;
@@ -371,31 +424,17 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   assert(ce != nullptr);
   assert(ce->getOpcode() == llvm::Instruction::GetElementPtr);
   assert(llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0)) != nullptr);
+
   auto *annoteStr = llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
   assert(llvm::dyn_cast<llvm::ConstantDataSequential>(
       annoteStr->getInitializer()));
+
   auto *data =
       llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer());
-  assert(data->isString());
-  return data->getAsString();
-}
 
-llvm::SmallVector<const llvm::Instruction *, 4>
-getAllExitStatements(const llvm::Function *F) {
-  llvm::SmallVector<const llvm::Instruction *, 4> ret;
-
-  if (!F || F->isDeclaration()) {
-    return ret;
-  }
-
-  for (auto it = llvm::inst_begin(F), end = llvm::inst_end(F); it != end;
-       ++it) {
-    if (llvm::isa<llvm::ReturnInst>(&*it) ||
-        llvm::isa<llvm::ResumeInst>(&*it)) {
-      ret.push_back(&*it);
-    }
-  }
-  return ret;
+  // getAsCString to get rid of the null-terminator
+  assert(data->isCString());
+  return data->getAsCString();
 }
 
 } // namespace psr

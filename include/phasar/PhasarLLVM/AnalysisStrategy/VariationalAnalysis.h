@@ -20,8 +20,9 @@ namespace psr {
 template <typename Solver, typename ProblemDescription,
           typename Setup = psr::DefaultAnalysisSetup>
 class VariationalAnalysis {
-  static_assert(std::is_base_of_v<Solver::ProblemType, ProblemDescription>,
-                "ProblemDesciption does not match SolverType");
+  static_assert(
+      std::is_base_of_v<typename Solver::ProblemType, ProblemDescription>,
+      "ProblemDesciption does not match SolverType");
 
 private:
 public:

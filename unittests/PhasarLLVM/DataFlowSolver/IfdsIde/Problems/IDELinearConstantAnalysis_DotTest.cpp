@@ -46,7 +46,8 @@ protected:
     LCASolver.solve();
     if (emitESG) {
       boost::log::core::get()->set_logging_enabled(true);
-      LCASolver.emitESGAsDot(std::cout, "");
+      const std::string PhasarRootPath = "./";
+      LCASolver.emitESGAsDot(std::cout, PhasarRootPath);
       boost::log::core::get()->set_logging_enabled(false);
     }
     if (PrintDump) {
@@ -84,7 +85,7 @@ protected:
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
-  auto Results = doAnalysis("basic_01_cpp_dbg.ll", false, true);
+  auto Results = doAnalysis("basic_01_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 13);
   GroundTruth.emplace("main", 3, "i", 13);
@@ -335,7 +336,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_01) {
   GroundTruth.emplace("main", 7, "i", 42);
   GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["_Z3fooi"].find(3) == Results["_Z3fooi"].end());
+  EXPECT_TRUE(Results["_Z3fooi"].find(4) == Results["_Z3fooi"].end());
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_02) {
@@ -499,12 +500,15 @@ TEST_F(IDELinearConstantAnalysisTest, HandleRecursionTest_03) {
 TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_01) {
   auto Results = doAnalysis("global_01_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("main", 6, "g1", 42);
+  GroundTruth.emplace("main", 6, "g1", 10);
   GroundTruth.emplace("main", 6, "g2", 1);
+  GroundTruth.emplace("main", 6, "i", 666);
   GroundTruth.emplace("main", 7, "g1", 42);
-  GroundTruth.emplace("main", 7, "g2", 42);
+  GroundTruth.emplace("main", 7, "g2", 1);
+  GroundTruth.emplace("main", 7, "i", 666);
   GroundTruth.emplace("main", 8, "g1", 42);
   GroundTruth.emplace("main", 8, "g2", 42);
+  GroundTruth.emplace("main", 8, "i", 666);
   compareResults(Results, GroundTruth);
 }
 

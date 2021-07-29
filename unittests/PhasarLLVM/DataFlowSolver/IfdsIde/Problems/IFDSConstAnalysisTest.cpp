@@ -185,7 +185,7 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
   initialize({PathToLlFiles + "global/global_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
-  compareResults({0, 2}, Llvmconstsolver);
+  compareResults({0, 1, 2}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleGlobalTest_04) {
@@ -359,14 +359,18 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_02_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
-  compareResults({1}, Llvmconstsolver);
+  compareResults({0, 1}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
+// If we use libcxx this won't work since internal implementation is different
+#ifdef _LIBCPP_VERSION
+  GTEST_SKIP();
+#endif
   initialize({PathToLlFiles + "array/stl_array/stl_array_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
-  compareResults({2}, Llvmconstsolver);
+  compareResults({0, 1, 2}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleSTLArrayTest_04) {

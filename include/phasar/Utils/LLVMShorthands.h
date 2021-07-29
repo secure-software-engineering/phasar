@@ -35,6 +35,7 @@ class TerminatorInst;
 class StoreInst;
 class Module;
 class StringRef;
+class BranchInst;
 } // namespace llvm
 
 namespace psr {
@@ -163,6 +164,11 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned stoNo);
 
+std::vector<const llvm::Instruction *>
+getAllExitPoints(const llvm::Function *F);
+void appendAllExitPoints(const llvm::Function *F,
+                         std::vector<const llvm::Instruction *> &ExitPoints);
+
 /**
  * @brief Returns the LLVM Module to which the given LLVM Value belongs to.
  * @param V LLVM Value.
@@ -196,6 +202,18 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
 std::size_t computeModuleHash(const llvm::Module *M);
 
 /**
+ * @brief True, iff V is the compiler-generated guard variable for the
+ * thread-safe initialization of function-local static variables.
+ */
+bool isGuardVariable(const llvm::Value *V);
+
+/**
+ * @brief True, iff V is the compiler-generated branch that leads to the lazy
+ * initialization of a function-local static variable.
+ */
+bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
+
+/**
  * Tests for https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic
  * e.g.
  * int boo __attribute__((annotate("bar"));
@@ -210,10 +228,6 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F);
  *
  */
 llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
-
-[[nodiscard]] llvm::SmallVector<const llvm::Instruction *, 4>
-getAllExitStatements(const llvm::Function *F);
-
 } // namespace psr
 
 #endif
