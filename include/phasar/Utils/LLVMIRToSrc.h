@@ -53,7 +53,8 @@ struct SourceCodeInfo {
   std::string SourceCodeLine;
   std::string SourceCodeFilename;
   std::string SourceCodeFunctionName;
-  unsigned Line, Column;
+  unsigned Line;
+  unsigned Column;
 
   [[nodiscard]] bool empty() const noexcept;
 

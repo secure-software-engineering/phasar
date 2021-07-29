@@ -35,9 +35,8 @@ using MapTy = llvm::DenseMap<const llvm::Function *,
 
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
-  PSR_CONST_CONSTEXPR std::string pathToLLFiles = unittest::PathToLLTestFiles;
-  PSR_CONST_CONSTEXPR std::string pathToJSONFiles =
-      unittest::PathToJSONTestFiles;
+  const std::string &pathToLLFiles = unittest::PathToLLTestFiles;
+  const std::string &pathToJSONFiles = unittest::PathToJSONTestFiles;
 
   void SetUp() override {
     boost::log::core::get()->set_logging_enabled(false);
@@ -52,6 +51,20 @@ protected:
 
     return asSrcCode ? ICFG.exportICFGAsSourceCodeJson()
                      : ICFG.exportICFGAsJson();
+  }
+
+  nlohmann::json exportCFGFor(const std::string &testFile,
+                              const std::string &FunctionName,
+                              bool asSrcCode = false) {
+    ProjectIRDB IRDB({pathToLLFiles + testFile}, IRDBOptions::WPA);
+    LLVMBasedCFG CFG;
+
+    const auto *F = IRDB.getFunction(FunctionName);
+    assert(F != nullptr && "Invalid function");
+    // ASSERT_NE(nullptr, F);
+
+    return asSrcCode ? CFG.exportCFGAsSourceCodeJson(F)
+                     : CFG.exportCFGAsJson(F);
   }
 
   MapTy getAllRetSites(const LLVMBasedICFG &ICFG) {
@@ -273,6 +286,14 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGSource03) {
   // std::cerr << results.dump(4) << std::endl;
   verifySourceCodeJSON(results,
                        readJson("exceptions/exceptions_01_cpp_icfg.json"));
+}
+
+TEST_F(LLVMBasedICFGExportTest, ExportCFG01) {
+  auto results = exportCFGFor("linear_constant/branch_07_cpp_dbg.ll", "main",
+                              /*asSrcCode*/ true);
+  // std::cerr << results.dump(4) << std::endl;
+  verifySourceCodeJSON(results,
+                       readJson("linear_constant/branch_07_cpp_main_cfg.json"));
 }
 
 int main(int Argc, char **Argv) {

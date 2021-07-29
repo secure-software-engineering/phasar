@@ -314,8 +314,14 @@ public:
 
   void printAsJson(std::ostream &OS = std::cout) const;
 
+  /// Create an IR based JSON export of the whole ICFG.
+  ///
+  /// Note: The exported JSON contains a list of all edges in this ICFG
   [[nodiscard]] nlohmann::json exportICFGAsJson() const;
 
+  /// Create a JSON export of the whole ICFG similar to exportICFGAsJson()
+  /// enriched with source-code information on every edge and ignoring debug
+  /// instructions
   [[nodiscard]] nlohmann::json exportICFGAsSourceCodeJson() const;
 
   [[nodiscard]] unsigned getNumOfVertices() const;
