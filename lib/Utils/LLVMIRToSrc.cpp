@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <boost/filesystem/path.hpp>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -15,6 +14,7 @@
 
 #include "boost/algorithm/string/trim.hpp"
 #include "boost/filesystem.hpp"
+#include "boost/filesystem/path.hpp"
 
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"

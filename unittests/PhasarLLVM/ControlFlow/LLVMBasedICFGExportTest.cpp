@@ -30,10 +30,8 @@
 using namespace std;
 using namespace psr;
 
-using nlohmann::json;
-
-template <typename TKey, typename TValue>
-using MapTy = llvm::DenseMap<TKey, TValue>;
+using MapTy = llvm::DenseMap<const llvm::Function *,
+                             llvm::SmallPtrSet<const llvm::Instruction *, 2>>;
 
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
@@ -46,20 +44,18 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  json exportICFG(const std::string &testFile, bool asSrcCode = false) {
+  nlohmann::json exportICFG(const std::string &testFile,
+                            bool asSrcCode = false) {
     ProjectIRDB IRDB({pathToLLFiles + testFile}, IRDBOptions::WPA);
     LLVMTypeHierarchy TH(IRDB);
-    LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH);
+    LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
     return asSrcCode ? ICFG.exportICFGAsSourceCodeJson()
                      : ICFG.exportICFGAsJson();
   }
 
-  MapTy<const llvm::Function *, llvm::SmallPtrSet<const llvm::Instruction *, 2>>
-  getAllRetSites(const LLVMBasedICFG &ICFG) {
-    MapTy<const llvm::Function *,
-          llvm::SmallPtrSet<const llvm::Instruction *, 2>>
-        RetSitesOf;
+  MapTy getAllRetSites(const LLVMBasedICFG &ICFG) {
+    MapTy RetSitesOf;
 
     for (const auto *F : ICFG.getAllFunctions()) {
       for (const auto &Inst : llvm::instructions(F)) {
@@ -76,21 +72,22 @@ protected:
     return RetSitesOf;
   }
 
-  template <bool WithDebugOutput = false>
-  void verifyIRJson(const json &ExportedICFG,
-                    const LLVMBasedICFG &GroundTruth) {
+  void verifyIRJson(const nlohmann::json &ExportedICFG,
+                    const LLVMBasedICFG &GroundTruth,
+                    bool WithDebugOutput = false) {
     auto RetSitesOf = getAllRetSites(GroundTruth);
 
     auto expectEdge = [&](const std::string &From, const std::string &To) {
-      EXPECT_TRUE(std::any_of(ExportedICFG.begin(), ExportedICFG.end(),
-                              [&](auto &&Elem) {
-                                return Elem == json{{"from", From}, {"to", To}};
-                              }))
+      EXPECT_TRUE(std::any_of(
+          ExportedICFG.begin(), ExportedICFG.end(),
+          [&](auto &&Elem) {
+            return Elem == nlohmann::json{{"from", From}, {"to", To}};
+          }))
           << "No edge from " << From << " to " << To;
     };
 
-    auto print = [](auto &&...Args) {
-      if constexpr (WithDebugOutput) {
+    auto print = [WithDebugOutput](auto &&...Args) {
+      if (WithDebugOutput) {
         ((llvm::errs() << Args), ...);
         llvm::errs() << "\n";
       }
@@ -124,7 +121,8 @@ protected:
     }
   }
 
-  void verifySourceCodeJSON(const json &ExportedICFG, const json &GroundTruth) {
+  void verifySourceCodeJSON(const nlohmann::json &ExportedICFG,
+                            const nlohmann::json &GroundTruth) {
     ASSERT_TRUE(ExportedICFG.is_array());
 
     EXPECT_EQ(GroundTruth.size(), ExportedICFG.size());
@@ -133,7 +131,7 @@ protected:
       auto GTFrom = GTJson.at("from").get<SourceCodeInfo>();
       auto GTTo = GTJson.at("to").get<SourceCodeInfo>();
       EXPECT_TRUE(std::any_of(ExportedICFG.begin(), ExportedICFG.end(),
-                              [&](const json &ExportedInfoJson) {
+                              [&](const nlohmann::json &ExportedInfoJson) {
                                 return ExportedInfoJson.at("from")
                                            .get<SourceCodeInfo>()
                                            .equivalentWith(GTFrom) &&
@@ -145,24 +143,24 @@ protected:
     }
   }
 
-  json readJson(const std::string &jsonfileName) {
+  nlohmann::json readJson(const std::string &jsonfileName) {
     std::ifstream fIn(pathToJSONFiles + jsonfileName);
     assert(fIn.good() && "Invalid JSON file");
 
-    json J;
+    nlohmann::json J;
     fIn >> J;
 
     assert(fIn.good() && "Error reading JSON file");
     return J;
   }
 
-  template <bool WithDebugOutput = false>
-  void verifyExportICFG(const std::string &testFile) {
+  void verifyExportICFG(const std::string &testFile,
+                        bool WithDebugOutput = false) {
     ProjectIRDB IRDB({pathToLLFiles + testFile}, IRDBOptions::WPA);
     LLVMTypeHierarchy TH(IRDB);
-    LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH);
+    LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
-    verifyIRJson<WithDebugOutput>(ICFG.exportICFGAsJson(), ICFG);
+    verifyIRJson(ICFG.exportICFGAsJson(), ICFG, WithDebugOutput);
   }
 };
 
@@ -274,7 +272,7 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGSource03) {
       exportICFG("exceptions/exceptions_01_cpp_dbg.ll", /*asSrcCode*/ true);
   // std::cerr << results.dump(4) << std::endl;
   verifySourceCodeJSON(results,
-                       readJson("exceotions/exceptions_01_cpp_icfg.json"));
+                       readJson("exceptions/exceptions_01_cpp_icfg.json"));
 }
 
 int main(int Argc, char **Argv) {

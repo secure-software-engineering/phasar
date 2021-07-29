@@ -23,9 +23,12 @@
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
+#include "nlohmann/json.hpp"
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -92,36 +95,37 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
 vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
   vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
-  for (const auto &BB : *Fun) {
-    for (const auto &I : BB) {
-      if (IgnoreDbgInstructions) {
-        // Check for call to intrinsic debug function
-        if (const auto *DbgCallInst = llvm::dyn_cast<llvm::CallInst>(&I)) {
-          if (DbgCallInst->getCalledFunction() &&
-              DbgCallInst->getCalledFunction()->isIntrinsic() &&
-              (DbgCallInst->getCalledFunction()->getName() ==
-               "llvm.dbg.declare")) {
-            continue;
-          }
+
+  for (const auto &I : llvm::instructions(Fun)) {
+    if (IgnoreDbgInstructions) {
+      // Check for call to intrinsic debug function
+      if (const auto *DbgCallInst = llvm::dyn_cast<llvm::CallInst>(&I)) {
+        if (DbgCallInst->getCalledFunction() &&
+            DbgCallInst->getCalledFunction()->isIntrinsic() &&
+            (DbgCallInst->getCalledFunction()->getName() ==
+             "llvm.dbg.declare")) {
+          continue;
         }
       }
-      auto Successors = getSuccsOf(&I);
-      for (const auto *Successor : Successors) {
-        Edges.emplace_back(&I, Successor);
-      }
+    }
+
+    auto Successors = getSuccsOf(&I);
+    for (const auto *Successor : Successors) {
+      Edges.emplace_back(&I, Successor);
     }
   }
+
   return Edges;
 }
 
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *Fun) const {
   vector<const llvm::Instruction *> Instructions;
-  for (const auto &BB : *Fun) {
-    for (const auto &I : BB) {
-      Instructions.push_back(&I);
-    }
+
+  for (const auto &I : llvm::instructions(Fun)) {
+    Instructions.push_back(&I);
   }
+
   return Instructions;
 }
 
@@ -321,6 +325,109 @@ void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {
 
 nlohmann::json LLVMBasedCFG::getAsJson(const llvm::Function *F) const {
   return "";
+}
+
+[[nodiscard]] nlohmann::json
+LLVMBasedCFG::exportCFGAsJson(const llvm::Function *F) const {
+  nlohmann::json J;
+
+  for (auto [From, To] : getAllControlFlowEdges(F)) {
+    if (llvm::isa<llvm::UnreachableInst>(From)) {
+      continue;
+    }
+
+    J.push_back({{"from", llvmIRToString(From)}, {"to", llvmIRToString(To)}});
+  }
+
+  return J;
+}
+
+[[nodiscard]] nlohmann::json
+LLVMBasedCFG::exportCFGAsSourceCodeJson(const llvm::Function *F) const {
+  nlohmann::json J;
+
+  for (const auto &BB : *F) {
+    assert(!BB.empty() && "Invalid IR: Empty BasicBlock");
+    auto it = BB.begin();
+    auto end = BB.end();
+    auto From = getFirstNonEmpty(it, end);
+
+    if (it == end) {
+      continue;
+    }
+
+    const auto *FromInst = &*it;
+
+    ++it;
+
+    // Edges inside the BasicBlock
+    for (; it != end; ++it) {
+      auto To = getFirstNonEmpty(it, end);
+      if (To.empty()) {
+        break;
+      }
+
+      J.push_back({{"from", From}, {"to", To}});
+
+      FromInst = &*it;
+      From = std::move(To);
+    }
+
+    const auto *Term = BB.getTerminator();
+    assert(Term && "Invalid IR: BasicBlock without terminating instruction!");
+
+    auto numSuccessors = Term->getNumSuccessors();
+
+    if (numSuccessors != 0) {
+      // Branch Edges
+
+      for (const auto *Succ : llvm::successors(&BB)) {
+        assert(Succ && !Succ->empty());
+
+        auto To = getFirstNonEmpty(Succ);
+        if (From != To) {
+          J.push_back({{"from", From}, {"to", std::move(To)}});
+        }
+      }
+    }
+  }
+
+  return J;
+}
+
+void from_json(const nlohmann::json &J,
+               LLVMBasedCFG::SourceCodeInfoWithIR &Info) {
+  from_json(J, static_cast<SourceCodeInfo &>(Info));
+  J.at("IR").get_to(Info.IR);
+}
+void to_json(nlohmann::json &J,
+             const LLVMBasedCFG::SourceCodeInfoWithIR &Info) {
+  to_json(J, static_cast<const SourceCodeInfo &>(Info));
+  J["IR"] = Info.IR;
+}
+
+auto LLVMBasedCFG::getFirstNonEmpty(llvm::BasicBlock::const_iterator &it,
+                                    llvm::BasicBlock::const_iterator end)
+    -> SourceCodeInfoWithIR {
+  assert(it != end);
+
+  const auto *Inst = &*it;
+  auto ret = getSrcCodeInfoFromIR(Inst);
+
+  // Assume, we aren't skipping relevant calls here
+
+  while ((ret.empty() || it->isDebugOrPseudoInst()) && ++it != end) {
+    Inst = &*it;
+    ret = getSrcCodeInfoFromIR(Inst);
+  }
+
+  return {ret, llvmIRToString(Inst)};
+}
+
+auto LLVMBasedCFG::getFirstNonEmpty(const llvm::BasicBlock *BB)
+    -> SourceCodeInfoWithIR {
+  auto it = BB->begin();
+  return getFirstNonEmpty(it, BB->end());
 }
 
 } // namespace psr

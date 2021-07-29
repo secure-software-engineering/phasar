@@ -38,7 +38,7 @@
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 
-#include "nlohmann/json.hpp"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
@@ -46,7 +46,11 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/PhasarPass/Options.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -54,14 +58,7 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "nlohmann/json.hpp"
 
 using namespace psr;
 using namespace std;
@@ -148,7 +145,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     UserPTInfos = false;
   }
 
-  if (PT == nullptr) {
+  if (this->PT == nullptr) {
     llvm::report_fatal_error("LLVMPointsToInfo not passed and "
                              "CallGraphAnalysisType::OTF was not specified.");
   }
@@ -414,12 +411,15 @@ std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
 }
 
 bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *N) const {
-  const auto *CallSite = llvm::cast<llvm::CallBase>(N);
-  return CallSite->isIndirectCall();
+  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(N);
+  return CallSite && CallSite->isIndirectCall();
 }
 
 bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
-  const auto *CallSite = llvm::cast<llvm::CallBase>(N);
+  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(N);
+  if (!CallSite) {
+    return false;
+  }
   // check potential receiver type
   const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
@@ -1142,45 +1142,8 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
   return J;
 }
 
-struct SourceCodeInfoWithIR : public SourceCodeInfo {
-  std::string IR;
-};
-
-void from_json(const nlohmann::json &J, SourceCodeInfoWithIR &Info) {
-  from_json(J, static_cast<SourceCodeInfo &>(Info));
-  J.at("IR").get_to(Info.IR);
-}
-void to_json(nlohmann::json &J, const SourceCodeInfoWithIR &Info) {
-  to_json(J, static_cast<const SourceCodeInfo &>(Info));
-  J["IR"] = Info.IR;
-}
-
 nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
   nlohmann::json J;
-
-  struct GetFirstNonEmpty {
-    SourceCodeInfoWithIR operator()(llvm::BasicBlock::const_iterator &it,
-                                    llvm::BasicBlock::const_iterator end) {
-      assert(it != end);
-
-      const auto *Inst = &*it;
-      auto ret = getSrcCodeInfoFromIR(Inst);
-
-      // Assume, we aren't skipping relevant calls here
-
-      while ((ret.empty() || it->isDebugOrPseudoInst()) && ++it != end) {
-        Inst = &*it;
-        ret = getSrcCodeInfoFromIR(Inst);
-      }
-
-      return {ret, llvmIRToString(Inst)};
-    }
-
-    SourceCodeInfoWithIR operator()(const llvm::BasicBlock *BB) {
-      auto it = BB->begin();
-      return (*this)(it, BB->end());
-    }
-  } getFirstNonEmpty;
 
   auto isRetVoid = [](const llvm::Instruction *Inst) {
     const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst);
