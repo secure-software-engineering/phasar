@@ -197,7 +197,7 @@ void IDESolverTest::printFunction(ostream &OS, IDESolverTest::f_t M) const {
   OS << M->getName().str();
 }
 
-void IDESolverTest::printEdgeFact(ostream &OS, IDESolverTest::l_t /*L*/) const {
+void IDESolverTest::printEdgeFact(ostream &OS, IDESolverTest::l_t EdgeFact) const {
   OS << "empty V test";
 }
 

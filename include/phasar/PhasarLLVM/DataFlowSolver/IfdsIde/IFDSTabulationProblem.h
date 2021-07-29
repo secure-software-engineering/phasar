@@ -85,7 +85,7 @@ public:
 
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
-  virtual bool isZeroValue(d_t D) const = 0;
+  virtual bool isZeroValue(d_t Fact) const = 0;
 
   /// Returns initial seeds to be used for the analysis. This is a mapping of
   /// statements to initial analysis facts.

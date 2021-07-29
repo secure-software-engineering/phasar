@@ -111,8 +111,8 @@ public:
     container_type Current(Source);
     for (const FlowFunctionType &Func : Funcs) {
       container_type Next;
-      for (const D &D : Current) {
-        container_type Target = Func.computeTargets(D);
+      for (const D &Data : Current) {
+        container_type Target = Func.computeTargets(Data);
         Next.insert(Target.begin(), Target.end());
       }
       Current = Next;
@@ -122,19 +122,19 @@ public:
 
   static FlowFunctionPtrType
   compose(const std::vector<FlowFunctionType> &Funcs) {
-    std::vector<FlowFunctionType> vec;
+    std::vector<FlowFunctionType> Vec;
     for (const FlowFunctionType &Func : Funcs) {
       if (Func != Identity<D, Container>::getInstance()) {
-        vec.insert(Func);
+        Vec.insert(Func);
       }
     }
-    if (!vec.empty()) {
-      return vec[0];
+    if (Vec.size == 1) {
+      return Vec[0];
     }
-    if (vec.empty()) {
+    if (Vec.empty()) {
       return Identity<D, Container>::getInstance();
     }
-    return std::make_shared<Compose>(vec);
+    return std::make_shared<Compose>(Vec);
   }
 
 protected:
@@ -156,11 +156,11 @@ public:
   Gen(D GenValue, D ZeroValue) : GenValue(GenValue), ZeroValue(ZeroValue) {}
   virtual ~Gen() = default;
 
-  container_type computeTargets(D source) override {
-    if (source == ZeroValue) {
-      return {source, GenValue};
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      return {Source, GenValue};
     }
-    return {source};
+    return {Source};
   }
 };
 
@@ -204,12 +204,12 @@ public:
   GenAll(container_type GenValues, D ZeroValue)
       : GenValues(GenValues), ZeroValue(ZeroValue) {}
   virtual ~GenAll() = default;
-  container_type computeTargets(D source) override {
-    if (source == ZeroValue) {
-      GenValues.insert(source);
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      GenValues.insert(Source);
       return GenValues;
     }
-    return {source};
+    return {Source};
   }
 
 protected:
@@ -227,11 +227,11 @@ public:
 
   Kill(D KillValue) : KillValue(KillValue) {}
   virtual ~Kill() = default;
-  container_type computeTargets(D source) override {
-    if (source == KillValue) {
+  container_type computeTargets(D Source) override {
+    if (Source == KillValue) {
       return {};
     }
-    return {source};
+    return {Source};
   }
 
 protected:
@@ -247,11 +247,11 @@ public:
 
   KillIf(std::function<bool(D)> Predicate) : Predicate(Predicate) {}
   virtual ~KillIf() = default;
-  container_type computeTargets(D source) override {
-    if (Predicate(source)) {
+  container_type computeTargets(D Source) override {
+    if (Predicate(Source)) {
       return {};
     }
-    return {source};
+    return {Source};
   }
 
 protected:
@@ -265,11 +265,11 @@ public:
 
   KillMultiple(std::set<D> KillValues) : KillValues(KillValues) {}
   virtual ~KillMultiple() = default;
-  container_type computeTargets(D source) override {
-    if (KillValues.find(source) != KillValues.end()) {
+  container_type computeTargets(D Source) override {
+    if (KillValues.find(Source) != KillValues.end()) {
       return {};
     }
-    return {source};
+    return {Source};
   }
 
 protected:
@@ -347,21 +347,20 @@ class Transfer : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  Transfer(D ToValue, D FromValue) : toValue(ToValue), FromValue(FromValue) {}
+  Transfer(D ToValue, D FromValue) : ToValue(ToValue), FromValue(FromValue) {}
   virtual ~Transfer() = default;
-  container_type computeTargets(D source) override {
-    if (source == FromValue) {
-      return {source, toValue};
+  container_type computeTargets(D Source) override {
+    if (Source == FromValue) {
+      return {Source, ToValue};
     }
-    if (source == toValue) {
+    if (Source == ToValue) {
       return {};
-    } else {
-      return {source};
     }
+    return {Source};
   }
 
 protected:
-  D toValue;
+  D ToValue;
   D FromValue;
 };
 
@@ -402,18 +401,18 @@ class ZeroedFlowFunction : public FlowFunction<D, Container> {
 
 public:
   ZeroedFlowFunction(FlowFunctionPtrType Ff, D Zv)
-      : delegate(Ff), Zerovalue(Zv) {}
-  container_type computeTargets(D source) override {
-    if (source == Zerovalue) {
-      container_type Result = delegate->computeTargets(source);
+      : Delegate(Ff), Zerovalue(Zv) {}
+  container_type computeTargets(D Source) override {
+    if (Source == Zerovalue) {
+      container_type Result = Delegate->computeTargets(Source);
       Result.insert(Zerovalue);
       return Result;
     }
-    return delegate->computeTargets(source);
+    return Delegate->computeTargets(Source);
   }
 
 private:
-  FlowFunctionPtrType delegate;
+  FlowFunctionPtrType Delegate;
   D Zerovalue;
 };
 
