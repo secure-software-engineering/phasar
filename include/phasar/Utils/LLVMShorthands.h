@@ -20,7 +20,6 @@
 #include <string>
 #include <vector>
 
-#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/Utils/Utilities.h"

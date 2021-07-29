@@ -7,7 +7,6 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/Twine.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
@@ -27,9 +26,7 @@
 
 #include "TestConfig.h"
 
-using namespace std;
-using namespace psr;
-
+namespace psr {
 using MapTy = llvm::DenseMap<const llvm::Function *,
                              llvm::SmallPtrSet<const llvm::Instruction *, 2>>;
 
@@ -295,6 +292,8 @@ TEST_F(LLVMBasedICFGExportTest, ExportCFG01) {
   verifySourceCodeJSON(results,
                        readJson("linear_constant/branch_07_cpp_main_cfg.json"));
 }
+
+} // namespace psr
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
