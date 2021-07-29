@@ -74,6 +74,28 @@ public:
     std::map<std::string, l_t> variableToValue;
     std::vector<n_t> ir_trace;
     void print(std::ostream &os);
+    inline bool operator==(const LCAResult &rhs) const {
+      return src_code == rhs.src_code &&
+             variableToValue == rhs.variableToValue && ir_trace == rhs.ir_trace;
+    }
+
+    operator std::string() const {
+      std::stringstream OS;
+      OS << "Line " << line_nr << ": " << src_code << '\n';
+      OS << "Var(s): ";
+      for (auto It = variableToValue.begin(); It != variableToValue.end();
+           ++It) {
+        if (It != variableToValue.begin()) {
+          OS << ", ";
+        }
+        OS << It->first << " = " << It->second;
+      }
+      OS << "\nCorresponding IR Instructions:\n";
+      for (const auto *Ir : ir_trace) {
+        OS << "  " << llvmIRToString(Ir) << '\n';
+      }
+      return OS.str();
+    }
   };
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
@@ -95,7 +117,7 @@ public:
   FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                              f_t destFun) override;
 
-  std::map<n_t, std::set<d_t>> initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   d_t createZeroValue() const override;
 

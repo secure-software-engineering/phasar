@@ -21,7 +21,7 @@ namespace psr {
 std::string toString(const Soundness &S) {
   switch (S) {
   default:
-#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)                               \
+#define SOUNDNESS_FLAG_TYPE(NAME, TYPE)                                        \
   case Soundness::TYPE:                                                        \
     return NAME;                                                               \
     break;
@@ -31,15 +31,9 @@ std::string toString(const Soundness &S) {
 
 Soundness toSoundness(const std::string &S) {
   Soundness Type = llvm::StringSwitch<Soundness>(S)
-#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE) .Case(NAME, Soundness::TYPE)
+#define SOUNDNESS_FLAG_TYPE(NAME, TYPE) .Case(NAME, Soundness::TYPE)
 #include "phasar/Utils/Soundness.def"
                        .Default(Soundness::Invalid);
-  if (Type == Soundness::Invalid) {
-    Type = llvm::StringSwitch<Soundness>(S)
-#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE) .Case(CMDFLAG, Soundness::TYPE)
-#include "phasar/Utils/Soundness.def"
-               .Default(Soundness::Invalid);
-  }
   return Type;
 }
 

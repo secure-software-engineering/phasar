@@ -231,16 +231,16 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
         }
         llvm::AliasResult AR = AA->alias(*I1, I1Size, *I2, I2Size);
         switch (AR) {
-        case llvm::NoAlias:
+        case llvm::AliasResult::NoAlias:
           PrintResults(AR, PrintNoAlias, *I1, *I2, Fn->getParent());
           break;
-        case llvm::MayAlias:
+        case llvm::AliasResult::MayAlias:
           PrintResults(AR, PrintMayAlias, *I1, *I2, Fn->getParent());
           break;
-        case llvm::PartialAlias:
+        case llvm::AliasResult::PartialAlias:
           PrintResults(AR, PrintPartialAlias, *I1, *I2, Fn->getParent());
           break;
-        case llvm::MustAlias:
+        case llvm::AliasResult::MustAlias:
           PrintResults(AR, PrintMustAlias, *I1, *I2, Fn->getParent());
           break;
         }
@@ -255,19 +255,19 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
               llvm::MemoryLocation::get(llvm::cast<llvm::LoadInst>(Load)),
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(Store)));
           switch (AR) {
-          case llvm::NoAlias:
+          case llvm::AliasResult::NoAlias:
             PrintLoadStoreResults(AR, PrintNoAlias, Load, Store,
                                   Fn->getParent());
             break;
-          case llvm::MayAlias:
+          case llvm::AliasResult::MayAlias:
             PrintLoadStoreResults(AR, PrintMayAlias, Load, Store,
                                   Fn->getParent());
             break;
-          case llvm::PartialAlias:
+          case llvm::AliasResult::PartialAlias:
             PrintLoadStoreResults(AR, PrintPartialAlias, Load, Store,
                                   Fn->getParent());
             break;
-          case llvm::MustAlias:
+          case llvm::AliasResult::MustAlias:
             PrintLoadStoreResults(AR, PrintMustAlias, Load, Store,
                                   Fn->getParent());
             break;
@@ -282,17 +282,17 @@ void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I1)),
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I2)));
           switch (AR) {
-          case llvm::NoAlias:
+          case llvm::AliasResult::NoAlias:
             PrintLoadStoreResults(AR, PrintNoAlias, *I1, *I2, Fn->getParent());
             break;
-          case llvm::MayAlias:
+          case llvm::AliasResult::MayAlias:
             PrintLoadStoreResults(AR, PrintMayAlias, *I1, *I2, Fn->getParent());
             break;
-          case llvm::PartialAlias:
+          case llvm::AliasResult::PartialAlias:
             PrintLoadStoreResults(AR, PrintPartialAlias, *I1, *I2,
                                   Fn->getParent());
             break;
-          case llvm::MustAlias:
+          case llvm::AliasResult::MustAlias:
             PrintLoadStoreResults(AR, PrintMustAlias, *I1, *I2,
                                   Fn->getParent());
             break;

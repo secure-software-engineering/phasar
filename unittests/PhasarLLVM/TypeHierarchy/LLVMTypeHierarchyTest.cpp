@@ -731,6 +731,10 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 
 // Failing test case
 TEST(LTHTest, HandleSTLString) {
+// If we use libcxx this won't work since internal implementation is different
+#ifdef _LIBCPP_VERSION
+  GTEST_SKIP();
+#endif
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_13_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);

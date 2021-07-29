@@ -175,7 +175,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
+    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
         [Alloc, this](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (isZeroValue(Source)) {
@@ -371,10 +371,8 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   //----------------------------------------------------------------------
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
-  if (llvm::isa<llvm::CallInst>(CallSite) ||
-      llvm::isa<llvm::InvokeInst>(CallSite)) {
-    const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
-    return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
+  if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
         [CS](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
@@ -400,18 +398,19 @@ IFDSUninitializedVariables::getSummaryFlowFunction(
   return nullptr;
 }
 
-map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
+InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::l_t>
 IFDSUninitializedVariables::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSUninitializedVariables::initialSeeds()");
-  map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
-      SeedMap;
+  InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+               IFDSUninitializedVariables::l_t>
+      Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(
-        make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                  set<IFDSUninitializedVariables::d_t>({getZeroValue()})));
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IFDSUninitializedVariables::d_t

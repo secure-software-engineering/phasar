@@ -66,6 +66,7 @@ BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
   LOG_IF_ENABLE_BOOL(boost::log::core::get()->get_logging_enabled(),           \
                      computation)
 
+#define IS_LOG_ENABLED bool(boost::log::core::get()->get_logging_enabled())
 // Register the logger and use it a singleton then, get the logger with:
 // boost::log::sources::severity_logger<SeverityLevel>& lg = lg::get();
 
@@ -81,6 +82,7 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "Timestamp", boost::posix_time::ptime)
 #else
 #define LOG_IF_ENABLE_BOOL(condition, computation) ((void)0)
 #define LOG_IF_ENABLE(computation) ((void)0)
+#define IS_LOG_ENABLED false
 // Have a mechanism to prevent logger usage if the code is not compiled using
 // the DYNAMIC_LOG option:
 template <typename T> struct __lg__ {

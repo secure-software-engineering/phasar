@@ -46,9 +46,6 @@ build/*
 
 ##### ignored files
 
-# dot files
-*.dot
-
 # ignore all auto-generated LLVM IR code
 *.ll
 
@@ -69,9 +66,6 @@ find_all_symbols_db.yaml
 *.sqlite
 *.sqlite3
 
-# dot files
-*.dot
-
 # temporary files
 *.*~
 *.dwo
@@ -85,7 +79,6 @@ find_all_symbols_db.yaml
 *.o
 *.obj
 *.ko
-*.obj
 *.elf
 
 # Precompiled Headers
@@ -96,7 +89,6 @@ find_all_symbols_db.yaml
 *.lib
 *.a
 *.la
-*.lo
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -130,6 +122,7 @@ standard_header_paths.conf
 CMakeFiles
 CMakeCache.txt
 !cmake/*.cmake
+cmake-build-debug/*
 *.pc
 Makefile
 !test/*/Makefile

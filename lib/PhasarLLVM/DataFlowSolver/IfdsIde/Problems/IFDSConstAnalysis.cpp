@@ -209,15 +209,18 @@ IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t CallSite,
   return nullptr;
 }
 
-map<IFDSConstAnalysis::n_t, set<IFDSConstAnalysis::d_t>>
+InitialSeeds<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
+             IFDSConstAnalysis::l_t>
 IFDSConstAnalysis::initialSeeds() {
   // just start in main()
-  map<IFDSConstAnalysis::n_t, set<IFDSConstAnalysis::d_t>> SeedMap;
+  InitialSeeds<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
+               IFDSConstAnalysis::l_t>
+      Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                             set<IFDSConstAnalysis::d_t>({getZeroValue()})));
+    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+                  getZeroValue());
   }
-  return SeedMap;
+  return Seeds;
 }
 
 IFDSConstAnalysis::d_t IFDSConstAnalysis::createZeroValue() const {

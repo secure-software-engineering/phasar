@@ -84,7 +84,7 @@ public:
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, f_t destMthd) override;
 
-  std::map<n_t, std::set<d_t>> initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   d_t createZeroValue() const override;
 
