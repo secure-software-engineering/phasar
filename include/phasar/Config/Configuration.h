@@ -64,16 +64,16 @@ public:
 
   // Variables to be used in JSON export format
   /// Identifier for call graph export
-  static std::string JsonCallGraphID() { return "CallGraph"; }
+  static std::string JsonCallGraphID() { return "psr.cg"; }
 
   /// Identifier for type hierarchy graph export
-  static std::string JsonTypeHierarchyID() { return "TypeHierarchy"; }
+  static std::string JsonTypeHierarchyID() { return "psr.th"; }
 
   /// Identifier for points-to graph export
-  static std::string JsonPointsToGraphID() { return "PointsToGraph"; }
+  static std::string JsonPointsToGraphID() { return "psr.pt"; }
 
   /// Identifier for data-flow results export
-  static std::string JsonDataFlowID() { return "DataFlowInformation"; }
+  static std::string JsonDataFlowID() { return "psr.df"; }
 
   static PhasarConfig &getPhasarConfig();
 
