@@ -1,0 +1,128 @@
+[
+    {
+        "from": {
+            "IR": "%a.addr = alloca i32, align 4, !psr.id !12 | ID: 0",
+            "column": 14,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "void foo(int a) {"
+        },
+        "to": {
+            "IR": "%b = alloca i32, align 4, !psr.id !13 | ID: 1",
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        }
+    },
+    {
+        "from": {
+            "IR": "%b = alloca i32, align 4, !psr.id !13 | ID: 1",
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        },
+        "to": {
+            "IR": "%0 = load i32, i32* %a.addr, align 4, !dbg !21, !psr.id !22 | ID: 5",
+            "column": 11,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        }
+    },
+    {
+        "from": {
+            "IR": "%0 = load i32, i32* %a.addr, align 4, !dbg !21, !psr.id !22 | ID: 5",
+            "column": 11,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        },
+        "to": {
+            "IR": "store i32 %0, i32* %b, align 4, !dbg !19, !psr.id !23 | ID: 6",
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 42, i32* %i, align 4, !dbg !33, !psr.id !35 | ID: 12",
+            "column": 7,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        },
+        "to": {
+            "IR": "%0 = load i32, i32* %i, align 4, !dbg !36, !psr.id !37 | ID: 13",
+            "column": 7,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        }
+    },
+    {
+        "from": {
+            "IR": "%0 = load i32, i32* %i, align 4, !dbg !36, !psr.id !37 | ID: 13",
+            "column": 7,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        },
+        "to": {
+            "IR": "call void @_Z3fooi(i32 %0), !dbg !38, !psr.id !39 | ID: 14",
+            "column": 3,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        }
+    },
+    {
+        "from": {
+            "IR": "call void @_Z3fooi(i32 %0), !dbg !38, !psr.id !39 | ID: 14",
+            "column": 3,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "foo(i);"
+        },
+        "to": {
+            "IR": "%a.addr = alloca i32, align 4, !psr.id !12 | ID: 0",
+            "column": 14,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "void foo(int a) {"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 %0, i32* %b, align 4, !dbg !19, !psr.id !23 | ID: 6",
+            "column": 7,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "foo(int)",
+            "sourceCodeLine": "int b = a;"
+        },
+        "to": {
+            "IR": "ret i32 0, !dbg !40, !psr.id !41 | ID: 15",
+            "column": 3,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return 0;"
+        }
+    }
+]

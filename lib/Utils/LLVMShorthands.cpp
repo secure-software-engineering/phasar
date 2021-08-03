@@ -25,6 +25,7 @@
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
@@ -58,8 +59,7 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
     if (llvm::isa<llvm::AllocaInst>(V)) {
       return true;
     }
-    if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
-      const auto *CallSite = llvm::cast<llvm::CallBase>(V);
+    if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(V)) {
       return CallSite->getCalledFunction() != nullptr &&
              HeapAllocationFunctions.count(
                  CallSite->getCalledFunction()->getName().str());
@@ -431,9 +431,10 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
 
   auto *data =
       llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer());
-  assert(data->isString());
 
-  return data->getAsString();
+  // getAsCString to get rid of the null-terminator
+  assert(data->isCString());
+  return data->getAsCString();
 }
 
 } // namespace psr

@@ -10,10 +10,15 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <string>
 
 #include "boost/algorithm/string/trim.hpp"
 #include "boost/filesystem.hpp"
+#include "boost/filesystem/path.hpp"
 
+#include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Instruction.h"
@@ -236,6 +241,65 @@ std::string getModuleIDFromIR(const llvm::Value *V) {
     return I->getFunction()->getParent()->getModuleIdentifier();
   }
   return "";
+}
+
+bool SourceCodeInfo::empty() const noexcept { return SourceCodeLine.empty(); }
+
+bool SourceCodeInfo::operator==(const SourceCodeInfo &Other) const noexcept {
+  // don't compare the SourceCodeFunctionName. It is directly derivable from
+  // line, column and filename
+  return Line == Other.Line && Column == Other.Column &&
+         SourceCodeLine == Other.SourceCodeLine &&
+         SourceCodeFilename == Other.SourceCodeFilename;
+}
+
+bool SourceCodeInfo::equivalentWith(const SourceCodeInfo &Other) const {
+  // Here, we need to compare the SourceCodeFunctionName, because we don't
+  // compare the complete SourceCodeFilename
+  if (Line != Other.Line || Column != Other.Column ||
+      SourceCodeLine != Other.SourceCodeLine ||
+      SourceCodeFunctionName != Other.SourceCodeFunctionName) {
+    return false;
+  }
+
+  auto Pos =
+      SourceCodeFilename.find_last_of(boost::filesystem::path::separator);
+  if (Pos == std::string::npos) {
+    Pos = 0;
+  }
+
+  return llvm::StringRef(Other.SourceCodeFilename)
+      .endswith(llvm::StringRef(SourceCodeFilename)
+                    .slice(Pos + 1, llvm::StringRef::npos));
+}
+
+void from_json(const nlohmann::json &J, SourceCodeInfo &Info) {
+  J.at("sourceCodeLine").get_to(Info.SourceCodeLine);
+  J.at("sourceCodeFileName").get_to(Info.SourceCodeFilename);
+  if (auto Fn = J.find("sourceCode"); Fn != J.end()) {
+    Fn->get_to(Info.SourceCodeFunctionName);
+  }
+  J.at("line").get_to(Info.Line);
+  J.at("column").get_to(Info.Column);
+}
+void to_json(nlohmann::json &J, const SourceCodeInfo &Info) {
+  J = nlohmann::json{
+      {"sourceCodeLine", Info.SourceCodeLine},
+      {"sourceCodeFileName", Info.SourceCodeFilename},
+      {"sourceCodeFunctionName", Info.SourceCodeFunctionName},
+      {"line", Info.Line},
+      {"column", Info.Column},
+  };
+}
+
+SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V) {
+  return SourceCodeInfo{
+      getSrcCodeFromIR(V),
+      getFilePathFromIR(V),
+      llvm::demangle(getFunctionNameFromIR(V)),
+      getLineFromIR(V),
+      getColumnFromIR(V),
+  };
 }
 
 } // namespace psr

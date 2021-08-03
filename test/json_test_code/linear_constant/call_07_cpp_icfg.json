@@ -1,0 +1,254 @@
+[
+    {
+        "from": {
+            "IR": "%a.addr = alloca i32, align 4, !psr.id !12 | ID: 0",
+            "column": 19,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "int increment(int a) {"
+        },
+        "to": {
+            "IR": "%0 = load i32, i32* %a.addr, align 4, !dbg !17, !psr.id !18 | ID: 3",
+            "column": 10,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 %inc, i32* %a.addr, align 4, !dbg !17, !psr.id !20 | ID: 5",
+            "column": 10,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        },
+        "to": {
+            "IR": "ret i32 %inc, !dbg !21, !psr.id !22 | ID: 6",
+            "column": 3,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        }
+    },
+    {
+        "from": {
+            "IR": "%i = alloca i32, align 4, !psr.id !27 | ID: 8",
+            "column": 6,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        },
+        "to": {
+            "IR": "%j = alloca i32, align 4, !psr.id !28 | ID: 9",
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "IR": "%j = alloca i32, align 4, !psr.id !28 | ID: 9",
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "IR": "%k = alloca i32, align 4, !psr.id !29 | ID: 10",
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "IR": "%k = alloca i32, align 4, !psr.id !29 | ID: 10",
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "IR": "store i32 42, i32* %i, align 4, !dbg !32, !psr.id !34 | ID: 13",
+            "column": 6,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 42, i32* %i, align 4, !dbg !32, !psr.id !34 | ID: 13",
+            "column": 6,
+            "line": 6,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int i = 42;"
+        },
+        "to": {
+            "IR": "%0 = load i32, i32* %i, align 4, !dbg !38, !psr.id !39 | ID: 15",
+            "column": 20,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "IR": "%0 = load i32, i32* %i, align 4, !dbg !38, !psr.id !39 | ID: 15",
+            "column": 20,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "IR": "%call = call i32 @_Z9incrementi(i32 %0), !dbg !40, !psr.id !41 | ID: 16",
+            "column": 10,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "IR": "%call = call i32 @_Z9incrementi(i32 %0), !dbg !40, !psr.id !41 | ID: 16",
+            "column": 10,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "IR": "%a.addr = alloca i32, align 4, !psr.id !12 | ID: 0",
+            "column": 19,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "int increment(int a) {"
+        }
+    },
+    {
+        "from": {
+            "IR": "ret i32 %inc, !dbg !21, !psr.id !22 | ID: 6",
+            "column": 3,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        },
+        "to": {
+            "IR": "store i32 %call, i32* %j, align 4, !dbg !36, !psr.id !42 | ID: 17",
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 %call, i32* %j, align 4, !dbg !36, !psr.id !42 | ID: 17",
+            "column": 6,
+            "line": 7,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int j = increment(i);"
+        },
+        "to": {
+            "IR": "%1 = load i32, i32* %j, align 4, !dbg !46, !psr.id !47 | ID: 19",
+            "column": 20,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "IR": "%1 = load i32, i32* %j, align 4, !dbg !46, !psr.id !47 | ID: 19",
+            "column": 20,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "IR": "%call1 = call i32 @_Z9incrementi(i32 %1), !dbg !48, !psr.id !49 | ID: 20",
+            "column": 10,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "IR": "%call1 = call i32 @_Z9incrementi(i32 %1), !dbg !48, !psr.id !49 | ID: 20",
+            "column": 10,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "IR": "%a.addr = alloca i32, align 4, !psr.id !12 | ID: 0",
+            "column": 19,
+            "line": 1,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "int increment(int a) {"
+        }
+    },
+    {
+        "from": {
+            "IR": "ret i32 %inc, !dbg !21, !psr.id !22 | ID: 6",
+            "column": 3,
+            "line": 2,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "increment(int)",
+            "sourceCodeLine": "return ++a;"
+        },
+        "to": {
+            "IR": "store i32 %call1, i32* %k, align 4, !dbg !44, !psr.id !50 | ID: 21",
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        }
+    },
+    {
+        "from": {
+            "IR": "store i32 %call1, i32* %k, align 4, !dbg !44, !psr.id !50 | ID: 21",
+            "column": 6,
+            "line": 8,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "int k = increment(j);"
+        },
+        "to": {
+            "IR": "ret i32 0, !dbg !51, !psr.id !52 | ID: 22",
+            "column": 3,
+            "line": 9,
+            "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_07.cpp",
+            "sourceCodeFunctionName": "main",
+            "sourceCodeLine": "return 0;"
+        }
+    }
+]
