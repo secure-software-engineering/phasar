@@ -77,6 +77,10 @@ void ICFGTestPlugin::collectGlobalCtors() {}
 
 void ICFGTestPlugin::collectGlobalDtors() {}
 
+void ICFGTestPlugin::collectGlobalInitializers() {}
+
+void ICFGTestPlugin::collectRegisteredDtors() {}
+
 bool ICFGTestPlugin::isExitInst(ICFGTestPlugin::n_t Inst) const {
   return false;
 }
