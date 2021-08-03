@@ -348,10 +348,10 @@ public:
       std::cout << "FACTS" << std::endl;
       for (const auto &fact : cell.getValue()) {
         std::cout << "fact" << std::endl;
-        IDEProblem.printFlowFact(std::cout, fact.first);
+        IDEProblem.printDataFlowFact(std::cout, fact.first);
         std::cout << "produces" << std::endl;
         for (const auto &out : fact.second) {
-          IDEProblem.printFlowFact(std::cout, out);
+          IDEProblem.printDataFlowFact(std::cout, out);
         }
       }
     }
@@ -368,10 +368,10 @@ public:
       std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.getValue()) {
         std::cout << "fact" << std::endl;
-        IDEProblem.printFlowFact(std::cout, fact.first);
+        IDEProblem.printDataFlowFact(std::cout, fact.first);
         std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
-          IDEProblem.printFlowFact(std::cout, out);
+          IDEProblem.printDataFlowFact(std::cout, out);
         }
       }
     }
