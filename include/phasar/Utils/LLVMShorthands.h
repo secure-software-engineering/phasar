@@ -20,22 +20,11 @@
 #include <string>
 #include <vector>
 
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Function.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/Utils/Utilities.h"
-
-namespace llvm {
-class CallInst;
-class FunctionType;
-class Function;
-class Argument;
-class Instruction;
-class TerminatorInst;
-class StoreInst;
-class Module;
-class StringRef;
-class BranchInst;
-} // namespace llvm
 
 namespace psr {
 
