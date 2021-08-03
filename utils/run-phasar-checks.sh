@@ -18,21 +18,11 @@ if [ "$#" -ne 2 ] || ! [ -d "${build_dir}" ] || ! [[ "${num_jobs}" =~ ${integer_
 	exit 1
 fi
 
-
-# exclude external projects from clang tidy checks
-cp .clang-tidy-ignore external/googletest/.clang-tidy
-cp .clang-tidy-ignore external/json/.clang-tidy
-cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy
-
 echo "Run clang-tidy ..."
 safe_cd "${build_dir}" -
 run-clang-tidy.py -j "${num_jobs}" -p ./ -header-filter='phasar*.h' -fix
 safe_cd -
 echo "Run clang-format ..."
 ./utils/run-clang-format.py
-
-rm external/googletest/.clang-tidy
-rm external/json/.clang-tidy
-rm external/WALi-OpenNWA/.clang-tidy
 
 exit 0
