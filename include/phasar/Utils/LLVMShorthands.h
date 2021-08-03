@@ -20,8 +20,8 @@
 #include <string>
 #include <vector>
 
-#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/Utils/Utilities.h"

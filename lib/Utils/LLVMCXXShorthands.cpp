@@ -1,9 +1,10 @@
-#include "phasar/Utils/LLVMCXXShorthands.h"
-#include <llvm/Demangle/Demangle.h>
-#include <llvm/IR/Constants.h>
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
-#include <phasar/Utils/Logger.h>
+
+#include "phasar/Utils/LLVMCXXShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 namespace psr {
 // Setting up the vtable is counted towards the initialization of an
@@ -41,4 +42,4 @@ bool isTouchVTableInst(const llvm::StoreInst *Store) {
   } /* end vtable set-up instruction */
   return false;
 }
-}
+} // namespace psr
