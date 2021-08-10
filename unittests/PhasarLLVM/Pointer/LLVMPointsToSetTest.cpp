@@ -58,6 +58,25 @@ TEST(LLVMPointsToSet, Global_01) {
   std::cout << '\n';
 }
 
+TEST(LLVMPointsToSet, SaveAndLoad) {
+  std::vector<std::string> testcases = {"pointers/basic_01_cpp.ll", "pointers/global_01_cpp.ll"};
+
+  for (auto &tc : testcases) {
+    ProjectIRDB IRDB1({unittest::PathToLLTestFiles + tc});
+    LLVMPointsToSet PTS1(IRDB1, false);
+    PTS1.save("./points_to_set", IRDB1);
+
+    ProjectIRDB IRDB2({unittest::PathToLLTestFiles + tc});
+    LLVMPointsToSet PTS2(IRDB2, std::string("./points_to_set"));
+
+    std::cout << "[PTS1]" << std::endl;
+    PTS1.print(std::cout);
+
+    std::cout << "[PTS2]" << std::endl;
+    PTS2.print(std::cout);
+  }
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

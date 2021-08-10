@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <type_traits>
 #include <unordered_set>
@@ -37,9 +38,32 @@ using namespace psr;
 
 namespace psr {
 
+void traverseIRDB(ProjectIRDB &IRDB,
+                 const std::function<void(const llvm::Value*)>&ValueFunc)
+{
+  for (llvm::Module *M : IRDB.getAllModules()) {
+    for (auto &G : M->globals()) {
+      ValueFunc(&G);
+    }
+    for (auto &F : M->functions()) {
+      ValueFunc(&F);
+      for (auto &I : F.args()) {
+        if (I.getType()->isPointerTy()) {
+          ValueFunc(&I);
+        }
+      }
+      for (llvm::inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
+        ValueFunc(&*I);
+      }
+    }
+  }
+}
+
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
-    : PTA(IRDB, UseLazyEvaluation, PATy) {
+{
+  PTA = std::make_shared<LLVMBasedPointsToAnalysis>(IRDB, UseLazyEvaluation, PATy);
+
   for (llvm::Module *M : IRDB.getAllModules()) {
     // compute points-to information for all globals
     for (const auto &G : M->globals()) {
@@ -55,6 +79,95 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
           computeFunctionsPointsToSet(&F);
         }
       }
+    }
+  }
+}
+
+LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
+                                 const std::string& PointsToSetFile)
+{
+  load(PointsToSetFile, IRDB);
+}
+
+void LLVMPointsToSet::save(const std::string &PointsToSetFile, ProjectIRDB &IRDB) {
+  std::unordered_map<const llvm::Value *, unsigned long> ValueToIdMap;
+  std::ofstream OS(PointsToSetFile);
+
+
+  // ValueIds segment is just for debug. It will not been loaded.
+  OS << "[ValueIds]" << std::endl;
+  unsigned int NextID = 0;
+
+  // Traverse all values in the IRDB in a fixed order, and assign ID to each value.
+  traverseIRDB(IRDB, [&NextID, &ValueToIdMap, &OS](const llvm::Value *V) {
+    ValueToIdMap[V] = NextID;
+    OS << NextID << ": " << llvmIRToString(V) << std::endl;
+    ++NextID;
+  });
+
+  std::set<std::shared_ptr<std::unordered_set<const llvm::Value *>>> Printed;
+
+  OS << "[AnalyzedFunctions]" << std::endl;
+  for (auto &F : AnalyzedFunctions) {
+    OS << ValueToIdMap[F] << " ";
+  }
+  OS << std::endl;
+
+  OS << "[PointsToSets]" << std::endl;
+  for (auto &[_, S] : PointsToSets) {
+    if (Printed.find(S) != Printed.end()) {
+      // Print each set only once
+      continue;
+    }
+
+    Printed.insert(S);
+    for (const auto &V : *S) {
+      OS << ValueToIdMap[V] << " ";
+    }
+
+    OS << std::endl;
+  }
+}
+
+void LLVMPointsToSet::load(const std::string &PointsToSetFile, ProjectIRDB &IRDB) {
+  std::ifstream IS(PointsToSetFile);
+  std::vector<const llvm::Value *> IdToValueMap;
+
+  traverseIRDB(IRDB, [&IdToValueMap](const llvm::Value *V) {
+    IdToValueMap.push_back(V);
+  });
+
+  std::string Line;
+  std::shared_ptr<std::unordered_set<const llvm::Value *>> PointersSet;
+  while(std::getline(IS, Line)) {
+    if (Line == "[AnalyzedFunctions]") {
+      break;
+    }
+  }
+
+  while(std::getline(IS, Line)) {
+    if (Line == "[PointsToSets]") {
+      break;
+    }
+
+    std::string Cell;
+    std::istringstream LineStream(Line);
+    while(std::getline(LineStream, Cell, ' ')) {
+      unsigned long ID = atol(Cell.c_str());
+      const llvm::Function* Func = llvm::dyn_cast<llvm::Function>(IdToValueMap[ID]);
+      AnalyzedFunctions.insert(Func);
+    }
+  }
+
+  while(std::getline(IS, Line)) {
+    std::string Cell;
+    std::istringstream LineStream(Line);
+    PointersSet = make_shared<std::unordered_set<const llvm::Value *>>();
+    while(std::getline(LineStream, Cell, ' ')) {
+      unsigned long ID = atol(Cell.c_str());
+      const llvm::Value* value = IdToValueMap[ID];
+      PointersSet->insert(value);
+      PointsToSets[value] = PointersSet;
     }
   }
 }
@@ -207,8 +320,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Analyzing function: " << F->getName().str());
   AnalyzedFunctions.insert(F);
-
-  llvm::AAResults &AA = *PTA.getAAResults(F);
+  llvm::AAResults &AA = *PTA->getAAResults(F);
   bool EvalAAMD = true;
 
   // taken from llvm/Analysis/AliasAnalysisEvaluator.cpp
@@ -333,7 +445,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     }
   }
   // we no longer need the LLVM representation
-  PTA.erase(F);
+  PTA->erase(F);
 }
 
 AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,

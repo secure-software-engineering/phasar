@@ -42,7 +42,7 @@ private:
       const llvm::Value *,
       std::shared_ptr<std::unordered_set<const llvm::Value *>>>;
 
-  LLVMBasedPointsToAnalysis PTA;
+  std::shared_ptr<LLVMBasedPointsToAnalysis> PTA;
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
   PointsToSetMap PointsToSets;
 
@@ -62,6 +62,8 @@ private:
                                         const llvm::Function *VFun,
                                         const llvm::GlobalObject *VG);
 
+  void load(const std::string &PointsToSetFile, ProjectIRDB &IRDB);
+
 public:
   /**
    * Creates points-to set(s) based on the computed alias results.
@@ -75,7 +77,12 @@ public:
   LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
                   PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
 
+  LLVMPointsToSet(ProjectIRDB &IRDB,
+                  const std::string& PointsToSetFile);
+
   ~LLVMPointsToSet() override = default;
+
+  void save(const std::string &PointsToSetFile, ProjectIRDB &IRDB);
 
   [[nodiscard]] inline bool isInterProcedural() const override {
     return false;
@@ -83,7 +90,7 @@ public:
 
   [[nodiscard]] inline PointerAnalysisType
   getPointerAnalysistype() const override {
-    return PTA.getPointerAnalysisType();
+    return PTA->getPointerAnalysisType();
   };
 
   [[nodiscard]] AliasResult
