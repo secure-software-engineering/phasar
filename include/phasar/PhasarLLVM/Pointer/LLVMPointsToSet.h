@@ -38,12 +38,14 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
-  using PointsToSetMap = std::unordered_map<
-      const llvm::Value *,
-      std::shared_ptr<std::unordered_set<const llvm::Value *>>>;
+  using PointsToSetTy = std::unordered_set<const llvm::Value *>;
+  using PointsToSetPtrTy = std::shared_ptr<PointsToSetTy>;
+  using PointsToSetMap =
+      std::unordered_map<const llvm::Value *, PointsToSetPtrTy>;
 
   LLVMBasedPointsToAnalysis PTA;
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
+
   PointsToSetMap PointsToSets;
 
   void computeValuesPointsToSet(const llvm::Value *V);
@@ -53,6 +55,9 @@ private:
   void addSingletonPointsToSet(const llvm::Value *V);
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
+
+  PointsToSetPtrTy mergePointsToSets(const PointsToSetPtrTy &PTS1,
+                                     const PointsToSetPtrTy &PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);

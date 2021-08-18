@@ -7,22 +7,26 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <memory>
 #include <type_traits>
 #include <unordered_set>
+#include <utility>
 
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/DB/ProjectIRDB.h"
@@ -42,13 +46,17 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     : PTA(IRDB, UseLazyEvaluation, PATy) {
   for (llvm::Module *M : IRDB.getAllModules()) {
     // compute points-to information for all globals
+
     for (const auto &G : M->globals()) {
       computeValuesPointsToSet(&G);
     }
+
     for (const auto &F : M->functions()) {
       computeValuesPointsToSet(&F);
     }
+
     if (!UseLazyEvaluation) {
+
       // compute points-to information for all functions
       for (auto &F : *M) {
         if (!F.isDeclaration()) {
@@ -92,6 +100,7 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
         }
       }
     }
+
   } else {
     const auto *VF = retrieveFunction(V);
     computeFunctionsPointsToSet(const_cast<llvm::Function *>(VF));
@@ -99,40 +108,49 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
 }
 
 void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
-  if (PointsToSets.find(V) != PointsToSets.end()) {
-    PointsToSets[V]->insert(V);
-  } else {
-    PointsToSets[V] = std::make_shared<std::unordered_set<const llvm::Value *>>(
+
+  auto &PTS = PointsToSets[V];
+
+  if (!PTS) {
+    PTS = std::make_shared<std::unordered_set<const llvm::Value *>>(
         std::unordered_set<const llvm::Value *>{V});
   }
+
+  assert(PTS->count(V));
 }
 
 void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
                                         const llvm::Value *V2) {
+  if (V1 == V2) {
+    return;
+  }
+
   auto SearchV1 = PointsToSets.find(V1);
   assert(SearchV1 != PointsToSets.end());
+
   auto SearchV2 = PointsToSets.find(V2);
   assert(SearchV2 != PointsToSets.end());
-  const auto *V1Ptr = SearchV1->first;
-  const auto *V2Ptr = SearchV2->first;
-  if (V1Ptr == V2Ptr) {
-    return;
+
+  mergePointsToSets(SearchV1->second, SearchV2->second);
+}
+
+auto LLVMPointsToSet::mergePointsToSets(const PointsToSetPtrTy &PTS1,
+                                        const PointsToSetPtrTy &PTS2)
+    -> PointsToSetPtrTy {
+  if (PTS1 == PTS2) {
+    return PTS1;
   }
-  auto V1Set = SearchV1->second;
-  auto V2Set = SearchV2->second;
-  // check if we need to merge the sets
-  if (V1Set->find(V2) != V1Set->end()) {
-    return;
-  }
-  std::shared_ptr<std::unordered_set<const llvm::Value *>> SmallerSet;
-  std::shared_ptr<std::unordered_set<const llvm::Value *>> LargerSet;
-  if (V1Set->size() <= V2Set->size()) {
-    SmallerSet = V1Set;
-    LargerSet = V2Set;
-  } else {
-    SmallerSet = V2Set;
-    LargerSet = V1Set;
-  }
+
+  assert(PTS1);
+  assert(PTS2);
+
+  auto [SmallerSet, LargerSet] = [&]() {
+    if (PTS1->size() > PTS2->size()) {
+      return std::make_pair(PTS2, PTS1);
+    }
+    return std::make_pair(PTS1, PTS2);
+  }();
+
   // add smaller set to larger one
   LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
   // reindex the contents of the smaller set
@@ -141,6 +159,8 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   }
   // get rid of the smaller set
   SmallerSet->clear();
+
+  return LargerSet;
 }
 
 bool LLVMPointsToSet::interIsReachableAllocationSiteTy(const llvm::Value *V,
@@ -201,12 +221,12 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     return;
   }
   // check if we already analyzed the function
-  if (AnalyzedFunctions.find(F) != AnalyzedFunctions.end()) {
+  if (auto [Unused, Inserted] = AnalyzedFunctions.insert(F);
+      !Inserted || F->isDeclaration()) {
     return;
   }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Analyzing function: " << F->getName().str());
-  AnalyzedFunctions.insert(F);
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
@@ -214,51 +234,57 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   // taken from llvm/Analysis/AliasAnalysisEvaluator.cpp
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
 
-  llvm::SetVector<llvm::Value *> Pointers;
-  llvm::SmallSetVector<llvm::CallBase *, 16> Calls;
-  llvm::SetVector<llvm::Value *> Loads;
-  llvm::SetVector<llvm::Value *> Stores;
+  auto getSizeOf = [&DL](const llvm::Value *V) {
+    if (!V->getType()->isPointerTy()) {
+      std::cerr << "ERROR: " << llvmIRToString(V) << " is no pointer!\n";
+    }
+    llvm::Type *I1ElTy = V->getType()->getPointerElementType();
+    return I1ElTy->isSized() ? DL.getTypeStoreSize(I1ElTy)
+                             : llvm::MemoryLocation::UnknownSize;
+  };
+  auto mayAlias = [&AA](const llvm::Value *V1, uint64_t V1Size,
+                        const llvm::Value *V2, uint64_t V2Size) {
+    return AA.alias(V1, V1Size, V2, V2Size) != llvm::AliasResult::NoAlias;
+  };
 
-  for (auto &I : F->args()) {
-    if (I.getType()->isPointerTy()) { // Add all pointer arguments.
-      Pointers.insert(&I);
-    }
-  }
+  llvm::SetVector<const llvm::Value *> Pointers;
 
-  for (llvm::inst_iterator I = inst_begin(*F), E = inst_end(*F); I != E; ++I) {
-    if (I->getType()->isPointerTy()) { // Add all pointer instructions.
-      Pointers.insert(&*I);
+  for (auto &Inst : llvm::instructions(F)) {
+    if (Inst.getType()->isPointerTy()) { // Add all pointer instructions.
+      Pointers.insert(&Inst);
     }
-    if (EvalAAMD && llvm::isa<llvm::LoadInst>(&*I)) {
-      Loads.insert(&*I);
-    }
-    if (EvalAAMD && llvm::isa<llvm::StoreInst>(&*I)) {
-      Stores.insert(&*I);
-      auto *Store = llvm::cast<llvm::StoreInst>(&*I);
+    // if (EvalAAMD && llvm::isa<llvm::LoadInst>(&*I)) {
+    //   Loads.insert(&*I);
+    // }
+    if (EvalAAMD && llvm::isa<llvm::StoreInst>(&Inst)) {
+      //  Stores.insert(&*I);
+      auto *Store = llvm::cast<llvm::StoreInst>(&Inst);
       auto *SVO = Store->getValueOperand();
       auto *SPO = Store->getPointerOperand();
       if (SVO->getType()->isPointerTy()) {
+
         if (llvm::isa<llvm::Function>(SVO)) {
           addSingletonPointsToSet(SVO);
           addSingletonPointsToSet(SPO);
           mergePointsToSets(SVO, SPO);
         }
         if (auto *SVOCE = llvm::dyn_cast<llvm::ConstantExpr>(SVO)) {
+          if (SVOCE->isCast()) {
+            auto *RHS = SVOCE->getOperand(0);
 
-          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-              SVOCE->getAsInstruction(), &deleteValue);
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
-            auto *RHS = BC->getOperand(0);
-            addSingletonPointsToSet(RHS);
-            addSingletonPointsToSet(SVOCE);
             addSingletonPointsToSet(SPO);
-            mergePointsToSets(RHS, SPO);
+            if (RHS->getType()->isPointerTy()) {
+              addSingletonPointsToSet(RHS);
+              mergePointsToSets(RHS, SPO);
+            }
+
+            addSingletonPointsToSet(SVOCE);
             mergePointsToSets(SVOCE, SPO);
           }
         }
       }
     }
-    llvm::Instruction &Inst = *I;
+
     if (auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
       llvm::Value *Callee = Call->getCalledOperand();
       // Skip actual functions for direct function calls.
@@ -271,7 +297,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
           Pointers.insert(DataOp);
         }
       }
-      Calls.insert(Call);
+      // Calls.insert(Call);
     } else {
       // Consider all operands.
       for (llvm::Instruction::op_iterator OI = Inst.op_begin(),
@@ -283,55 +309,116 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       }
     }
   }
-  // Consider globals
-  for (auto &Global : F->getParent()->globals()) {
-    if (auto *GlobalVariable = llvm::dyn_cast<llvm::GlobalVariable>(&Global)) {
-      Pointers.insert(GlobalVariable);
+
+  for (auto &I : F->args()) {
+    if (I.getType()->isPointerTy()) {
+      // Add all pointer arguments.
+      Pointers.insert(&I);
     }
   }
-  // introduce a singleton set for each pointer
-  // those sets will be merged as we discover aliases
-  for (auto *Pointer : Pointers) {
-    addSingletonPointsToSet(Pointer);
+
+  /// Consider globals
+  for (auto &G : F->getParent()->globals()) {
+    Pointers.insert(&G);
   }
 
-  const int kWarningPointers = 100;
+  std::unordered_set<std::shared_ptr<std::unordered_set<const llvm::Value *>>>
+      InterestingPTS;
+  std::vector<std::shared_ptr<std::unordered_set<const llvm::Value *>>>
+      PTSVector;
+  // introduce a singleton set for each pointer
+  // those sets will be merged as we discover aliases
+  for (const auto *Pointer : Pointers) {
+    addSingletonPointsToSet(Pointer);
+    auto [It, Inserted] = InterestingPTS.insert(PointsToSets[Pointer]);
+    if (Inserted) {
+      PTSVector.push_back(*It);
+    }
+  }
+
+  InterestingPTS.clear();
+
+  constexpr int kWarningPointers = 100;
   if (Pointers.size() > kWarningPointers) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
                   << "Large number of pointers detected - Perf is O(N^2) here: "
                   << Pointers.size() << " for "
                   << llvm::demangle(F->getName().str()));
+
+    // std::cerr << "Large number of pointers detected - Perf is O(N^2) here: "
+    //           << Pointers.size() << " for "
+    //           << llvm::demangle(F->getName().str()) << "\n";
+    // std::cerr << "> Total " << PTSVector.size() << " points-to-sets\n";
   }
 
-  // iterate over the worklist, and run the full (n^2)/2 disambiguations
-  for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
-    llvm::Type *I1ElTy =
-        llvm::cast<llvm::PointerType>((*I1)->getType())->getElementType();
-    const uint64_t I1Size = I1ElTy->isSized()
-                                ? DL.getTypeStoreSize(I1ElTy)
-                                : llvm::MemoryLocation::UnknownSize;
-    for (auto I2 = Pointers.begin(); I2 != I1; ++I2) {
-      llvm::Type *I2ElTy =
-          llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
-      const uint64_t I2Size = I2ElTy->isSized()
-                                  ? DL.getTypeStoreSize(I2ElTy)
-                                  : llvm::MemoryLocation::UnknownSize;
-      switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
-      case llvm::AliasResult::NoAlias:
-        // both pointers already have corresponding points-to sets, we are
-        // fine
-        break;
-      case llvm::AliasResult::MayAlias: // NOLINT
-        [[fallthrough]];
-      case llvm::AliasResult::PartialAlias: // NOLINT
-        [[fallthrough]];
-      case llvm::AliasResult::MustAlias:
-        // merge points to sets
-        mergePointsToSets(*I1, *I2);
-        break;
+  std::vector<size_t> ToMerge;
+
+  for (size_t I1 = 0; I1 < PTSVector.size(); ++I1) {
+    auto PTS1 = PTSVector[I1];
+    assert(PTS1);
+
+    for (size_t I2 = 0; I2 < PTSVector.size(); ++I2) {
+      if (I1 == I2) {
+        continue;
+      }
+
+      for (const auto *V1 : *PTS1) {
+        auto V1Size = getSizeOf(V1);
+        bool EarlyBreak = false;
+
+        auto PTS2 = PTSVector[I2];
+        assert(PTS2);
+
+        for (const auto *V2 : *PTS2) {
+          if (mayAlias(V1, V1Size, V2, getSizeOf(V2))) {
+            EarlyBreak = true;
+            ToMerge.push_back(I2);
+            break;
+          }
+        }
+        if (EarlyBreak) {
+          break;
+        }
       }
     }
+
+    if (!ToMerge.empty()) {
+      size_t Diff = 0;
+      for (auto MergeIdx : ToMerge) {
+        PTS1 = mergePointsToSets(PTS1, PTSVector[MergeIdx]);
+        PTSVector[MergeIdx] = nullptr;
+        if (MergeIdx < I1) {
+          ++Diff;
+        }
+      }
+
+      PTSVector.erase(std::remove_if(PTSVector.begin(), PTSVector.end(),
+                                     [](auto &&PTS) { return PTS == nullptr; }),
+                      PTSVector.end());
+
+      I1 -= Diff;
+
+      ToMerge.clear();
+    }
   }
+
+  // // iterate over the worklist, and run the full (n^2)/2 disambiguations
+  // for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
+
+  //   const uint64_t I1Size = getSizeOf(*I1);
+  //   for (auto I2 = Pointers.begin(); I2 != I1; ++I2) {
+  //     const uint64_t I2Size = getSizeOf(*I2);
+
+  //     if (mayAlias(*I1, I1Size, *I2, I2Size)) {
+  //       mergePointsToSets(*I1, *I2);
+  //     }
+  //   }
+  // }
+
+  // if (Pointers.size() > kWarningPointers) {
+  //   std::cerr << "> done\n";
+  // }
+
   // we no longer need the LLVM representation
   PTA.erase(F);
 }

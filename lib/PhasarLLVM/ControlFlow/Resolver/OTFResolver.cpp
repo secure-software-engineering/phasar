@@ -131,7 +131,7 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
   std::set<const llvm::Function *> Callees;
   if (CallSite->getCalledOperand() &&
       CallSite->getCalledOperand()->getType()->isPointerTy()) {
-    if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
+    if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
       const auto PTS = PT.getPointsToSet(CallSite->getCalledOperand());
       for (const auto *P : *PTS) {
@@ -146,9 +146,7 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
         std::vector<const llvm::GlobalVariable *> GlobalVariableWL;
         std::stack<const llvm::ConstantAggregate *> ConstantAggregateWL;
         if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
-          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-              CE->getAsInstruction(), &deleteValue);
-          for (auto &Op : AsI->operands()) {
+          for (const auto &Op : CE->operands()) {
             if (const auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
               GlobalVariableWL.push_back(GVOp);
             }
@@ -177,20 +175,19 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
             continue;
           }
           for (const auto &Op : ConstAggregateItem->operands()) {
-            if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-              std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-                  CE->getAsInstruction(), &deleteValue);
-              if (AsI->getType()->isPointerTy() &&
-                  AsI->getType()->getPointerElementType() == FTy) {
-                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
-                  if (auto *F =
-                          llvm::dyn_cast<llvm::Function>(BC->getOperand(0))) {
-                    Callees.insert(F);
-                  }
+            if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+              if (CE->getType()->isPointerTy() &&
+                  CE->getType()->getPointerElementType() == FTy &&
+                  CE->isCast()) {
+
+                if (const auto *F =
+                        llvm::dyn_cast<llvm::Function>(CE->getOperand(0))) {
+                  Callees.insert(F);
                 }
               }
             }
-            if (auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
+
+            if (const auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
               if (matchesSignature(F, FTy, false)) {
                 Callees.insert(F);
               }

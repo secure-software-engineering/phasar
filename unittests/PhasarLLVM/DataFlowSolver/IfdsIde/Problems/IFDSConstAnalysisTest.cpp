@@ -321,6 +321,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
   initialize({PathToLlFiles + "array/array_06_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
+  PT->print(std::cerr);
   compareResults({1}, Llvmconstsolver);
 }
 
