@@ -58,6 +58,13 @@ bool matchesSignature(const llvm::FunctionType *FType1,
 std::string llvmIRToString(const llvm::Value *V);
 
 /**
+ * @brief Similar to llvmIRToString, but removes the metadata from the output as
+ * they are not always stable. Prefer this function over llvmIRToString, if you
+ * are comparing the string representations of LLVM iR instructions.
+ */
+std::string llvmIRToStableString(const llvm::Value *V);
+
+/**
  * @brief Same as @link(llvmIRToString) but tries to shorten the
  *        resulting string
  */

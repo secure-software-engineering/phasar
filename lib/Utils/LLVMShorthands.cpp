@@ -164,6 +164,30 @@ std::string llvmIRToString(const llvm::Value *V) {
   return IRBuffer;
 }
 
+std::string llvmIRToStableString(const llvm::Value *V) {
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  V->print(RSO, getModuleSlotTrackerFor(V));
+
+  boost::trim_left(IRBuffer);
+  RSO.flush();
+
+  if (auto Meta = IRBuffer.find_first_of("!#"); Meta != std::string::npos) {
+    IRBuffer.erase(Meta);
+
+    boost::trim_right(IRBuffer);
+    assert(!IRBuffer.empty());
+    if (IRBuffer.back() == ',') {
+      IRBuffer.pop_back();
+    }
+  }
+
+  IRBuffer.append(" | ID: ");
+  IRBuffer.append(getMetaDataID(V));
+
+  return IRBuffer;
+}
+
 std::string llvmIRToShortString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);

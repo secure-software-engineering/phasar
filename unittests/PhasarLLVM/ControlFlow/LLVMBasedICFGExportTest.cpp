@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iomanip>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarPass/Options.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -105,12 +107,13 @@ protected:
 
     for (const auto *F : GroundTruth.getAllFunctions()) {
       for (const auto &Inst : llvm::instructions(F)) {
-        auto InstStr = llvmIRToString(&Inst);
+        auto InstStr = llvmIRToStableString(&Inst);
         if (llvm::isa<llvm::CallBase>(&Inst)) {
           for (const auto *Callee : GroundTruth.getCalleesOfCallAt(&Inst)) {
             if (!Callee->isDeclaration()) {
               print("Callee: ", *Callee);
-              expectEdge(InstStr, llvmIRToString(&Callee->front().front()));
+              expectEdge(InstStr,
+                         llvmIRToStableString(&Callee->front().front()));
 
               print("> end");
             }
@@ -120,11 +123,11 @@ protected:
           const auto &RetSites = RetSitesOf[Inst.getFunction()];
 
           for (const auto *Ret : RetSites) {
-            expectEdge(InstStr, llvmIRToString(Ret));
+            expectEdge(InstStr, llvmIRToStableString(Ret));
           }
         } else {
           for (const auto *Succ : GroundTruth.getSuccsOf(&Inst)) {
-            expectEdge(InstStr, llvmIRToString(Succ));
+            expectEdge(InstStr, llvmIRToStableString(Succ));
           }
         }
       }

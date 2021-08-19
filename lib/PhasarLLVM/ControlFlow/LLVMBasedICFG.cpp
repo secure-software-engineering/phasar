@@ -1129,19 +1129,20 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
             continue;
           }
           if (inserted) {
-            J.push_back({{"from", llvmIRToString(From)},
-                         {"to", llvmIRToString(&Callee->front().front())}});
+            J.push_back(
+                {{"from", llvmIRToStableString(From)},
+                 {"to", llvmIRToStableString(&Callee->front().front())}});
           }
 
           for (const auto *ExitInst : getAllExitPoints(Callee)) {
-            J.push_back({{"from", llvmIRToString(ExitInst)},
-                         {"to", llvmIRToString(To)}});
+            J.push_back({{"from", llvmIRToStableString(ExitInst)},
+                         {"to", llvmIRToStableString(To)}});
           }
         }
 
       } else {
-        J.push_back(
-            {{"from", llvmIRToString(From)}, {"to", llvmIRToString(To)}});
+        J.push_back({{"from", llvmIRToStableString(From)},
+                     {"to", llvmIRToStableString(To)}});
       }
     }
   }
@@ -1160,17 +1161,17 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
   auto getLastNonEmpty =
       [&](const llvm::Instruction *Inst) -> SourceCodeInfoWithIR {
     if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
-      return {getSrcCodeInfoFromIR(Inst), llvmIRToString(Inst)};
+      return {getSrcCodeInfoFromIR(Inst), llvmIRToStableString(Inst)};
     }
     for (const auto *Prev = Inst->getPrevNode(); Prev;
          Prev = Prev->getPrevNode()) {
       auto Src = getSrcCodeInfoFromIR(Prev);
       if (!Src.empty()) {
-        return {Src, llvmIRToString(Prev)};
+        return {Src, llvmIRToStableString(Prev)};
       }
     }
 
-    return {getSrcCodeInfoFromIR(Inst), llvmIRToString(Inst)};
+    return {getSrcCodeInfoFromIR(Inst), llvmIRToStableString(Inst)};
   };
 
   auto createInterEdges = [&](const llvm::Instruction *CS,
@@ -1243,7 +1244,7 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
         // However, this is how it is modeled in the ICFG at the moment
         createInterEdges(Term,
                          SourceCodeInfoWithIR{getSrcCodeInfoFromIR(Term),
-                                              llvmIRToString(Term)},
+                                              llvmIRToStableString(Term)},
                          {getFirstNonEmpty(Invoke->getNormalDest()),
                           getFirstNonEmpty(Invoke->getUnwindDest())});
         // Call Edges
