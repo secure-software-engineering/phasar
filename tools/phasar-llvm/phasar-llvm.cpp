@@ -294,9 +294,21 @@ int main(int Argc, const char **Argv) {
                  "Specify a LLVM target module or re-run with '--help'\n";
     return 0;
   }
+
+  bool EmitStats = PhasarConfig::VariablesMap().count("statistical-analysis");
+
   // setup IRDB as source code manager
   ProjectIRDB IRDB(
       PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
+
+  if (EmitStats) {
+    std::cout << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
+    std::cout << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
+              << "\n";
+    std::cout << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
+    std::cout << "> global variables:\t" << IRDB.getWPAModule()->global_size()
+              << "\n";
+  }
 
   // store enabled data-flow analyses
   std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
@@ -361,8 +373,8 @@ int main(int Argc, const char **Argv) {
   CallGraphAnalysisType CGTy = toCallGraphAnalysisType(
       PhasarConfig::VariablesMap()["call-graph-analysis"].as<std::string>());
   // setup soudiness level to be used
-  Soundness S = toSoundness(
-      PhasarConfig::VariablesMap()["soundness"].as<std::string>());
+  Soundness S =
+      toSoundness(PhasarConfig::VariablesMap()["soundness"].as<std::string>());
   // setup the emitter options to display the computed analysis results
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::EmitTextReport;

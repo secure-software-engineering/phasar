@@ -50,10 +50,10 @@ int getVFTIndex(const llvm::CallBase *CallSite) {
 }
 
 const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
-  if (CallSite->getNumArgOperands() > 0) {
-    const llvm::Value *Receiver = CallSite->getArgOperand(0);
+  if (!CallSite->arg_empty()) {
+    const auto *Receiver = CallSite->getArgOperand(0);
     if (Receiver->getType()->isPointerTy()) {
-      if (const llvm::StructType *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+      if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
               Receiver->getType()->getPointerElementType())) {
         return ReceiverTy;
       }
@@ -63,7 +63,7 @@ const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
 }
 
 std::string getReceiverTypeName(const llvm::CallBase *CallSite) {
-  const auto *const RT = getReceiverType(CallSite);
+  const auto *RT = getReceiverType(CallSite);
   if (RT) {
     return RT->getName().str();
   }
@@ -107,7 +107,7 @@ Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
   // origin is still unknown)
   if (CallSite->getCalledOperand() != nullptr &&
       CallSite->getCalledOperand()->getType()->isPointerTy()) {
-    if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
+    if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
       for (const auto *F : IRDB.getAllFunctions()) {
         if (matchesSignature(F, FTy)) {

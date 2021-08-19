@@ -231,6 +231,10 @@ llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
   return nullptr;
 }
 
+std::size_t ProjectIRDB::getNumInstructions() const {
+  return IDInstructionMapping.size();
+}
+
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
   if (IDInstructionMapping.count(Id)) {
     return IDInstructionMapping[Id];

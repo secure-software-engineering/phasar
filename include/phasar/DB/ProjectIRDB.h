@@ -168,6 +168,8 @@ public:
     return Modules.size();
   };
 
+  [[nodiscard]] std::size_t getNumInstructions() const;
+
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t id);
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);

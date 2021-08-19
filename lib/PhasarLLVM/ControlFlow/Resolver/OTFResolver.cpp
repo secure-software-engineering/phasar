@@ -19,6 +19,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
@@ -54,20 +55,21 @@ void OTFResolver::handlePossibleTargets(
                     << "Target name: " << CalleeTarget->getName().str());
       // do the merge of the points-to information for all possible targets, but
       // only if they are available
-      if (!CalleeTarget->isDeclaration()) {
-        // handle parameter pairs
-        auto Pairs = getActualFormalPointerPairs(CallSite, CalleeTarget);
-        for (auto &[Actual, Formal] : Pairs) {
-          PT.introduceAlias(Actual, Formal, CallSite);
-        }
-        // handle return value
-        if (CalleeTarget->getReturnType()->isPointerTy()) {
-          for (const auto &ExitPoint : ICF.getExitPointsOf(CalleeTarget)) {
-            // get the function's return value
-            if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
-              // introduce alias to the returned value
-              PT.introduceAlias(CallSite, Ret->getReturnValue(), CallSite);
-            }
+      if (CalleeTarget->isDeclaration()) {
+        continue;
+      }
+      // handle parameter pairs
+      auto Pairs = getActualFormalPointerPairs(CallSite, CalleeTarget);
+      for (auto &[Actual, Formal] : Pairs) {
+        PT.introduceAlias(Actual, Formal, CallSite);
+      }
+      // handle return value
+      if (CalleeTarget->getReturnType()->isPointerTy()) {
+        for (const auto &ExitPoint : ICF.getExitPointsOf(CalleeTarget)) {
+          // get the function's return value
+          if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
+            // introduce alias to the returned value
+            PT.introduceAlias(CallSite, Ret->getReturnValue(), CallSite);
           }
         }
       }
@@ -239,42 +241,43 @@ std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
 OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                                          const llvm::Function *CalleeTarget) {
   std::vector<std::pair<const llvm::Value *, const llvm::Value *>> Pairs;
+  Pairs.reserve(CallSite->getNumArgOperands());
   // ordinary case
-  if (!CalleeTarget->isVarArg()) {
-    Pairs.reserve(CallSite->getNumArgOperands());
-    for (unsigned Idx = 0;
-         Idx < CallSite->getNumArgOperands() && Idx < CalleeTarget->arg_size();
-         ++Idx) {
-      // only collect pointer typed pairs
-      if (CallSite->getArgOperand(Idx)->getType()->isPointerTy() &&
-          CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
-        Pairs.emplace_back(CallSite->getArgOperand(Idx),
-                           CalleeTarget->getArg(Idx));
-      }
+
+  unsigned Idx = 0;
+  for (; Idx < CallSite->getNumArgOperands() && Idx < CalleeTarget->arg_size();
+       ++Idx) {
+    // only collect pointer typed pairs
+    if (CallSite->getArgOperand(Idx)->getType()->isPointerTy() &&
+        CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
+      Pairs.emplace_back(CallSite->getArgOperand(Idx),
+                         CalleeTarget->getArg(Idx));
     }
-  } else {
+  }
+
+  if (CalleeTarget->isVarArg()) {
     // in case of vararg, we can pair-up incoming pointer parameters with the
     // vararg pack of the callee target. the vararg pack will alias
     // (intra-procedurally) with any pointer values loaded from the pack
     const llvm::AllocaInst *VarArgs = nullptr;
-    for (const auto &BB : *CalleeTarget) {
-      for (const auto &I : BB) {
-        if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-          if (const auto *AT =
-                  llvm::dyn_cast<llvm::ArrayType>(Alloca->getAllocatedType())) {
-            if (const auto *ST = llvm::dyn_cast<llvm::StructType>(
-                    AT->getArrayElementType())) {
-              if (ST->hasName() && ST->getName() == "struct.__va_list_tag") {
-                VarArgs = Alloca;
-                break;
-              }
+
+    for (const auto &I : llvm::instructions(CalleeTarget)) {
+      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+        if (const auto *AT =
+                llvm::dyn_cast<llvm::ArrayType>(Alloca->getAllocatedType())) {
+          if (const auto *ST =
+                  llvm::dyn_cast<llvm::StructType>(AT->getArrayElementType())) {
+            if (ST->hasName() && ST->getName() == "struct.__va_list_tag") {
+              VarArgs = Alloca;
+              break;
             }
           }
         }
       }
     }
+
     if (VarArgs) {
-      for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+      for (; Idx < CallSite->getNumArgOperands(); ++Idx) {
         if (CallSite->getArgOperand(Idx)->getType()->isPointerTy()) {
           Pairs.emplace_back(CallSite->getArgOperand(Idx), VarArgs);
         }

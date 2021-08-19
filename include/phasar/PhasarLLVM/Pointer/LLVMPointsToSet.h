@@ -52,7 +52,7 @@ private:
 
   void computeFunctionsPointsToSet(llvm::Function *F);
 
-  void addSingletonPointsToSet(const llvm::Value *V);
+  PointsToSetPtrTy addSingletonPointsToSet(const llvm::Value *V);
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 

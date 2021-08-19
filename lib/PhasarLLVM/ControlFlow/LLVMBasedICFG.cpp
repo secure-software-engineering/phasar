@@ -150,10 +150,9 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              "CallGraphAnalysisType::OTF was not specified.");
   }
 
-  std::cerr << "Make Resulver\n";
   // instantiate the respective resolver type
   Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
-  std::cerr << "> Done\n";
+
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
@@ -189,11 +188,13 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       processFunction(F, *Res, FixpointReached);
     }
 
-    for (const auto &[Callsite, _] : IndirectCalls) {
-      FixpointReached &= !constructDynamicCall(Callsite, *Res);
+    for (const auto *CS : IndirectCallsWL) {
+      FixpointReached &= !constructDynamicCall(CS, *Res);
     }
+    IndirectCallsWL.clear();
+
   } while (!FixpointReached);
-  std::cerr << "Fixpoint loop finished\n";
+
   for (const auto &[IndirectCall, Targets] : IndirectCalls) {
     if (Targets == 0) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
@@ -272,7 +273,8 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
                         << "Found dynamic call-site: ");
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "  " << llvmIRToString(CS));
-          IndirectCalls[&I] = 0;
+          IndirectCalls[CS] = 0;
+          IndirectCallsWL.push_back(CS);
           FixpointReached = false;
           continue;
         }
@@ -341,8 +343,10 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
     } else {
       PossibleTargets = Resolver.resolveFunctionPointer(CallSite);
     }
-    if (IndirectCalls.count(I) == 0 ||
-        IndirectCalls[I] < PossibleTargets.size()) {
+
+    assert(IndirectCalls.count(I));
+
+    if (IndirectCalls[I] < PossibleTargets.size()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Found " << PossibleTargets.size() - IndirectCalls[I]
                     << " new possible target(s)");

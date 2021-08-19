@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <type_traits>
@@ -107,7 +108,8 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
   }
 }
 
-void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
+auto LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V)
+    -> PointsToSetPtrTy {
 
   auto &PTS = PointsToSets[V];
 
@@ -117,6 +119,7 @@ void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
   }
 
   assert(PTS->count(V));
+  return PTS;
 }
 
 void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
@@ -250,7 +253,8 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   llvm::SetVector<const llvm::Value *> Pointers;
 
   for (auto &Inst : llvm::instructions(F)) {
-    if (Inst.getType()->isPointerTy()) { // Add all pointer instructions.
+    if (Inst.getType()->isPointerTy()) {
+      // Add all pointer instructions.
       Pointers.insert(&Inst);
     }
     // if (EvalAAMD && llvm::isa<llvm::LoadInst>(&*I)) {
@@ -291,7 +295,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee)) {
         Pointers.insert(Callee);
       }
-      // Consider formals.
+      // Consider arguments.
       for (llvm::Use &DataOp : Call->data_ops()) {
         if (isInterestingPointer(DataOp)) {
           Pointers.insert(DataOp);
@@ -300,11 +304,9 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       // Calls.insert(Call);
     } else {
       // Consider all operands.
-      for (llvm::Instruction::op_iterator OI = Inst.op_begin(),
-                                          OE = Inst.op_end();
-           OI != OE; ++OI) {
-        if (isInterestingPointer(*OI)) {
-          Pointers.insert(*OI);
+      for (auto &Op : Inst.operands()) {
+        if (isInterestingPointer(Op)) {
+          Pointers.insert(Op);
         }
       }
     }
@@ -322,24 +324,28 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     Pointers.insert(&G);
   }
 
-  std::unordered_set<std::shared_ptr<std::unordered_set<const llvm::Value *>>>
-      InterestingPTS;
-  std::vector<std::shared_ptr<std::unordered_set<const llvm::Value *>>>
-      PTSVector;
-  // introduce a singleton set for each pointer
-  // those sets will be merged as we discover aliases
-  for (const auto *Pointer : Pointers) {
-    addSingletonPointsToSet(Pointer);
-    auto [It, Inserted] = InterestingPTS.insert(PointsToSets[Pointer]);
-    if (Inserted) {
-      PTSVector.push_back(*It);
+  auto PTSVector = [&] {
+    std::unordered_set<std::shared_ptr<std::unordered_set<const llvm::Value *>>>
+        InterestingPTS;
+    std::vector<std::shared_ptr<std::unordered_set<const llvm::Value *>>>
+        PTSVector;
+
+    InterestingPTS.reserve(Pointers.size() / 2);
+    PTSVector.reserve(Pointers.size() / 2);
+    // Introduce a singleton set for each pointer.
+    // Those sets will be merged as we discover aliases
+    for (const auto *Pointer : Pointers) {
+      auto [It, Inserted] =
+          InterestingPTS.insert(addSingletonPointsToSet(Pointer));
+      if (Inserted) {
+        PTSVector.push_back(*It);
+      }
     }
-  }
+    return PTSVector;
+  }();
 
-  InterestingPTS.clear();
-
-  constexpr int kWarningPointers = 100;
-  if (Pointers.size() > kWarningPointers) {
+  constexpr int KWarningPointers = 100;
+  if (Pointers.size() > KWarningPointers) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
                   << "Large number of pointers detected - Perf is O(N^2) here: "
                   << Pointers.size() << " for "
@@ -351,16 +357,15 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     // std::cerr << "> Total " << PTSVector.size() << " points-to-sets\n";
   }
 
-  std::vector<size_t> ToMerge;
+  llvm::SmallVector<size_t> ToMerge;
 
   for (size_t I1 = 0; I1 < PTSVector.size(); ++I1) {
     auto PTS1 = PTSVector[I1];
     assert(PTS1);
 
-    for (size_t I2 = 0; I2 < PTSVector.size(); ++I2) {
-      if (I1 == I2) {
-        continue;
-      }
+    for (size_t I2 = I1 + 1; I2 < PTSVector.size(); ++I2) {
+      /// Assuming, the mayAlias relation is transitive, we can start with
+      /// I2=I1+1
 
       for (const auto *V1 : *PTS1) {
         auto V1Size = getSizeOf(V1);
@@ -438,17 +443,20 @@ AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
 std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
                                 const llvm::Instruction *I) {
+  static std::shared_ptr<std::unordered_set<const llvm::Value *>> EmptySet =
+      std::make_shared<std::unordered_set<const llvm::Value *>>();
+
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
-    return std::make_shared<std::unordered_set<const llvm::Value *>>();
+    return EmptySet;
   }
   // compute V's points-to set
   computeValuesPointsToSet(V);
-  if (PointsToSets.find(V) == PointsToSets.end()) {
-    // if we still can't find its value return an empty set
-    return std::make_shared<std::unordered_set<const llvm::Value *>>();
+  if (auto It = PointsToSets.find(V); It != PointsToSets.end()) {
+    return It->second;
   }
-  return PointsToSets[V];
+  // if we still can't find its value return an empty set
+  return EmptySet;
 }
 
 std::shared_ptr<std::unordered_set<const llvm::Value *>>
