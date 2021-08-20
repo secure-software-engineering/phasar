@@ -237,25 +237,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   // taken from llvm/Analysis/AliasAnalysisEvaluator.cpp
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
 
-  auto getSizeOf = [&DL](const llvm::Value *V) {
-    if (!V->getType()->isPointerTy()) {
-      std::cerr << "ERROR: " << llvmIRToString(V) << " is no pointer!\n";
-    }
-    llvm::Type *I1ElTy = V->getType()->getPointerElementType();
-    return I1ElTy->isSized() ? DL.getTypeStoreSize(I1ElTy)
-                             : llvm::MemoryLocation::UnknownSize;
-  };
-  auto mayAlias = [&AA](const llvm::Value *V1, uint64_t V1Size,
-                        const llvm::Value *V2, uint64_t V2Size) {
-    const auto *F1 = retrieveFunction(V1);
-    const auto *F2 = retrieveFunction(V2);
-    if (F1 && F2 && F1 != F2) {
-      return false;
-    }
-
-    return AA.alias(V1, V1Size, V2, V2Size) != llvm::AliasResult::NoAlias;
-  };
-
   llvm::SetVector<const llvm::Value *> Pointers;
 
   for (auto &Inst : llvm::instructions(F)) {
@@ -347,8 +328,22 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
         PTSVector.push_back(*It);
       }
     }
+
     return PTSVector;
   }();
+
+  auto getSizeOf = [&DL](const llvm::Value *V) {
+    if (!V->getType()->isPointerTy()) {
+      std::cerr << "ERROR: " << llvmIRToString(V) << " is no pointer!\n";
+    }
+    llvm::Type *I1ElTy = V->getType()->getPointerElementType();
+    return I1ElTy->isSized() ? DL.getTypeStoreSize(I1ElTy)
+                             : llvm::MemoryLocation::UnknownSize;
+  };
+  auto mayAlias = [&AA](const llvm::Value *V1, uint64_t V1Size,
+                        const llvm::Value *V2, uint64_t V2Size) {
+    return AA.alias(V1, V1Size, V2, V2Size) != llvm::AliasResult::NoAlias;
+  };
 
   constexpr int KWarningPointers = 100;
   if (Pointers.size() > KWarningPointers) {
@@ -357,14 +352,16 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
                   << Pointers.size() << " for "
                   << llvm::demangle(F->getName().str()));
 
-    // std::cerr << "Large number of pointers detected - Perf is O(N^2) here: "
-    //           << Pointers.size() << " for "
-    //           << llvm::demangle(F->getName().str()) << "\n";
-    // std::cerr << "> Total " << PTSVector.size() << " points-to-sets\n";
+    std::cerr << "Large number of pointers detected - Perf is O(N^2) here: "
+              << Pointers.size() << " for "
+              << llvm::demangle(F->getName().str()) << "\n";
+    std::cerr << "> Total " << PTSVector.size() << " points-to-sets\n";
   }
 
   llvm::SmallVector<size_t> ToMerge;
 
+  size_t ctr = 0;
+  size_t skipCtr = 0;
   for (size_t I1 = 0; I1 < PTSVector.size(); ++I1) {
     auto PTS1 = PTSVector[I1];
     assert(PTS1);
@@ -373,14 +370,27 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       /// Assuming, the mayAlias relation is transitive, we can start with
       /// I2=I1+1
 
+      auto PTS2 = PTSVector[I2];
+      assert(PTS2);
+
       for (const auto *V1 : *PTS1) {
+        const auto *F1 = retrieveFunction(V1);
+        if (F1 && F1 != F) {
+          ++skipCtr;
+          ++ctr;
+          continue;
+        }
         auto V1Size = getSizeOf(V1);
         bool EarlyBreak = false;
 
-        auto PTS2 = PTSVector[I2];
-        assert(PTS2);
-
         for (const auto *V2 : *PTS2) {
+          ++ctr;
+          const auto *F2 = retrieveFunction(V2);
+          if (F2 && F2 != F) {
+            ++skipCtr;
+            continue;
+          }
+
           if (mayAlias(V1, V1Size, V2, getSizeOf(V2))) {
             EarlyBreak = true;
             ToMerge.push_back(I2);
@@ -426,9 +436,9 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   //   }
   // }
 
-  // if (Pointers.size() > kWarningPointers) {
-  //   std::cerr << "> done\n";
-  // }
+  if (Pointers.size() > KWarningPointers) {
+    std::cerr << "> done; skipped " << skipCtr << "/" << ctr << " pointers\n";
+  }
 
   // we no longer need the LLVM representation
   PTA.erase(F);

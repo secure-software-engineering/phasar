@@ -58,6 +58,8 @@ private:
 
   PointsToSetPtrTy mergePointsToSets(const PointsToSetPtrTy &PTS1,
                                      const PointsToSetPtrTy &PTS2);
+  void mergePointsToSetInto(const PointsToSetPtrTy &PTS1,
+                            const PointsToSetPtrTy &PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);
