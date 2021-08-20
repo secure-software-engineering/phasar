@@ -975,7 +975,10 @@ protected:
     for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Start point: " << IDEProblem.NtoString(StartPoint));
-      for (const auto &[Fact, Value] : Facts) {
+      /// If statically disabling the logger, Fact and Value are unused. To
+      /// prevent the copilation to fail with -Werror, add the [[maybe_unused]]
+      /// attribute
+      for ([[maybe_unused]] const auto &[Fact, Value] : Facts) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "\tFact: " << IDEProblem.DtoString(Fact));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

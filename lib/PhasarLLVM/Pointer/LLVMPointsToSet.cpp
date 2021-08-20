@@ -247,6 +247,12 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   };
   auto mayAlias = [&AA](const llvm::Value *V1, uint64_t V1Size,
                         const llvm::Value *V2, uint64_t V2Size) {
+    const auto *F1 = retrieveFunction(V1);
+    const auto *F2 = retrieveFunction(V2);
+    if (F1 && F2 && F1 != F2) {
+      return false;
+    }
+
     return AA.alias(V1, V1Size, V2, V2Size) != llvm::AliasResult::NoAlias;
   };
 
