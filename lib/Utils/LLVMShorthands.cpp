@@ -31,6 +31,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
@@ -194,6 +195,8 @@ std::string llvmIRToShortString(const llvm::Value *V) {
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V);
       I && !I->getType()->isVoidTy()) {
     V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
+  } else if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
+    RSO << F->getName();
   } else {
     V->print(RSO, getModuleSlotTrackerFor(V));
   }

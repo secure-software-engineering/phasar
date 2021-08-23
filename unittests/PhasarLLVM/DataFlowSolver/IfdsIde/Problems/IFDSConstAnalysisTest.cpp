@@ -11,6 +11,7 @@
 #include "gtest/gtest.h"
 
 #include "TestConfig.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;
@@ -58,12 +59,14 @@ protected:
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||
             (llvm::isa<llvm::GlobalValue>(Fact) &&
              !Constproblem->isZeroValue(Fact))) {
+
           AllMutableAllocas.insert(Fact);
         }
       }
     }
     std::set<unsigned long> MutableIDs;
     for (const auto *Memloc : AllMutableAllocas) {
+      std::cerr << "> Is Mutable: " << llvmIRToShortString(Memloc) << "\n";
       MutableIDs.insert(std::stoul(getMetaDataID(Memloc)));
     }
     EXPECT_EQ(GroundTruth, MutableIDs);
@@ -185,6 +188,7 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
   initialize({PathToLlFiles + "global/global_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
+
   compareResults({0, 1, 2}, Llvmconstsolver);
 }
 
