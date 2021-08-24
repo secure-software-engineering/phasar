@@ -346,9 +346,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       // Add all pointer instructions.
       // Pointers.insert(&Inst);
       addPointer(&Inst, Pointers);
-      for (auto *Op : Inst.operand_values()) {
-        addIfGlobal(Op);
-      }
     }
 
     if (EvalAAMD && llvm::isa<llvm::StoreInst>(&Inst)) {
@@ -380,34 +377,37 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       }
     }
 
+    /// The operands/arguments of instructions should already be inserted,
+    /// because of the SSA form
+
     if (auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
       llvm::Value *Callee = Call->getCalledOperand();
       // Skip actual functions for direct function calls.
-      if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee)) {
+      if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee) &&
+          !llvm::isa<llvm::Instruction>(Callee)) {
         // Pointers.insert(Callee);
         addPointer(Callee, Pointers);
       }
 
-      /// The operands/arguments of instructions should already be inserted,
-      /// because of the SSA form
-
       // Consider arguments.
-      // for (llvm::Use &DataOp : Call->data_ops()) {
-      //   if (isInterestingPointer(DataOp)) {
-      //     Pointers.insert(DataOp);
-      //     // addPointer(DataOp);
-      //   }
-      // }
-    }
-    // else {
-    // Consider all operands; the instructions we have already seen
-    for (auto &Op : Inst.operands()) {
-      if (!llvm::isa<llvm::Instruction>(Op) && isInterestingPointer(Op)) {
-        // Pointers.insert(Op);
-        addPointer(Op, Pointers);
+      for (llvm::Use &DataOp : Call->data_ops()) {
+        addIfGlobal(DataOp);
+        if (!llvm::isa<llvm::Instruction>(DataOp) &&
+            isInterestingPointer(DataOp)) {
+          // Pointers.insert(DataOp);
+          addPointer(DataOp, Pointers);
+        }
+      }
+    } else {
+      // Consider all operands; the instructions we have already seen
+      for (auto &Op : Inst.operands()) {
+        addIfGlobal(Op);
+        if (!llvm::isa<llvm::Instruction>(Op) && isInterestingPointer(Op)) {
+          // Pointers.insert(Op);
+          addPointer(Op, Pointers);
+        }
       }
     }
-    // }
   }
 
   for (auto &I : F->args()) {
