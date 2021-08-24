@@ -60,7 +60,6 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
     }
 
     if (!UseLazyEvaluation) {
-
       // compute points-to information for all functions
       for (auto &F : *M) {
         if (!F.isDeclaration()) {
@@ -132,9 +131,6 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   }
 
   auto SearchV1 = PointsToSets.find(V1);
-  if (SearchV1 == PointsToSets.end()) {
-    std::cerr << "ERROR: No points to set for " << llvmIRToString(V1) << "\n";
-  }
   assert(SearchV1 != PointsToSets.end());
 
   auto SearchV2 = PointsToSets.find(V2);
@@ -173,15 +169,14 @@ auto LLVMPointsToSet::mergePointsToSets(const PointsToSetPtrTy &PTS1,
   return LargerSet;
 }
 
-bool LLVMPointsToSet::interIsReachableAllocationSiteTy(const llvm::Value *V,
-                                                       const llvm::Value *P) {
+bool LLVMPointsToSet::interIsReachableAllocationSiteTy(
+    [[maybe_unused]] const llvm::Value *V, const llvm::Value *P) {
   // consider the full inter-procedural points-to/alias information
 
   if (llvm::isa<llvm::AllocaInst>(P)) {
     return true;
   }
-  if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-    const llvm::CallBase *CS = llvm::dyn_cast<llvm::CallBase>(P);
+  if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(P)) {
     if (CS->getCalledFunction() != nullptr &&
         CS->getCalledFunction()->hasName() &&
         HeapAllocatingFunctions.count(CS->getCalledFunction()->getName())) {
@@ -193,8 +188,8 @@ bool LLVMPointsToSet::interIsReachableAllocationSiteTy(const llvm::Value *V,
 }
 
 bool LLVMPointsToSet::intraIsReachableAllocationSiteTy(
-    const llvm::Value *V, const llvm::Value *P, const llvm::Function *VFun,
-    const llvm::GlobalObject *VG) {
+    [[maybe_unused]] const llvm::Value *V, const llvm::Value *P,
+    const llvm::Function *VFun, const llvm::GlobalObject *VG) {
   // consider the function-local, i.e. intra-procedural, points-to/alias
   // information only
 
@@ -209,14 +204,15 @@ bool LLVMPointsToSet::intraIsReachableAllocationSiteTy(
     if (VG) {
       return true;
     }
-  } else if (llvm::isa<llvm::CallInst>(P) || llvm::isa<llvm::InvokeInst>(P)) {
-    const llvm::CallBase *CS = llvm::dyn_cast<llvm::CallBase>(P);
+  } else if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(P)) {
+
     if (CS->getCalledFunction() != nullptr &&
         CS->getCalledFunction()->hasName() &&
         HeapAllocatingFunctions.count(CS->getCalledFunction()->getName())) {
       if (VFun && VFun == CS->getFunction()) {
         return true;
-      } else if (VG) {
+      }
+      if (VG) {
         return true;
       }
     }
@@ -241,7 +237,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
 
-  // taken from llvm/Analysis/AliasAnalysisEvaluator.cpp
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
 
   auto mayAlias = [&AA, &DL](const llvm::Value *V, const llvm::Value *Rep) {
@@ -309,33 +304,19 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     }
   };
 
-  // llvm::SetVector<const llvm::Value *> Pointers;
   std::vector<const llvm::Value *> Pointers;
-
   llvm::DenseSet<const llvm::Value *> UsedGlobals;
 
-  auto addIfGlobal = [&](const llvm::Value *Op) {
+  auto addIfGlobal = [&UsedGlobals](const llvm::Value *Op) {
     llvm::SmallSetVector<const llvm::Value *, 4> WorkList;
     WorkList.insert(Op);
 
     while (!WorkList.empty()) {
       const auto *Curr = WorkList.pop_back_val();
-      if (llvm::isa<llvm::GlobalValue>(Curr)) {
-        UsedGlobals.insert(Op);
-
-        // auto PTS = addSingletonPointsToSet(Op);
-        // for (const auto *GlobAlias : *PTS) {
-        //   if (llvm::isa<llvm::GlobalValue>(GlobAlias) &&
-        //       !mayAlias(Op, GlobAlias)) {
-        //     /// If they alias also within F, we don't need to check that
-        //     again -
-        //     /// every pointer that aliases Op, will transitively alias
-        //     GlobAlias UsedGlobals.insert(GlobAlias);
-        //   }
-        // }
-        return;
-      }
-      if (const auto *CurrCE = llvm::dyn_cast<llvm::ConstantExpr>(Curr)) {
+      if (llvm::isa<llvm::GlobalObject>(Curr)) {
+        UsedGlobals.insert(Curr);
+      } else if (const auto *CurrCE =
+                     llvm::dyn_cast<llvm::ConstantExpr>(Curr)) {
         WorkList.insert(CurrCE->value_op_begin(), CurrCE->value_op_end());
       }
     }
@@ -344,7 +325,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   for (auto &Inst : llvm::instructions(F)) {
     if (Inst.getType()->isPointerTy()) {
       // Add all pointer instructions.
-      // Pointers.insert(&Inst);
       addPointer(&Inst, Pointers);
     }
 
@@ -385,7 +365,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       // Skip actual functions for direct function calls.
       if (!llvm::isa<llvm::Function>(Callee) && isInterestingPointer(Callee) &&
           !llvm::isa<llvm::Instruction>(Callee)) {
-        // Pointers.insert(Callee);
         addPointer(Callee, Pointers);
       }
 
@@ -394,7 +373,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
         addIfGlobal(DataOp);
         if (!llvm::isa<llvm::Instruction>(DataOp) &&
             isInterestingPointer(DataOp)) {
-          // Pointers.insert(DataOp);
           addPointer(DataOp, Pointers);
         }
       }
@@ -403,7 +381,6 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       for (auto &Op : Inst.operands()) {
         addIfGlobal(Op);
         if (!llvm::isa<llvm::Instruction>(Op) && isInterestingPointer(Op)) {
-          // Pointers.insert(Op);
           addPointer(Op, Pointers);
         }
       }
@@ -413,91 +390,47 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   for (auto &I : F->args()) {
     if (I.getType()->isPointerTy()) {
       // Add all pointer arguments.
-      // Pointers.insert(&I);
       addPointer(&I, Pointers);
     }
   }
 
-  /// Consider globals
-  // for (auto &G : F->getParent()->globals()) {
-  //   Pointers.insert(&G);
-  //   // addPointer(&G);
-  // }
-
-  constexpr int KWarningPointers = 100;
-
   auto NumGlobals = UsedGlobals.size();
 
-  if (Pointers.size() + NumGlobals > KWarningPointers) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                  << "Large number of pointers detected - Perf is O(N^2) here: "
-                  << Pointers.size() << " for "
-                  << llvm::demangle(F->getName().str()));
-
-    std::cerr << "Large number of pointers detected - Perf is O(N^2) here: "
-              << Pointers.size() << " and " << NumGlobals << " globals for "
-              << llvm::demangle(F->getName().str()) << "\n";
-    // std::cerr << "> Total " << PTSVector.size() << " points-to-sets\n";
-  }
-
-  // std::vector<const llvm::Value *> Representants;
-  // Representants.reserve(Pointers.size() + NumGlobals);
-
-  // for (const auto *G : UsedGlobals) {
-  //   Representants.push_back(G);
-  //   //  addSingletonPointsToSet(G);
-  // }
-
-  // if (Pointers.size() + NumGlobals > KWarningPointers) {
-  std::cerr << "> added " << Pointers.size()
-            << " local pointers; continue with globals pointers\n";
-  //}
-
-  // for (const auto *Pointer : Pointers) {
-  //   addPointer(Pointer, Representants);
-  // }
   Pointers.reserve(Pointers.size() + NumGlobals);
   for (const auto *Glob : UsedGlobals) {
     addPointer(Glob, Pointers);
-  }
-
-  // if (Pointers.size() + NumGlobals > KWarningPointers) {
-  std::cerr << "> done with globals - reduced to " << Pointers.size() << ";\n";
-  //  }
-
-  // for (auto &G : F->getParent()->global_values()) {
-  //   addPointer(&G, Representants);
-  // }
-
-  if (Pointers.size() + NumGlobals > KWarningPointers) {
-    std::cerr << "> done\n";
   }
 
   // we no longer need the LLVM representation
   PTA.erase(F);
 }
 
-AliasResult LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
-                                   const llvm::Instruction *I) {
+AliasResult
+LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
+                       [[maybe_unused]] const llvm::Instruction *I) {
   // if V1 or V2 is not an interesting pointer those values cannot alias
   if (!isInterestingPointer(V1) || !isInterestingPointer(V2)) {
     return AliasResult::NoAlias;
   }
   computeValuesPointsToSet(V1);
   computeValuesPointsToSet(V2);
-  return PointsToSets[V1]->count(V2) ? AliasResult::MustAlias
+  return PointsToSets[V1]->count(V2) ? AliasResult::MayAlias
                                      : AliasResult::NoAlias;
+}
+
+auto LLVMPointsToSet::getEmptyPointsToSet() -> PointsToSetPtrTy {
+  static auto EmptySet =
+      std::make_shared<std::unordered_set<const llvm::Value *>>();
+  return EmptySet;
 }
 
 std::shared_ptr<std::unordered_set<const llvm::Value *>>
 LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
-                                const llvm::Instruction *I) {
-  static std::shared_ptr<std::unordered_set<const llvm::Value *>> EmptySet =
-      std::make_shared<std::unordered_set<const llvm::Value *>>();
+                                [[maybe_unused]] const llvm::Instruction *I) {
 
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
-    return EmptySet;
+    return getEmptyPointsToSet();
   }
   // compute V's points-to set
   computeValuesPointsToSet(V);
@@ -505,16 +438,16 @@ LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
     return It->second;
   }
   // if we still can't find its value return an empty set
-  return EmptySet;
+  return getEmptyPointsToSet();
 }
 
 std::shared_ptr<std::unordered_set<const llvm::Value *>>
-LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
-                                             bool IntraProcOnly,
-                                             const llvm::Instruction *I) {
+LLVMPointsToSet::getReachableAllocationSites(
+    const llvm::Value *V, bool IntraProcOnly,
+    [[maybe_unused]] const llvm::Instruction *I) {
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
-    return std::make_shared<std::unordered_set<const llvm::Value *>>();
+    return getEmptyPointsToSet();
   }
   computeValuesPointsToSet(V);
   auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
@@ -545,7 +478,7 @@ LLVMPointsToSet::getReachableAllocationSites(const llvm::Value *V,
 
 bool LLVMPointsToSet::isInReachableAllocationSites(
     const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
-    const llvm::Instruction *I) {
+    [[maybe_unused]] const llvm::Instruction *I) {
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
     return false;
@@ -585,8 +518,9 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
     bool FoundElemPtr = false;
     for (const auto *ElemPtr : *Set) {
       // check if a pointer of other is already present in this
-      auto Search = PointsToSets.find(ElemPtr);
-      if (Search != PointsToSets.end()) {
+
+      if (auto Search = PointsToSets.find(ElemPtr);
+          Search != PointsToSets.end()) {
         // if so, copy its elements
         FoundElemPtr = true;
         Search->second->insert(Set->begin(), Set->end());

@@ -378,8 +378,8 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
-  // @__const.main.a and @.str are declared as constant
-  compareResults({/*0, 1,*/ 2}, Llvmconstsolver);
+  // @__const.main.a is declared as constant
+  compareResults({/*0,*/ 1, 2}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleSTLArrayTest_04) {

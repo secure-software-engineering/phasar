@@ -67,6 +67,8 @@ private:
                                         const llvm::Function *VFun,
                                         const llvm::GlobalObject *VG);
 
+  [[nodiscard]] static PointsToSetPtrTy getEmptyPointsToSet();
+
 public:
   /**
    * Creates points-to set(s) based on the computed alias results.
