@@ -150,12 +150,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              "CallGraphAnalysisType::OTF was not specified.");
   }
 
-  // instantiate the respective resolver type
-  Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                << "Starting CallGraphAnalysisType: " << CGType);
-  VisitedFunctions.reserve(IRDB.getAllFunctions().size());
-
   for (const auto &EntryPoint : EntryPoints) {
     auto *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
@@ -176,6 +170,12 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     FunctionWL.insert(FunctionWL.end(), UserEntryPoints.begin(),
                       UserEntryPoints.end());
   }
+
+  // instantiate the respective resolver type
+  Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                << "Starting CallGraphAnalysisType: " << CGType);
+  VisitedFunctions.reserve(IRDB.getAllFunctions().size());
 
   bool FixpointReached;
   do {
