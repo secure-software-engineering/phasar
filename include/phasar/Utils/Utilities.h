@@ -82,8 +82,8 @@ struct stringIDLess {
 /// specifying the elements to be removed.
 template <typename It, typename EndIt, typename IdxIt, typename IdxEndIt>
 It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex) {
-  if (FirstIndex == LastIndex) {
-    return First;
+  if (FirstIndex == LastIndex || First == Last) {
+    return Last;
   }
   First = std::next(First, *FirstIndex);
   if (First == Last) {

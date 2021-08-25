@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <numeric>
 #include <type_traits>
@@ -20,6 +21,8 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SetVector.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
@@ -269,10 +272,17 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       }
     }
 
+    // If we find several alias sets that may alias V, we must merge them.
+    // However, we cannot simply remove all respective representants (except for
+    // one), because for interprocedural flows, LLVM assumes all possible
+    // aliases and i8* is treated as void* making every pointer-type a matching
+    // type.
+    // This destroys the transitivity of the mayAlias relation partially. We can
+    // still remove a representant, if we have another rep of the same type
+    // within the same alias set.
+
     if (ToMerge.empty()) {
-
       Reps.push_back(V);
-
       addSingletonPointsToSet(V);
     } else if (ToMerge.size() == 1) {
       auto &PTS = PointsToSets[Reps[ToMerge[0]]];
@@ -285,11 +295,28 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
         PointsToSets[V] = PTS;
         PTS->insert(V);
       }
+
+      if (V->getType() != Reps[ToMerge[0]]->getType()) {
+        Reps.push_back(V);
+      }
+
     } else {
       auto PTS = PointsToSets[Reps[ToMerge[0]]];
+      llvm::SmallPtrSet<const llvm::Type *, 6> OccurringTypes{
+          Reps[ToMerge[0]]->getType()};
+      llvm::SmallVector<unsigned> ToRemove;
+
+      // std::cerr << "Remove from Reps: ";
       for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
         PTS = mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
+        if (auto [unused, Inserted] =
+                OccurringTypes.insert(Reps[Idx]->getType());
+            !Inserted) {
+          ToRemove.push_back(Idx);
+          // std::cerr << Idx << " ";
+        }
       }
+      // std::cerr << "\n";
 
       if (auto VPTS = PointsToSets.find(V); VPTS != PointsToSets.end()) {
         mergePointsToSets(PTS, VPTS->second);
@@ -298,9 +325,13 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
         PTS->insert(V);
       }
 
-      Reps.erase(
-          remove_by_index(Reps, std::next(ToMerge.begin()), ToMerge.end()),
-          Reps.end());
+      Reps.erase(remove_by_index(Reps, ToRemove.begin(), ToRemove.end()),
+                 Reps.end());
+
+      if (auto [unused, Inserted] = OccurringTypes.insert(V->getType());
+          Inserted) {
+        Reps.push_back(V);
+      }
     }
   };
 
