@@ -180,12 +180,12 @@ public:
       }
       return {};
     }
+    container_type Res;
     // Pass global variables as is, if desired
     // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
     if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
-      return {Source};
+      Res.insert(Source);
     }
-    container_type Res;
     // Handle back propagation of return value in backwards analysis.
     // We add it to the result here. Later, normal flow in callee can identify
     // it
@@ -263,6 +263,7 @@ private:
   std::vector<const llvm::Value *> Formals;
   std::function<bool(const llvm::Value *)> ParamPredicate;
   std::function<bool(const llvm::Function *)> ReturnPredicate;
+  const bool PropagateZeroToCaller;
 
 public:
   MapFactsToCaller(
@@ -271,12 +272,14 @@ public:
       std::function<bool(const llvm::Value *)> ParamPredicate =
           [](const llvm::Value *) { return true; },
       std::function<bool(const llvm::Function *)> ReturnPredicate =
-          [](const llvm::Function *) { return true; })
+          [](const llvm::Function *) { return true; },
+      bool PropagateZeroToCaller = true)
       : CallSite(CallSite), CalleeFun(CalleeFun),
         ExitInst(llvm::dyn_cast<llvm::ReturnInst>(ExitInst)),
         PropagateGlobals(PropagateGlobals),
         ParamPredicate(std::move(ParamPredicate)),
-        ReturnPredicate(std::move(ReturnPredicate)) {
+        ReturnPredicate(std::move(ReturnPredicate)),
+        PropagateZeroToCaller(PropagateZeroToCaller) {
     assert(ExitInst && "Should not be null");
     // Set up the actual parameters
     for (const auto &Actual : CallSite->args()) {
@@ -294,12 +297,16 @@ public:
   container_type computeTargets(const llvm::Value *Source) override {
     assert(!CalleeFun->isDeclaration() &&
            "Cannot perform mapping to caller for function declaration");
-    // Pass ZeroValue as is
+    // Pass ZeroValue as is, if desired
     if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-      return {Source};
+      if (PropagateZeroToCaller) {
+        return {Source};
+      }
+      return {};
     }
     // Pass global variables as is, if desired
-    if (PropagateGlobals && llvm::isa<llvm::GlobalVariable>(Source)) {
+    // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
+    if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
       return {Source};
     }
     // Do the parameter mapping
@@ -340,7 +347,8 @@ public:
       }
     }
     // Collect return value facts
-    if (Source == ExitInst->getReturnValue() && ReturnPredicate(CalleeFun)) {
+    if (ExitInst != nullptr && Source == ExitInst->getReturnValue() &&
+        ReturnPredicate(CalleeFun)) {
       Res.insert(CallSite);
     }
     return Res;
