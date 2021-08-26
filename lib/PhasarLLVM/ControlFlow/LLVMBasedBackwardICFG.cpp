@@ -86,13 +86,8 @@ std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
     const llvm::Instruction *N) const {
   std::set<const llvm::Instruction *> ReturnSites;
-  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(N)) {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(N)) {
     for (const auto *Succ : this->getSuccsOf(Call)) {
-      ReturnSites.insert(Succ);
-    }
-  }
-  if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
-    for (const auto *Succ : this->getSuccsOf(Invoke)) {
       ReturnSites.insert(Succ);
     }
   }
