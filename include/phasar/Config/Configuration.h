@@ -99,6 +99,8 @@ public:
   ~PhasarConfig() = default;
   PhasarConfig(const PhasarConfig &) = delete;
   PhasarConfig(PhasarConfig &&) = delete;
+  PhasarConfig& PhasarConfig::operator=(const PhasarConfig&) = default;
+  PhasarConfig& PhasarConfig::operator=(PhasarConfig&&) = default;
 
 private:
   PhasarConfig();
