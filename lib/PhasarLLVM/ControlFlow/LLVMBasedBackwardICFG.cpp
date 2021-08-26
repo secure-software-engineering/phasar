@@ -116,19 +116,18 @@ LLVMBasedBackwardsICFG::getPredsOf(const llvm::Instruction *Stmt) const {
   }
   auto ExitPoints =
       LLVMBasedBackwardCFG::getExitPointsOf(BackwardRetIt->second);
-  std::vector<const llvm::Instruction *> Result(ExitPoints.begin(),
-                                                ExitPoints.end());
-  return Result;
+  return {ExitPoints.begin(), ExitPoints.end()};
 }
 
 std::vector<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getSuccsOf(const llvm::Instruction *Stmt) const {
-  if (Stmt->getParent() == nullptr && BackwardRetToFunction.count(Stmt) > 0) {
+  if (isExitInst(Stmt)) {
     return {};
   }
   std::vector<const llvm::Instruction *> Succs =
       LLVMBasedBackwardCFG::getSuccsOf(Stmt);
   if (Succs.size() == 0) {
+    assert(Stmt->getParent()->getParent() && "Could not find parent of stmt's parent ");
     Succs.push_back(
         BackwardRets.at(Stmt->getParent()->getParent()).getInstance());
   }
