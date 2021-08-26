@@ -16,6 +16,7 @@
 
 #include <memory>
 
+#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -130,6 +131,7 @@ OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
 
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
+
   std::set<const llvm::Function *> Callees;
   if (CallSite->getCalledOperand() &&
       CallSite->getCalledOperand()->getType()->isPointerTy()) {
@@ -145,8 +147,8 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
             }
           }
         }
-        std::vector<const llvm::GlobalVariable *> GlobalVariableWL;
-        std::stack<const llvm::ConstantAggregate *> ConstantAggregateWL;
+        llvm::SmallVector<const llvm::GlobalVariable *> GlobalVariableWL;
+        llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
         if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
           for (const auto &Op : CE->operands()) {
             if (const auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
@@ -164,14 +166,13 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
           const auto *InitConst = GV->getInitializer();
           if (const auto *InitConstAggregate =
                   llvm::dyn_cast<llvm::ConstantAggregate>(InitConst)) {
-            ConstantAggregateWL.push(InitConstAggregate);
+            ConstantAggregateWL.push_back(InitConstAggregate);
           }
         }
-        std::unordered_set<const llvm::ConstantAggregate *>
+        llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
             VisitedConstantAggregates;
         while (!ConstantAggregateWL.empty()) {
-          const auto *ConstAggregateItem = ConstantAggregateWL.top();
-          ConstantAggregateWL.pop();
+          const auto *ConstAggregateItem = ConstantAggregateWL.pop_back_val();
           // We may have already processed the item, avoid an infinite loop
           if (!VisitedConstantAggregates.insert(ConstAggregateItem).second) {
             continue;
@@ -195,7 +196,7 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
               }
             }
             if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
-              ConstantAggregateWL.push(CA);
+              ConstantAggregateWL.push_back(CA);
             }
             if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
               if (!GV->hasInitializer()) {
@@ -203,7 +204,7 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
               }
               if (auto *GVCA = llvm::dyn_cast<llvm::ConstantAggregate>(
                       GV->getInitializer())) {
-                ConstantAggregateWL.push(GVCA);
+                ConstantAggregateWL.push_back(GVCA);
               }
             }
           }
@@ -211,6 +212,7 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
       }
     }
   }
+
   return Callees;
 }
 

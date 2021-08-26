@@ -188,10 +188,14 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       processFunction(F, *Res, FixpointReached);
     }
 
-    for (const auto *CS : IndirectCallsWL) {
+    for (auto [CS, _] : IndirectCalls) {
       FixpointReached &= !constructDynamicCall(CS, *Res);
     }
-    IndirectCallsWL.clear();
+
+    // for (const auto *CS : IndirectCallsWL) {
+    //   FixpointReached &= !constructDynamicCall(CS, *Res);
+    // }
+    // IndirectCallsWL.clear();
 
   } while (!FixpointReached);
 
@@ -273,8 +277,8 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
                         << "Found dynamic call-site: ");
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "  " << llvmIRToString(CS));
-          IndirectCalls[CS] = 0;
-          IndirectCallsWL.push_back(CS);
+          // IndirectCalls[CS] = 0;
+          IndirectCalls.emplace(CS, 0);
           FixpointReached = false;
           continue;
         }
@@ -314,6 +318,7 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
 
 bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
                                          Resolver &Resolver) {
+
   bool NewTargetsFound = false;
   // Find vertex of calling function.
   vertex_t ThisFunctionVertexDescriptor;
@@ -388,6 +393,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
   } else {
     Resolver.otherInst(I);
   }
+
   return NewTargetsFound;
 }
 

@@ -78,26 +78,13 @@ private:
   GlobalCtorTy GlobalCtors;
   GlobalDtorTy GlobalDtors;
 
-  // llvm::SmallDenseMap<F, typename GlobalCtorTy::const_iterator, 2>
-  // GlobalCtorFn; llvm::SmallDenseMap<F, typename GlobalDtorTy::const_iterator,
-  // 2> GlobalDtorFn;
-
   llvm::Function *GlobalCleanupFn = nullptr;
 
   llvm::SmallDenseMap<const llvm::Module *, llvm::Function *>
       GlobalRegisteredDtorsCaller;
-  /// Keeps track of the call-sites already resolved
-  // std::vector<const llvm::Instruction *> CallStack;
-
-  // Keeps track of the type graph already constructed
-  // TypeGraph_t typegraph;
-
-  // Any types that could be initialized outside of the module
-  // std::set<const llvm::StructType*> unsound_types;
 
   // The worklist for direct callee resolution.
   std::vector<const llvm::Function *> FunctionWL;
-  std::vector<const llvm::CallBase *> IndirectCallsWL;
 
   // Map indirect calls to the number of possible targets found for it. Fixpoint
   // is not reached when more targets are found.
