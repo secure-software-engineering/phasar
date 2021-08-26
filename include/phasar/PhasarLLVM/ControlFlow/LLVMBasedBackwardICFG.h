@@ -55,7 +55,9 @@ private:
   public:
     LLVMBackwardRet()
         : Instance(llvm::ReturnInst::Create(*LLVMBackwardRetCTX)){};
-    const llvm::ReturnInst *getInstance() const { return Instance; }
+    [[nodiscard]] const llvm::ReturnInst *getInstance() const {
+      return Instance;
+    }
   };
   std::unordered_map<const llvm::Function *, LLVMBackwardRet> BackwardRets;
   std::unordered_map<const llvm::Instruction *, const llvm::Function *>
