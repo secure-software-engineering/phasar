@@ -60,7 +60,7 @@ private:
     }
   };
   std::unordered_map<const llvm::Function *, LLVMBackwardRet> BackwardRets;
-  std::unordered_map<const llvm::Instruction *, const llvm::Function *>
+  llvm::DenseMap<const llvm::Instruction *, const llvm::Function *>
       BackwardRetToFunction;
 
 public:
