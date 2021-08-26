@@ -66,12 +66,6 @@ private:
 public:
   LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG);
 
-  LLVMBasedBackwardsICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-                         const std::set<std::string> &EntryPoints = {},
-                         LLVMTypeHierarchy *TH = nullptr,
-                         LLVMPointsToInfo *PT = nullptr,
-                         Soundness S = Soundness::Soundy);
-
   ~LLVMBasedBackwardsICFG() override = default;
 
   std::set<const llvm::Function *> getAllFunctions() const override;
