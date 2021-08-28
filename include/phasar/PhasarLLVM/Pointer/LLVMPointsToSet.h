@@ -22,6 +22,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace llvm {
@@ -44,7 +45,7 @@ private:
       std::unordered_map<const llvm::Value *, PointsToSetPtrTy>;
 
   LLVMBasedPointsToAnalysis PTA;
-  std::unordered_set<const llvm::Function *> AnalyzedFunctions;
+  llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
   PointsToSetMap PointsToSets;
 

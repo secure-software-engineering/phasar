@@ -28,6 +28,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalValue.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
@@ -90,6 +91,7 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
         // The may be no corresponding function when the instruction is used in
         // a vtable, for instance.
         if (Inst->getParent()) {
+
           computeFunctionsPointsToSet(
               const_cast<llvm::Function *>(Inst->getFunction()));
           if (!llvm::isa<llvm::Function>(G) && isInterestingPointer(User)) {
@@ -306,17 +308,14 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
           Reps[ToMerge[0]]->getType()};
       llvm::SmallVector<unsigned> ToRemove;
 
-      // std::cerr << "Remove from Reps: ";
       for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
         PTS = mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
         if (auto [unused, Inserted] =
                 OccurringTypes.insert(Reps[Idx]->getType());
             !Inserted) {
           ToRemove.push_back(Idx);
-          // std::cerr << Idx << " ";
         }
       }
-      // std::cerr << "\n";
 
       if (auto VPTS = PointsToSets.find(V); VPTS != PointsToSets.end()) {
         mergePointsToSets(PTS, VPTS->second);
@@ -339,16 +338,30 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   llvm::DenseSet<const llvm::Value *> UsedGlobals;
 
   auto addIfGlobal = [&UsedGlobals](const llvm::Value *Op) {
-    llvm::SmallSetVector<const llvm::Value *, 4> WorkList;
-    WorkList.insert(Op);
+    llvm::SmallPtrSet<const llvm::Value *, 4> Seen;
+    llvm::SmallVector<const llvm::Value *, 4> WorkList;
+    WorkList.push_back(Op);
+    Seen.insert(Op);
 
     while (!WorkList.empty()) {
       const auto *Curr = WorkList.pop_back_val();
+
       if (llvm::isa<llvm::GlobalObject>(Curr)) {
         UsedGlobals.insert(Curr);
-      } else if (const auto *CurrCE =
-                     llvm::dyn_cast<llvm::ConstantExpr>(Curr)) {
-        WorkList.insert(CurrCE->value_op_begin(), CurrCE->value_op_end());
+
+        if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(Curr);
+            Glob && Glob->hasInitializer() &&
+            Seen.insert(Glob->getInitializer()).second) {
+          WorkList.push_back(Glob->getInitializer());
+        }
+
+      } else if (llvm::isa<llvm::ConstantExpr>(Curr) ||
+                 llvm::isa<llvm::ConstantAggregate>(Curr)) {
+        for (const auto &CEOp : llvm::cast<llvm::User>(Curr)->operands()) {
+          if (Seen.insert(CEOp).second) {
+            WorkList.push_back(CEOp);
+          }
+        }
       }
     }
   };
@@ -572,10 +585,10 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
   }
 }
 
-void LLVMPointsToSet::introduceAlias(const llvm::Value *V1,
-                                     const llvm::Value *V2,
-                                     const llvm::Instruction *I,
-                                     AliasResult Kind) {
+void LLVMPointsToSet::introduceAlias(
+    const llvm::Value *V1, const llvm::Value *V2,
+    [[maybe_unused]] const llvm::Instruction *I,
+    [[maybe_unused]] AliasResult Kind) {
   //  only introduce aliases if both values are interesting pointer
   if (!isInterestingPointer(V1) || !isInterestingPointer(V2)) {
     return;

@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -24,6 +25,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/DB/ProjectIRDB.h"
@@ -131,13 +133,14 @@ OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
 
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
-
   std::set<const llvm::Function *> Callees;
   if (CallSite->getCalledOperand() &&
       CallSite->getCalledOperand()->getType()->isPointerTy()) {
     if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
+
       const auto PTS = PT.getPointsToSet(CallSite->getCalledOperand());
+
       for (const auto *P : *PTS) {
         if (P->getType()->isPointerTy() &&
             P->getType()->getPointerElementType()->isFunctionTy()) {
@@ -182,7 +185,6 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
               if (CE->getType()->isPointerTy() &&
                   CE->getType()->getPointerElementType() == FTy &&
                   CE->isCast()) {
-
                 if (const auto *F =
                         llvm::dyn_cast<llvm::Function>(CE->getOperand(0))) {
                   Callees.insert(F);
