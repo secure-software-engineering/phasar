@@ -166,9 +166,12 @@ auto LLVMPointsToSet::mergePointsToSets(const PointsToSetPtrTy &PTS1,
   }
 
   // add smaller set to larger one and get rid of the smaller set
-  LargerSet->merge(*SmallerSet);
+  // LargerSet->merge(*SmallerSet);
+  LargerSet->reserve(LargerSet->size() + SmallerSet->size());
+  LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
+  SmallerSet->clear();
 
-  assert(SmallerSet->empty() && "Expect the points-to-sets to be disjoint");
+  // assert(SmallerSet->empty() && "Expect the points-to-sets to be disjoint");
 
   return LargerSet;
 }
@@ -470,8 +473,7 @@ LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
 }
 
 auto LLVMPointsToSet::getEmptyPointsToSet() -> PointsToSetPtrTy {
-  static auto EmptySet =
-      std::make_shared<std::unordered_set<const llvm::Value *>>();
+  static auto EmptySet = std::make_shared<PointsToSetTy>();
   return EmptySet;
 }
 
@@ -500,7 +502,7 @@ auto LLVMPointsToSet::getReachableAllocationSites(
     return getEmptyPointsToSet();
   }
   computeValuesPointsToSet(V);
-  auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
+  auto AllocSites = std::make_shared<PointsToSetTy>();
   const auto PTS = PointsToSets[V];
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
@@ -584,9 +586,7 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
     // if none of the pointers of a set of other is known in this, we need to
     // perform a copy
     if (!FoundElemPtr) {
-      PointsToSets.insert(
-          {KeyPtr,
-           std::make_shared<std::unordered_set<const llvm::Value *>>(*Set)});
+      PointsToSets.insert({KeyPtr, std::make_shared<PointsToSetTy>(*Set)});
     }
   }
 }

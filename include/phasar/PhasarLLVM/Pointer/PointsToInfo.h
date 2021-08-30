@@ -14,6 +14,8 @@
 #include <memory>
 #include <unordered_set>
 
+#include "llvm/ADT/DenseSet.h"
+
 #include "nlohmann/json.hpp"
 
 namespace psr {
@@ -40,7 +42,7 @@ std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 
 template <typename V, typename N> class PointsToInfo {
 public:
-  using PointsToSetTy = std::unordered_set<V>;
+  using PointsToSetTy = llvm::DenseSet<V>;
   using PointsToSetPtrTy = std::shared_ptr<PointsToSetTy>;
 
   virtual ~PointsToInfo() = default;

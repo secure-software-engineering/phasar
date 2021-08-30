@@ -218,8 +218,8 @@ OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
   return Callees;
 }
 
-std::set<const llvm::Type *> OTFResolver::getReachableTypes(
-    const std::unordered_set<const llvm::Value *> &Values) {
+std::set<const llvm::Type *>
+OTFResolver::getReachableTypes(const LLVMPointsToInfo::PointsToSetTy &Values) {
   std::set<const llvm::Type *> Types;
   // an allocation site can either be an AllocaInst or a call to an
   // allocating function

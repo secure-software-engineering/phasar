@@ -66,7 +66,7 @@ public:
   resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   static std::set<const llvm::Type *>
-  getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
+  getReachableTypes(const LLVMPointsToInfo::PointsToSetTy &Values);
 
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
   getActualFormalPointerPairs(const llvm::CallBase *CallSite,
