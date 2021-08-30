@@ -246,7 +246,7 @@ static bool mayAlias(llvm::AAResults &AA, const llvm::DataLayout &DL,
   return false;
 }
 
-bool LLVMPointsToSet::addPointer(llvm::AAResults &AA,
+void LLVMPointsToSet::addPointer(llvm::AAResults &AA,
                                  const llvm::DataLayout &DL,
                                  const llvm::Value *V,
                                  std::vector<const llvm::Value *> &Reps) {
