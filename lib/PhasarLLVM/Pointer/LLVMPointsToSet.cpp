@@ -475,9 +475,9 @@ auto LLVMPointsToSet::getEmptyPointsToSet() -> PointsToSetPtrTy {
   return EmptySet;
 }
 
-std::shared_ptr<std::unordered_set<const llvm::Value *>>
-LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
-                                [[maybe_unused]] const llvm::Instruction *I) {
+auto LLVMPointsToSet::getPointsToSet(
+    const llvm::Value *V, [[maybe_unused]] const llvm::Instruction *I)
+    -> PointsToSetPtrTy {
 
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
@@ -492,10 +492,9 @@ LLVMPointsToSet::getPointsToSet(const llvm::Value *V,
   return getEmptyPointsToSet();
 }
 
-std::shared_ptr<std::unordered_set<const llvm::Value *>>
-LLVMPointsToSet::getReachableAllocationSites(
+auto LLVMPointsToSet::getReachableAllocationSites(
     const llvm::Value *V, bool IntraProcOnly,
-    [[maybe_unused]] const llvm::Instruction *I) {
+    [[maybe_unused]] const llvm::Instruction *I) -> PointsToSetPtrTy {
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
     return getEmptyPointsToSet();

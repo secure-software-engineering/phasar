@@ -136,11 +136,11 @@ public:
   AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
                     const llvm::Instruction *I = nullptr) override;
 
-  std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  PointsToSetPtrTy
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
-  std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  PointsToSetPtrTy
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
 

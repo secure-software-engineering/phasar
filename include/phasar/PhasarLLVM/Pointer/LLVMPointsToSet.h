@@ -39,8 +39,6 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
-  using PointsToSetTy = std::unordered_set<const llvm::Value *>;
-  using PointsToSetPtrTy = std::shared_ptr<PointsToSetTy>;
   using PointsToSetMap =
       std::unordered_map<const llvm::Value *, PointsToSetPtrTy>;
 
@@ -102,11 +100,11 @@ public:
   alias(const llvm::Value *V1, const llvm::Value *V2,
         const llvm::Instruction *I = nullptr) override;
 
-  [[nodiscard]] std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  [[nodiscard]] PointsToSetPtrTy
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
-  [[nodiscard]] std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  [[nodiscard]] PointsToSetPtrTy
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
 
