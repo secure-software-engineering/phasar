@@ -182,6 +182,8 @@ public:
     }
     container_type Res;
     // Pass global variables as is, if desired
+    // Globals could also be actual arguments, then the formal argument needs to
+    // be generated below.
     // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
     if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
       Res.insert(Source);
@@ -259,11 +261,11 @@ private:
   const llvm::Function *CalleeFun;
   const llvm::ReturnInst *ExitInst;
   bool PropagateGlobals;
+  const bool PropagateZeroToCaller;
   std::vector<const llvm::Value *> Actuals;
   std::vector<const llvm::Value *> Formals;
   std::function<bool(const llvm::Value *)> ParamPredicate;
   std::function<bool(const llvm::Function *)> ReturnPredicate;
-  const bool PropagateZeroToCaller;
 
 public:
   MapFactsToCaller(
@@ -277,9 +279,9 @@ public:
       : CallSite(CallSite), CalleeFun(CalleeFun),
         ExitInst(llvm::dyn_cast<llvm::ReturnInst>(ExitInst)),
         PropagateGlobals(PropagateGlobals),
+        PropagateZeroToCaller(PropagateZeroToCaller),
         ParamPredicate(std::move(ParamPredicate)),
-        ReturnPredicate(std::move(ReturnPredicate)),
-        PropagateZeroToCaller(PropagateZeroToCaller) {
+        ReturnPredicate(std::move(ReturnPredicate)) {
     assert(ExitInst && "Should not be null");
     // Set up the actual parameters
     for (const auto &Actual : CallSite->args()) {
