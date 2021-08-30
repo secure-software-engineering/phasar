@@ -68,6 +68,10 @@ private:
                                         const llvm::Function *VFun,
                                         const llvm::GlobalObject *VG);
 
+  /// Utility function used by computeFunctionsPointsToSet(...)
+  bool addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
+                  const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
+
   [[nodiscard]] static PointsToSetPtrTy getEmptyPointsToSet();
 
 public:

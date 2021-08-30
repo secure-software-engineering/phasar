@@ -108,10 +108,10 @@ ProjectIRDB::~ProjectIRDB() {
   // release resources if IRDB does not own
   if (!(Options & IRDBOptions::OWNS)) {
     for (auto &Context : Contexts) {
-      Context.release();
+      Context.release(); // NOLINT Just prevent the Context to be deleted
     }
     for (auto &[File, Module] : Modules) {
-      Module.release();
+      Module.release(); // NOLINT Just prevent the Module to be deleted
     }
   }
   MAM.clear();
@@ -229,10 +229,6 @@ llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
     return Modules[ModuleName].get();
   }
   return nullptr;
-}
-
-std::size_t ProjectIRDB::getNumInstructions() const {
-  return IDInstructionMapping.size();
 }
 
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {

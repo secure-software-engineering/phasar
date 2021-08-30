@@ -62,8 +62,8 @@ void OTFResolver::handlePossibleTargets(
         continue;
       }
       // handle parameter pairs
-      auto Pairs = getActualFormalPointerPairs(CallSite, CalleeTarget);
-      for (auto &[Actual, Formal] : Pairs) {
+      for (auto &[Actual, Formal] :
+           getActualFormalPointerPairs(CallSite, CalleeTarget)) {
         PT.introduceAlias(Actual, Formal, CallSite);
       }
       // handle return value

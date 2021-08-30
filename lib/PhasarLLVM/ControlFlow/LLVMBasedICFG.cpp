@@ -178,13 +178,12 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                       UserEntryPoints.end());
   }
 
-  bool FixpointReached;
-  do {
-    FixpointReached = true;
+  while (true) {
+    bool FixpointReached = true;
+
     while (!FunctionWL.empty()) {
       const llvm::Function *F = FunctionWL.back();
       FunctionWL.pop_back();
-
       processFunction(F, *Res, FixpointReached);
     }
 
@@ -192,12 +191,10 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       FixpointReached &= !constructDynamicCall(CS, *Res);
     }
 
-    // for (const auto *CS : IndirectCallsWL) {
-    //   FixpointReached &= !constructDynamicCall(CS, *Res);
-    // }
-    // IndirectCallsWL.clear();
-
-  } while (!FixpointReached);
+    if (FixpointReached) {
+      break;
+    }
+  }
 
   for (const auto &[IndirectCall, Targets] : IndirectCalls) {
     if (Targets == 0) {
@@ -256,8 +253,7 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
       if (CS->getCalledFunction() != nullptr) {
         PossibleTargets.insert(CS->getCalledFunction());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Found static call-site: ");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Found static call-site: "
                       << "  " << llvmIRToString(CS));
       } else {
         // still try to resolve the called function statically
@@ -274,8 +270,7 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
           }
           // the function call must be resolved dynamically
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Found dynamic call-site: ");
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "Found dynamic call-site: "
                         << "  " << llvmIRToString(CS));
           // IndirectCalls[CS] = 0;
           IndirectCalls.emplace(CS, 0);

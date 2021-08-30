@@ -14,6 +14,7 @@
  *      Author: philipp
  */
 
+#include <cctype>
 #include <cstdlib>
 
 #include "boost/algorithm/string/trim.hpp"
@@ -147,12 +148,12 @@ static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
       ModuleToSlotTracker;
   const auto *M = getModuleFromVal(V);
 
-  auto &ret = ModuleToSlotTracker[M];
-  if (!ret) {
-    ret = std::make_unique<llvm::ModuleSlotTracker>(M);
+  auto &Ret = ModuleToSlotTracker[M];
+  if (!Ret) {
+    Ret = std::make_unique<llvm::ModuleSlotTracker>(M);
   }
 
-  return *ret;
+  return *Ret;
 }
 
 std::string llvmIRToString(const llvm::Value *V) {
@@ -169,8 +170,6 @@ std::string llvmIRToStableString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO, getModuleSlotTrackerFor(V));
-
-  boost::trim_left(IRBuffer);
   RSO.flush();
 
   if (auto Meta = IRBuffer.find_first_of("!#"); Meta != std::string::npos) {
@@ -182,6 +181,8 @@ std::string llvmIRToStableString(const llvm::Value *V) {
       IRBuffer.pop_back();
     }
   }
+
+  boost::trim_left(IRBuffer);
 
   IRBuffer.append(" | ID: ");
   IRBuffer.append(getMetaDataID(V));

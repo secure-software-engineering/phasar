@@ -121,8 +121,7 @@ auto LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V)
   auto &PTS = PointsToSets[V];
 
   if (!PTS) {
-    PTS = std::make_shared<std::unordered_set<const llvm::Value *>>(
-        std::unordered_set<const llvm::Value *>{V});
+    PTS = std::make_shared<PointsToSetTy>(PointsToSetTy{V});
   }
 
   assert(PTS->count(V));
@@ -226,6 +225,128 @@ bool LLVMPointsToSet::intraIsReachableAllocationSiteTy(
   return false;
 }
 
+static bool mayAlias(llvm::AAResults &AA, const llvm::DataLayout &DL,
+                     const llvm::Value *V, const llvm::Value *Rep) {
+  assert(V->getType()->isPointerTy());
+  assert(Rep->getType()->isPointerTy());
+
+  auto VSize = V->getType()->getPointerElementType()->isSized()
+                   ? DL.getTypeStoreSize(V->getType()->getPointerElementType())
+                   : llvm::MemoryLocation::UnknownSize;
+
+  auto RepSize =
+      Rep->getType()->getPointerElementType()->isSized()
+          ? DL.getTypeStoreSize(Rep->getType()->getPointerElementType())
+          : llvm::MemoryLocation::UnknownSize;
+
+  if (AA.alias(V, VSize, Rep, RepSize) != llvm::AliasResult::NoAlias) {
+    return true;
+  }
+
+  return false;
+}
+
+bool LLVMPointsToSet::addPointer(llvm::AAResults &AA,
+                                 const llvm::DataLayout &DL,
+                                 const llvm::Value *V,
+                                 std::vector<const llvm::Value *> &Reps) {
+  llvm::SmallVector<unsigned> ToMerge;
+
+  for (unsigned It = 0, End = Reps.size(); It < End; ++It) {
+    if (mayAlias(AA, DL, V, Reps[It])) {
+      ToMerge.push_back(It);
+    }
+  }
+
+  // If we find several alias sets that may alias V, we must merge them.
+  // However, we cannot simply remove all respective representants (except for
+  // one), because for interprocedural flows, LLVM assumes all possible
+  // aliases and i8* is treated as void* making every pointer-type a matching
+  // type.
+  // This destroys the transitivity of the mayAlias relation partially. We can
+  // still remove a representant, if we have another rep of the same type
+  // within the same alias set.
+
+  if (ToMerge.empty()) {
+    Reps.push_back(V);
+    addSingletonPointsToSet(V);
+  } else if (ToMerge.size() == 1) {
+    auto &PTS = PointsToSets[Reps[ToMerge[0]]];
+    assert(PTS && "Only added to Reps together with a "
+                  "\"addSingletonPointsToSet\" call");
+
+    if (auto VPTS = PointsToSets.find(V); VPTS != PointsToSets.end()) {
+      mergePointsToSets(PTS, VPTS->second);
+    } else {
+      PointsToSets[V] = PTS;
+      PTS->insert(V);
+    }
+
+    if (V->getType() != Reps[ToMerge[0]]->getType()) {
+      Reps.push_back(V);
+    }
+
+  } else {
+    auto PTS = PointsToSets[Reps[ToMerge[0]]];
+    llvm::SmallPtrSet<const llvm::Type *, 6> OccurringTypes{
+        Reps[ToMerge[0]]->getType()};
+    llvm::SmallVector<unsigned> ToRemove;
+
+    for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
+      PTS = mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
+      if (auto [Unused, Inserted] = OccurringTypes.insert(Reps[Idx]->getType());
+          !Inserted) {
+        ToRemove.push_back(Idx);
+      }
+    }
+
+    if (auto VPTS = PointsToSets.find(V); VPTS != PointsToSets.end()) {
+      mergePointsToSets(PTS, VPTS->second);
+    } else {
+      PointsToSets[V] = PTS;
+      PTS->insert(V);
+    }
+
+    Reps.erase(remove_by_index(Reps, ToRemove.begin(), ToRemove.end()),
+               Reps.end());
+
+    if (auto [Unused, Inserted] = OccurringTypes.insert(V->getType());
+        Inserted) {
+      Reps.push_back(V);
+    }
+  }
+}
+
+static void addIfGlobal(llvm::DenseSet<const llvm::Value *> &UsedGlobals,
+                        const llvm::Value *Op) {
+  llvm::SmallPtrSet<const llvm::Value *, 4> Seen;
+  llvm::SmallVector<const llvm::Value *, 4> WorkList;
+  WorkList.push_back(Op);
+  Seen.insert(Op);
+
+  while (!WorkList.empty()) {
+    const auto *Curr = WorkList.pop_back_val();
+
+    if (llvm::isa<llvm::GlobalObject>(Curr)) {
+      UsedGlobals.insert(Curr);
+
+      if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(Curr);
+          Glob && Glob->hasInitializer() &&
+          Seen.insert(Glob->getInitializer()).second) {
+        WorkList.push_back(Glob->getInitializer());
+      }
+
+    } else if (llvm::isa<llvm::ConstantExpr>(Curr) ||
+               llvm::isa<llvm::ConstantAggregate>(Curr)) {
+      for (const auto &CEOp : llvm::cast<llvm::User>(Curr)->operands()) {
+        if (Seen.insert(CEOp).second) {
+          WorkList.push_back(CEOp);
+        }
+      }
+    }
+  }
+}
+
 void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
   // F may be null
   if (!F) {
@@ -244,127 +365,13 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
 
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
 
-  auto mayAlias = [&AA, &DL](const llvm::Value *V, const llvm::Value *Rep) {
-    assert(V->getType()->isPointerTy());
-    assert(Rep->getType()->isPointerTy());
-
-    auto VSize =
-        V->getType()->getPointerElementType()->isSized()
-            ? DL.getTypeStoreSize(V->getType()->getPointerElementType())
-            : llvm::MemoryLocation::UnknownSize;
-
-    auto RepSize =
-        Rep->getType()->getPointerElementType()->isSized()
-            ? DL.getTypeStoreSize(Rep->getType()->getPointerElementType())
-            : llvm::MemoryLocation::UnknownSize;
-
-    if (AA.alias(V, VSize, Rep, RepSize) != llvm::AliasResult::NoAlias) {
-      return true;
-    }
-
-    return false;
-  };
-
-  auto addPointer = [this, &mayAlias](const llvm::Value *V, auto &Reps) {
-    llvm::SmallVector<unsigned> ToMerge;
-
-    for (unsigned It = 0, End = Reps.size(); It < End; ++It) {
-      if (mayAlias(V, Reps[It])) {
-        ToMerge.push_back(It);
-      }
-    }
-
-    // If we find several alias sets that may alias V, we must merge them.
-    // However, we cannot simply remove all respective representants (except for
-    // one), because for interprocedural flows, LLVM assumes all possible
-    // aliases and i8* is treated as void* making every pointer-type a matching
-    // type.
-    // This destroys the transitivity of the mayAlias relation partially. We can
-    // still remove a representant, if we have another rep of the same type
-    // within the same alias set.
-
-    if (ToMerge.empty()) {
-      Reps.push_back(V);
-      addSingletonPointsToSet(V);
-    } else if (ToMerge.size() == 1) {
-      auto &PTS = PointsToSets[Reps[ToMerge[0]]];
-      assert(PTS && "Only added to Reps together with a "
-                    "\"addSingletonPointsToSet\" call");
-
-      if (auto VPTS = PointsToSets.find(V); VPTS != PointsToSets.end()) {
-        mergePointsToSets(PTS, VPTS->second);
-      } else {
-        PointsToSets[V] = PTS;
-        PTS->insert(V);
-      }
-
-      if (V->getType() != Reps[ToMerge[0]]->getType()) {
-        Reps.push_back(V);
-      }
-
-    } else {
-      auto PTS = PointsToSets[Reps[ToMerge[0]]];
-      llvm::SmallPtrSet<const llvm::Type *, 6> OccurringTypes{
-          Reps[ToMerge[0]]->getType()};
-      llvm::SmallVector<unsigned> ToRemove;
-
-      for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
-        PTS = mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
-        if (auto [unused, Inserted] =
-                OccurringTypes.insert(Reps[Idx]->getType());
-            !Inserted) {
-          ToRemove.push_back(Idx);
-        }
-      }
-
-      if (auto VPTS = PointsToSets.find(V); VPTS != PointsToSets.end()) {
-        mergePointsToSets(PTS, VPTS->second);
-      } else {
-        PointsToSets[V] = PTS;
-        PTS->insert(V);
-      }
-
-      Reps.erase(remove_by_index(Reps, ToRemove.begin(), ToRemove.end()),
-                 Reps.end());
-
-      if (auto [unused, Inserted] = OccurringTypes.insert(V->getType());
-          Inserted) {
-        Reps.push_back(V);
-      }
-    }
+  auto addPointer = [this, &AA, &DL](const llvm::Value *V,
+                                     std::vector<const llvm::Value *> &Reps) {
+    return this->addPointer(AA, DL, V, Reps);
   };
 
   std::vector<const llvm::Value *> Pointers;
   llvm::DenseSet<const llvm::Value *> UsedGlobals;
-
-  auto addIfGlobal = [&UsedGlobals](const llvm::Value *Op) {
-    llvm::SmallPtrSet<const llvm::Value *, 4> Seen;
-    llvm::SmallVector<const llvm::Value *, 4> WorkList;
-    WorkList.push_back(Op);
-    Seen.insert(Op);
-
-    while (!WorkList.empty()) {
-      const auto *Curr = WorkList.pop_back_val();
-
-      if (llvm::isa<llvm::GlobalObject>(Curr)) {
-        UsedGlobals.insert(Curr);
-
-        if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(Curr);
-            Glob && Glob->hasInitializer() &&
-            Seen.insert(Glob->getInitializer()).second) {
-          WorkList.push_back(Glob->getInitializer());
-        }
-
-      } else if (llvm::isa<llvm::ConstantExpr>(Curr) ||
-                 llvm::isa<llvm::ConstantAggregate>(Curr)) {
-        for (const auto &CEOp : llvm::cast<llvm::User>(Curr)->operands()) {
-          if (Seen.insert(CEOp).second) {
-            WorkList.push_back(CEOp);
-          }
-        }
-      }
-    }
-  };
 
   for (auto &Inst : llvm::instructions(F)) {
     if (Inst.getType()->isPointerTy()) {
@@ -414,7 +421,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
 
       // Consider arguments.
       for (llvm::Use &DataOp : Call->data_ops()) {
-        addIfGlobal(DataOp);
+        addIfGlobal(UsedGlobals, DataOp);
         if (!llvm::isa<llvm::Instruction>(DataOp) &&
             isInterestingPointer(DataOp)) {
           addPointer(DataOp, Pointers);
@@ -423,7 +430,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
     } else {
       // Consider all operands; the instructions we have already seen
       for (auto &Op : Inst.operands()) {
-        addIfGlobal(Op);
+        addIfGlobal(UsedGlobals, Op);
         if (!llvm::isa<llvm::Instruction>(Op) && isInterestingPointer(Op)) {
           addPointer(Op, Pointers);
         }
