@@ -142,10 +142,12 @@ bool matchesSignature(const llvm::FunctionType *FType1,
   return false;
 }
 
+static llvm::SmallDenseMap<const llvm::Module *,
+                           std::unique_ptr<llvm::ModuleSlotTracker>, 2>
+    ModuleToSlotTracker;
+
 static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
-  static llvm::SmallDenseMap<const llvm::Module *,
-                             std::unique_ptr<llvm::ModuleSlotTracker>, 2>
-      ModuleToSlotTracker;
+
   const auto *M = getModuleFromVal(V);
 
   auto &Ret = ModuleToSlotTracker[M];
@@ -154,6 +156,10 @@ static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
   }
 
   return *Ret;
+}
+
+void clearModuleSlotTrackerFor(const llvm::Module *M) {
+  ModuleToSlotTracker.erase(M);
 }
 
 std::string llvmIRToString(const llvm::Value *V) {
@@ -172,17 +178,17 @@ std::string llvmIRToStableString(const llvm::Value *V) {
   V->print(RSO, getModuleSlotTrackerFor(V));
   RSO.flush();
 
-  if (auto Meta = IRBuffer.find_first_of("!#"); Meta != std::string::npos) {
-    IRBuffer.erase(Meta);
+  auto IRBufferRef = llvm::StringRef(IRBuffer).ltrim();
 
-    boost::trim_right(IRBuffer);
-    assert(!IRBuffer.empty());
-    if (IRBuffer.back() == ',') {
-      IRBuffer.pop_back();
-    }
+  if (auto Meta = IRBufferRef.find_first_of("!#");
+      Meta != llvm::StringRef::npos) {
+    IRBufferRef = IRBufferRef.slice(0, Meta).rtrim();
+
+    assert(!IRBufferRef.empty());
+    IRBufferRef.consume_back(",");
   }
 
-  boost::trim_left(IRBuffer);
+  IRBuffer = IRBufferRef.str();
 
   IRBuffer.append(" | ID: ");
   IRBuffer.append(getMetaDataID(V));

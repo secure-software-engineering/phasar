@@ -48,8 +48,14 @@ protected:
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
-    return asSrcCode ? ICFG.exportICFGAsSourceCodeJson()
-                     : ICFG.exportICFGAsJson();
+    std::cerr << "ModuleRef: " << IRDB.getWPAModule() << "\n";
+
+    auto Ret =
+        asSrcCode ? ICFG.exportICFGAsSourceCodeJson() : ICFG.exportICFGAsJson();
+
+    clearModuleSlotTrackerFor(IRDB.getWPAModule());
+
+    return Ret;
   }
 
   nlohmann::json exportCFGFor(const std::string &testFile,
@@ -62,8 +68,14 @@ protected:
     assert(F != nullptr && "Invalid function");
     // ASSERT_NE(nullptr, F);
 
-    return asSrcCode ? CFG.exportCFGAsSourceCodeJson(F)
-                     : CFG.exportCFGAsJson(F);
+    std::cerr << "ModuleRef: " << IRDB.getWPAModule() << "\n";
+
+    auto Ret =
+        asSrcCode ? CFG.exportCFGAsSourceCodeJson(F) : CFG.exportCFGAsJson(F);
+
+    clearModuleSlotTrackerFor(IRDB.getWPAModule());
+
+    return Ret;
   }
 
   MapTy getAllRetSites(const LLVMBasedICFG &ICFG) {
@@ -95,7 +107,8 @@ protected:
           [&](auto &&Elem) {
             return Elem == nlohmann::json{{"from", From}, {"to", To}};
           }))
-          << "No edge from " << From << " to " << To;
+          << "No edge from " << From << " to " << To << " in "
+          << ExportedICFG.dump(4);
     };
 
     auto print = [WithDebugOutput](auto &&...Args) {
@@ -173,7 +186,11 @@ protected:
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
+    std::cerr << "ModuleRef: " << IRDB.getWPAModule() << "\n";
+
     verifyIRJson(ICFG.exportICFGAsJson(), ICFG, WithDebugOutput);
+
+    clearModuleSlotTrackerFor(IRDB.getWPAModule());
   }
 };
 
