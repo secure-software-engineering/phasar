@@ -128,7 +128,7 @@ public:
         Vec.insert(Func);
       }
     }
-    if (!Vec.empty()) {
+    if (Vec.size == 1) {
       return Vec[0];
     }
     if (Vec.empty()) {
