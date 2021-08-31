@@ -100,6 +100,36 @@ LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
   return ReturnSites;
 }
 
+llvm::SmallDenseSet<const llvm::Instruction *, 2>
+LLVMBasedBackwardsICFG::getNormalReturnSiteOfCallAt(
+    const llvm::Instruction *Stmt) const {
+
+  assert(llvm::isa<llvm::CallBase>(Stmt));
+
+  /// For backwards flow, we don't differ between normal return and exceptional
+  /// resume as both lead to the statement _before_ the call-site
+  llvm::SmallDenseSet<const llvm::Instruction *, 2> Ret;
+
+  if (Stmt->getPrevNode()) {
+    Ret.insert(Stmt->getPrevNode());
+  }
+  if (Stmt == &Stmt->getParent()->front()) {
+    for (const auto *PredBlock : llvm::predecessors(Stmt->getParent())) {
+      Ret.insert(&PredBlock->back());
+    }
+  }
+
+  return Ret;
+}
+
+llvm::SmallDenseSet<const llvm::Instruction *, 2>
+LLVMBasedBackwardsICFG::getUnwindReturnSiteOfCallAt(
+    const llvm::Instruction *Stmt) const {
+  /// For backwards flow, we don't differ between normal return and exceptional
+  /// resume as both lead to the statement _before_ the call-site
+  return getNormalReturnSiteOfCallAt(Stmt);
+}
+
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::allNonCallStartNodes() const {
   return ForwardICFG.allNonCallStartNodes();

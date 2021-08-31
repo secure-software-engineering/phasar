@@ -62,6 +62,18 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;
 
+  [[nodiscard]] llvm::SmallDenseSet<const llvm::Instruction *, 1>
+  getNormalExitPointsOf(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] llvm::SmallDenseSet<const llvm::Instruction *, 1>
+  getUnwindExitPointsOf(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] bool
+  isNormalExitInst(const llvm::Instruction *Inst) const override;
+
+  [[nodiscard]] bool
+  isUnwindExitInst(const llvm::Instruction *Inst) const override;
+
   [[nodiscard]] bool isCallSite(const llvm::Instruction *Inst) const override;
 
   [[nodiscard]] bool isExitInst(const llvm::Instruction *Inst) const override;

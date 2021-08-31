@@ -73,6 +73,20 @@ ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t Fun) const {
   return {};
 }
 
+llvm::SmallDenseSet<ICFGTestPlugin::n_t, 1>
+ICFGTestPlugin::getNormalExitPointsOf(f_t Fun) const {
+  return {};
+}
+
+llvm::SmallDenseSet<ICFGTestPlugin::n_t, 1>
+ICFGTestPlugin::getUnwindExitPointsOf(f_t Fun) const {
+  return {};
+}
+
+bool ICFGTestPlugin::isNormalExitInst(n_t Inst) const { return false; }
+
+bool ICFGTestPlugin::isUnwindExitInst(n_t Inst) const { return false; }
+
 void ICFGTestPlugin::collectGlobalCtors() {}
 
 void ICFGTestPlugin::collectGlobalDtors() {}
@@ -182,6 +196,16 @@ ICFGTestPlugin::getCallsFromWithin(ICFGTestPlugin::f_t Fun) const {
 
 std::set<ICFGTestPlugin::n_t>
 ICFGTestPlugin::getReturnSitesOfCallAt(ICFGTestPlugin::n_t Inst) const {
+  return {};
+}
+
+llvm::SmallDenseSet<ICFGTestPlugin::n_t, 2>
+ICFGTestPlugin::getNormalReturnSiteOfCallAt(n_t Stmt) const {
+  return {};
+}
+
+llvm::SmallDenseSet<ICFGTestPlugin::n_t, 2>
+ICFGTestPlugin::getUnwindReturnSiteOfCallAt(n_t Stmt) const {
   return {};
 }
 

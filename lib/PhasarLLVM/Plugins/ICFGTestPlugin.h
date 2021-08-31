@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include "llvm/ADT/DenseSet.h"
+
 #include <nlohmann/json.hpp>
 
 #include <phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h>
@@ -55,6 +57,14 @@ public:
   std::set<n_t> getStartPointsOf(f_t Fun) const override;
 
   std::set<n_t> getExitPointsOf(f_t Fun) const override;
+
+  llvm::SmallDenseSet<n_t, 1> getNormalExitPointsOf(f_t Fun) const override;
+
+  llvm::SmallDenseSet<n_t, 1> getUnwindExitPointsOf(f_t Fun) const override;
+
+  bool isNormalExitInst(n_t Inst) const override;
+
+  bool isUnwindExitInst(n_t Inst) const override;
 
   bool isCallSite(n_t Inst) const override;
 
@@ -106,6 +116,12 @@ public:
   std::set<n_t> getCallsFromWithin(f_t Fun) const override;
 
   std::set<n_t> getReturnSitesOfCallAt(n_t Inst) const override;
+
+  llvm::SmallDenseSet<n_t, 2>
+  getNormalReturnSiteOfCallAt(n_t Stmt) const override;
+
+  llvm::SmallDenseSet<n_t, 2>
+  getUnwindReturnSiteOfCallAt(n_t Stmt) const override;
 
   void print(std::ostream &OS = std::cout) const override;
 

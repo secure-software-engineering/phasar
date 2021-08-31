@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseSet.h"
 
 #include "nlohmann/json.hpp"
 
@@ -41,7 +41,7 @@ std::string toString(const CallGraphAnalysisType &CGA);
 
 CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
+std::ostream &operator<<(std::ostream &OS, const CallGraphAnalysisType &CGA);
 
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
 
@@ -76,6 +76,20 @@ public:
   virtual std::set<N> getCallsFromWithin(F Fun) const = 0;
 
   virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
+
+  /// The return-site in case no exception propagates out of the callee.
+  ///
+  /// Note: In case of a backward ICFG, we might have multiple "return" sites
+  virtual llvm::SmallDenseSet<N, 2>
+  getNormalReturnSiteOfCallAt(N Stmt) const = 0;
+  /// The return-site in case an exception propagates out of the callee. Is
+  /// empty, iff the call-site does not deal with exception handling.
+  ///
+  /// Note: This does not mean that there is no unwind-return-site further up in
+  /// the call-stack
+  /// Note2: In case of a backward ICFG, we might have multiple "return" sites
+  virtual llvm::SmallDenseSet<N, 2>
+  getUnwindReturnSiteOfCallAt(N Stmt) const = 0;
 
   const std::vector<F> &getGlobalInitializers() const {
     return GlobalInitializers;

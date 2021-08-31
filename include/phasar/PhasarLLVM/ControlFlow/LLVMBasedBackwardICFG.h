@@ -75,6 +75,12 @@ public:
   std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
+  [[nodiscard]] llvm::SmallDenseSet<const llvm::Instruction *, 2>
+  getNormalReturnSiteOfCallAt(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] llvm::SmallDenseSet<const llvm::Instruction *, 2>
+  getUnwindReturnSiteOfCallAt(const llvm::Instruction *Stmt) const override;
+
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
   void mergeWith(const LLVMBasedBackwardsICFG &other);

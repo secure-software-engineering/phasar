@@ -167,12 +167,60 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
   }
 }
 
+llvm::SmallDenseSet<const llvm::Instruction *, 1>
+LLVMBasedCFG::getNormalExitPointsOf(const llvm::Function *Fun) const {
+  llvm::SmallDenseSet<const llvm::Instruction *, 1> Ret;
+
+  if (!Fun) {
+    return Ret;
+  }
+
+  for (const auto &BB : *Fun) {
+    const auto *Term = BB.getTerminator();
+    assert(Term && "Invalid IR: Each BasicBlock must have a terminator "
+                   "instruction at the end");
+    if (llvm::isa<llvm::ReturnInst>(Term)) {
+      Ret.insert(Term);
+    }
+  }
+
+  return Ret;
+}
+
+llvm::SmallDenseSet<const llvm::Instruction *, 1>
+LLVMBasedCFG::getUnwindExitPointsOf(const llvm::Function *Fun) const {
+  llvm::SmallDenseSet<const llvm::Instruction *, 1> Ret;
+
+  if (!Fun) {
+    return Ret;
+  }
+
+  for (const auto &BB : *Fun) {
+    const auto *Term = BB.getTerminator();
+    assert(Term && "Invalid IR: Each BasicBlock must have a terminator "
+                   "instruction at the end");
+    if (llvm::isa<llvm::ResumeInst>(Term)) {
+      Ret.insert(Term);
+    }
+  }
+
+  return Ret;
+}
+
+bool LLVMBasedCFG::isNormalExitInst(const llvm::Instruction *Inst) const {
+  return llvm::isa<llvm::ReturnInst>(Inst);
+}
+
+bool LLVMBasedCFG::isUnwindExitInst(const llvm::Instruction *Inst) const {
+  return llvm::isa<llvm::ResumeInst>(Inst);
+}
+
 bool LLVMBasedCFG::isCallSite(const llvm::Instruction *Inst) const {
   return llvm::isa<llvm::CallBase>(Inst);
 }
 
 bool LLVMBasedCFG::isExitInst(const llvm::Instruction *Inst) const {
-  return llvm::isa<llvm::ReturnInst>(Inst);
+  return llvm::isa<llvm::ReturnInst>(Inst) || llvm::isa<llvm::ResumeInst>(Inst);
 }
 
 bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *Inst) const {

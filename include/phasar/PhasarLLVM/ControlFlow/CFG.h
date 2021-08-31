@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "nlohmann/json.hpp"
+#include "llvm/ADT/DenseSet.h"
 
 namespace psr {
 
@@ -36,7 +37,7 @@ std::string toString(const SpecialMemberFunctionType &SMFT);
 
 SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT);
 
-std::ostream &operator<<(std::ostream &os,
+std::ostream &operator<<(std::ostream &OS,
                          const SpecialMemberFunctionType &SMFT);
 
 template <typename N, typename F> class CFG {
@@ -56,6 +57,14 @@ public:
   virtual std::set<N> getStartPointsOf(F Fun) const = 0;
 
   virtual std::set<N> getExitPointsOf(F Fun) const = 0;
+
+  virtual llvm::SmallDenseSet<N, 1> getNormalExitPointsOf(F Fun) const = 0;
+
+  virtual llvm::SmallDenseSet<N, 1> getUnwindExitPointsOf(F Fun) const = 0;
+
+  virtual bool isNormalExitInst(N Inst) const = 0;
+
+  virtual bool isUnwindExitInst(N Inst) const = 0;
 
   virtual bool isCallSite(N Inst) const = 0;
 

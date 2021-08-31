@@ -28,12 +28,12 @@ class ProjectIRDB;
 
 class ICFGPlugin
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
-private:
+protected:
   [[maybe_unused]] ProjectIRDB &IRDB;
   const std::vector<std::string> EntryPoints;
 
 public:
-  ICFGPlugin(ProjectIRDB &IRDB, const std::vector<std::string> EntryPoints)
+  ICFGPlugin(ProjectIRDB &IRDB, std::vector<std::string> EntryPoints)
       : IRDB(IRDB), EntryPoints(move(EntryPoints)) {}
 };
 

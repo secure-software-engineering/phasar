@@ -17,6 +17,7 @@
 #include <cassert>
 #include <initializer_list>
 #include <memory>
+#include <optional>
 #include <ostream>
 
 #include "llvm/ADT/DenseSet.h"
@@ -27,6 +28,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
@@ -674,6 +676,41 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
     ReturnSites.insert(Succs.begin(), Succs.end());
   }
   return ReturnSites;
+}
+
+llvm::SmallDenseSet<const llvm::Instruction *, 2>
+LLVMBasedICFG::getNormalReturnSiteOfCallAt(
+    const llvm::Instruction *Stmt) const {
+
+  assert(llvm::isa<llvm::CallBase>(Stmt));
+
+  if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(Stmt)) {
+    auto *Ret = &Invoke->getNormalDest()->front();
+    if (IgnoreDbgInstructions && Ret->isDebugOrPseudoInst()) {
+      return {Ret->getNextNonDebugInstruction()};
+    }
+    return {Ret};
+  }
+
+  return {IgnoreDbgInstructions ? Stmt->getNextNonDebugInstruction()
+                                : Stmt->getNextNode()};
+}
+
+llvm::SmallDenseSet<const llvm::Instruction *, 2>
+LLVMBasedICFG::getUnwindReturnSiteOfCallAt(
+    const llvm::Instruction *Stmt) const {
+
+  assert(llvm::isa<llvm::CallBase>(Stmt));
+
+  if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(Stmt)) {
+    auto *Ret = &Invoke->getUnwindDest()->front();
+    if (IgnoreDbgInstructions && Ret->isDebugOrPseudoInst()) {
+      return {Ret->getNextNonDebugInstruction()};
+    }
+    return {Ret};
+  }
+
+  return {};
 }
 
 void LLVMBasedICFG::collectGlobalCtors() {

@@ -1,4 +1,4 @@
-
+/// ICFG example
 extern "C" int rand();
 
 int foo() {
