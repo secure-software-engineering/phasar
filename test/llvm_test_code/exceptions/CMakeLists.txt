@@ -3,6 +3,9 @@ set(Sources
     exceptions_02.cpp
     exceptions_03.cpp
     exceptions_04.cpp
+    exceptions_05.cpp
+    exceptions_06.cpp
+    exceptions_07.cpp
 )
 
 foreach(TEST_SRC ${Sources})

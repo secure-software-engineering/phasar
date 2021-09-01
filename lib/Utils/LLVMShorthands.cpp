@@ -31,6 +31,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
@@ -435,6 +436,16 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   // getAsCString to get rid of the null-terminator
   assert(data->isCString());
   return data->getAsCString();
+}
+
+bool isThrow(const llvm::Instruction *Inst) {
+  const auto *CS = llvm::dyn_cast<llvm::CallBase>(Inst);
+  if (!CS) {
+    return false;
+  }
+
+  return CS->getCalledFunction() && CS->getCalledFunction()->isDeclaration() &&
+         CS->getCalledFunction()->getName() == "__cxa_throw";
 }
 
 } // namespace psr

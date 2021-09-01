@@ -216,6 +216,9 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F);
  *
  */
 llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
+
+bool isThrow(const llvm::Instruction *Inst);
+
 } // namespace psr
 
 #endif

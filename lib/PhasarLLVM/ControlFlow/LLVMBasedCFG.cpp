@@ -201,6 +201,10 @@ LLVMBasedCFG::getUnwindExitPointsOf(const llvm::Function *Fun) const {
                    "instruction at the end");
     if (llvm::isa<llvm::ResumeInst>(Term)) {
       Ret.insert(Term);
+    } else if (llvm::isa<llvm::UnreachableInst>(Term) &&
+               llvm::isa_and_nonnull<llvm::CallInst>(Term->getPrevNode()) &&
+               isThrow(Term->getPrevNode())) {
+      Ret.insert(Term->getPrevNode());
     }
   }
 
@@ -212,7 +216,15 @@ bool LLVMBasedCFG::isNormalExitInst(const llvm::Instruction *Inst) const {
 }
 
 bool LLVMBasedCFG::isUnwindExitInst(const llvm::Instruction *Inst) const {
-  return llvm::isa<llvm::ResumeInst>(Inst);
+  if (llvm::isa<llvm::ResumeInst>(Inst)) {
+    return true;
+  }
+
+  // Note: If __cxa_throw is called via an 'invoke' instruction, it is no
+  // exit-point.
+  /// TODO: What is with other 'call'ed functions that may propagate an
+  /// exception? Checking that may require call-graph information
+  return llvm::isa<llvm::CallInst>(Inst) && isThrow(Inst);
 }
 
 bool LLVMBasedCFG::isCallSite(const llvm::Instruction *Inst) const {
