@@ -1,0 +1,159 @@
+/******************************************************************************
+ * Copyright (c) 2021 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#include <cassert>
+#include <memory>
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Operator.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
+
+#include "phasar/PhasarLLVM/Utils/Annotation.h"
+
+namespace psr {
+
+VarAnnotation::VarAnnotation(const llvm::CallBase *AnnotationCall) noexcept
+    : AnnotationCall(AnnotationCall) {
+  assert(AnnotationCall->getCalledFunction() &&
+         AnnotationCall->getCalledFunction()->hasName() &&
+         (AnnotationCall->getCalledFunction()->getName() ==
+              "llvm.var.annotation" ||
+          AnnotationCall->getCalledFunction()->getName().startswith(
+              "llvm.ptr.annotation")));
+}
+
+const llvm::Value *VarAnnotation::getValue() const {
+  return AnnotationCall->getArgOperand(0);
+}
+
+llvm::StringRef VarAnnotation::getAnnotationString() const {
+  return retrieveString(1);
+}
+
+llvm::StringRef VarAnnotation::getFile() const { return retrieveString(2); }
+
+int64_t VarAnnotation::getLine() const {
+  assert(AnnotationCall->getArgOperand(3)->getType()->isIntegerTy());
+  if (const auto *ConstInt =
+          llvm::dyn_cast<llvm::ConstantInt>(AnnotationCall->getArgOperand(3))) {
+    return ConstInt->getSExtValue();
+  }
+  return 0;
+}
+
+llvm::StringRef VarAnnotation::retrieveString(unsigned Idx) const {
+  if (const auto *ConstExpr = llvm::dyn_cast<llvm::ConstantExpr>(
+          AnnotationCall->getArgOperand(Idx))) {
+    if (ConstExpr->isGEPWithNoNotionalOverIndexing()) {
+      if (const auto *GlobalVar =
+              llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
+        if (GlobalVar->hasInitializer()) {
+          const auto *ConstData = GlobalVar->getInitializer();
+          if (const auto *Data =
+                  llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
+            return Data->getAsCString();
+          }
+        }
+      }
+    }
+  }
+  return "";
+}
+
+const llvm::Value *VarAnnotation::getOriginalValueOrOriginalArg(
+    const llvm::Value *AnnotatedValue) {
+  if (const auto *BitCast =
+          llvm::dyn_cast<llvm::BitCastOperator>(AnnotatedValue)) {
+    // this may be already the original value
+    const auto *Value = BitCast->getOperand(0);
+    // check if that values originates from a formal parameter
+    for (const auto &User : Value->users()) {
+      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
+        for (unsigned Idx = 0; Idx < Store->getFunction()->arg_size(); ++Idx) {
+          if (Store->getFunction()->getArg(Idx) == Store->getValueOperand()) {
+            return Store->getFunction()->getArg(Idx);
+          }
+        }
+      }
+    }
+    return Value;
+  }
+  return nullptr;
+}
+
+GlobalAnnotation::GlobalAnnotation(
+    const llvm::ConstantStruct *AnnotationStruct) noexcept
+    : AnnotationStruct(AnnotationStruct) {}
+
+const llvm::Function *GlobalAnnotation::getFunction() const {
+  const auto *FunCastOp = AnnotationStruct->getOperand(0);
+  if (const auto *BitCast = llvm::dyn_cast<llvm::BitCastOperator>(FunCastOp)) {
+    if (const auto *Fun =
+            llvm::dyn_cast<llvm::Function>(BitCast->getOperand(0))) {
+      return Fun;
+    }
+  }
+  return nullptr;
+}
+
+llvm::StringRef GlobalAnnotation::getAnnotationString() const {
+  const auto *AnnotationGepOp = AnnotationStruct->getOperand(1);
+  if (const auto *ConstExpr =
+          llvm::dyn_cast<llvm::ConstantExpr>(AnnotationGepOp)) {
+    if (ConstExpr->isGEPWithNoNotionalOverIndexing()) {
+      if (const auto *GlobalVar =
+              llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
+        if (GlobalVar->hasInitializer()) {
+          const auto *ConstData = GlobalVar->getInitializer();
+          if (const auto *Data =
+                  llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
+            return Data->getAsCString();
+          }
+        }
+      }
+    }
+  }
+  return "";
+}
+
+llvm::StringRef GlobalAnnotation::getFile() const {
+  const auto *FileNameGepOp = AnnotationStruct->getOperand(2);
+  if (const auto *ConstExpr =
+          llvm::dyn_cast<llvm::ConstantExpr>(FileNameGepOp)) {
+    if (ConstExpr->isGEPWithNoNotionalOverIndexing()) {
+      if (const auto *GlobalVar =
+              llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
+        if (GlobalVar->hasInitializer()) {
+          const auto *ConstData = GlobalVar->getInitializer();
+          if (const auto *Data =
+                  llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
+            return Data->getAsCString();
+          }
+        }
+      }
+    }
+  }
+  return "";
+}
+
+int64_t GlobalAnnotation::getLine() const {
+  const auto *ConstLineNoOp = AnnotationStruct->getOperand(3);
+  if (const auto *LineNo = llvm::dyn_cast<llvm::ConstantInt>(ConstLineNoOp)) {
+    return LineNo->getSExtValue();
+  }
+  return 0;
+}
+
+} // namespace psr

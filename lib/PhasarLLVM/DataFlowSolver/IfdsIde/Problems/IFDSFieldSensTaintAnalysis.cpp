@@ -40,8 +40,7 @@ namespace psr {
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-    const TaintConfiguration<ExtendedValue> &TaintConfig,
-    std::set<std::string> EntryPoints)
+    const TaintConfig &TaintConfig, std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
       taintConfig(TaintConfig) {
   IFDSFieldSensTaintAnalysis::ZeroValue = createZeroValue();
@@ -167,8 +166,9 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   /*
    * Exclude blacklisted functions here.
    */
+  bool IsSink = taintConfig.mayLeakValuesAt(CallSite, DestFun);
 
-  if (taintConfig.isSink(DestFunName.str())) {
+  if (IsSink) {
     return std::make_shared<IdentityFlowFunction>(CS, traceStats,
                                                   getZeroValue());
   }
@@ -199,7 +199,13 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   /*
    * Provide summary for tainted functions.
    */
-  if (taintConfig.isSource(DestFunName.str())) {
+  bool TaintRet =
+      taintConfig.isSource(CallSite) ||
+      (taintConfig.getRegisteredSourceCallBack() &&
+       taintConfig.getRegisteredSourceCallBack()(CallSite).count(CallSite));
+  /// TODO: What about source parameters? They are not handled in the original
+  /// implementation, so skip them for now and add them later.
+  if (TaintRet) {
     return std::make_shared<GenerateFlowFunction>(CallSite, traceStats,
                                                   getZeroValue());
   }
@@ -225,18 +231,10 @@ IFDSFieldSensTaintAnalysis::initialSeeds() {
   InitialSeeds<const llvm::Instruction *, ExtendedValue,
                IFDSFieldSensTaintAnalysis::l_t>
       Seeds;
-  for (const auto &EntryPoint : this->EntryPoints) {
-    if (taintConfig.isSink(EntryPoint)) {
-      continue;
-    }
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-  }
-  // additionally, add initial seeds if there are any
-  auto TaintConfigSeeds = taintConfig.getInitialSeeds();
-  for (auto &[Node, Facts] : TaintConfigSeeds) {
+  auto TaintSeeds = taintConfig.makeInitialSeeds();
+  for (const auto &[Inst, Facts] : TaintSeeds) {
     for (const auto &Fact : Facts) {
-      Seeds.addSeed(Node, Fact);
+      Seeds.addSeed(Inst, ExtendedValue(Fact));
     }
   }
   return Seeds;

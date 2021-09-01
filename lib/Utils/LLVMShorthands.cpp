@@ -140,18 +140,16 @@ bool matchesSignature(const llvm::FunctionType *FType1,
   return false;
 }
 
-static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
+llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
   static llvm::SmallDenseMap<const llvm::Module *,
                              std::unique_ptr<llvm::ModuleSlotTracker>, 2>
       ModuleToSlotTracker;
   const auto *M = getModuleFromVal(V);
-
-  auto &ret = ModuleToSlotTracker[M];
-  if (!ret) {
-    ret = std::make_unique<llvm::ModuleSlotTracker>(M);
+  auto &Ret = ModuleToSlotTracker[M];
+  if (!Ret) {
+    Ret = std::make_unique<llvm::ModuleSlotTracker>(M);
   }
-
-  return *ret;
+  return *Ret;
 }
 
 std::string llvmIRToString(const llvm::Value *V) {

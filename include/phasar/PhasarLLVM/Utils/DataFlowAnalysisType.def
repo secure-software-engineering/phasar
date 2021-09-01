@@ -15,6 +15,7 @@ DATA_FLOW_ANALYSIS_TYPES("IFDSUninitializedVariables", "ifds-uninit", IFDSUninit
 DATA_FLOW_ANALYSIS_TYPES("IFDSConstAnalysis", "ifds-const", IFDSConstAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IFDSTaintAnalysis", "ifds-taint", IFDSTaintAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IDETaintAnalysis", "ide-taint", IDETaintAnalysis)
+DATA_FLOW_ANALYSIS_TYPES("IDEXTaintAnalysis", "ide-xtaint", IDEExtendedTaintAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IFDSTypeAnalysis", "ifds-type", IFDSTypeAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IDECSTDIOTypeStateAnalysis", "ide-stdio-ts", IDECSTDIOTypeStateAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IDEOpenSSLTypeStateAnalysis", "ide-openssl-ts", IDEOpenSSLTypeStateAnalysis)

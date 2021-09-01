@@ -10,6 +10,7 @@ set(PHASAR_LINK_LIBS
   phasar_controlflow
   phasar_phasarllvm_utils
   phasar_db
+  phasar_taintconfig
   ${Boost_LIBRARIES}
 )
 

@@ -52,6 +52,8 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 
+llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
+
 /**
  * @brief Returns a string representation of a LLVM Value.
  */

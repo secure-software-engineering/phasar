@@ -27,7 +27,7 @@ protected:
   unique_ptr<LLVMBasedICFG> ICFG;
   unique_ptr<LLVMPointsToInfo> PT;
   unique_ptr<IFDSTaintAnalysis> TaintProblem;
-  unique_ptr<TaintConfiguration<const llvm::Value *>> TSF;
+  unique_ptr<TaintConfig> TSF;
 
   IFDSTaintAnalysisTest() = default;
   ~IFDSTaintAnalysisTest() override = default;
@@ -38,12 +38,28 @@ protected:
     PT = make_unique<LLVMPointsToSet>(*IRDB);
     ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
                                       EntryPoints, TH.get(), PT.get());
-    auto source = {TaintConfiguration<const llvm::Value *>::SourceFunction(
-        "source()", true)};
-    auto sink = {TaintConfiguration<const llvm::Value *>::SinkFunction(
-        "sink(int)", std::vector<unsigned>({0}))};
-    TSF = make_unique<TaintConfiguration<const llvm::Value *>>(source, sink);
-
+    TaintConfig::TaintDescriptionCallBackTy SourceCB =
+        [](const llvm::Instruction *Inst) {
+          std::set<const llvm::Value *> Ret;
+          if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+              Call && Call->getCalledFunction() &&
+              Call->getCalledFunction()->getName() == "_Z6sourcev") {
+            Ret.insert(Call);
+          }
+          return Ret;
+        };
+    TaintConfig::TaintDescriptionCallBackTy SinkCB =
+        [](const llvm::Instruction *Inst) {
+          std::set<const llvm::Value *> Ret;
+          if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+              Call && Call->getCalledFunction() &&
+              Call->getCalledFunction()->getName() == "_Z4sinki") {
+            assert(Call->arg_size() > 0);
+            Ret.insert(Call->getArgOperand(0));
+          }
+          return Ret;
+        };
+    TSF = make_unique<TaintConfig>(std::move(SourceCB), std::move(SinkCB));
     TaintProblem = make_unique<IFDSTaintAnalysis>(
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), *TSF, EntryPoints);
   }

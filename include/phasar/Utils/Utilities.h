@@ -15,6 +15,11 @@
 #include <string>
 #include <vector>
 
+#include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/SmallVector.h"
+
+#include "phasar/Utils/BitVectorSet.h"
+
 namespace llvm {
 class Type;
 } // namespace llvm
@@ -67,6 +72,114 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
     }
   }
   return powerset;
+}
+
+namespace detail {
+
+template <typename T, typename = void>
+struct has_erase_iterator : std::false_type {};
+
+template <typename T>
+struct has_erase_iterator<T, std::void_t<decltype(std::declval<T>().erase(
+                                 std::declval<typename T::iterator>()))>>
+    : std::true_type {};
+
+template <typename T, typename = size_t>
+struct is_std_hashable : std::false_type {};
+template <typename T>
+struct is_std_hashable<T, decltype(std::declval<std::hash<T>>()(
+                              std::declval<T>()))> : std::true_type {};
+
+template <typename T, typename = llvm::hash_code>
+struct is_llvm_hashable : std::false_type {};
+template <typename T>
+struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))>
+    : std::true_type {};
+
+} // namespace detail
+
+template <typename T>
+constexpr bool has_erase_iterator_v = detail::has_erase_iterator<T>::value;
+
+template <typename T>
+constexpr bool is_std_hashable_v = detail::is_std_hashable<T>::value;
+
+template <typename T>
+constexpr bool is_llvm_hashable_v = detail::is_llvm_hashable<T>::value;
+
+/// \brief Computes the set-intersection of the potentially unordered sets
+/// Dest and Src and stores the result back in Dest.
+///
+/// This function should work on all types of sets as long as they provide the
+/// type value_type specifying, which type their elements have.
+/// By-reference iteration is required, but the elements do not have any
+/// requirements, although the performance is probably higher for small
+/// elements that are trivially copyable.
+template <typename ContainerTy, typename OtherContainerTy>
+std::enable_if_t<!has_erase_iterator_v<ContainerTy>>
+intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
+  static_assert(std::is_same_v<typename ContainerTy::value_type,
+                               typename OtherContainerTy::value_type>,
+                "The containers Src and Dest must be compatible");
+  using ValueTy = typename ContainerTy::value_type;
+  using ElementTy =
+      std::conditional_t<std::is_trivially_copy_constructible_v<ValueTy> &&
+                             sizeof(ValueTy) <= sizeof(void *),
+                         ValueTy, ValueTy *>;
+
+  auto removeFrom = [](auto &Dst, auto &&Elem) {
+    if constexpr (std::is_same_v<ValueTy, ElementTy>) {
+      Dst.erase(Elem);
+    } else {
+      Dst.erase(*Elem);
+    }
+  };
+
+  /// This whole functionality is only for computing the set-intersection of
+  /// Dest and Src storing the result in-place in Dest. It would be a big win,
+  /// if the STL would provide us with in-place set operations and those that
+  /// do not require the sets to be sorted...
+
+  llvm::SmallVector<ElementTy, 16> Buffer;
+
+  if constexpr (std::is_same_v<ValueTy, ElementTy>) {
+    for (auto &&Elem : Dest) {
+      if (!Src.count(Elem)) {
+        Buffer.push_back(Elem);
+      }
+    }
+  } else {
+    for (auto &Elem : Dest) {
+      if (!Src.count(Elem)) {
+        Buffer.insert(&Elem);
+      }
+    }
+  }
+
+  for (auto &&Elem : Buffer) {
+    removeFrom(Dest, Elem);
+  }
+}
+
+template <typename ContainerTy, typename OtherContainerTy>
+std::enable_if_t<has_erase_iterator_v<ContainerTy>>
+intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
+  static_assert(std::is_same_v<typename ContainerTy::value_type,
+                               typename OtherContainerTy::value_type>,
+                "The containers Src and Dest must be compatible");
+
+  for (auto it = Dest.begin(), end = Dest.end(); it != end;) {
+    if (Src.count(*it)) {
+      ++it;
+    } else {
+      it = Dest.erase(it);
+    }
+  }
+}
+
+template <typename T>
+void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
+  Dest.setIntersectWith(Src);
 }
 
 std::ostream &operator<<(std::ostream &os, const std::vector<bool> &bits);

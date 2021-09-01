@@ -10,6 +10,7 @@ if(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)
 	IDETSAnalysisOpenSSLSecureHeapTest.cpp
 	IDETSAnalysisOpenSSLSecureMemoryTest.cpp
 	IFDSUninitializedVariablesTest.cpp
+	IDEExtendedTaintAnalysisTest.cpp
     IDEGeneralizedLCATest.cpp
   )
 else()
@@ -21,6 +22,7 @@ else()
 	IDELinearConstantAnalysis_DotTest.cpp
 	IFDSUninitializedVariablesTest.cpp
     IDEGeneralizedLCATest.cpp
+	IDEExtendedTaintAnalysisTest.cpp
 	IDETSAnalysisFileIOTest.cpp
   )
 endif(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)

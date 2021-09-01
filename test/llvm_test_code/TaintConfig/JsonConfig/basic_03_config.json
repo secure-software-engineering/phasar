@@ -1,0 +1,11 @@
+{
+	"name": "taint-config-test",
+	"version": 1.0,
+	"functions": [
+		{
+			"file": "basic_03.c",
+			"name": "taintPair",
+			"ret": "source"
+		}
+	]
+}

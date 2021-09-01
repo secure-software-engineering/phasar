@@ -625,7 +625,32 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *N) const {
     }
   }
   return Callees;
-} // namespace psr
+}
+
+void LLVMBasedICFG::forEachCalleeOfCallAt(
+    const llvm::Instruction *I,
+    llvm::function_ref<void(const llvm::Function *)> Callback) const {
+  if (!llvm::isa<llvm::CallInst>(I) && !llvm::isa<llvm::InvokeInst>(I)) {
+    return;
+  }
+
+  auto MapEntry = FunctionVertexMap.find(I->getFunction());
+  if (MapEntry == FunctionVertexMap.end()) {
+    return;
+  }
+
+  out_edge_iterator EI;
+
+  out_edge_iterator EIEnd;
+  for (boost::tie(EI, EIEnd) = boost::out_edges(MapEntry->second, CallGraph);
+       EI != EIEnd; ++EI) {
+    auto Edge = CallGraph[*EI];
+    if (I == Edge.CS) {
+      auto Target = boost::target(*EI, CallGraph);
+      Callback(CallGraph[Target].F);
+    }
+  }
+}
 
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {

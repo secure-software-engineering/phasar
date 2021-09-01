@@ -24,7 +24,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
@@ -53,11 +53,11 @@ public:
   using v_t = InterMonoTaintAnalysisDomain::v_t;
   using i_t = InterMonoTaintAnalysisDomain::i_t;
   using mono_container_t = InterMonoTaintAnalysisDomain::mono_container_t;
-  using ConfigurationTy = TaintConfiguration<d_t>;
+  using ConfigurationTy = TaintConfig;
 
   InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                          const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                         const TaintConfiguration<d_t> &TSF,
+                         const TaintConfig &Config,
                          std::set<std::string> EntryPoints = {});
 
   ~InterMonoTaintAnalysis() override = default;
@@ -88,10 +88,10 @@ public:
 
   void printFunction(std::ostream &OS, f_t Fun) const override;
 
-  const std::map<n_t, std::set<d_t>> &getAllLeaks() const;
+  [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllLeaks() const;
 
 private:
-  const TaintConfiguration<d_t> &TSF;
+  [[maybe_unused]] const TaintConfig &Config;
   std::map<n_t, std::set<d_t>> Leaks;
 };
 

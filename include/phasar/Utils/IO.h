@@ -14,16 +14,16 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_UTILS_IO_H_
-#define PHASAR_UTILS_IO_H_
+#ifndef PHASAR_UTILS_IO_H
+#define PHASAR_UTILS_IO_H
 
 #include <string>
 
 namespace psr {
 
-std::string readFile(const std::string &path);
+std::string readTextFile(const std::string &Path);
 
-void writeFile(const std::string &path, const std::string &content);
+void writeTextFile(const std::string &Path, const std::string &Content);
 
 } // namespace psr
 

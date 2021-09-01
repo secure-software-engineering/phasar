@@ -1,0 +1,20 @@
+{
+	"name": "taint-config-test",
+	"version": 1.0,
+	"functions": [
+		{
+			"file": "static_fun_02.cpp",
+			"name": "bar",
+			"ret": "source"
+		},
+		{
+			"file": "static_fun_02.cpp",
+			"name": "foo",
+			"params": {
+				"source": [
+					0
+				]
+			}
+		}
+	]
+}

@@ -27,9 +27,11 @@
 #include "boost/log/support/date_time.hpp"
 // Not useful here but enable all logging macros in files that include Logger.h
 #include "boost/log/sources/record_ostream.hpp"
-#include <llvm/Support/Compiler.h> // LLVM_UNLIKELY
 
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_os_ostream.h"
 
 namespace psr {
 
@@ -130,6 +132,106 @@ struct LoggerExceptionHandler {
  * Initializes the logger.
  */
 void initializeLogger(bool UseLogger, const std::string &LogFile = "");
+
+template <typename Manip> class Manipulator {
+  mutable Manip manip;
+
+public:
+  template <typename FManip>
+  Manipulator(FManip &&m) : manip(std::forward<FManip>(m)) {}
+  Manipulator(const Manipulator &) = delete;
+  Manipulator(Manipulator &&) = delete;
+  friend std::ostream &operator<<(std::ostream &OS,
+                                  const Manipulator<Manip> &m) {
+    llvm::raw_os_ostream ros(OS);
+    m.manip(ros);
+    return OS;
+  }
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const Manipulator<Manip> &m) {
+    m.manip(OS);
+    return OS;
+  }
+};
+
+template <typename TContainer> class SequencePrinter {
+  const TContainer &cont;
+  const llvm::StringRef prefix, suffix;
+
+public:
+  SequencePrinter(const TContainer &cont, llvm::StringRef prefix = "[",
+                  llvm::StringRef suffix = "]")
+      : cont(cont), prefix(prefix), suffix(suffix) {}
+  friend std::ostream &operator<<(std::ostream &OS,
+                                  const SequencePrinter<TContainer> &Sp) {
+    llvm::raw_os_ostream ros(OS);
+    ros << Sp;
+    return OS;
+  }
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const SequencePrinter<TContainer> &Sp) {
+    OS << Sp.prefix;
+    bool frst = true;
+    for (const auto &elem : Sp.cont) {
+      if (frst)
+        frst = false;
+      else
+        OS << ", ";
+
+      if constexpr (std::is_same_v<llvm::Value *,
+                                   std::remove_cv_t<std::remove_reference_t<
+                                       decltype(elem)>>> ||
+                    std::is_same_v<llvm::Instruction *,
+                                   std::remove_cv_t<std::remove_reference_t<
+                                       decltype(elem)>>>) {
+        OS << llvmIRToString(elem);
+      } else {
+        OS << elem;
+      }
+    }
+    OS << Sp.suffix;
+    return OS;
+  }
+};
+
+template <typename TContainer>
+SequencePrinter(const TContainer &) -> SequencePrinter<TContainer>;
+
+template <typename Manip>
+Manipulator(Manip &&) -> Manipulator<std::decay_t<Manip>>;
+
+template <typename Iter, typename EndIter>
+auto printAll(Iter &&It, EndIter &&End, llvm::StringRef Prefix = "[",
+              llvm::StringRef Suffix = "]") {
+
+  using Ty = /*std::conditional<std::is_pointer_v<std::remove_cv_t<Iter>>,
+                typename std::remove_pointer_t<Iter>,
+                typename Iter::value_type>;*/
+      typename std::iterator_traits<std::remove_cv_t<Iter>>::value_type;
+
+  return Manipulator([It{std::forward<Iter>(It)},
+                      End{std::forward<EndIter>(End)}, Prefix,
+                      Suffix](llvm::raw_ostream &OS) mutable {
+    OS << Prefix;
+
+    if (It != End) {
+      if constexpr (std::is_same_v<llvm::Value *, std::remove_cv_t<Ty>>)
+        OS << llvmIRToShortString(*It);
+      else
+        OS << *It;
+    }
+
+    while (++It != End) {
+      OS << ", ";
+      if constexpr (std::is_same_v<llvm::Value *, std::remove_cv_t<Ty>>)
+        OS << llvmIRToShortString(*It);
+      else
+        OS << *It;
+    }
+
+    OS << Suffix;
+  });
+}
 
 } // namespace psr
 
