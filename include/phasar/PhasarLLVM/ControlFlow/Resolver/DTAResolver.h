@@ -61,8 +61,7 @@ public:
 
   ~DTAResolver() override = default;
 
-  std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
 };

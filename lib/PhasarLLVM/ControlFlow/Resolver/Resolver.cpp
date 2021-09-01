@@ -89,20 +89,19 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
 
 void Resolver::preCall(const llvm::Instruction *Inst) {}
 
-void Resolver::handlePossibleTargets(
-    const llvm::CallBase *CallSite,
-    std::set<const llvm::Function *> &PossibleTargets) {}
+void Resolver::handlePossibleTargets(const llvm::CallBase *CallSite,
+                                     FunctionSetTy &PossibleTargets) {}
 
 void Resolver::postCall(const llvm::Instruction *Inst) {}
 
-std::set<const llvm::Function *>
-Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
+auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call function pointer: " << llvmIRToString(CallSite));
-  std::set<const llvm::Function *> CalleeTargets;
+  FunctionSetTy CalleeTargets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)
   if (CallSite->getCalledOperand() != nullptr &&

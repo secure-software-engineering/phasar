@@ -30,6 +30,7 @@
 #include "boost/container/flat_set.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/InstrTypes.h"
@@ -72,7 +73,7 @@ private:
   LLVMTypeHierarchy *TH;
   LLVMPointsToInfo *PT;
   std::unique_ptr<Resolver> Res;
-  std::unordered_set<const llvm::Function *> VisitedFunctions;
+  llvm::DenseSet<const llvm::Function *> VisitedFunctions;
   llvm::SmallPtrSet<llvm::Function *, 2> UserEntryPoints;
 
   GlobalCtorTy GlobalCtors;
@@ -88,7 +89,7 @@ private:
 
   // Map indirect calls to the number of possible targets found for it. Fixpoint
   // is not reached when more targets are found.
-  std::unordered_map<const llvm::Instruction *, unsigned> IndirectCalls;
+  llvm::DenseMap<const llvm::Instruction *, unsigned> IndirectCalls;
   // The VertexProperties for our call-graph.
   struct VertexProperties {
     const llvm::Function *F = nullptr;

@@ -47,9 +47,8 @@ OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 
-void OTFResolver::handlePossibleTargets(
-    const llvm::CallBase *CallSite,
-    std::set<const llvm::Function *> &CalleeTargets) {
+void OTFResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
+                                        FunctionSetTy &CalleeTargets) {
   // if we have no inter-procedural points-to information, use call-graph
   // information to simulate inter-procedural points-to information
   if (!PT.isInterProcedural()) {
@@ -82,9 +81,9 @@ void OTFResolver::handlePossibleTargets(
 
 void OTFResolver::postCall(const llvm::Instruction *Inst) {}
 
-set<const llvm::Function *>
-OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
-  set<const llvm::Function *> PossibleCallTargets;
+auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
+  FunctionSetTy PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: " << llvmIRToString(CallSite));
@@ -131,9 +130,9 @@ OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   return PossibleCallTargets;
 }
 
-std::set<const llvm::Function *>
-OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
-  std::set<const llvm::Function *> Callees;
+auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
+  FunctionSetTy Callees;
   if (CallSite->getCalledOperand() &&
       CallSite->getCalledOperand()->getType()->isPointerTy()) {
     if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(

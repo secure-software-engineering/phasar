@@ -72,6 +72,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
+  std::cerr << "LLVMPointsToSet completed\n";
 }
 
 void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {

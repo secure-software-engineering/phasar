@@ -31,8 +31,8 @@ using namespace psr;
 CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : Resolver(IRDB, TH) {}
 
-set<const llvm::Function *>
-CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
+auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Call virtual function: ");
   // Leading to SEGFAULT in Unittests. Error only when run in Debug mode
   // << llvmIRToString(CallSite));
@@ -58,7 +58,7 @@ CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
   // also insert all possible subtypes vtable entries
   auto FallbackTys = Resolver::TH->getSubTypes(ReceiverTy);
 
-  set<const llvm::Function *> PossibleCallees;
+  FunctionSetTy PossibleCallees;
 
   for (const auto &FallbackTy : FallbackTys) {
     const auto *Target =

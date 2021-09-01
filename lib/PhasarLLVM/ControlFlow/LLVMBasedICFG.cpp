@@ -244,11 +244,11 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
   }
 
   // iterate all instructions of the current function
+  Resolver::FunctionSetTy PossibleTargets;
   for (const auto &I : llvm::instructions(F)) {
     if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I)) {
       Resolver.preCall(&I);
 
-      set<const llvm::Function *> PossibleTargets;
       // check if function call can be resolved statically
       if (CS->getCalledFunction() != nullptr) {
         PossibleTargets.insert(CS->getCalledFunction());
@@ -272,8 +272,8 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Found dynamic call-site: "
                         << "  " << llvmIRToString(CS));
-          // IndirectCalls[CS] = 0;
-          IndirectCalls.emplace(CS, 0);
+          IndirectCalls[CS] = 0;
+
           FixpointReached = false;
           continue;
         }
@@ -308,6 +308,7 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
     } else {
       Resolver.otherInst(&I);
     }
+    PossibleTargets.clear();
   }
 }
 
@@ -332,17 +333,15 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
   if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(I)) {
     Resolver.preCall(I);
 
-    set<const llvm::Function *> PossibleTargets;
     // the function call must be resolved dynamically
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Looking into dynamic call-site: ");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << llvmIRToString(I));
     // call the resolve routine
-    if (LLVMBasedICFG::isVirtualFunctionCall(CallSite)) {
-      PossibleTargets = Resolver.resolveVirtualCall(CallSite);
-    } else {
-      PossibleTargets = Resolver.resolveFunctionPointer(CallSite);
-    }
+
+    auto PossibleTargets = LLVMBasedICFG::isVirtualFunctionCall(CallSite)
+                               ? Resolver.resolveVirtualCall(CallSite)
+                               : Resolver.resolveFunctionPointer(CallSite);
 
     assert(IndirectCalls.count(I));
 
@@ -656,10 +655,9 @@ LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallsFromWithin(const llvm::Function *F) const {
   set<const llvm::Instruction *> CallSites;
-  for (llvm::const_inst_iterator I = llvm::inst_begin(F), E = llvm::inst_end(F);
-       I != E; ++I) {
-    if (llvm::isa<llvm::CallBase>(*I)) {
-      CallSites.insert(&(*I));
+  for (const auto &I : llvm::instructions(F)) {
+    if (llvm::isa<llvm::CallBase>(I)) {
+      CallSites.insert(&I);
     }
   }
   return CallSites;

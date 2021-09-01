@@ -46,12 +46,12 @@ RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 //   }
 // }
 
-set<const llvm::Function *>
-RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
+auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
   // throw runtime_error("RTA is currently unabled to deal with already built "
   //                     "library, it has been disable until this is fixed");
 
-  set<const llvm::Function *> PossibleCallTargets;
+  FunctionSetTy PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: " << llvmIRToString(CallSite));
