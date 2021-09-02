@@ -23,6 +23,7 @@ namespace psr {
 class LLVMPointsToInfo
     : public PointsToInfo<const llvm::Value *, const llvm::Instruction *> {
 public:
+  using PointsToInfo::AllocationSiteSetPtrTy;
   using PointsToInfo::PointsToSetPtrTy;
   using PointsToInfo::PointsToSetTy;
 

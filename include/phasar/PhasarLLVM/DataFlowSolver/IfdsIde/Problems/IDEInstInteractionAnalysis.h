@@ -255,7 +255,7 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::LoadInst *Load;
-          LLVMPointsToInfo::PointsToSetPtrTy PTS;
+          LLVMPointsToInfo::AllocationSiteSetPtrTy PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
@@ -300,8 +300,8 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::StoreInst *Store;
-          LLVMPointsToInfo::PointsToSetPtrTy ValuePTS;
-          LLVMPointsToInfo::PointsToSetPtrTy PointerPTS;
+          LLVMPointsToInfo::AllocationSiteSetPtrTy ValuePTS;
+          LLVMPointsToInfo::AllocationSiteSetPtrTy PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
@@ -311,7 +311,7 @@ public:
                         Store->getValueOperand(),
                         Problem.OnlyConsiderLocalAliases);
                   } else {
-                    return std::make_shared<LLVMPointsToInfo::PointsToSetTy>(
+                    return std::make_unique<LLVMPointsToInfo::PointsToSetTy>(
                         LLVMPointsToInfo::PointsToSetTy{
                             Store->getValueOperand()});
                   }

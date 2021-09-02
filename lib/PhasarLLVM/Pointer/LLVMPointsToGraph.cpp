@@ -267,9 +267,9 @@ AliasResult LLVMPointsToGraph::alias(const llvm::Value *V1,
 auto LLVMPointsToGraph::getReachableAllocationSites(const llvm::Value *V,
                                                     bool IntraProcOnly,
                                                     const llvm::Instruction *I)
-    -> PointsToSetPtrTy {
+    -> AllocationSiteSetPtrTy {
   computePointsToGraph(V);
-  auto AllocSites = std::make_shared<PointsToSetTy>();
+  auto AllocSites = std::make_unique<PointsToSetTy>();
   AllocationSiteDFSVisitor AllocVis(*AllocSites, {});
   vector<boost::default_color_type> ColorMap(boost::num_vertices(PAG));
   boost::depth_first_visit(
@@ -378,7 +378,7 @@ auto LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getPointsToSet", 1, PAMM_SEVERITY_LEVEL::Full);
   START_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);
-  auto *VF = retrieveFunction(V);
+  const auto *VF = retrieveFunction(V);
   computePointsToGraph(VF);
   // check if the graph contains a corresponding vertex
   set<vertex_t> ReachableVertices;
@@ -388,7 +388,16 @@ auto LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
       PAG, ValueVertexMap.at(V), Vis,
       boost::make_iterator_property_map(
           ColorMap.begin(), boost::get(boost::vertex_index, PAG), ColorMap[0]));
-  auto ResultSet = std::make_shared<PointsToSetTy>();
+  auto *ResultSet = [this, V] {
+    auto &Ret = Cache[V];
+
+    if (!Ret) {
+      Ret = Owner.acquire();
+    }
+
+    return Ret;
+  }();
+
   for (auto Vertex : ReachableVertices) {
     ResultSet->insert(PAG[Vertex].V);
   }

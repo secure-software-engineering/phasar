@@ -43,7 +43,8 @@ std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 template <typename V, typename N> class PointsToInfo {
 public:
   using PointsToSetTy = llvm::DenseSet<V>;
-  using PointsToSetPtrTy = std::shared_ptr<PointsToSetTy>;
+  using PointsToSetPtrTy = const PointsToSetTy *;
+  using AllocationSiteSetPtrTy = std::unique_ptr<PointsToSetTy>;
 
   virtual ~PointsToInfo() = default;
 
@@ -55,7 +56,7 @@ public:
 
   virtual PointsToSetPtrTy getPointsToSet(V V1, N I = N{}) = 0;
 
-  virtual PointsToSetPtrTy
+  virtual AllocationSiteSetPtrTy
   getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
 
   // Checks if V2 is a reachable allocation in the points to set of V1.

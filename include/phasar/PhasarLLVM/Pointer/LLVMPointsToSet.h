@@ -21,6 +21,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/FormatVariadic.h"
@@ -39,12 +40,12 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
-  using PointsToSetMap =
-      std::unordered_map<const llvm::Value *, PointsToSetPtrTy>;
+  using PointsToSetMap = llvm::DenseMap<const llvm::Value *, PointsToSetTy *>;
 
   LLVMBasedPointsToAnalysis PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
+  PointsToSetOwner<PointsToSetTy> Owner;
   PointsToSetMap PointsToSets;
 
   void computeValuesPointsToSet(const llvm::Value *V);
@@ -55,8 +56,7 @@ private:
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 
-  PointsToSetPtrTy mergePointsToSets(const PointsToSetPtrTy &PTS1,
-                                     const PointsToSetPtrTy &PTS2);
+  PointsToSetTy *mergePointsToSets(PointsToSetTy *PTS1, PointsToSetTy *PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);
@@ -104,7 +104,7 @@ public:
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
-  [[nodiscard]] PointsToSetPtrTy
+  [[nodiscard]] AllocationSiteSetPtrTy
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
 

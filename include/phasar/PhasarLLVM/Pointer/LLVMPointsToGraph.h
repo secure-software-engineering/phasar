@@ -24,6 +24,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
 
 namespace llvm {
 class Value;
@@ -106,6 +107,8 @@ private:
   /// Keep track of what has already been merged into this points-to graph.
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
   LLVMBasedPointsToAnalysis PTA;
+  PointsToSetOwner<PointsToSetTy> Owner;
+  std::unordered_map<const llvm::Value *, PointsToSetTy *> Cache;
 
   // void mergeGraph(const LLVMPointsToGraph &Other);
 
@@ -140,7 +143,7 @@ public:
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
-  PointsToSetPtrTy
+  AllocationSiteSetPtrTy
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
 

@@ -51,7 +51,7 @@ namespace psr {
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
-    : PTA(IRDB, UseLazyEvaluation, PATy) {
+    : PTA(IRDB, UseLazyEvaluation, PATy), Owner(IRDB.getNumGlobals()) {
   for (llvm::Module *M : IRDB.getAllModules()) {
     // compute points-to information for all globals
 
@@ -122,7 +122,8 @@ auto LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V)
   auto &PTS = PointsToSets[V];
 
   if (!PTS) {
-    PTS = std::make_shared<PointsToSetTy>(PointsToSetTy{V});
+    PTS = Owner.acquire();
+    PTS->insert(V);
   }
 
   assert(PTS->count(V));
@@ -144,9 +145,9 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   mergePointsToSets(SearchV1->second, SearchV2->second);
 }
 
-auto LLVMPointsToSet::mergePointsToSets(const PointsToSetPtrTy &PTS1,
-                                        const PointsToSetPtrTy &PTS2)
-    -> PointsToSetPtrTy {
+auto LLVMPointsToSet::mergePointsToSets(PointsToSetTy *PTS1,
+                                        PointsToSetTy *PTS2)
+    -> PointsToSetTy * {
   if (PTS1 == PTS2) {
     return PTS1;
   }
@@ -167,12 +168,11 @@ auto LLVMPointsToSet::mergePointsToSets(const PointsToSetPtrTy &PTS1,
   }
 
   // add smaller set to larger one and get rid of the smaller set
-  // LargerSet->merge(*SmallerSet);
   LargerSet->reserve(LargerSet->size() + SmallerSet->size());
   LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
-  SmallerSet->clear();
 
-  // assert(SmallerSet->empty() && "Expect the points-to-sets to be disjoint");
+  SmallerSet->clear();
+  Owner.release(SmallerSet);
 
   return LargerSet;
 }
@@ -474,8 +474,8 @@ LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
 }
 
 auto LLVMPointsToSet::getEmptyPointsToSet() -> PointsToSetPtrTy {
-  static auto EmptySet = std::make_shared<PointsToSetTy>();
-  return EmptySet;
+  static PointsToSetTy EmptySet{};
+  return &EmptySet;
 }
 
 auto LLVMPointsToSet::getPointsToSet(
@@ -497,13 +497,16 @@ auto LLVMPointsToSet::getPointsToSet(
 
 auto LLVMPointsToSet::getReachableAllocationSites(
     const llvm::Value *V, bool IntraProcOnly,
-    [[maybe_unused]] const llvm::Instruction *I) -> PointsToSetPtrTy {
+    [[maybe_unused]] const llvm::Instruction *I) -> AllocationSiteSetPtrTy {
+
+  auto AllocSites = std::make_unique<PointsToSetTy>();
+
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
-    return getEmptyPointsToSet();
+    return AllocSites;
   }
   computeValuesPointsToSet(V);
-  auto AllocSites = std::make_shared<PointsToSetTy>();
+
   const auto PTS = PointsToSets[V];
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
@@ -587,7 +590,9 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
     // if none of the pointers of a set of other is known in this, we need to
     // perform a copy
     if (!FoundElemPtr) {
-      PointsToSets.insert({KeyPtr, std::make_shared<PointsToSetTy>(*Set)});
+      auto *PTS = Owner.acquire();
+      *PTS = *Set;
+      PointsToSets.try_emplace(KeyPtr, PTS);
     }
   }
 }

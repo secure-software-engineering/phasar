@@ -172,6 +172,8 @@ public:
     return IDInstructionMapping.size();
   }
 
+  [[nodiscard]] std::size_t getNumGlobals() const;
+
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id);
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
