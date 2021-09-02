@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
 
+#include <cstdint>
 #include <iosfwd>
 #include <memory>
 #include <optional>
@@ -34,16 +35,16 @@ namespace psr {
 namespace detail {
 
 struct AbstractMemoryLoactionStorage : public llvm::FoldingSetNode {
-  const llvm::Value *baseptr_;
-  size_t lifetime_;
-  size_t numOffsets_;
-  ptrdiff_t offsets_[0];
+  const llvm::Value *Baseptr;
+  uint32_t Lifetime;
+  uint32_t NumOffsets;
+  ptrdiff_t Offsets[0]; // NOLINT
 
 protected:
-  AbstractMemoryLoactionStorage(const llvm::Value *baseptr, size_t lifetime,
-                                const llvm::ArrayRef<ptrdiff_t> &offsets);
+  AbstractMemoryLoactionStorage(const llvm::Value *Baseptr, uint32_t Lifetime,
+                                const llvm::ArrayRef<ptrdiff_t> &Offsets);
 
-  AbstractMemoryLoactionStorage(const llvm::Value *baseptr, size_t lifetime);
+  AbstractMemoryLoactionStorage(const llvm::Value *Baseptr, uint32_t Lifetime);
 };
 
 /// \brief A Memorylocation abstraction represented by a base-pointer and an
@@ -68,14 +69,15 @@ class AbstractMemoryLocationImpl final
 public:
   using offset_t = ptrdiff_t;
 
-  AbstractMemoryLocationImpl(const llvm::Value *baseptr, unsigned lifetime);
-  AbstractMemoryLocationImpl(const llvm::Value *baseptr,
-                             llvm::SmallVectorImpl<offset_t> &&offsets,
-                             unsigned lifetime);
-  AbstractMemoryLocationImpl(const llvm::Value *baseptr,
-                             llvm::ArrayRef<offset_t> offsets,
-                             unsigned lifetime);
+  AbstractMemoryLocationImpl(const llvm::Value *Baseptr, unsigned Lifetime);
+  AbstractMemoryLocationImpl(const llvm::Value *Baseptr,
+                             llvm::SmallVectorImpl<offset_t> &&Offsets,
+                             unsigned Lifetime);
+  AbstractMemoryLocationImpl(const llvm::Value *Baseptr,
+                             llvm::ArrayRef<offset_t> Offsets,
+                             unsigned Lifetime);
   AbstractMemoryLocationImpl(const AbstractMemoryLocationImpl &) = delete;
+  AbstractMemoryLocationImpl(AbstractMemoryLocationImpl &&) = delete;
   AbstractMemoryLocationImpl();
   /// Creates the zero-value
   AbstractMemoryLocationImpl(std::nullptr_t) : AbstractMemoryLocationImpl() {}
@@ -115,9 +117,9 @@ public:
       PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
 
   /// Are *this and TV equivalent?
-  bool equivalent(const AbstractMemoryLocationImpl &TV) const;
+  [[nodiscard]] bool equivalent(const AbstractMemoryLocationImpl &TV) const;
 
-  bool equivalentExceptPointerArithmetics(
+  [[nodiscard]] bool equivalentExceptPointerArithmetics(
       const AbstractMemoryLocationImpl &TV) const;
 
   /// Are *this and TV equivalent wrt aliasing?
@@ -133,15 +135,14 @@ public:
 
   /// Recursively walks the User-chain to create a canonicalized
   /// AbstractMemoryLocation from V
-  // static AbstractMemoryLocationImpl
-  // Create(const llvm::Value *V, const llvm::DataLayout &DL, unsigned BOUND);
 
   inline const AbstractMemoryLocationImpl *operator->() const { return this; }
 
   // FoldingSet support
-  void Profile(llvm::FoldingSetNodeID &ID) const;
+  void Profile(llvm::FoldingSetNodeID &ID) const; // NOLINT
+  // NOLINTNEXTLINE
   static void MakeProfile(llvm::FoldingSetNodeID &ID, const llvm::Value *V,
-                          llvm::ArrayRef<offset_t> offs, unsigned lifetime);
+                          llvm::ArrayRef<offset_t> Offs, unsigned Lifetime);
 };
 } // namespace detail
 
@@ -152,7 +153,7 @@ public:
 /// This type can be hashed.
 class AbstractMemoryLocation {
 protected:
-  const detail::AbstractMemoryLocationImpl *pImpl = nullptr;
+  const detail::AbstractMemoryLocationImpl *PImpl = nullptr;
 
 public:
   using offset_t = detail::AbstractMemoryLocationImpl::offset_t;
@@ -161,17 +162,17 @@ public:
   AbstractMemoryLocation(const detail::AbstractMemoryLocationImpl *Impl/*,
                          const llvm::Instruction *Sani = nullptr*/);
   inline const detail::AbstractMemoryLocationImpl *operator->() const {
-    return pImpl;
+    return PImpl;
   }
 
   /// Provide an arbitrary partial order for being able to store TaintedValues
   /// in std::set or as key in std::map
   inline bool operator<(const AbstractMemoryLocation &TV) const {
-    return pImpl->base() < TV->base();
+    return PImpl->base() < TV->base();
   }
 
   inline bool operator==(const AbstractMemoryLocation &AML) const {
-    return pImpl == AML.pImpl /* && loadSanitizer == AML.loadSanitizer*/;
+    return PImpl == AML.PImpl /* && loadSanitizer == AML.loadSanitizer*/;
   }
 
   friend std::ostream &operator<<(std::ostream &os,
@@ -183,10 +184,10 @@ public:
   /// either this->isProperPrefixOf(TV) or vice versa.
   [[nodiscard]] inline llvm::ArrayRef<offset_t>
   operator-(const AbstractMemoryLocation &TV) const {
-    return *pImpl - *TV.pImpl;
+    return *PImpl - *TV.PImpl;
   }
 
-  operator const detail::AbstractMemoryLocationImpl &() const { return *pImpl; }
+  operator const detail::AbstractMemoryLocationImpl &() const { return *PImpl; }
 };
 
 std::string DToString(const AbstractMemoryLocation &AML);

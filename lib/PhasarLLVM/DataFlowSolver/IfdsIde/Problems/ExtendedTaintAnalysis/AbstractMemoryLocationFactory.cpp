@@ -12,86 +12,86 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
 #include "phasar/Utils/Logger.h"
 
-namespace psr {
-namespace detail {
+namespace psr::detail {
 
-AbstractMemoryLocationFactoryBase::Allocator::Block::Block(Block *next)
-    : next(next) {}
+AbstractMemoryLocationFactoryBase::Allocator::Block::Block(Block *Next)
+    : Next(Next) {}
 
 auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
-    Block *next, size_t numPointerEntries) -> Block * {
+    Block *Next, size_t NumPointerEntries) -> Block * {
   // Allocate one more pointer to store the next-block ptr
-  auto ret = reinterpret_cast<Block *>(new size_t[1 + numPointerEntries]);
+  auto *Ret = reinterpret_cast<Block *>(new size_t[1 + NumPointerEntries]);
 
-  new (ret) Block(next);
-  return ret;
+  new (Ret) Block(Next);
+  return Ret;
 }
 
-void AbstractMemoryLocationFactoryBase::Allocator::Block::destroy(Block *blck) {
-  delete[] reinterpret_cast<size_t *>(blck);
+void AbstractMemoryLocationFactoryBase::Allocator::Block::destroy(Block *Blck) {
+  delete[] reinterpret_cast<size_t *>(Blck);
 }
 
 AbstractMemoryLocationFactoryBase::Allocator::Allocator(
-    size_t initialCapacity) {
-  if (initialCapacity <= expectedNumAMLsPerBlock)
+    size_t InitialCapacity) {
+  if (InitialCapacity <= ExpectedNumAmLsPerBlock) {
     return;
+  }
 
-  const auto numPointersPerInitialBlock =
-      (minNumPointersPerAML + 3) * initialCapacity;
-  root = Block::create(nullptr, numPointersPerInitialBlock);
-  pos = root->data;
-  end = pos + numPointersPerInitialBlock;
+  const auto NumPointersPerInitialBlock =
+      (MinNumPointersPerAML + 3) * InitialCapacity;
+  Root = Block::create(nullptr, NumPointersPerInitialBlock);
+  Pos = Root->Data;
+  End = Pos + NumPointersPerInitialBlock;
 }
 
 AbstractMemoryLocationFactoryBase::Allocator::~Allocator() {
-  auto blck = root;
-  while (blck) {
-    auto nxt = blck->next;
-    Block::destroy(blck);
-    blck = nxt;
+  auto *Blck = Root;
+  while (Blck) {
+    auto *Nxt = Blck->Next;
+    Block::destroy(Blck);
+    Blck = Nxt;
   }
 }
 
 AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::Allocator::create(
-    const llvm::Value *baseptr, size_t lifetime,
-    llvm::ArrayRef<offset_t> offsets) {
+    const llvm::Value *Baseptr, size_t Lifetime,
+    llvm::ArrayRef<offset_t> Offsets) {
 
   // All fields inside AML have pointer size, so there is no padding at all
-  auto numPointersRequired = minNumPointersPerAML + offsets.size();
-  auto rt = root;
-  auto curr = pos;
+  auto NumPointersRequired = MinNumPointersPerAML + Offsets.size();
+  auto *Rt = Root;
+  auto *Curr = Pos;
 
-  if (end - curr < ptrdiff_t(numPointersRequired)) {
-    root = rt = Block::create(rt, numPointersPerBlock);
-    pos = curr = rt->data;
-    end = curr + numPointersPerBlock;
+  if (End - Curr < ptrdiff_t(NumPointersRequired)) {
+    Root = Rt = Block::create(Rt, NumPointersPerBlock);
+    Pos = Curr = Rt->Data;
+    End = Curr + NumPointersPerBlock;
   }
 
-  auto ret = reinterpret_cast<AbstractMemoryLocationImpl *>(curr);
+  auto *Ret = reinterpret_cast<AbstractMemoryLocationImpl *>(Curr);
 
-  pos += numPointersRequired;
+  Pos += NumPointersRequired;
 
-  new (ret) AbstractMemoryLocationImpl(baseptr, offsets, lifetime);
+  new (Ret) AbstractMemoryLocationImpl(Baseptr, Offsets, Lifetime);
 
-  return ret;
+  return Ret;
 }
 
 AbstractMemoryLocationFactoryBase::AbstractMemoryLocationFactoryBase(
-    size_t initialCapacity)
-    : owner(initialCapacity), DL(nullptr) {
+    size_t InitialCapacity)
+    : Owner(InitialCapacity), DL(nullptr) {
 
-  pool.reserve(initialCapacity);
-  cache.reserve(initialCapacity);
+  Pool.reserve(InitialCapacity);
+  Cache.reserve(InitialCapacity);
 }
 
 AbstractMemoryLocationFactoryBase::AbstractMemoryLocationFactoryBase(
-    const llvm::DataLayout *DL, size_t initialCapacity)
-    : owner(initialCapacity), DL(DL) {
+    const llvm::DataLayout *DL, size_t InitialCapacity)
+    : Owner(InitialCapacity), DL(DL) {
   assert(DL);
 
-  pool.reserve(initialCapacity);
-  cache.reserve(initialCapacity);
+  Pool.reserve(InitialCapacity);
+  Cache.reserve(InitialCapacity);
 }
 
 void AbstractMemoryLocationFactoryBase::setDataLayout(
@@ -106,376 +106,324 @@ AbstractMemoryLocationFactoryBase::getOrCreateImpl(
     unsigned BOUND) {
   llvm::FoldingSetNodeID ID;
   detail::AbstractMemoryLocationImpl::MakeProfile(ID, V, offs, BOUND);
-  void *pos;
-  auto *mem = pool.FindNodeOrInsertPos(ID, pos);
-  if (!mem) {
-    mem = owner.create(V, BOUND, offs);
-    pool.InsertNode(mem, pos);
-
-    // if (pool.size() % 10000 == 0) {
-    //   std::cerr << "Allocated " << pool.size() << " dataflow facts so far\n";
-    //   std::cerr << "Maximum requested field-access-path length so far: "
-    //             << MaxCreatedSize << "\n";
-    //   std::cerr << "Current: " << AbstractMemoryLocation(mem) << "\n";
-    //   std::cerr <<
-    //   "-----------------------------------------------------------"
-    //                "---------------------";
-    // }
+  void *Pos;
+  auto *Mem = Pool.FindNodeOrInsertPos(ID, Pos);
+  if (!Mem) {
+    Mem = Owner.create(V, BOUND, offs);
+    Pool.InsertNode(Mem, Pos);
   }
-  return mem;
+  return Mem;
 }
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::getOrCreateImpl(const llvm::Value *V,
                                                    unsigned BOUND) {
 
-  llvm::SmallVector<offset_t, 1> offs = {0};
-  auto ret = getOrCreateImpl(V, std::move(offs), BOUND == 0 ? 0 : BOUND - 1);
+  llvm::SmallVector<offset_t, 1> Offs = {0};
+  const auto *Ret =
+      getOrCreateImpl(V, std::move(Offs), BOUND == 0 ? 0 : BOUND - 1);
 
-  // std::cerr << "Create(" << llvmIRToShortString(V) << ", BOUND=" << BOUND
-  //           << ") = " << AbstractMemoryLocation(ret) << "\n";
-
-  return ret;
+  return Ret;
 }
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
                                               unsigned BOUND) {
   assert(DL);
-  if (auto it = cache.find(V); it != cache.end()) {
-    return it->second;
+  if (auto It = Cache.find(V); It != Cache.end()) {
+    return It->second;
   }
 
   if (llvm::isa<llvm::GlobalValue>(V) || llvm::isa<llvm::AllocaInst>(V) ||
       llvm::isa<llvm::Argument>(V) || llvm::isa<llvm::CallBase>(V)) {
     // Globals, argument, function calls and allocas define themselves
 
-    auto *mem = getOrCreateImpl(V, BOUND);
+    const auto *Mem = getOrCreateImpl(V, BOUND);
 
-    cache[V] = mem;
+    Cache[V] = Mem;
 
-    return mem;
+    return Mem;
   }
 
-  llvm::SmallVector<offset_t, 8> offs = {0};
-  unsigned ver = 1;
+  llvm::SmallVector<offset_t, 8> Offs = {0};
+  unsigned Ver = 1;
   // recursive lambda via Y-combinator
   const auto createRec =
-      [this, BOUND](auto &_createRec, llvm::SmallVectorImpl<offset_t> &offs,
-                    unsigned &ver,
+      [this, BOUND](auto &_createRec, llvm::SmallVectorImpl<offset_t> &Offs,
+                    unsigned &Ver,
                     const llvm::Value *V) -> const llvm::Value * {
-    if (auto load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-      offs.push_back(0);
-      ++ver;
-      return _createRec(_createRec, offs, ver, load->getPointerOperand());
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+      Offs.push_back(0);
+      ++Ver;
+      return _createRec(_createRec, Offs, Ver, Load->getPointerOperand());
     }
-    if (auto cast = llvm::dyn_cast<llvm::CastInst>(V)) {
-      return _createRec(_createRec, offs, ver, cast->getOperand(0));
+    if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(V)) {
+      return _createRec(_createRec, Offs, Ver, Cast->getOperand(0));
     }
-    if (auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(V)) {
+    if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(V)) {
 
-      auto gepOffs =
-          detail::AbstractMemoryLocationImpl::computeOffset(*DL, gep);
-      if (gepOffs.has_value()) {
-        offs.back() += *gepOffs;
-        // ++ver;
+      auto GepOffs =
+          detail::AbstractMemoryLocationImpl::computeOffset(*DL, Gep);
+      if (GepOffs.has_value()) {
+        Offs.back() += *GepOffs;
       } else {
         // everything until now is irrelevant (constructing the offs-vector in
         // reverse order)
-        offs.clear();
-        offs.push_back(0);
-        ver = BOUND;
+        Offs.clear();
+        Offs.push_back(0);
+        Ver = BOUND;
       }
-      return _createRec(_createRec, offs, ver, gep->getPointerOperand());
+      return _createRec(_createRec, Offs, Ver, Gep->getPointerOperand());
     }
     // TODO aggregate instructions, e.g. insertvalue, extractvalue, ...
 
     return V;
   };
-  auto baseptr = createRec(createRec, offs, ver, V);
-  std::reverse(offs.begin(), offs.end());
-  auto lifetime = BOUND - std::min(ver, BOUND);
+  const auto *Baseptr = createRec(createRec, Offs, Ver, V);
+  std::reverse(Offs.begin(), Offs.end());
+  auto Lifetime = BOUND - std::min(Ver, BOUND);
 
   // assert(ver >= offs.size());
 
-  bool isOverApproximating = false;
+  bool IsOverApproximating = false;
 
-  if (offs.size() > BOUND) {
-    assert(lifetime == 0);
+  if (Offs.size() > BOUND) {
+    assert(Lifetime == 0);
 
     // if (offs.size() > MaxCreatedSize)
     //   MaxCreatedSize = offs.size();
-    isOverApproximating = true;
-    offs.resize(BOUND);
+    IsOverApproximating = true;
+    Offs.resize(BOUND);
   }
 
-  auto *mem = getOrCreateImpl(baseptr, std::move(offs), lifetime);
+  const auto *Mem = getOrCreateImpl(Baseptr, std::move(Offs), Lifetime);
 
 #ifdef XTAINT_DIAGNOSTICS
   if (isOverApproximating)
     overApproximatedAMLs.insert(mem);
 #endif
 
-  // std::cerr << "Create(" << llvmIRToShortString(V)
-  //           << ") = " << AbstractMemoryLocation(mem) << "\n";
-
-  cache[V] = mem;
-  return mem;
+  Cache[V] = Mem;
+  return Mem;
 }
 
 [[nodiscard]] const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::GetOrCreateZeroImpl() const {
   // Can allocate without Allocator, because the number of offsets is zero
-  static detail::AbstractMemoryLocationImpl zero = nullptr;
-  return &zero;
+  static detail::AbstractMemoryLocationImpl Zero = nullptr;
+  return &Zero;
 }
 
 const AbstractMemoryLocationImpl *AbstractMemoryLocationFactoryBase::limitImpl(
     const AbstractMemoryLocationImpl *AML) {
-  auto beg = AML->offsets().begin();
-  auto *end = AML->offsets().end();
-  llvm::SmallVector<offset_t, 8> offs(beg, beg == end ? end : end - 1);
-  auto *ret = getOrCreateImpl(AML->base(), std::move(offs), 0);
+  const auto *Beg = AML->offsets().begin();
+  const auto *End = AML->offsets().end();
+  llvm::SmallVector<offset_t, 8> Offs(Beg, Beg == End ? End : End - 1);
+  const auto *Ret = getOrCreateImpl(AML->base(), std::move(Offs), 0);
 
 #ifdef XTAINT_DIAGNOSTICS
   overApproximatedAMLs.insert(ret);
 #endif
 
-  return ret;
+  return Ret;
 }
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withIndirectionOfImpl(
     const AbstractMemoryLocationImpl *AML, llvm::ArrayRef<offset_t> Ind) {
-  auto ret = [&] {
-    auto nwLifeTime = AML->lifetime();
 
-    if (nwLifeTime == 0) {
+  auto NwLifeTime = AML->lifetime();
+
+  if (NwLifeTime == 0) {
 #ifdef XTAINT_DIAGNOSTICS
-      overApproximatedAMLs.insert(AML);
+    overApproximatedAMLs.insert(AML);
 #endif
-      return AML;
+    return AML;
+  }
+
+  llvm::SmallVector<offset_t, 8> Offs(AML->offsets().begin(),
+                                      AML->offsets().end());
+
+  bool IsOverApproximating = false;
+
+  if (Ind.empty()) {
+    Offs.push_back(0);
+    NwLifeTime--;
+  } else {
+    if (NwLifeTime < Ind.size()) {
+      Ind = Ind.slice(0, NwLifeTime);
+      IsOverApproximating = true;
     }
+    Offs.append(Ind.begin(), Ind.end());
 
-    llvm::SmallVector<offset_t, 8> offs(AML->offsets().begin(),
-                                        AML->offsets().end());
+    NwLifeTime -= Ind.size();
+  }
 
-    bool isOverApproximating = false;
-
-    if (Ind.empty()) {
-      offs.push_back(0);
-      nwLifeTime--;
-    } else {
-      if (nwLifeTime < Ind.size()) {
-        Ind = Ind.slice(0, nwLifeTime);
-        isOverApproximating = true;
-      }
-      offs.append(Ind.begin(), Ind.end());
-
-      nwLifeTime -= Ind.size();
-    }
-
-    auto *ret = getOrCreateImpl(AML->base(), std::move(offs), nwLifeTime);
+  const auto *Ret = getOrCreateImpl(AML->base(), std::move(Offs), NwLifeTime);
 
 #ifdef XTAINT_DIAGNOSTICS
-    if (isOverApproximating)
-      overApproximatedAMLs.insert(ret);
+  if (isOverApproximating)
+    overApproximatedAMLs.insert(ret);
 #endif
 
-    return ret;
-  }();
-
-  // std::cerr << "WithIndirectionOf(" << AbstractMemoryLocation(AML) << ", "
-  //           << SequencePrinter(Ind) << ") = " << AbstractMemoryLocation(ret)
-  //           << "\n";
-
-  return ret;
+  return Ret;
 }
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withOffsetImpl(
     const AbstractMemoryLocationImpl *AML, const llvm::GetElementPtrInst *Gep) {
   assert(DL);
-  auto ret = [&] {
-    switch (AML->lifetime()) {
-      /* case 1:
-         return limitImpl(AML);*/
-    case 0:
+
+  switch (AML->lifetime()) {
+  case 0:
 #ifdef XTAINT_DIAGNOSTICS
-      overApproximatedAMLs.insert(AML);
+    overApproximatedAMLs.insert(AML);
 #endif
-      return AML;
-    default:
-      auto gepOffs =
-          detail::AbstractMemoryLocationImpl::computeOffset(*DL, Gep);
-      if (!gepOffs.has_value()) {
-        return limitImpl(AML);
-      }
-      assert(!AML->offsets().empty());
-      llvm::SmallVector<offset_t, 8> offs(AML->offsets().begin(),
-                                          AML->offsets().end());
-      offs.back() += *gepOffs;
-
-      return getOrCreateImpl(AML->base(), std::move(offs),
-                             AML->lifetime() /*- 1*/);
+    return AML;
+  default:
+    auto GepOffs = detail::AbstractMemoryLocationImpl::computeOffset(*DL, Gep);
+    if (!GepOffs.has_value()) {
+      return limitImpl(AML);
     }
-  }();
+    assert(!AML->offsets().empty());
+    llvm::SmallVector<offset_t, 8> Offs(AML->offsets().begin(),
+                                        AML->offsets().end());
+    Offs.back() += *GepOffs;
 
-  // std::cerr << "WithOffset(" << AbstractMemoryLocation(AML) << ", "
-  //           << llvmIRToString(Gep) << ") = " << AbstractMemoryLocation(ret)
-  //           << "\n";
-
-  return ret;
+    return getOrCreateImpl(AML->base(), std::move(Offs),
+                           AML->lifetime() /*- 1*/);
+  }
 }
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withOffsetsImpl(
     const AbstractMemoryLocationImpl *AML, llvm::ArrayRef<offset_t> Offs) {
-  auto ret = [&] {
-    if (Offs.empty())
-      return AML;
 
-    auto nwLifetime = AML->lifetime();
-    switch (nwLifetime) {
-    /*case 1:
-      return limitImpl(AML);*/
-    case 0:
+  if (Offs.empty()) {
+    return AML;
+  }
+
+  auto NwLifetime = AML->lifetime();
+  switch (NwLifetime) {
+  /*case 1:
+    return limitImpl(AML);*/
+  case 0:
 #ifdef XTAINT_DIAGNOSTICS
-      overApproximatedAMLs.insert(AML);
+    overApproximatedAMLs.insert(AML);
 #endif
-      return AML;
-    default:
-      assert(!AML->offsets().empty());
-      llvm::SmallVector<offset_t, 8> offsCpy(AML->offsets().begin(),
-                                             AML->offsets().end());
-      offsCpy.back() += Offs.front();
+    return AML;
+  default:
+    assert(!AML->offsets().empty());
+    llvm::SmallVector<offset_t, 8> OffsCpy(AML->offsets().begin(),
+                                           AML->offsets().end());
+    OffsCpy.back() += Offs.front();
 
-      bool isOverApproximating = false;
+    bool IsOverApproximating = false;
 
-      if (nwLifetime < Offs.size() - 1) {
-        Offs = Offs.slice(0, nwLifetime + 1);
-      }
-
-      offsCpy.append(std::next(Offs.begin()), Offs.end());
-
-      auto *ret = getOrCreateImpl(AML->base(), std::move(offsCpy),
-                                  nwLifetime - Offs.size() + 1);
-#ifdef XTAINT_DIAGNOSTICS
-      if (isOverApproximating)
-        overApproximatedAMLs.insert(ret);
-#endif
-      return ret;
+    if (NwLifetime < Offs.size() - 1) {
+      Offs = Offs.slice(0, NwLifetime + 1);
     }
-  }();
 
-  // std::cerr << "WithOffsets(" << AbstractMemoryLocation(AML) << ", "
-  //           << SequencePrinter(Offs) << ") = " << AbstractMemoryLocation(ret)
-  //           << "\n";
+    OffsCpy.append(std::next(Offs.begin()), Offs.end());
 
-  return ret;
+    const auto *Ret = getOrCreateImpl(AML->base(), std::move(OffsCpy),
+                                      NwLifetime - Offs.size() + 1);
+#ifdef XTAINT_DIAGNOSTICS
+    if (isOverApproximating)
+      overApproximatedAMLs.insert(ret);
+#endif
+    return Ret;
+  }
 }
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withTransferToImpl(
     const AbstractMemoryLocationImpl *AML,
     const AbstractMemoryLocationImpl *From, const llvm::Value *To) {
-  auto ret = [&] {
-    if (AML->lifetime() == 0 && From->lifetime() == 0) {
-      auto *ret = getOrCreateImpl(To, 0);
+
+  if (AML->lifetime() == 0 && From->lifetime() == 0) {
+    const auto *Ret = getOrCreateImpl(To, 0);
 
 #ifdef XTAINT_DIAGNOSTICS
-      overApproximatedAMLs.insert(ret);
+    overApproximatedAMLs.insert(ret);
 #endif
 
-      return ret;
-    }
+    return Ret;
+  }
 
-    // already checked that either offsets() is a prefix of From.offsets() or
-    // vice versa
-    llvm::SmallVector<offset_t, 8> offs(
-        [&] {
-          if (AML->offsets().size() >= From->offsets().size()) {
+  // already checked that either offsets() is a prefix of From.offsets() or
+  // vice versa
+  llvm::SmallVector<offset_t, 8> Offs(
+      [&] {
+        if (AML->offsets().size() >= From->offsets().size()) {
 
-            if (!From->offsets().empty())
-              return std::next(AML->offsets().begin(),
-                               From->offsets().size() - 1);
-            return AML->offsets().begin();
-          } else {
-            if (!AML->offsets().empty())
-              return std::next(From->offsets().begin(),
-                               AML->offsets().size() - 1);
-            return From->offsets().begin();
+          if (!From->offsets().empty()) {
+            return std::next(AML->offsets().begin(),
+                             From->offsets().size() - 1);
           }
-        }(),
-        [&] {
-          return AML->offsets().size() >= From->offsets().size()
-                     ? AML->offsets().end()
-                     : From->offsets().end();
-        }());
-    if (offs.size())
-      offs.back() = 0;
+          return AML->offsets().begin();
+        }
+        if (!AML->offsets().empty()) {
+          return std::next(From->offsets().begin(), AML->offsets().size() - 1);
+        }
+        return From->offsets().begin();
+      }(),
+      [&] {
+        return AML->offsets().size() >= From->offsets().size()
+                   ? AML->offsets().end()
+                   : From->offsets().end();
+      }());
 
-    return getOrCreateImpl(To, std::move(offs),
-                           std::min(AML->lifetime(), From->lifetime()));
-  }();
+  if (!Offs.empty()) {
+    Offs.back() = 0;
+  }
 
-  // std::cerr << "WithTransferTo(" << AbstractMemoryLocation(AML)
-  //           << ", from: " << AbstractMemoryLocation(From)
-  //           << ", to: " << llvmIRToShortString(To)
-  //           << ") = " << AbstractMemoryLocation(ret) << "\n";
-
-  return ret;
+  return getOrCreateImpl(To, std::move(Offs),
+                         std::min(AML->lifetime(), From->lifetime()));
 }
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withTransferFromImpl(
     const AbstractMemoryLocationImpl *AML,
     const AbstractMemoryLocationImpl *To) {
-  auto ret = [&] {
-    if (AML->lifetime() == 0) {
+
+  if (AML->lifetime() == 0) {
 #ifdef XTAINT_DIAGNOSTICS
-      overApproximatedAMLs.insert(To);
+    overApproximatedAMLs.insert(To);
 #endif
-      return To;
+    return To;
+  }
+
+  llvm::SmallVector<offset_t, 8> Offs(To->offsets().begin(),
+                                      To->offsets().end());
+  if (!AML->offsets().empty()) {
+    if (!Offs.empty()) {
+      Offs.back() += AML->offsets()[0];
     }
 
-    llvm::SmallVector<offset_t, 8> offs(To->offsets().begin(),
-                                        To->offsets().end());
-    if (AML->offsets().size()) {
-      if (offs.size())
-        offs.back() += AML->offsets()[0];
+    Offs.append(std::next(AML->offsets().begin()), AML->offsets().end());
+  }
 
-      offs.append(std::next(AML->offsets().begin()), AML->offsets().end());
-    }
+  auto NwLifetime = To->lifetime();
+  auto MaximumSize = std::min(AML->offsets().size() + AML->lifetime(),
+                              To->offsets().size() + NwLifetime);
 
-    auto nwLifetime = To->lifetime();
-    auto maximumSize = std::min(AML->offsets().size() + AML->lifetime(),
-                                To->offsets().size() + nwLifetime);
+  bool IsOverApproximating = false;
+  if (Offs.size() > MaximumSize) {
+    Offs.resize(MaximumSize);
+    NwLifetime = 0;
+    IsOverApproximating = true;
+  }
 
-    bool isOverApproximating = false;
-    if (offs.size() > maximumSize) {
-      offs.resize(maximumSize);
-      nwLifetime = 0;
-      isOverApproximating = true;
-    }
-
-    auto *ret =
-        getOrCreateImpl(To->base(), std::move(offs),
-                        std::min(AML->lifetime(), maximumSize - offs.size()));
+  const auto *Ret =
+      getOrCreateImpl(To->base(), std::move(Offs),
+                      std::min(AML->lifetime(), MaximumSize - Offs.size()));
 
 #ifdef XTAINT_DIAGNOSTICS
-    if (isOverApproximating)
-      overApproximatedAMLs.insert(ret);
+  if (isOverApproximating)
+    overApproximatedAMLs.insert(ret);
 #endif
 
-    return ret;
-  }();
-
-  // std::cerr << "WithTransferFrom(" << AbstractMemoryLocation(AML)
-  //           << ", to: " << AbstractMemoryLocation(To)
-  //           << ") = " << AbstractMemoryLocation(ret) << "\n";
-
-  return ret;
+  return Ret;
 }
-} // namespace detail
-} // namespace psr
+} // namespace psr::detail
