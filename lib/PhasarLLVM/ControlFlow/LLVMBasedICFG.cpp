@@ -15,6 +15,7 @@
  */
 
 #include <cassert>
+#include <chrono>
 #include <initializer_list>
 #include <memory>
 #include <ostream>

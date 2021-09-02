@@ -19,12 +19,15 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/TinyPtrVector.h"
 
 namespace llvm {
 class Instruction;

@@ -16,6 +16,8 @@
 
 #include <memory>
 
+#include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Constants.h"
@@ -138,9 +140,16 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
 
-      const auto PTS = PT.getPointsToSet(CallSite->getCalledOperand());
+      const auto PTS =
+          PT.getPointsToSet(CallSite->getCalledOperand(), CallSite);
+
+      llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
+      llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
 
       for (const auto *P : *PTS) {
+        GlobalVariableWL.clear();
+        ConstantAggregateWL.clear();
+
         if (P->getType()->isPointerTy() &&
             P->getType()->getPointerElementType()->isFunctionTy()) {
           if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
@@ -149,8 +158,7 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
             }
           }
         }
-        llvm::SmallVector<const llvm::GlobalVariable *> GlobalVariableWL;
-        llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
+
         if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
           for (const auto &Op : CE->operands()) {
             if (const auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
@@ -161,6 +169,11 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
         if (const auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
           GlobalVariableWL.push_back(GVP);
         }
+
+        if (GlobalVariableWL.empty()) {
+          continue;
+        }
+
         for (const auto *GV : GlobalVariableWL) {
           if (!GV->hasInitializer()) {
             continue;
@@ -173,6 +186,7 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
         }
         llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
             VisitedConstantAggregates;
+
         while (!ConstantAggregateWL.empty()) {
           const auto *ConstAggregateItem = ConstantAggregateWL.pop_back_val();
           // We may have already processed the item, avoid an infinite loop
