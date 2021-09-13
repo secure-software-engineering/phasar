@@ -32,8 +32,6 @@ namespace detail {
 /// objects to allow fast getters/transformators even if they are called
 /// multiple times.
 class AbstractMemoryLocationFactoryBase {
-public:
-  using offset_t = AbstractMemoryLocationImpl::offset_t;
 
 private:
   struct Allocator {
@@ -57,7 +55,7 @@ private:
 
     AbstractMemoryLocationImpl *create(const llvm::Value *Baseptr,
                                        size_t Lifetime,
-                                       llvm::ArrayRef<offset_t> Offsets);
+                                       llvm::ArrayRef<ptrdiff_t> Offsets);
 
   private:
     constexpr static size_t ExpectedNumAmLsPerBlock = 1024;
@@ -85,7 +83,7 @@ protected:
   const llvm::DataLayout *DL = nullptr;
 
   const detail::AbstractMemoryLocationImpl *
-  getOrCreateImpl(const llvm::Value *V, llvm::SmallVectorImpl<offset_t> &&offs,
+  getOrCreateImpl(const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&offs,
                   unsigned BOUND);
 
   const detail::AbstractMemoryLocationImpl *
@@ -96,14 +94,14 @@ protected:
   const AbstractMemoryLocationImpl *GetOrCreateZeroImpl() const;
   const AbstractMemoryLocationImpl *
   withIndirectionOfImpl(const AbstractMemoryLocationImpl *AML,
-                        llvm::ArrayRef<offset_t> Ind);
+                        llvm::ArrayRef<ptrdiff_t> Ind);
   const AbstractMemoryLocationImpl *
   withOffsetImpl(const AbstractMemoryLocationImpl *AML,
                  const llvm::GetElementPtrInst *Gep);
 
   const AbstractMemoryLocationImpl *
   withOffsetsImpl(const AbstractMemoryLocationImpl *AML,
-                  llvm::ArrayRef<offset_t> Offs);
+                  llvm::ArrayRef<ptrdiff_t> Offs);
 
   const AbstractMemoryLocationImpl *
   withTransferToImpl(const AbstractMemoryLocationImpl *AML,
@@ -165,7 +163,7 @@ public:
   /// store indirect taints.
   [[nodiscard]] AbstractMemoryLocation
   withIndirectionOf(const AbstractMemoryLocation &AML,
-                    llvm::ArrayRef<offset_t> Ind) {
+                    llvm::ArrayRef<ptrdiff_t> Ind) {
     return AbstractMemoryLocation(withIndirectionOfImpl(AML.operator->(), Ind));
   }
 
@@ -177,7 +175,7 @@ public:
 
   [[nodiscard]] AbstractMemoryLocation
   withOffsets(const AbstractMemoryLocation &AML,
-              llvm::ArrayRef<offset_t> Offs) {
+              llvm::ArrayRef<ptrdiff_t> Offs) {
     return AbstractMemoryLocation(withOffsetsImpl(AML.operator->(), Offs));
   }
 

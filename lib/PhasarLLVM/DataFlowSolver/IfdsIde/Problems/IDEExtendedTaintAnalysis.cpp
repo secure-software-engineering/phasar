@@ -355,7 +355,7 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t callStmt, f_t destFun) {
                           << ">\tno match: " << from << " vs " << source);
           }
         }
-        AbstractMemoryLocation::offset_t offs = 0;
+        ptrdiff_t offs = 0;
 
         if (!va)
           return ret;

@@ -12,12 +12,11 @@
 
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/TinyPtrVector.h"
-#include "llvm/IR/Instruction.h"
 
 namespace llvm {
 class Value;
 class Instruction;
-class Value;
+class Function;
 } // namespace llvm
 
 namespace psr {

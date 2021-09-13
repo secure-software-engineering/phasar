@@ -10,11 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_KILLIFSANITIZEDEDGEFUNCTION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_KILLIFSANITIZEDEDGEFUNCTION_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintEdgeFunctionBase.h"
 
 namespace psr::XTaint {
 
-#if 1
 class KillIfSanitizedEdgeFunction : public EdgeFunctionBase {
   const llvm::Instruction *Load;
 
@@ -40,18 +40,9 @@ public:
 inline EdgeFunctionBase::EdgeFunctionPtrType
 makeKillIfSanitizedEdgeFunction(BasicBlockOrdering &BBO,
                                 const llvm::Instruction *Load) {
-  return EdgeFunctionBase::EdgeFunctionPtrType(
-      new KillIfSanitizedEdgeFunction(BBO, Load));
+  return makeEF<KillIfSanitizedEdgeFunction>(BBO, Load);
 }
-#else
-using KillIfSanitizedEdgeFunction = psr::EdgeIdentity<EdgeDomain>;
 
-inline EdgeFunctionBase::EdgeFunctionPtrType
-makeKillIfSanitizedEdgeFunction(BasicBlockOrdering &BBO,
-                                const llvm::Instruction *Load) {
-  return EdgeIdentity<EdgeDomain>::getInstance();
-}
-#endif
 } // namespace psr::XTaint
 
 #endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_KILLIFSANITIZEDEDGEFUNCTION_H_

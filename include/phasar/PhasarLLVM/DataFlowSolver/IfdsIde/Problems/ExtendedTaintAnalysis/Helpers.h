@@ -16,6 +16,7 @@
 #include <set>
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/SmallSet.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Instructions.h"
 
@@ -33,8 +34,8 @@ namespace psr::XTaint {
 
 /// Holds all leaks found during the analysis; Maybe use some better
 /// datastructures...
-using LeakMap_t =
-    std::map<const llvm::Instruction *, std::set<const llvm::Value *>>;
+using LeakMap_t = std::unordered_map<const llvm::Instruction *,
+                                     llvm::SmallSet<const llvm::Value *, 1>>;
 
 EdgeFunction<EdgeDomain>::EdgeFunctionPtrType
 getGenEdgeFunction(BasicBlockOrdering &BBO);

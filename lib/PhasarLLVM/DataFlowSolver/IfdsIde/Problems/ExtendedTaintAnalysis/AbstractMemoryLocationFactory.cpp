@@ -55,7 +55,7 @@ AbstractMemoryLocationFactoryBase::Allocator::~Allocator() {
 AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::Allocator::create(
     const llvm::Value *Baseptr, size_t Lifetime,
-    llvm::ArrayRef<offset_t> Offsets) {
+    llvm::ArrayRef<ptrdiff_t> Offsets) {
 
   // All fields inside AML have pointer size, so there is no padding at all
   auto NumPointersRequired = MinNumPointersPerAML + Offsets.size();
@@ -102,7 +102,7 @@ void AbstractMemoryLocationFactoryBase::setDataLayout(
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::getOrCreateImpl(
-    const llvm::Value *V, llvm::SmallVectorImpl<offset_t> &&offs,
+    const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&offs,
     unsigned BOUND) {
   llvm::FoldingSetNodeID ID;
   detail::AbstractMemoryLocationImpl::MakeProfile(ID, V, offs, BOUND);
@@ -119,7 +119,7 @@ const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::getOrCreateImpl(const llvm::Value *V,
                                                    unsigned BOUND) {
 
-  llvm::SmallVector<offset_t, 1> Offs = {0};
+  llvm::SmallVector<ptrdiff_t, 1> Offs = {0};
   const auto *Ret =
       getOrCreateImpl(V, std::move(Offs), BOUND == 0 ? 0 : BOUND - 1);
 
@@ -145,11 +145,11 @@ AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
     return Mem;
   }
 
-  llvm::SmallVector<offset_t, 8> Offs = {0};
+  llvm::SmallVector<ptrdiff_t, 8> Offs = {0};
   unsigned Ver = 1;
   // recursive lambda via Y-combinator
   const auto createRec =
-      [this, BOUND](auto &_createRec, llvm::SmallVectorImpl<offset_t> &Offs,
+      [this, BOUND](auto &_createRec, llvm::SmallVectorImpl<ptrdiff_t> &Offs,
                     unsigned &Ver,
                     const llvm::Value *V) -> const llvm::Value * {
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
@@ -218,7 +218,7 @@ const AbstractMemoryLocationImpl *AbstractMemoryLocationFactoryBase::limitImpl(
     const AbstractMemoryLocationImpl *AML) {
   const auto *Beg = AML->offsets().begin();
   const auto *End = AML->offsets().end();
-  llvm::SmallVector<offset_t, 8> Offs(Beg, Beg == End ? End : End - 1);
+  llvm::SmallVector<ptrdiff_t, 8> Offs(Beg, Beg == End ? End : End - 1);
   const auto *Ret = getOrCreateImpl(AML->base(), std::move(Offs), 0);
 
 #ifdef XTAINT_DIAGNOSTICS
@@ -230,7 +230,7 @@ const AbstractMemoryLocationImpl *AbstractMemoryLocationFactoryBase::limitImpl(
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withIndirectionOfImpl(
-    const AbstractMemoryLocationImpl *AML, llvm::ArrayRef<offset_t> Ind) {
+    const AbstractMemoryLocationImpl *AML, llvm::ArrayRef<ptrdiff_t> Ind) {
 
   auto NwLifeTime = AML->lifetime();
 
@@ -241,8 +241,8 @@ AbstractMemoryLocationFactoryBase::withIndirectionOfImpl(
     return AML;
   }
 
-  llvm::SmallVector<offset_t, 8> Offs(AML->offsets().begin(),
-                                      AML->offsets().end());
+  llvm::SmallVector<ptrdiff_t, 8> Offs(AML->offsets().begin(),
+                                       AML->offsets().end());
 
   bool IsOverApproximating = false;
 
@@ -286,8 +286,8 @@ AbstractMemoryLocationFactoryBase::withOffsetImpl(
       return limitImpl(AML);
     }
     assert(!AML->offsets().empty());
-    llvm::SmallVector<offset_t, 8> Offs(AML->offsets().begin(),
-                                        AML->offsets().end());
+    llvm::SmallVector<ptrdiff_t, 8> Offs(AML->offsets().begin(),
+                                         AML->offsets().end());
     Offs.back() += *GepOffs;
 
     return getOrCreateImpl(AML->base(), std::move(Offs),
@@ -297,7 +297,7 @@ AbstractMemoryLocationFactoryBase::withOffsetImpl(
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withOffsetsImpl(
-    const AbstractMemoryLocationImpl *AML, llvm::ArrayRef<offset_t> Offs) {
+    const AbstractMemoryLocationImpl *AML, llvm::ArrayRef<ptrdiff_t> Offs) {
 
   if (Offs.empty()) {
     return AML;
@@ -314,8 +314,8 @@ AbstractMemoryLocationFactoryBase::withOffsetsImpl(
     return AML;
   default:
     assert(!AML->offsets().empty());
-    llvm::SmallVector<offset_t, 8> OffsCpy(AML->offsets().begin(),
-                                           AML->offsets().end());
+    llvm::SmallVector<ptrdiff_t, 8> OffsCpy(AML->offsets().begin(),
+                                            AML->offsets().end());
     OffsCpy.back() += Offs.front();
 
     bool IsOverApproximating = false;
@@ -353,7 +353,7 @@ AbstractMemoryLocationFactoryBase::withTransferToImpl(
 
   // already checked that either offsets() is a prefix of From.offsets() or
   // vice versa
-  llvm::SmallVector<offset_t, 8> Offs(
+  llvm::SmallVector<ptrdiff_t, 8> Offs(
       [&] {
         if (AML->offsets().size() >= From->offsets().size()) {
 
@@ -394,8 +394,8 @@ AbstractMemoryLocationFactoryBase::withTransferFromImpl(
     return To;
   }
 
-  llvm::SmallVector<offset_t, 8> Offs(To->offsets().begin(),
-                                      To->offsets().end());
+  llvm::SmallVector<ptrdiff_t, 8> Offs(To->offsets().begin(),
+                                       To->offsets().end());
   if (!AML->offsets().empty()) {
     if (!Offs.empty()) {
       Offs.back() += AML->offsets()[0];

@@ -60,7 +60,7 @@ namespace XTaint {
 class IDEExtendedTaintAnalysis
     : public IDETabulationProblem<IDEExtendedTaintAnalysisDomain>,
       public AnalysisBase {
-  using BASE = IDETabulationProblem<IDEExtendedTaintAnalysisDomain>;
+  using base_t = IDETabulationProblem<IDEExtendedTaintAnalysisDomain>;
 
 public:
   using n_t =

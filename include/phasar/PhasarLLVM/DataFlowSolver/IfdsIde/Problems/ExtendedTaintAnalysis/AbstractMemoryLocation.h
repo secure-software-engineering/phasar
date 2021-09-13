@@ -67,14 +67,12 @@ class AbstractMemoryLocationImpl final
   equivalentOffsets(const AbstractMemoryLocationImpl &TV) const;
 
 public:
-  using offset_t = ptrdiff_t;
-
   AbstractMemoryLocationImpl(const llvm::Value *Baseptr, unsigned Lifetime);
   AbstractMemoryLocationImpl(const llvm::Value *Baseptr,
-                             llvm::SmallVectorImpl<offset_t> &&Offsets,
+                             llvm::SmallVectorImpl<ptrdiff_t> &&Offsets,
                              unsigned Lifetime);
   AbstractMemoryLocationImpl(const llvm::Value *Baseptr,
-                             llvm::ArrayRef<offset_t> Offsets,
+                             llvm::ArrayRef<ptrdiff_t> Offsets,
                              unsigned Lifetime);
   AbstractMemoryLocationImpl(const AbstractMemoryLocationImpl &) = delete;
   AbstractMemoryLocationImpl(AbstractMemoryLocationImpl &&) = delete;
@@ -87,7 +85,7 @@ public:
   /// The base pointer
   [[nodiscard]] const llvm::Value *base() const;
   /// The array of offsets
-  [[nodiscard]] llvm::ArrayRef<offset_t> offsets() const;
+  [[nodiscard]] llvm::ArrayRef<ptrdiff_t> offsets() const;
   /// The number of modifications that are allowed on this object before
   /// overapproximating
   [[nodiscard]] size_t lifetime() const;
@@ -96,7 +94,7 @@ public:
   ///
   /// \return The byte offset, iff all indices are constants. Otherwise
   /// std::nullopt
-  static std::optional<offset_t>
+  static std::optional<ptrdiff_t>
   computeOffset(const llvm::DataLayout &DL, const llvm::GetElementPtrInst *Gep);
 
   [[nodiscard]] inline bool isOverApproximation() const {
@@ -105,7 +103,7 @@ public:
 
   // Computes the absolute offset-difference between this and TV assuming,
   // either this->isProperPrefixOf(TV) or vice versa.
-  [[nodiscard]] llvm::ArrayRef<offset_t>
+  [[nodiscard]] llvm::ArrayRef<ptrdiff_t>
   operator-(const AbstractMemoryLocationImpl &TV) const;
   /// Check whether Larger describes a memory location that is tainted if *this
   /// is tainted, no matter what additional offset is added to Larger. Used to
@@ -142,7 +140,7 @@ public:
   void Profile(llvm::FoldingSetNodeID &ID) const; // NOLINT
   // NOLINTNEXTLINE
   static void MakeProfile(llvm::FoldingSetNodeID &ID, const llvm::Value *V,
-                          llvm::ArrayRef<offset_t> Offs, unsigned Lifetime);
+                          llvm::ArrayRef<ptrdiff_t> Offs, unsigned Lifetime);
 };
 } // namespace detail
 
@@ -156,11 +154,8 @@ protected:
   const detail::AbstractMemoryLocationImpl *PImpl = nullptr;
 
 public:
-  using offset_t = detail::AbstractMemoryLocationImpl::offset_t;
-
   explicit AbstractMemoryLocation() = default;
-  AbstractMemoryLocation(const detail::AbstractMemoryLocationImpl *Impl/*,
-                         const llvm::Instruction *Sani = nullptr*/);
+  AbstractMemoryLocation(const detail::AbstractMemoryLocationImpl *Impl);
   inline const detail::AbstractMemoryLocationImpl *operator->() const {
     return PImpl;
   }
@@ -172,7 +167,7 @@ public:
   }
 
   inline bool operator==(const AbstractMemoryLocation &AML) const {
-    return PImpl == AML.PImpl /* && loadSanitizer == AML.loadSanitizer*/;
+    return PImpl == AML.PImpl;
   }
 
   friend std::ostream &operator<<(std::ostream &os,
@@ -182,7 +177,7 @@ public:
 
   /// Computes the absolute offset-difference between this and TV assuming,
   /// either this->isProperPrefixOf(TV) or vice versa.
-  [[nodiscard]] inline llvm::ArrayRef<offset_t>
+  [[nodiscard]] inline llvm::ArrayRef<ptrdiff_t>
   operator-(const AbstractMemoryLocation &TV) const {
     return *PImpl - *TV.PImpl;
   }

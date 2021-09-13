@@ -156,7 +156,7 @@ struct Printer<T, std::enable_if_t<
                                        const Printer &P) {
     OS << "{";
     bool frst = true;
-    for (auto &elem : *static_cast<const T *>(P.value)) {
+    for (auto &&elem : *static_cast<const T *>(P.value)) {
       if (frst)
         frst = false;
       else

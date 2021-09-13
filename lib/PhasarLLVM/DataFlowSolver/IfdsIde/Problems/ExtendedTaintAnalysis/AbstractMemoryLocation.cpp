@@ -7,6 +7,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/raw_os_ostream.h"
 
@@ -40,11 +41,11 @@ AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
     const llvm::Value *Baseptr, unsigned Lifetime)
     : AbstractMemoryLoactionStorage(Baseptr, Lifetime) {}
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
-    const llvm::Value *Baseptr, llvm::SmallVectorImpl<offset_t> &&Offsets,
+    const llvm::Value *Baseptr, llvm::SmallVectorImpl<ptrdiff_t> &&Offsets,
     unsigned Lifetime)
     : AbstractMemoryLoactionStorage(Baseptr, Lifetime, Offsets) {}
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
-    const llvm::Value *Baseptr, llvm::ArrayRef<offset_t> Offsets,
+    const llvm::Value *Baseptr, llvm::ArrayRef<ptrdiff_t> Offsets,
     unsigned Lifetime)
     : AbstractMemoryLoactionStorage(Baseptr, Lifetime, Offsets) {}
 
@@ -54,18 +55,18 @@ bool AbstractMemoryLocationImpl::isZero() const {
 
 const llvm::Value *AbstractMemoryLocationImpl::base() const { return Baseptr; }
 
-auto AbstractMemoryLocationImpl::offsets() const -> llvm::ArrayRef<offset_t> {
-  return llvm::ArrayRef<offset_t>(Offsets, NumOffsets);
+llvm::ArrayRef<ptrdiff_t> AbstractMemoryLocationImpl::offsets() const {
+  return llvm::makeArrayRef(Offsets, NumOffsets);
 }
 uint64_t AbstractMemoryLocationImpl::lifetime() const { return Lifetime; }
 auto AbstractMemoryLocationImpl::computeOffset(
     const llvm::DataLayout &DL, const llvm::GetElementPtrInst *Gep)
-    -> std::optional<offset_t> {
+    -> std::optional<ptrdiff_t> {
   // TODO: Use results from IDELinearConstantAnalysis here (LLVM 12 has an
   // overload of accumulateConstantOffset that takes an external analysis
   // "https://llvm.org/doxygen/classllvm_1_1GEPOperator.html#a5c00e7e76ef5e98c6ffec8d31f63970a")
 
-  llvm::APInt Ret(sizeof(offset_t) * 8, 0);
+  llvm::APInt Ret(sizeof(ptrdiff_t) * 8, 0);
   if (!Gep->accumulateConstantOffset(DL, Ret)) {
     return std::nullopt;
   }
@@ -74,13 +75,13 @@ auto AbstractMemoryLocationImpl::computeOffset(
 }
 
 AbstractMemoryLocationImpl AbstractMemoryLocationImpl::limit() const {
-  llvm::SmallVector<offset_t, 5> Offs(offsets().begin(), offsets().end());
+  llvm::SmallVector<ptrdiff_t, 5> Offs(offsets().begin(), offsets().end());
   Offs.pop_back();
   return AbstractMemoryLocationImpl(base(), std::move(Offs), 0);
 }
 
 [[nodiscard]] auto AbstractMemoryLocationImpl::operator-(
-    const AbstractMemoryLocationImpl &TV) const -> llvm::ArrayRef<offset_t> {
+    const AbstractMemoryLocationImpl &TV) const -> llvm::ArrayRef<ptrdiff_t> {
   if (NumOffsets > TV.offsets().size()) {
     return offsets().slice(std::max(size_t(1), TV.offsets().size()) - 1);
   }
@@ -170,7 +171,7 @@ bool AbstractMemoryLocationImpl::isProperPrefixOf(
 
 void AbstractMemoryLocationImpl::MakeProfile(llvm::FoldingSetNodeID &ID,
                                              const llvm::Value *V,
-                                             llvm::ArrayRef<offset_t> Offs,
+                                             llvm::ArrayRef<ptrdiff_t> Offs,
                                              unsigned Lifetime) {
   assert(!Lifetime || !Offs.empty());
   ID.AddPointer(V);
