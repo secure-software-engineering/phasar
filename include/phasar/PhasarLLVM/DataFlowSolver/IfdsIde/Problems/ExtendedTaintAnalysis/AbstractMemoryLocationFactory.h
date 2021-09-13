@@ -114,9 +114,6 @@ protected:
   limitImpl(const AbstractMemoryLocationImpl *AML);
 
 public:
-  // static inline size_t MaxCreatedSize = 0;
-
-  // AbstractMemoryLocationFactoryBase() = default;
   AbstractMemoryLocationFactoryBase(size_t InitialCapacity);
   AbstractMemoryLocationFactoryBase(const llvm::DataLayout *DL,
                                     size_t InitialCapacity);

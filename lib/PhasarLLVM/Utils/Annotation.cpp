@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -74,18 +75,16 @@ llvm::StringRef VarAnnotation::retrieveString(unsigned Idx) const {
 
 const llvm::Value *VarAnnotation::getOriginalValueOrOriginalArg(
     const llvm::Value *AnnotatedValue) {
+
   if (const auto *BitCast =
           llvm::dyn_cast<llvm::BitCastOperator>(AnnotatedValue)) {
     // this may be already the original value
     const auto *Value = BitCast->getOperand(0);
     // check if that values originates from a formal parameter
     for (const auto &User : Value->users()) {
-      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
-        for (unsigned Idx = 0; Idx < Store->getFunction()->arg_size(); ++Idx) {
-          if (Store->getFunction()->getArg(Idx) == Store->getValueOperand()) {
-            return Store->getFunction()->getArg(Idx);
-          }
-        }
+      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User);
+          Store && llvm::isa<llvm::Argument>(Store->getValueOperand())) {
+        return Store->getValueOperand();
       }
     }
     return Value;

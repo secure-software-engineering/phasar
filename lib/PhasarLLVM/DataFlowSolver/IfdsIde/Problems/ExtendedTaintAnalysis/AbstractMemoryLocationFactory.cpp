@@ -26,8 +26,11 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
 
   if (NumPointerEntries >
       std::numeric_limits<size_t>::max() / sizeof(size_t) - 1) [[unlikely]] {
-    std::cerr << "FATAL: Cannot allocate " << NumPointerEntries
-              << " pointer entries\n";
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), CRITICAL)
+                  << "Cannot allocate " << NumPointerEntries
+                  << " pointer entries");
+
     std::terminate();
   }
 
