@@ -44,11 +44,11 @@ llvm::StringRef VarAnnotation::getAnnotationString() const {
 
 llvm::StringRef VarAnnotation::getFile() const { return retrieveString(2); }
 
-int64_t VarAnnotation::getLine() const {
+uint64_t VarAnnotation::getLine() const {
   assert(AnnotationCall->getArgOperand(3)->getType()->isIntegerTy());
   if (const auto *ConstInt =
           llvm::dyn_cast<llvm::ConstantInt>(AnnotationCall->getArgOperand(3))) {
-    return ConstInt->getSExtValue();
+    return ConstInt->getZExtValue();
   }
   return 0;
 }
@@ -148,10 +148,10 @@ llvm::StringRef GlobalAnnotation::getFile() const {
   return "";
 }
 
-int64_t GlobalAnnotation::getLine() const {
+uint64_t GlobalAnnotation::getLine() const {
   const auto *ConstLineNoOp = AnnotationStruct->getOperand(3);
   if (const auto *LineNo = llvm::dyn_cast<llvm::ConstantInt>(ConstLineNoOp)) {
-    return LineNo->getSExtValue();
+    return LineNo->getZExtValue();
   }
   return 0;
 }

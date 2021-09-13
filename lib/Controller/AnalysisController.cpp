@@ -183,7 +183,7 @@ void AnalysisController::executeWholeProgram() {
         // emitRequestedDataFlowResults(WPA);
         // WPA.releaseAllHelperAnalyses();
         std::cerr << "The IDETaintAnalysis is currently not available! Please "
-                     "wait for the next update.\n";
+                     "use one of the other taint analyses.\n";
       } break;
       case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
         OpenSSLEVPKDFDescription TSDesc;

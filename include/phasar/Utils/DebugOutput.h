@@ -76,16 +76,6 @@ struct Printer<
   }
 };
 
-/*template <typename T>
-struct Printer<T, std::enable_if<is_default_printable_v<T>>>
-    : public detail::PrinterBase {
-  using detail::PrinterBase::PrinterBase;
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const Printer &P) {
-    return OS << *static_cast<const T *>(P.value);
-  }
-};*/
-
 template <typename K, typename V>
 struct Printer<std::pair<K, V>> : public detail::PrinterBase {
   using detail::PrinterBase::PrinterBase;
@@ -132,7 +122,7 @@ template <> struct Printer<llvm::SmallBitVector> : public detail::PrinterBase {
                                        const Printer &P) {
     OS << "{";
 
-    auto &bv = *static_cast<const llvm::SmallBitVector *>(P.value);
+    const auto &bv = *static_cast<const llvm::SmallBitVector *>(P.value);
 
     auto x = bv.find_first();
     if (x >= 0) {
@@ -147,9 +137,8 @@ template <> struct Printer<llvm::SmallBitVector> : public detail::PrinterBase {
 };
 
 template <typename T>
-struct Printer<T, std::enable_if_t<
-                      !std::is_pointer_v<T> /*&& !is_default_printable_v<T>*/ &&
-                      is_container_v<T>>> : public detail::PrinterBase {
+struct Printer<T, std::enable_if_t<!std::is_pointer_v<T> && is_container_v<T>>>
+    : public detail::PrinterBase {
 
   using detail::PrinterBase::PrinterBase;
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,

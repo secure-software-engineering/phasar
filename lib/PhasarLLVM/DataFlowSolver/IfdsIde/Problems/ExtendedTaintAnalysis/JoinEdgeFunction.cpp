@@ -23,17 +23,11 @@ namespace psr::XTaint {
 JoinEdgeFunction::JoinEdgeFunction(BasicBlockOrdering &BBO,
                                    SubEdgeFuctionsTy &&subEF,
                                    const EdgeDomain &seed)
-    : EdgeFunctionBase(Kind::Join, BBO), subEF(std::move(subEF)), seed(seed) {
-  // print(std::cerr);
-  // std::cerr << "\n";
-}
+    : EdgeFunctionBase(Kind::Join, BBO), subEF(std::move(subEF)), seed(seed) {}
 JoinEdgeFunction::JoinEdgeFunction(
     BasicBlockOrdering &BBO, std::initializer_list<EdgeFunctionPtrType> subEF,
     const EdgeDomain &seed)
-    : EdgeFunctionBase(Kind::Join, BBO), subEF(subEF), seed(seed) {
-  // print(std::cerr);
-  // std::cerr << "\n";
-}
+    : EdgeFunctionBase(Kind::Join, BBO), subEF(subEF), seed(seed) {}
 
 auto JoinEdgeFunction::create(BasicBlockOrdering &BBO,
                               EdgeFunctionPtrType First,
@@ -42,8 +36,6 @@ auto JoinEdgeFunction::create(BasicBlockOrdering &BBO,
 
   constexpr size_t SUB_EF_THRESHOLD = 5;
 
-  // Use this static if to conditionally en/disable JoinEdgeFunctions
-#if 1
   // Don't handle GenEdgeFunction here explicitly, because it is already handled
   // in the joinWith(...) functions resulting in a JoinConstEdgeFunction;
 
@@ -117,16 +109,11 @@ auto JoinEdgeFunction::create(BasicBlockOrdering &BBO,
     return makeEF<JoinEdgeFunction>(BBO, SubEdgeFuctionsTy{First, Second},
                                     psr::Top{});
   }
-#else
-  return EdgeFunctionPtrType(new GenEdgeFunction(BBO, nullptr));
-#endif
 }
 
 llvm::hash_code JoinEdgeFunction::getHashCode() const {
-  // we will not hash JoinEdgeFunctions, but provide a hash function just for
-  // consistency...
-
   assert(!subEF.empty());
+
   auto it = subEF.begin();
   auto frst = XTaint::getHashCode(*it);
   if (subEF.size() == 1)

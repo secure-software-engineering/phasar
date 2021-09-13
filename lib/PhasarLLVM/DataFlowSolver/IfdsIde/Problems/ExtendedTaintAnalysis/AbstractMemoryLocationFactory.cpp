@@ -7,6 +7,9 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include <exception>
+#include <limits>
+
 #include "llvm/IR/Instructions.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
@@ -20,6 +23,14 @@ AbstractMemoryLocationFactoryBase::Allocator::Block::Block(Block *Next)
 auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
     Block *Next, size_t NumPointerEntries) -> Block * {
   // Allocate one more pointer to store the next-block ptr
+
+  if (NumPointerEntries >
+      std::numeric_limits<size_t>::max() / sizeof(size_t) - 1) [[unlikely]] {
+    std::cerr << "FATAL: Cannot allocate " << NumPointerEntries
+              << " pointer entries\n";
+    std::terminate();
+  }
+
   auto *Ret = reinterpret_cast<Block *>(new size_t[1 + NumPointerEntries]);
 
   new (Ret) Block(Next);
@@ -50,6 +61,9 @@ AbstractMemoryLocationFactoryBase::Allocator::~Allocator() {
     Block::destroy(Blck);
     Blck = Nxt;
   }
+  Root = nullptr;
+  Pos = nullptr;
+  End = nullptr;
 }
 
 AbstractMemoryLocationImpl *
@@ -134,7 +148,8 @@ AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
     return It->second;
   }
 
-  if (llvm::isa<llvm::GlobalValue>(V) || llvm::isa<llvm::AllocaInst>(V) ||
+  // Note: llvm::Constant includes llvm::GlobalValue
+  if (llvm::isa<llvm::Constant>(V) || llvm::isa<llvm::AllocaInst>(V) ||
       llvm::isa<llvm::Argument>(V) || llvm::isa<llvm::CallBase>(V)) {
     // Globals, argument, function calls and allocas define themselves
 

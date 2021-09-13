@@ -51,12 +51,12 @@ IDEExtendedTaintAnalysis::IDEExtendedTaintAnalysis(
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT, const TaintConfig *TSF,
     std::set<std::string> EntryPoints, unsigned bound,
     bool disableStrongUpdates)
-    : BASE(IRDB, TH, ICF, PT, std::move(EntryPoints)), AnalysisBase(TSF),
+    : base_t(IRDB, TH, ICF, PT, std::move(EntryPoints)), AnalysisBase(TSF),
       FactFactory(IRDB->getNumInstructions()),
       DL((*IRDB->getAllModules().begin())->getDataLayout()), bound(bound),
       postProcessed(disableStrongUpdates),
       disableStrongUpdates(disableStrongUpdates) {
-  BASE::ZeroValue = createZeroValue();
+  base_t::ZeroValue = createZeroValue();
 
   FactFactory.setDataLayout(DL);
 }
@@ -75,8 +75,8 @@ IDEExtendedTaintAnalysis::initialSeeds() {
     }
   }
 
-  for (const auto &ep : BASE::EntryPoints) {
-    const auto *EntryFn = BASE::ICF->getFunction(ep);
+  for (const auto &ep : base_t::EntryPoints) {
+    const auto *EntryFn = base_t::ICF->getFunction(ep);
 
     if (!EntryFn) {
       std::cerr << "WARNING: Entry-Function \"" << ep
@@ -84,7 +84,7 @@ IDEExtendedTaintAnalysis::initialSeeds() {
       continue;
     }
 
-    Seeds.addSeed(&EntryFn->front().front(), this->BASE::getZeroValue(),
+    Seeds.addSeed(&EntryFn->front().front(), this->base_t::getZeroValue(),
                   bottomElement());
   }
 
@@ -137,10 +137,10 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
                                      const llvm::Instruction *Store) {
 
   auto TV = makeFlowFact(ValueOp);
-  auto pts = this->PT->getPointsToSet(PointerOp, Store);
+  auto PTS = this->PT->getPointsToSet(PointerOp, Store);
 
   auto Mem = makeFlowFact(PointerOp);
-  return makeLambdaFlow<d_t>([this, TV, Mem, pts{std::move(pts)}, PointerOp,
+  return makeLambdaFlow<d_t>([this, TV, Mem, PTS{std::move(PTS)}, PointerOp,
                               ValueOp,
                               Store](d_t source) mutable -> std::set<d_t> {
     if (source->isZero()) {
@@ -162,8 +162,8 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
       // generate all may-aliases of Store->getPointerOperand()
       std::set<d_t> ret = {source, FactFactory.withIndirectionOf(Mem, offset)};
 
-      for (const auto *Alias : *pts) {
-        if (llvm::isa<llvm::GlobalValue>(Alias) || Alias == Mem->base()) {
+      for (const auto *Alias : *PTS) {
+        if (llvm::isa<llvm::Constant>(Alias) || Alias == Mem->base()) {
           continue;
         }
 
@@ -179,7 +179,7 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
       // field-sensitive results come from.
       if (TV->equivalent(source)) {
         reportLeakIfNecessary(Store, PointerOp, ValueOp);
-        for (const auto *Alias : *pts) {
+        for (const auto *Alias : *PTS) {
           reportLeakIfNecessary(Store, Alias, ValueOp);
         }
       }
@@ -225,21 +225,14 @@ void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
 void IDEExtendedTaintAnalysis::populateWithMayAliases(
     SourceConfigTy &Facts) const {
 
-  SourceConfigTy tmp = Facts;
+  SourceConfigTy Tmp = Facts;
   for (const auto *Fact : Facts) {
     auto Aliases = PT->getPointsToSet(Fact);
 
-    // printValues(*Aliases, std::cerr << "PointsToSet of " <<
-    // llvmIRToString(Fact)
-    //                                 << " = ");
-    // std::cerr << "\n";
-
-    tmp.insert(Aliases->begin(), Aliases->end());
+    Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
-  Facts = std::move(tmp);
-
-  std::cerr << "\n";
+  Facts = std::move(Tmp);
 }
 
 bool IDEExtendedTaintAnalysis::isMustAlias(const SanitizerConfigTy &Facts,
@@ -613,7 +606,7 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
   if (const auto *fn = call->getCalledFunction()) {
     callees.insert(fn);
   } else {
-    BASE::ICF->forEachCalleeOfCallAt(
+    base_t::ICF->forEachCalleeOfCallAt(
         Curr, [&callees](const llvm::Function *F) { callees.insert(F); });
   }
 

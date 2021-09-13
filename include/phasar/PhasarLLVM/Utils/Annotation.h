@@ -21,7 +21,7 @@ public:
   [[nodiscard]] const llvm::Value *getValue() const;
   [[nodiscard]] llvm::StringRef getAnnotationString() const;
   [[nodiscard]] llvm::StringRef getFile() const;
-  [[nodiscard]] int64_t getLine() const;
+  [[nodiscard]] uint64_t getLine() const;
   /// Removes the bitcast and returns the original value that has been annotated
   /// or returns the respective function arguments if the values originates from
   /// a function argument.
@@ -41,13 +41,10 @@ public:
   [[nodiscard]] const llvm::Function *getFunction() const;
   [[nodiscard]] llvm::StringRef getAnnotationString() const;
   [[nodiscard]] llvm::StringRef getFile() const;
-  [[nodiscard]] int64_t getLine() const;
+  [[nodiscard]] uint64_t getLine() const;
 
 private:
   const llvm::ConstantStruct *AnnotationStruct;
-
-  // [[nodiscard]] llvm::StringRef
-  // retrieveString(const llvm::ConstantExpr *Expr) const;
 };
 
 } // namespace psr
