@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <nlohmann/json.hpp>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -106,10 +107,10 @@ protected:
   void compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
                       IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
                       const map<int, set<string>> &GroundTruth) {
-    // std::map<n_t, std::set<d_t>> Leaks;
+
     map<int, set<string>> FoundLeaks;
     for (const auto &Leak : TaintProblem.getAllLeaks(Solver)) {
-      std::cerr << "Leak: " << Printer(&Leak) << std::endl;
+      std::cerr << "Leak: " << PrettyPrinter{Leak} << std::endl;
       int SinkId = stoi(getMetaDataID(Leak.first));
       set<string> LeakedValueIds;
       for (const auto &LV : Leak.second) {

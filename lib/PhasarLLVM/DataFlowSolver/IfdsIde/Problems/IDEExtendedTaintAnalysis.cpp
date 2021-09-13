@@ -172,7 +172,7 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
                  Store);
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Store generate: " << SequencePrinter(ret));
+                    << "Store generate: " << PrettyPrinter{ret});
 
       // For the sink-variables, the pointer-arithmetics in the last offset
       // are relevant (in contrast to the Store-FF). This is, where the

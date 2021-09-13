@@ -29,18 +29,12 @@ namespace psr {
 class BasicBlockOrdering {
   llvm::DenseMap<const llvm::Function *, std::unique_ptr<llvm::DominatorTree>>
       Dom;
-  // InstOrder is only used for compatibility with LLVM-10 or lower
-  llvm::DenseMap<const llvm::Instruction *, unsigned> InstOrder;
 
   llvm::DominatorTree &getDom(const llvm::Function *F);
-  unsigned getOrder(const llvm::Instruction *I);
 
 public:
-  // bool mustComeBefore(const llvm::BasicBlock *LHS, const llvm::BasicBlock
-  // *RHS);
   bool mustComeBefore(const llvm::Instruction *LHS,
                       const llvm::Instruction *RHS);
-  void clear();
 };
 } // namespace psr
 

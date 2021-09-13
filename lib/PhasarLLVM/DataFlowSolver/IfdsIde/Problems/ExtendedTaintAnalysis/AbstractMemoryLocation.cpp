@@ -13,6 +13,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
+#include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
@@ -203,14 +204,13 @@ std::ostream &operator<<(std::ostream &OS, const AbstractMemoryLocation &TV) {
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const AbstractMemoryLocation &TV) {
   // TODO: better representation
-
   OS << "(";
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(TV->base())) {
     OS << "<ZERO>";
   } else {
     OS << llvmIRToShortString(TV->base());
   }
-  OS << "; Offsets=" << SequencePrinter(TV->offsets());
+  OS << "; Offsets=" << PrettyPrinter{TV->offsets()};
 
   return OS << " #" << TV->lifetime() << ")";
 }
