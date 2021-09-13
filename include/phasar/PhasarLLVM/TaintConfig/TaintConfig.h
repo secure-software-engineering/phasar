@@ -29,7 +29,18 @@ namespace psr {
 
 enum class TaintCategory { Source, Sink, Sanitizer, None };
 
-std::string toString(TaintCategory Cat);
+constexpr inline llvm::StringRef toString(TaintCategory Cat) noexcept {
+  switch (Cat) {
+  case TaintCategory::Source:
+    return "Source";
+  case TaintCategory::Sink:
+    return "Sink";
+  case TaintCategory::Sanitizer:
+    return "Sanitizer";
+  case TaintCategory::None:
+    return "None";
+  }
+}
 
 TaintCategory toTaintCategory(llvm::StringRef Str);
 

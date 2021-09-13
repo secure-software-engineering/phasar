@@ -14,37 +14,59 @@
  *      Author: philipp
  */
 
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <ios>
 #include <string>
+#include <system_error>
+
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Utils/IO.h"
+#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 
 std::string readTextFile(const std::string &Path) {
   if (!(std::filesystem::exists(Path) &&
         std::filesystem::is_regular_file(Path))) {
-    throw std::ios_base::failure("file does not exist: " + Path);
+    throw std::ios_base::failure("File does not exist: " + Path);
   }
-  std::ifstream Ifs(Path);
-  if (!Ifs) {
-    throw std::ios_base::failure("could not open file: " + Path);
+
+  auto NumBytes = std::filesystem::file_size(Path);
+
+  auto *F = std::fopen(Path.c_str(), "r");
+
+  if (!F) {
+    throw std::ios_base::failure("Could not open file: " + Path);
   }
-  std::stringstream StrStream;
+
+  auto CloseFile = scope_exit([F]() { std::fclose(F); });
+
   std::string Contents;
-  StrStream << Ifs.rdbuf();
-  Contents = StrStream.str();
+
+  /// TODO: Get rid of the zero-initialization of the string
+  Contents.resize(NumBytes);
+
+  auto ReadBytes = std::fread(Contents.data(), 1, NumBytes, F);
+
+  if (ReadBytes != NumBytes) {
+    throw std::ios_base::failure("Could not read file: " + Path);
+  }
+
   return Contents;
 }
 
 void writeTextFile(const std::string &Path, const std::string &Content) {
-  std::ofstream Ofs(Path, std::ios::binary);
-  if (Ofs.is_open()) {
-    Ofs.write(Content.data(), Content.size());
+  std::error_code EC;
+  llvm::raw_fd_ostream ROS(Path, EC);
+
+  if (EC) {
+    throw std::ios_base::failure("could not create file: " + Path);
   }
-  throw std::ios_base::failure("could not write file: " + Path);
+
+  ROS.write(Content.data(), Content.size());
 }
 
 } // namespace psr

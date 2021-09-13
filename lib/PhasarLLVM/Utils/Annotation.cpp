@@ -27,12 +27,10 @@ namespace psr {
 
 VarAnnotation::VarAnnotation(const llvm::CallBase *AnnotationCall) noexcept
     : AnnotationCall(AnnotationCall) {
-  assert(AnnotationCall->getCalledFunction() &&
-         AnnotationCall->getCalledFunction()->hasName() &&
-         (AnnotationCall->getCalledFunction()->getName() ==
-              "llvm.var.annotation" ||
-          AnnotationCall->getCalledFunction()->getName().startswith(
-              "llvm.ptr.annotation")));
+  auto *Callee = AnnotationCall->getCalledFunction();
+  assert(Callee && Callee->hasName() &&
+         (Callee->getName() == "llvm.var.annotation" ||
+          Callee->getName().startswith("llvm.ptr.annotation")));
 }
 
 const llvm::Value *VarAnnotation::getValue() const {
@@ -107,8 +105,8 @@ const llvm::Function *GlobalAnnotation::getFunction() const {
   return nullptr;
 }
 
-llvm::StringRef GlobalAnnotation::getAnnotationString() const {
-  const auto *AnnotationGepOp = AnnotationStruct->getOperand(1);
+llvm::StringRef GlobalAnnotation::retrieveString(unsigned Idx) const {
+  const auto *AnnotationGepOp = AnnotationStruct->getOperand(Idx);
   if (const auto *ConstExpr =
           llvm::dyn_cast<llvm::ConstantExpr>(AnnotationGepOp)) {
     if (ConstExpr->isGEPWithNoNotionalOverIndexing()) {
@@ -127,25 +125,11 @@ llvm::StringRef GlobalAnnotation::getAnnotationString() const {
   return "";
 }
 
-llvm::StringRef GlobalAnnotation::getFile() const {
-  const auto *FileNameGepOp = AnnotationStruct->getOperand(2);
-  if (const auto *ConstExpr =
-          llvm::dyn_cast<llvm::ConstantExpr>(FileNameGepOp)) {
-    if (ConstExpr->isGEPWithNoNotionalOverIndexing()) {
-      if (const auto *GlobalVar =
-              llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
-        if (GlobalVar->hasInitializer()) {
-          const auto *ConstData = GlobalVar->getInitializer();
-          if (const auto *Data =
-                  llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
-            return Data->getAsCString();
-          }
-        }
-      }
-    }
-  }
-  return "";
+llvm::StringRef GlobalAnnotation::getAnnotationString() const {
+  return retrieveString(1);
 }
+
+llvm::StringRef GlobalAnnotation::getFile() const { return retrieveString(2); }
 
 uint64_t GlobalAnnotation::getLine() const {
   const auto *ConstLineNoOp = AnnotationStruct->getOperand(3);

@@ -45,6 +45,8 @@ public:
 
 private:
   const llvm::ConstantStruct *AnnotationStruct;
+
+  [[nodiscard]] llvm::StringRef retrieveString(unsigned Idx) const;
 };
 
 } // namespace psr

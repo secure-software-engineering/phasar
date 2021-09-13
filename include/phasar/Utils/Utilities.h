@@ -13,6 +13,7 @@
 #include <iosfwd>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "llvm/ADT/Hashing.h"
@@ -187,6 +188,29 @@ std::ostream &operator<<(std::ostream &os, const std::vector<bool> &bits);
 struct stringIDLess {
   bool operator()(const std::string &lhs, const std::string &rhs) const;
 };
+
+/// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
+template <typename Fn> class scope_exit {
+public:
+  template <typename FFn, typename = decltype(std::declval<FFn>()())>
+  explicit scope_exit(FFn &&F) noexcept(
+      std::is_nothrow_constructible_v<Fn, FFn> ||
+      std::is_nothrow_constructible_v<Fn, FFn &>)
+      : F(std::forward<FFn>(F)) {}
+
+  ~scope_exit() { F(); }
+
+  scope_exit(const scope_exit &) = delete;
+  scope_exit(scope_exit &&) = delete;
+
+  scope_exit &operator=(const scope_exit &) = delete;
+  scope_exit &operator=(scope_exit &&) = delete;
+
+private:
+  Fn F;
+};
+
+template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
 } // namespace psr
 

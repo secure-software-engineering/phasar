@@ -1,10 +1,6 @@
 set(PHASAR_taintconfig_COMPONENT_FOUND 1)
 
 list(APPEND
-  PHASAR_LLVM_DEPS
-)
-
-list(APPEND
   PHASAR_TAINTCONFIG_DEPS
   utils
 )

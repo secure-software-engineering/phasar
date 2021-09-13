@@ -38,25 +38,12 @@
 #include "phasar/Utils/LLVMShorthands.h"
 
 namespace {
-const nlohmann::json TaintConfigSchema = nlohmann::json::parse(
+const nlohmann::json TaintConfigSchema =
 #include "../config/TaintConfigSchema.json"
-);
+    ;
 } // anonymous namespace
 
 namespace psr {
-
-std::string toString(TaintCategory Cat) {
-  switch (Cat) {
-  case TaintCategory::Source:
-    return "Source";
-  case TaintCategory::Sink:
-    return "Sink";
-  case TaintCategory::Sanitizer:
-    return "Sanitizer";
-  case TaintCategory::None:
-    return "None";
-  }
-}
 
 TaintCategory toTaintCategory(llvm::StringRef Str) {
   return llvm::StringSwitch<TaintCategory>(Str)
@@ -500,8 +487,7 @@ TaintConfig::makeInitialSeeds() const {
   for (const auto *SourceValue : SourceValues) {
     if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(SourceValue)) {
       InitialSeeds[Inst].insert(Inst);
-    }
-    if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(SourceValue)) {
+    } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(SourceValue)) {
       const auto *FunFirstInst = &Arg->getParent()->front().front();
       InitialSeeds[FunFirstInst].insert(Arg);
     }
