@@ -162,20 +162,18 @@ AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
 
   llvm::SmallVector<ptrdiff_t, 8> Offs = {0};
   unsigned Ver = 1;
-  // recursive lambda via Y-combinator
-  const auto createRec =
-      [this, BOUND](auto &_createRec, llvm::SmallVectorImpl<ptrdiff_t> &Offs,
-                    unsigned &Ver,
-                    const llvm::Value *V) -> const llvm::Value * {
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+
+  const auto *Baseptr = V;
+
+  while (true) {
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Baseptr)) {
       Offs.push_back(0);
       ++Ver;
-      return _createRec(_createRec, Offs, Ver, Load->getPointerOperand());
-    }
-    if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(V)) {
-      return _createRec(_createRec, Offs, Ver, Cast->getOperand(0));
-    }
-    if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(V)) {
+      Baseptr = Load->getPointerOperand();
+    } else if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Baseptr)) {
+      Baseptr = Cast->getOperand(0);
+    } else if (const auto *Gep =
+                   llvm::dyn_cast<llvm::GetElementPtrInst>(Baseptr)) {
 
       auto GepOffs =
           detail::AbstractMemoryLocationImpl::computeOffset(*DL, Gep);
@@ -188,13 +186,13 @@ AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
         Offs.push_back(0);
         Ver = BOUND;
       }
-      return _createRec(_createRec, Offs, Ver, Gep->getPointerOperand());
+      Baseptr = Gep->getPointerOperand();
+    } else {
+      // TODO aggregate instructions, e.g. insertvalue, extractvalue, ...
+      break;
     }
-    // TODO aggregate instructions, e.g. insertvalue, extractvalue, ...
+  }
 
-    return V;
-  };
-  const auto *Baseptr = createRec(createRec, Offs, Ver, V);
   std::reverse(Offs.begin(), Offs.end());
   auto Lifetime = BOUND - std::min(Ver, BOUND);
 
@@ -205,8 +203,6 @@ AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
   if (Offs.size() > BOUND) {
     assert(Lifetime == 0);
 
-    // if (offs.size() > MaxCreatedSize)
-    //   MaxCreatedSize = offs.size();
     IsOverApproximating = true;
     Offs.resize(BOUND);
   }

@@ -47,7 +47,7 @@ GenEdgeFunction::composeWith(EdgeFunctionPtrType SecondFunction) {
   case EdgeDomain::Sanitized:
     return getAllSanitized();
   default:
-    return EdgeFunctionPtrType(new GenEdgeFunction(BBO, Res.getSanitizer()));
+    return makeEF<GenEdgeFunction>(BBO, Res.getSanitizer());
   }
 }
 
@@ -77,8 +77,7 @@ GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
       case EdgeDomain::Sanitized:
         return getAllSanitized();
       default:
-        return EdgeFunctionPtrType(
-            new GenEdgeFunction(BBO, joinSani.getSanitizer()));
+        return makeEF<GenEdgeFunction>(BBO, joinSani.getSanitizer());
       }
     }
 
@@ -90,18 +89,17 @@ GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
       // sanitizers
 
       if (res.isNotSanitized())
-        return EdgeFunctionPtrType(new GenEdgeFunction(BBO, nullptr));
+        return makeEF<GenEdgeFunction>(BBO, nullptr);
 
-      return EdgeFunctionPtrType(new JoinConstEdgeFunction(
-          BBO, OtherJoin->getFunction(), res.getSanitizer()));
+      return makeEF<JoinConstEdgeFunction>(BBO, OtherJoin->getFunction(),
+                                           res.getSanitizer());
     }
   }
 
   if (isEdgeIdentity(&*OtherFunction))
     return getAllBot();
 
-  return EdgeFunctionPtrType(
-      new JoinConstEdgeFunction(BBO, OtherFunction, Sani));
+  return makeEF<JoinConstEdgeFunction>(BBO, OtherFunction, Sani);
 }
 
 llvm::hash_code GenEdgeFunction::getHashCode() const {

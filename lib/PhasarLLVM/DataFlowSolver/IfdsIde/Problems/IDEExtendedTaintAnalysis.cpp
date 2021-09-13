@@ -71,15 +71,15 @@ IDEExtendedTaintAnalysis::initialSeeds() {
 
   for (auto &[Inst, Facts] : AutoSeeds) {
     for (const auto *Fact : Facts) {
-      Seeds.addSeed(Inst, makeFlowFact(Fact), bottomElement());
+      Seeds.addSeed(Inst, makeFlowFact(Fact), nullptr);
     }
   }
 
-  for (const auto &ep : base_t::EntryPoints) {
-    const auto *EntryFn = base_t::ICF->getFunction(ep);
+  for (const auto &Ep : base_t::EntryPoints) {
+    const auto *EntryFn = base_t::ICF->getFunction(Ep);
 
     if (!EntryFn) {
-      std::cerr << "WARNING: Entry-Function \"" << ep
+      std::cerr << "WARNING: Entry-Function \"" << Ep
                 << "\" not contained in the module; skip it\n";
       continue;
     }
@@ -502,7 +502,7 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
     /// Kill the PointerOp, if we store into it
     if (CurrNode->mustAlias(makeFlowFact(PointerOp), *PT)) {
-      return EdgeFunctionPtrType(new GenEdgeFunction(BBO, Curr));
+      return makeEF<GenEdgeFunction>(BBO, Curr);
     }
 
     auto SaniConfig = getSanitizerConfigAt(Curr);
@@ -725,21 +725,17 @@ auto IDEExtendedTaintAnalysis::transferFlowFact(d_t source, d_t From,
 
 const llvm::Instruction *
 IDEExtendedTaintAnalysis::getApproxLoadFrom(const llvm::Instruction *V) const {
-  const auto *ret = [&] {
-    if (llvm::isa<llvm::LoadInst>(V) || llvm::isa<llvm::CallBase>(V)) {
-      return V;
-    }
 
-    if (const auto *it = V->op_begin();
-        it != V->op_end() && llvm::isa<llvm::Instruction>(*it)) {
-      return getApproxLoadFrom(llvm::cast<llvm::Instruction>(*it));
-    }
-
+  if (llvm::isa<llvm::LoadInst>(V) || llvm::isa<llvm::CallBase>(V)) {
     return V;
-  }();
-  // std::cerr << "getApproxLoadFrom(" << llvmIRToString(Inst)
-  //           << ") = " << llvmIRToString(ret) << std::endl;
-  return ret;
+  }
+
+  if (const auto *it = V->op_begin();
+      it != V->op_end() && llvm::isa<llvm::Instruction>(*it)) {
+    return getApproxLoadFrom(llvm::cast<llvm::Instruction>(*it));
+  }
+
+  return V;
 }
 
 const llvm::Instruction *
@@ -819,9 +815,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
   }
 }
 
-// FIXME return type
-const decltype(IDEExtendedTaintAnalysis::Leaks) &
-IDEExtendedTaintAnalysis::getAllLeaks(
+const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
     IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) & {
   if (!postProcessed) {
     doPostProcessing(Solver.getSolverResults());
@@ -829,8 +823,7 @@ IDEExtendedTaintAnalysis::getAllLeaks(
   return Leaks;
 }
 
-// FIXME return type
-decltype(IDEExtendedTaintAnalysis::Leaks) IDEExtendedTaintAnalysis::getAllLeaks(
+LeakMap_t IDEExtendedTaintAnalysis::getAllLeaks(
     IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) && {
   if (!postProcessed) {
     doPostProcessing(Solver.getSolverResults());

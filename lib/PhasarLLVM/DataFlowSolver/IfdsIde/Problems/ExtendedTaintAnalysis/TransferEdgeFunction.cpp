@@ -23,17 +23,15 @@ TransferEdgeFunction::TransferEdgeFunction(BasicBlockOrdering &BBO,
     : EdgeFunctionBase(Kind::Transfer, BBO), Load(Load), To(To) {}
 
 auto TransferEdgeFunction::computeTarget(l_t Source) -> l_t {
-  auto ret = [&]() -> l_t {
-    if (auto Sani = Source.getSanitizer()) {
-      if (!Load || BBO.mustComeBefore(Sani, Load))
-        return To;
-    }
-    if (Source.isSanitized())
-      return To;
-    return nullptr;
-  }();
 
-  return ret;
+  if (auto Sani = Source.getSanitizer()) {
+    if (!Load || BBO.mustComeBefore(Sani, Load))
+      return To;
+  }
+  if (Source.isSanitized())
+    return To;
+
+  return nullptr;
 }
 
 llvm::hash_code TransferEdgeFunction::getHashCode() const {

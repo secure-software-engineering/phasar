@@ -23,7 +23,6 @@ AbstractMemoryLoactionStorage::AbstractMemoryLoactionStorage(
     const llvm::ArrayRef<ptrdiff_t> &Offsets)
     : Baseptr(Baseptr), Lifetime(Lifetime),
       NumOffsets(uint32_t(Offsets.size())) {
-  // std::copy(offsets.begin(), offsets.end(), offsets_);
   assert(Baseptr && "The baseptr must not be null!");
   memcpy(this->Offsets, Offsets.begin(), Offsets.size() * sizeof(ptrdiff_t));
 }

@@ -31,8 +31,7 @@ EdgeFunctionBase::composeWith(EdgeFunctionPtrType SecondFunction) {
   if (&*SecondFunction == &*getAllSanitized())
     return SecondFunction;
 
-  return EdgeFunctionPtrType(
-      new ComposeEdgeFunction(BBO, shared_from_this(), SecondFunction));
+  return makeEF<ComposeEdgeFunction>(BBO, shared_from_this(), SecondFunction);
 }
 EdgeFunctionBase::EdgeFunctionPtrType
 EdgeFunctionBase::joinWith(EdgeFunctionPtrType OtherFunction) {
@@ -50,8 +49,8 @@ EdgeFunctionBase::joinWith(EdgeFunctionPtrType OtherFunction) {
     if (Gen->getSanitizer() == nullptr)
       return OtherFunction;
     else
-      return EdgeFunctionPtrType(new JoinConstEdgeFunction(
-          BBO, shared_from_this(), Gen->getSanitizer()));
+      return makeEF<JoinConstEdgeFunction>(BBO, shared_from_this(),
+                                           Gen->getSanitizer());
   }
 
   if (this == &*OtherFunction || equal_to(OtherFunction))

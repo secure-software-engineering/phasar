@@ -32,7 +32,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/LeakedValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -250,20 +249,19 @@ public:
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  const decltype(Leaks) &
+  const LeakMap_t &
   getAllLeaks(IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) &;
 
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  decltype(Leaks)
-  getAllLeaks(IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) &&;
+  LeakMap_t getAllLeaks(IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) &&;
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may or may not be sanitized.
   ///
   /// This function does NOT involve a post-processing step.
-  decltype(Leaks) &getAllLeaks() { return Leaks; }
+  LeakMap_t &getAllLeaks() { return Leaks; }
 
   [[nodiscard]] inline size_t getNumDataflowFacts() const {
     return FactFactory.size();

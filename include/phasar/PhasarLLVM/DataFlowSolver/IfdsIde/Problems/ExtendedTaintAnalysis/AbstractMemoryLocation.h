@@ -53,13 +53,7 @@ protected:
 /// The byte offsets are applied to the base-pointer alternating
 /// with memory loads in order to represent indirect memory locations in a
 /// canonical way.
-class AbstractMemoryLocationImpl final
-    : /*public llvm::FoldingSetNode */ public AbstractMemoryLoactionStorage {
-  // const llvm::Value *baseptr_ = LLVMZeroValue::getInstance();
-  // llvm::SmallVector<uint64_t, 2> offsets_ = {0};
-  /// The number of modifications. Used for the k-limit
-  // unsigned version_ = 0;
-  // unsigned lifetime_;
+class AbstractMemoryLocationImpl final : public AbstractMemoryLoactionStorage {
 
   /// Pop out the last offset and set lifetime_ to 0
   [[nodiscard]] AbstractMemoryLocationImpl limit() const;
