@@ -52,6 +52,9 @@ namespace psr {
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy), Owner(IRDB.getNumGlobals()) {
+
+  PointsToSets.reserve(IRDB.getNumGlobals());
+
   for (llvm::Module *M : IRDB.getAllModules()) {
     // compute points-to information for all globals
 

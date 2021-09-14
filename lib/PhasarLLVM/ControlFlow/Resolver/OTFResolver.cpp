@@ -140,13 +140,17 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
 
-      const auto PTS =
+      const auto *PTS =
           PT.getPointsToSet(CallSite->getCalledOperand(), CallSite);
 
       llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
       llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
 
       for (const auto *P : *PTS) {
+        if (!llvm::isa<llvm::Constant>(P)) {
+          continue;
+        }
+
         GlobalVariableWL.clear();
         ConstantAggregateWL.clear();
 
