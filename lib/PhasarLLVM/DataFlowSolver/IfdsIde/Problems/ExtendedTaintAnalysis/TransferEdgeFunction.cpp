@@ -24,12 +24,14 @@ TransferEdgeFunction::TransferEdgeFunction(BasicBlockOrdering &BBO,
 
 auto TransferEdgeFunction::computeTarget(l_t Source) -> l_t {
 
-  if (auto Sani = Source.getSanitizer()) {
-    if (!Load || BBO.mustComeBefore(Sani, Load))
+  if (const auto *Sani = Source.getSanitizer()) {
+    if (!Load || BBO.mustComeBefore(Sani, Load)) {
       return To;
+    }
   }
-  if (Source.isSanitized())
+  if (Source.isSanitized()) {
     return To;
+  }
 
   return nullptr;
 }
@@ -39,13 +41,14 @@ llvm::hash_code TransferEdgeFunction::getHashCode() const {
 }
 
 bool TransferEdgeFunction::equal_to(EdgeFunctionPtrType Other) const {
-  if (auto OtherTransfer = dynamic_cast<TransferEdgeFunction *>(&*Other)) {
+  if (auto *OtherTransfer = dynamic_cast<TransferEdgeFunction *>(&*Other)) {
     return To == OtherTransfer->To;
   }
   return false;
 }
 
-void TransferEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
+void TransferEdgeFunction::print(std::ostream &OS,
+                                 [[maybe_unused]] bool IsForDebug) const {
   OS << "Transfer[To: " << llvmIRToShortString(To) << "]";
 }
 } // namespace psr::XTaint

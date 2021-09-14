@@ -25,7 +25,7 @@ public:
 
   l_t computeTarget(l_t Source) override;
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override;
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override;
 
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override;
 

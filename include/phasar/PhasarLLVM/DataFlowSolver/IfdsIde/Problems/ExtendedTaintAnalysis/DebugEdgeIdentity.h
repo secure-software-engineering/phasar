@@ -27,15 +27,15 @@ public:
   using typename EdgeFunction<EdgeDomain>::EdgeFunctionPtrType;
   DebugEdgeIdentity(const llvm::Instruction *Inst);
 
-  EdgeDomain computeTarget(EdgeDomain source) override;
+  EdgeDomain computeTarget(EdgeDomain Source) override;
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override;
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override;
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override;
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override;
 
-  bool equal_to(EdgeFunctionPtrType other) const override;
+  bool equal_to(EdgeFunctionPtrType Other) const override;
 
-  void print(std::ostream &OS, bool isForDebug = false) const override;
+  void print(std::ostream &OS, bool IsForDebug = false) const override;
 };
 } // namespace psr::XTaint
 

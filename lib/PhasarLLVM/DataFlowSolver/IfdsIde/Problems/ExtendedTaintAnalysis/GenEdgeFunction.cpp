@@ -23,24 +23,30 @@ GenEdgeFunction::GenEdgeFunction(BasicBlockOrdering &BBO,
                                  const llvm::Instruction *Sani)
     : EdgeFunctionBase(Kind::Gen, BBO), Sani(Sani) {}
 
-GenEdgeFunction::l_t GenEdgeFunction::computeTarget(l_t Source) { return Sani; }
+GenEdgeFunction::l_t
+GenEdgeFunction::computeTarget([[maybe_unused]] l_t Source) {
+  return Sani;
+}
 
 GenEdgeFunction::EdgeFunctionPtrType
 GenEdgeFunction::composeWith(EdgeFunctionPtrType SecondFunction) {
-  if (isEdgeIdentity(&*SecondFunction))
-    return this->shared_from_this();
+  if (isEdgeIdentity(&*SecondFunction)) {
+    return shared_from_this();
+  }
 
-  if (dynamic_cast<AllBottom<l_t> *>(&*SecondFunction))
-    return this->shared_from_this();
+  if (dynamic_cast<AllBottom<l_t> *>(&*SecondFunction)) {
+    return shared_from_this();
+  }
 
-  if (dynamic_cast<GenEdgeFunction *>(&*SecondFunction))
+  if (dynamic_cast<GenEdgeFunction *>(&*SecondFunction)) {
     return SecondFunction;
+  }
 
   auto Res = SecondFunction->computeTarget(Sani);
 
   switch (Res.getKind()) {
   case EdgeDomain::Bot:
-    std::cerr << "Generate Bot by compose" << std::endl;
+    // std::cerr << "Generate Bot by compose" << std::endl;
     return getAllBot();
   case EdgeDomain::Top:
     return getAllTop();
@@ -53,22 +59,26 @@ GenEdgeFunction::composeWith(EdgeFunctionPtrType SecondFunction) {
 
 GenEdgeFunction::EdgeFunctionPtrType
 GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
-  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction))
+  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
     return shared_from_this();
-  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction))
+  }
+  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction)) {
     return OtherFunction;
-  if (&*getAllSanitized() == &*OtherFunction)
+  }
+  if (&*getAllSanitized() == &*OtherFunction) {
     return shared_from_this();
+  }
 
-  if (Sani == nullptr)
+  if (Sani == nullptr) {
     return OtherFunction;
+  }
 
   if (auto *Other = dynamic_cast<EdgeFunctionBase *>(&*OtherFunction)) {
 
-    if (auto OtherGen = llvm::dyn_cast<GenEdgeFunction>(Other)) {
+    if (auto *OtherGen = llvm::dyn_cast<GenEdgeFunction>(Other)) {
 
-      auto joinSani = EdgeDomain(Sani).join(OtherGen->Sani, &BBO);
-      switch (joinSani.getKind()) {
+      auto JoinSani = EdgeDomain(Sani).join(OtherGen->Sani, &BBO);
+      switch (JoinSani.getKind()) {
       case EdgeDomain::Bot:
         std::cerr << "Generate Bot by join" << std::endl;
         return getAllBot();
@@ -77,27 +87,29 @@ GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
       case EdgeDomain::Sanitized:
         return getAllSanitized();
       default:
-        return makeEF<GenEdgeFunction>(BBO, joinSani.getSanitizer());
+        return makeEF<GenEdgeFunction>(BBO, JoinSani.getSanitizer());
       }
     }
 
-    if (auto OtherJoin = llvm::dyn_cast<JoinConstEdgeFunction>(Other)) {
+    if (auto *OtherJoin = llvm::dyn_cast<JoinConstEdgeFunction>(Other)) {
 
-      auto res = EdgeDomain(OtherJoin->getConstant()).join(Sani, &BBO);
+      auto Res = EdgeDomain(OtherJoin->getConstant()).join(Sani, &BBO);
 
       // we never return Top, Bottom or Sanitized from a join with two
       // sanitizers
 
-      if (res.isNotSanitized())
+      if (Res.isNotSanitized()) {
         return makeEF<GenEdgeFunction>(BBO, nullptr);
+      }
 
       return makeEF<JoinConstEdgeFunction>(BBO, OtherJoin->getFunction(),
-                                           res.getSanitizer());
+                                           Res.getSanitizer());
     }
   }
 
-  if (isEdgeIdentity(&*OtherFunction))
+  if (isEdgeIdentity(&*OtherFunction)) {
     return getAllBot();
+  }
 
   return makeEF<JoinConstEdgeFunction>(BBO, OtherFunction, Sani);
 }
@@ -107,13 +119,14 @@ llvm::hash_code GenEdgeFunction::getHashCode() const {
 }
 
 bool GenEdgeFunction::equal_to(EdgeFunctionPtrType OtherFunction) const {
-  if (auto OtherGen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
+  if (auto *OtherGen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
     return Sani == OtherGen->Sani;
   }
   return false;
 }
 
-void GenEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
+void GenEdgeFunction::print(std::ostream &OS,
+                            [[maybe_unused]] bool IsForDebug) const {
   OS << "GenEF[" << (Sani ? llvmIRToString(Sani) : "null") << "]";
 }
 

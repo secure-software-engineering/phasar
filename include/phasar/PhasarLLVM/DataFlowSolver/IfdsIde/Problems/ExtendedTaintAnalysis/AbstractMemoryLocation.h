@@ -41,10 +41,12 @@ struct AbstractMemoryLoactionStorage : public llvm::FoldingSetNode {
   ptrdiff_t Offsets[0]; // NOLINT
 
 protected:
-  AbstractMemoryLoactionStorage(const llvm::Value *Baseptr, uint32_t Lifetime,
-                                const llvm::ArrayRef<ptrdiff_t> &Offsets);
+  AbstractMemoryLoactionStorage(
+      const llvm::Value *Baseptr, uint32_t Lifetime,
+      const llvm::ArrayRef<ptrdiff_t> &Offsets) noexcept;
 
-  AbstractMemoryLoactionStorage(const llvm::Value *Baseptr, uint32_t Lifetime);
+  AbstractMemoryLoactionStorage(const llvm::Value *Baseptr,
+                                uint32_t Lifetime) noexcept;
 };
 
 /// \brief A Memorylocation abstraction represented by a base-pointer and an
@@ -55,24 +57,28 @@ protected:
 /// canonical way.
 class AbstractMemoryLocationImpl final : public AbstractMemoryLoactionStorage {
 
-  /// Pop out the last offset and set lifetime_ to 0
-  [[nodiscard]] AbstractMemoryLocationImpl limit() const;
   [[nodiscard]] bool
   equivalentOffsets(const AbstractMemoryLocationImpl &TV) const;
 
 public:
-  AbstractMemoryLocationImpl(const llvm::Value *Baseptr, unsigned Lifetime);
+  AbstractMemoryLocationImpl(const llvm::Value *Baseptr,
+                             unsigned Lifetime) noexcept;
   AbstractMemoryLocationImpl(const llvm::Value *Baseptr,
                              llvm::SmallVectorImpl<ptrdiff_t> &&Offsets,
-                             unsigned Lifetime);
+                             unsigned Lifetime) noexcept;
   AbstractMemoryLocationImpl(const llvm::Value *Baseptr,
                              llvm::ArrayRef<ptrdiff_t> Offsets,
-                             unsigned Lifetime);
-  AbstractMemoryLocationImpl(const AbstractMemoryLocationImpl &) = delete;
-  AbstractMemoryLocationImpl(AbstractMemoryLocationImpl &&) = delete;
+                             unsigned Lifetime) noexcept;
   AbstractMemoryLocationImpl();
   /// Creates the zero-value
   AbstractMemoryLocationImpl(std::nullptr_t) : AbstractMemoryLocationImpl() {}
+
+  AbstractMemoryLocationImpl(const AbstractMemoryLocationImpl &) = delete;
+  AbstractMemoryLocationImpl(AbstractMemoryLocationImpl &&) = delete;
+
+  AbstractMemoryLocationImpl &
+  operator=(const AbstractMemoryLocationImpl &) = delete;
+  AbstractMemoryLocationImpl &operator=(AbstractMemoryLocationImpl &&) = delete;
 
   /// Checks whether this AbstractMemoryLocation is the special zero value
   [[nodiscard]] bool isZero() const;
@@ -125,9 +131,6 @@ public:
     return base() < TV.base();
   }
 
-  /// Recursively walks the User-chain to create a canonicalized
-  /// AbstractMemoryLocation from V
-
   inline const AbstractMemoryLocationImpl *operator->() const { return this; }
 
   // FoldingSet support
@@ -144,12 +147,10 @@ public:
 ///
 /// This type can be hashed.
 class AbstractMemoryLocation {
-protected:
-  const detail::AbstractMemoryLocationImpl *PImpl = nullptr;
-
 public:
-  explicit AbstractMemoryLocation() = default;
-  AbstractMemoryLocation(const detail::AbstractMemoryLocationImpl *Impl);
+  explicit AbstractMemoryLocation() noexcept = default;
+  AbstractMemoryLocation(
+      const detail::AbstractMemoryLocationImpl *Impl) noexcept;
   inline const detail::AbstractMemoryLocationImpl *operator->() const {
     return PImpl;
   }
@@ -164,9 +165,9 @@ public:
     return PImpl == AML.PImpl;
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
+  friend std::ostream &operator<<(std::ostream &OS,
                                   const AbstractMemoryLocation &TV);
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const AbstractMemoryLocation &TV);
 
   /// Computes the absolute offset-difference between this and TV assuming,
@@ -177,6 +178,9 @@ public:
   }
 
   operator const detail::AbstractMemoryLocationImpl &() const { return *PImpl; }
+
+private:
+  const detail::AbstractMemoryLocationImpl *PImpl = nullptr;
 };
 
 std::string DToString(const AbstractMemoryLocation &AML);

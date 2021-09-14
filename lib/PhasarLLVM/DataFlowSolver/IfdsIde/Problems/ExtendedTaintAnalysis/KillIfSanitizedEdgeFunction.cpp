@@ -25,26 +25,25 @@ KillIfSanitizedEdgeFunction::KillIfSanitizedEdgeFunction(
 
 KillIfSanitizedEdgeFunction::l_t
 KillIfSanitizedEdgeFunction::computeTarget(l_t Source) {
-  auto ret = [&]() -> l_t {
-    if (auto Sani = Source.getSanitizer()) {
-      if (!Load)
-        return Sanitized{};
-      if (Sani->getFunction() == Load->getFunction() &&
-          BBO.mustComeBefore(Sani, Load))
-        return Sanitized{};
 
-      return nullptr;
+  if (const auto *Sani = Source.getSanitizer()) {
+    if (!Load) {
+      return Sanitized{};
+    }
+    if (Sani->getFunction() == Load->getFunction() &&
+        BBO.mustComeBefore(Sani, Load)) {
+      return Sanitized{};
     }
 
-    return Source;
-  }();
+    return nullptr;
+  }
 
-  return ret;
+  return Source;
 }
 
 bool KillIfSanitizedEdgeFunction::equal_to(
     EdgeFunctionPtrType OtherFunction) const {
-  if (auto OtherKill =
+  if (auto *OtherKill =
           dynamic_cast<KillIfSanitizedEdgeFunction *>(&*OtherFunction)) {
     return Load == OtherKill->Load; // Assume, the Analysis to be the same
   }
@@ -55,8 +54,8 @@ llvm::hash_code KillIfSanitizedEdgeFunction::getHashCode() const {
   return llvm::hash_combine(Load);
 }
 
-void KillIfSanitizedEdgeFunction::print(std::ostream &OS,
-                                        bool IsForDebug) const {
+void KillIfSanitizedEdgeFunction::print(
+    std::ostream &OS, [[maybe_unused]] bool IsForDebug) const {
   OS << "KillIfSani[" << this << "]";
 }
 

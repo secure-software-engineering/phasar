@@ -21,7 +21,7 @@ namespace psr::detail {
 
 AbstractMemoryLoactionStorage::AbstractMemoryLoactionStorage(
     const llvm::Value *Baseptr, uint32_t Lifetime,
-    const llvm::ArrayRef<ptrdiff_t> &Offsets)
+    const llvm::ArrayRef<ptrdiff_t> &Offsets) noexcept
     : Baseptr(Baseptr), Lifetime(Lifetime),
       NumOffsets(uint32_t(Offsets.size())) {
   assert(Baseptr && "The baseptr must not be null!");
@@ -29,7 +29,7 @@ AbstractMemoryLoactionStorage::AbstractMemoryLoactionStorage(
 }
 
 AbstractMemoryLoactionStorage::AbstractMemoryLoactionStorage(
-    const llvm::Value *Baseptr, uint32_t Lifetime)
+    const llvm::Value *Baseptr, uint32_t Lifetime) noexcept
     : Baseptr(Baseptr), Lifetime(Lifetime), NumOffsets(0) {
   assert(Baseptr && "The baseptr must not be null!");
 }
@@ -38,15 +38,15 @@ AbstractMemoryLocationImpl::AbstractMemoryLocationImpl()
     : AbstractMemoryLoactionStorage(LLVMZeroValue::getInstance(), 0) {}
 
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
-    const llvm::Value *Baseptr, unsigned Lifetime)
+    const llvm::Value *Baseptr, unsigned Lifetime) noexcept
     : AbstractMemoryLoactionStorage(Baseptr, Lifetime) {}
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
     const llvm::Value *Baseptr, llvm::SmallVectorImpl<ptrdiff_t> &&Offsets,
-    unsigned Lifetime)
+    unsigned Lifetime) noexcept
     : AbstractMemoryLoactionStorage(Baseptr, Lifetime, Offsets) {}
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
     const llvm::Value *Baseptr, llvm::ArrayRef<ptrdiff_t> Offsets,
-    unsigned Lifetime)
+    unsigned Lifetime) noexcept
     : AbstractMemoryLoactionStorage(Baseptr, Lifetime, Offsets) {}
 
 bool AbstractMemoryLocationImpl::isZero() const {
@@ -72,12 +72,6 @@ auto AbstractMemoryLocationImpl::computeOffset(
   }
 
   return Ret.getSExtValue();
-}
-
-AbstractMemoryLocationImpl AbstractMemoryLocationImpl::limit() const {
-  llvm::SmallVector<ptrdiff_t, 5> Offs(offsets().begin(), offsets().end());
-  Offs.pop_back();
-  return AbstractMemoryLocationImpl(base(), std::move(Offs), 0);
 }
 
 [[nodiscard]] auto AbstractMemoryLocationImpl::operator-(
@@ -190,7 +184,7 @@ void AbstractMemoryLocationImpl::Profile(llvm::FoldingSetNodeID &ID) const {
 
 namespace psr {
 AbstractMemoryLocation::AbstractMemoryLocation(
-    const detail::AbstractMemoryLocationImpl *Impl)
+    const detail::AbstractMemoryLocationImpl *Impl) noexcept
     : PImpl(Impl) {
   assert(Impl);
 }

@@ -22,9 +22,9 @@ public:
 
   l_t computeTarget(l_t Source) override;
 
-  bool equal_to(EdgeFunctionPtrType other) const override;
+  bool equal_to(EdgeFunctionPtrType Other) const override;
 
-  void print(std::ostream &OS, bool isForDebug = false) const override;
+  void print(std::ostream &OS, bool IsForDebug = false) const override;
 
   llvm::hash_code getHashCode() const override;
 

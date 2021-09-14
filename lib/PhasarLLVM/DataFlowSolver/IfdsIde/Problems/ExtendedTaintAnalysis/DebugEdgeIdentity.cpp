@@ -14,44 +14,46 @@ namespace psr::XTaint {
 DebugEdgeIdentity::DebugEdgeIdentity(const llvm::Instruction *Inst)
     : Inst(Inst) {}
 
-EdgeDomain DebugEdgeIdentity::computeTarget(EdgeDomain source) {
-  return source;
+EdgeDomain DebugEdgeIdentity::computeTarget(EdgeDomain Source) {
+  return Source;
 }
 
-auto DebugEdgeIdentity::composeWith(EdgeFunctionPtrType secondFunction)
+auto DebugEdgeIdentity::composeWith(EdgeFunctionPtrType SecondFunction)
     -> EdgeFunctionPtrType {
-  return secondFunction;
+  return SecondFunction;
 }
 
-auto DebugEdgeIdentity::joinWith(EdgeFunctionPtrType otherFunction)
+auto DebugEdgeIdentity::joinWith(EdgeFunctionPtrType OtherFunction)
     -> EdgeFunctionPtrType {
-  if ((otherFunction.get() == this) ||
-      otherFunction->equal_to(this->shared_from_this())) {
-    return this->shared_from_this();
-  }
-  if (auto *ab = dynamic_cast<AllBottom<EdgeDomain> *>(otherFunction.get())) {
-    return otherFunction;
-  }
-  if (auto *at = dynamic_cast<AllTop<EdgeDomain> *>(otherFunction.get())) {
-    return this->shared_from_this();
-  }
-
-  if (dynamic_cast<DebugEdgeIdentity *>(&*otherFunction))
+  if ((OtherFunction.get() == this) ||
+      OtherFunction->equal_to(shared_from_this())) {
     return shared_from_this();
+  }
+  if (dynamic_cast<AllBottom<EdgeDomain> *>(OtherFunction.get())) {
+    return OtherFunction;
+  }
+  if (dynamic_cast<AllTop<EdgeDomain> *>(OtherFunction.get())) {
+    return shared_from_this();
+  }
+  if (dynamic_cast<DebugEdgeIdentity *>(&*OtherFunction)) {
+    return shared_from_this();
+  }
   // do not know how to join; hence ask other function to decide on this
-  return otherFunction->joinWith(this->shared_from_this());
+  return OtherFunction->joinWith(shared_from_this());
 }
 
-bool DebugEdgeIdentity::equal_to(EdgeFunctionPtrType other) const {
-  if (this == &*other)
+bool DebugEdgeIdentity::equal_to(EdgeFunctionPtrType Other) const {
+  if (this == &*Other) {
     return true;
-  if (auto otherId = dynamic_cast<DebugEdgeIdentity *>(&*other)) {
-    return Inst == otherId->Inst;
+  }
+  if (const auto *OtherId = dynamic_cast<DebugEdgeIdentity *>(&*Other)) {
+    return Inst == OtherId->Inst;
   }
   return false;
 }
 
-void DebugEdgeIdentity::print(std::ostream &OS, bool isForDebug) const {
+void DebugEdgeIdentity::print(std::ostream &OS,
+                              [[maybe_unused]] bool IsForDebug) const {
   OS << "EdgeId[" << llvmIRToShortString(Inst) << "]";
 }
 } // namespace psr::XTaint

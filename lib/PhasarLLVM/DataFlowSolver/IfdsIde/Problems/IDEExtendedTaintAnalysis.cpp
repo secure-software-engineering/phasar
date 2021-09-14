@@ -49,13 +49,13 @@ inline void printValues(const ContainerTy &Facts,
 IDEExtendedTaintAnalysis::IDEExtendedTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT, const TaintConfig *TSF,
-    std::set<std::string> EntryPoints, unsigned bound,
-    bool disableStrongUpdates)
+    std::set<std::string> EntryPoints, unsigned Bound,
+    bool DisableStrongUpdates)
     : base_t(IRDB, TH, ICF, PT, std::move(EntryPoints)), AnalysisBase(TSF),
       FactFactory(IRDB->getNumInstructions()),
-      DL((*IRDB->getAllModules().begin())->getDataLayout()), bound(bound),
-      postProcessed(disableStrongUpdates),
-      disableStrongUpdates(disableStrongUpdates) {
+      DL((*IRDB->getAllModules().begin())->getDataLayout()), Bound(Bound),
+      PostProcessed(DisableStrongUpdates),
+      DisableStrongUpdates(DisableStrongUpdates) {
   base_t::ZeroValue = createZeroValue();
 
   FactFactory.setDataLayout(DL);
@@ -95,7 +95,9 @@ auto IDEExtendedTaintAnalysis::createZeroValue() const -> d_t {
   return FactFactory.GetOrCreateZero();
 }
 
-bool IDEExtendedTaintAnalysis::isZeroValue(d_t d) const { return d->isZero(); }
+bool IDEExtendedTaintAnalysis::isZeroValue(d_t Fact) const {
+  return Fact->isZero();
+}
 
 IDEExtendedTaintAnalysis::EdgeFunctionPtrType
 IDEExtendedTaintAnalysis::allTopFunction() {
@@ -105,27 +107,28 @@ IDEExtendedTaintAnalysis::allTopFunction() {
 // Flow functions:
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
-IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t curr, n_t succ) {
+IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
+                                                [[maybe_unused]] n_t Succ) {
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##Normal-FF at: " << psr::llvmIRToString(curr));
+                << "##Normal-FF at: " << psr::llvmIRToString(Curr));
 
   // The only instruction we need to handle in the Normal-FF is the StoreInst.
   // All other instructions are handled by the recursive Create function from
   // the FactFactory.
 
-  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    auto storeFF =
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+    auto StoreFF =
         getStoreFF(Store->getPointerOperand(), Store->getValueOperand(), Store);
 
-    return storeFF;
+    return StoreFF;
   }
 
-  auto [SrcConfig, SinkConfig] = getConfigurationAt(curr);
+  auto [SrcConfig, SinkConfig] = getConfigurationAt(Curr);
   if (!SrcConfig.empty() || !SinkConfig.empty()) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "handle config in normal-ff");
-    return handleConfig(curr, std::move(SrcConfig), std::move(SinkConfig));
+    return handleConfig(Curr, std::move(SrcConfig), std::move(SinkConfig));
   }
 
   return Identity<d_t>::getInstance();
@@ -142,12 +145,12 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
   auto Mem = makeFlowFact(PointerOp);
   return makeLambdaFlow<d_t>([this, TV, Mem, PTS{std::move(PTS)}, PointerOp,
                               ValueOp,
-                              Store](d_t source) mutable -> std::set<d_t> {
-    if (source->isZero()) {
-      std::set<d_t> ret = {source};
-      generateFromZero(ret, Store, PointerOp, ValueOp,
+                              Store](d_t Source) mutable -> std::set<d_t> {
+    if (Source->isZero()) {
+      std::set<d_t> Ret = {Source};
+      generateFromZero(Ret, Store, PointerOp, ValueOp,
                        /*IncludeActualArg*/ false);
-      return ret;
+      return Ret;
     }
     /// Pointer-Arithetics in the last indirection are irrelevant for equality
     /// comparison:
@@ -156,28 +159,28 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
     /// easily reachable from TV by simply doing dome pointer arithmetics.
     /// Hence, when loading the value of TV back from Mem this still holds and
     /// must be preserved by the analysis.
-    if (TV->equivalentExceptPointerArithmetics(source)) {
-      auto offset = source - TV;
+    if (TV->equivalentExceptPointerArithmetics(Source)) {
+      auto Offset = Source - TV;
 
       // generate all may-aliases of Store->getPointerOperand()
-      std::set<d_t> ret = {source, FactFactory.withIndirectionOf(Mem, offset)};
+      std::set<d_t> Ret = {Source, FactFactory.withIndirectionOf(Mem, Offset)};
 
       for (const auto *Alias : *PTS) {
         if (llvm::isa<llvm::Constant>(Alias) || Alias == Mem->base()) {
           continue;
         }
 
-        identity(ret,
-                 FactFactory.withIndirectionOf(makeFlowFact(Alias), offset),
+        identity(Ret,
+                 FactFactory.withIndirectionOf(makeFlowFact(Alias), Offset),
                  Store);
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Store generate: " << PrettyPrinter{ret});
+                    << "Store generate: " << PrettyPrinter{Ret});
 
       // For the sink-variables, the pointer-arithmetics in the last offset
       // are relevant (in contrast to the Store-FF). This is, where the
       // field-sensitive results come from.
-      if (TV->equivalent(source)) {
+      if (TV->equivalent(Source)) {
         reportLeakIfNecessary(Store, PointerOp, ValueOp);
         for (const auto *Alias : *PTS) {
           reportLeakIfNecessary(Store, Alias, ValueOp);
@@ -188,11 +191,11 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
       allTaintedValues.insert(ret.begin(), ret.end());
 #endif
 
-      return ret;
+      return Ret;
     }
     // Sanitizing is handled in the edge function
 
-    return {source};
+    return {Source};
   });
 }
 
@@ -259,11 +262,11 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
 
   return makeLambdaFlow<d_t>([Inst, this, SourceConfig{std::move(SourceConfig)},
                               SinkConfig{std::move(SinkConfig)}](d_t Source) {
-    std::set<d_t> ret = {Source};
+    std::set<d_t> Ret = {Source};
 
     if (Source->isZero()) {
       for (const auto *Src : SourceConfig) {
-        ret.insert(makeFlowFact(Src));
+        Ret.insert(makeFlowFact(Src));
       }
     } else {
       for (const auto *Snk : SinkConfig) {
@@ -275,20 +278,20 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
       }
     }
 
-    return ret;
+    return Ret;
   });
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
-IDEExtendedTaintAnalysis::getCallFlowFunction(n_t callStmt, f_t destFun) {
-  const auto *call = llvm::cast<llvm::CallBase>(callStmt);
+IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
+  const auto *call = llvm::cast<llvm::CallBase>(CallStmt);
   assert(call);
-  if (destFun->isDeclaration()) {
+  if (DestFun->isDeclaration()) {
     return Identity<d_t>::getInstance();
   }
-  bool hasVarargs = call->arg_size() > destFun->arg_size();
-  const auto *const va = [&]() -> const llvm::Value * {
-    if (!hasVarargs) {
+  bool HasVarargs = call->arg_size() > DestFun->arg_size();
+  const auto *const VA = [&]() -> const llvm::Value * {
+    if (!HasVarargs) {
       return nullptr;
     }
     // Copied from IDELinearConstantAnalysis:
@@ -296,9 +299,9 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t callStmt, f_t destFun) {
     //   alloca [1 x %struct.__va_list_tag], align 16
     // to the results
     // find the allocated %struct.__va_list_tag and generate it
-    for (auto it = llvm::inst_begin(destFun), end = llvm::inst_end(destFun);
-         it != end; ++it) {
-      if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&*it)) {
+    for (auto It = llvm::inst_begin(DestFun), End = llvm::inst_end(DestFun);
+         It != End; ++It) {
+      if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&*It)) {
         if (Alloc->getAllocatedType()->isArrayTy() &&
             Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
             Alloc->getAllocatedType()->getArrayElementType()->isStructTy() &&
@@ -312,118 +315,122 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t callStmt, f_t destFun) {
     return nullptr;
   }();
 
-  return makeLambdaFlow<d_t>(
-      [this, call, destFun, va](d_t source) -> std::set<d_t> {
-        if (isZeroValue(source)) {
-          return {source};
-        }
-        std::set<d_t> ret;
-        /// Don't qualify the 'auto' here, because we should not rely on those
-        /// iterators to be pointers
+  return makeLambdaFlow<d_t>([this, call, DestFun,
+                              VA](d_t Source) -> std::set<d_t> {
+    if (isZeroValue(Source)) {
+      return {Source};
+    }
+    std::set<d_t> Ret;
+    /// Don't qualify the 'auto' here, because we should not rely on those
+    /// iterators to be pointers
 
-        // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-        auto it = call->arg_begin();
-        // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-        auto end = call->arg_end();
-        // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-        auto fit = destFun->arg_begin();
-        // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-        auto fend = destFun->arg_end();
+    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
+    auto It = call->arg_begin();
+    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
+    auto End = call->arg_end();
+    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
+    auto FIt = DestFun->arg_begin();
+    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
+    auto FEnd = DestFun->arg_end();
 
-        const std::string CalleeName =
-            (destFun->hasName()) ? destFun->getName().str() : "none";
+    const std::string CalleeName =
+        (DestFun->hasName()) ? DestFun->getName().str() : "none";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "##Call-FF at: " << psr::llvmIRToString(call)
+                  << " to: " << CalleeName);
+    for (; FIt != FEnd && It != End; ++FIt, ++It) {
+      auto From = makeFlowFact(It->get());
+      /// Pointer-Arithetics in the last indirection are irrelevant for
+      /// equality comparison. Argumentation similar to StoreFF
+      if (equivalentExceptPointerArithmetics(From, Source)) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "##Call-FF at: " << psr::llvmIRToString(call)
-                      << " to: " << CalleeName);
-        for (; fit != fend && it != end; ++fit, ++it) {
-          auto from = makeFlowFact(it->get());
-          /// Pointer-Arithetics in the last indirection are irrelevant for
-          /// equality comparison. Argumentation similar to StoreFF
-          if (equivalentExceptPointerArithmetics(from, source)) {
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << ">\tmatch: " << from << " vs " << source);
-            ret.insert(transferFlowFact(source, from, &*fit));
-          } else {
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << ">\tno match: " << from << " vs " << source);
-          }
-        }
-        ptrdiff_t offs = 0;
+                      << ">\tmatch: " << From << " vs " << Source);
+        Ret.insert(transferFlowFact(Source, From, &*FIt));
+      } else {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << ">\tno match: " << From << " vs " << Source);
+      }
+    }
+    ptrdiff_t Offs = 0;
 
-        if (!va)
-          return ret;
+    if (!VA) {
+      return Ret;
+    }
 
-        for (; it != end; ++it) {
-          auto from = makeFlowFact(it->get());
-          if (equivalentExceptPointerArithmetics(from, source)) {
-            auto to = transferFlowFact(source, from, va);
+    for (; It != End; ++It) {
+      auto From = makeFlowFact(It->get());
+      if (equivalentExceptPointerArithmetics(From, Source)) {
+        auto To = transferFlowFact(Source, From, VA);
 
-            ret.insert(FactFactory.withIndirectionOf(to, {offs}));
-            /// Model varargs as an additional aggregate-parameter. The varargs
-            /// are stored in contiguous memory one after the other. Ignore
-            /// padding for now.
-          }
-          offs += DL.getTypeAllocSize(it->get()->getType()).getFixedSize();
-        }
+        Ret.insert(FactFactory.withIndirectionOf(To, {Offs}));
+        /// Model varargs as an additional aggregate-parameter. The varargs
+        /// are stored in contiguous memory one after the other. Ignore
+        /// padding for now.
+      }
+      Offs +=
+          ptrdiff_t(DL.getTypeAllocSize(It->get()->getType()).getFixedSize());
+    }
 #ifdef XTAINT_DIAGNOSTICS
-        allTaintedValues.insert(ret.begin(), ret.end());
+    allTaintedValues.insert(ret.begin(), ret.end());
 #endif
-        return ret;
-      });
+    return Ret;
+  });
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
-IDEExtendedTaintAnalysis::getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                             n_t exitStmt, n_t retSite) {
+IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                             n_t ExitStmt,
+                                             [[maybe_unused]] n_t RetSite) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##Return-FF at: " << psr::llvmIRToString(callSite));
-  const auto *call = llvm::cast<llvm::CallBase>(callSite);
-  return makeLambdaFlow<d_t>([this, call, calleeFun,
-                              exitStmt{llvm::cast<llvm::ReturnInst>(exitStmt)}](
-                                 d_t source) {
-    std::set<d_t> ret;
+                << "##Return-FF at: " << psr::llvmIRToString(CallSite));
+  const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
+  return makeLambdaFlow<d_t>([this, Call, CalleeFun,
+                              ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)}](
+                                 d_t Source) {
+    std::set<d_t> Ret;
 
     /// Don't qualify the 'auto' here, because we should not rely on those
     /// iterators to be pointers
 
     // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto it = call->arg_begin();
+    auto It = Call->arg_begin();
     // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto end = call->arg_end();
+    auto End = Call->arg_end();
     // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto fit = calleeFun->arg_begin();
+    auto FIt = CalleeFun->arg_begin();
     // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto fend = calleeFun->arg_end();
+    auto FEnd = CalleeFun->arg_end();
 
-    for (; fit != fend && it != end; ++fit, ++it) {
+    for (; FIt != FEnd && It != End; ++FIt, ++It) {
       // Only map back pointer parameters, since for all others we have
       // call-by-value.
-      if (fit->getType()->isPointerTy() &&
-          equivalent(source, makeFlowFact(&*fit))) {
-        ret.insert(
-            FactFactory.withTransferFrom(source, makeFlowFact(it->get())));
+      if (FIt->getType()->isPointerTy() &&
+          equivalent(Source, makeFlowFact(&*FIt))) {
+        Ret.insert(
+            FactFactory.withTransferFrom(Source, makeFlowFact(It->get())));
       }
     }
     // For now, ignore mapping back varargs
-    d_t retVal;
-    if (exitStmt->getReturnValue() &&
-        equivalent(source, retVal = makeFlowFact(exitStmt->getReturnValue()))) {
-      ret.insert(FactFactory.withOffsets(makeFlowFact(call), source - retVal));
+    d_t RetVal;
+    if (ExitStmt->getReturnValue() &&
+        equivalent(Source, RetVal = makeFlowFact(ExitStmt->getReturnValue()))) {
+      Ret.insert(FactFactory.withOffsets(makeFlowFact(Call), Source - RetVal));
     }
 
 #ifdef XTAINT_DIAGNOSTICS
     allTaintedValues.insert(ret.begin(), ret.end());
 #endif
 
-    return ret;
+    return Ret;
   });
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
-IDEExtendedTaintAnalysis::getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                                   std::set<f_t> callees) {
+IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
+    [[maybe_unused]] n_t CallSite, [[maybe_unused]] n_t RetSite,
+    [[maybe_unused]] std::set<f_t> Callees) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##CallToReturn-FF at: " << psr::llvmIRToString(callSite));
+                << "##CallToReturn-FF at: " << psr::llvmIRToString(CallSite));
   // The CTR-FF is traditionally an identity function. All CTR-relevant stuff is
   // handled on the edges.
 
@@ -431,23 +438,23 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(n_t callSite, n_t retSite,
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
-IDEExtendedTaintAnalysis::getSummaryFlowFunction(n_t callStmt, f_t destFun) {
+IDEExtendedTaintAnalysis::getSummaryFlowFunction(n_t CallStmt, f_t DestFun) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##Summary-FF at: " << psr::llvmIRToString(callStmt));
+                << "##Summary-FF at: " << psr::llvmIRToString(CallStmt));
   // Handle all the functions that have a special semantics inside the analysis:
   // - Calls to the DevAPI
   // - Calls to sources, sinks and sanitizers
   // If the seeds were autogenerated, we can ignore calls to the DevAPI here,
   // since they were already considered when constructing the seeds
 
-  auto [SrcConfig, SinkConfig] = getConfigurationAt(callStmt, destFun);
+  auto [SrcConfig, SinkConfig] = getConfigurationAt(CallStmt, DestFun);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "SrcIndices.any(): " << !SrcConfig.empty()
                 << " - SinkIndices.any(): " << !SinkConfig.empty());
   if (!SrcConfig.empty() || !SinkConfig.empty()) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "handle config in summary-ff");
-    return handleConfig(callStmt, std::move(SrcConfig), std::move(SinkConfig));
+    return handleConfig(CallStmt, std::move(SrcConfig), std::move(SinkConfig));
   }
 
   /// TODO: MemSet
@@ -463,7 +470,8 @@ IDEExtendedTaintAnalysis::getSummaryFlowFunction(n_t callStmt, f_t destFun) {
 // Edge Functions:
 
 auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
-                                                     n_t Succ, d_t SuccNode)
+                                                     [[maybe_unused]] n_t Succ,
+                                                     d_t SuccNode)
     -> EdgeFunctionPtrType {
   if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
     return getEdgeIdentity(Curr);
@@ -498,7 +506,7 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
   assert(ValueOp);
 
-  if (!disableStrongUpdates) {
+  if (!DisableStrongUpdates) {
 
     /// Kill the PointerOp, if we store into it
     if (CurrNode->mustAlias(makeFlowFact(PointerOp), *PT)) {
@@ -521,11 +529,11 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   return getEdgeIdentity(Curr);
 }
 
-auto IDEExtendedTaintAnalysis::getCallEdgeFunction(n_t CallInst, d_t SrcNode,
-                                                   f_t CalleeFun, d_t DestNode)
+auto IDEExtendedTaintAnalysis::getCallEdgeFunction(
+    n_t CallInst, d_t SrcNode, [[maybe_unused]] f_t CalleeFun, d_t DestNode)
     -> EdgeFunctionPtrType {
 
-  if (disableStrongUpdates) {
+  if (DisableStrongUpdates) {
     return getEdgeIdentity(CallInst);
   }
   if (isZeroValue(SrcNode) && isZeroValue(DestNode)) {
@@ -542,13 +550,11 @@ auto IDEExtendedTaintAnalysis::getCallEdgeFunction(n_t CallInst, d_t SrcNode,
   return getEdgeIdentity(CallInst);
 }
 
-auto IDEExtendedTaintAnalysis::getReturnEdgeFunction(n_t CallSite,
-                                                     f_t CalleeFun,
-                                                     n_t ExitInst, d_t ExitNode,
-                                                     n_t RetSite, d_t RetNode)
-    -> EdgeFunctionPtrType {
+auto IDEExtendedTaintAnalysis::getReturnEdgeFunction(
+    n_t CallSite, [[maybe_unused]] f_t CalleeFun, n_t ExitInst, d_t ExitNode,
+    [[maybe_unused]] n_t RetSite, d_t RetNode) -> EdgeFunctionPtrType {
 
-  if (disableStrongUpdates) {
+  if (DisableStrongUpdates) {
     return getEdgeIdentity(CallSite);
   }
 
@@ -568,14 +574,14 @@ auto IDEExtendedTaintAnalysis::getReturnEdgeFunction(n_t CallSite,
 }
 
 auto IDEExtendedTaintAnalysis::getCallToRetEdgeFunction(
-    n_t CallSite, d_t CallNode, n_t RetSite, d_t RetSiteNode,
+    n_t CallSite, d_t CallNode, [[maybe_unused]] n_t RetSite, d_t RetSiteNode,
     std::set<f_t> Callees) -> EdgeFunctionPtrType {
 
   // Intrinsics behave as they won't be there...
-  bool isIntrinsic = std::all_of(Callees.begin(), Callees.end(),
+  bool IsIntrinsic = std::all_of(Callees.begin(), Callees.end(),
                                  [](f_t Fn) { return Fn->isIntrinsic(); });
 
-  if (!disableStrongUpdates && !isIntrinsic && CallNode == RetSiteNode) {
+  if (!DisableStrongUpdates && !IsIntrinsic && CallNode == RetSiteNode) {
     // There was an Identity-Flow
     for (const auto &Arg : llvm::cast<llvm::CallBase>(CallSite)->args()) {
       if (Arg.get()->getType()->isPointerTy() &&
@@ -589,46 +595,47 @@ auto IDEExtendedTaintAnalysis::getCallToRetEdgeFunction(
 }
 
 auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
-                                                      n_t Succ, d_t SuccNode)
+                                                      [[maybe_unused]] n_t Succ,
+                                                      d_t SuccNode)
     -> EdgeFunctionPtrType {
 
-  const auto *call = llvm::cast<llvm::CallBase>(Curr);
+  const auto *Call = llvm::cast<llvm::CallBase>(Curr);
 
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     return getGenEdgeFunction(BBO);
   }
 
-  if (disableStrongUpdates) {
+  if (DisableStrongUpdates) {
     return getEdgeIdentity(Curr);
   }
 
-  llvm::SmallSet<const llvm::Function *, 2> callees;
-  if (const auto *fn = call->getCalledFunction()) {
-    callees.insert(fn);
+  llvm::SmallSet<const llvm::Function *, 2> Callees;
+  if (const auto *Fn = Call->getCalledFunction()) {
+    Callees.insert(Fn);
   } else {
     base_t::ICF->forEachCalleeOfCallAt(
-        Curr, [&callees](const llvm::Function *F) { callees.insert(F); });
+        Curr, [&Callees](const llvm::Function *F) { Callees.insert(F); });
   }
 
   SanitizerConfigTy SaniConfig;
 
-  bool frst = true;
-  for (const auto *F : callees) {
-    auto tmp = getSanitizerConfigAt(Curr, F);
-    if (frst) {
-      frst = false;
-      SaniConfig = std::move(tmp);
+  bool Frst = true;
+  for (const auto *F : Callees) {
+    auto Tmp = getSanitizerConfigAt(Curr, F);
+    if (Frst) {
+      Frst = false;
+      SaniConfig = std::move(Tmp);
       continue;
     }
 
-    intersectWith(SaniConfig, tmp);
+    intersectWith(SaniConfig, Tmp);
 
     if (SaniConfig.empty()) {
       break;
     }
   }
 
-  EdgeFunctionPtrType ret = getEdgeIdentity(Curr);
+  EdgeFunctionPtrType Ret = getEdgeIdentity(Curr);
 
   if (isMustAlias(SaniConfig, CurrNode)) {
     return makeEF<GenEdgeFunction>(BBO, Curr);
@@ -636,33 +643,33 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 
   /// TODO: MemSet
 
-  return ret;
+  return Ret;
 }
 
 // Printing functions:
 
-void IDEExtendedTaintAnalysis::printNode(std::ostream &os, n_t n) const {
-  os << llvmIRToString(n);
+void IDEExtendedTaintAnalysis::printNode(std::ostream &OS, n_t Inst) const {
+  OS << llvmIRToString(Inst);
 }
 
-void IDEExtendedTaintAnalysis::printDataFlowFact(std::ostream &os,
-                                                 d_t d) const {
-  os << d;
+void IDEExtendedTaintAnalysis::printDataFlowFact(std::ostream &OS,
+                                                 d_t Fact) const {
+  OS << Fact;
 }
 
-void IDEExtendedTaintAnalysis::printEdgeFact(std::ostream &os, l_t l) const {
-  os << l;
+void IDEExtendedTaintAnalysis::printEdgeFact(std::ostream &OS, l_t Fact) const {
+  OS << Fact;
 }
 
-void IDEExtendedTaintAnalysis::printFunction(std::ostream &os, f_t m) const {
-  os << m->getName().str();
+void IDEExtendedTaintAnalysis::printFunction(std::ostream &OS, f_t Fun) const {
+  OS << Fun->getName().str();
 }
 
 void IDEExtendedTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, l_t> &SR, std::ostream &OS) {
   OS << "===== IDEExtendedTaintAnalysis-Results =====\n";
 
-  if (!postProcessed) {
+  if (!PostProcessed) {
     doPostProcessing(SR);
   }
 
@@ -683,44 +690,44 @@ auto IDEExtendedTaintAnalysis::topElement() -> l_t { return Top{}; }
 
 auto IDEExtendedTaintAnalysis::bottomElement() -> l_t { return Bottom{}; }
 
-auto IDEExtendedTaintAnalysis::join(l_t lhs, l_t rhs) -> l_t {
-  return lhs.join(rhs, &BBO);
+auto IDEExtendedTaintAnalysis::join(l_t LHS, l_t RHS) -> l_t {
+  return LHS.join(RHS, &BBO);
 }
 
 // Helpers:
 
 auto IDEExtendedTaintAnalysis::makeFlowFact(const llvm::Value *V) -> d_t {
-  return FactFactory.Create(V, bound);
+  return FactFactory.Create(V, Bound);
 }
 
-void IDEExtendedTaintAnalysis::identity(std::set<d_t> &ret, const d_t &source,
+void IDEExtendedTaintAnalysis::identity(std::set<d_t> &Ret, const d_t &Source,
                                         const llvm::Instruction *CurrInst,
-                                        bool addGlobals) {
+                                        bool AddGlobals) {
 
-  if (addGlobals && llvm::isa<llvm::GlobalValue>(source->base())) {
-    ret.insert(source);
+  if (AddGlobals && llvm::isa<llvm::GlobalValue>(Source->base())) {
+    Ret.insert(Source);
   } else if (const auto *Inst =
-                 llvm::dyn_cast<llvm::Instruction>(source->base());
+                 llvm::dyn_cast<llvm::Instruction>(Source->base());
              Inst && Inst->getFunction() == CurrInst->getFunction()) {
-    ret.insert(source);
-  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(source->base());
+    Ret.insert(Source);
+  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Source->base());
              Arg && Arg->getParent() == CurrInst->getFunction()) {
-    ret.insert(source);
+    Ret.insert(Source);
   }
 }
 
-auto IDEExtendedTaintAnalysis::identity(const d_t &source,
+auto IDEExtendedTaintAnalysis::identity(const d_t &Source,
                                         const llvm::Instruction *CurrInst,
-                                        bool addGlobals) -> std::set<d_t> {
-  std::set<d_t> ret;
-  identity(ret, source, CurrInst, addGlobals);
-  return ret;
+                                        bool AddGlobals) -> std::set<d_t> {
+  std::set<d_t> Ret;
+  identity(Ret, Source, CurrInst, AddGlobals);
+  return Ret;
 }
 
-auto IDEExtendedTaintAnalysis::transferFlowFact(d_t source, d_t From,
+auto IDEExtendedTaintAnalysis::transferFlowFact(d_t Source, d_t From,
                                                 const llvm::Value *To) -> d_t {
 
-  return FactFactory.withTransferTo(source, From, To);
+  return FactFactory.withTransferTo(Source, From, To);
 }
 
 const llvm::Instruction *
@@ -730,9 +737,9 @@ IDEExtendedTaintAnalysis::getApproxLoadFrom(const llvm::Instruction *V) const {
     return V;
   }
 
-  if (const auto *it = V->op_begin();
-      it != V->op_end() && llvm::isa<llvm::Instruction>(*it)) {
-    return getApproxLoadFrom(llvm::cast<llvm::Instruction>(*it));
+  if (const auto *It = V->op_begin();
+      It != V->op_end() && llvm::isa<llvm::Instruction>(*It)) {
+    return getApproxLoadFrom(llvm::cast<llvm::Instruction>(*It));
   }
 
   return V;
@@ -753,71 +760,71 @@ IDEExtendedTaintAnalysis::getApproxLoadFrom(const llvm::Value *V) const {
 
 void IDEExtendedTaintAnalysis::doPostProcessing(
     const SolverResults<n_t, d_t, l_t> &SR) {
-  postProcessed = true;
-  llvm::SmallVector<const llvm::Instruction *, 4> remInst;
+  PostProcessed = true;
+  llvm::SmallVector<const llvm::Instruction *> RemInst;
   for (auto &[Inst, PotentialLeaks] : Leaks) {
-    llvm::SmallVector<const llvm::Value *, 2> rem;
+    llvm::SmallVector<const llvm::Value *, 2> Rem;
     std::cerr << "At " << llvmIRToString(Inst) << ":" << std::endl;
 
-    auto results = SR.resultsAt(Inst);
+    auto Results = SR.resultsAt(Inst);
 
     for (const auto *L : PotentialLeaks) {
-      auto found = results.find(makeFlowFact(L));
-      if (found == results.end()) {
+      auto Found = Results.find(makeFlowFact(L));
+      if (Found == Results.end()) {
         // The sanitizer has been killed, so we must assume the fact as tainted
         std::cerr << "No results for " << makeFlowFact(L) << std::endl;
         continue;
       }
 
-      auto sani = // SR.resultAt(Inst, makeFlowFact(L));
-          found->second;
+      auto Sani = // SR.resultAt(Inst, makeFlowFact(L));
+          Found->second;
       const auto *Load = getApproxLoadFrom(L);
 
-      switch (sani.getKind()) {
+      switch (Sani.getKind()) {
       // case EdgeDomain::Bot:
       //   rem.push_back(L);
       //   std::cerr << "Sanitize " << llvmIRToShortString(L) << " with Bottom "
       //             << std::endl;
       //   break;
       case EdgeDomain::Sanitized:
-        rem.push_back(L);
+        Rem.push_back(L);
         std::cerr << "Sanitize " << llvmIRToShortString(L) << " from parent "
                   << std::endl;
         break;
       case EdgeDomain::WithSanitizer:
-        if (!sani.getSanitizer()) {
+        if (!Sani.getSanitizer()) {
           break;
         }
-        if (!Load || BBO.mustComeBefore(sani.getSanitizer(), Load)) {
-          rem.push_back(L);
+        if (!Load || BBO.mustComeBefore(Sani.getSanitizer(), Load)) {
+          Rem.push_back(L);
           std::cerr << "Sanitize " << llvmIRToShortString(L) << " with "
-                    << llvmIRToString(sani.getSanitizer()) << std::endl;
+                    << llvmIRToString(Sani.getSanitizer()) << std::endl;
           break;
         }
         [[fallthrough]];
       default:
-        std::cerr << " Sani: " << sani
+        std::cerr << " Sani: " << Sani
                   << "; Load: " << (Load ? llvmIRToString(Load) : "null")
                   << " for FlowFact: " << makeFlowFact(L) << std::endl;
       }
     }
     std::cerr << "----------------------------" << std::endl;
 
-    for (const auto *R : rem) {
+    for (const auto *R : Rem) {
       PotentialLeaks.erase(R);
     }
     if (PotentialLeaks.empty()) {
-      remInst.push_back(Inst);
+      RemInst.push_back(Inst);
     }
   }
-  for (const auto *Inst : remInst) {
+  for (const auto *Inst : RemInst) {
     Leaks.erase(Inst);
   }
 }
 
 const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
     IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) & {
-  if (!postProcessed) {
+  if (!PostProcessed) {
     doPostProcessing(Solver.getSolverResults());
   }
   return Leaks;
@@ -825,7 +832,7 @@ const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
 
 LeakMap_t IDEExtendedTaintAnalysis::getAllLeaks(
     IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) && {
-  if (!postProcessed) {
+  if (!PostProcessed) {
     doPostProcessing(Solver.getSolverResults());
   }
   return std::move(Leaks);

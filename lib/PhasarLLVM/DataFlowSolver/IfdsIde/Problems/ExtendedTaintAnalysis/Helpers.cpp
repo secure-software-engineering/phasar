@@ -20,7 +20,7 @@
 namespace psr::XTaint {
 
 EdgeFunction<EdgeDomain>::EdgeFunctionPtrType
-getEdgeIdentity(const llvm::Instruction *Inst) {
+getEdgeIdentity([[maybe_unused]] const llvm::Instruction *Inst) {
   return EdgeIdentity<EdgeDomain>::getInstance();
 }
 
@@ -32,13 +32,13 @@ EdgeFunction<EdgeDomain>::EdgeFunctionPtrType
 getGenEdgeFunction(BasicBlockOrdering &BBO) {
   static llvm::SmallDenseMap<BasicBlockOrdering *,
                              EdgeFunction<EdgeDomain>::EdgeFunctionPtrType, 2>
-      cache;
+      Cache;
 
-  auto &ret = cache[&BBO];
-  if (!ret) {
-    ret = std::make_shared<GenEdgeFunction>(BBO, nullptr);
+  auto &Ret = Cache[&BBO];
+  if (!Ret) {
+    Ret = std::make_shared<GenEdgeFunction>(BBO, nullptr);
   }
-  return ret;
+  return Ret;
 }
 
 llvm::hash_code
@@ -50,15 +50,15 @@ getHashCode(const EdgeFunction<EdgeDomain>::EdgeFunctionPtrType &EF) {
 }
 
 EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllTop() {
-  static AllTop<EdgeDomain>::EdgeFunctionPtrType topEF =
+  static AllTop<EdgeDomain>::EdgeFunctionPtrType TopEF =
       makeEF<AllTop<EdgeDomain>>(Top{});
-  return topEF;
+  return TopEF;
 }
 
 EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllBot() {
-  static AllBottom<EdgeDomain>::EdgeFunctionPtrType botEF =
+  static AllBottom<EdgeDomain>::EdgeFunctionPtrType BotEF =
       makeEF<AllBottom<EdgeDomain>>(Bottom{});
-  return botEF;
+  return BotEF;
 }
 
 EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllSanitized() {
@@ -68,23 +68,29 @@ EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllSanitized() {
 
     using l_t = EdgeDomain;
 
-    l_t computeTarget(l_t Source) override { return Sanitized{}; }
+    l_t computeTarget([[maybe_unused]] l_t Source) override {
+      return Sanitized{};
+    }
 
     EdgeFunctionPtrType
     composeWith(EdgeFunctionPtrType SecondFunction) override {
-      if (dynamic_cast<EdgeIdentity<l_t> *>(&*SecondFunction))
+      if (dynamic_cast<EdgeIdentity<l_t> *>(&*SecondFunction)) {
         return shared_from_this();
-      if (dynamic_cast<AllBottom<l_t> *>(&*SecondFunction))
+      }
+      if (dynamic_cast<AllBottom<l_t> *>(&*SecondFunction)) {
         return SecondFunction;
-      if (dynamic_cast<AllTop<l_t> *>(&*SecondFunction))
+      }
+      if (dynamic_cast<AllTop<l_t> *>(&*SecondFunction)) {
         return shared_from_this();
-      if (dynamic_cast<GenEdgeFunction *>(&*SecondFunction))
+      }
+      if (dynamic_cast<GenEdgeFunction *>(&*SecondFunction)) {
         return SecondFunction;
+      }
 
       auto Res = SecondFunction->computeTarget(Sanitized{});
       switch (Res.getKind()) {
       case EdgeDomain::Kind::Bot:
-        std::cerr << "Generate bot by compose sanitized" << std::endl;
+        // std::cerr << "Generate bot by compose sanitized" << std::endl;
         return getAllBot();
       case EdgeDomain::Kind::Top:
         return getAllTop();
@@ -96,8 +102,9 @@ EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllSanitized() {
     }
 
     EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
-      if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction))
+      if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
         return shared_from_this();
+      }
 
       return OtherFunction;
     }
@@ -106,12 +113,13 @@ EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllSanitized() {
       return &*OtherFunction == this;
     }
 
-    void print(std::ostream &OS, bool IsForDebug = false) const override {
+    void print(std::ostream &OS,
+               [[maybe_unused]] bool IsForDebug = false) const override {
       OS << "SanitizedEF";
     }
   };
 
-  static AllSanitized::EdgeFunctionPtrType botEF = makeEF<AllSanitized>();
-  return botEF;
+  static AllSanitized::EdgeFunctionPtrType SaniEF = makeEF<AllSanitized>();
+  return SaniEF;
 }
 } // namespace psr::XTaint

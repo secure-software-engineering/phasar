@@ -18,29 +18,18 @@ namespace psr::XTaint {
 ComposeEdgeFunction::ComposeEdgeFunction(BasicBlockOrdering &BBO,
                                          EdgeFunctionPtrType F,
                                          EdgeFunctionPtrType G)
-    : EdgeFunctionBase(Kind::Compose, BBO), F(F), G(G) {}
+    : EdgeFunctionBase(Kind::Compose, BBO), F(std::move(F)), G(std::move(G)) {}
 
 auto ComposeEdgeFunction::computeTarget(l_t Source) -> l_t {
   return G->computeTarget(F->computeTarget(Source));
 }
 
-bool ComposeEdgeFunction::equal_to(EdgeFunctionPtrType other) const {
+bool ComposeEdgeFunction::equal_to(EdgeFunctionPtrType Other) const {
 
-  if (auto EFC = dynamic_cast<ComposeEdgeFunction *>(&*other)) {
-
-    auto ret = (&*F == &*EFC->F || F->equal_to(EFC->F)) &&
-               (&*G == &*EFC->G || G->equal_to(EFC->G));
-
-    // print(std::cerr);
-    // EFC->print(std::cerr << (ret ? "==" : " != "));
-    // std::cerr << "\n";
-
-    return ret;
+  if (auto *EFC = dynamic_cast<ComposeEdgeFunction *>(&*Other)) {
+    return (&*F == &*EFC->F || F->equal_to(EFC->F)) &&
+           (&*G == &*EFC->G || G->equal_to(EFC->G));
   }
-
-  // print(std::cerr << "Compare ");
-  // other->print(std::cerr << " with ");
-  // std::cerr << "\n";
 
   return false;
 }
@@ -50,7 +39,8 @@ llvm::hash_code ComposeEdgeFunction::getHashCode() const {
   return llvm::hash_combine(XTaint::getHashCode(G));
 }
 
-void ComposeEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
+void ComposeEdgeFunction::print(std::ostream &OS,
+                                [[maybe_unused]] bool IsForDebug) const {
   OS << "COMP[" << this << "| " << F->str() << " , " << G->str() << " ]";
 }
 } // namespace psr::XTaint

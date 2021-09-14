@@ -32,22 +32,26 @@ JoinConstEdgeFunction::l_t JoinConstEdgeFunction::computeTarget(l_t Source) {
 
 JoinConstEdgeFunction::EdgeFunctionPtrType
 JoinConstEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
-  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction))
+  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
     return shared_from_this();
-  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction))
+  }
+  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction)) {
     return OtherFunction;
-  if (auto Gen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
-    if (Gen->getSanitizer() == nullptr)
+  }
+  if (auto *Gen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
+    if (Gen->getSanitizer() == nullptr) {
       return OtherFunction;
+    }
 
-    auto res = EdgeDomain(OtherConst).join(Gen->getSanitizer(), &BBO);
+    auto Res = EdgeDomain(OtherConst).join(Gen->getSanitizer(), &BBO);
 
     // we never return Top, Bottom or Sanitized from a join with two sanitizers
 
-    if (res.isNotSanitized())
+    if (Res.isNotSanitized()) {
       return makeEF<GenEdgeFunction>(BBO, nullptr);
+    }
 
-    return makeEF<JoinConstEdgeFunction>(BBO, OtherFn, res.getSanitizer());
+    return makeEF<JoinConstEdgeFunction>(BBO, OtherFn, Res.getSanitizer());
   }
   if (&*OtherFunction == &*getAllSanitized()) {
     return shared_from_this();
@@ -57,7 +61,7 @@ JoinConstEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
 }
 
 bool JoinConstEdgeFunction::equal_to(EdgeFunctionPtrType OtherFunction) const {
-  if (auto OtherJC = dynamic_cast<JoinConstEdgeFunction *>(&*OtherFunction)) {
+  if (auto *OtherJC = dynamic_cast<JoinConstEdgeFunction *>(&*OtherFunction)) {
     return OtherConst == OtherJC->OtherConst &&
            (&*OtherFn == &*OtherJC->OtherFn ||
             OtherFn->equal_to(OtherJC->OtherFn));
@@ -69,7 +73,8 @@ llvm::hash_code JoinConstEdgeFunction::getHashCode() const {
   return llvm::hash_combine(OtherConst, XTaint::getHashCode(OtherFn));
 }
 
-void JoinConstEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
+void JoinConstEdgeFunction::print(std::ostream &OS,
+                                  [[maybe_unused]] bool IsForDebug) const {
   OS << "JOINC[" << this << "| " << *OtherFn << " with const "
      << llvmIRToShortString(OtherConst) << " ]";
 }

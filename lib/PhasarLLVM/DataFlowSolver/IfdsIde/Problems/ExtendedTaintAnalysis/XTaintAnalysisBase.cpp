@@ -18,33 +18,33 @@ auto AnalysisBase::getConfigurationAt(const llvm::Instruction *Inst,
 auto AnalysisBase::getSourceConfigAt(const llvm::Instruction *Inst,
                                      const llvm::Function *Callee) const
     -> SourceConfigTy {
-  SourceConfigTy ret;
+  SourceConfigTy Ret;
 
   TSF->forAllGeneratedValuesAt(Inst, Callee,
-                               [&ret](const llvm::Value *V) { ret.insert(V); });
+                               [&Ret](const llvm::Value *V) { Ret.insert(V); });
 
-  return ret;
+  return Ret;
 }
 
 auto AnalysisBase::getSinkConfigAt(const llvm::Instruction *Inst,
                                    const llvm::Function *Callee) const
     -> SinkConfigTy {
-  SinkConfigTy ret;
+  SinkConfigTy Ret;
 
   TSF->forAllLeakCandidatesAt(Inst, Callee,
-                              [&ret](const llvm::Value *V) { ret.insert(V); });
+                              [&Ret](const llvm::Value *V) { Ret.insert(V); });
 
-  return ret;
+  return Ret;
 }
 
 auto AnalysisBase::getSanitizerConfigAt(const llvm::Instruction *Inst,
                                         const llvm::Function *Callee) const
     -> SanitizerConfigTy {
-  SanitizerConfigTy ret;
+  SanitizerConfigTy Ret;
 
   TSF->forAllSanitizedValuesAt(Inst, Callee,
-                               [&ret](const llvm::Value *V) { ret.insert(V); });
+                               [&Ret](const llvm::Value *V) { Ret.insert(V); });
 
-  return ret;
+  return Ret;
 }
 } // namespace psr::XTaint

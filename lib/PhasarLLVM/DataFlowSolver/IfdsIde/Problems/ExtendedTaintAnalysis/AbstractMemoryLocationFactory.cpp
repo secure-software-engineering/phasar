@@ -119,14 +119,14 @@ void AbstractMemoryLocationFactoryBase::setDataLayout(
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::getOrCreateImpl(
-    const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&offs,
+    const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&Offs,
     unsigned BOUND) {
   llvm::FoldingSetNodeID ID;
-  detail::AbstractMemoryLocationImpl::MakeProfile(ID, V, offs, BOUND);
+  detail::AbstractMemoryLocationImpl::MakeProfile(ID, V, Offs, BOUND);
   void *Pos;
   auto *Mem = Pool.FindNodeOrInsertPos(ID, Pos);
   if (!Mem) {
-    Mem = Owner.create(V, BOUND, offs);
+    Mem = Owner.create(V, BOUND, Offs);
     Pool.InsertNode(Mem, Pos);
   }
   return Mem;
@@ -213,7 +213,7 @@ AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
   const auto *Mem = getOrCreateImpl(Baseptr, std::move(Offs), Lifetime);
 
 #ifdef XTAINT_DIAGNOSTICS
-  if (isOverApproximating)
+  if (IsOverApproximating)
     overApproximatedAMLs.insert(mem);
 #endif
 
@@ -304,8 +304,7 @@ AbstractMemoryLocationFactoryBase::withOffsetImpl(
                                          AML->offsets().end());
     Offs.back() += *GepOffs;
 
-    return getOrCreateImpl(AML->base(), std::move(Offs),
-                           AML->lifetime() /*- 1*/);
+    return getOrCreateImpl(AML->base(), std::move(Offs), AML->lifetime());
   }
 }
 
@@ -319,8 +318,6 @@ AbstractMemoryLocationFactoryBase::withOffsetsImpl(
 
   auto NwLifetime = AML->lifetime();
   switch (NwLifetime) {
-  /*case 1:
-    return limitImpl(AML);*/
   case 0:
 #ifdef XTAINT_DIAGNOSTICS
     overApproximatedAMLs.insert(AML);

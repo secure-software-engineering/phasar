@@ -93,14 +93,14 @@ private:
   /// Models an interprocedural flow, where the tainted value source flows to
   /// the callee via the actual parameter From that is mapped to the formal
   /// parameter To inside the callee.
-  d_t transferFlowFact(d_t source, d_t From, const llvm::Value *To);
+  d_t transferFlowFact(d_t Source, d_t From, const llvm::Value *To);
 
   /// Add source to ret if it belongs to the same function as CurrInst. If
   /// addGlobals is true, also add llvm::GlobalValue.
-  void identity(std::set<d_t> &ret, const d_t &source,
-                const llvm::Instruction *CurrInst, bool addGlobals = true);
-  std::set<d_t> identity(const d_t &source, const llvm::Instruction *CurrInst,
-                         bool addGlobals = true);
+  void identity(std::set<d_t> &Ret, const d_t &Source,
+                const llvm::Instruction *CurrInst, bool AddGlobals = true);
+  std::set<d_t> identity(const d_t &Source, const llvm::Instruction *CurrInst,
+                         bool AddGlobals = true);
 
   [[nodiscard]] static inline bool equivalent(const d_t &LHS, const d_t &RHS) {
     return LHS->equivalent(RHS);
@@ -148,25 +148,25 @@ public:
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            const TaintConfig *TSF,
-                           std::set<std::string> EntryPoints, unsigned bound,
-                           bool disableStrongUpdates);
+                           std::set<std::string> EntryPoints, unsigned Bound,
+                           bool DisableStrongUpdates);
 
   ~IDEExtendedTaintAnalysis() override = default;
 
   // Flow functions
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallStmt, f_t DestFun) override;
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitStmt, n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitStmt, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                               std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               std::set<f_t> Callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callStmt,
-                                             f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallStmt,
+                                             f_t DestFun) override;
 
   // Edge functions
 
@@ -193,7 +193,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const override;
 
-  [[nodiscard]] bool isZeroValue(d_t d) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
   EdgeFunctionPtrType allTopFunction() override;
 
@@ -203,17 +203,17 @@ public:
 
   l_t bottomElement() override;
 
-  l_t join(l_t lhs, l_t rhs) override;
+  l_t join(l_t LHS, l_t RHS) override;
 
   // Printing functions
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &OS, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printEdgeFact(std::ostream &os, l_t l) const override;
+  void printEdgeFact(std::ostream &OS, l_t Fact) const override;
 
-  void printFunction(std::ostream &os, f_t m) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &OS = std::cout) override;
@@ -235,12 +235,12 @@ private:
 #endif
 
   /// The k-limit for field-access paths
-  unsigned bound;
+  unsigned Bound;
 
   /// Does the Leaks map still contain sanitized facts?
-  bool postProcessed = false;
+  bool PostProcessed = false;
 
-  bool disableStrongUpdates = false;
+  bool DisableStrongUpdates = false;
 
 public:
   BasicBlockOrdering &getBasicBlockOrdering() { return BBO; }

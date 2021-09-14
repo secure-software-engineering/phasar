@@ -36,8 +36,8 @@ private:
 public:
   using l_t = EdgeDomain;
 
-  EdgeFunctionBase(Kind kind, BasicBlockOrdering &BBO);
-  virtual ~EdgeFunctionBase() = default;
+  EdgeFunctionBase(Kind Kind, BasicBlockOrdering &BBO);
+  ~EdgeFunctionBase() override = default;
 
   EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override;
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override;

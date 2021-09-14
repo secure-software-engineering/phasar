@@ -35,23 +35,23 @@ public:
   };
 
 private:
-  llvm::PointerIntPair<const llvm::Instruction *, 2, Kind> value;
+  llvm::PointerIntPair<const llvm::Instruction *, 2, Kind> Value;
 
 public:
-  explicit EdgeDomain();
-  EdgeDomain(std::nullptr_t);
-  EdgeDomain(psr::Bottom);
-  EdgeDomain(psr::Top);
-  EdgeDomain(psr::XTaint::Sanitized);
-  EdgeDomain(const llvm::Instruction *Sani);
+  explicit EdgeDomain() noexcept;
+  EdgeDomain(std::nullptr_t) noexcept;
+  EdgeDomain(psr::Bottom) noexcept;
+  EdgeDomain(psr::Top) noexcept;
+  EdgeDomain(psr::XTaint::Sanitized) noexcept;
+  EdgeDomain(const llvm::Instruction *Sani) noexcept;
 
-  bool isBottom() const;
-  bool isTop() const;
-  bool isSanitized() const;
-  bool isNotSanitized() const;
-  bool hasSanitizer() const;
-  const llvm::Instruction *getSanitizer() const;
-  bool mayBeSanitized() const;
+  [[nodiscard]] bool isBottom() const;
+  [[nodiscard]] bool isTop() const;
+  [[nodiscard]] bool isSanitized() const;
+  [[nodiscard]] bool isNotSanitized() const;
+  [[nodiscard]] bool hasSanitizer() const;
+  [[nodiscard]] const llvm::Instruction *getSanitizer() const;
+  [[nodiscard]] bool mayBeSanitized() const;
 
   bool operator==(const EdgeDomain &Other) const;
   inline bool operator!=(const EdgeDomain &Other) const {
@@ -65,7 +65,7 @@ public:
   EdgeDomain join(const EdgeDomain &Other,
                   BasicBlockOrdering *BBO = nullptr) const;
 
-  Kind getKind() const;
+  [[nodiscard]] Kind getKind() const;
 };
 } // namespace psr::XTaint
 

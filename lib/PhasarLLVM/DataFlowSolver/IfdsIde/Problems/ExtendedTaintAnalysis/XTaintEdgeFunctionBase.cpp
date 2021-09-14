@@ -15,46 +15,56 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 
 namespace psr::XTaint {
-EdgeFunctionBase::EdgeFunctionBase(Kind kind, BasicBlockOrdering &BBO)
-    : BBO(BBO), kind(kind) {}
+EdgeFunctionBase::EdgeFunctionBase(Kind Kind, BasicBlockOrdering &BBO)
+    : BBO(BBO), kind(Kind) {}
 
 EdgeFunctionBase::EdgeFunctionPtrType
 EdgeFunctionBase::composeWith(EdgeFunctionPtrType SecondFunction) {
-  if (isEdgeIdentity(&*SecondFunction))
+  if (isEdgeIdentity(&*SecondFunction)) {
     return shared_from_this();
-  if (dynamic_cast<AllBottom<l_t> *>(&*SecondFunction))
+  }
+  if (dynamic_cast<AllBottom<l_t> *>(&*SecondFunction)) {
     return SecondFunction;
-  if (dynamic_cast<AllTop<l_t> *>(&*SecondFunction))
+  }
+  if (dynamic_cast<AllTop<l_t> *>(&*SecondFunction)) {
     return shared_from_this();
-  if (dynamic_cast<GenEdgeFunction *>(&*SecondFunction))
+  }
+  if (dynamic_cast<GenEdgeFunction *>(&*SecondFunction)) {
     return SecondFunction;
-  if (&*SecondFunction == &*getAllSanitized())
+  }
+  if (&*SecondFunction == &*getAllSanitized()) {
     return SecondFunction;
+  }
 
   return makeEF<ComposeEdgeFunction>(BBO, shared_from_this(), SecondFunction);
 }
 EdgeFunctionBase::EdgeFunctionPtrType
 EdgeFunctionBase::joinWith(EdgeFunctionPtrType OtherFunction) {
-  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction))
+  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
     return shared_from_this();
-  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction))
+  }
+  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction)) {
     return shared_from_this();
-  if (&*OtherFunction == &*getAllSanitized())
+  }
+  if (&*OtherFunction == &*getAllSanitized()) {
     return shared_from_this();
-
-  if (isEdgeIdentity(&*OtherFunction))
-    return getAllBot();
-
-  if (auto Gen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
-    if (Gen->getSanitizer() == nullptr)
-      return OtherFunction;
-    else
-      return makeEF<JoinConstEdgeFunction>(BBO, shared_from_this(),
-                                           Gen->getSanitizer());
   }
 
-  if (this == &*OtherFunction || equal_to(OtherFunction))
+  if (isEdgeIdentity(&*OtherFunction)) {
+    return getAllBot();
+  }
+
+  if (auto *Gen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
+    if (Gen->getSanitizer() == nullptr) {
+      return OtherFunction;
+    }
+    return makeEF<JoinConstEdgeFunction>(BBO, shared_from_this(),
+                                         Gen->getSanitizer());
+  }
+
+  if (this == &*OtherFunction || equal_to(OtherFunction)) {
     return shared_from_this();
+  }
 
   return JoinEdgeFunction::create(BBO, shared_from_this(), OtherFunction);
 }

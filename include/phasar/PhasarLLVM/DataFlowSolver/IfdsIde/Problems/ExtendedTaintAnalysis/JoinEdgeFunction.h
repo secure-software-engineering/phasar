@@ -20,34 +20,37 @@ namespace psr::XTaint {
 class JoinEdgeFunction : public EdgeFunctionBase {
   struct EFDenseSetInfo {
     static inline EdgeFunctionPtrType getEmptyKey() {
-      static EdgeFunctionPtrType emptyKey(
+      static EdgeFunctionPtrType EmptyKey(
           llvm::DenseMapInfo<EdgeFunction<l_t> *>::getEmptyKey(),
           [](const EdgeFunction<l_t> *) {});
 
-      return emptyKey;
+      return EmptyKey;
     }
     static inline EdgeFunctionPtrType getTombstoneKey() {
-      static EdgeFunctionPtrType tombstoneKey(
+      static EdgeFunctionPtrType TombstoneKey(
           llvm::DenseMapInfo<EdgeFunction<l_t> *>::getTombstoneKey(),
           [](const EdgeFunction<l_t> *) {});
 
-      return tombstoneKey;
+      return TombstoneKey;
     }
     static unsigned getHashValue(const EdgeFunctionPtrType &EF) {
       return XTaint::getHashCode(EF);
     }
     static bool isEqual(const EdgeFunctionPtrType &LHS,
                         const EdgeFunctionPtrType &RHS) {
-      if (&*LHS == &*RHS)
+      if (&*LHS == &*RHS) {
         return true;
+      }
 
       if (&*LHS == llvm::DenseMapInfo<EdgeFunction<l_t> *>::getEmptyKey() ||
-          &*LHS == llvm::DenseMapInfo<EdgeFunction<l_t> *>::getTombstoneKey())
+          &*LHS == llvm::DenseMapInfo<EdgeFunction<l_t> *>::getTombstoneKey()) {
         return false;
+      }
 
       if (&*RHS == llvm::DenseMapInfo<EdgeFunction<l_t> *>::getEmptyKey() ||
-          &*RHS == llvm::DenseMapInfo<EdgeFunction<l_t> *>::getTombstoneKey())
+          &*RHS == llvm::DenseMapInfo<EdgeFunction<l_t> *>::getTombstoneKey()) {
         return false;
+      }
 
       return LHS->equal_to(RHS);
     }
@@ -56,20 +59,20 @@ class JoinEdgeFunction : public EdgeFunctionBase {
   using SubEdgeFuctionsTy =
       llvm::SmallDenseSet<EdgeFunctionPtrType, 2, EFDenseSetInfo>;
   // The set of joined edge-functions. Is not empty
-  SubEdgeFuctionsTy subEF;
+  SubEdgeFuctionsTy SubEF;
 
   // The joined edge-value of collected constants (GenEdgeFunction and
   // JoinConstEdgeFunction)
-  EdgeDomain seed;
+  EdgeDomain Seed;
 
   JoinEdgeFunction(BasicBlockOrdering &BBO,
-                   std::initializer_list<EdgeFunctionPtrType> subEF,
-                   const EdgeDomain &seed);
+                   std::initializer_list<EdgeFunctionPtrType> SubEF,
+                   const EdgeDomain &Seed);
 
 public:
   // FOR INTERNAL USE ONLY! USE JoiEdgeFunction::create INSTEAD
-  JoinEdgeFunction(BasicBlockOrdering &BBO, SubEdgeFuctionsTy &&subEF,
-                   const EdgeDomain &seed);
+  JoinEdgeFunction(BasicBlockOrdering &BBO, SubEdgeFuctionsTy &&SubEF,
+                   const EdgeDomain &Seed);
   // Replaces the constructor and aims to deduplicate the sub-edge-functions if
   // one or more of {First, Second} are also JoinEdgeFunctions
   static EdgeFunctionPtrType create(BasicBlockOrdering &BBO,
