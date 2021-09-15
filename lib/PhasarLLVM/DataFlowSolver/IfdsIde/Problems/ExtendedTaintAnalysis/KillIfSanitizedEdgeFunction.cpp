@@ -7,8 +7,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#if 1
-
 #include "llvm/IR/Instruction.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/ComposeEdgeFunction.h"
@@ -60,5 +58,3 @@ void KillIfSanitizedEdgeFunction::print(
 }
 
 } // namespace psr::XTaint
-
-#endif

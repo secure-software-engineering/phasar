@@ -20,6 +20,7 @@
 #include "llvm/ADT/SmallVector.h"
 
 #include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/TypeTraits.h"
 
 namespace llvm {
 class Type;
@@ -31,14 +32,14 @@ std::string createTimeStamp();
 
 bool isConstructor(const std::string &MangledName);
 
-std::string debasify(const std::string &name);
+std::string debasify(const std::string &Name);
 
-const llvm::Type *stripPointer(const llvm::Type *pointer);
+const llvm::Type *stripPointer(const llvm::Type *Pointer);
 
-bool isMangled(const std::string &name);
+bool isMangled(const std::string &Name);
 
-std::vector<std::string> splitString(const std::string &str,
-                                     const std::string &delimiter);
+std::vector<std::string> splitString(const std::string &Str,
+                                     const std::string &Delimiter);
 
 template <typename T>
 std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
@@ -60,53 +61,20 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
   //  1101  {a, c, d}
   //  1110  {b, c, d}
   //  1111  {a, b, c, d}
-  std::set<std::set<T>> powerset;
+  std::set<std::set<T>> Powerset;
   for (std::size_t i = 0; i < (1 << s.size()); ++i) {
-    std::set<T> subset;
+    std::set<T> Subset;
     for (std::size_t j = 0; j < s.size(); ++j) {
       if ((i & (1 << j)) > 0) {
-        auto it = s.begin();
-        advance(it, j);
-        subset.insert(*it);
+        auto It = s.begin();
+        advance(It, j);
+        Subset.insert(*It);
       }
-      powerset.insert(subset);
+      Powerset.insert(Subset);
     }
   }
-  return powerset;
+  return Powerset;
 }
-
-namespace detail {
-
-template <typename T, typename = void>
-struct has_erase_iterator : std::false_type {};
-
-template <typename T>
-struct has_erase_iterator<T, std::void_t<decltype(std::declval<T>().erase(
-                                 std::declval<typename T::iterator>()))>>
-    : std::true_type {};
-
-template <typename T, typename = size_t>
-struct is_std_hashable : std::false_type {};
-template <typename T>
-struct is_std_hashable<T, decltype(std::declval<std::hash<T>>()(
-                              std::declval<T>()))> : std::true_type {};
-
-template <typename T, typename = llvm::hash_code>
-struct is_llvm_hashable : std::false_type {};
-template <typename T>
-struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))>
-    : std::true_type {};
-
-} // namespace detail
-
-template <typename T>
-constexpr bool has_erase_iterator_v = detail::has_erase_iterator<T>::value;
-
-template <typename T>
-constexpr bool is_std_hashable_v = detail::is_std_hashable<T>::value;
-
-template <typename T>
-constexpr bool is_llvm_hashable_v = detail::is_llvm_hashable<T>::value;
 
 /// \brief Computes the set-intersection of the potentially unordered sets
 /// Dest and Src and stores the result back in Dest.
@@ -169,11 +137,11 @@ intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
                                typename OtherContainerTy::value_type>,
                 "The containers Src and Dest must be compatible");
 
-  for (auto it = Dest.begin(), end = Dest.end(); it != end;) {
-    if (Src.count(*it)) {
-      ++it;
+  for (auto It = Dest.begin(), End = Dest.end(); It != End;) {
+    if (Src.count(*It)) {
+      ++It;
     } else {
-      it = Dest.erase(it);
+      It = Dest.erase(It);
     }
   }
 }
@@ -183,10 +151,10 @@ void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
   Dest.setIntersectWith(Src);
 }
 
-std::ostream &operator<<(std::ostream &os, const std::vector<bool> &bits);
+std::ostream &operator<<(std::ostream &OS, const std::vector<bool> &Bits);
 
 struct stringIDLess {
-  bool operator()(const std::string &lhs, const std::string &rhs) const;
+  bool operator()(const std::string &LHS, const std::string &RHS) const;
 };
 
 /// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
@@ -211,6 +179,11 @@ private:
 };
 
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
+
+// Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
+template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 } // namespace psr
 

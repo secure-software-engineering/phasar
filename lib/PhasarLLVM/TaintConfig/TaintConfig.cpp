@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cctype>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <string>
@@ -55,7 +56,13 @@ TaintCategory toTaintCategory(llvm::StringRef Str) {
 
 void TaintConfig::addTaintCategory(const llvm::Value *Val,
                                    llvm::StringRef AnnotationStr) {
-  addTaintCategory(Val, toTaintCategory(AnnotationStr));
+  auto TC = toTaintCategory(AnnotationStr);
+  if (TC == TaintCategory::None) {
+    std::cerr << "ERROR: Unknown taint category: '" << AnnotationStr.str()
+              << "'\n";
+  } else {
+    addTaintCategory(Val, TC);
+  }
 }
 
 void TaintConfig::addTaintCategory(const llvm::Value *Val,
@@ -114,12 +121,12 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
                                   const nlohmann::json &Config) {
 
   for (const auto &FunDesc : Config["functions"]) {
-    auto name = FunDesc["name"].get<std::string>();
+    auto Name = FunDesc["name"].get<std::string>();
 
-    auto FnDefs = findAllFunctionDefs(IRDB, name);
+    auto FnDefs = findAllFunctionDefs(IRDB, Name);
 
     if (FnDefs.empty()) {
-      std::cerr << "WARNING: Cannot retrieve function " << name << "\n";
+      std::cerr << "WARNING: Cannot retrieve function " << Name << "\n";
       continue;
     }
 
@@ -130,14 +137,27 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
       auto Params = FunDesc["params"];
       if (Params.contains("source")) {
         for (unsigned Idx : Params["source"]) {
-          assert(Idx < Fun->arg_size());
+          if (Idx >= Fun->arg_size()) {
+            std::cerr << "ERROR: The source-function parameter index is out of "
+                         "bounds: "
+                      << Idx << "\n";
+            // Use 'continue' instead of 'break' to get error messages for the
+            // remaining parameters as well
+            continue;
+          }
           addTaintCategory(Fun->getArg(Idx), TaintCategory::Source);
         }
       }
       if (Params.contains("sink")) {
         for (const auto &Idx : Params["sink"]) {
           if (Idx.is_number()) {
-            assert(Idx < Fun->arg_size());
+            if (Idx >= Fun->arg_size()) {
+              std::cerr
+                  << "ERROR: The source-function parameter index is out of "
+                     "bounds: "
+                  << Idx << "\n";
+              continue;
+            }
             addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
           } else if (Idx.is_string()) {
             const auto Sinks = Idx.get<std::string>();
@@ -151,7 +171,12 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
       }
       if (Params.contains("sanitizer")) {
         for (unsigned Idx : Params["sanitizer"]) {
-          assert(Idx < Fun->arg_size());
+          if (Idx >= Fun->arg_size()) {
+            std::cerr << "ERROR: The source-function parameter index is out of "
+                         "bounds: "
+                      << Idx << "\n";
+            continue;
+          }
           addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);
         }
       }
@@ -521,7 +546,7 @@ std::ostream &operator<<(std::ostream &OS, const TaintConfig &TC) {
   return OS;
 }
 
-nlohmann::json parseTaintConfig(const std::string &Path) {
+nlohmann::json parseTaintConfig(const std::filesystem::path &Path) {
   std::string RawText = readTextFile(Path);
   nlohmann::json TaintConfig(nlohmann::json::parse(RawText));
   nlohmann::json_schema::json_validator Validator;

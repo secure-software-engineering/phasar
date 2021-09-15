@@ -17,51 +17,6 @@
 
 namespace psr::XTaint {
 
-EdgeDomain::EdgeDomain() noexcept : Value(nullptr, Kind::Bot) {}
-
-EdgeDomain::EdgeDomain(std::nullptr_t) noexcept
-    : Value(nullptr, Kind::WithSanitizer) {}
-
-EdgeDomain::EdgeDomain(psr::Bottom) noexcept : Value(nullptr, Kind::Bot) {}
-
-EdgeDomain::EdgeDomain(psr::Top) noexcept : Value(nullptr, Kind::Top) {}
-
-EdgeDomain::EdgeDomain(psr::XTaint::Sanitized) noexcept
-    : Value(nullptr, Kind::Sanitized) {}
-
-EdgeDomain::EdgeDomain(const llvm::Instruction *Sani) noexcept
-    : Value(Sani, Kind::WithSanitizer) {}
-
-bool EdgeDomain::isBottom() const { return Value.getInt() == Kind::Bot; }
-
-bool EdgeDomain::isTop() const { return Value.getInt() == Kind::Top; }
-
-bool EdgeDomain::isSanitized() const {
-  return Value.getInt() == Kind::Sanitized;
-}
-
-bool EdgeDomain::isNotSanitized() const {
-  return Value.getInt() == Kind::WithSanitizer && Value.getPointer() == nullptr;
-}
-
-bool EdgeDomain::hasSanitizer() const { return Value.getPointer(); }
-
-const llvm::Instruction *EdgeDomain::getSanitizer() const {
-  return Value.getPointer();
-}
-
-bool EdgeDomain::mayBeSanitized() const {
-  return isSanitized() || hasSanitizer();
-}
-
-bool EdgeDomain::operator==(const EdgeDomain &Other) const {
-  return Other.Value == Value;
-}
-
-bool EdgeDomain::operator<(const EdgeDomain &Other) const {
-  return Other.Value.getOpaqueValue() < Value.getOpaqueValue();
-}
-
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const EdgeDomain &ED) {
   switch (ED.getKind()) {
   case EdgeDomain::Bot:
@@ -169,7 +124,5 @@ EdgeDomain EdgeDomain::join(const EdgeDomain &Other,
   // safely kill the sanitizer here
   return nullptr;
 }
-
-auto EdgeDomain::getKind() const -> Kind { return Value.getInt(); }
 
 } // namespace psr::XTaint

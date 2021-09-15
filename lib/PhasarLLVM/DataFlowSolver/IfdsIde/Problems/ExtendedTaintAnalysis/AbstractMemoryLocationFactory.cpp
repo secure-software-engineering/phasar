@@ -299,7 +299,8 @@ AbstractMemoryLocationFactoryBase::withOffsetImpl(
     if (!GepOffs.has_value()) {
       return limitImpl(AML);
     }
-    assert(!AML->offsets().empty());
+    assert(!AML->offsets().empty() && "An AbstractMemoryLocation should have "
+                                      "at least one offset, even if it is 0");
     llvm::SmallVector<ptrdiff_t, 8> Offs(AML->offsets().begin(),
                                          AML->offsets().end());
     Offs.back() += *GepOffs;
@@ -317,34 +318,35 @@ AbstractMemoryLocationFactoryBase::withOffsetsImpl(
   }
 
   auto NwLifetime = AML->lifetime();
-  switch (NwLifetime) {
-  case 0:
+
+  if (NwLifetime == 0) {
 #ifdef XTAINT_DIAGNOSTICS
     overApproximatedAMLs.insert(AML);
 #endif
     return AML;
-  default:
-    assert(!AML->offsets().empty());
-    llvm::SmallVector<ptrdiff_t, 8> OffsCpy(AML->offsets().begin(),
-                                            AML->offsets().end());
-    OffsCpy.back() += Offs.front();
-
-    bool IsOverApproximating = false;
-
-    if (NwLifetime < Offs.size() - 1) {
-      Offs = Offs.slice(0, NwLifetime + 1);
-    }
-
-    OffsCpy.append(std::next(Offs.begin()), Offs.end());
-
-    const auto *Ret = getOrCreateImpl(AML->base(), std::move(OffsCpy),
-                                      NwLifetime - Offs.size() + 1);
-#ifdef XTAINT_DIAGNOSTICS
-    if (isOverApproximating)
-      overApproximatedAMLs.insert(ret);
-#endif
-    return Ret;
   }
+
+  assert(!AML->offsets().empty() && "An AbstractMemoryLocation should have "
+                                    "at least one offset, even if it is 0");
+  llvm::SmallVector<ptrdiff_t, 8> OffsCpy(AML->offsets().begin(),
+                                          AML->offsets().end());
+  OffsCpy.back() += Offs.front();
+
+  bool IsOverApproximating = false;
+
+  if (NwLifetime < Offs.size() - 1) {
+    Offs = Offs.slice(0, NwLifetime + 1);
+  }
+
+  OffsCpy.append(std::next(Offs.begin()), Offs.end());
+
+  const auto *Ret = getOrCreateImpl(AML->base(), std::move(OffsCpy),
+                                    NwLifetime - Offs.size() + 1);
+#ifdef XTAINT_DIAGNOSTICS
+  if (isOverApproximating)
+    overApproximatedAMLs.insert(ret);
+#endif
+  return Ret;
 }
 
 const AbstractMemoryLocationImpl *

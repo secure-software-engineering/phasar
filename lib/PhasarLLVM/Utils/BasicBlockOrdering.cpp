@@ -30,10 +30,11 @@ bool BasicBlockOrdering::mustComeBefore(const llvm::Instruction *LHS,
     return false;
   }
 
-  if (LHS->getParent() == RHS->getParent())
+  if (LHS->getParent() == RHS->getParent()) {
     return LHS->comesBefore(RHS);
-  else
-    return getDom(LHS->getFunction()).dominates(LHS, RHS);
+  }
+
+  return getDom(LHS->getFunction()).dominates(LHS, RHS);
 }
 
 } // namespace psr

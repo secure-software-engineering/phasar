@@ -33,17 +33,13 @@
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
 using json = nlohmann::json;
-
-// Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-// explicit deduction guide (not needed as of C++20)
-template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;

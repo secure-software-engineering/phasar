@@ -42,8 +42,8 @@ public:
   EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override;
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override;
 
-  /// The actualy kind of this edge function. can be used in a type-switch.
-  inline Kind getKind() const { return kind; }
+  /// The actualy kind of this edge function. Can be used in a type-switch.
+  [[nodiscard]] inline Kind getKind() const { return kind; }
 
   virtual llvm::hash_code getHashCode() const = 0;
 };

@@ -7,9 +7,10 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "llvm/ADT/SmallSet.h"
 #include <algorithm>
 #include <type_traits>
+
+#include "llvm/ADT/SmallSet.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"

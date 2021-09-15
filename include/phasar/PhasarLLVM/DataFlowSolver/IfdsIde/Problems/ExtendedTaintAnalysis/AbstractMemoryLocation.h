@@ -83,12 +83,12 @@ public:
   /// Checks whether this AbstractMemoryLocation is the special zero value
   [[nodiscard]] bool isZero() const;
   /// The base pointer
-  [[nodiscard]] const llvm::Value *base() const;
+  [[nodiscard]] inline const llvm::Value *base() const { return Baseptr; }
   /// The array of offsets
   [[nodiscard]] llvm::ArrayRef<ptrdiff_t> offsets() const;
   /// The number of modifications that are allowed on this object before
   /// overapproximating
-  [[nodiscard]] size_t lifetime() const;
+  [[nodiscard]] inline size_t lifetime() const { return Lifetime; }
 
   /// Compute the byte-offset given by the specified getelementptr instruction.
   ///

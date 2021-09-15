@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_H
 #define PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_H
 
+#include <filesystem>
 #include <functional>
 #include <iostream>
 #include <set>
@@ -133,7 +134,7 @@ private:
 //===----------------------------------------------------------------------===//
 // Miscellaneous helper functions
 
-nlohmann::json parseTaintConfig(const std::string &Path);
+nlohmann::json parseTaintConfig(const std::filesystem::path &Path);
 
 } // namespace psr
 

@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTANALYSISBASE_H_
 
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/TinyPtrVector.h"
 
 namespace llvm {
 class Value;

@@ -53,12 +53,10 @@ bool AbstractMemoryLocationImpl::isZero() const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(Baseptr);
 }
 
-const llvm::Value *AbstractMemoryLocationImpl::base() const { return Baseptr; }
-
 llvm::ArrayRef<ptrdiff_t> AbstractMemoryLocationImpl::offsets() const {
   return llvm::makeArrayRef(Offsets, NumOffsets);
 }
-uint64_t AbstractMemoryLocationImpl::lifetime() const { return Lifetime; }
+
 auto AbstractMemoryLocationImpl::computeOffset(
     const llvm::DataLayout &DL, const llvm::GetElementPtrInst *Gep)
     -> std::optional<ptrdiff_t> {

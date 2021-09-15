@@ -38,26 +38,51 @@ private:
   llvm::PointerIntPair<const llvm::Instruction *, 2, Kind> Value;
 
 public:
-  explicit EdgeDomain() noexcept;
-  EdgeDomain(std::nullptr_t) noexcept;
-  EdgeDomain(psr::Bottom) noexcept;
-  EdgeDomain(psr::Top) noexcept;
-  EdgeDomain(psr::XTaint::Sanitized) noexcept;
-  EdgeDomain(const llvm::Instruction *Sani) noexcept;
+  inline explicit EdgeDomain() noexcept : Value(nullptr, Kind::Bot) {}
 
-  [[nodiscard]] bool isBottom() const;
-  [[nodiscard]] bool isTop() const;
-  [[nodiscard]] bool isSanitized() const;
-  [[nodiscard]] bool isNotSanitized() const;
-  [[nodiscard]] bool hasSanitizer() const;
-  [[nodiscard]] const llvm::Instruction *getSanitizer() const;
-  [[nodiscard]] bool mayBeSanitized() const;
+  inline EdgeDomain(std::nullptr_t) noexcept
+      : Value(nullptr, Kind::WithSanitizer) {}
 
-  bool operator==(const EdgeDomain &Other) const;
-  inline bool operator!=(const EdgeDomain &Other) const {
+  inline EdgeDomain(psr::Bottom) noexcept : Value(nullptr, Kind::Bot) {}
+
+  inline EdgeDomain(psr::Top) noexcept : Value(nullptr, Kind::Top) {}
+
+  inline EdgeDomain(psr::XTaint::Sanitized) noexcept
+      : Value(nullptr, Kind::Sanitized) {}
+
+  inline EdgeDomain(const llvm::Instruction *Sani) noexcept
+      : Value(Sani, Kind::WithSanitizer) {}
+
+  [[nodiscard]] inline bool isBottom() const { return getKind() == Bot; }
+  [[nodiscard]] inline bool isTop() const { return getKind() == Top; }
+  [[nodiscard]] inline bool isSanitized() const {
+    return getKind() == Sanitized;
+  }
+  [[nodiscard]] inline bool isNotSanitized() const {
+    return getKind() == WithSanitizer && getSanitizer() == nullptr;
+  }
+  [[nodiscard]] inline bool hasSanitizer() const {
+    return getSanitizer() != nullptr;
+  }
+  [[nodiscard]] inline const llvm::Instruction *getSanitizer() const {
+    return Value.getPointer();
+  }
+  [[nodiscard]] inline bool mayBeSanitized() const {
+    return isSanitized() || hasSanitizer();
+  }
+
+  [[nodiscard]] inline bool operator==(const EdgeDomain &Other) const {
+    return Other.Value == Value;
+  }
+  [[nodiscard]] inline bool operator!=(const EdgeDomain &Other) const {
     return !(*this == Other);
   }
-  bool operator<(const EdgeDomain &Other) const;
+
+  /// An arbitrary ordering to be able to insert EdgeDomain values into std::set
+  /// and as keys into std::map
+  [[nodiscard]] inline bool operator<(const EdgeDomain &Other) const {
+    return Other.Value.getOpaqueValue() < Value.getOpaqueValue();
+  }
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const EdgeDomain &ED);
   friend std::ostream &operator<<(std::ostream &OS, const EdgeDomain &ED);
@@ -65,7 +90,7 @@ public:
   EdgeDomain join(const EdgeDomain &Other,
                   BasicBlockOrdering *BBO = nullptr) const;
 
-  [[nodiscard]] Kind getKind() const;
+  [[nodiscard]] inline Kind getKind() const { return Value.getInt(); }
 };
 } // namespace psr::XTaint
 

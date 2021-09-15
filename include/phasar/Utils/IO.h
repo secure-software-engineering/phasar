@@ -17,13 +17,15 @@
 #ifndef PHASAR_UTILS_IO_H
 #define PHASAR_UTILS_IO_H
 
+#include <filesystem>
 #include <string>
 
 namespace psr {
 
-std::string readTextFile(const std::string &Path);
+std::string readTextFile(const std::filesystem::path &Path);
 
-void writeTextFile(const std::string &Path, const std::string &Content);
+void writeTextFile(const std::filesystem::path &Path,
+                   const std::string &Content);
 
 } // namespace psr
 

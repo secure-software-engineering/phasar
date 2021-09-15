@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2020 Fabian Schiebel.
+ * Copyright (c) 2021 Fabian Schiebel.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
@@ -21,37 +21,10 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/TypeTraits.h"
 
 namespace psr {
 namespace detail {
-
-template <typename T, typename = void>
-struct is_container : public std::false_type {};
-template <typename T>
-struct is_container<T, std::void_t<typename T::const_iterator,
-                                   decltype(std::declval<T>().begin()),
-                                   decltype(std::declval<T>().end())>>
-    : public std::true_type {};
-
-template <typename T> struct is_pair : public std::false_type {};
-template <typename U, typename V>
-struct is_pair<std::pair<U, V>> : public std::true_type {};
-
-template <typename T> struct is_tuple : public std::false_type {};
-template <typename... Elems>
-struct is_tuple<std::tuple<Elems...>> : public std::true_type {};
-
-template <typename T, typename = llvm::raw_ostream &>
-struct is_default_printable : public std::false_type {};
-template <typename T>
-struct is_default_printable<T, decltype(std::declval<llvm::raw_ostream &>()
-                                        << std::declval<T>())>
-    : public std::true_type {};
-
-template <typename T, typename Enable = std::string>
-struct has_str : public std::false_type {};
-template <typename T>
-struct has_str<T, decltype(std::declval<T>().str())> : public std::true_type {};
 
 template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data);
 
@@ -83,7 +56,7 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data) {
       Data->print(SOS);
       OS << SOS.str();
     }
-  } else if constexpr (is_default_printable<ElemTy>::value) {
+  } else if constexpr (is_llvm_printable<ElemTy>::value) {
     OS << Data;
   } else if constexpr (is_pair<ElemTy>::value) {
     OS << "(";
@@ -93,7 +66,7 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data) {
     OS << ")";
   } else if constexpr (is_tuple<ElemTy>::value) {
     printTuple(OS, Data, std::make_index_sequence<std::tuple_size_v<ElemTy>>());
-  } else if constexpr (is_container<ElemTy>::value) {
+  } else if constexpr (is_iterable<ElemTy>::value) {
     OS << "{ ";
     bool frst = true;
     size_t Cnt = 0;
