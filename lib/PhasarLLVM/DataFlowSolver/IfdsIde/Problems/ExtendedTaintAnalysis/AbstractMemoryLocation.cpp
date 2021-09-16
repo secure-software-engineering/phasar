@@ -96,15 +96,16 @@ bool AbstractMemoryLocationImpl::equivalent(
 }
 
 bool AbstractMemoryLocationImpl::equivalentExceptPointerArithmetics(
-    const AbstractMemoryLocationImpl &TV) const {
+    const AbstractMemoryLocationImpl &TV, unsigned PALevel) const {
   if (base() != TV.base()) {
     return false;
   }
   size_t MinSize = std::min(offsets().size(), TV.offsets().size());
-  if (MinSize == 1) {
+  if (MinSize <= PALevel) {
     return true;
   }
-  return offsets().slice(0, MinSize - 1) == TV.offsets().slice(0, MinSize - 1);
+  return offsets().slice(0, MinSize - PALevel) ==
+         TV.offsets().slice(0, MinSize - PALevel);
 }
 
 bool AbstractMemoryLocationImpl::mustAlias(
@@ -195,7 +196,7 @@ std::ostream &operator<<(std::ostream &OS, const AbstractMemoryLocation &TV) {
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const AbstractMemoryLocation &TV) {
-  // TODO: better representation
+  // -> Think about better representation
   OS << "(";
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(TV->base())) {
     OS << "<ZERO>";

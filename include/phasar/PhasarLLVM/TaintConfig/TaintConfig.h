@@ -61,11 +61,14 @@ public:
 
   TaintConfig(const psr::ProjectIRDB &Code, const nlohmann::json &Config);
   TaintConfig(const psr::ProjectIRDB &AnnotatedCode);
-  TaintConfig(TaintDescriptionCallBackTy SourceCB,
-              TaintDescriptionCallBackTy SinkCB);
+  TaintConfig(
+      TaintDescriptionCallBackTy SourceCB, TaintDescriptionCallBackTy SinkCB,
+      TaintDescriptionCallBackTy SanitizerCB = TaintDescriptionCallBackTy{});
 
-  void registerSourceCallBack(const TaintDescriptionCallBackTy &CB);
-  void registerSinkCallBack(const TaintDescriptionCallBackTy &CB);
+  void registerSourceCallBack(TaintDescriptionCallBackTy CB);
+  void registerSinkCallBack(TaintDescriptionCallBackTy CB);
+  void registerSanitizerCallBack(TaintDescriptionCallBackTy CB);
+
   [[nodiscard]] const TaintDescriptionCallBackTy &
   getRegisteredSourceCallBack() const;
   [[nodiscard]] const TaintDescriptionCallBackTy &
@@ -129,6 +132,7 @@ private:
   std::unordered_set<const llvm::Value *> SanitizerValues;
   TaintDescriptionCallBackTy SourceCallBack;
   TaintDescriptionCallBackTy SinkCallBack;
+  TaintDescriptionCallBackTy SanitizerCallBack;
 };
 
 //===----------------------------------------------------------------------===//

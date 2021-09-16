@@ -123,7 +123,8 @@ private:
   /// llvm::StoreInst, llvm::MemSetInst, etc.
   FlowFunctionPtrType getStoreFF(const llvm::Value *PointerOp,
                                  const llvm::Value *ValueOp,
-                                 const llvm::Instruction *Store);
+                                 const llvm::Instruction *Store,
+                                 unsigned PALevel = 1);
 
   void populateWithMayAliases(SourceConfigTy &Facts) const;
 

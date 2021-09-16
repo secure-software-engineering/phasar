@@ -192,21 +192,24 @@ TEST_F(IDETaintAnalysisTest, XTaint06) {
   doAnalysis({PathToLLFiles + "xtaint06_cpp.ll"}, gt, std::monostate{});
 }
 
-// TEST_F(IDETaintAnalysisTest, XTaint07) {
-//   map<int, set<string>> gt;
+/// In the new TaintConfig specifying source/sink/sanitizer properties for extra
+/// parameters of C-style variadic functions is not (yet?) supported. So, the
+/// tests XTaint07 and XTaint08 are disabled.
+TEST_F(IDETaintAnalysisTest, DISABLED_XTaint07) {
+  map<int, set<string>> gt;
 
-//   gt[21] = {"20"};
+  gt[21] = {"20"};
 
-//   doAnalysis({PathToLLFiles + "xtaint07_cpp.ll"}, gt);
-// }
+  doAnalysis({PathToLLFiles + "xtaint07_cpp.ll"}, gt, std::monostate{});
+}
 
-// TEST_F(IDETaintAnalysisTest, XTaint08) {
-//   map<int, set<string>> gt;
+TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
+  map<int, set<string>> gt;
 
-//   gt[24] = {"23"};
+  gt[24] = {"23"};
 
-//   doAnalysis({PathToLLFiles + "xtaint08_cpp.ll"}, gt);
-// }
+  doAnalysis({PathToLLFiles + "xtaint08_cpp.ll"}, gt, std::monostate{});
+}
 
 TEST_F(IDETaintAnalysisTest, XTaint09_1) {
   map<int, set<string>> gt;

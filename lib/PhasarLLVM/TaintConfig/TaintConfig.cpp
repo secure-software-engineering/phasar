@@ -37,6 +37,7 @@
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 namespace {
 const nlohmann::json TaintConfigSchema =
@@ -58,8 +59,8 @@ void TaintConfig::addTaintCategory(const llvm::Value *Val,
                                    llvm::StringRef AnnotationStr) {
   auto TC = toTaintCategory(AnnotationStr);
   if (TC == TaintCategory::None) {
-    std::cerr << "ERROR: Unknown taint category: '" << AnnotationStr.str()
-              << "'\n";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), ERROR)
+                  << "ERROR: Unknown taint category: " << AnnotationStr.str());
   } else {
     addTaintCategory(Val, TC);
   }
@@ -84,15 +85,15 @@ void TaintConfig::addTaintCategory(const llvm::Value *Val,
 }
 
 static llvm::SmallVector<const llvm::Function *>
-findAllFunctionDefs(const ProjectIRDB &IRDB, llvm::StringRef name) {
+findAllFunctionDefs(const ProjectIRDB &IRDB, llvm::StringRef Name) {
   llvm::SmallVector<const llvm::Function *> FnDefs;
   llvm::DebugInfoFinder DIF;
   for (const auto *M : IRDB.getAllModules()) {
     DIF.processModule(*M);
     for (const auto &SubProgram : DIF.subprograms()) {
       if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
-          (SubProgram->getName() == name ||
-           SubProgram->getLinkageName() == name)) {
+          (SubProgram->getName() == Name ||
+           SubProgram->getLinkageName() == Name)) {
         FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
       }
     }
@@ -100,12 +101,12 @@ findAllFunctionDefs(const ProjectIRDB &IRDB, llvm::StringRef name) {
   }
 
   if (FnDefs.empty()) {
-    const auto *F = IRDB.getFunction(name);
+    const auto *F = IRDB.getFunction(Name);
     if (F) {
       FnDefs.push_back(F);
     }
   } else if (FnDefs.size() > 1) {
-    std::cerr << "The function name '" << name.str()
+    std::cerr << "The function name '" << Name.str()
               << "' is ambiguous. Possible candidates are:\n";
     for (const auto *F : FnDefs) {
       std::cerr << "> " << F->getName().str() << "\n";
@@ -245,7 +246,7 @@ TaintConfig::TaintConfig(const psr::ProjectIRDB &Code, // NOLINT
                   Gep->getPointerOperandType()->getPointerElementType());
               if (StType && StructConfigMap.count(StType)) {
                 const auto VarDesc = StructConfigMap.at(StType);
-                std::string VarName = VarDesc["name"].get<std::string>();
+                auto VarName = VarDesc["name"].get<std::string>();
                 // using substr to cover the edge case in which same variable
                 // name is present as a local variable and also as a struct
                 // member variable. (Ex. JsonConfig/fun_member_02.cpp)
@@ -326,17 +327,22 @@ TaintConfig::TaintConfig(const psr::ProjectIRDB &AnnotatedCode) { // NOLINT
 }
 
 TaintConfig::TaintConfig(TaintDescriptionCallBackTy SourceCB,
-                         TaintDescriptionCallBackTy SinkCB)
-    : SourceCallBack(std::move(SourceCB)), SinkCallBack(std::move(SinkCB)) {}
+                         TaintDescriptionCallBackTy SinkCB,
+                         TaintDescriptionCallBackTy SanitizerCB)
+    : SourceCallBack(std::move(SourceCB)), SinkCallBack(std::move(SinkCB)),
+      SanitizerCallBack(std::move(SanitizerCB)) {}
 
-void TaintConfig::registerSourceCallBack(
-    const TaintConfig::TaintDescriptionCallBackTy &SourceCB) {
-  SourceCallBack = SourceCB;
+void TaintConfig::registerSourceCallBack(TaintDescriptionCallBackTy SourceCB) {
+  SourceCallBack = std::move(SourceCB);
 }
 
-void TaintConfig::registerSinkCallBack(
-    const TaintConfig::TaintDescriptionCallBackTy &SinkCB) {
-  SinkCallBack = SinkCB;
+void TaintConfig::registerSinkCallBack(TaintDescriptionCallBackTy SinkCB) {
+  SinkCallBack = std::move(SinkCB);
+}
+
+void TaintConfig::registerSanitizerCallBack(
+    TaintDescriptionCallBackTy SanitizerCB) {
+  SanitizerCallBack = std::move(SanitizerCB);
 }
 
 const TaintConfig::TaintDescriptionCallBackTy &
@@ -424,8 +430,11 @@ void TaintConfig::forAllSanitizedValuesAt(
   assert(Inst != nullptr);
   assert(Handler);
 
-  // We don't have a SanitizerCallBack; we may with to add it later.
-  // TODO: Once we have a SanitizerCallBack, make use of it here.
+  if (SanitizerCallBack) {
+    for (const auto *CBSani : SanitizerCallBack(Inst)) {
+      Handler(CBSani);
+    }
+  }
 
   if (Callee) {
     for (const auto &Arg : Callee->args()) {
@@ -473,8 +482,9 @@ bool TaintConfig::sanitizesValuesAt(const llvm::Instruction *Inst,
                                     const llvm::Function *Callee) const {
   assert(Inst != nullptr);
 
-  // We don't have a SanitizerCallBack; we may with to add it later.
-  // TODO: Once we have a SanitizerCallBack, make use of it here.
+  if (SanitizerCallBack && !SanitizerCallBack(Inst).empty()) {
+    return true;
+  }
 
   return Callee && std::any_of(Callee->arg_begin(), Callee->arg_end(),
                                [this](const auto &Arg) {

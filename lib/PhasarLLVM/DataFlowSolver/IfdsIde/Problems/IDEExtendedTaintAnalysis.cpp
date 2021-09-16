@@ -11,6 +11,8 @@
 #include <type_traits>
 
 #include "llvm/ADT/SmallSet.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/Casting.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -30,22 +32,6 @@
 #include "phasar/Utils/Utilities.h"
 
 namespace psr::XTaint {
-// Misc:
-
-template <typename ContainerTy>
-inline void printValues(const ContainerTy &Facts,
-                        std::ostream &OS = std::cerr) {
-  OS << "{";
-
-  for (const auto *Fact : Facts) {
-    OS << "\n\t" << llvmIRToString(Fact);
-  }
-
-  if (!Facts.empty()) {
-    OS << "\n";
-  }
-  OS << "}";
-}
 
 IDEExtendedTaintAnalysis::IDEExtendedTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
@@ -138,15 +124,16 @@ IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
                                      const llvm::Value *ValueOp,
-                                     const llvm::Instruction *Store) {
+                                     const llvm::Instruction *Store,
+                                     unsigned PALevel) {
 
   auto TV = makeFlowFact(ValueOp);
   auto PTS = this->PT->getPointsToSet(PointerOp, Store);
 
   auto Mem = makeFlowFact(PointerOp);
   return makeLambdaFlow<d_t>([this, TV, Mem, PTS{std::move(PTS)}, PointerOp,
-                              ValueOp,
-                              Store](d_t Source) mutable -> std::set<d_t> {
+                              ValueOp, Store,
+                              PALevel](d_t Source) mutable -> std::set<d_t> {
     if (Source->isZero()) {
       std::set<d_t> Ret = {Source};
       generateFromZero(Ret, Store, PointerOp, ValueOp,
@@ -160,7 +147,7 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
     /// easily reachable from TV by simply doing dome pointer arithmetics.
     /// Hence, when loading the value of TV back from Mem this still holds and
     /// must be preserved by the analysis.
-    if (TV->equivalentExceptPointerArithmetics(Source)) {
+    if (TV->equivalentExceptPointerArithmetics(Source, PALevel)) {
       auto Offset = Source - TV;
 
       // generate all may-aliases of Store->getPointerOperand()
@@ -322,17 +309,14 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
       return {Source};
     }
     std::set<d_t> Ret;
-    /// Don't qualify the 'auto' here, because we should not rely on those
-    /// iterators to be pointers
 
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto It = call->arg_begin();
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto End = call->arg_end();
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto FIt = DestFun->arg_begin();
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto FEnd = DestFun->arg_end();
+    using ArgIterator = llvm::User::const_op_iterator;
+    using ParamIterator = llvm::Function::const_arg_iterator;
+
+    ArgIterator It = call->arg_begin();
+    ArgIterator End = call->arg_end();
+    ParamIterator FIt = DestFun->arg_begin();
+    ParamIterator FEnd = DestFun->arg_end();
 
     const std::string CalleeName =
         (DestFun->hasName()) ? DestFun->getName().str() : "none";
@@ -390,17 +374,13 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                  d_t Source) {
     std::set<d_t> Ret;
 
-    /// Don't qualify the 'auto' here, because we should not rely on those
-    /// iterators to be pointers
+    using ArgIterator = llvm::User::const_op_iterator;
+    using ParamIterator = llvm::Function::const_arg_iterator;
 
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto It = Call->arg_begin();
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto End = Call->arg_end();
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto FIt = CalleeFun->arg_begin();
-    // NOLINTNEXTLINE(llvm-qualified-auto, readability-qualified-auto)
-    auto FEnd = CalleeFun->arg_end();
+    ArgIterator It = Call->arg_begin();
+    ArgIterator End = Call->arg_end();
+    ParamIterator FIt = CalleeFun->arg_begin();
+    ParamIterator FEnd = CalleeFun->arg_end();
 
     for (; FIt != FEnd && It != End; ++FIt, ++It) {
       // Only map back pointer parameters, since for all others we have
@@ -458,12 +438,18 @@ IDEExtendedTaintAnalysis::getSummaryFlowFunction(n_t CallStmt, f_t DestFun) {
     return handleConfig(CallStmt, std::move(SrcConfig), std::move(SinkConfig));
   }
 
-  /// TODO: MemSet
-  //   ...
-  //   } else if (auto MemSet = llvm::dyn_cast<llvm::MemSetInst>(call)) {
-  //     // Basically, MemSet is the same as Store
-  //     return getStoreFF(MemSet->getDest(), MemSet->getValue(), MemSet);
-  //   }
+  if (const auto *MemSet = llvm::dyn_cast<llvm::MemSetInst>(CallStmt)) {
+    /// Basically, MemSet is the same as Store
+    return getStoreFF(MemSet->getRawDest(), MemSet->getValue(), MemSet);
+  }
+
+  if (const auto *MemTrn = llvm::dyn_cast<llvm::MemTransferInst>(CallStmt)) {
+    /// Basically, MemCpy/MemMove are the same as Store.
+    /// We just need to take care about the additional level of indirection
+    /// i.e., not the source itself is stored, but the value it is pointing to
+    return getStoreFF(MemTrn->getRawDest(), MemTrn->getRawSource(), MemTrn,
+                      /*PALevel*/ 2);
+  }
 
   return nullptr;
 }
@@ -484,8 +470,6 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
   if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
       Curr == &Curr->getFunction()->front().front()) {
-    // std::cout << "edge seed: " << CurrNode << " --> " << SuccNode
-    //           << " with null\n";
     return getGenEdgeFunction(BBO);
   }
 
@@ -494,10 +478,7 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
       return {Store->getPointerOperand(), Store->getValueOperand()};
     }
-    /// TODO: MemSetInst inherits from CallInst, so move it to summaryEF
-    // if (const auto *MemSet = llvm::dyn_cast<llvm::MemSetInst>(Curr)) {
-    //   return {MemSet->getDest(), MemSet->getValue()};
-    // }
+
     return {nullptr, nullptr};
   }();
 
@@ -516,16 +497,11 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
     auto SaniConfig = getSanitizerConfigAt(Curr);
     if (!SaniConfig.empty()) {
-      // std::cerr << "NormalEF: handleEdgeConfig at " << llvmIRToString(Curr)
-      //           << " on " << CurrNode << " --> " << SuccNode << "\n";
       if (isMustAlias(SaniConfig, CurrNode)) {
         return makeEF<GenEdgeFunction>(BBO, Curr);
       }
     }
   }
-
-  // std::cerr << "StoreInst with EdgeID at " << llvmIRToString(Curr) << " on "
-  //           << CurrNode << " --> " << SuccNode << "\n";
 
   return getEdgeIdentity(Curr);
 }
@@ -642,7 +618,11 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
     return makeEF<GenEdgeFunction>(BBO, Curr);
   }
 
-  /// TODO: MemSet
+  // MemIntrinsic covers memset, memcpy and memmove
+  if (const auto *MemSet = llvm::dyn_cast<llvm::MemIntrinsic>(Curr);
+      MemSet && CurrNode->mustAlias(makeFlowFact(MemSet->getRawDest()), *PT)) {
+    return makeEF<GenEdgeFunction>(BBO, Curr);
+  }
 
   return Ret;
 }
@@ -782,11 +762,6 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
       const auto *Load = getApproxLoadFrom(L);
 
       switch (Sani.getKind()) {
-      // case EdgeDomain::Bot:
-      //   rem.push_back(L);
-      //   std::cerr << "Sanitize " << llvmIRToShortString(L) << " with Bottom "
-      //             << std::endl;
-      //   break;
       case EdgeDomain::Sanitized:
         Rem.push_back(L);
         std::cerr << "Sanitize " << llvmIRToShortString(L) << " from parent "

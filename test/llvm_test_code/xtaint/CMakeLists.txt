@@ -1,4 +1,3 @@
-# FIXME
 set(XTAINT_SOURCES
     xtaint01.cpp
     # xtaint01_json.cpp

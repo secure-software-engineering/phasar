@@ -119,9 +119,9 @@ public:
   }
 
 private:
-  const TaintConfig &taintConfig;
+  const TaintConfig &Config;
 
-  TraceStats traceStats;
+  TraceStats Stats;
 };
 
 } // namespace psr

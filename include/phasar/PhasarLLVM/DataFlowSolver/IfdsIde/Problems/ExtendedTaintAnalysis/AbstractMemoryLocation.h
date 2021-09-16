@@ -117,8 +117,9 @@ public:
   /// Are *this and TV equivalent?
   [[nodiscard]] bool equivalent(const AbstractMemoryLocationImpl &TV) const;
 
-  [[nodiscard]] bool equivalentExceptPointerArithmetics(
-      const AbstractMemoryLocationImpl &TV) const;
+  [[nodiscard]] bool
+  equivalentExceptPointerArithmetics(const AbstractMemoryLocationImpl &TV,
+                                     unsigned PALevel = 1) const;
 
   /// Are *this and TV equivalent wrt aliasing?
   bool mustAlias(
