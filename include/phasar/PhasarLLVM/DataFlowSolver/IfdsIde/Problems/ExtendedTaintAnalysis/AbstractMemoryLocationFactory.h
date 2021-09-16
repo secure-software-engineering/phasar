@@ -37,7 +37,7 @@ private:
   struct Allocator {
     struct Block {
       Block *Next = nullptr;
-      void *Data[0];
+      void *Data[1]; // NOLINT
 
       static Block *create(Block *Next, size_t NumPointerEntries);
       static void destroy(Block *Blck);
@@ -49,9 +49,14 @@ private:
     Block *Root = nullptr;
     void **Pos = nullptr, **End = nullptr;
 
-    Allocator() = default;
+    Allocator() noexcept = default;
     Allocator(size_t InitialCapacity);
+    Allocator(const Allocator &) = delete;
+    Allocator(Allocator &&Other) noexcept;
     ~Allocator();
+
+    Allocator &operator=(const Allocator &) = delete;
+    Allocator &operator=(Allocator &&Other) noexcept;
 
     AbstractMemoryLocationImpl *create(const llvm::Value *Baseptr,
                                        size_t Lifetime,
@@ -60,7 +65,7 @@ private:
   private:
     constexpr static size_t ExpectedNumAmLsPerBlock = 1024;
     constexpr static size_t MinNumPointersPerAML =
-        sizeof(AbstractMemoryLocationImpl) / sizeof(void *);
+        offsetof(AbstractMemoryLocationImpl, Offsets) / sizeof(void *);
     constexpr static size_t NumPointersPerBlock =
         (MinNumPointersPerAML + 3) * ExpectedNumAmLsPerBlock;
   };

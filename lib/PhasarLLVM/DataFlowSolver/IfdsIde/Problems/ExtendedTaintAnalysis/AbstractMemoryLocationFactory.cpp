@@ -17,6 +17,9 @@
 
 namespace psr::detail {
 
+/// We intentionally don't initialize the Data member as it will be a dynamic
+/// array at runtime
+// NOLINTNEXTLINE (cppcoreguidelines-pro-type-member-init)
 AbstractMemoryLocationFactoryBase::Allocator::Block::Block(Block *Next)
     : Next(Next) {}
 
@@ -33,6 +36,11 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
 
     std::terminate();
   }
+
+  static_assert(
+      alignof(AbstractMemoryLocationImpl) == alignof(size_t),
+      "The alignment of the AbstractMemoryLocationImpl allocation cannot be "
+      "guaranteed as it differs from the alignment of size_t");
 
   auto *Ret = reinterpret_cast<Block *>(new size_t[1 + NumPointerEntries]);
 
@@ -67,6 +75,21 @@ AbstractMemoryLocationFactoryBase::Allocator::~Allocator() {
   Root = nullptr;
   Pos = nullptr;
   End = nullptr;
+}
+
+AbstractMemoryLocationFactoryBase::Allocator::Allocator(
+    Allocator &&Other) noexcept
+    : Root(Other.Root), Pos(Other.Pos), End(Other.End) {
+  Other.Root = nullptr;
+  Other.Pos = nullptr;
+  Other.End = nullptr;
+}
+
+auto AbstractMemoryLocationFactoryBase::Allocator::operator=(
+    Allocator &&Other) noexcept -> Allocator & {
+  this->Allocator::~Allocator();
+  new (this) Allocator(std::move(Other));
+  return *this;
 }
 
 AbstractMemoryLocationImpl *

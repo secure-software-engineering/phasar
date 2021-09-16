@@ -38,7 +38,9 @@ struct AbstractMemoryLoactionStorage : public llvm::FoldingSetNode {
   const llvm::Value *Baseptr;
   uint32_t Lifetime;
   uint32_t NumOffsets;
-  ptrdiff_t Offsets[0]; // NOLINT
+  /// The actual length of Offsets is a runtime-constant determined by
+  /// NumOffsets. Note, that NumOffsets can be larger than 1
+  ptrdiff_t Offsets[1]; // NOLINT
 
 protected:
   AbstractMemoryLoactionStorage(
