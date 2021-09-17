@@ -19,36 +19,19 @@ template <typename PointsToSetTy> class PointsToSetOwner {
 public:
   explicit PointsToSetOwner() = default;
   explicit PointsToSetOwner(size_t InitialCapacity) {
-    Owner.reserve(InitialCapacity);
     OwnedPTS.reserve(InitialCapacity);
   }
 
   PointsToSetTy *acquire() {
-    Owner.push_back(std::make_unique<PointsToSetTy>());
-    OwnedPTS[Owner.back().get()] = Owner.size() - 1;
-    return Owner.back().get();
+    auto Ptr = std::make_unique<PointsToSetTy>();
+    auto Ret = Ptr.get();
+    OwnedPTS.try_emplace(Ret, std::move(Ptr));
+    return Ret;
   }
-  void release(PointsToSetTy *PTS) {
-    if (Owner.empty()) {
-      return;
-    }
-
-    assert(Owner.size() == OwnedPTS.size());
-
-    if (auto It = OwnedPTS.find(PTS); It != OwnedPTS.end()) {
-      auto Idx = It->second;
-
-      OwnedPTS[Owner.back().get()] = Idx;
-      OwnedPTS.erase(PTS);
-
-      std::swap(Owner[Idx], Owner.back());
-      Owner.pop_back();
-    }
-  }
+  void release(PointsToSetTy *PTS) { OwnedPTS.erase(PTS); }
 
 private:
-  std::vector<std::unique_ptr<PointsToSetTy>> Owner;
-  llvm::DenseMap<PointsToSetTy *, size_t> OwnedPTS;
+  llvm::DenseMap<PointsToSetTy *, std::unique_ptr<PointsToSetTy>> OwnedPTS;
 };
 } // namespace psr
 
