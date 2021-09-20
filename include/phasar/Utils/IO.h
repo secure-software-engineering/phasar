@@ -18,14 +18,19 @@
 #define PHASAR_UTILS_IO_H
 
 #include <filesystem>
+#include <memory>
 #include <string>
+
+#include "llvm/Support/MemoryBuffer.h"
 
 namespace psr {
 
 std::string readTextFile(const std::filesystem::path &Path);
 
-void writeTextFile(const std::filesystem::path &Path,
-                   const std::string &Content);
+std::unique_ptr<llvm::MemoryBuffer> readFile(const std::filesystem::path &Path);
+std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path);
+
+void writeTextFile(const std::filesystem::path &Path, llvm::StringRef Content);
 
 } // namespace psr
 

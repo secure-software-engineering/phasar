@@ -10,7 +10,8 @@
 
 namespace psr {
 
-llvm::DominatorTree &BasicBlockOrdering::getDom(const llvm::Function *F) {
+llvm::DominatorTree &
+DefaultDominatorTreeAnalysis::operator()(const llvm::Function *F) {
   auto &Ret = Dom[F];
   if (!Ret) {
     Ret =

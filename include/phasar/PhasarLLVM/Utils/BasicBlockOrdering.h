@@ -11,8 +11,10 @@
 #define PHASAR_PHASARLLVM_UTILS_BASICBLOCKORDERING_H_
 
 #include <memory>
+#include <type_traits>
 
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/FunctionExtras.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 
@@ -24,15 +26,29 @@ class DominatorTree;
 } // namespace llvm
 
 namespace psr {
-/// Provides a simple partial ordering of BasicBlocks based on LLVM's
-/// DominatorTree.
-class BasicBlockOrdering {
+
+class DefaultDominatorTreeAnalysis {
   llvm::DenseMap<const llvm::Function *, std::unique_ptr<llvm::DominatorTree>>
       Dom;
 
-  llvm::DominatorTree &getDom(const llvm::Function *F);
+public:
+  llvm::DominatorTree &operator()(const llvm::Function *F);
+};
+
+/// Provides a simple partial ordering of BasicBlocks based on LLVM's
+/// DominatorTree.
+class BasicBlockOrdering {
+  /// Note: Cannot use std::function, because we need to support move-only
+  /// functors(e.g. DefaultDominatorTreeAnalysis)
+  llvm::unique_function<llvm::DominatorTree &(const llvm::Function *)> getDom;
 
 public:
+  template <
+      typename DTA,
+      typename = std::enable_if_t<!std::is_same_v<
+          BasicBlockOrdering, std::remove_reference_t<std::decay_t<DTA>>>>>
+  explicit BasicBlockOrdering(DTA &&Dta) : getDom(std::forward<DTA>(Dta)) {}
+
   bool mustComeBefore(const llvm::Instruction *LHS,
                       const llvm::Instruction *RHS);
 };

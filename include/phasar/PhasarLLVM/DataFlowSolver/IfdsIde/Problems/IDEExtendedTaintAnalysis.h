@@ -36,6 +36,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -44,7 +45,6 @@
 namespace psr {
 
 class ProjectIRDB;
-class LLVMTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMPointsToInfo;
 
@@ -62,20 +62,14 @@ class IDEExtendedTaintAnalysis
   using base_t = IDETabulationProblem<IDEExtendedTaintAnalysisDomain>;
 
 public:
-  using n_t =
-      typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::n_t;
-  using f_t =
-      typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::f_t;
-  using d_t =
-      typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::d_t;
-  using l_t =
-      typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::l_t;
-  using FlowFunctionPtrType = typename IDETabulationProblem<
+  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::n_t;
+  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::f_t;
+  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::d_t;
+  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::l_t;
+  using typename IDETabulationProblem<
       IDEExtendedTaintAnalysisDomain>::FlowFunctionPtrType;
-  using EdgeFunctionPtrType = typename IDETabulationProblem<
+  using typename IDETabulationProblem<
       IDEExtendedTaintAnalysisDomain>::EdgeFunctionPtrType;
-
-  // using FunctionInfoSetTy = XTaint::FunctionInfoSetTy;
 
   using config_callback_t = TaintConfig::TaintDescriptionCallBackTy;
 
@@ -146,11 +140,25 @@ private:
 public:
   /// Constructor. If EntryPoints is empty, use the TaintAPI functions as
   /// entrypoints.
+  /// The GetDomTree parameter can be used to inject a custom DominatorTree
+  /// analysis or the results from a LLVM pass computing dominator trees
+  template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            const TaintConfig *TSF,
                            std::set<std::string> EntryPoints, unsigned Bound,
-                           bool DisableStrongUpdates);
+                           bool DisableStrongUpdates,
+                           GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
+      : base_t(IRDB, TH, ICF, PT, std::move(EntryPoints)), AnalysisBase(TSF),
+        BBO(std::forward<GetDomTree>(GDT)),
+        FactFactory(IRDB->getNumInstructions()),
+        DL((*IRDB->getAllModules().begin())->getDataLayout()), Bound(Bound),
+        PostProcessed(DisableStrongUpdates),
+        DisableStrongUpdates(DisableStrongUpdates) {
+    base_t::ZeroValue = createZeroValue();
+
+    FactFactory.setDataLayout(DL);
+  }
 
   ~IDEExtendedTaintAnalysis() override = default;
 
@@ -283,12 +291,15 @@ public:
 template <unsigned BOUND = 3, bool USE_STRONG_UPDATES = true>
 class IDEExtendedTaintAnalysis : public XTaint::IDEExtendedTaintAnalysis {
 public:
+  template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            const TaintConfig &TSF,
-                           std::set<std::string> EntryPoints = {})
+                           std::set<std::string> EntryPoints = {},
+                           GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
       : XTaint::IDEExtendedTaintAnalysis(IRDB, TH, ICF, PT, &TSF, EntryPoints,
-                                         BOUND, !USE_STRONG_UPDATES) {}
+                                         BOUND, !USE_STRONG_UPDATES,
+                                         std::forward<GetDomTree>(GDT)) {}
 
   using ConfigurationTy = TaintConfig;
 };

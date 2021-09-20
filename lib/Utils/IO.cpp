@@ -21,6 +21,7 @@
 #include <string>
 #include <system_error>
 
+#include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Utils/IO.h"
@@ -29,43 +30,30 @@
 namespace psr {
 
 std::string readTextFile(const std::filesystem::path &Path) {
-  if (!(std::filesystem::exists(Path) &&
-        std::filesystem::is_regular_file(Path))) {
-    throw std::ios_base::failure("File does not exist: " + Path.string());
-  }
-
-  auto NumBytes = std::filesystem::file_size(Path);
-
-  auto *F = std::fopen(Path.c_str(), "r");
-
-  if (!F) {
-    throw std::ios_base::failure("Could not open file: " + Path.string());
-  }
-
-  auto CloseFile = scope_exit([F]() { std::fclose(F); });
-
-  std::string Contents;
-
-  /// TODO: Get rid of the zero-initialization of the string
-  Contents.resize(NumBytes);
-
-  auto ReadBytes = std::fread(Contents.data(), 1, NumBytes, F);
-
-  if (ReadBytes != NumBytes) {
-    throw std::ios_base::failure("Could not read file: " + Path.string());
-  }
-
-  return Contents;
+  auto Buffer = readFile(Path);
+  return Buffer->getBuffer().str();
 }
 
-void writeTextFile(const std::filesystem::path &Path,
-                   const std::string &Content) {
+std::unique_ptr<llvm::MemoryBuffer>
+readFile(const std::filesystem::path &Path) {
+  return readFile(llvm::StringRef(Path.string()));
+}
+std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
+  auto Ret = llvm::MemoryBuffer::getFile(Path);
+
+  if (!Ret) {
+    throw std::system_error(Ret.getError());
+  }
+
+  return std::move(Ret.get());
+}
+
+void writeTextFile(const std::filesystem::path &Path, llvm::StringRef Content) {
   std::error_code EC;
   llvm::raw_fd_ostream ROS(Path.string(), EC);
 
   if (EC) {
-    throw std::ios_base::failure("Error creating the file: " + Path.string() +
-                                 "; " + EC.message());
+    throw std::system_error(EC);
   }
 
   ROS.write(Content.data(), Content.size());
