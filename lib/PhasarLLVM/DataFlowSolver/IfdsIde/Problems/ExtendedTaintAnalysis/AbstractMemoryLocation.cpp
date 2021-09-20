@@ -10,6 +10,7 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/raw_os_ostream.h"
+#include <cstddef>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
@@ -19,42 +20,37 @@
 
 namespace psr::detail {
 
-AbstractMemoryLoactionStorage::AbstractMemoryLoactionStorage(
-    const llvm::Value *Baseptr, uint32_t Lifetime,
-    const llvm::ArrayRef<ptrdiff_t> &Offsets) noexcept
-    : Baseptr(Baseptr), Lifetime(Lifetime),
-      NumOffsets(uint32_t(Offsets.size())) {
-  assert(Baseptr && "The baseptr must not be null!");
-  memcpy(this->Offsets, Offsets.begin(), Offsets.size() * sizeof(ptrdiff_t));
-}
-
-AbstractMemoryLoactionStorage::AbstractMemoryLoactionStorage(
-    const llvm::Value *Baseptr, uint32_t Lifetime) noexcept
-    : Baseptr(Baseptr), Lifetime(Lifetime), NumOffsets(0) {
+AbstractMemoryLocationStorage::AbstractMemoryLocationStorage(
+    const llvm::Value *Baseptr, uint32_t Lifetime, uint32_t NumOffsets) noexcept
+    : Baseptr(Baseptr), Lifetime(Lifetime), NumOffsets(NumOffsets) {
   assert(Baseptr && "The baseptr must not be null!");
 }
 
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl()
-    : AbstractMemoryLoactionStorage(LLVMZeroValue::getInstance(), 0) {}
+    : AbstractMemoryLocationStorage(LLVMZeroValue::getInstance(), 0) {}
 
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
     const llvm::Value *Baseptr, unsigned Lifetime) noexcept
-    : AbstractMemoryLoactionStorage(Baseptr, Lifetime) {}
+    : AbstractMemoryLocationStorage(Baseptr, Lifetime) {}
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
     const llvm::Value *Baseptr, llvm::SmallVectorImpl<ptrdiff_t> &&Offsets,
     unsigned Lifetime) noexcept
-    : AbstractMemoryLoactionStorage(Baseptr, Lifetime, Offsets) {}
+    : AbstractMemoryLocationImpl(Baseptr, llvm::makeArrayRef(Offsets),
+                                 Lifetime) {}
 AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
     const llvm::Value *Baseptr, llvm::ArrayRef<ptrdiff_t> Offsets,
     unsigned Lifetime) noexcept
-    : AbstractMemoryLoactionStorage(Baseptr, Lifetime, Offsets) {}
+    : AbstractMemoryLocationStorage(Baseptr, Lifetime, Offsets.size()) {
+  memcpy(this->getTrailingObjects<ptrdiff_t>(), Offsets.data(),
+         Offsets.size() * sizeof(ptrdiff_t));
+}
 
 bool AbstractMemoryLocationImpl::isZero() const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(Baseptr);
 }
 
 llvm::ArrayRef<ptrdiff_t> AbstractMemoryLocationImpl::offsets() const {
-  return llvm::makeArrayRef(Offsets, NumOffsets);
+  return llvm::makeArrayRef(this->getTrailingObjects<ptrdiff_t>(), NumOffsets);
 }
 
 auto AbstractMemoryLocationImpl::computeOffset(

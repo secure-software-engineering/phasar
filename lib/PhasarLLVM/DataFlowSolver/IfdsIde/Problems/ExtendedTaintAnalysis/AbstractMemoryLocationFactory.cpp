@@ -9,6 +9,7 @@
 
 #include <exception>
 #include <limits>
+#include <new>
 
 #include "llvm/IR/Instructions.h"
 
@@ -17,9 +18,6 @@
 
 namespace psr::detail {
 
-/// We intentionally don't initialize the Data member as it will be a dynamic
-/// array at runtime
-// NOLINTNEXTLINE (cppcoreguidelines-pro-type-member-init)
 AbstractMemoryLocationFactoryBase::Allocator::Block::Block(Block *Next)
     : Next(Next) {}
 
@@ -37,19 +35,16 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
     std::terminate();
   }
 
-  static_assert(
-      alignof(AbstractMemoryLocationImpl) == alignof(size_t),
-      "The alignment of the AbstractMemoryLocationImpl allocation cannot be "
-      "guaranteed as it differs from the alignment of size_t");
-
-  auto *Ret = reinterpret_cast<Block *>(new size_t[1 + NumPointerEntries]);
+  auto *Ret = reinterpret_cast<Block *>(new (std::align_val_t{
+      alignof(AbstractMemoryLocationImpl)}) size_t[1 + NumPointerEntries]);
 
   new (Ret) Block(Next);
   return Ret;
 }
 
 void AbstractMemoryLocationFactoryBase::Allocator::Block::destroy(Block *Blck) {
-  delete[] reinterpret_cast<size_t *>(Blck);
+  ::operator delete (Blck,
+                     std::align_val_t{alignof(AbstractMemoryLocationImpl)});
 }
 
 AbstractMemoryLocationFactoryBase::Allocator::Allocator(
@@ -61,7 +56,7 @@ AbstractMemoryLocationFactoryBase::Allocator::Allocator(
   const auto NumPointersPerInitialBlock =
       (MinNumPointersPerAML + 3) * InitialCapacity;
   Root = Block::create(nullptr, NumPointersPerInitialBlock);
-  Pos = Root->Data;
+  Pos = Root->getTrailingObjects<void *>();
   End = Pos + NumPointersPerInitialBlock;
 }
 
@@ -98,13 +93,16 @@ AbstractMemoryLocationFactoryBase::Allocator::create(
     llvm::ArrayRef<ptrdiff_t> Offsets) {
 
   // All fields inside AML have pointer size, so there is no padding at all
-  auto NumPointersRequired = MinNumPointersPerAML + Offsets.size();
+
+  auto NumPointersRequired =
+      AbstractMemoryLocationImpl::totalSizeToAlloc<ptrdiff_t>(Offsets.size()) /
+      sizeof(void *);
   auto *Rt = Root;
   auto *Curr = Pos;
 
   if (End - Curr < ptrdiff_t(NumPointersRequired)) {
     Root = Rt = Block::create(Rt, NumPointersPerBlock);
-    Pos = Curr = Rt->Data;
+    Pos = Curr = Rt->getTrailingObjects<void *>();
     End = Curr + NumPointersPerBlock;
   }
 

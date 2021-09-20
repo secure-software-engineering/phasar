@@ -24,6 +24,7 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/TrailingObjects.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
@@ -34,21 +35,14 @@ namespace psr {
 
 namespace detail {
 
-struct AbstractMemoryLoactionStorage : public llvm::FoldingSetNode {
+struct AbstractMemoryLocationStorage : public llvm::FoldingSetNode {
   const llvm::Value *Baseptr;
   uint32_t Lifetime;
   uint32_t NumOffsets;
-  /// The actual length of Offsets is a runtime-constant determined by
-  /// NumOffsets. Note, that NumOffsets can be larger than 1
-  ptrdiff_t Offsets[1]; // NOLINT
 
 protected:
-  AbstractMemoryLoactionStorage(
-      const llvm::Value *Baseptr, uint32_t Lifetime,
-      const llvm::ArrayRef<ptrdiff_t> &Offsets) noexcept;
-
-  AbstractMemoryLoactionStorage(const llvm::Value *Baseptr,
-                                uint32_t Lifetime) noexcept;
+  AbstractMemoryLocationStorage(const llvm::Value *Baseptr, uint32_t Lifetime,
+                                uint32_t NumOffsets = 0) noexcept;
 };
 
 /// \brief A Memorylocation abstraction represented by a base-pointer and an
@@ -57,7 +51,14 @@ protected:
 /// The byte offsets are applied to the base-pointer alternating
 /// with memory loads in order to represent indirect memory locations in a
 /// canonical way.
-class AbstractMemoryLocationImpl final : public AbstractMemoryLoactionStorage {
+class AbstractMemoryLocationImpl final
+    : public AbstractMemoryLocationStorage,
+      private llvm::TrailingObjects<AbstractMemoryLocationImpl, ptrdiff_t> {
+
+  // The factory is responsible for allocation, so it needs access to the
+  // private inherited members from llvm::TrailingObjects
+  friend class AbstractMemoryLocationFactoryBase;
+  friend TrailingObjects;
 
   [[nodiscard]] bool
   equivalentOffsets(const AbstractMemoryLocationImpl &TV) const;

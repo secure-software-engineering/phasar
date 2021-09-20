@@ -17,6 +17,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/TrailingObjects.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 
@@ -35,9 +36,9 @@ class AbstractMemoryLocationFactoryBase {
 
 private:
   struct Allocator {
-    struct Block {
+    struct Block final : public llvm::TrailingObjects<Block, void *> {
+
       Block *Next = nullptr;
-      void *Data[1]; // NOLINT
 
       static Block *create(Block *Next, size_t NumPointerEntries);
       static void destroy(Block *Blck);
@@ -65,7 +66,7 @@ private:
   private:
     constexpr static size_t ExpectedNumAmLsPerBlock = 1024;
     constexpr static size_t MinNumPointersPerAML =
-        offsetof(AbstractMemoryLocationImpl, Offsets) / sizeof(void *);
+        sizeof(AbstractMemoryLocationImpl) / sizeof(void *);
     constexpr static size_t NumPointersPerBlock =
         (MinNumPointersPerAML + 3) * ExpectedNumAmLsPerBlock;
   };
