@@ -45,15 +45,16 @@
 #include "phasar/Utils/Logger.h"
 
 using namespace std;
-using namespace psr;
 
 namespace psr {
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
-    : PTA(IRDB, UseLazyEvaluation, PATy), Owner(IRDB.getNumGlobals()) {
+    : PTA(IRDB, UseLazyEvaluation, PATy) {
 
-  PointsToSets.reserve(IRDB.getNumGlobals());
+  auto NumGlobals = IRDB.getNumGlobals();
+  PointsToSets.reserve(NumGlobals);
+  Owner.reserve(NumGlobals);
 
   for (llvm::Module *M : IRDB.getAllModules()) {
     // compute points-to information for all globals

@@ -10,17 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
 
-#include "llvm/ADT/DenseMap.h"
 #include <memory>
 #include <vector>
+
+#include "llvm/ADT/DenseMap.h"
 
 namespace psr {
 template <typename PointsToSetTy> class PointsToSetOwner {
 public:
-  explicit PointsToSetOwner() = default;
-  explicit PointsToSetOwner(size_t InitialCapacity) {
-    OwnedPTS.reserve(InitialCapacity);
-  }
+  explicit PointsToSetOwner() noexcept = default;
 
   PointsToSetTy *acquire() {
     auto Ptr = std::make_unique<PointsToSetTy>();
@@ -28,9 +26,14 @@ public:
     OwnedPTS.try_emplace(Ret, std::move(Ptr));
     return Ret;
   }
-  void release(PointsToSetTy *PTS) { OwnedPTS.erase(PTS); }
+  void release(PointsToSetTy *PTS) noexcept { OwnedPTS.erase(PTS); }
+
+  void reserve(size_t Capacity) { OwnedPTS.reserve(Capacity); }
 
 private:
+  /// Note: Cannot use a set here, because llvm::DenseSet requires the key-type
+  /// to be copy-constructible and the STL containers do not support
+  /// heterogenous lookup as of C++17
   llvm::DenseMap<PointsToSetTy *, std::unique_ptr<PointsToSetTy>> OwnedPTS;
 };
 } // namespace psr
