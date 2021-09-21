@@ -279,7 +279,7 @@ void LLVMPointsToSet::addPointer(llvm::AAResults &AA,
     Reps.push_back(V);
     addSingletonPointsToSet(V);
   } else if (ToMerge.size() == 1) {
-    auto &PTS = PointsToSets[Reps[ToMerge[0]]];
+    auto *PTS = PointsToSets[Reps[ToMerge[0]]];
     assert(PTS && "Only added to Reps together with a "
                   "\"addSingletonPointsToSet\" call");
 
@@ -295,7 +295,7 @@ void LLVMPointsToSet::addPointer(llvm::AAResults &AA,
     }
 
   } else {
-    auto PTS = PointsToSets[Reps[ToMerge[0]]];
+    auto *PTS = PointsToSets[Reps[ToMerge[0]]];
     llvm::SmallPtrSet<const llvm::Type *, 6> OccurringTypes{
         Reps[ToMerge[0]]->getType()};
     llvm::SmallVector<unsigned> ToRemove;
