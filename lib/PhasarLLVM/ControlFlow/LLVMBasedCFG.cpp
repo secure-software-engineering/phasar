@@ -293,7 +293,7 @@ LLVMBasedCFG::getSpecialMemberFunctionType(const llvm::Function *Fun) const {
 
 string LLVMBasedCFG::getStatementId(const llvm::Instruction *Inst) const {
   return llvm::cast<llvm::MDString>(
-             Inst->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
+             Inst->getMetadata(PhasarConfig::metaDataKind())->getOperand(0))
       ->getString()
       .str();
 }

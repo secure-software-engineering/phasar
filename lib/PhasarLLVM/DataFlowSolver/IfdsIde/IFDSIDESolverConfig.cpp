@@ -19,7 +19,7 @@ namespace psr {
 IFDSIDESolverConfig::IFDSIDESolverConfig() {
   setFlag(
       Options, SolverConfigOptions::EmitESG,
-      PhasarConfig::getPhasarConfig().VariablesMap().count("emit-esg-as-dot"));
+      PhasarConfig::getPhasarConfig().variablesMap().count("emit-esg-as-dot"));
 }
 IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options)
     : Options(Options) {}
@@ -27,18 +27,23 @@ IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options)
 bool IFDSIDESolverConfig::followReturnsPastSeeds() const {
   return hasFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds);
 }
+
 bool IFDSIDESolverConfig::autoAddZero() const {
   return hasFlag(Options, SolverConfigOptions::AutoAddZero);
 }
+
 bool IFDSIDESolverConfig::computeValues() const {
   return hasFlag(Options, SolverConfigOptions::ComputeValues);
 }
+
 bool IFDSIDESolverConfig::recordEdges() const {
   return hasFlag(Options, SolverConfigOptions::RecordEdges);
 }
+
 bool IFDSIDESolverConfig::emitESG() const {
   return hasFlag(Options, SolverConfigOptions::EmitESG);
 }
+
 bool IFDSIDESolverConfig::computePersistedSummaries() const {
   return hasFlag(Options, SolverConfigOptions::ComputePersistedSummaries);
 }
@@ -46,18 +51,23 @@ bool IFDSIDESolverConfig::computePersistedSummaries() const {
 void IFDSIDESolverConfig::setFollowReturnsPastSeeds(bool Set) {
   setFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds, Set);
 }
+
 void IFDSIDESolverConfig::setAutoAddZero(bool Set) {
   setFlag(Options, SolverConfigOptions::AutoAddZero, Set);
 }
+
 void IFDSIDESolverConfig::setComputeValues(bool Set) {
   setFlag(Options, SolverConfigOptions::ComputeValues, Set);
 }
+
 void IFDSIDESolverConfig::setRecordEdges(bool Set) {
   setFlag(Options, SolverConfigOptions::RecordEdges, Set);
 }
+
 void IFDSIDESolverConfig::setEmitESG(bool Set) {
   setFlag(Options, SolverConfigOptions::EmitESG, Set);
 }
+
 void IFDSIDESolverConfig::setComputePersistedSummaries(bool Set) {
   setFlag(Options, SolverConfigOptions::ComputePersistedSummaries, Set);
 }

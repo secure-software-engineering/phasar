@@ -130,15 +130,15 @@ private:
   static const std::string PhasarDir;
 
   /// Name of the file storing all glibc function names.
-  const std::string GLIBCFunctionListFileName =
+  static const inline std::string GLIBCFunctionListFileName =
       "glibc_function_list_v1-04.05.17.conf";
 
   /// Name of the file storing all LLVM intrinsic function names.
-  const std::string LLVMIntrinsicFunctionListFileName =
+  static const inline std::string LLVMIntrinsicFunctionListFileName =
       "llvm_intrinsics_function_list_v1-04.05.17.conf";
 
   /// Log file directory
-  const std::string LogFileDirectory = "log/";
+  static const inline std::string LogFileDirectory = "log/";
 };
 
 } // namespace psr

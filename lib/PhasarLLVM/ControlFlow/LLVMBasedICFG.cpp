@@ -735,11 +735,11 @@ nlohmann::json LLVMBasedICFG::getAsJson() const {
   // iterate all graph vertices
   for (boost::tie(VIv, VIvEnd) = boost::vertices(CallGraph); VIv != VIvEnd;
        ++VIv) {
-    J[PhasarConfig::JsonCallGraphID()][CallGraph[*VIv].getFunctionName()];
+    J[PhasarConfig::jsonCallGraphId()][CallGraph[*VIv].getFunctionName()];
     // iterate all out edges of vertex vi_v
     for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, CallGraph); EI != EIEnd;
          ++EI) {
-      J[PhasarConfig::JsonCallGraphID()][CallGraph[*VIv].getFunctionName()] +=
+      J[PhasarConfig::jsonCallGraphId()][CallGraph[*VIv].getFunctionName()] +=
           CallGraph[boost::target(*EI, CallGraph)].getFunctionName();
     }
   }
