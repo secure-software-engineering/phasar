@@ -385,11 +385,15 @@ void TaintConfig::forAllGeneratedValuesAt(
         Handler(Inst->getOperand(Arg.getArgNo()));
       }
     }
-  }
-
-  for (const auto *Op : Inst->operand_values()) {
-    if (SourceValues.count(Op)) {
-      Handler(Op);
+  } else {
+    /// If we have a call to a source function, we would generate via formal
+    /// parameter instead via actual argument.
+    /// If any function is called with a variable that was defined as source, we
+    /// don't want to re-generate the value.
+    for (const auto *Op : Inst->operand_values()) {
+      if (SourceValues.count(Op)) {
+        Handler(Op);
+      }
     }
   }
 
