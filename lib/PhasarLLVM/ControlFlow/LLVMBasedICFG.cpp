@@ -667,8 +667,20 @@ set<const llvm::Instruction *>
 LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
   set<const llvm::Instruction *> ReturnSites;
   if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
-    ReturnSites.insert(&Invoke->getNormalDest()->front());
-    ReturnSites.insert(&Invoke->getUnwindDest()->front());
+    const llvm::Instruction *NormalSucc = &Invoke->getNormalDest()->front();
+    auto *UnwindSucc = &Invoke->getUnwindDest()->front();
+    if (!IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(NormalSucc)) {
+      NormalSucc = NormalSucc->getNextNonDebugInstruction();
+    }
+    if (!IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(UnwindSucc)) {
+      UnwindSucc = UnwindSucc->getNextNonDebugInstruction();
+    }
+    if (NormalSucc != nullptr) {
+      ReturnSites.insert(NormalSucc);
+    }
+    if (UnwindSucc != nullptr) {
+      ReturnSites.insert(UnwindSucc);
+    }
   } else {
     auto Succs = getSuccsOf(N);
     ReturnSites.insert(Succs.begin(), Succs.end());
