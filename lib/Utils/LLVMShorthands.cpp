@@ -140,18 +140,10 @@ bool matchesSignature(const llvm::FunctionType *FType1,
   return false;
 }
 
-static llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
-  static llvm::SmallDenseMap<const llvm::Module *,
-                             std::unique_ptr<llvm::ModuleSlotTracker>, 2>
-      ModuleToSlotTracker;
+llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
   const auto *M = getModuleFromVal(V);
 
-  auto &ret = ModuleToSlotTracker[M];
-  if (!ret) {
-    ret = std::make_unique<llvm::ModuleSlotTracker>(M);
-  }
-
-  return *ret;
+  return ModulesToSlotTracker::getSlotTrackerForModule(M);
 }
 
 std::string llvmIRToString(const llvm::Value *V) {
@@ -435,6 +427,22 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   // getAsCString to get rid of the null-terminator
   assert(data->isCString());
   return data->getAsCString();
+}
+
+llvm::ModuleSlotTracker &
+ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
+  auto &ret = MToST[M];
+  if (M == nullptr && ret == nullptr) {
+    ret = std::make_unique<llvm::ModuleSlotTracker>(M);
+  }
+  return *ret;
+}
+
+void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *M) {
+  MToST[M] = std::make_unique<llvm::ModuleSlotTracker>(M);
+}
+void ModulesToSlotTracker::deleteMSTForModule(const llvm::Module *M) {
+  MToST[M] = nullptr;
 }
 
 } // namespace psr

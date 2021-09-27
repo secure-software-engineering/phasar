@@ -55,6 +55,7 @@ ProjectIRDB::ProjectIRDB(IRDBOptions Options) : Options(Options) {
   MPM.addPass(ValueAnnotationPass());
   // just to be sure that none of the passes messed up the module!
   MPM.addPass(llvm::VerifierPass());
+  ModulesToSlotTracker::updateMSTForModule(LLVMZeroValueMod.get());
 }
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
@@ -105,6 +106,9 @@ ProjectIRDB::ProjectIRDB(const std::vector<llvm::Module *> &Modules,
 }
 
 ProjectIRDB::~ProjectIRDB() {
+  for (auto &[File, Module] : Modules) {
+    ModulesToSlotTracker::deleteMSTForModule(Module.get());
+  }
   // release resources if IRDB does not own
   if (!(Options & IRDBOptions::OWNS)) {
     for (auto &Context : Contexts) {
@@ -134,6 +138,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   RetOrResInstructions.insert(RRInsts.begin(), RRInsts.end());
   STOP_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   buildIDModuleMapping(M);
+  ModulesToSlotTracker::updateMSTForModule(M);
 }
 
 void ProjectIRDB::linkForWPA() {
@@ -199,6 +204,7 @@ void ProjectIRDB::linkForWPA() {
     // to link at all. But we have to update the WPAMOD pointer!
     WPAModule = Modules.begin()->second.get();
   }
+  ModulesToSlotTracker::updateMSTForModule(WPAModule);
 }
 
 void ProjectIRDB::preprocessAllModules() {

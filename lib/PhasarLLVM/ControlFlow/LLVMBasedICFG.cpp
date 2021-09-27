@@ -669,10 +669,12 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
   if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
     const llvm::Instruction *NormalSucc = &Invoke->getNormalDest()->front();
     auto *UnwindSucc = &Invoke->getUnwindDest()->front();
-    if (!IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(NormalSucc)) {
+    if (!IgnoreDbgInstructions &&
+        llvm::isa<llvm::DbgInfoIntrinsic>(NormalSucc)) {
       NormalSucc = NormalSucc->getNextNonDebugInstruction();
     }
-    if (!IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(UnwindSucc)) {
+    if (!IgnoreDbgInstructions &&
+        llvm::isa<llvm::DbgInfoIntrinsic>(UnwindSucc)) {
       UnwindSucc = UnwindSucc->getNextNonDebugInstruction();
     }
     if (NormalSucc != nullptr) {
@@ -946,6 +948,8 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
     IRB.SetInsertPoint(SwitchEnd);
     IRB.CreateRetVoid();
   }
+
+  ModulesToSlotTracker::updateMSTForModule(&M);
 
   return GlobModel;
 }
