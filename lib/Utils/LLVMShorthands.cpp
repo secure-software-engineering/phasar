@@ -435,6 +435,7 @@ ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
   if (M == nullptr && ret == nullptr) {
     ret = std::make_unique<llvm::ModuleSlotTracker>(M);
   }
+  assert(ret != nullptr && "no ModuleSlotTracker instance for module cached");
   return *ret;
 }
 
@@ -442,7 +443,7 @@ void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *M) {
   MToST[M] = std::make_unique<llvm::ModuleSlotTracker>(M);
 }
 void ModulesToSlotTracker::deleteMSTForModule(const llvm::Module *M) {
-  MToST[M] = nullptr;
+  MToST.erase(M);
 }
 
 } // namespace psr
