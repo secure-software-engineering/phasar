@@ -62,6 +62,7 @@ public:
   LLVMZeroValue &operator=(const LLVMZeroValue &Z) = delete;
   LLVMZeroValue(LLVMZeroValue &&Z) = delete;
   LLVMZeroValue &operator=(LLVMZeroValue &&Z) = delete;
+  ~LLVMZeroValue();
 
   [[nodiscard]] static llvm::StringRef getName() {
     return LLVMZeroValueInternalName;
@@ -77,8 +78,8 @@ public:
   }
 
   // Do not specify a destructor (at all)!
-  static LLVMZeroValue *getInstance() {
-    static auto *Zv = new LLVMZeroValue;
+  static const LLVMZeroValue *getInstance() {
+    static const auto *Zv = new LLVMZeroValue;
     return Zv;
   }
 };

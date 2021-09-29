@@ -284,7 +284,7 @@ public:
   virtual ~KillAll() = default;
   KillAll(const KillAll &K) = delete;
   KillAll &operator=(const KillAll &K) = delete;
-  container_type computeTargets(D source) override { return container_type(); }
+  container_type computeTargets() override { return container_type(); }
   static std::shared_ptr<KillAll<D>> getInstance() {
     static std::shared_ptr<KillAll> Instance =
         std::shared_ptr<KillAll>(new KillAll);

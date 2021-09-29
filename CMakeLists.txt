@@ -214,7 +214,7 @@ if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
   message(STATUS "Enabled clang-tidy during build")
   set(CMAKE_CXX_CLANG_TIDY
     clang-tidy;
-    -header-filter=.;
+    -header-filter=phasar.*;
     -warnings-as-errors=*;
   )
 endif ()
