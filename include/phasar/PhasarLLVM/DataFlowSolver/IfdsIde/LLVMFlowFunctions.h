@@ -15,7 +15,7 @@
 #include <set>
 #include <vector>
 
-#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Constant.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
@@ -82,7 +82,9 @@ public:
               [](const llvm::CallBase *CallSite, const llvm::Value *V) {
                 // Globals are considered to be involved in this default
                 // implementation.
-                if (llvm::isa<llvm::GlobalVariable>(V)) {
+                // Need llvm::Constant here to cover also ConstantExpr
+                // and ConstantAggregate
+                if (llvm::isa<llvm::Constant>(V)) {
                   return true;
                 }
                 // Checks if a values is involved in a call, i.e., may be
@@ -106,7 +108,8 @@ public:
       return {Source};
     }
     // Pass global variables as is, if desired
-    if (PropagateGlobals && llvm::isa<llvm::GlobalVariable>(Source)) {
+    // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
+    if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
       return {Source};
     }
     // Propagate if predicate does not hold, i.e., fact is not involved in the
@@ -164,7 +167,8 @@ public:
       return {Source};
     }
     // Pass global variables as is, if desired
-    if (PropagateGlobals && llvm::isa<llvm::GlobalVariable>(Source)) {
+    // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
+    if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
       return {Source};
     }
     // Do the parameter mapping
