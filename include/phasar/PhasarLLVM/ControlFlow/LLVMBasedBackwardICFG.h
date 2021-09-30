@@ -18,6 +18,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "llvm/IR/LLVMContext.h"
+
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -42,16 +44,27 @@ class LLVMBasedBackwardsICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
       public virtual LLVMBasedBackwardCFG {
 private:
-  LLVMBasedICFG ForwardICFG;
+  LLVMBasedICFG &ForwardICFG;
+  static inline const std::unique_ptr<llvm::LLVMContext> LLVMBackwardRetCTX =
+      std::make_unique<llvm::LLVMContext>();
+
+  class LLVMBackwardRet {
+  private:
+    const llvm::ReturnInst *Instance;
+
+  public:
+    LLVMBackwardRet()
+        : Instance(llvm::ReturnInst::Create(*LLVMBackwardRetCTX)){};
+    [[nodiscard]] const llvm::ReturnInst *getInstance() const {
+      return Instance;
+    }
+  };
+  std::unordered_map<const llvm::Function *, LLVMBackwardRet> BackwardRets;
+  llvm::DenseMap<const llvm::Instruction *, const llvm::Function *>
+      BackwardRetToFunction;
 
 public:
   LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG);
-
-  LLVMBasedBackwardsICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-                         const std::set<std::string> &EntryPoints = {},
-                         LLVMTypeHierarchy *TH = nullptr,
-                         LLVMPointsToInfo *PT = nullptr,
-                         Soundness S = Soundness::Soundy);
 
   ~LLVMBasedBackwardsICFG() override = default;
 
@@ -77,6 +90,20 @@ public:
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
+  [[nodiscard]] const llvm::Function *
+  getFunctionOf(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getPredsOf(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] std::vector<const llvm::Instruction *>
+  getSuccsOf(const llvm::Instruction *Stmt) const override;
+
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getExitPointsOf(const llvm::Function *Fun) const override;
+
+  [[nodiscard]] bool isExitInst(const llvm::Instruction *Stmt) const override;
+
   void mergeWith(const LLVMBasedBackwardsICFG &other);
 
   using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
@@ -94,6 +121,9 @@ public:
   unsigned getNumOfEdges();
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
+
+private:
+  void createBackwardRets();
 
 protected:
   void collectGlobalCtors() override;

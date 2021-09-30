@@ -47,7 +47,13 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {}
+  void TearDown() override {
+    if (IRDB) {
+      for (const auto *M : IRDB->getAllModules()) {
+        clearModuleSlotTrackerFor(M);
+      }
+    }
+  }
 
   void compareResults(const std::set<unsigned long> &GroundTruth,
                       IFDSSolver_P<IFDSConstAnalysis> &Solver) {

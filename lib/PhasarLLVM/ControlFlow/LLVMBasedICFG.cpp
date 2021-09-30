@@ -151,13 +151,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              "CallGraphAnalysisType::OTF was not specified.");
   }
 
-  // instantiate the respective resolver type
-  Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
-
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                << "Starting CallGraphAnalysisType: " << CGType);
-  VisitedFunctions.reserve(IRDB.getAllFunctions().size());
-
   for (const auto &EntryPoint : EntryPoints) {
     auto *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
@@ -179,9 +172,15 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                       UserEntryPoints.end());
   }
 
-  while (true) {
-    bool FixpointReached = true;
+  // instantiate the respective resolver type
+  Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                << "Starting CallGraphAnalysisType: " << CGType);
+  VisitedFunctions.reserve(IRDB.getAllFunctions().size());
 
+  bool FixpointReached;
+  do {
+    FixpointReached = true;
     while (!FunctionWL.empty()) {
       const llvm::Function *F = FunctionWL.back();
       FunctionWL.pop_back();
@@ -192,10 +191,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       FixpointReached &= !constructDynamicCall(CS, *Res);
     }
 
-    if (FixpointReached) {
-      break;
-    }
-  }
+  } while (!FixpointReached);
 
   for (const auto &[IndirectCall, Targets] : IndirectCalls) {
     if (Targets == 0) {
@@ -674,8 +670,22 @@ set<const llvm::Instruction *>
 LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
   set<const llvm::Instruction *> ReturnSites;
   if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
-    ReturnSites.insert(&Invoke->getNormalDest()->front());
-    ReturnSites.insert(&Invoke->getUnwindDest()->front());
+    const llvm::Instruction *NormalSucc = &Invoke->getNormalDest()->front();
+    auto *UnwindSucc = &Invoke->getUnwindDest()->front();
+    if (!IgnoreDbgInstructions &&
+        llvm::isa<llvm::DbgInfoIntrinsic>(NormalSucc)) {
+      NormalSucc = NormalSucc->getNextNonDebugInstruction();
+    }
+    if (!IgnoreDbgInstructions &&
+        llvm::isa<llvm::DbgInfoIntrinsic>(UnwindSucc)) {
+      UnwindSucc = UnwindSucc->getNextNonDebugInstruction();
+    }
+    if (NormalSucc != nullptr) {
+      ReturnSites.insert(NormalSucc);
+    }
+    if (UnwindSucc != nullptr) {
+      ReturnSites.insert(UnwindSucc);
+    }
   } else {
     auto Succs = getSuccsOf(N);
     ReturnSites.insert(Succs.begin(), Succs.end());

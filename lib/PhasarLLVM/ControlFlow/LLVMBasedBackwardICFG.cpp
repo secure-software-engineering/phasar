@@ -38,15 +38,13 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
     : ForwardICFG(ICFG) {
   auto CgCopy = ForwardICFG.CallGraph;
   boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
+  createBackwardRets();
 }
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
-    ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
-    LLVMPointsToInfo *PT, Soundness S)
-    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT, S) {
-  auto CgCopy = ForwardICFG.CallGraph;
-  boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
+void LLVMBasedBackwardsICFG::createBackwardRets() {
+  for (const auto *Function : getAllFunctions()) {
+    BackwardRetToFunction[BackwardRets[Function].getInstance()] = Function;
+  }
 }
 
 bool LLVMBasedBackwardsICFG::isIndirectFunctionCall(
@@ -88,14 +86,10 @@ std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
     const llvm::Instruction *N) const {
   std::set<const llvm::Instruction *> ReturnSites;
-  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(N)) {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(N)) {
     for (const auto *Succ : this->getSuccsOf(Call)) {
       ReturnSites.insert(Succ);
     }
-  }
-  if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
-    ReturnSites.insert(&Invoke->getNormalDest()->back());
-    ReturnSites.insert(&Invoke->getUnwindDest()->back());
   }
   return ReturnSites;
 }
@@ -103,6 +97,51 @@ LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::allNonCallStartNodes() const {
   return ForwardICFG.allNonCallStartNodes();
+}
+
+const llvm::Function *
+LLVMBasedBackwardsICFG::getFunctionOf(const llvm::Instruction *Stmt) const {
+  auto BackwardRetIt = BackwardRetToFunction.find(Stmt);
+  if (BackwardRetIt != BackwardRetToFunction.end()) {
+    return BackwardRetIt->second;
+  }
+  return Stmt->getFunction();
+}
+
+std::vector<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::getPredsOf(const llvm::Instruction *Stmt) const {
+  auto BackwardRetIt = BackwardRetToFunction.find(Stmt);
+  if (BackwardRetIt == BackwardRetToFunction.end()) {
+    return LLVMBasedBackwardCFG::getPredsOf(Stmt);
+  }
+  auto ExitPoints =
+      LLVMBasedBackwardCFG::getExitPointsOf(BackwardRetIt->second);
+  return {ExitPoints.begin(), ExitPoints.end()};
+}
+
+std::vector<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::getSuccsOf(const llvm::Instruction *Stmt) const {
+  if (isExitInst(Stmt)) {
+    return {};
+  }
+  std::vector<const llvm::Instruction *> Succs =
+      LLVMBasedBackwardCFG::getSuccsOf(Stmt);
+  if (Succs.size() == 0) {
+    assert(Stmt->getParent()->getParent() && "Could not find parent of stmt's parent ");
+    Succs.push_back(
+        BackwardRets.at(Stmt->getParent()->getParent()).getInstance());
+  }
+  return Succs;
+}
+
+bool LLVMBasedBackwardsICFG::isExitInst(const llvm::Instruction *Stmt) const {
+  return (Stmt->getParent() == nullptr &&
+          BackwardRetToFunction.count(Stmt) > 0);
+}
+
+std::set<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *Fun) const {
+  return {BackwardRets.at(Fun).getInstance()};
 }
 
 void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &Other) {
