@@ -8,6 +8,7 @@
 #include "phasar/Utils/LLVMShorthands.h"
 
 #include "TestConfig.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace std;
 using namespace psr;
@@ -78,7 +79,26 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   const auto *FPtrCall = getNthInstruction(Main, 7);
   auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
-  ASSERT_EQ(Callees.size(), 1U);
+  auto printCallees = [&]() {
+    std::string Ret;
+    llvm::raw_string_ostream OS(Ret);
+
+    OS << "{ ";
+    bool frst = true;
+    for (const auto *Callee : Callees) {
+      if (frst)
+        frst = false;
+      else
+        OS << ", ";
+
+      OS << Callee->getName();
+    }
+
+    OS << " }";
+    return Ret;
+  };
+
+  ASSERT_EQ(Callees.size(), 1U) << "Too many callees: " << printCallees();
   ASSERT_EQ(Callees.count(Bar), 1U);
 }
 

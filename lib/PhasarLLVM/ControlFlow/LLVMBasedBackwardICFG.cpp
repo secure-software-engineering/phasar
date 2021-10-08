@@ -127,7 +127,8 @@ LLVMBasedBackwardsICFG::getSuccsOf(const llvm::Instruction *Stmt) const {
   std::vector<const llvm::Instruction *> Succs =
       LLVMBasedBackwardCFG::getSuccsOf(Stmt);
   if (Succs.size() == 0) {
-    assert(Stmt->getParent()->getParent() && "Could not find parent of stmt's parent ");
+    assert(Stmt->getParent()->getParent() &&
+           "Could not find parent of stmt's parent ");
     Succs.push_back(
         BackwardRets.at(Stmt->getParent()->getParent()).getInstance());
   }

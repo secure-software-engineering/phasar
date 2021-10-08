@@ -57,8 +57,7 @@ public:
 
 private:
   const TypeStateDescription &TSD;
-  std::map<const llvm::Value *, std::unordered_set<const llvm::Value *>>
-      PointsToCache;
+  std::map<const llvm::Value *, LLVMPointsToInfo::PointsToSetTy> PointsToCache;
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
       RelevantAllocaCache;
 

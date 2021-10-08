@@ -15,6 +15,7 @@
  */
 
 #include <cassert>
+#include <chrono>
 #include <initializer_list>
 #include <memory>
 #include <ostream>
@@ -185,10 +186,13 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       FunctionWL.pop_back();
       processFunction(F, *Res, FixpointReached);
     }
-    for (const auto &[Callsite, _] : IndirectCalls) {
-      FixpointReached &= !constructDynamicCall(Callsite, *Res);
+
+    for (auto [CS, _] : IndirectCalls) {
+      FixpointReached &= !constructDynamicCall(CS, *Res);
     }
+
   } while (!FixpointReached);
+
   for (const auto &[IndirectCall, Targets] : IndirectCalls) {
     if (Targets == 0) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
@@ -196,6 +200,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                     << llvmIRToString(IndirectCall));
     }
   }
+
   REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
@@ -236,79 +241,77 @@ void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
   }
 
   // iterate all instructions of the current function
-  for (const auto &BB : *F) {
-    for (const auto &I : BB) {
-      if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-        Resolver.preCall(&I);
+  Resolver::FunctionSetTy PossibleTargets;
+  for (const auto &I : llvm::instructions(F)) {
+    if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I)) {
+      Resolver.preCall(&I);
 
-        const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(&I);
-        set<const llvm::Function *> PossibleTargets;
-        // check if function call can be resolved statically
-        if (CS->getCalledFunction() != nullptr) {
-          PossibleTargets.insert(CS->getCalledFunction());
+      // check if function call can be resolved statically
+      if (CS->getCalledFunction() != nullptr) {
+        PossibleTargets.insert(CS->getCalledFunction());
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Found static call-site: "
+                      << "  " << llvmIRToString(CS));
+      } else {
+        // still try to resolve the called function statically
+        const llvm::Value *SV = CS->getCalledOperand()->stripPointerCasts();
+        const llvm::Function *ValueFunction =
+            !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName());
+        if (ValueFunction) {
+          PossibleTargets.insert(ValueFunction);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Found static call-site: ");
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "  " << llvmIRToString(CS));
+                        << "Found static call-site: " << llvmIRToString(CS));
         } else {
-          // still try to resolve the called function statically
-          const llvm::Value *SV = CS->getCalledOperand()->stripPointerCasts();
-          const llvm::Function *ValueFunction =
-              !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName().str());
-          if (ValueFunction) {
-            PossibleTargets.insert(ValueFunction);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Found static call-site: " << llvmIRToString(CS));
-          } else {
-            if (llvm::isa<llvm::InlineAsm>(SV)) {
-              continue;
-            }
-            // the function call must be resolved dynamically
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Found dynamic call-site: ");
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "  " << llvmIRToString(CS));
-            IndirectCalls[&I] = 0;
-            FixpointReached = false;
+          if (llvm::isa<llvm::InlineAsm>(SV)) {
             continue;
           }
+          // the function call must be resolved dynamically
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "Found dynamic call-site: "
+                        << "  " << llvmIRToString(CS));
+          IndirectCalls[CS] = 0;
+
+          FixpointReached = false;
+          continue;
         }
-
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Found " << PossibleTargets.size()
-                      << " possible target(s)");
-
-        Resolver.handlePossibleTargets(CS, PossibleTargets);
-        // Insert possible target inside the graph and add the link with
-        // the current function
-        for (const auto &PossibleTarget : PossibleTargets) {
-          vertex_t TargetVertex;
-          auto TargetFvmItr = FunctionVertexMap.find(PossibleTarget);
-          if (TargetFvmItr != FunctionVertexMap.end()) {
-            TargetVertex = TargetFvmItr->second;
-          } else {
-            TargetVertex =
-                boost::add_vertex(VertexProperties(PossibleTarget), CallGraph);
-            FunctionVertexMap[PossibleTarget] = TargetVertex;
-          }
-          boost::add_edge(ThisFunctionVertexDescriptor, TargetVertex,
-                          EdgeProperties(CS), CallGraph);
-        }
-
-        // continue resolving
-        FunctionWL.insert(FunctionWL.end(), PossibleTargets.begin(),
-                          PossibleTargets.end());
-
-        Resolver.postCall(&I);
-      } else {
-        Resolver.otherInst(&I);
       }
+
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Found " << PossibleTargets.size()
+                    << " possible target(s)");
+
+      Resolver.handlePossibleTargets(CS, PossibleTargets);
+      // Insert possible target inside the graph and add the link with
+      // the current function
+      for (const auto &PossibleTarget : PossibleTargets) {
+        vertex_t TargetVertex;
+        auto TargetFvmItr = FunctionVertexMap.find(PossibleTarget);
+        if (TargetFvmItr != FunctionVertexMap.end()) {
+          TargetVertex = TargetFvmItr->second;
+        } else {
+          TargetVertex =
+              boost::add_vertex(VertexProperties(PossibleTarget), CallGraph);
+          FunctionVertexMap[PossibleTarget] = TargetVertex;
+        }
+        boost::add_edge(ThisFunctionVertexDescriptor, TargetVertex,
+                        EdgeProperties(CS), CallGraph);
+      }
+
+      // continue resolving
+      FunctionWL.insert(FunctionWL.end(), PossibleTargets.begin(),
+                        PossibleTargets.end());
+
+      Resolver.postCall(&I);
+    } else {
+      Resolver.otherInst(&I);
     }
+    PossibleTargets.clear();
   }
 }
 
 bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
                                          Resolver &Resolver) {
+
   bool NewTargetsFound = false;
   // Find vertex of calling function.
   vertex_t ThisFunctionVertexDescriptor;
@@ -324,22 +327,22 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
     std::terminate();
   }
 
-  if (llvm::isa<llvm::CallBase>(I)) {
+  if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(I)) {
     Resolver.preCall(I);
-    const auto *CallSite = llvm::cast<llvm::CallBase>(I);
-    set<const llvm::Function *> PossibleTargets;
+
     // the function call must be resolved dynamically
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Looking into dynamic call-site: ");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << llvmIRToString(I));
     // call the resolve routine
-    if (LLVMBasedICFG::isVirtualFunctionCall(CallSite)) {
-      PossibleTargets = Resolver.resolveVirtualCall(CallSite);
-    } else {
-      PossibleTargets = Resolver.resolveFunctionPointer(CallSite);
-    }
-    if (IndirectCalls.count(I) == 0 ||
-        IndirectCalls[I] < PossibleTargets.size()) {
+
+    auto PossibleTargets = LLVMBasedICFG::isVirtualFunctionCall(CallSite)
+                               ? Resolver.resolveVirtualCall(CallSite)
+                               : Resolver.resolveFunctionPointer(CallSite);
+
+    assert(IndirectCalls.count(I));
+
+    if (IndirectCalls[I] < PossibleTargets.size()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Found " << PossibleTargets.size() - IndirectCalls[I]
                     << " new possible target(s)");
@@ -381,6 +384,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
   } else {
     Resolver.otherInst(I);
   }
+
   return NewTargetsFound;
 }
 
@@ -648,10 +652,9 @@ LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallsFromWithin(const llvm::Function *F) const {
   set<const llvm::Instruction *> CallSites;
-  for (llvm::const_inst_iterator I = llvm::inst_begin(F), E = llvm::inst_end(F);
-       I != E; ++I) {
-    if (llvm::isa<llvm::CallBase>(*I)) {
-      CallSites.insert(&(*I));
+  for (const auto &I : llvm::instructions(F)) {
+    if (llvm::isa<llvm::CallBase>(I)) {
+      CallSites.insert(&I);
     }
   }
   return CallSites;
@@ -1138,19 +1141,20 @@ nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
             continue;
           }
           if (inserted) {
-            J.push_back({{"from", llvmIRToString(From)},
-                         {"to", llvmIRToString(&Callee->front().front())}});
+            J.push_back(
+                {{"from", llvmIRToStableString(From)},
+                 {"to", llvmIRToStableString(&Callee->front().front())}});
           }
 
           for (const auto *ExitInst : getAllExitPoints(Callee)) {
-            J.push_back({{"from", llvmIRToString(ExitInst)},
-                         {"to", llvmIRToString(To)}});
+            J.push_back({{"from", llvmIRToStableString(ExitInst)},
+                         {"to", llvmIRToStableString(To)}});
           }
         }
 
       } else {
-        J.push_back(
-            {{"from", llvmIRToString(From)}, {"to", llvmIRToString(To)}});
+        J.push_back({{"from", llvmIRToStableString(From)},
+                     {"to", llvmIRToStableString(To)}});
       }
     }
   }
@@ -1169,17 +1173,17 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
   auto getLastNonEmpty =
       [&](const llvm::Instruction *Inst) -> SourceCodeInfoWithIR {
     if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
-      return {getSrcCodeInfoFromIR(Inst), llvmIRToString(Inst)};
+      return {getSrcCodeInfoFromIR(Inst), llvmIRToStableString(Inst)};
     }
     for (const auto *Prev = Inst->getPrevNode(); Prev;
          Prev = Prev->getPrevNode()) {
       auto Src = getSrcCodeInfoFromIR(Prev);
       if (!Src.empty()) {
-        return {Src, llvmIRToString(Prev)};
+        return {Src, llvmIRToStableString(Prev)};
       }
     }
 
-    return {getSrcCodeInfoFromIR(Inst), llvmIRToString(Inst)};
+    return {getSrcCodeInfoFromIR(Inst), llvmIRToStableString(Inst)};
   };
 
   auto createInterEdges = [&](const llvm::Instruction *CS,
@@ -1252,7 +1256,7 @@ nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
         // However, this is how it is modeled in the ICFG at the moment
         createInterEdges(Term,
                          SourceCodeInfoWithIR{getSrcCodeInfoFromIR(Term),
-                                              llvmIRToString(Term)},
+                                              llvmIRToStableString(Term)},
                          {getFirstNonEmpty(Invoke->getNormalDest()),
                           getFirstNonEmpty(Invoke->getUnwindDest())});
         // Call Edges

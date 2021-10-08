@@ -255,7 +255,7 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::LoadInst *Load;
-          std::shared_ptr<std::unordered_set<d_t>> PTS;
+          LLVMPointsToInfo::AllocationSiteSetPtrTy PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
@@ -300,8 +300,8 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::StoreInst *Store;
-          std::shared_ptr<std::unordered_set<d_t>> ValuePTS;
-          std::shared_ptr<std::unordered_set<d_t>> PointerPTS;
+          LLVMPointsToInfo::AllocationSiteSetPtrTy ValuePTS;
+          LLVMPointsToInfo::AllocationSiteSetPtrTy PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
@@ -311,8 +311,9 @@ public:
                         Store->getValueOperand(),
                         Problem.OnlyConsiderLocalAliases);
                   } else {
-                    return std::make_shared<std::unordered_set<d_t>>(
-                        std::unordered_set<d_t>{Store->getValueOperand()});
+                    return std::make_unique<LLVMPointsToInfo::PointsToSetTy>(
+                        LLVMPointsToInfo::PointsToSetTy{
+                            Store->getValueOperand()});
                   }
                 }()),
                 PointerPTS(Problem.PT->getReachableAllocationSites(

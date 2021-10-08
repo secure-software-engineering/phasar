@@ -13,6 +13,7 @@
 #include <iosfwd>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace llvm {
@@ -74,6 +75,52 @@ std::ostream &operator<<(std::ostream &os, const std::vector<bool> &bits);
 struct stringIDLess {
   bool operator()(const std::string &lhs, const std::string &rhs) const;
 };
+
+/// Based on the reference implementation of std::remove_if
+/// "https://en.cppreference.com/w/cpp/algorithm/remove" and optimized for the
+/// case that a sorted list of indices is given instead of an unary predicate
+/// specifying the elements to be removed.
+template <typename It, typename EndIt, typename IdxIt, typename IdxEndIt>
+It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex) {
+  if (FirstIndex == LastIndex || First == Last) {
+    return Last;
+  }
+  First = std::next(First, *FirstIndex);
+  if (First == Last) {
+    return First;
+  }
+
+  auto CurrIdx = *FirstIndex;
+
+  /// TODO: Optimize this loop
+
+  for (auto I = First; ++I != Last; ++CurrIdx) {
+    if (FirstIndex == LastIndex || CurrIdx != *FirstIndex) {
+      *First++ = std::move(*I);
+      if (FirstIndex != LastIndex) {
+        ++FirstIndex;
+      }
+    }
+  }
+  return First;
+}
+
+template <typename Container, typename IdxIt, typename IdxEndIt>
+auto remove_by_index(Container &Cont, IdxIt FirstIndex, IdxEndIt LastIndex) {
+  using std::begin;
+  using std::end;
+
+  return remove_by_index(begin(Cont), end(Cont), std::move(FirstIndex),
+                         std::move(LastIndex));
+}
+
+template <typename Container, typename Indices>
+auto remove_by_index(Container &Cont, const Indices &Idx) {
+  using std::begin;
+  using std::end;
+
+  return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
+}
 
 } // namespace psr
 

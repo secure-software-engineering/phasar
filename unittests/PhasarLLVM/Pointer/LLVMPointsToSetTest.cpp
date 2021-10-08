@@ -3,6 +3,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -12,6 +13,7 @@
 using namespace psr;
 
 TEST(LLVMPointsToSet, Intra_01) {
+  ValueAnnotationPass::resetValueID();
   ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/basic_01_cpp.ll"});
 
   LLVMPointsToSet PTS(IRDB, false);
@@ -26,6 +28,7 @@ TEST(LLVMPointsToSet, Intra_01) {
 }
 
 TEST(LLVMPointsToSet, Inter_01) {
+  ValueAnnotationPass::resetValueID();
   ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/call_01_cpp.ll"});
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
@@ -41,6 +44,7 @@ TEST(LLVMPointsToSet, Inter_01) {
 }
 
 TEST(LLVMPointsToSet, Global_01) {
+  ValueAnnotationPass::resetValueID();
   ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/global_01_cpp.ll"});
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);

@@ -47,7 +47,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2a) {
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT, Soundness::Soundy, false);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
+                     Soundness::Soundy, false);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FOO = IRDB.getFunctionDefinition("foo");
   const llvm::Function *BAR = IRDB.getFunctionDefinition("bar");
@@ -77,8 +78,10 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FOO = IRDB.getFunctionDefinition("foo");
   const llvm::Function *BAR = IRDB.getFunctionDefinition("bar");
-  const llvm::Function *CTOR = IRDB.getFunctionDefinition("__psrCRuntimeGlobalCtorsModel");
-  const llvm::Function *DTOR = IRDB.getFunctionDefinition("__psrCRuntimeGlobalDtorsModel");
+  const llvm::Function *CTOR =
+      IRDB.getFunctionDefinition("__psrCRuntimeGlobalCtorsModel");
+  const llvm::Function *DTOR =
+      IRDB.getFunctionDefinition("__psrCRuntimeGlobalDtorsModel");
   ASSERT_TRUE(F);
   ASSERT_TRUE(FOO);
   ASSERT_TRUE(BAR);

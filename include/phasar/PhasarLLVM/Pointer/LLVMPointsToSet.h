@@ -21,7 +21,9 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace llvm {
@@ -38,21 +40,23 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
-  using PointsToSetMap = std::unordered_map<
-      const llvm::Value *,
-      std::shared_ptr<std::unordered_set<const llvm::Value *>>>;
+  using PointsToSetMap = llvm::DenseMap<const llvm::Value *, PointsToSetTy *>;
 
   LLVMBasedPointsToAnalysis PTA;
-  std::unordered_set<const llvm::Function *> AnalyzedFunctions;
+  llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
+
+  PointsToSetOwner<PointsToSetTy> Owner;
   PointsToSetMap PointsToSets;
 
   void computeValuesPointsToSet(const llvm::Value *V);
 
   void computeFunctionsPointsToSet(llvm::Function *F);
 
-  void addSingletonPointsToSet(const llvm::Value *V);
+  PointsToSetPtrTy addSingletonPointsToSet(const llvm::Value *V);
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
+
+  PointsToSetTy *mergePointsToSets(PointsToSetTy *PTS1, PointsToSetTy *PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);
@@ -61,6 +65,12 @@ private:
                                         const llvm::Value *P,
                                         const llvm::Function *VFun,
                                         const llvm::GlobalObject *VG);
+
+  /// Utility function used by computeFunctionsPointsToSet(...)
+  void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
+                  const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
+
+  [[nodiscard]] static PointsToSetPtrTy getEmptyPointsToSet();
 
 public:
   /**
@@ -90,11 +100,11 @@ public:
   alias(const llvm::Value *V1, const llvm::Value *V2,
         const llvm::Instruction *I = nullptr) override;
 
-  [[nodiscard]] std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  [[nodiscard]] PointsToSetPtrTy
   getPointsToSet(const llvm::Value *V,
                  const llvm::Instruction *I = nullptr) override;
 
-  [[nodiscard]] std::shared_ptr<std::unordered_set<const llvm::Value *>>
+  [[nodiscard]] AllocationSiteSetPtrTy
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
                               const llvm::Instruction *I = nullptr) override;
 

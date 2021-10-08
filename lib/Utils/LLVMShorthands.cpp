@@ -14,6 +14,7 @@
  *      Author: philipp
  */
 
+#include <cctype>
 #include <cstdlib>
 
 #include "boost/algorithm/string/trim.hpp"
@@ -31,6 +32,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
@@ -156,12 +158,38 @@ std::string llvmIRToString(const llvm::Value *V) {
   return IRBuffer;
 }
 
+std::string llvmIRToStableString(const llvm::Value *V) {
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  V->print(RSO, getModuleSlotTrackerFor(V));
+  RSO.flush();
+
+  auto IRBufferRef = llvm::StringRef(IRBuffer).ltrim();
+
+  if (auto Meta = IRBufferRef.find_first_of("!#");
+      Meta != llvm::StringRef::npos) {
+    IRBufferRef = IRBufferRef.slice(0, Meta).rtrim();
+
+    assert(!IRBufferRef.empty());
+    IRBufferRef.consume_back(",");
+  }
+
+  IRBuffer = IRBufferRef.str();
+
+  IRBuffer.append(" | ID: ");
+  IRBuffer.append(getMetaDataID(V));
+
+  return IRBuffer;
+}
+
 std::string llvmIRToShortString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V);
       I && !I->getType()->isVoidTy()) {
     V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
+  } else if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
+    RSO << F->getName();
   } else {
     V->print(RSO, getModuleSlotTrackerFor(V));
   }
@@ -252,9 +280,9 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
 
 std::vector<const llvm::Instruction *>
 getAllExitPoints(const llvm::Function *F) {
-  std::vector<const llvm::Instruction *> ret;
-  appendAllExitPoints(F, ret);
-  return ret;
+  std::vector<const llvm::Instruction *> Ret;
+  appendAllExitPoints(F, Ret);
+  return Ret;
 }
 
 void appendAllExitPoints(const llvm::Function *F,
@@ -264,12 +292,12 @@ void appendAllExitPoints(const llvm::Function *F,
   }
 
   for (const auto &BB : *F) {
-    const auto *term = BB.getTerminator();
-    assert(term && "Invalid IR: Each BasicBlock must have a terminator "
+    const auto *Term = BB.getTerminator();
+    assert(Term && "Invalid IR: Each BasicBlock must have a terminator "
                    "instruction at the end");
-    if (llvm::isa<llvm::ReturnInst>(term) ||
-        llvm::isa<llvm::ResumeInst>(term)) {
-      ExitPoints.push_back(term);
+    if (llvm::isa<llvm::ReturnInst>(Term) ||
+        llvm::isa<llvm::ResumeInst>(Term)) {
+      ExitPoints.push_back(Term);
     }
   }
 }
@@ -405,28 +433,29 @@ bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst) {
 }
 
 bool isVarAnnotationIntrinsic(const llvm::Function *F) {
-  static const llvm::StringRef kVarAnnotationName("llvm.var.annotation");
-  return F->getName() == kVarAnnotationName;
+  static constexpr llvm::StringLiteral KVarAnnotationName(
+      "llvm.var.annotation");
+  return F->getName() == KVarAnnotationName;
 }
 
 llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
-  const int kPointerGlobalStringIdx = 1;
-  auto *ce = llvm::cast<llvm::ConstantExpr>(
-      CallInst->getOperand(kPointerGlobalStringIdx));
-  assert(ce != nullptr);
-  assert(ce->getOpcode() == llvm::Instruction::GetElementPtr);
-  assert(llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0)) != nullptr);
+  const int KPointerGlobalStringIdx = 1;
+  auto *CE = llvm::cast<llvm::ConstantExpr>(
+      CallInst->getOperand(KPointerGlobalStringIdx));
+  assert(CE != nullptr);
+  assert(CE->getOpcode() == llvm::Instruction::GetElementPtr);
+  assert(llvm::dyn_cast<llvm::GlobalVariable>(CE->getOperand(0)) != nullptr);
 
-  auto *annoteStr = llvm::dyn_cast<llvm::GlobalVariable>(ce->getOperand(0));
+  auto *AnnoteStr = llvm::dyn_cast<llvm::GlobalVariable>(CE->getOperand(0));
   assert(llvm::dyn_cast<llvm::ConstantDataSequential>(
-      annoteStr->getInitializer()));
+      AnnoteStr->getInitializer()));
 
-  auto *data =
-      llvm::dyn_cast<llvm::ConstantDataSequential>(annoteStr->getInitializer());
+  auto *Data =
+      llvm::dyn_cast<llvm::ConstantDataSequential>(AnnoteStr->getInitializer());
 
   // getAsCString to get rid of the null-terminator
-  assert(data->isCString());
-  return data->getAsCString();
+  assert(Data->isCString());
+  return Data->getAsCString();
 }
 
 llvm::ModuleSlotTracker &

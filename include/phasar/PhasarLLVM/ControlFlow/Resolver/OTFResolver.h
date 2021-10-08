@@ -19,12 +19,15 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/TinyPtrVector.h"
 
 namespace llvm {
 class Instruction;
@@ -53,20 +56,17 @@ public:
 
   void preCall(const llvm::Instruction *Inst) override;
 
-  void handlePossibleTargets(
-      const llvm::CallBase *CallSite,
-      std::set<const llvm::Function *> &CalleeTargets) override;
+  void handlePossibleTargets(const llvm::CallBase *CallSite,
+                             FunctionSetTy &CalleeTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 
-  std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
-  std::set<const llvm::Function *>
-  resolveFunctionPointer(const llvm::CallBase *CallSite) override;
+  FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   static std::set<const llvm::Type *>
-  getReachableTypes(const std::unordered_set<const llvm::Value *> &Values);
+  getReachableTypes(const LLVMPointsToInfo::PointsToSetTy &Values);
 
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
   getActualFormalPointerPairs(const llvm::CallBase *CallSite,

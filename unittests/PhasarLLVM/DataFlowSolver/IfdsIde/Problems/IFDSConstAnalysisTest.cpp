@@ -11,6 +11,7 @@
 #include "gtest/gtest.h"
 
 #include "TestConfig.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;
@@ -46,8 +47,6 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void TearDown() override {}
-
   void compareResults(const std::set<unsigned long> &GroundTruth,
                       IFDSSolver_P<IFDSConstAnalysis> &Solver) {
     IRDB->emitPreprocessedIR();
@@ -58,12 +57,14 @@ protected:
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||
             (llvm::isa<llvm::GlobalValue>(Fact) &&
              !Constproblem->isZeroValue(Fact))) {
+
           AllMutableAllocas.insert(Fact);
         }
       }
     }
     std::set<unsigned long> MutableIDs;
     for (const auto *Memloc : AllMutableAllocas) {
+      std::cerr << "> Is Mutable: " << llvmIRToShortString(Memloc) << "\n";
       MutableIDs.insert(std::stoul(getMetaDataID(Memloc)));
     }
     EXPECT_EQ(GroundTruth, MutableIDs);
@@ -185,7 +186,9 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
   initialize({PathToLlFiles + "global/global_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
-  compareResults({0, 1, 2}, Llvmconstsolver);
+
+  /// The @llvm.global_ctors global variable is never immutable
+  compareResults({0, /*1,*/ 2}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleGlobalTest_04) {
@@ -321,6 +324,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
   initialize({PathToLlFiles + "array/array_06_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
+  PT->print(std::cerr);
   compareResults({1}, Llvmconstsolver);
 }
 

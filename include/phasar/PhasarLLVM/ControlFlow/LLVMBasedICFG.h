@@ -30,8 +30,10 @@
 #include "boost/container/flat_set.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
 
@@ -71,35 +73,23 @@ private:
   LLVMTypeHierarchy *TH;
   LLVMPointsToInfo *PT;
   std::unique_ptr<Resolver> Res;
-  std::unordered_set<const llvm::Function *> VisitedFunctions;
+  llvm::DenseSet<const llvm::Function *> VisitedFunctions;
   llvm::SmallPtrSet<llvm::Function *, 2> UserEntryPoints;
 
   GlobalCtorTy GlobalCtors;
   GlobalDtorTy GlobalDtors;
 
-  // llvm::SmallDenseMap<F, typename GlobalCtorTy::const_iterator, 2>
-  // GlobalCtorFn; llvm::SmallDenseMap<F, typename GlobalDtorTy::const_iterator,
-  // 2> GlobalDtorFn;
-
   llvm::Function *GlobalCleanupFn = nullptr;
 
   llvm::SmallDenseMap<const llvm::Module *, llvm::Function *>
       GlobalRegisteredDtorsCaller;
-  /// Keeps track of the call-sites already resolved
-  // std::vector<const llvm::Instruction *> CallStack;
-
-  // Keeps track of the type graph already constructed
-  // TypeGraph_t typegraph;
-
-  // Any types that could be initialized outside of the module
-  // std::set<const llvm::StructType*> unsound_types;
 
   // The worklist for direct callee resolution.
   std::vector<const llvm::Function *> FunctionWL;
 
   // Map indirect calls to the number of possible targets found for it. Fixpoint
   // is not reached when more targets are found.
-  std::unordered_map<const llvm::Instruction *, unsigned> IndirectCalls;
+  llvm::DenseMap<const llvm::Instruction *, unsigned> IndirectCalls;
   // The VertexProperties for our call-graph.
   struct VertexProperties {
     const llvm::Function *F = nullptr;

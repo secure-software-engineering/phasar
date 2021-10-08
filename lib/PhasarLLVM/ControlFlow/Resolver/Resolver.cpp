@@ -50,10 +50,10 @@ int getVFTIndex(const llvm::CallBase *CallSite) {
 }
 
 const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
-  if (CallSite->getNumArgOperands() > 0) {
-    const llvm::Value *Receiver = CallSite->getArgOperand(0);
+  if (!CallSite->arg_empty()) {
+    const auto *Receiver = CallSite->getArgOperand(0);
     if (Receiver->getType()->isPointerTy()) {
-      if (const llvm::StructType *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+      if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
               Receiver->getType()->getPointerElementType())) {
         return ReceiverTy;
       }
@@ -63,7 +63,7 @@ const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
 }
 
 std::string getReceiverTypeName(const llvm::CallBase *CallSite) {
-  const auto *const RT = getReceiverType(CallSite);
+  const auto *RT = getReceiverType(CallSite);
   if (RT) {
     return RT->getName().str();
   }
@@ -89,25 +89,24 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
 
 void Resolver::preCall(const llvm::Instruction *Inst) {}
 
-void Resolver::handlePossibleTargets(
-    const llvm::CallBase *CallSite,
-    std::set<const llvm::Function *> &PossibleTargets) {}
+void Resolver::handlePossibleTargets(const llvm::CallBase *CallSite,
+                                     FunctionSetTy &PossibleTargets) {}
 
 void Resolver::postCall(const llvm::Instruction *Inst) {}
 
-std::set<const llvm::Function *>
-Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite) {
+auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call function pointer: " << llvmIRToString(CallSite));
-  std::set<const llvm::Function *> CalleeTargets;
+  FunctionSetTy CalleeTargets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)
   if (CallSite->getCalledOperand() != nullptr &&
       CallSite->getCalledOperand()->getType()->isPointerTy()) {
-    if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
+    if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
       for (const auto *F : IRDB.getAllFunctions()) {
         if (matchesSignature(F, FTy)) {
