@@ -43,8 +43,8 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
 }
 
 void AbstractMemoryLocationFactoryBase::Allocator::Block::destroy(Block *Blck) {
-  ::operator delete (Blck,
-                     std::align_val_t{alignof(AbstractMemoryLocationImpl)});
+  ::operator delete[](Blck,
+                      std::align_val_t{alignof(AbstractMemoryLocationImpl)});
 }
 
 AbstractMemoryLocationFactoryBase::Allocator::Allocator(
