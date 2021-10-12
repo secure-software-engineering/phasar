@@ -62,7 +62,8 @@ private:
   std::string ProjectID;
   std::string OutDirectory;
   boost::filesystem::path ResultDirectory;
-  [[maybe_unused]] Soundness S;
+  [[maybe_unused]] Soundness SoundnessLevel;
+  [[maybe_unused]] bool AutoGlobalSupport;
 
   ///
   /// \brief The maximum length of the CallStrings used in the InterMonoSolver
@@ -117,7 +118,8 @@ public:
                      std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
-                     Soundness S, const std::set<std::string> &EntryPoints,
+                     Soundness SoundnessLevel, bool AutoGlobalSupport,
+                     const std::set<std::string> &EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
                      const std::string &ProjectID = "default-phasar-project",

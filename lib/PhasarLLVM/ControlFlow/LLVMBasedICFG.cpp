@@ -145,39 +145,43 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     this->PT = new LLVMPointsToSet(IRDB);
     UserPTInfos = false;
   }
-
   if (this->PT == nullptr) {
     llvm::report_fatal_error("LLVMPointsToInfo not passed and "
                              "CallGraphAnalysisType::OTF was not specified.");
   }
-
-  for (const auto &EntryPoint : EntryPoints) {
-    auto *F = IRDB.getFunctionDefinition(EntryPoint);
-    if (F == nullptr) {
-      llvm::report_fatal_error("Could not retrieve function for entry point");
+  if (EntryPoints.count("__ALL__")) {
+    // Handle the special case in which a user wishes to treat all functions as
+    // entry points.
+    auto Funs = IRDB.getAllFunctions();
+    for (const auto *Fun : Funs) {
+      if (!Fun->isDeclaration() && Fun->hasName()) {
+        UserEntryPoints.insert(IRDB.getFunctionDefinition(Fun->getName()));
+      }
     }
-    UserEntryPoints.insert(F);
+  } else {
+    for (const auto &EntryPoint : EntryPoints) {
+      auto *F = IRDB.getFunctionDefinition(EntryPoint);
+      if (F == nullptr) {
+        llvm::report_fatal_error("Could not retrieve function for entry point");
+      }
+      UserEntryPoints.insert(F);
+    }
   }
-
   if (IncludeGlobals) {
     assert(IRDB.getNumberOfModules() == 1 &&
            "IncludeGlobals is currently only supported for WPA");
-
     const auto *GlobCtor =
         buildCRuntimeGlobalCtorsDtorsModel(*IRDB.getWPAModule());
-
     FunctionWL.push_back(GlobCtor);
   } else {
     FunctionWL.insert(FunctionWL.end(), UserEntryPoints.begin(),
                       UserEntryPoints.end());
   }
-
   // instantiate the respective resolver type
   Res = makeResolver(IRDB, CGType, *this->TH, *this->PT);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
-
   bool FixpointReached;
   do {
     FixpointReached = true;
@@ -192,7 +196,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     }
 
   } while (!FixpointReached);
-
   for (const auto &[IndirectCall, Targets] : IndirectCalls) {
     if (Targets == 0) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
@@ -200,7 +203,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                     << llvmIRToString(IndirectCall));
     }
   }
-
   REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)

@@ -74,7 +74,7 @@ private:
   LLVMPointsToInfo *PT;
   std::unique_ptr<Resolver> Res;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions;
-  llvm::SmallPtrSet<llvm::Function *, 2> UserEntryPoints;
+  std::unordered_set<llvm::Function *> UserEntryPoints;
 
   GlobalCtorTy GlobalCtors;
   GlobalDtorTy GlobalDtors;
