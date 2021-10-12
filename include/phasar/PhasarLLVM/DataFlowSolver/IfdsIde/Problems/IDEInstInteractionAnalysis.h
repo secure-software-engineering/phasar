@@ -162,8 +162,9 @@ public:
     // Global variables may only be initialized once.
     // They may also be initialized within getCallToRetFlowFunction() in case an
     // entry point is a function call. (See getCallToRetFlowFunction().)
-    if (InitGlobals && Seeds.countInitialSeeds(curr)) {
-      InitGlobals = false; // We are initializing globals here now.
+    if (Seeds.countInitialSeeds(curr) && !InitializedGlobalsAtSeed[curr]) {
+      InitializedGlobalsAtSeed[curr] =
+          true; // We are initializing globals here now.
       std::set<d_t> Globals;
       for (const auto *Mod : this->IRDB->getAllModules()) {
         for (const auto &Global : Mod->globals()) {
@@ -491,7 +492,8 @@ public:
     if (this->ICF->isHeapAllocatingFunction(destMthd)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
       return KillAll<d_t>::getInstance();
-    } else if (destMthd->isDeclaration()) {
+    }
+    if (destMthd->isDeclaration()) {
       // We don't have anything that we could analyze, kill all facts.
       return KillAll<d_t>::getInstance();
     }
@@ -557,6 +559,43 @@ public:
   inline FlowFunctionPtrType
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<f_t> callees) override {
+    // The entry point of a function may also be a call statement, which is why
+    // we need to replicate the global generating code that we already saw in
+    // getNormalFlowFunction(). Generate all global variables and handle the
+    // instruction that we currently misuse to generate them.
+    // TODO The handling of global variables, global constructors and global
+    // destructors will soon be possible using a dedicated mechanism.
+    //
+    // Flow function:
+    //
+    // Let G be the set of global variables.
+    //
+    //                    0
+    //                    |\
+    // some instruction   | \--\
+    //                    v  v  v
+    //                    0  x  G
+    //
+    // Global variables may only be initialized once.
+    // They may also be initialized within getCallToRetFlowFunction() in case an
+    // entry point is a function call. (See getCallToRetFlowFunction().)
+    if (Seeds.countInitialSeeds(callSite) && !InitializedGlobalsAtSeed[callSite]) {
+      InitializedGlobalsAtSeed[callSite] = true; // We are initializing globals here now.
+      std::set<d_t> Globals;
+      for (const auto *Mod : this->IRDB->getAllModules()) {
+        for (const auto &Global : Mod->globals()) {
+          Globals.insert(&Global); // collect all global variables
+        }
+      }
+      // Create the flow function that generates the globals.
+      auto GlobalFlowFun =
+          std::make_shared<GenAll<d_t>>(Globals, this->getZeroValue());
+      // Create the flow function for the instruction we are currently misusing.
+      auto FlowFun = getCallToRetFlowFunction(callSite, retSite, callees);
+      return std::make_shared<Union<d_t>>(
+          std::vector<FlowFunctionPtrType>({FlowFun, GlobalFlowFun}));
+    }
+
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (callees.size() == 1) {
@@ -579,40 +618,6 @@ public:
         }
       }
     }
-    // The entry point of a function may also be a call statement, which is why
-    // we need to replicate the global generating code that we already saw in
-    // getNormalFlowFunction(). Generate all global variables and handle the
-    // instruction that we currently misuse to generate them.
-    // TODO The handling of global variables, global constructors and global
-    // destructors will soon be possible using a dedicated mechanism.
-    //
-    // Flow function:
-    //
-    // Let G be the set of global variables.
-    //
-    //                    0
-    //                    |\
-    // some instruction   | \--\
-    //                    v  v  v
-    //                    0  x  G
-    //
-    // Variable that will hold our generating globals function.
-    FlowFunctionPtrType GlobalFlowFun = nullptr;
-    // Global variables may only be initialized once.
-    // They may also be initialized within getCallToRetFlowFunction() in case an
-    // entry point is a function call. (See getCallToRetFlowFunction().)
-    if (InitGlobals && Seeds.countInitialSeeds(callSite)) {
-      InitGlobals = false; // We are initializing globals here now.
-      std::set<d_t> Globals;
-      for (const auto *Mod : this->IRDB->getAllModules()) {
-        for (const auto &Global : Mod->globals()) {
-          Globals.insert(&Global); // collect all global variables
-        }
-      }
-      // Create the flow function that generates the globals.
-      GlobalFlowFun =
-          std::make_shared<GenAll<d_t>>(Globals, this->getZeroValue());
-    }
     // Just use the auto mapping for values, pointer parameters and global
     // variables are killed and handled by getCallFlowfunction() and
     // getRetFlowFunction().
@@ -628,35 +633,19 @@ public:
     }
     // Declarations only case
     if (OnlyDecls) {
-      auto PassAsId =
-          std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-              llvm::cast<llvm::CallBase>(callSite),
-              true /* propagate globals alongsite the call site */,
-              [](const llvm::CallBase *CS, const llvm::Value *V) {
-                return false; // not involved in the call
-              });
-      if (GlobalFlowFun) {
-        // We potentially need to combine this flow function with the global
-        // generating flow function.
-        return std::make_shared<Union<d_t>>(
-            std::vector<FlowFunctionPtrType>({PassAsId, GlobalFlowFun}));
-      }
-      return PassAsId;
+      return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
+          llvm::cast<llvm::CallBase>(callSite),
+          true /* propagate globals alongsite the call site */,
+          [](const llvm::CallBase *CS, const llvm::Value *V) {
+            return false; // not involved in the call
+          });
     }
     // Otherwise
-    auto KillGlobals =
-        std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-            llvm::cast<llvm::CallBase>(callSite),
-            false // do not propagate globals (as they are propagated via call-
-                  // and ret-functions)
-        );
-    if (GlobalFlowFun) {
-      // We potentially need to combine this flow function with the global
-      // generating flow function.
-      return std::make_shared<Union<d_t>>(
-          std::vector<FlowFunctionPtrType>({KillGlobals, GlobalFlowFun}));
-    }
-    return KillGlobals;
+    return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
+        llvm::cast<llvm::CallBase>(callSite),
+        false // do not propagate globals (as they are propagated via call-
+              // and ret-functions)
+    );
   }
 
   inline FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
@@ -1552,7 +1541,8 @@ private:
 
   // TODO This is only a temporary mechanism to handle global variables.
   InitialSeeds<n_t, d_t, l_t> Seeds;
-  bool InitGlobals = true; // Globals must be initialized!
+  std::unordered_map<n_t, bool>
+      InitializedGlobalsAtSeed; // Globals must be initialized!
 
 }; // namespace psr
 
