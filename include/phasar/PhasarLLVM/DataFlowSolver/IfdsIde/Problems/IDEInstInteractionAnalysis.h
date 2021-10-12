@@ -124,6 +124,9 @@ public:
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
                                     EnableIndirectTaints>::createZeroValue();
+    this->Seeds =
+        IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
+                                    EnableIndirectTaints>::initialSeeds();
     IIAAAddLabelsEF::initEdgeFunctionCleaner();
     IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
@@ -156,10 +159,11 @@ public:
     //                    v  v  v
     //                    0  x  G
     //
-    static auto Seeds = this->initialSeeds();
-    static bool initGlobals = true;
-    if (initGlobals && Seeds.countInitialSeeds(curr)) {
-      initGlobals = false;
+    // Global variables may only be initialized once.
+    // They may also be initialized within getCallToRetFlowFunction() in case an
+    // entry point is a function call. (See getCallToRetFlowFunction().)
+    if (InitGlobals && Seeds.countInitialSeeds(curr)) {
+      InitGlobals = false; // We are initializing globals here now.
       std::set<d_t> Globals;
       for (const auto *Mod : this->IRDB->getAllModules()) {
         for (const auto &Global : Mod->globals()) {
@@ -575,6 +579,40 @@ public:
         }
       }
     }
+    // The entry point of a function may also be a call statement, which is why
+    // we need to replicate the global generating code that we already saw in
+    // getNormalFlowFunction(). Generate all global variables and handle the
+    // instruction that we currently misuse to generate them.
+    // TODO The handling of global variables, global constructors and global
+    // destructors will soon be possible using a dedicated mechanism.
+    //
+    // Flow function:
+    //
+    // Let G be the set of global variables.
+    //
+    //                    0
+    //                    |\
+    // some instruction   | \--\
+    //                    v  v  v
+    //                    0  x  G
+    //
+    // Variable that will hold our generating globals function.
+    FlowFunctionPtrType GlobalFlowFun = nullptr;
+    // Global variables may only be initialized once.
+    // They may also be initialized within getCallToRetFlowFunction() in case an
+    // entry point is a function call. (See getCallToRetFlowFunction().)
+    if (InitGlobals && Seeds.countInitialSeeds(callSite)) {
+      InitGlobals = false; // We are initializing globals here now.
+      std::set<d_t> Globals;
+      for (const auto *Mod : this->IRDB->getAllModules()) {
+        for (const auto &Global : Mod->globals()) {
+          Globals.insert(&Global); // collect all global variables
+        }
+      }
+      // Create the flow function that generates the globals.
+      GlobalFlowFun =
+          std::make_shared<GenAll<d_t>>(Globals, this->getZeroValue());
+    }
     // Just use the auto mapping for values, pointer parameters and global
     // variables are killed and handled by getCallFlowfunction() and
     // getRetFlowFunction().
@@ -589,18 +627,36 @@ public:
       }
     }
     // Declarations only case
-    return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        llvm::cast<llvm::CallBase>(callSite),
-        true /* propagate globals alongsite the call site */,
-        [](const llvm::CallBase *CS, const llvm::Value *V) {
-          return false; // not involved in the call
-        });
+    if (OnlyDecls) {
+      auto PassAsId =
+          std::make_shared<MapFactsAlongsideCallSite<container_type>>(
+              llvm::cast<llvm::CallBase>(callSite),
+              true /* propagate globals alongsite the call site */,
+              [](const llvm::CallBase *CS, const llvm::Value *V) {
+                return false; // not involved in the call
+              });
+      if (GlobalFlowFun) {
+        // We potentially need to combine this flow function with the global
+        // generating flow function.
+        return std::make_shared<Union<d_t>>(
+            std::vector<FlowFunctionPtrType>({PassAsId, GlobalFlowFun}));
+      }
+      return PassAsId;
+    }
     // Otherwise
-    return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        llvm::cast<llvm::CallBase>(callSite),
-        false // do not propagate globals (as they are propagated via call- and
-              // ret-functions)
-    );
+    auto KillGlobals =
+        std::make_shared<MapFactsAlongsideCallSite<container_type>>(
+            llvm::cast<llvm::CallBase>(callSite),
+            false // do not propagate globals (as they are propagated via call-
+                  // and ret-functions)
+        );
+    if (GlobalFlowFun) {
+      // We potentially need to combine this flow function with the global
+      // generating flow function.
+      return std::make_shared<Union<d_t>>(
+          std::vector<FlowFunctionPtrType>({KillGlobals, GlobalFlowFun}));
+    }
+    return KillGlobals;
   }
 
   inline FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
@@ -682,13 +738,12 @@ public:
     //
     // Let g be a global variable.
     //
-    //                0
-    //                 \
-    // %a = alloca      \ \x.x \cup { commit of('@global') }
-    //                   v
-    //                   g
+    //                                    0
+    //                                     \
+    // non-call/non-return instruction      \ \x.x \cup { commit of('@global') }
+    //                                       v
+    //                                       g
     //
-    static auto Seeds = this->initialSeeds();
     static auto Globals = [this]() {
       std::set<d_t> Globals;
       for (const auto *Mod : this->IRDB->getAllModules()) {
@@ -1064,6 +1119,39 @@ public:
             return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
           }
         }
+      }
+    }
+    // TODO use new mechanism to handle globals.
+    //
+    // Zero --> Global edges
+    //
+    // Edge function:
+    //
+    // Let g be a global variable.
+    //
+    //                0
+    //                 \
+    // some callsite    \ \x.x \cup { commit of('@global') }
+    //                   v
+    //                   g
+    //
+    static auto Globals = [this]() {
+      std::set<d_t> Globals;
+      for (const auto *Mod : this->IRDB->getAllModules()) {
+        for (const auto &G : Mod->globals()) {
+          Globals.insert(&G);
+        }
+      }
+      return Globals;
+    }();
+    if (Seeds.countInitialSeeds(callSite) && isZeroValue(callNode) &&
+        Globals.count(retSiteNode)) {
+      if (const auto *GlobalVarDef =
+              llvm::dyn_cast<llvm::GlobalVariable>(retSiteNode)) {
+        EdgeFacts = edgeFactGen(GlobalVarDef);
+        // fill BitVectorSet
+        UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
     }
     // Capture interactions of the call instruction and its operands.
@@ -1461,6 +1549,10 @@ private:
     }
     return {};
   }
+
+  // TODO This is only a temporary mechanism to handle global variables.
+  InitialSeeds<n_t, d_t, l_t> Seeds;
+  bool InitGlobals = true; // Globals must be initialized!
 
 }; // namespace psr
 
