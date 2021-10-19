@@ -17,19 +17,18 @@ using namespace psr;
 namespace psr {
 
 const llvm::Function *LLVMPointsToInfo::retrieveFunction(const llvm::Value *V) {
-  const llvm::Function *Fun = nullptr;
-  if (V) {
+  if (V) [[likely]] {
     if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-      Fun = Inst->getFunction();
-    }
-    if (const auto *BB = llvm::dyn_cast<llvm::BasicBlock>(V)) {
-      Fun = BB->getParent();
+      return Inst->getFunction();
     }
     if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-      Fun = Arg->getParent();
+      return Arg->getParent();
+    }
+    if (const auto *BB = llvm::dyn_cast<llvm::BasicBlock>(V)) {
+      return BB->getParent();
     }
   }
-  return Fun;
+  return nullptr;
 }
 
 } // namespace psr

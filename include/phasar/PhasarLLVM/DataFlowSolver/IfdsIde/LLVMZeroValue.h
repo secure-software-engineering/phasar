@@ -33,9 +33,9 @@ class Value;
 namespace psr {
 
 // do not touch, its only purpose is to make ZeroValue working
-static const std::unique_ptr<llvm::LLVMContext>
+inline const std::unique_ptr<llvm::LLVMContext>
     LLVMZeroValueCTX(new llvm::LLVMContext);
-static const std::unique_ptr<llvm::Module>
+inline const std::unique_ptr<llvm::Module>
     LLVMZeroValueMod(new llvm::Module("zero_module", *LLVMZeroValueCTX));
 
 /**

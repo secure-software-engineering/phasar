@@ -22,6 +22,7 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/Utils/Utilities.h"
@@ -58,6 +59,13 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
  * @brief Returns a string representation of a LLVM Value.
  */
 std::string llvmIRToString(const llvm::Value *V);
+
+/**
+ * @brief Similar to llvmIRToString, but removes the metadata from the output as
+ * they are not always stable. Prefer this function over llvmIRToString, if you
+ * are comparing the string representations of LLVM iR instructions.
+ */
+std::string llvmIRToStableString(const llvm::Value *V);
 
 /**
  * @brief Same as @link(llvmIRToString) but tries to shorten the
@@ -218,6 +226,23 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F);
  *
  */
 llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
+
+class ModulesToSlotTracker {
+  friend class ProjectIRDB;
+  friend class LLVMBasedICFG;
+  friend class LLVMZeroValue;
+
+private:
+  static inline llvm::SmallDenseMap<const llvm::Module *,
+                                    std::unique_ptr<llvm::ModuleSlotTracker>, 2>
+      MToST;
+
+  static void updateMSTForModule(const llvm::Module *);
+  static void deleteMSTForModule(const llvm::Module *);
+
+public:
+  static llvm::ModuleSlotTracker &getSlotTrackerForModule(const llvm::Module *);
+};
 } // namespace psr
 
 #endif

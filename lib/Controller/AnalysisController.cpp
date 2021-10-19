@@ -78,16 +78,17 @@ bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
-    CallGraphAnalysisType CGTy, Soundness S,
-    const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
-    AnalysisControllerEmitterOptions EmitterOptions,
+    CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
+    bool AutoGlobalSupport, const std::set<std::string> &EntryPoints,
+    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
     const std::string &ProjectID, const std::string &OutDirectory)
     : IRDB(IRDB), TH(IRDB), PT(IRDB, !needsToEmitPTA(EmitterOptions), PTATy),
-      ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
+      ICF(IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel, AutoGlobalSupport),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
       AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
       Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
-      OutDirectory(OutDirectory), S(S) {
+      OutDirectory(OutDirectory), SoundnessLevel(SoundnessLevel),
+      AutoGlobalSupport(AutoGlobalSupport) {
   if (!OutDirectory.empty()) {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();

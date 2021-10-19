@@ -154,9 +154,9 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
   }
 }
 
-set<const llvm::Function *>
-DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite) {
-  set<const llvm::Function *> PossibleCallTargets;
+auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
+  FunctionSetTy PossibleCallTargets;
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: " << llvmIRToString(CallSite));

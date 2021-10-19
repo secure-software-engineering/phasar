@@ -56,6 +56,14 @@ public:
     return NumSeeds;
   }
 
+  [[nodiscard]] size_t countInitialSeeds(N Node) const {
+    auto Search = Seeds.find(Node);
+    if (Search != Seeds.end()) {
+      return Search->second.size();
+    }
+    return 0;
+  }
+
   [[nodiscard]] bool containsInitialSeedsFor(N Node) const {
     return Seeds.count(Node);
   }

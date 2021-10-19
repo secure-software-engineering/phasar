@@ -138,7 +138,7 @@ public:
   [[nodiscard]] const llvm::Module *
   getModuleDefiningFunction(const std::string &FunctionName) const;
 
-  [[nodiscard]] std::set<const llvm::Instruction *>
+  [[nodiscard]] inline const std::set<const llvm::Instruction *> &
   getAllocaInstructions() const {
     return AllocaInstructions;
   };
@@ -159,26 +159,28 @@ public:
   [[nodiscard]] std::set<const llvm::StructType *>
   getAllocatedStructTypes() const;
 
-  [[nodiscard]] std::set<const llvm::Instruction *>
+  [[nodiscard]] inline std::set<const llvm::Instruction *>
   getRetOrResInstructions() const {
     return RetOrResInstructions;
   };
 
-  [[nodiscard]] std::size_t getNumberOfModules() const {
+  [[nodiscard]] inline std::size_t getNumberOfModules() const {
     return Modules.size();
   };
 
-  [[nodiscard]] std::size_t getNumInstructions() const {
+  [[nodiscard]] inline std::size_t getNumInstructions() const {
     return IDInstructionMapping.size();
   }
 
-  [[nodiscard]] llvm::Instruction *getInstruction(std::size_t id);
+  [[nodiscard]] std::size_t getNumGlobals() const;
+
+  [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id);
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
 
   void print() const;
 
-  void emitPreprocessedIR(std::ostream &os = std::cout,
+  void emitPreprocessedIR(std::ostream &OS = std::cout,
                           bool ShortenIR = false) const;
 
   /**

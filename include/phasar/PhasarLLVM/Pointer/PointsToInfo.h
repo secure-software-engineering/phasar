@@ -14,6 +14,8 @@
 #include <memory>
 #include <unordered_set>
 
+#include "llvm/ADT/DenseSet.h"
+
 #include "nlohmann/json.hpp"
 
 namespace psr {
@@ -40,6 +42,10 @@ std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 
 template <typename V, typename N> class PointsToInfo {
 public:
+  using PointsToSetTy = llvm::DenseSet<V>;
+  using PointsToSetPtrTy = const PointsToSetTy *;
+  using AllocationSiteSetPtrTy = std::unique_ptr<PointsToSetTy>;
+
   virtual ~PointsToInfo() = default;
 
   virtual bool isInterProcedural() const = 0;
@@ -48,10 +54,9 @@ public:
 
   virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
 
-  virtual std::shared_ptr<std::unordered_set<V>> getPointsToSet(V V1,
-                                                                N I = N{}) = 0;
+  virtual PointsToSetPtrTy getPointsToSet(V V1, N I = N{}) = 0;
 
-  virtual std::shared_ptr<std::unordered_set<V>>
+  virtual AllocationSiteSetPtrTy
   getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
 
   // Checks if V2 is a reachable allocation in the points to set of V1.

@@ -38,15 +38,14 @@ namespace psr {
 struct LLVMPointsToGraph::AllocationSiteDFSVisitor
     : boost::default_dfs_visitor {
   // collect the allocation sites that are found
-  std::unordered_set<const llvm::Value *> &AllocationSites;
+  PointsToSetTy &AllocationSites;
   // keeps track of the current path
   std::vector<vertex_t> VisitorStack;
   // the call stack that can be matched against the visitor stack
   const std::vector<const llvm::Instruction *> &CallStack;
 
-  AllocationSiteDFSVisitor(
-      std::unordered_set<const llvm::Value *> &AllocationSizes,
-      const vector<const llvm::Instruction *> &CallStack)
+  AllocationSiteDFSVisitor(PointsToSetTy &AllocationSizes,
+                           const vector<const llvm::Instruction *> &CallStack)
       : AllocationSites(AllocationSizes), CallStack(CallStack) {}
 
   template <typename Vertex, typename Graph>
@@ -265,12 +264,12 @@ AliasResult LLVMPointsToGraph::alias(const llvm::Value *V1,
   return AliasResult::NoAlias;
 }
 
-std::shared_ptr<std::unordered_set<const llvm::Value *>>
-LLVMPointsToGraph::getReachableAllocationSites(const llvm::Value *V,
-                                               bool IntraProcOnly,
-                                               const llvm::Instruction *I) {
+auto LLVMPointsToGraph::getReachableAllocationSites(const llvm::Value *V,
+                                                    bool IntraProcOnly,
+                                                    const llvm::Instruction *I)
+    -> AllocationSiteSetPtrTy {
   computePointsToGraph(V);
-  auto AllocSites = std::make_shared<std::unordered_set<const llvm::Value *>>();
+  auto AllocSites = std::make_unique<PointsToSetTy>();
   AllocationSiteDFSVisitor AllocVis(*AllocSites, {});
   vector<boost::default_color_type> ColorMap(boost::num_vertices(PAG));
   boost::depth_first_visit(
@@ -373,13 +372,13 @@ bool LLVMPointsToGraph::containsValue(llvm::Value *V) {
   return false;
 }
 
-std::shared_ptr<std::unordered_set<const llvm::Value *>>
-LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
-                                  const llvm::Instruction *I) {
+auto LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
+                                       const llvm::Instruction *I)
+    -> PointsToSetPtrTy {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getPointsToSet", 1, PAMM_SEVERITY_LEVEL::Full);
   START_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);
-  auto *VF = retrieveFunction(V);
+  const auto *VF = retrieveFunction(V);
   computePointsToGraph(VF);
   // check if the graph contains a corresponding vertex
   set<vertex_t> ReachableVertices;
@@ -389,7 +388,16 @@ LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
       PAG, ValueVertexMap.at(V), Vis,
       boost::make_iterator_property_map(
           ColorMap.begin(), boost::get(boost::vertex_index, PAG), ColorMap[0]));
-  auto ResultSet = std::make_shared<std::unordered_set<const llvm::Value *>>();
+  auto *ResultSet = [this, V] {
+    auto &Ret = Cache[V];
+
+    if (!Ret) {
+      Ret = Owner.acquire();
+    }
+
+    return Ret;
+  }();
+
   for (auto Vertex : ReachableVertices) {
     ResultSet->insert(PAG[Vertex].V);
   }

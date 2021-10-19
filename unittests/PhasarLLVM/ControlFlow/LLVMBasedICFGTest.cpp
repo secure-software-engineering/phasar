@@ -41,13 +41,14 @@ TEST(LLVMBasedICFGTest, StaticCallSite_1) {
   }
 }
 
-TEST(LLVMBasedICFGTest, StaticCallSite_2) {
+TEST(LLVMBasedICFGTest, StaticCallSite_2a) {
   ProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "call_graphs/static_callsite_2_c.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
+                     Soundness::Soundy, false);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FOO = IRDB.getFunctionDefinition("foo");
   const llvm::Function *BAR = IRDB.getFunctionDefinition("bar");
@@ -59,6 +60,40 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2) {
   FunctionSet.insert(F);
   FunctionSet.insert(FOO);
   FunctionSet.insert(BAR);
+
+  set<const llvm::Function *> FunSet = ICFG.getAllFunctions();
+  ASSERT_EQ(FunctionSet, FunSet);
+
+  set<const llvm::Instruction *> CallsFromWithin = ICFG.getCallsFromWithin(F);
+  ASSERT_EQ(CallsFromWithin.size(), 2U);
+}
+
+TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
+  ProjectIRDB IRDB(
+      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_2_c.ll"},
+      IRDBOptions::WPA);
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToSet PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
+  const llvm::Function *F = IRDB.getFunctionDefinition("main");
+  const llvm::Function *FOO = IRDB.getFunctionDefinition("foo");
+  const llvm::Function *BAR = IRDB.getFunctionDefinition("bar");
+  const llvm::Function *CTOR =
+      IRDB.getFunctionDefinition("__psrCRuntimeGlobalCtorsModel");
+  const llvm::Function *DTOR =
+      IRDB.getFunctionDefinition("__psrCRuntimeGlobalDtorsModel");
+  ASSERT_TRUE(F);
+  ASSERT_TRUE(FOO);
+  ASSERT_TRUE(BAR);
+  ASSERT_TRUE(CTOR);
+  ASSERT_TRUE(DTOR);
+
+  set<const llvm::Function *> FunctionSet;
+  FunctionSet.insert(F);
+  FunctionSet.insert(FOO);
+  FunctionSet.insert(BAR);
+  FunctionSet.insert(CTOR);
+  FunctionSet.insert(DTOR);
 
   set<const llvm::Function *> FunSet = ICFG.getAllFunctions();
   ASSERT_EQ(FunctionSet, FunSet);
@@ -232,7 +267,7 @@ TEST(LLVMBasedICFGTest, StaticCallSite_7) {
       getLastInstructionOf(IRDB.getFunctionDefinition("_ZN3Foo1fEv"));
   set<const llvm::Function *> AllMethods = ICFG.getAllFunctions();
   ASSERT_EQ(LastInst, I);
-  ASSERT_EQ(AllMethods.size(), 3U);
+  ASSERT_EQ(AllMethods.size(), 5U);
   ASSERT_TRUE(AllMethods.count(Main));
   ASSERT_TRUE(AllMethods.count(FooF));
   ASSERT_TRUE(AllMethods.count(F));
@@ -257,7 +292,7 @@ TEST(LLVMBasedICFGTest, StaticCallSite_8) {
   ASSERT_EQ(Insts.size(), Insts1.size());
 
   set<const llvm::Function *> FunSet = ICFG.getAllFunctions();
-  ASSERT_EQ(FunSet.size(), 3U);
+  ASSERT_EQ(FunSet.size(), 5U);
 
   const llvm::Instruction *I = getNthInstruction(F, 1);
   ASSERT_TRUE(ICFG.isStartPoint(I));
