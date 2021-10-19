@@ -50,16 +50,15 @@ protected:
 
   void Initialize(const std::string &llFile, size_t maxSetSize = 2) {
     IRDB = std::make_unique<ProjectIRDB>(
-        (const std::vector<std::string>){pathToLLFiles + llFile},
-        IRDBOptions::WPA);
+        std::vector<std::string>{pathToLLFiles + llFile}, IRDBOptions::WPA);
     TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = std::make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = std::make_unique<LLVMBasedICFG>(
-        *IRDB, CallGraphAnalysisType::RTA,
-        (const std::set<std::string>){"main"}, TH.get(), PT.get());
+    ICFG = std::make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::RTA,
+                                           std::set<std::string>{"main"},
+                                           TH.get(), PT.get());
     LCAProblem = std::make_unique<IDEGeneralizedLCA>(
         IRDB.get(), TH.get(), ICFG.get(), PT.get(),
-        (const std::set<std::string>){"main"}, maxSetSize);
+        std::set<std::string>{"main"}, maxSetSize);
     LCASolver =
         std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(*LCAProblem.get());
 
