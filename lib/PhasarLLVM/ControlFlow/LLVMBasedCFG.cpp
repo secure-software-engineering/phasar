@@ -135,7 +135,11 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
     return {};
   }
   if (!Fun->isDeclaration()) {
-    return {&Fun->front().front()};
+    auto *EntryInst = &Fun->front().front();
+    if (IgnoreDbgInstructions && EntryInst->isDebugOrPseudoInst()) {
+      return {EntryInst->getNextNonDebugInstruction()};
+    }
+    return {EntryInst};
   } else {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Could not get starting points of '"
