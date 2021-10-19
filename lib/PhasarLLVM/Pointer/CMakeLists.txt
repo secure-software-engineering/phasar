@@ -2,6 +2,7 @@ file(GLOB_RECURSE POINTER_SRC *.h *.cpp)
 
 set(PHASAR_LINK_LIBS
   phasar_utils
+  phasar_db
 )
 
 set(LLVM_LINK_COMPONENTS
