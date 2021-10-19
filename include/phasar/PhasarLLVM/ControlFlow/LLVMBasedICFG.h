@@ -144,7 +144,7 @@ public:
 
   ~LLVMBasedICFG() override;
 
-  LLVMBasedICFG const& operator=(LLVMBasedICFG& Other);
+  LLVMBasedICFG& operator=(const LLVMBasedICFG& Other);
 
   /**
    * \return all of the functions in the IRDB, this may include some not in the
