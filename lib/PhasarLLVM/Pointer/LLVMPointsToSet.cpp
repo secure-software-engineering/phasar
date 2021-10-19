@@ -76,7 +76,8 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
-  std::cerr << "LLVMPointsToSet completed\n";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "LLVMPointsToSet completed\n");
 }
 
 void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
