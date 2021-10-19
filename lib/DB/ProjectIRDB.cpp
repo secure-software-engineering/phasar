@@ -237,14 +237,6 @@ llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
   return nullptr;
 }
 
-std::size_t ProjectIRDB::getNumGlobals() const {
-  std::size_t Ret = 0;
-  for (const auto &[File, Module] : Modules) {
-    Ret += Module->global_size();
-  }
-  return Ret;
-}
-
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
   if (IDInstructionMapping.count(Id)) {
     return IDInstructionMapping[Id];

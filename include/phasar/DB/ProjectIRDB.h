@@ -172,7 +172,13 @@ public:
     return IDInstructionMapping.size();
   }
 
-  [[nodiscard]] std::size_t getNumGlobals() const;
+  [[nodiscard]] std::size_t getNumGlobals() const {
+    std::size_t Ret = 0;
+    for (const auto &[File, Module] : Modules) {
+      Ret += Module->global_size();
+    }
+    return Ret;
+  }
 
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id);
 
