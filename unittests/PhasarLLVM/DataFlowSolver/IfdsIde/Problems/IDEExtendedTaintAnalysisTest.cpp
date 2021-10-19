@@ -253,9 +253,11 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint11) {
 TEST_F(IDETaintAnalysisTest, XTaint12) {
   map<int, set<string>> gt;
 
-  // no leaks expected
+  // We sanitize an alias - since we don't have must-alias relations, we cannot
+  // kill aliases at all
+  gt[30] = {"29"};
 
-  doAnalysis({PathToLLFiles + "xtaint12_cpp.ll"}, gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint12_cpp.ll"}, gt, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint13) {
