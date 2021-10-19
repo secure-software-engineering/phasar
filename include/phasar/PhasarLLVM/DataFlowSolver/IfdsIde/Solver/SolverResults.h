@@ -67,7 +67,7 @@ public:
   }
 
   std::vector<typename Table<N, D, L>::Cell> getAllResultEntries() const {
-    return results.cellVec();
+    return Results.cellVec();
   }
 };
 
