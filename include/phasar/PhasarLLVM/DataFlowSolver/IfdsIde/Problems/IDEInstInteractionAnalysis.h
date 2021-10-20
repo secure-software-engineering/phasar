@@ -579,8 +579,10 @@ public:
     // Global variables may only be initialized once.
     // They may also be initialized within getCallToRetFlowFunction() in case an
     // entry point is a function call. (See getCallToRetFlowFunction().)
-    if (Seeds.countInitialSeeds(callSite) && !InitializedGlobalsAtSeed[callSite]) {
-      InitializedGlobalsAtSeed[callSite] = true; // We are initializing globals here now.
+    if (Seeds.countInitialSeeds(callSite) &&
+        !InitializedGlobalsAtSeed[callSite]) {
+      InitializedGlobalsAtSeed[callSite] =
+          true; // We are initializing globals here now.
       std::set<d_t> Globals;
       for (const auto *Mod : this->IRDB->getAllModules()) {
         for (const auto &Global : Mod->globals()) {
@@ -742,7 +744,7 @@ public:
       }
       return Globals;
     }();
-    if (Seeds.countInitialSeeds(curr) && isZeroValue(currNode) &&
+    if (Seeds.containsInitialSeedsFor(curr) && isZeroValue(currNode) &&
         Globals.count(succNode)) {
       if (const auto *GlobalVarDef =
               llvm::dyn_cast<llvm::GlobalVariable>(succNode)) {

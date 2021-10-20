@@ -12,7 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
 #include <iostream>
 #include <map>
@@ -47,11 +47,20 @@ struct HasNoConfigurationType;
 class IFDSTaintAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 private:
-  const TaintConfiguration<const llvm::Value *> &SourceSinkFunctions;
+  const TaintConfig &Config;
+
+  bool isSourceCall(const llvm::CallBase *CB,
+                    const llvm::Function *Callee) const;
+  bool isSinkCall(const llvm::CallBase *CB, const llvm::Function *Callee) const;
+  bool isSanitizerCall(const llvm::CallBase *CB,
+                       const llvm::Function *Callee) const;
+
+  void populateWithMayAliases(std::set<d_t> &Facts) const;
+  void populateWithMustAliases(std::set<d_t> &Facts) const;
 
 public:
   // Setup the configuration type
-  using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
+  using ConfigurationTy = TaintConfig;
 
   /// Holds all leaks found during the analysis
   std::map<n_t, std::set<d_t>> Leaks;
@@ -64,35 +73,35 @@ public:
    */
   IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                    const TaintConfiguration<const llvm::Value *> &TSF,
+                    const TaintConfig &Config,
                     std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSTaintAnalysis() override = default;
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitInst, n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitInst, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                               std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               std::set<f_t> Callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
-                                             f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                             f_t DestFun) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
-  bool isZeroValue(d_t d) const override;
+  bool isZeroValue(d_t FlowFact) const override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &Os, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &Os, d_t FlowFact) const override;
 
-  void printFunction(std::ostream &os, f_t m) const override;
+  void printFunction(std::ostream &Os, f_t Fun) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                       std::ostream &OS = std::cout) override;

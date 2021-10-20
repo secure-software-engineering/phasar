@@ -144,7 +144,6 @@ bool matchesSignature(const llvm::FunctionType *FType1,
 
 llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
   const auto *M = getModuleFromVal(V);
-
   return ModulesToSlotTracker::getSlotTrackerForModule(M);
 }
 

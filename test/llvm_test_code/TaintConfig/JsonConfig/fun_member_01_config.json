@@ -1,0 +1,22 @@
+{
+	"name": "taint-config-test",
+	"version": 1.0,
+	"functions": [
+		{
+			"file": "fun_member_01.cpp",
+			"scope": "X",
+			"name": "foo",
+			"ret": "source"
+		},
+		{
+			"file": "fun_member_01.cpp",
+			"scope": "X",
+			"name": "bar",
+			"params": {
+				"sink": [
+					0
+				]
+			}
+		}
+	]
+}

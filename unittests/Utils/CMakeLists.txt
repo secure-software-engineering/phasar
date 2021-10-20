@@ -1,6 +1,7 @@
 set(UtilsSources
   BitVectorSetTest.cpp
   EquivalenceClassMapTest.cpp
+  IOTest.cpp
   LLVMIRToSrcTest.cpp
   LLVMShorthandsTest.cpp
   PAMMTest.cpp

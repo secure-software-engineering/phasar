@@ -1,1 +1,2 @@
 add_subdirectory(llvm_test_code)
+add_subdirectory(text_test_code)

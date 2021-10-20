@@ -1,0 +1,70 @@
+R"(
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Taint Configuration",
+    "description": "A Taint Configuration",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Name of this taint configuration"
+        },
+        "version": {
+            "type": "number",
+            "description": "Version of this taint configuration"
+        },
+        "functions": {
+            "type": "array",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "ret": {
+                    "enum": ["source", "sink", "sanitizer"]
+                },
+                "params": {
+                    "properties": {
+                        "source": {
+                            "type": "array",
+                            "properties": {
+                                "type": ["number", "string"]
+                            }
+                        },
+                        "sink": {
+                            "type": "array",
+                            "properties": {
+                                "type": ["number", "string"]
+                            }
+                        },
+                        "sanitizer": {
+                            "type": "array",
+                            "properties": {
+                                "type": ["number", "string"]
+                            }
+                        }
+                    }
+                }
+            },
+            "required": ["name", "params"]
+        },
+        "variables": {
+            "type": "array",
+            "properties": {
+                "scope": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "line": {
+                    "type": "number"
+                },
+                "cat": {
+                    "enum": ["source", "sink", "sanitizer"]
+                }
+            },
+            "required": ["scope", "name", "cat"]
+        }
+    }
+}
+)"_json

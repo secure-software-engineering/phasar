@@ -20,8 +20,10 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
+#include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -34,11 +36,10 @@ namespace psr {
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    const TaintConfiguration<InterMonoTaintAnalysis::d_t> &TSF,
-    std::set<std::string> EntryPoints)
+    const TaintConfig &Config, std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, TH, ICF, PT,
                                                      std::move(EntryPoints)),
-      TSF(TSF) {}
+      Config(Config) {}
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::merge(
     const InterMonoTaintAnalysis::mono_container_t &Lhs,
@@ -80,6 +81,11 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::normalFlow(
       Out.insert(Gep);
     }
   }
+  if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Inst)) {
+    if (In.count(Cast->getOperand(0))) {
+      Out.insert(Cast);
+    }
+  }
   return Out;
 }
 
@@ -89,23 +95,10 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
   InterMonoTaintAnalysis::mono_container_t Out;
-  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
-  vector<InterMonoTaintAnalysis::d_t> Actuals;
-  vector<InterMonoTaintAnalysis::d_t> Formals;
-  // set up the actual parameters
-  for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
-    Actuals.push_back(CS->getArgOperand(Idx));
-  }
-  // set up the formal parameters
-  /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
-    Formals.push_back(getNthFunctionArgument(Callee, idx));
-  }*/
-  for (const auto &Arg : Callee->args()) {
-    Formals.push_back(&Arg);
-  }
-  for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-    if (In.count(Actuals[Idx])) {
-      Out.insert(Formals[Idx]);
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+  for (unsigned Idx = 0; Idx < Callee->arg_size(); ++Idx) {
+    if (In.count(CS->getArgOperand(Idx))) {
+      Out.insert(Callee->getArg(Idx));
     }
   }
   return Out;
@@ -143,7 +136,10 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
   InterMonoTaintAnalysis::mono_container_t Out(In);
-  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+  mono_container_t Gen;
+  mono_container_t Kill;
+  bool First = true;
   //-----------------------------------------------------------------------------
   // Handle virtual calls in the loop
   //-----------------------------------------------------------------------------
@@ -152,36 +148,29 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
                   << "InterMonoTaintAnalysis::callToRetFlow()::"
                   << Callee->getName().str());
 
-    if (TSF.isSink(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
-        if (TSF.getSink(Callee->getName().str()).isLeakedArg(Idx) &&
-            In.count(CS->getArgOperand(Idx))) {
-          cout << "FOUND LEAK AT: " << llvmIRToString(CS) << '\n';
-          cout << "LEAKED VALUE: " << llvmIRToString(CS->getArgOperand(Idx))
-               << '\n'
-               << endl;
-          Leaks[CS].insert(CS->getArgOperand(Idx));
-        }
-      }
+    collectGeneratedFacts(Gen, Config, CS, Callee);
+    collectLeakedFacts(Leaks[CS], Config, CS, Callee,
+                       [&In](const llvm::Value *V) { return In.count(V); });
+    if (First) {
+      First = false;
+      collectSanitizedFacts(Kill, Config, CS, Callee);
+    } else {
+      mono_container_t Tmp;
+      collectSanitizedFacts(Tmp, Config, CS, Callee);
+      intersectWith(Kill, Tmp);
     }
-    if (TSF.isSource(Callee->getName().str())) {
-      for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
-        if (TSF.getSource(Callee->getName().str()).isTaintedArg(Idx)) {
-          Out.insert(CS->getArgOperand(Idx));
-        }
-      }
-      if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
-        Out.insert(CS);
+  }
+  Out.erase(Kill);
+  Out.insert(Gen);
+  if (Gen.empty() && Kill.empty()) {
+    // erase pointer arguments, since they are now propagated in the retFF
+    for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
+      if (CS->getArgOperand(Idx)->getType()->isPointerTy()) {
+        Out.erase(CS->getArgOperand(Idx));
       }
     }
   }
 
-  // erase pointer arguments, since they are now propagated in the retFF
-  for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
-    if (CS->getArgOperand(Idx)->getType()->isPointerTy()) {
-      Out.erase(CS->getArgOperand(Idx));
-    }
-  }
   return Out;
 }
 

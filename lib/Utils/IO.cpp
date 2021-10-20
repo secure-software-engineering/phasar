@@ -14,38 +14,49 @@
  *      Author: philipp
  */
 
+#include <cstdio>
+#include <filesystem>
 #include <fstream>
+#include <ios>
+#include <string>
+#include <system_error>
 
-#include "boost/filesystem.hpp"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Utils/IO.h"
-using namespace psr;
-using namespace std;
+#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 
-string readFile(const string &Path) {
-  if (boost::filesystem::exists(Path) &&
-      !boost::filesystem::is_directory(Path)) {
-    ifstream Ifs(Path, ios::binary);
-    if (Ifs.is_open()) {
-      Ifs.seekg(0, std::ifstream::end);
-      size_t FileSize = Ifs.tellg();
-      Ifs.seekg(0, std::ifstream::beg);
-      string Content;
-      Content.resize(FileSize);
-      Ifs.read(const_cast<char *>(Content.data()), FileSize);
-      return Content;
-    }
-  }
-  throw ios_base::failure("could not read file: " + Path);
+std::string readTextFile(const std::filesystem::path &Path) {
+  auto Buffer = readFile(Path);
+  return Buffer->getBuffer().str();
 }
 
-void writeFile(const string &Path, const string &Content) {
-  ofstream Ofs(Path, ios::binary);
-  if (Ofs.is_open()) {
-    Ofs.write(Content.data(), Content.size());
-  }
-  throw ios_base::failure("could not write file: " + Path);
+std::unique_ptr<llvm::MemoryBuffer>
+readFile(const std::filesystem::path &Path) {
+  return readFile(llvm::StringRef(Path.string()));
 }
+std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
+  auto Ret = llvm::MemoryBuffer::getFile(Path);
+
+  if (!Ret) {
+    throw std::system_error(Ret.getError());
+  }
+
+  return std::move(Ret.get());
+}
+
+void writeTextFile(const std::filesystem::path &Path, llvm::StringRef Content) {
+  std::error_code EC;
+  llvm::raw_fd_ostream ROS(Path.string(), EC);
+
+  if (EC) {
+    throw std::system_error(EC);
+  }
+
+  ROS.write(Content.data(), Content.size());
+}
+
 } // namespace psr

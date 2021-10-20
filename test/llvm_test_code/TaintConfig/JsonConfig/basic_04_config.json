@@ -1,0 +1,13 @@
+{
+	"name": "taint-config-test",
+	"version": 1.0,
+	"variables": [
+		{
+			"file": "basic_04.c",
+			"scope": "main",
+			"name": "J",
+			"line": 3,
+			"cat": "source"
+		}
+	]
+}

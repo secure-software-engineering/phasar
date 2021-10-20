@@ -1,0 +1,13 @@
+{
+	"name": "taint-config-test",
+	"version": 1.0,
+	"variables": [
+		{
+			"file": "data_member_01.cpp",
+			"scope": "X",
+			"name": "A",
+			"line": 3,
+			"cat": "source"
+		}
+	]
+}

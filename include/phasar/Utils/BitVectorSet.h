@@ -156,11 +156,12 @@ private:
     D pos_ptr;
   };
 
+public:
   using iterator = BitVectorSetIterator<typename bimap_t::right_iterator>;
   using const_iterator =
       BitVectorSetIterator<typename bimap_t::right_const_iterator>;
+  using value_type = T;
 
-public:
   BitVectorSet() = default;
 
   explicit BitVectorSet(size_t Count) : Bits(Count, false) {}
@@ -191,6 +192,10 @@ public:
     return Res;
   }
 
+  void setIntersectWith(const BitVectorSet<T> &Other) { Bits &= Other.Bits; }
+
+  void setUnionWith(const BitVectorSet<T> &Other) { Bits |= Other.Bits; }
+
   bool includes(const BitVectorSet<T> &Other) const {
     return !Other.Bits.test(Bits);
   }
@@ -202,7 +207,7 @@ public:
       if (Bits.size() <= Search->second) {
         Bits.resize(Search->second + 1);
       }
-      Bits[Search->second] = true;
+      Bits.set(Search->second);
     } else {
       // Data unknown
       size_t Idx = Position.left.size();
@@ -210,7 +215,7 @@ public:
       if (Bits.size() <= Position.left.size()) {
         Bits.resize(Position.left.size());
       }
-      Bits[Idx] = true;
+      Bits.set(Idx);
     }
   }
 
@@ -227,8 +232,16 @@ public:
     auto Search = Position.left.find(Data);
     if (Search != Position.left.end()) {
       if (Bits.size() > Search->second) {
-        Bits[Search->second] = false;
+        Bits.reset(Search->second);
       }
+    }
+  }
+
+  void erase(const BitVectorSet<T> &Other) {
+    if (this == &Other) {
+      clear();
+    } else {
+      Bits.reset(Other.Bits);
     }
   }
 
@@ -256,7 +269,21 @@ public:
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
 
   friend bool operator==(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
-    return Lhs.Bits == Rhs.Bits;
+    // Check, whether Lhs and Rhs actually have the same bits set and not
+    // whether their internal representation is exactly identitcal
+    auto LhsWords = Lhs.Bits.getData();
+    auto RhsWords = Rhs.Bits.getData();
+    if (LhsWords.size() == RhsWords.size()) {
+      return LhsWords == RhsWords;
+    }
+    auto MinSize = std::min(LhsWords.size(), RhsWords.size());
+    if (LhsWords.slice(0, MinSize) != RhsWords.slice(0, MinSize)) {
+      return false;
+    }
+    auto Rest = (LhsWords.size() > RhsWords.size() ? LhsWords : RhsWords)
+                    .slice(MinSize);
+    return std::all_of(Rest.begin(), Rest.end(),
+                       [](auto Word) { return Word == 0; });
   }
 
   friend bool operator!=(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {

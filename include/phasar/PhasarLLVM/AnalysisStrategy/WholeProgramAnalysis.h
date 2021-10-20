@@ -44,7 +44,8 @@ private:
   std::unique_ptr<PointerAnalysisTy> PointerInfo;
   std::unique_ptr<CallGraphAnalysisTy> CallGraph;
   std::set<std::string> EntryPoints;
-  std::unique_ptr<ConfigurationTy> Config;
+  ConfigurationTy *Config = nullptr;
+  bool OwnsConfig = false;
   std::string ConfigPath;
   ProblemDescription ProblemDesc;
   Solver DataFlowSolver;
@@ -91,10 +92,9 @@ public:
                             IRDB, CallGraphAnalysisType::OTF, EntryPoints,
                             this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        EntryPoints(EntryPoints),
-        Config(std::unique_ptr<ConfigurationTy>(Config)), ConfigPath(""),
-        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, *Config,
-                    EntryPoints),
+        EntryPoints(EntryPoints), Config(Config), OwnsConfig(false),
+        ConfigPath(""), ProblemDesc(&IRDB, TypeHierarchy, CallGraph,
+                                    PointerInfo, *Config, EntryPoints),
         DataFlowSolver(ProblemDesc) {}
 
   template <typename T = ProblemDescription,
@@ -117,11 +117,22 @@ public:
                             IRDB, CallGraphAnalysisType::OTF, EntryPoints,
                             this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        EntryPoints(EntryPoints),
-        Config(std::make_unique<ConfigurationTy>(ConfigPath)),
-        ConfigPath(ConfigPath), ProblemDesc(&IRDB, TypeHierarchy, CallGraph,
-                                            PointerInfo, *Config, EntryPoints),
+        EntryPoints(EntryPoints), Config(new ConfigurationTy(ConfigPath)),
+        OwnsConfig(true), ConfigPath(ConfigPath),
+        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, *Config,
+                    EntryPoints),
         DataFlowSolver(ProblemDesc) {}
+
+  WholeProgramAnalysis(const WholeProgramAnalysis &) = delete;
+
+  WholeProgramAnalysis(WholeProgramAnalysis &&) = delete;
+
+  ~WholeProgramAnalysis() {
+    if (OwnsConfig) {
+      delete Config;
+      Config = nullptr;
+    }
+  }
 
   void solve() { DataFlowSolver.solve(); }
 
@@ -158,8 +169,6 @@ public:
   CallGraphAnalysisTy *releaseCallGraph() { return CallGraph.release(); }
 
   TypeHierarchyTy *releaseTypeHierarchy() { return TypeHierarchy.release(); }
-
-  ConfigurationTy *releaseConfiguration() { return Config.release(); }
 };
 
 } // namespace psr

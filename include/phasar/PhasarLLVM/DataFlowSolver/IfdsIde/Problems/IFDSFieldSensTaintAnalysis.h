@@ -21,7 +21,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
-#include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
 namespace llvm {
@@ -43,13 +43,13 @@ struct IFDSFieldSensTaintAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
 class IFDSFieldSensTaintAnalysis
     : public IFDSTabulationProblem<IFDSFieldSensTaintAnalysisDomain> {
 public:
-  using ConfigurationTy = TaintConfiguration<ExtendedValue>;
+  using ConfigurationTy = TaintConfig;
 
-  IFDSFieldSensTaintAnalysis(
-      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-      const TaintConfiguration<ExtendedValue> &TaintConfig,
-      std::set<std::string> EntryPoints = {"main"});
+  IFDSFieldSensTaintAnalysis(const ProjectIRDB *IRDB,
+                             const LLVMTypeHierarchy *TH,
+                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                             const TaintConfig &TaintConfig,
+                             std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;
 
   FlowFunctionPtrType
@@ -119,9 +119,9 @@ public:
   }
 
 private:
-  TaintConfiguration<ExtendedValue> taintConfig;
+  const TaintConfig &Config;
 
-  TraceStats traceStats;
+  TraceStats Stats;
 };
 
 } // namespace psr

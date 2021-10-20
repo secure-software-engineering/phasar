@@ -9,3 +9,6 @@
 [submodule "external/WALi-OpenNWA"]
 	path = external/WALi-OpenNWA
 	url = https://github.com/pdschubert/WALi-OpenNWA.git
+[submodule "external/json-schema-validator"]
+	path = external/json-schema-validator
+	url = https://github.com/pboettch/json-schema-validator.git

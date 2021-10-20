@@ -268,6 +268,10 @@ public:
   [[nodiscard]] std::set<const llvm::Function *>
   getCalleesOfCallAt(const llvm::Instruction *N) const override;
 
+  void forEachCalleeOfCallAt(
+      const llvm::Instruction *I,
+      llvm::function_ref<void(const llvm::Function *)> Callback) const;
+
   /**
    * \return all caller statements/nodes of a given method.
    */

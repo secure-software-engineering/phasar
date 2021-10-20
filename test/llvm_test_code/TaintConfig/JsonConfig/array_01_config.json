@@ -1,0 +1,13 @@
+{
+    "name": "taint-config-test",
+    "version": 1.0,
+    "variables": [
+        {
+            "file": "array_01.c",
+            "scope": "main",
+            "name": "P",
+            "line": 8,
+            "cat": "source"
+        }
+    ]
+}

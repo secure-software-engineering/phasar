@@ -872,7 +872,7 @@ protected:
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
-    if (ICF->isStartPoint(n) || Seeds.countInitialSeeds(n) ||
+    if (ICF->isStartPoint(n) || Seeds.containsInitialSeedsFor(n) ||
         unbalancedRetSites.count(n)) {
       // FIXME: is currently not executed for main!!!
       // initial seeds are set in the global constructor, and main is also not

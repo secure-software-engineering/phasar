@@ -39,6 +39,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarPass/Options.h"
@@ -114,8 +115,8 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
       LLVMLcaSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-taint") {
-    TaintConfiguration<const llvm::Value *> TSF;
-    IFDSTaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, TSF,
+    TaintConfig Config(DB);
+    IFDSTaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, Config,
                                            EntryPointsSet);
     IFDSSolver LLVMTaintSolver(TaintAnalysisProblem);
     LLVMTaintSolver.solve();

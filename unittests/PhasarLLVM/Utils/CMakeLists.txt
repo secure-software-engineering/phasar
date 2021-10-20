@@ -1,5 +1,4 @@
 set(UtilsSources
-  TaintConfigurationTest.cpp
   LatticeDomainTest.cpp
 )
 
