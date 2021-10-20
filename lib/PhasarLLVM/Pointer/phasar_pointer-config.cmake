@@ -11,6 +11,7 @@ list(APPEND
 
 list(APPEND
   PHASAR_POINTER_DEPS
+  db
   utils
 )
 
