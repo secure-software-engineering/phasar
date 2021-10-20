@@ -5,8 +5,6 @@ include_directories(
 )
 
 set(PHASAR_LINK_LIBS
-  phasar_pointer
-  phasar_typehierarchy
   phasar_passes
   phasar_utils
 )
