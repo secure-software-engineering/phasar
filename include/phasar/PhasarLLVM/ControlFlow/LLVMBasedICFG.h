@@ -188,14 +188,6 @@ public:
 
   ~LLVMBasedICFG() override;
 
-  // Re-override getSuccsOf and getPredsOf from LLVMBasedCFG to incorporate
-  // information about global ctors and globale dtors
-  [[nodiscard]] std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *Inst) const override;
-
-  [[nodiscard]] std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *Inst) const override;
-
   [[nodiscard]] const llvm::Function *getFirstGlobalCtorOrNull() const;
 
   [[nodiscard]] const llvm::Function *getLastGlobalDtorOrNull() const;

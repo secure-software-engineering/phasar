@@ -26,6 +26,7 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 
 #include "nlohmann/json.hpp"
@@ -47,47 +48,60 @@ LLVMBasedCFG::getFunctionOf(const llvm::Instruction *Inst) const {
 
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
-  vector<const llvm::Instruction *> Preds;
   if (!IgnoreDbgInstructions) {
-    if (I->getPrevNode()) {
-      Preds.push_back(I->getPrevNode());
+    if (auto *PrevInst = I->getPrevNode()) {
+      return {PrevInst};
     }
   } else {
-    if (I->getPrevNonDebugInstruction()) {
-      Preds.push_back(I->getPrevNonDebugInstruction());
+    if (auto *PrevNonDbgInst =
+            I->getPrevNonDebugInstruction(false /*Only debug instructions*/)) {
+      return {PrevNonDbgInst};
     }
   }
   // If we do not have a predecessor yet, look for basic blocks which
   // lead to our instruction in question!
-  if (Preds.empty()) {
-    std::transform(llvm::pred_begin(I->getParent()),
-                   llvm::pred_end(I->getParent()), back_inserter(Preds),
-                   [](const llvm::BasicBlock *BB) {
-                     assert(BB && "BB under analysis was not well formed.");
-                     return BB->getTerminator();
-                   });
-  }
+
+  std::vector<const llvm::Instruction *> Preds;
+  std::transform(llvm::pred_begin(I->getParent()),
+                 llvm::pred_end(I->getParent()), back_inserter(Preds),
+                 [](const llvm::BasicBlock *BB) {
+                   assert(BB && "BB under analysis was not well formed.");
+                   const llvm::Instruction *Pred = BB->getTerminator();
+                   if (llvm::isa<llvm::DbgInfoIntrinsic>(Pred)) {
+                     Pred = Pred->getPrevNonDebugInstruction(
+                         false /*Only debug instructions*/);
+                   }
+                   return Pred;
+                 });
+
   return Preds;
 }
 
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
-  vector<const llvm::Instruction *> Successors;
+  std::vector<const llvm::Instruction *> Successors;
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
-    if (I->getNextNode()) {
-      Successors.push_back(I->getNextNode());
+    if (auto *NextInst = I->getNextNode()) {
+      return {NextInst};
     }
   } else {
-    if (I->getNextNonDebugInstruction()) {
-      Successors.push_back(I->getNextNonDebugInstruction());
+    if (auto *NextNonDbgInst =
+            I->getNextNonDebugInstruction(false /*Only debug instructions*/)) {
+      Successors.push_back(NextNonDbgInst);
     }
   }
   if (I->isTerminator()) {
     Successors.reserve(I->getNumSuccessors() + Successors.size());
     std::transform(llvm::succ_begin(I), llvm::succ_end(I),
-                   back_inserter(Successors),
-                   [](const llvm::BasicBlock *BB) { return &BB->front(); });
+                   back_inserter(Successors), [](const llvm::BasicBlock *BB) {
+                     const llvm::Instruction *Succ = &BB->front();
+                     if (llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
+                       Succ = Succ->getNextNonDebugInstruction(
+                           false /*Only debug instructions*/);
+                     }
+                     return Succ;
+                   });
   }
   return Successors;
 }
@@ -136,8 +150,9 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
   }
   if (!Fun->isDeclaration()) {
     auto *EntryInst = &Fun->front().front();
-    if (IgnoreDbgInstructions && EntryInst->isDebugOrPseudoInst()) {
-      return {EntryInst->getNextNonDebugInstruction()};
+    if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(EntryInst)) {
+      return {EntryInst->getNextNonDebugInstruction(
+          false /*Only debug instructions*/)};
     }
     return {EntryInst};
   } else {
