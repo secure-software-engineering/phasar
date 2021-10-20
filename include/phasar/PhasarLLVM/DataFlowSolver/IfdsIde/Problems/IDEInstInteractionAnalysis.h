@@ -271,11 +271,11 @@ public:
           container_type computeTargets(d_t src) override {
             container_type Facts;
             Facts.insert(src);
-            if (PTS->count(src)) {
-              Facts.insert(Load);
-            }
+
             // Handle global variables which behave a bit special.
-            if (PTS->empty() && src == Load->getPointerOperand()) {
+            if (src == Load->getPointerOperand()) {
+              Facts.insert(Load);
+            } else if (PTS->count(src)) {
               Facts.insert(Load);
             }
             return Facts;
