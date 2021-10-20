@@ -11,8 +11,6 @@ list(APPEND
 
 list(APPEND
   PHASAR_DB_DEPS
-  pointer
-  typehierarchy
   passes
   utils
 )
