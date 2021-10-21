@@ -444,65 +444,6 @@ const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {
   return IRDB.getFunction(Fun);
 }
 
-std::vector<const llvm::Instruction *>
-LLVMBasedICFG::getPredsOf(const llvm::Instruction *Inst) const {
-  if (!IgnoreDbgInstructions) {
-    if (Inst->getPrevNode()) {
-      return {Inst->getPrevNode()};
-    }
-  } else {
-    if (Inst->getPrevNonDebugInstruction()) {
-      return {Inst->getPrevNonDebugInstruction()};
-    }
-  }
-  // If we do not have a predecessor yet, look for basic blocks which
-  // lead to our instruction in question!
-
-  vector<const llvm::Instruction *> Preds;
-  std::transform(llvm::pred_begin(Inst->getParent()),
-                 llvm::pred_end(Inst->getParent()), back_inserter(Preds),
-                 [](const llvm::BasicBlock *BB) {
-                   assert(BB && "BB under analysis was not well formed.");
-                   return BB->getTerminator();
-                 });
-
-  /// TODO: Add function-local static variable initialization workaround here
-
-  return Preds;
-}
-
-std::vector<const llvm::Instruction *>
-LLVMBasedICFG::getSuccsOf(const llvm::Instruction *Inst) const {
-
-  vector<const llvm::Instruction *> Successors;
-  // case we wish to consider LLVM's debug instructions
-  if (!IgnoreDbgInstructions) {
-    if (Inst->getNextNode()) {
-      Successors.push_back(Inst->getNextNode());
-    }
-  } else {
-    if (Inst->getNextNonDebugInstruction()) {
-      Successors.push_back(Inst->getNextNonDebugInstruction());
-    }
-  }
-  if (Successors.empty()) {
-    if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(Inst);
-        Branch && isStaticVariableLazyInitializationBranch(Branch)) {
-      // Skip the "already initialized" case, such that the analysis is always
-      // aware of the initialized value.
-      Successors.push_back(&Branch->getSuccessor(0)->front());
-
-    } else {
-      Successors.reserve(Inst->getNumSuccessors() + Successors.size());
-      std::transform(llvm::succ_begin(Inst), llvm::succ_end(Inst),
-                     std::back_inserter(Successors),
-                     [](const llvm::BasicBlock *BB) { return &BB->front(); });
-    }
-  }
-
-  return Successors;
-}
-
 const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
   auto it = GlobalCtors.begin();
   if (it != GlobalCtors.end()) {
@@ -701,11 +642,13 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
     auto *UnwindSucc = &Invoke->getUnwindDest()->front();
     if (!IgnoreDbgInstructions &&
         llvm::isa<llvm::DbgInfoIntrinsic>(NormalSucc)) {
-      NormalSucc = NormalSucc->getNextNonDebugInstruction();
+      NormalSucc = NormalSucc->getNextNonDebugInstruction(
+          false /*Only debug instructions*/);
     }
     if (!IgnoreDbgInstructions &&
         llvm::isa<llvm::DbgInfoIntrinsic>(UnwindSucc)) {
-      UnwindSucc = UnwindSucc->getNextNonDebugInstruction();
+      UnwindSucc = UnwindSucc->getNextNonDebugInstruction(
+          false /*Only debug instructions*/);
     }
     if (NormalSucc != nullptr) {
       ReturnSites.insert(NormalSucc);
