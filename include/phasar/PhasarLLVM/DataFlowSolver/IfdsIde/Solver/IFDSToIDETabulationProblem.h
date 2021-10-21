@@ -178,6 +178,16 @@ public:
   void printEdgeFact(std::ostream &os, BinaryDomain v) const override {
     os << v;
   }
+
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
+                      std::ostream &OS = std::cout) override {
+    Problem.emitTextReport(Results, OS);
+  }
+
+  void emitGraphicalReport(const SolverResults<n_t, d_t, l_t> &Results,
+                           std::ostream &OS = std::cout) override {
+    Problem.emitGraphicalReport(Results, OS);
+  }
 };
 
 } // namespace psr

@@ -87,14 +87,14 @@ public:
 
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
-  virtual bool isZeroValue(d_t d) const = 0;
+  virtual bool isZeroValue(d_t FlowFact) const = 0;
 
   /// Returns initial seeds to be used for the analysis. This is a mapping of
   /// statements to initial analysis facts.
   virtual InitialSeeds<n_t, d_t, l_t> initialSeeds() = 0;
 
   /// Returns the special tautological lambda (or zero) fact.
-  d_t getZeroValue() const { return ZeroValue; }
+  [[nodiscard]] d_t getZeroValue() const { return ZeroValue; }
 
   /// Returns the analysis' entry points.
   [[nodiscard]] std::set<std::string> getEntryPoints() const {
@@ -102,16 +102,18 @@ public:
   }
 
   /// Returns the underlying IR.
-  const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
   /// Returns the underlying type hierarchy.
-  const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const { return TH; }
+  [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
+    return TH;
+  }
 
   /// Returns the underlying inter-procedural control-flow graph.
-  const i_t *getICFG() const { return ICF; }
+  [[nodiscard]] const i_t *getICFG() const { return ICF; }
 
   /// Returns the underlying points-to information.
-  PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
+  [[nodiscard]] PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
 
   /// Sets the configuration to be used by the IFDS/IDE solver.
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
@@ -125,16 +127,17 @@ public:
 
   /// Generates a text report of the results that is written to the specified
   /// output stream.
-  virtual void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
-                              std::ostream &OS = std::cout) {
+  virtual void
+  emitTextReport([[maybe_unused]] const SolverResults<n_t, d_t, l_t> &Results,
+                 std::ostream &OS = std::cout) {
     OS << "No text report available!\n";
   }
 
   /// Generates a graphical report, e.g. in html or other markup languages, of
   /// the results that is written to the specified output stream.
-  virtual void
-  emitGraphicalReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
-                      std::ostream &OS = std::cout) {
+  virtual void emitGraphicalReport(
+      [[maybe_unused]] const SolverResults<n_t, d_t, l_t> &Results,
+      std::ostream &OS = std::cout) {
     OS << "No graphical report available!\n";
   }
 

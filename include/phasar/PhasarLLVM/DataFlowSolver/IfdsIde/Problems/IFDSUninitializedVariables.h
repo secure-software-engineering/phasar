@@ -83,7 +83,7 @@ public:
 
   void printFunction(std::ostream &os, f_t m) const override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
                       std::ostream &OS = std::cout) override;
 
   const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;

@@ -65,32 +65,6 @@ public:
 
   /// Returns an edge function that represents the top element of the analysis.
   virtual EdgeFunctionPtrType allTopFunction() = 0;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#pragma clang diagnostic ignored "-Wsuggest-override"
-  /// Generates a text report of the results that is written to the specified
-  /// output stream.
-  virtual void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                              std::ostream &OS = std::cout) {
-    OS << "No text report available!\n";
-  }
-#pragma clang diagnostic pop
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#pragma clang diagnostic ignored "-Wsuggest-override"
-  /// Generates a graphical report, e.g. in html or other markup languages, of
-  /// the results that is written to the specified output stream.
-  virtual void emitGraphicalReport(const SolverResults<n_t, d_t, l_t> &SR,
-                                   std::ostream &OS = std::cout) {
-    OS << "No graphical report available!\n";
-  }
-#pragma clang diagnostic pop
-
-private:
-  using IFDSTabulationProblem<AnalysisDomainTy, Container>::emitTextReport;
-  using IFDSTabulationProblem<AnalysisDomainTy, Container>::emitGraphicalReport;
 };
 
 } // namespace psr

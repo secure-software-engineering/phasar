@@ -443,7 +443,7 @@ void IFDSUninitializedVariables::printFunction(
 
 void IFDSUninitializedVariables::emitTextReport(
     const SolverResults<IFDSUninitializedVariables::n_t,
-                        IFDSUninitializedVariables::d_t, BinaryDomain> &SR,
+                        IFDSUninitializedVariables::d_t, l_t> &Result,
     ostream &OS) {
   OS << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
