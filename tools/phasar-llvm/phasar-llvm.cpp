@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <algorithm>
+#include <boost/program_options/value_semantic.hpp>
 #include <chrono>
 #include <set>
 #include <string>
@@ -200,7 +201,7 @@ int main(int Argc, const char **Argv) {
       ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders).  CFLSteens is ~O(N) but inaccurate while CFLAnders O(N^3) but more accurate.")
       ("call-graph-analysis,C", boost::program_options::value<std::string>()->notifier(&validateParamCallGraphAnalysis)->default_value("OTF"), "Set the call-graph algorithm to be used (NORESOLVE, CHA, RTA, DTA, VTA, OTF)")
       ("soundness", boost::program_options::value<std::string>()->notifier(&validateSoundnessFlag)->default_value("Soundy"), "Set the soundiness level to be used (Sound, Soundy, Unsound)")
-      ("auto-globals", boost::program_options::value<bool>()->default_value(true), "Enable automated global support")
+      ("auto-globals", boost::program_options::value<bool>()->default_value(true), "Enable automated global support (Default is true)")
       ("classhierarchy-analysis,H", "Class-hierarchy analysis")
 			("statistical-analysis,S", "Statistics")
 			("mwa,M", "Enable Modulewise-program analysis mode")
@@ -225,12 +226,17 @@ int main(int Argc, const char **Argv) {
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("emit-pta-as-json", "Emit the points-to information as JSON")
+      ("follow-return-past-seeds", boost::program_options::value<bool>()->default_value(false), "Let the IFDS/IDE Solver process unbalanced returns (Default is false)")
+      ("auto-add-zero", boost::program_options::value<bool>()->default_value(true), "Let the IFDS/IDE Solver automatically add the special zero value to any set of dataflow-facts (Default is true)")
+      ("compute-values", boost::program_options::value<bool>()->default_value(true), "Let the IDE Solver compute the values attached to each edge in the ESG (Default is true)")
+      ("record-edges", boost::program_options::value<bool>()->default_value(true), "Let the IFDS/IDE Solver record all ESG edges whole solving the dataflow problem (Default is true). This can have massive performance impact")
+      ("persisted-summaries", boost::program_options::value<bool>()->default_value(false), "Let the IFDS/IDE Solver compute presisted procedure summaries (Currently not supported)")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
       
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       
-      ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible");
+      ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible (Currently not available)");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
   CmdlineOptions.add(Generic).add(Config);
@@ -392,6 +398,8 @@ int main(int Argc, const char **Argv) {
   // setup the emitter options to display the computed analysis results
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::EmitTextReport;
+
+  IFDSIDESolverConfig SolverConfig;
   if (PhasarConfig::VariablesMap().count("emit-ir")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitIR;
   }
@@ -406,6 +414,7 @@ int main(int Argc, const char **Argv) {
   }
   if (PhasarConfig::VariablesMap().count("emit-esg-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitESGAsDot;
+    SolverConfig.setEmitESG();
   }
   if (PhasarConfig::VariablesMap().count("emit-th-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsText;
@@ -434,6 +443,27 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
+
+  if (PhasarConfig::VariablesMap().count("follow-return-past-seeds")) {
+    SolverConfig.setFollowReturnsPastSeeds(
+        PhasarConfig::VariablesMap()["follow-return-past-seeds"].as<bool>());
+  }
+  if (PhasarConfig::VariablesMap().count("auto-add-zero")) {
+    SolverConfig.setAutoAddZero(
+        PhasarConfig::VariablesMap()["auto-add-zero"].as<bool>());
+  }
+  if (PhasarConfig::VariablesMap().count("compute-values")) {
+    SolverConfig.setComputeValues(
+        PhasarConfig::VariablesMap()["compute-values"].as<bool>());
+  }
+  if (PhasarConfig::VariablesMap().count("record-edges")) {
+    SolverConfig.setRecordEdges(
+        PhasarConfig::VariablesMap()["record-edges"].as<bool>());
+  }
+  if (PhasarConfig::VariablesMap().count("persisted-summaries")) {
+    SolverConfig.setComputePersistedSummaries(
+        PhasarConfig::VariablesMap()["persisted-summaries"].as<bool>());
+  }
   // setup output directory
   std::string OutDirectory;
   if (PhasarConfig::VariablesMap().count("out")) {
@@ -447,6 +477,6 @@ int main(int Argc, const char **Argv) {
   AnalysisController Controller(
       IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy, CGTy, SoundnessLevel,
       PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-      Strategy, EmitterOptions, ProjectID, OutDirectory);
+      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory);
   return 0;
 }

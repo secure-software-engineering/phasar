@@ -16,12 +16,11 @@ using namespace psr;
 
 namespace psr {
 
-IFDSIDESolverConfig::IFDSIDESolverConfig() {
-  setFlag(
-      Options, SolverConfigOptions::EmitESG,
-      PhasarConfig::getPhasarConfig().VariablesMap().count("emit-esg-as-dot"));
-}
-IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options)
+// IFDSIDESolverConfig::IFDSIDESolverConfig() {
+//   setFlag(Options, SolverConfigOptions::EmitESG,
+//           PhasarConfig::VariablesMap().count("emit-esg-as-dot"));
+// }
+IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options) noexcept
     : Options(Options) {}
 
 bool IFDSIDESolverConfig::followReturnsPastSeeds() const {
@@ -61,6 +60,8 @@ void IFDSIDESolverConfig::setEmitESG(bool Set) {
 void IFDSIDESolverConfig::setComputePersistedSummaries(bool Set) {
   setFlag(Options, SolverConfigOptions::ComputePersistedSummaries, Set);
 }
+
+void IFDSIDESolverConfig::setConfig(SolverConfigOptions Opt) { Options = Opt; }
 
 ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
   return OS << "IFDSIDESolverConfig:\n"

@@ -119,8 +119,15 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 # JSON library
 option(JSON_BuildTests OFF)
+set(JSON_Install ON)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
 include_directories(external/json/single_include/)
+
+# JSON Schema Validator
+set(BUILD_TESTS OFF)
+set(BUILD_EXAMPLES OFF)
+add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
+include_directories(external/json-schema-validator/src)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
