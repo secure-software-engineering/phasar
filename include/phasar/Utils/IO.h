@@ -21,6 +21,8 @@
 #include <memory>
 #include <string>
 
+#include "nlohmann/json.hpp"
+
 #include "llvm/Support/MemoryBuffer.h"
 
 namespace psr {
@@ -29,6 +31,9 @@ std::string readTextFile(const std::filesystem::path &Path);
 
 std::unique_ptr<llvm::MemoryBuffer> readFile(const std::filesystem::path &Path);
 std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path);
+
+nlohmann::json readJsonFile(const llvm::Twine &Path);
+nlohmann::json readJsonFile(const std::filesystem::path &Path);
 
 void writeTextFile(const std::filesystem::path &Path, llvm::StringRef Content);
 
