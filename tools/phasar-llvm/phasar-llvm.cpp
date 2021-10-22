@@ -8,7 +8,6 @@
  *****************************************************************************/
 
 #include <algorithm>
-#include <boost/program_options/value_semantic.hpp>
 #include <chrono>
 #include <set>
 #include <string>
@@ -16,6 +15,7 @@
 
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
+#include "boost/program_options/value_semantic.hpp"
 
 #include "boost/dll.hpp"
 #include "boost/filesystem.hpp"

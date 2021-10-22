@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <ios>
 #include <ostream>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
@@ -67,7 +68,7 @@ ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
   return OS << "IFDSIDESolverConfig:\n"
             << "\tfollowReturnsPastSeeds: " << SC.followReturnsPastSeeds()
             << "\n"
-            << "\tautoAddZero: " << SC.autoAddZero() << "\n"
+            << "\tautoAddZero: " << std::boolalpha << SC.autoAddZero() << "\n"
             << "\tcomputeValues: " << SC.computeValues() << "\n"
             << "\trecordEdges: " << SC.recordEdges() << "\n"
             << "\tcomputePersistedSummaries: " << SC.computePersistedSummaries()

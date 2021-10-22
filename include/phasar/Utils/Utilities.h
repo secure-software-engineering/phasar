@@ -203,17 +203,36 @@ It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex) {
 
   auto CurrIdx = *FirstIndex;
 
-  /// TODO: Optimize this loop
+  if constexpr (std::is_same_v<It, EndIt> &&
+                std::is_same_v<
+                    std::random_access_iterator_tag,
+                    typename std::iterator_traits<It>::iterator_category>) {
+    size_t GapSize = 1;
+    auto Curr = First + 1;
 
-  for (auto I = First; ++I != Last; ++CurrIdx) {
-    if (FirstIndex == LastIndex || CurrIdx != *FirstIndex) {
-      *First++ = std::move(*I);
-      if (FirstIndex != LastIndex) {
-        ++FirstIndex;
+    while (++FirstIndex != LastIndex) {
+      auto Offset = *FirstIndex - CurrIdx - 1;
+      if (Offset >= std::distance(Curr, Last)) {
+        break;
+      }
+      First = std::move(Curr, Curr + Offset, First);
+      CurrIdx = *FirstIndex;
+      Curr = First + ++GapSize;
+    }
+
+    return std::move(Curr, Last, First);
+  } else {
+
+    for (auto I = First; I != Last; ++CurrIdx, ++I) {
+      if (CurrIdx != *FirstIndex) {
+        *First++ = std::move(*I);
+        if (++FirstIndex == LastIndex) {
+          return std::move(std::next(I), Last, First);
+        }
       }
     }
+    return First;
   }
-  return First;
 }
 
 template <typename Container, typename IdxIt, typename IdxEndIt>
