@@ -245,9 +245,10 @@ std::size_t ProjectIRDB::getNumGlobals() const {
   return Ret;
 }
 
-llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
-  if (IDInstructionMapping.count(Id)) {
-    return IDInstructionMapping[Id];
+llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) const {
+  if (auto It = IDInstructionMapping.find(Id);
+      It != IDInstructionMapping.end()) {
+    return It->second;
   }
   return nullptr;
 }

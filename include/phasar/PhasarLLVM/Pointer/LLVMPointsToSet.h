@@ -19,6 +19,7 @@
 
 #include "nlohmann/json.hpp"
 
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
@@ -82,8 +83,12 @@ public:
    * @param onlyConsiderMustAlias True, if only Must Aliases should be
    * considered. False, if May and Must Aliases should be considered.
    */
-  LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-                  PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+  explicit LLVMPointsToSet(
+      ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+      PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+
+  explicit LLVMPointsToSet(ProjectIRDB &IRDB,
+                           const nlohmann::json &SerializedPTS);
 
   ~LLVMPointsToSet() override = default;
 

@@ -15,9 +15,12 @@
  */
 
 #include <cctype>
+#include <charconv>
 #include <cstdlib>
+#include <system_error>
 
 #include "boost/algorithm/string/trim.hpp"
+#include "boost/log/sources/severity_feature.hpp"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -37,6 +40,7 @@
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
 using namespace std;
@@ -234,6 +238,47 @@ std::string getMetaDataID(const llvm::Value *V) {
     return string(FName + "." + ArgNr);
   }
   return "-1";
+}
+
+const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id) {
+  if (Id.empty() || Id[0] == '-') {
+    return nullptr;
+  }
+
+  if (auto Dot = Id.find('.'); Dot != llvm::StringRef::npos) {
+    auto FName = Id.slice(0, Dot);
+    unsigned ArgNr;
+    auto Res =
+        std::from_chars(Id.data() + Dot + 1, Id.data() + Id.size(), ArgNr);
+    if (Res.ec != std::errc{}) {
+      /// TODO: Should we throw an exception here?
+      // throw system_error(std::make_error_code(Res.ec));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                    << "Invalid metadata id '" << Id.str()
+                    << "': " << std::make_error_code(Res.ec).message());
+      return nullptr;
+    }
+
+    const auto *F = IRDB.getFunction(FName);
+    if (F) {
+      return getNthFunctionArgument(F, ArgNr);
+    }
+
+    return nullptr;
+  }
+
+  unsigned IdNr;
+  auto Res = std::from_chars(Id.data(), Id.data() + Id.size(), IdNr);
+  if (Res.ec != std::errc{}) {
+    /// TODO: Should we throw an exception here?
+    // throw system_error(std::make_error_code(Res.ec));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                  << "Invalid metadata id '" << Id.str()
+                  << "': " << std::make_error_code(Res.ec).message());
+    return nullptr;
+  }
+
+  return IRDB.getInstruction(IdNr);
 }
 
 llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
