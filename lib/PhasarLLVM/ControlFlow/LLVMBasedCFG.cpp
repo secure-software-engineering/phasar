@@ -79,30 +79,46 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
 
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
-  std::vector<const llvm::Instruction *> Successors;
+  vector<const llvm::Instruction *> Successors;
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
-    if (auto *NextInst = I->getNextNode()) {
-      return {NextInst};
+    if (const auto *NextInst = I->getNextNode()) {
+      Successors.push_back(NextInst);
     }
   } else {
-    if (auto *NextNonDbgInst =
+    if (const auto *NextNonDbgInst =
             I->getNextNonDebugInstruction(false /*Only debug instructions*/)) {
       Successors.push_back(NextNonDbgInst);
     }
   }
-  if (I->isTerminator()) {
-    Successors.reserve(I->getNumSuccessors() + Successors.size());
-    std::transform(llvm::succ_begin(I), llvm::succ_end(I),
-                   back_inserter(Successors), [](const llvm::BasicBlock *BB) {
-                     const llvm::Instruction *Succ = &BB->front();
-                     if (llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
-                       Succ = Succ->getNextNonDebugInstruction(
-                           false /*Only debug instructions*/);
-                     }
-                     return Succ;
-                   });
+
+  if (Successors.empty()) {
+    if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(I);
+        Branch && isStaticVariableLazyInitializationBranch(Branch)) {
+      // Skip the "already initialized" case, such that the analysis is always
+      // aware of the initialized value.
+      const auto *NextInst = &Branch->getSuccessor(0)->front();
+      if (IgnoreDbgInstructions &&
+          llvm::isa<llvm::DbgInfoIntrinsic>(NextInst)) {
+        NextInst = NextInst->getNextNonDebugInstruction(false);
+      }
+      Successors.push_back(NextInst);
+
+    } else {
+      Successors.reserve(I->getNumSuccessors() + Successors.size());
+      std::transform(llvm::succ_begin(I), llvm::succ_end(I),
+                     std::back_inserter(Successors),
+                     [](const llvm::BasicBlock *BB) {
+                       const llvm::Instruction *Succ = &BB->front();
+                       if (llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
+                         Succ = Succ->getNextNonDebugInstruction(
+                             false /*Only debug instructions*/);
+                       }
+                       return Succ;
+                     });
+    }
   }
+
   return Successors;
 }
 
