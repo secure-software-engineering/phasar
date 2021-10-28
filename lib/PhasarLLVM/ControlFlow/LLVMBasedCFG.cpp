@@ -36,7 +36,6 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
-using namespace std;
 using namespace psr;
 
 namespace psr {
@@ -46,14 +45,14 @@ LLVMBasedCFG::getFunctionOf(const llvm::Instruction *Inst) const {
   return Inst->getFunction();
 }
 
-vector<const llvm::Instruction *>
+std::vector<const llvm::Instruction *>
 LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
   if (!IgnoreDbgInstructions) {
-    if (auto *PrevInst = I->getPrevNode()) {
+    if (const auto *PrevInst = I->getPrevNode()) {
       return {PrevInst};
     }
   } else {
-    if (auto *PrevNonDbgInst =
+    if (const auto *PrevNonDbgInst =
             I->getPrevNonDebugInstruction(false /*Only debug instructions*/)) {
       return {PrevNonDbgInst};
     }
@@ -77,54 +76,49 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
   return Preds;
 }
 
-vector<const llvm::Instruction *>
+std::vector<const llvm::Instruction *>
 LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
-  vector<const llvm::Instruction *> Successors;
+
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
     if (const auto *NextInst = I->getNextNode()) {
-      Successors.push_back(NextInst);
+      return {NextInst};
     }
-  } else {
-    if (const auto *NextNonDbgInst =
-            I->getNextNonDebugInstruction(false /*Only debug instructions*/)) {
-      Successors.push_back(NextNonDbgInst);
-    }
+  } else if (const auto *NextNonDbgInst = I->getNextNonDebugInstruction(
+                 false /*Only debug instructions*/)) {
+    return {NextNonDbgInst};
   }
 
-  if (Successors.empty()) {
-    if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(I);
-        Branch && isStaticVariableLazyInitializationBranch(Branch)) {
-      // Skip the "already initialized" case, such that the analysis is always
-      // aware of the initialized value.
-      const auto *NextInst = &Branch->getSuccessor(0)->front();
-      if (IgnoreDbgInstructions &&
-          llvm::isa<llvm::DbgInfoIntrinsic>(NextInst)) {
-        NextInst = NextInst->getNextNonDebugInstruction(false);
-      }
-      Successors.push_back(NextInst);
-
-    } else {
-      Successors.reserve(I->getNumSuccessors() + Successors.size());
-      std::transform(llvm::succ_begin(I), llvm::succ_end(I),
-                     std::back_inserter(Successors),
-                     [](const llvm::BasicBlock *BB) {
-                       const llvm::Instruction *Succ = &BB->front();
-                       if (llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
-                         Succ = Succ->getNextNonDebugInstruction(
-                             false /*Only debug instructions*/);
-                       }
-                       return Succ;
-                     });
+  if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(I);
+      Branch && isStaticVariableLazyInitializationBranch(Branch)) {
+    // Skip the "already initialized" case, such that the analysis is always
+    // aware of the initialized value.
+    const auto *NextInst = &Branch->getSuccessor(0)->front();
+    if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(NextInst)) {
+      NextInst = NextInst->getNextNonDebugInstruction(false);
     }
+    return {NextInst};
   }
 
+  std::vector<const llvm::Instruction *> Successors;
+  Successors.reserve(I->getNumSuccessors() + Successors.size());
+  std::transform(llvm::succ_begin(I), llvm::succ_end(I),
+                 std::back_inserter(Successors),
+                 [](const llvm::BasicBlock *BB) {
+                   const llvm::Instruction *Succ = &BB->front();
+                   if (llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
+                     Succ = Succ->getNextNonDebugInstruction(
+                         false /*Only debug instructions*/);
+                   }
+                   return Succ;
+                 });
   return Successors;
 }
 
-vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
+std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
-  vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
+  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
+      Edges;
 
   for (const auto &I : llvm::instructions(Fun)) {
     if (IgnoreDbgInstructions) {
@@ -148,9 +142,9 @@ LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
   return Edges;
 }
 
-vector<const llvm::Instruction *>
+std::vector<const llvm::Instruction *>
 LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *Fun) const {
-  vector<const llvm::Instruction *> Instructions;
+  std::vector<const llvm::Instruction *> Instructions;
 
   for (const auto &I : llvm::instructions(Fun)) {
     Instructions.push_back(&I);
@@ -165,18 +159,18 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
     return {};
   }
   if (!Fun->isDeclaration()) {
-    auto *EntryInst = &Fun->front().front();
+    const auto *EntryInst = &Fun->front().front();
     if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(EntryInst)) {
       return {EntryInst->getNextNonDebugInstruction(
           false /*Only debug instructions*/)};
     }
     return {EntryInst};
-  } else {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Could not get starting points of '"
-                  << Fun->getName().str() << "' because it is a declaration");
-    return {};
   }
+
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Could not get starting points of '" << Fun->getName().str()
+                << "' because it is a declaration");
+  return {};
 }
 
 std::set<const llvm::Instruction *>
@@ -184,22 +178,23 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
   if (!Fun) {
     return {};
   }
+
   if (!Fun->isDeclaration()) {
     // A function can have more than one exit point
     std::set<const llvm::Instruction *> ExitPoints;
     auto ExitPointVector = psr::getAllExitPoints(Fun);
 
-    for (auto *ExitPoint : ExitPointVector) {
+    for (const auto *ExitPoint : ExitPointVector) {
       ExitPoints.insert(ExitPoint);
     }
 
     return ExitPoints;
-  } else {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Could not get exit points of '" << Fun->getName().str()
-                  << "' which is declaration!");
-    return {};
   }
+
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Could not get exit points of '" << Fun->getName().str()
+                << "' which is declaration!");
+  return {};
 }
 
 bool LLVMBasedCFG::isCallSite(const llvm::Instruction *Inst) const {
@@ -338,14 +333,14 @@ LLVMBasedCFG::getSpecialMemberFunctionType(const llvm::Function *Fun) const {
   return SpecialMemberFunctionType::None;
 }
 
-string LLVMBasedCFG::getStatementId(const llvm::Instruction *Inst) const {
+std::string LLVMBasedCFG::getStatementId(const llvm::Instruction *Inst) const {
   return llvm::cast<llvm::MDString>(
              Inst->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
       ->getString()
       .str();
 }
 
-string LLVMBasedCFG::getFunctionName(const llvm::Function *Fun) const {
+std::string LLVMBasedCFG::getFunctionName(const llvm::Function *Fun) const {
   return Fun->getName().str();
 }
 
