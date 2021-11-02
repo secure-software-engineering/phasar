@@ -13,7 +13,8 @@ jobs:
       fail-fast: true
       matrix:
         compiler: [ [clang++-12, clang-12] ]
-        build: [ Debug, Release ]
+        build: [ Debug ]
+        #build: [ Debug, Release ]
 
     continue-on-error: false
     steps:
@@ -52,15 +53,6 @@ jobs:
               libclang-12-dev \
               libclang-cpp12-dev \
               clang-tidy-12
-
-      - name: Run clang-format
-        uses: DoozyX/clang-format-lint-action@v0.13
-        with:
-          source: '.'
-          extensions: 'h,cpp,c'
-          clangFormatVersion: 12
-          #exclude: './lib'
-          #  inplace: True
 
       #- name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
       #  env:
