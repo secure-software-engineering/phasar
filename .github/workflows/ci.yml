@@ -49,7 +49,7 @@ jobs:
           sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main'
           sudo apt-get update
           sudo apt-get -y install --no-install-recommends \
-              ${{ matrix.compiler }} \
+              ${{ matrix.compiler[1] }} \
               llvm-12-dev \
               libllvm12 \
               libclang-common-12-dev \
@@ -57,7 +57,7 @@ jobs:
               libclang-cpp12-dev \
               clang-tidy-12
 
-      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler }}
+      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
           BUILD_TYPE: ${{ matrix.build }}
           CXX: ${{ matrix.compiler[0] }}
