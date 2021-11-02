@@ -33,7 +33,6 @@ jobs:
               cmake \
               ninja-build \
               libstdc++6 \
-              #python3-dev \
               libboost-all-dev \
               gcc-9 \
               g++-9
