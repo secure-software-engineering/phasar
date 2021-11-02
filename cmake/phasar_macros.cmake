@@ -26,11 +26,13 @@ function(add_phasar_unittest test_name)
     phasar_experimental
     # phasar_clang
     phasar_passes
-    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
+    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins
     phasar_plugins
     # ${PHASAR_PLUGINS_LIB}
     phasar_pointer
     phasar_typehierarchy
+    phasar_taintconfig
+    nlohmann_json_schema_validator
     ${SQLITE3_LIBRARY}
     ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}

@@ -117,10 +117,30 @@ find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log
 #find_package(Boost 1.72.0 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-# JSON library
-option(JSON_BuildTests OFF)
-add_subdirectory(external/json EXCLUDE_FROM_ALL)
+# We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
+# The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
+# is not installed, leading to linker error. But just including nlohmann_json is not sufficient, as
+# in the installed state the nlohmann_json_schema_validator needs the nlohmann_json package which needs
+# to be installed.
+# The following workaround may collapse or become unnecessary once the issue is
+# changed or fixed in nlohmann_json_schema_validator.
+
+#Override option of nlohmann_json_schema_validator to not build its tests
+set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
+
+# Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
 include_directories(external/json/single_include/)
+set(nlohmann_json_DIR ${PHASAR_SRC_DIR}/external/json/single_include/)
+
+# Json Schema Validator
+set(JSON_VALIDATOR_INSTALL ON)
+add_subdirectory(external/json-schema-validator)
+include_directories(external/json-schema-validator/src/)
+
+# now we finally add the subdirectory
+set(JSON_BuildTests OFF)
+set(JSON_Install ON)
+add_subdirectory(external/json)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
