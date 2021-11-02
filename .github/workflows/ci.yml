@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        compiler: [ [clang++-12, clang-12], [g++-9, gcc-9] ]
+        compiler: [ [clang++-12, clang-12] ]
         build: [ Debug, Release ]
 
     continue-on-error: false
@@ -31,9 +31,7 @@ jobs:
               cmake \
               ninja-build \
               libstdc++6 \
-              libboost-all-dev \
-              gcc-9 \
-              g++-9
+              libboost-all-dev
 
       - name: Install Phasar Dependencies
         shell: bash
