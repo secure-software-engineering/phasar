@@ -13,8 +13,7 @@ jobs:
       fail-fast: true
       matrix:
         compiler: [ [clang++-12, clang-12] ]
-        build: [ Debug ]
-        #build: [ Debug, Release ]
+        build: [ Debug, Release ]
 
     continue-on-error: false
     steps:
@@ -54,23 +53,23 @@ jobs:
               libclang-cpp12-dev \
               clang-tidy-12
 
-      #- name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
-      #  env:
-      #    BUILD_TYPE: ${{ matrix.build }}
-      #    CXX: ${{ matrix.compiler[0] }}
-      #    CC: ${{ matrix.compiler[1] }}
-      #  shell: bash
-      #  run: |
-      #    mkdir build
-      #    cd build
-      #    cmake .. \
-      #      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-      #      -DCMAKE_CXX_COMPILER=$CXX \
-      #      -G Ninja
-      #    cmake --build .
+      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
+        env:
+          BUILD_TYPE: ${{ matrix.build }}
+          CXX: ${{ matrix.compiler[0] }}
+          CC: ${{ matrix.compiler[1] }}
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            -G Ninja
+          cmake --build .
 
-      #- name: Run Unittests
-      #  shell: bash
-      #  run: |
-      #    cd build
-      #    cmake --build . --target check-phasar-unittests
+      - name: Run Unittests
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --target check-phasar-unittests
