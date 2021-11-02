@@ -43,6 +43,7 @@ jobs:
               libllvm12 \
               libclang-common-12-dev \
               libclang-12-dev \
+              libclang-cpp12-dev \
               clang-tidy-12
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler }}
