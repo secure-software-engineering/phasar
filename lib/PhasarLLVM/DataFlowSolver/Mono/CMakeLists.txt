@@ -5,6 +5,7 @@ set(PHASAR_LINK_LIBS
   phasar_utils
   phasar_phasarllvm_utils
   phasar_db
+  phasar_taintconfig
 )
 
 set(LLVM_LINK_COMPONENTS

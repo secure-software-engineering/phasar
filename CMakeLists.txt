@@ -121,6 +121,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
 include_directories(external/json/single_include/)
+if (PHASAR_IN_TREE)
+  set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
+endif()
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
