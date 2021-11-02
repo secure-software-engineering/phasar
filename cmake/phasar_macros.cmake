@@ -193,8 +193,8 @@ macro(add_phasar_library name)
   if(PHASAR_IN_TREE)
     install(TARGETS ${name}
       EXPORT LLVMExports
-      LIBRARY DESTINATION ${PHASAR_INSTALL_LIBDIR}
-      ARCHIVE DESTINATION ${PHASAR_INSTALL_LIBDIR})
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
   else()
     install(TARGETS ${name}
       EXPORT phasarTargets
