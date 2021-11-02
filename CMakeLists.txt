@@ -159,7 +159,7 @@ endif()
 # Clang
 # The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
 if(NOT PHASAR_IN_TREE)
-  find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+  find_library(CLANG_LIBRARY NAMES clang-cpp libclang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
   if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
     set(NEED_LIBCLANG_COMPONENT_LIBS on)
   endif()
