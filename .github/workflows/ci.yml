@@ -37,7 +37,12 @@ jobs:
           sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
           sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main'
           sudo apt-get update
-          sudo apt-get -y install --no-install-recommends ${{ matrix.compiler }} clang-12-dev llvm-12-dev clang-tidy-12
+          sudo apt-get -y install --no-install-recommends \
+              ${{ matrix.compiler }} \
+              llvm-12-dev \
+              libclang-common-12-dev \
+              libclang-12-dev \
+              clang-tidy-12
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler }}
         env:
