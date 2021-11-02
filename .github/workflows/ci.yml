@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Install Dependencies
+      - name: Install Basic Dependencies
         shell: bash
         run: |
           sudo apt-get update
@@ -33,12 +33,15 @@ jobs:
               cmake \
               ninja-build \
               libstdc++6 \
-              libxml2-dev \
-              python3-dev \
-              graphviz \
+              #python3-dev \
               libboost-all-dev \
               gcc-9 \
               g++-9
+
+      - name: Install Phasar Dependencies
+        shell: bash
+        run: |
+          ./utils/InstallAptDependencies.sh
 
       - name: Install Strategy Dependencies
         shell: bash
