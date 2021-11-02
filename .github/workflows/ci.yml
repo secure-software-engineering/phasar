@@ -40,6 +40,7 @@ jobs:
           sudo apt-get -y install --no-install-recommends \
               ${{ matrix.compiler }} \
               llvm-12-dev \
+              libllvm12 \
               libclang-common-12-dev \
               libclang-12-dev \
               clang-tidy-12
