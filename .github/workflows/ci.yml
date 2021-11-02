@@ -53,23 +53,32 @@ jobs:
               libclang-cpp12-dev \
               clang-tidy-12
 
-      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
-        env:
-          BUILD_TYPE: ${{ matrix.build }}
-          CXX: ${{ matrix.compiler[0] }}
-          CC: ${{ matrix.compiler[1] }}
-        shell: bash
-        run: |
-          mkdir build
-          cd build
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_CXX_COMPILER=$CXX \
-            -G Ninja
-          cmake --build .
+      - name: Run clang-format
+        uses: DoozyX/clang-format-lint-action@v0.13
+        with:
+          source: '.'
+          extensions: 'h,cpp,c'
+          clangFormatVersion: 12
+          #exclude: './lib'
+          #  inplace: True
 
-      - name: Run Unittests
-        shell: bash
-        run: |
-          cd build
-          cmake --build . --target check-phasar-unittests
+      #- name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
+      #  env:
+      #    BUILD_TYPE: ${{ matrix.build }}
+      #    CXX: ${{ matrix.compiler[0] }}
+      #    CC: ${{ matrix.compiler[1] }}
+      #  shell: bash
+      #  run: |
+      #    mkdir build
+      #    cd build
+      #    cmake .. \
+      #      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      #      -DCMAKE_CXX_COMPILER=$CXX \
+      #      -G Ninja
+      #    cmake --build .
+
+      #- name: Run Unittests
+      #  shell: bash
+      #  run: |
+      #    cd build
+      #    cmake --build . --target check-phasar-unittests
