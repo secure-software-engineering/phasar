@@ -13,7 +13,7 @@ jobs:
       fail-fast: true
       matrix:
         build: [ Debug ]
-        compiler: [ clang++-12 ]
+        compiler: [ [clang++-12, clang-12] ]
         #build: [ Debug, Release ]
         #compiler: [ clang++-12, g++-9 ]
 
@@ -60,7 +60,8 @@ jobs:
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler }}
         env:
           BUILD_TYPE: ${{ matrix.build }}
-          CXX: ${{ matrix.compiler }}
+          CXX: ${{ matrix.compiler[0] }}
+          CC: ${{ matrix.compiler[1] }}
         shell: bash
         run: |
           mkdir build
