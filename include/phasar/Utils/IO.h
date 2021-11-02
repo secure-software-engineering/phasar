@@ -27,8 +27,7 @@ namespace psr {
 
 std::string readTextFile(const std::filesystem::path &Path);
 
-std::unique_ptr
-  <llvm::MemoryBuffer> readFile(const std::filesystem::path &Path);
+std::unique_ptr<llvm::MemoryBuffer> readFile(const std::filesystem::path &Path);
 std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path);
 
 void writeTextFile(const std::filesystem::path &Path, llvm::StringRef Content);
