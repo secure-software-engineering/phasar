@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get -y install --no-install-recommends cmake libstdc++6 libxml2-dev python3-dev graphviz gcc-9 g++-9
+          sudo apt-get -y install --no-install-recommends cmake ninja libstdc++6 libxml2-dev python3-dev graphviz gcc-9 g++-9
 
       - name: Install Strategy Dependencies
         shell: bash
