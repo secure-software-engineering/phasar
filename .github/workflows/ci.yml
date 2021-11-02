@@ -1,0 +1,60 @@
+name: Phasar CI
+
+on:
+  push:
+    branches: [ master, development ]
+  pull_request:
+    branches: [ master, development ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: true
+      matrix:
+        build: [ Debug ]
+        compiler: [ clang++-12 ]
+        #build: [ Debug, Release ]
+        #compiler: [ clang++-12, g++-9 ]
+
+    continue-on-error: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install --no-install-recommends cmake libstdc++6 libxml2-dev python3-dev graphviz gcc-9 g++-9
+
+      - name: Install Strategy Dependencies
+        shell: bash
+        run: |
+          sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
+          sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main'
+          sudo apt-get update
+          sudo apt-get -y install --no-install-recommends ${{ matrix.compiler }} llvm-12-dev clang-tidy-12
+
+      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler }}
+        env:
+          BUILD_TYPE: ${{ matrix.build }}
+          CXX: ${{ matrix.compiler }}
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            -G Ninja
+          cmake --build . -- -j
+
+      - name: Run Unittests
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --target check-phasar-unittests
