@@ -13,9 +13,8 @@ jobs:
       fail-fast: true
       matrix:
         build: [ Debug ]
-        compiler: [ [clang++-12, clang-12] ]
-        #build: [ Debug, Release ]
-        #compiler: [ clang++-12, g++-9 ]
+        compiler: [ [clang++-12, clang-12], [g++-9, gcc-9] ]
+        build: [ Debug, Release ]
 
     continue-on-error: false
     steps:
