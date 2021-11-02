@@ -457,7 +457,8 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   return Data->getAsCString();
 }
 
-llvm::ModuleSlotTracker &ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
+llvm::ModuleSlotTracker &
+ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
   auto &ret = MToST[M];
   if (M == nullptr && ret == nullptr) {
     ret = std::make_unique<llvm::ModuleSlotTracker>(M);
