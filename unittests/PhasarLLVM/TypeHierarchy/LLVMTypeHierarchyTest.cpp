@@ -732,7 +732,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 // Failing test case
 PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
   // If we use libcxx this won't work since internal implementation is different
-  LIBCPP_GTEST_SKIP();
+  LIBCPP_GTEST_SKIP;
 
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_13_cpp.ll"});

@@ -26,7 +26,7 @@ inline const std::string PathToJSONTestFiles(PhasarConfig::PhasarDirectory() +
 #endif
 
 #ifdef _LIBCPP_VERSION
-#define LIBCPP_GTEST_SKIP GTEST_SKIP
+#define LIBCPP_GTEST_SKIP GTEST_SKIP();
 #else
 #define LIBCPP_GTEST_SKIP
 #endif

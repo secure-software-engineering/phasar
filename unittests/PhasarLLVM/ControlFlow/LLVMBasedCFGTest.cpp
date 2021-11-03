@@ -237,7 +237,7 @@ TEST(LLVMBasedCFGTest, HandleFieldStoreField) {
 
 PHASAR_SKIP_TEST(TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
   // If we use libcxx this won't work since internal implementation is different
-  LIBCPP_GTEST_SKIP();
+  LIBCPP_GTEST_SKIP;
 
   ProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "name_mangling/special_members_2_cpp.ll"});

@@ -368,7 +368,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
 
 PHASAR_SKIP_TEST(TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   // If we use libcxx this won't work since internal implementation is different
-  LIBCPP_GTEST_SKIP();
+  LIBCPP_GTEST_SKIP;
 
   initialize({PathToLlFiles + "array/stl_array/stl_array_03_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
