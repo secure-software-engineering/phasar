@@ -25,7 +25,6 @@ endif()
 
 target_link_libraries(phasar_taintconfig
   LINK_PUBLIC
-  nlohmann_json::nlohmann_json
   nlohmann_json_schema_validator
 )
 

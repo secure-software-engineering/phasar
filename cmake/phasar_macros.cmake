@@ -26,11 +26,13 @@ function(add_phasar_unittest test_name)
     phasar_experimental
     # phasar_clang
     phasar_passes
-    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
+    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins
     phasar_plugins
     # ${PHASAR_PLUGINS_LIB}
     phasar_pointer
     phasar_typehierarchy
+    phasar_taintconfig
+    nlohmann_json_schema_validator
     ${SQLITE3_LIBRARY}
     ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}
@@ -198,14 +200,14 @@ macro(add_phasar_library name)
   else()
     install(TARGETS ${name}
       EXPORT phasarTargets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+      LIBRARY DESTINATION ${PHASAR_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${PHASAR_INSTALL_LIBDIR})
     install(TARGETS ${name}
       EXPORT ${name}-targets
       COMPONENT ${component_name}
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+      LIBRARY DESTINATION ${PHASAR_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${PHASAR_INSTALL_LIBDIR})
     install(EXPORT ${name}-targets
       FILE ${name}-targets.cmake
       NAMESPACE phasar::

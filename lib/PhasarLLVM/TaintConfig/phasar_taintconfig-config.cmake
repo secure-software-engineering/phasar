@@ -17,9 +17,10 @@ foreach(dep ${PHASAR_TAINTCONFIG_DEPS})
   endif()
 endforeach()
 
+find_package(nlohmann_json_schema_validator REQUIRED)
+
 list(APPEND
   PHASAR_NEEDED_LIBS
   phasar::phasar_taintconfig
-  nlohmann_json::nlohmann_json
   nlohmann_json_schema_validator
 )
