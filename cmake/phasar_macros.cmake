@@ -200,14 +200,14 @@ macro(add_phasar_library name)
   else()
     install(TARGETS ${name}
       EXPORT phasarTargets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+      LIBRARY DESTINATION ${PHASAR_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${PHASAR_INSTALL_LIBDIR})
     install(TARGETS ${name}
       EXPORT ${name}-targets
       COMPONENT ${component_name}
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+      LIBRARY DESTINATION ${PHASAR_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${PHASAR_INSTALL_LIBDIR})
     install(EXPORT ${name}-targets
       FILE ${name}-targets.cmake
       NAMESPACE phasar::
