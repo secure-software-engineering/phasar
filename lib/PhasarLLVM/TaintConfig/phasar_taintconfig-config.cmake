@@ -3,6 +3,8 @@ set(PHASAR_taintconfig_COMPONENT_FOUND 1)
 list(APPEND
   PHASAR_TAINTCONFIG_DEPS
   utils
+  db
+  phasarllvm_utils
 )
 
 foreach(dep ${PHASAR_TAINTCONFIG_DEPS})

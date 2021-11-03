@@ -135,6 +135,11 @@ set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
 
 # Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
 include_directories(external/json/single_include/)
+
+if (PHASAR_IN_TREE)
+  set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
+endif()
+
 set(nlohmann_json_DIR ${PHASAR_SRC_DIR}/external/json/single_include/)
 
 # Json Schema Validator
