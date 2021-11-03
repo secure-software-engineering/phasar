@@ -310,7 +310,7 @@ TEST_F(IDETaintAnalysisTest, XTaint18) {
   doAnalysis({PathToLLFiles + "xtaint18_cpp.ll"}, gt, std::monostate{});
 }
 
-TEST_F(IDETaintAnalysisTest, XTaint19) {
+PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
   // Is now the same as XTaint17
   GTEST_SKIP();
   map<int, set<string>> gt;
@@ -318,7 +318,7 @@ TEST_F(IDETaintAnalysisTest, XTaint19) {
   gt[22] = {"21"};
 
   doAnalysis({PathToLLFiles + "xtaint19_cpp.ll"}, gt, std::monostate{});
-}
+})
 
 TEST_F(IDETaintAnalysisTest, XTaint20) {
   map<int, set<string>> gt;
