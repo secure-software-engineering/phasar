@@ -547,7 +547,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
-// If we use libcxx this won't work since internal implementation is different
+  // If we use libcxx this won't work since internal implementation is different
   LIBCPP_GTEST_SKIP;
 
   std::set<IIACompactResult_t> GroundTruth;
