@@ -246,11 +246,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
   doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
-// If we use libcxx this won't work since internal implementation is different
-#ifdef _LIBCPP_VERSION
-  GTEST_SKIP();
-#endif
+PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+  // If we use libcxx this won't work since internal implementation is different
+  LIBCPP_GTEST_SKIP();
+
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
@@ -271,7 +270,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "k", {"10", "11", "12", "16", "19", "20", "25", "27"}));
   doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth, false);
-}
+})
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
@@ -547,11 +546,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
   doAnalysisAndCompareResults("heap_01_cpp.ll", GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
-// If we use libcxx this won't work since internal implementation is different
-#ifdef _LIBCPP_VERSION
-  GTEST_SKIP();
-#endif
+PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
+  // If we use libcxx this won't work since internal implementation is different
+  LIBCPP_GTEST_SKIP();
+
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
@@ -563,7 +561,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 16, "ref.tmp", {"25", "5", "8", "31", "32", "30"}));
   doAnalysisAndCompareResults("rvo_01_cpp.ll", GroundTruth, false);
-}
+})
 
 // // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
 // //   std::set<IIACompactResult_t> GroundTruth;
