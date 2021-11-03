@@ -26,7 +26,7 @@ Phasar requires C++-17.
 
 Currently supported version of LLVM
 -----------------------------------
-Phasar is currently set up to support LLVM-12.0.
+Phasar is currently set up to support LLVM-13.0.
 
 What is Phasar?
 ---------------

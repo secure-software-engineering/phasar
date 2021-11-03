@@ -272,6 +272,10 @@ normalizeGlobalGEPs(const std::vector<const llvm::Value *> &MemLocationSeq) {
                                              GepInst->idx_end());
 
     auto *SplittedGEPInst = llvm::GetElementPtrInst::CreateInBounds(
+        NormalizedMemLocationSeq.back()
+            ->getType()
+            ->getScalarType()
+            ->getPointerElementType(),
         const_cast<llvm::Value *>(NormalizedMemLocationSeq.back()),
         {Indices[0], Indices[1]}, "gepsplit0");
     NormalizedMemLocationSeq.push_back(SplittedGEPInst);
@@ -286,6 +290,10 @@ normalizeGlobalGEPs(const std::vector<const llvm::Value *> &MemLocationSeq) {
       NameStream << "gepsplit" << (I - 1);
 
       SplittedGEPInst = llvm::GetElementPtrInst::CreateInBounds(
+          NormalizedMemLocationSeq.back()
+              ->getType()
+              ->getScalarType()
+              ->getPointerElementType(),
           const_cast<llvm::Value *>(NormalizedMemLocationSeq.back()),
           {ConstantZero, Index}, NameStream.str());
       NormalizedMemLocationSeq.push_back(SplittedGEPInst);

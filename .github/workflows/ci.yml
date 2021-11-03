@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        compiler: [ [clang++-12, clang-12] ]
+        compiler: [ [clang++-13, clang-13] ]
         build: [ Debug, Release ]
 
     continue-on-error: false
@@ -42,16 +42,16 @@ jobs:
         shell: bash
         run: |
           sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
-          sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main'
+          sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main'
           sudo apt-get update
           sudo apt-get -y install --no-install-recommends \
               ${{ matrix.compiler[1] }} \
-              llvm-12-dev \
-              libllvm12 \
-              libclang-common-12-dev \
-              libclang-12-dev \
-              libclang-cpp12-dev \
-              clang-tidy-12
+              llvm-13-dev \
+              libllvm13 \
+              libclang-common-13-dev \
+              libclang-13-dev \
+              libclang-cpp13-dev \
+              clang-tidy-13
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
