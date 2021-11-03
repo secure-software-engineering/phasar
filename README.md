@@ -31,14 +31,14 @@ Phasar is currently set up to support LLVM-13.0.
 What is Phasar?
 ---------------
 Phasar is a LLVM-based static analysis framework written in C++. It allows users
-to specify arbitrary data-flow problems which are then solved in a 
+to specify arbitrary data-flow problems which are then solved in a
 fully-automated manner on the specified LLVM IR target code. Computing points-to
 information, call-graph(s), etc. is done by the framework, thus you can focus on
 what matters.
 
 How do I get started with Phasar?
 ---------------------------------
-We have some documentation on Phasar in our [_**wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read 
+We have some documentation on Phasar in our [_**wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
 this README first and then have a look on the material provided on https://phasar.org/
 as well. Please also have a look on Phasar's project directory and notice the project directory
 examples/ as well as the custom tool tools/myphasartool.cpp.
@@ -46,14 +46,14 @@ examples/ as well as the custom tool tools/myphasartool.cpp.
 Building Phasar
 ---------------
 If you cannot work with one of the pre-built versions of Phasar and would like to
-compile Phasar yourself, then please check the wiki for installing the 
+compile Phasar yourself, then please check the wiki for installing the
 prerequisites and compilation. It is recommended to compile Phasar yourself in
-order to get the full C++ experience and to have full control over the build 
+order to get the full C++ experience and to have full control over the build
 mode.
 
 Please help us to improve Phasar
 --------------------------------
-You are using Phasar and would like to help us in the future? Then please 
+You are using Phasar and would like to help us in the future? Then please
 support us by filling out this [web form](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
 
 By giving us feedback you help to decide in what direction Phasar should stride in
@@ -65,8 +65,8 @@ Installation
 Phasar can be installed using the installer scripts as explained in the following.
 
 ### Installing Phasar on an Ubuntu system
-In the following, we would like to give an complete example of how to install 
-Phasar using an Ubuntu or Unix-like system. 
+In the following, we would like to give an complete example of how to install
+Phasar using an Ubuntu or Unix-like system.
 
 Therefore, we provide an installation script. To install Phasar, just navigate to the top-level
 directory of PhASAR and use the following command:
@@ -87,7 +87,7 @@ Please follow the instructions down below.
 $ brew install boost
 $ brew install python3
 # Install llvm version 10
-$ brew install llvm 
+$ brew install llvm
 # Setting the paths
 # Use LLVM's Clang rather than Apple's Clang compiler
 $ export CC=/usr/local/opt/llvm/bin/clang
