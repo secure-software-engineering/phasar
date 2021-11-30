@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "llvm/ADT/SmallSet.h"
+#include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 
@@ -118,6 +119,19 @@ IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
     return handleConfig(Curr, std::move(SrcConfig), std::move(SinkConfig));
   }
 
+  if (const auto *Phi = llvm::dyn_cast<llvm::PHINode>(Curr)) {
+    return makeLambdaFlow<d_t>([this, Phi](d_t Source) -> std::set<d_t> {
+      auto NumOps = Phi->getNumIncomingValues();
+      for (unsigned I = 0; I < NumOps; ++I) {
+        if (equivalent(Source, makeFlowFact(Phi->getIncomingValue(I)))) {
+          return {Source, makeFlowFact(Phi)};
+        }
+      }
+
+      return {Source};
+    });
+  }
+
   return Identity<d_t>::getInstance();
 }
 
@@ -128,16 +142,33 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
                                      unsigned PALevel) {
 
   auto TV = makeFlowFact(ValueOp);
-  auto PTS = this->PT->getPointsToSet(PointerOp, Store);
+  /// Defer computing the PointsToSet; this may an expensive operation that
+  /// should only be done, if necessary
+  decltype(PT->getPointsToSet(PointerOp, Store)) PTS = nullptr;
 
   auto Mem = makeFlowFact(PointerOp);
-  return makeLambdaFlow<d_t>([this, TV, Mem, PTS{std::move(PTS)}, PointerOp,
-                              ValueOp, Store,
+  return makeLambdaFlow<d_t>([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
                               PALevel](d_t Source) mutable -> std::set<d_t> {
+    // NOLINTNEXTLINE(readability-identifier-naming)
+    auto reportLeaksForAliases = [Store, PointerOp, ValueOp, &PTS, this] {
+      if (!PTS) {
+        PTS = PT->getPointsToSet(PointerOp, Store);
+      }
+
+      reportLeakIfNecessary(Store, PointerOp, ValueOp);
+      forEachAliasOf(PTS, PointerOp,
+                     [Store, ValueOp, this](const llvm::Value *Alias) {
+                       reportLeakIfNecessary(Store, Alias, ValueOp);
+                     });
+    };
+
     if (Source->isZero()) {
       std::set<d_t> Ret = {Source};
       generateFromZero(Ret, Store, PointerOp, ValueOp,
                        /*IncludeActualArg*/ false);
+      if (Ret.size() > 1) {
+        reportLeaksForAliases();
+      }
       return Ret;
     }
     /// Pointer-Arithetics in the last indirection are irrelevant for equality
@@ -153,15 +184,23 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
       // generate all may-aliases of Store->getPointerOperand()
       std::set<d_t> Ret = {Source, FactFactory.withIndirectionOf(Mem, Offset)};
 
-      for (const auto *Alias : *PTS) {
-        if (llvm::isa<llvm::Constant>(Alias) || Alias == Mem->base()) {
-          continue;
-        }
-
-        identity(Ret,
-                 FactFactory.withIndirectionOf(makeFlowFact(Alias), Offset),
-                 Store);
+      if (!PTS) {
+        PTS = PT->getPointsToSet(PointerOp, Store);
       }
+
+      forEachAliasOf(
+          PTS, PointerOp,
+          [&Ret, Store, this, Offset](const llvm::Value *Alias) {
+            if (llvm::isa<llvm::Constant>(Alias) &&
+                !llvm::isa<llvm::GlobalValue>(Alias)) {
+              return;
+            }
+
+            identity(Ret,
+                     FactFactory.withIndirectionOf(makeFlowFact(Alias), Offset),
+                     Store);
+          });
+
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Store generate: " << PrettyPrinter{Ret});
 
@@ -169,15 +208,14 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
       // are relevant (in contrast to the Store-FF). This is, where the
       // field-sensitive results come from.
       if (TV->equivalent(Source)) {
-        reportLeakIfNecessary(Store, PointerOp, ValueOp);
-        for (const auto *Alias : *PTS) {
-          reportLeakIfNecessary(Store, Alias, ValueOp);
-        }
+        reportLeaksForAliases();
       }
 
 #ifdef XTAINT_DIAGNOSTICS
       allTaintedValues.insert(ret.begin(), ret.end());
 #endif
+
+      std::cerr << "StoreFF(" << Source << ") = " << PrettyPrinter{Ret} << '\n';
 
       return Ret;
     }
@@ -192,23 +230,20 @@ void IDEExtendedTaintAnalysis::generateFromZero(std::set<d_t> &Dest,
                                                 const llvm::Value *FormalArg,
                                                 const llvm::Value *ActualArg,
                                                 bool IncludeActualArg) {
-  config_callback_t SourceCB;
-
-  if (TSF->isSource(ActualArg) ||
-      ((SourceCB = TSF->getRegisteredSourceCallBack()) &&
-       SourceCB(Inst).count(ActualArg))) {
+  // TSF->isSource already covered by TSF->makeInitialSeeds
+  if (const auto &SourceCB = TSF->getRegisteredSourceCallBack();
+      SourceCB && SourceCB(Inst).count(ActualArg)) {
     Dest.insert(makeFlowFact(FormalArg));
     if (IncludeActualArg) {
       Dest.insert(makeFlowFact(ActualArg));
     }
   }
 }
+
 void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
     const llvm::Instruction *Inst, const llvm::Value *SinkCandidate,
     const llvm::Value *LeakCandidate) {
-  if (const auto &SinkCB = TSF->getRegisteredSinkCallBack();
-      TSF->isSink(SinkCandidate) ||
-      (SinkCB && SinkCB(Inst).count(SinkCandidate))) {
+  if (isSink(SinkCandidate, Inst)) {
     Leaks[Inst].insert(LeakCandidate);
   }
 }
@@ -216,9 +251,13 @@ void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
 void IDEExtendedTaintAnalysis::populateWithMayAliases(
     SourceConfigTy &Facts) const {
 
+  assert(HasPrecisePointsToInfo &&
+         "Invalid Logic: populateWithMayAliases should only be called, if we "
+         "have precise points-to-info");
+
   SourceConfigTy Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT->getPointsToSet(Fact);
+    const auto *Aliases = PT->getPointsToSet(Fact);
 
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
@@ -244,9 +283,9 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
   allTaintedValues.insert(SourceConfig.begin(), SourceConfig.end());
 #endif
 
-  /// TODO: Once the points-to analysis is rudimentarily precise, remove the
-  /// comment and generate aliases
-  // populateWithMayAliases(SourceConfig);
+  if (HasPrecisePointsToInfo) {
+    populateWithMayAliases(SourceConfig);
+  }
 
   return makeLambdaFlow<d_t>([Inst, this, SourceConfig{std::move(SourceConfig)},
                               SinkConfig{std::move(SinkConfig)}](d_t Source) {
@@ -272,12 +311,12 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
-  const auto *call = llvm::cast<llvm::CallBase>(CallStmt);
-  assert(call);
+  const auto *Call = llvm::cast<llvm::CallBase>(CallStmt);
+  assert(Call);
   if (DestFun->isDeclaration()) {
     return Identity<d_t>::getInstance();
   }
-  bool HasVarargs = call->arg_size() > DestFun->arg_size();
+  bool HasVarargs = Call->arg_size() > DestFun->arg_size();
   const auto *const VA = [&]() -> const llvm::Value * {
     if (!HasVarargs) {
       return nullptr;
@@ -303,25 +342,29 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
     return nullptr;
   }();
 
-  return makeLambdaFlow<d_t>([this, call, DestFun,
+  return makeLambdaFlow<d_t>([this, Call, DestFun,
                               VA](d_t Source) -> std::set<d_t> {
     if (isZeroValue(Source)) {
       return {Source};
     }
     std::set<d_t> Ret;
 
+    if (llvm::isa<llvm::GlobalValue>(Source->base())) {
+      Ret.insert(Source);
+    }
+
     using ArgIterator = llvm::User::const_op_iterator;
     using ParamIterator = llvm::Function::const_arg_iterator;
 
-    ArgIterator It = call->arg_begin();
-    ArgIterator End = call->arg_end();
+    ArgIterator It = Call->arg_begin();
+    ArgIterator End = Call->arg_end();
     ParamIterator FIt = DestFun->arg_begin();
     ParamIterator FEnd = DestFun->arg_end();
 
     const std::string CalleeName =
         (DestFun->hasName()) ? DestFun->getName().str() : "none";
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "##Call-FF at: " << psr::llvmIRToString(call)
+                  << "##Call-FF at: " << psr::llvmIRToString(Call)
                   << " to: " << CalleeName);
     for (; FIt != FEnd && It != End; ++FIt, ++It) {
       auto From = makeFlowFact(It->get());
@@ -336,11 +379,12 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
                       << ">\tno match: " << From << " vs " << Source);
       }
     }
-    ptrdiff_t Offs = 0;
 
     if (!VA) {
       return Ret;
     }
+
+    ptrdiff_t Offs = 0;
 
     for (; It != End; ++It) {
       auto From = makeFlowFact(It->get());
@@ -368,6 +412,15 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                              [[maybe_unused]] n_t RetSite) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "##Return-FF at: " << psr::llvmIRToString(CallSite));
+
+  if (!CallSite) {
+    /// In case of unbalanced return, we may reach the artificial Global Ctor
+    /// caller that has no caller
+    return makeEF<KillIf<d_t>>([](d_t Source) {
+      return !llvm::isa_and_nonnull<llvm::GlobalValue>(Source->base());
+    });
+  }
+
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
   return makeLambdaFlow<d_t>([this, Call, CalleeFun,
                               ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)}](
@@ -389,6 +442,14 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
           equivalent(Source, makeFlowFact(&*FIt))) {
         Ret.insert(
             FactFactory.withTransferFrom(Source, makeFlowFact(It->get())));
+
+        if (HasPrecisePointsToInfo) {
+          const auto *PTS = PT->getPointsToSet(It->get(), Call);
+          for (const auto *Alias : *PTS) {
+            Ret.insert(
+                FactFactory.withTransferFrom(Source, makeFlowFact(Alias)));
+          }
+        }
       }
     }
     // For now, ignore mapping back varargs
@@ -396,6 +457,10 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
     if (ExitStmt->getReturnValue() &&
         equivalent(Source, RetVal = makeFlowFact(ExitStmt->getReturnValue()))) {
       Ret.insert(FactFactory.withOffsets(makeFlowFact(Call), Source - RetVal));
+    }
+
+    if (llvm::isa<llvm::GlobalValue>(Source->base())) {
+      Ret.insert(Source);
     }
 
 #ifdef XTAINT_DIAGNOSTICS
@@ -412,6 +477,52 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
     [[maybe_unused]] std::set<f_t> Callees) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "##CallToReturn-FF at: " << psr::llvmIRToString(CallSite));
+
+  // const bool HasNonIntrinsicDecl =
+  //     std::any_of(Callees.begin(), Callees.end(), [](const auto *Callee) {
+  //       return Callee->isDeclaration() && !Callee->isIntrinsic();
+  //     });
+
+  // if (HasNonIntrinsicDecl) {
+  //   // For a function that is defined in a different module, we cannot assume
+  //   // any semantics. So we must overapproximate here by tainting all pointer
+  //   // parameters as well as the return value, if any tainted value flows
+  //   into
+  //   // that function
+
+  //   return makeLambdaFlow<d_t>([CallSite, this](d_t Source) -> std::set<d_t>
+  //   {
+  //     if (isZeroValue(Source)) {
+  //       return {Source};
+  //     }
+
+  //     if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+  //       if (std::none_of(CS->arg_begin(), CS->arg_end(),
+  //                        [this, Source](const auto &Arg) {
+  //                          return Source->equivalentExceptPointerArithmetics(
+  //                              makeFlowFact(Arg));
+  //                        })) {
+  //         return {Source};
+  //       }
+
+  //       std::set<d_t> Ret{Source};
+  //       for (const auto &Arg : CS->arg_operands()) {
+  //         if (Arg->getType()->isPointerTy()) {
+  //           Ret.insert(makeFlowFact(Arg));
+  //         }
+  //       }
+
+  //       if (!CallSite->getType()->isVoidTy()) {
+  //         Ret.insert(makeFlowFact(CallSite));
+  //       }
+
+  //       return Ret;
+  //     }
+
+  //     return {Source};
+  //   });
+  // }
+
   // The CTR-FF is traditionally an identity function. All CTR-relevant stuff is
   // handled on the edges.
 

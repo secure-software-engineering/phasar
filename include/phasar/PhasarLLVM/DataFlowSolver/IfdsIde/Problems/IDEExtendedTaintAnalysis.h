@@ -20,6 +20,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -35,6 +36,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
@@ -120,6 +122,27 @@ private:
                                  const llvm::Instruction *Store,
                                  unsigned PALevel = 1);
 
+  template <typename CallBack, typename = std::enable_if_t<std::is_invocable_v<
+                                   CallBack, const llvm::Value *>>>
+  void forEachAliasOf(PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS,
+                      const llvm::Value *Of, CallBack &&CB) {
+    if (!HasPrecisePointsToInfo) {
+      auto OfFF = makeFlowFact(Of);
+      for (const auto *Alias : *PTS) {
+        auto AliasFF = makeFlowFact(Alias);
+
+        if (AliasFF->base() == OfFF->base() && AliasFF != OfFF) {
+          continue;
+        }
+        std::invoke(CB, Alias);
+      }
+    } else {
+      for (const auto *Alias : *PTS) {
+        std::invoke(CB, Alias);
+      }
+    }
+  }
+
   void populateWithMayAliases(SourceConfigTy &Facts) const;
 
   bool isMustAlias(const SanitizerConfigTy &Facts, d_t CurrNod);
@@ -158,6 +181,9 @@ public:
     base_t::ZeroValue = createZeroValue();
 
     FactFactory.setDataLayout(DL);
+
+    /// TODO: Once we have better PointsToInfo, do a dynamic_cast over PT and
+    /// set HasPrecisePointsToInfo accordingly
   }
 
   ~IDEExtendedTaintAnalysis() override = default;
@@ -250,6 +276,8 @@ private:
   bool PostProcessed = false;
 
   bool DisableStrongUpdates = false;
+
+  bool HasPrecisePointsToInfo = false;
 
 public:
   BasicBlockOrdering &getBasicBlockOrdering() { return BBO; }

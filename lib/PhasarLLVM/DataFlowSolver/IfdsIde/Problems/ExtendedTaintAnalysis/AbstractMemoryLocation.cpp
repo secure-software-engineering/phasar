@@ -184,14 +184,14 @@ AbstractMemoryLocation::AbstractMemoryLocation(
   assert(Impl);
 }
 
-std::ostream &operator<<(std::ostream &OS, const AbstractMemoryLocation &TV) {
+std::ostream &operator<<(std::ostream &OS, AbstractMemoryLocation TV) {
   llvm::raw_os_ostream ROS(OS);
   ROS << TV;
   return OS;
 }
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const AbstractMemoryLocation &TV) {
+                              AbstractMemoryLocation TV) {
   // -> Think about better representation
   OS << "(";
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(TV->base())) {
@@ -211,12 +211,9 @@ std::string DToString(const AbstractMemoryLocation &AML) {
   return OS.str();
 }
 
-} // namespace psr
-
-namespace llvm {
-llvm::hash_code hash_value(const psr::AbstractMemoryLocation &Val) {
+llvm::hash_code hash_value(psr::AbstractMemoryLocation Val) {
   return hash_combine(
       Val->base(), Val->lifetime() == 0,
-      hash_combine_range(Val->offsets().begin(), Val->offsets().end()));
+      llvm::hash_combine_range(Val->offsets().begin(), Val->offsets().end()));
 }
-} // namespace llvm
+} // namespace psr

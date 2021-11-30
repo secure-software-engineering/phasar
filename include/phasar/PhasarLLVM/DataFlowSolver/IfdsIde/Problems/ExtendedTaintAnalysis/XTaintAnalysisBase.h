@@ -45,6 +45,9 @@ protected:
   getSinkConfigAt(const llvm::Instruction *Inst,
                   const llvm::Function *Callee = nullptr) const;
 
+  [[nodiscard]] bool isSink(const llvm::Value *SinkCandidate,
+                            const llvm::Instruction *AtInst) const;
+
   [[nodiscard]] SanitizerConfigTy
   getSanitizerConfigAt(const llvm::Instruction *Inst,
                        const llvm::Function *Callee = nullptr) const;
