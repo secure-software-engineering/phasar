@@ -25,6 +25,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
@@ -424,10 +425,31 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
     });
   }
 
+  /// Cache points-to-sets for the arguments of the CallSite for the case that
+  /// computing points-to-info is expensive (e.g. a demand-driven
+  /// pointer-analysis)
+  class ArgPointsToCache {
+  public:
+    explicit ArgPointsToCache(PointsToInfo<v_t, n_t> *PT, size_t NumArgs)
+        : Vec(NumArgs, nullptr), PT(PT) {}
+
+    const PointsToInfo<v_t, n_t>::PointsToSetTy &
+    getOrCreatePts(size_t Idx, const llvm::Value *Ptr,
+                   const llvm::Instruction *Call) const {
+      auto &PSet = Vec[Idx];
+      return PSet ? *PSet : *(PSet = PT->getPointsToSet(Ptr, Call));
+    }
+
+  private:
+    mutable std::vector<PointsToInfo<v_t, n_t>::PointsToSetPtrTy> Vec;
+    PointsToInfo<v_t, n_t> *PT;
+  };
+
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
   return makeLambdaFlow<d_t>([this, Call, CalleeFun,
-                              ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)}](
-                                 d_t Source) {
+                              ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
+                              PTC{ArgPointsToCache(
+                                  PT, Call->getNumArgOperands())}](d_t Source) {
     std::set<d_t> Ret;
 
     using ArgIterator = llvm::User::const_op_iterator;
@@ -441,18 +463,20 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
     for (; FIt != FEnd && It != End; ++FIt, ++It) {
       // Only map back pointer parameters, since for all others we have
       // call-by-value.
-      if (FIt->getType()->isPointerTy() &&
-          equivalent(Source, makeFlowFact(&*FIt))) {
-        Ret.insert(
-            FactFactory.withTransferFrom(Source, makeFlowFact(It->get())));
+      if (!FIt->getType()->isPointerTy() ||
+          !equivalent(Source, makeFlowFact(&*FIt))) {
+        continue;
+      }
 
-        if (HasPrecisePointsToInfo) {
-          const auto *PTS = PT->getPointsToSet(It->get(), Call);
-          for (const auto *Alias : *PTS) {
-            Ret.insert(
-                FactFactory.withTransferFrom(Source, makeFlowFact(Alias)));
-          }
-        }
+      Ret.insert(FactFactory.withTransferFrom(Source, makeFlowFact(It->get())));
+
+      if (!HasPrecisePointsToInfo) {
+        continue;
+      }
+
+      for (const auto *Alias :
+           PTC.getOrCreatePts(FIt->getArgNo(), It->get(), Call)) {
+        Ret.insert(FactFactory.withTransferFrom(Source, makeFlowFact(Alias)));
       }
     }
     // For now, ignore mapping back varargs
