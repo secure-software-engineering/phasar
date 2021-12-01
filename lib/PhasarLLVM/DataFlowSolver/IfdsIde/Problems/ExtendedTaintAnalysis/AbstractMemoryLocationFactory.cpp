@@ -12,6 +12,7 @@
 #include <new>
 
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/Compiler.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
 #include "phasar/Utils/Logger.h"
@@ -25,8 +26,8 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
     Block *Next, size_t NumPointerEntries) -> Block * {
   // Allocate one more pointer to store the next-block ptr
 
-  if (NumPointerEntries >
-      std::numeric_limits<size_t>::max() / sizeof(size_t) - 1) [[unlikely]] {
+  if (LLVM_UNLIKELY(NumPointerEntries >
+                    std::numeric_limits<size_t>::max() / sizeof(size_t) - 1)) {
 
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), CRITICAL)
                   << "Cannot allocate " << NumPointerEntries

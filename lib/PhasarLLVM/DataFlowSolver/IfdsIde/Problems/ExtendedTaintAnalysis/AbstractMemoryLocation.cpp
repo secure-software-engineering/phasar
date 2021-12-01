@@ -71,9 +71,9 @@ auto AbstractMemoryLocationImpl::computeOffset(
 [[nodiscard]] auto AbstractMemoryLocationImpl::operator-(
     const AbstractMemoryLocationImpl &TV) const -> llvm::ArrayRef<ptrdiff_t> {
   if (NumOffsets > TV.offsets().size()) {
-    return offsets().slice(std::max(size_t(1), TV.offsets().size()) - 1);
+    return offsets().drop_front(std::max(size_t(1), TV.offsets().size()) - 1);
   }
-  return TV.offsets().slice(std::max(1U, NumOffsets) - 1);
+  return TV.offsets().drop_front(std::max(1U, NumOffsets) - 1);
 }
 
 bool AbstractMemoryLocationImpl::equivalentOffsets(
@@ -112,6 +112,7 @@ bool AbstractMemoryLocationImpl::mustAlias(
                 << llvmIRToShortString(TV.base()) << ") = " << std::boolalpha
                 << (PT.alias(base(), TV.base()) == AliasResult::MustAlias));
 
+  // NOLINTNEXTLINE(readability-identifier-naming)
   auto getFunctionOrNull = [](const llvm::Value *V) -> const llvm::Function * {
     if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
       return Inst->getFunction();

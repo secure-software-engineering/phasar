@@ -149,25 +149,20 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
   auto Mem = makeFlowFact(PointerOp);
   return makeLambdaFlow<d_t>([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
                               PALevel](d_t Source) mutable -> std::set<d_t> {
-    // NOLINTNEXTLINE(readability-identifier-naming)
-    auto reportLeaksForAliases = [Store, PointerOp, ValueOp, &PTS, this] {
-      if (!PTS) {
-        PTS = PT->getPointsToSet(PointerOp, Store);
-      }
-
-      reportLeakIfNecessary(Store, PointerOp, ValueOp);
-      forEachAliasOf(PTS, PointerOp,
-                     [Store, ValueOp, this](const llvm::Value *Alias) {
-                       reportLeakIfNecessary(Store, Alias, ValueOp);
-                     });
-    };
-
     if (Source->isZero()) {
       std::set<d_t> Ret = {Source};
       generateFromZero(Ret, Store, PointerOp, ValueOp,
                        /*IncludeActualArg*/ false);
       if (Ret.size() > 1) {
-        reportLeaksForAliases();
+        if (!PTS) {
+          PTS = PT->getPointsToSet(PointerOp, Store);
+        }
+
+        reportLeakIfNecessary(Store, PointerOp, ValueOp);
+        forEachAliasOf(PTS, PointerOp,
+                       [Store, ValueOp, this](const llvm::Value *Alias) {
+                         reportLeakIfNecessary(Store, Alias, ValueOp);
+                       });
       }
       return Ret;
     }
@@ -179,51 +174,62 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
     /// Hence, when loading the value of TV back from Mem this still holds and
     /// must be preserved by the analysis.
     if (TV->equivalentExceptPointerArithmetics(Source, PALevel)) {
-      auto Offset = Source - TV;
-
-      // generate all may-aliases of Store->getPointerOperand()
-      std::set<d_t> Ret = {Source, FactFactory.withIndirectionOf(Mem, Offset)};
-
-      if (!PTS) {
-        PTS = PT->getPointsToSet(PointerOp, Store);
-      }
-
-      forEachAliasOf(
-          PTS, PointerOp,
-          [&Ret, Store, this, Offset](const llvm::Value *Alias) {
-            if (llvm::isa<llvm::Constant>(Alias) &&
-                !llvm::isa<llvm::GlobalValue>(Alias)) {
-              return;
-            }
-
-            identity(Ret,
-                     FactFactory.withIndirectionOf(makeFlowFact(Alias), Offset),
-                     Store);
-          });
-
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Store generate: " << PrettyPrinter{Ret});
-
-      // For the sink-variables, the pointer-arithmetics in the last offset
-      // are relevant (in contrast to the Store-FF). This is, where the
-      // field-sensitive results come from.
-      if (TV->equivalent(Source)) {
-        reportLeaksForAliases();
-      }
-
-#ifdef XTAINT_DIAGNOSTICS
-      allTaintedValues.insert(ret.begin(), ret.end());
-#endif
-
-      // std::cerr << "StoreFF(" << Source << ") = " << PrettyPrinter{Ret} <<
-      // '\n';
-
-      return Ret;
+      return propagateAtStore(
+          PTS ? PTS : (PTS = PT->getPointsToSet(PointerOp, Store)), Source, TV,
+          Mem, PointerOp, ValueOp, Store);
     }
     // Sanitizing is handled in the edge function
 
     return {Source};
   });
+}
+
+auto IDEExtendedTaintAnalysis::propagateAtStore(
+    PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS, d_t Source, d_t Val, d_t Mem,
+    const llvm::Value *PointerOp, const llvm::Value *ValueOp,
+    const llvm::Instruction *Store) -> std::set<d_t> {
+  assert(PTS && "The points-to-set must not be null!");
+
+  auto Offset = Source - Val;
+
+  // generate all may-aliases of Store->getPointerOperand()
+  std::set<d_t> Ret = {Source, FactFactory.withIndirectionOf(Mem, Offset)};
+
+  if (!PTS) {
+    PTS = PT->getPointsToSet(PointerOp, Store);
+  }
+
+  forEachAliasOf(
+      PTS, PointerOp, [&Ret, Store, this, Offset](const llvm::Value *Alias) {
+        if (llvm::isa<llvm::Constant>(Alias) &&
+            !llvm::isa<llvm::GlobalValue>(Alias)) {
+          return;
+        }
+
+        identity(Ret,
+                 FactFactory.withIndirectionOf(makeFlowFact(Alias), Offset),
+                 Store);
+      });
+
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Store generate: " << PrettyPrinter{Ret});
+
+  // For the sink-variables, the pointer-arithmetics in the last offset
+  // are relevant (in contrast to the Store-FF). This is, where the
+  // field-sensitive results come from.
+  if (Val->equivalent(Source)) {
+    reportLeakIfNecessary(Store, PointerOp, ValueOp);
+    forEachAliasOf(PTS, PointerOp,
+                   [Store, ValueOp, this](const llvm::Value *Alias) {
+                     reportLeakIfNecessary(Store, Alias, ValueOp);
+                   });
+  }
+
+#ifdef XTAINT_DIAGNOSTICS
+  allTaintedValues.insert(ret.begin(), ret.end());
+#endif
+
+  return Ret;
 }
 
 void IDEExtendedTaintAnalysis::generateFromZero(std::set<d_t> &Dest,
@@ -317,31 +323,9 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
   if (DestFun->isDeclaration()) {
     return Identity<d_t>::getInstance();
   }
+
   bool HasVarargs = Call->arg_size() > DestFun->arg_size();
-  const auto *const VA = [&]() -> const llvm::Value * {
-    if (!HasVarargs) {
-      return nullptr;
-    }
-    // Copied from IDELinearConstantAnalysis:
-    // Over-approximate by trying to add the
-    //   alloca [1 x %struct.__va_list_tag], align 16
-    // to the results
-    // find the allocated %struct.__va_list_tag and generate it
-    for (auto It = llvm::inst_begin(DestFun), End = llvm::inst_end(DestFun);
-         It != End; ++It) {
-      if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&*It)) {
-        if (Alloc->getAllocatedType()->isArrayTy() &&
-            Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-            Alloc->getAllocatedType()->getArrayElementType()->isStructTy() &&
-            Alloc->getAllocatedType()->getArrayElementType()->getStructName() ==
-                "struct.__va_list_tag") {
-          return Alloc;
-        }
-      }
-    }
-    // Maybe the va_list is unused in the function body
-    return nullptr;
-  }();
+  const auto *const VA = HasVarargs ? getVAListTagOrNull(DestFun) : nullptr;
 
   return makeLambdaFlow<d_t>([this, Call, DestFun,
                               VA](d_t Source) -> std::set<d_t> {
@@ -362,11 +346,9 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
     ParamIterator FIt = DestFun->arg_begin();
     ParamIterator FEnd = DestFun->arg_end();
 
-    const std::string CalleeName =
-        (DestFun->hasName()) ? DestFun->getName().str() : "none";
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "##Call-FF at: " << psr::llvmIRToString(Call)
-                  << " to: " << CalleeName);
+                  << " to: " << FtoString(DestFun));
     for (; FIt != FEnd && It != End; ++FIt, ++It) {
       auto From = makeFlowFact(It->get());
       /// Pointer-Arithetics in the last indirection are irrelevant for
@@ -375,9 +357,6 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << ">\tmatch: " << From << " vs " << Source);
         Ret.insert(transferFlowFact(Source, From, &*FIt));
-      } else {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << ">\tno match: " << From << " vs " << Source);
       }
     }
 
@@ -405,6 +384,29 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
 #endif
     return Ret;
   });
+}
+
+const llvm::Value *
+IDEExtendedTaintAnalysis::getVAListTagOrNull(const llvm::Function *DestFun) {
+  // Copied from IDELinearConstantAnalysis:
+  // Over-approximate by trying to add the
+  //   alloca [1 x %struct.__va_list_tag], align 16
+  // to the results
+  // find the allocated %struct.__va_list_tag and generate it
+  for (auto It = llvm::inst_begin(DestFun), End = llvm::inst_end(DestFun);
+       It != End; ++It) {
+    if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&*It)) {
+      if (Alloc->getAllocatedType()->isArrayTy() &&
+          Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+          Alloc->getAllocatedType()->getArrayElementType()->isStructTy() &&
+          Alloc->getAllocatedType()->getArrayElementType()->getStructName() ==
+              "struct.__va_list_tag") {
+        return Alloc;
+      }
+    }
+  }
+  // Maybe the va_list is unused in the function body
+  return nullptr;
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
@@ -755,7 +757,7 @@ void IDEExtendedTaintAnalysis::printEdgeFact(std::ostream &OS, l_t Fact) const {
 }
 
 void IDEExtendedTaintAnalysis::printFunction(std::ostream &OS, f_t Fun) const {
-  OS << Fun->getName().str();
+  OS << (Fun && Fun->hasName() ? Fun->getName().str() : "<anon>");
 }
 
 void IDEExtendedTaintAnalysis::emitTextReport(
@@ -793,23 +795,30 @@ auto IDEExtendedTaintAnalysis::makeFlowFact(const llvm::Value *V) -> d_t {
   return FactFactory.Create(V, Bound);
 }
 
-void IDEExtendedTaintAnalysis::identity(std::set<d_t> &Ret, const d_t &Source,
+void IDEExtendedTaintAnalysis::identity(std::set<d_t> &Ret, d_t Source,
                                         const llvm::Instruction *CurrInst,
                                         bool AddGlobals) {
+  bool AddSource = [&] {
+    if (AddGlobals && llvm::isa<llvm::GlobalValue>(Source->base())) {
+      return true;
+    }
+    if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Source->base());
+        Inst && Inst->getFunction() == CurrInst->getFunction()) {
+      return true;
+    }
+    if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Source->base());
+        Arg && Arg->getParent() == CurrInst->getFunction()) {
+      return true;
+    }
+    return false;
+  }();
 
-  if (AddGlobals && llvm::isa<llvm::GlobalValue>(Source->base())) {
-    Ret.insert(Source);
-  } else if (const auto *Inst =
-                 llvm::dyn_cast<llvm::Instruction>(Source->base());
-             Inst && Inst->getFunction() == CurrInst->getFunction()) {
-    Ret.insert(Source);
-  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Source->base());
-             Arg && Arg->getParent() == CurrInst->getFunction()) {
+  if (AddSource) {
     Ret.insert(Source);
   }
 }
 
-auto IDEExtendedTaintAnalysis::identity(const d_t &Source,
+auto IDEExtendedTaintAnalysis::identity(d_t Source,
                                         const llvm::Instruction *CurrInst,
                                         bool AddGlobals) -> std::set<d_t> {
   std::set<d_t> Ret;

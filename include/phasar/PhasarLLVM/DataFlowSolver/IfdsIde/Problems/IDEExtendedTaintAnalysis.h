@@ -93,17 +93,18 @@ private:
 
   /// Add source to ret if it belongs to the same function as CurrInst. If
   /// addGlobals is true, also add llvm::GlobalValue.
-  void identity(std::set<d_t> &Ret, const d_t &Source,
-                const llvm::Instruction *CurrInst, bool AddGlobals = true);
-  std::set<d_t> identity(const d_t &Source, const llvm::Instruction *CurrInst,
-                         bool AddGlobals = true);
+  static void identity(std::set<d_t> &Ret, d_t Source,
+                       const llvm::Instruction *CurrInst,
+                       bool AddGlobals = true);
+  static std::set<d_t> identity(d_t Source, const llvm::Instruction *CurrInst,
+                                bool AddGlobals = true);
 
-  [[nodiscard]] static inline bool equivalent(const d_t &LHS, const d_t &RHS) {
+  [[nodiscard]] static inline bool equivalent(d_t LHS, d_t RHS) {
     return LHS->equivalent(RHS);
   }
 
-  [[nodiscard]] static inline bool
-  equivalentExceptPointerArithmetics(const d_t &LHS, const d_t &RHS) {
+  [[nodiscard]] static inline bool equivalentExceptPointerArithmetics(d_t LHS,
+                                                                      d_t RHS) {
     return LHS->equivalentExceptPointerArithmetics(RHS);
   }
 
@@ -121,6 +122,11 @@ private:
                                  const llvm::Value *ValueOp,
                                  const llvm::Instruction *Store,
                                  unsigned PALevel = 1);
+  std::set<d_t> propagateAtStore(PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS,
+                                 d_t Source, d_t Val, d_t Mem,
+                                 const llvm::Value *PointerOp,
+                                 const llvm::Value *ValueOp,
+                                 const llvm::Instruction *Store);
 
   template <typename CallBack, typename = std::enable_if_t<std::is_invocable_v<
                                    CallBack, const llvm::Value *>>>
@@ -142,6 +148,8 @@ private:
       }
     }
   }
+
+  static const llvm::Value *getVAListTagOrNull(const llvm::Function *DestFun);
 
   void populateWithMayAliases(SourceConfigTy &Facts) const;
 
