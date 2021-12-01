@@ -215,7 +215,8 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
       allTaintedValues.insert(ret.begin(), ret.end());
 #endif
 
-      std::cerr << "StoreFF(" << Source << ") = " << PrettyPrinter{Ret} << '\n';
+      // std::cerr << "StoreFF(" << Source << ") = " << PrettyPrinter{Ret} <<
+      // '\n';
 
       return Ret;
     }
@@ -856,7 +857,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
   llvm::SmallVector<const llvm::Instruction *> RemInst;
   for (auto &[Inst, PotentialLeaks] : Leaks) {
     llvm::SmallVector<const llvm::Value *, 2> Rem;
-    std::cerr << "At " << llvmIRToString(Inst) << ":" << std::endl;
+    // std::cerr << "At " << llvmIRToString(Inst) << ":" << std::endl;
 
     auto Results = SR.resultsAt(Inst);
 
@@ -864,7 +865,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
       auto Found = Results.find(makeFlowFact(L));
       if (Found == Results.end()) {
         // The sanitizer has been killed, so we must assume the fact as tainted
-        std::cerr << "No results for " << makeFlowFact(L) << std::endl;
+        // std::cerr << "No results for " << makeFlowFact(L) << std::endl;
         continue;
       }
 
@@ -875,8 +876,8 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
       switch (Sani.getKind()) {
       case EdgeDomain::Sanitized:
         Rem.push_back(L);
-        std::cerr << "Sanitize " << llvmIRToShortString(L) << " from parent "
-                  << std::endl;
+        // std::cerr << "Sanitize " << llvmIRToShortString(L) << " from parent "
+        //          << std::endl;
         break;
       case EdgeDomain::WithSanitizer:
         if (!Sani.getSanitizer()) {
@@ -884,18 +885,19 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
         }
         if (!Load || BBO.mustComeBefore(Sani.getSanitizer(), Load)) {
           Rem.push_back(L);
-          std::cerr << "Sanitize " << llvmIRToShortString(L) << " with "
-                    << llvmIRToString(Sani.getSanitizer()) << std::endl;
+          // std::cerr << "Sanitize " << llvmIRToShortString(L) << " with "
+          //          << llvmIRToString(Sani.getSanitizer()) << std::endl;
           break;
         }
         [[fallthrough]];
       default:
-        std::cerr << " Sani: " << Sani
-                  << "; Load: " << (Load ? llvmIRToString(Load) : "null")
-                  << " for FlowFact: " << makeFlowFact(L) << std::endl;
+        // std::cerr << " Sani: " << Sani
+        //           << "; Load: " << (Load ? llvmIRToString(Load) : "null")
+        //           << " for FlowFact: " << makeFlowFact(L) << std::endl;
+        break;
       }
     }
-    std::cerr << "----------------------------" << std::endl;
+    // std::cerr << "----------------------------" << std::endl;
 
     for (const auto *R : Rem) {
       PotentialLeaks.erase(R);

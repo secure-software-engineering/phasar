@@ -20,7 +20,7 @@
 
 namespace psr {
 class BasicBlockOrdering;
-}
+} // namespace psr
 
 namespace psr::XTaint {
 class Sanitized {};
@@ -43,11 +43,12 @@ public:
   inline EdgeDomain(std::nullptr_t) noexcept
       : Value(nullptr, Kind::WithSanitizer) {}
 
-  inline EdgeDomain(psr::Bottom) noexcept : Value(nullptr, Kind::Bot) {}
+  inline EdgeDomain(psr::Bottom /*unused*/) noexcept
+      : Value(nullptr, Kind::Bot) {}
 
-  inline EdgeDomain(psr::Top) noexcept : Value(nullptr, Kind::Top) {}
+  inline EdgeDomain(psr::Top /*unused*/) noexcept : Value(nullptr, Kind::Top) {}
 
-  inline EdgeDomain(psr::XTaint::Sanitized) noexcept
+  inline EdgeDomain(psr::XTaint::Sanitized /*unused*/) noexcept
       : Value(nullptr, Kind::Sanitized) {}
 
   inline EdgeDomain(const llvm::Instruction *Sani) noexcept

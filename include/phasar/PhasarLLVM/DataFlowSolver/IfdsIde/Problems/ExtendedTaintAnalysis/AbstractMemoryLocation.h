@@ -78,6 +78,7 @@ public:
 
   AbstractMemoryLocationImpl(const AbstractMemoryLocationImpl &) = delete;
   AbstractMemoryLocationImpl(AbstractMemoryLocationImpl &&) = delete;
+  ~AbstractMemoryLocationImpl() = default;
 
   AbstractMemoryLocationImpl &
   operator=(const AbstractMemoryLocationImpl &) = delete;
@@ -201,8 +202,10 @@ private:
   const detail::AbstractMemoryLocationImpl *PImpl = nullptr;
 };
 
+// NOLINTNEXTLINE(readability-identifier-naming)
 std::string DToString(const AbstractMemoryLocation &AML);
 
+// NOLINTNEXTLINE(readability-identifier-naming)
 llvm::hash_code hash_value(psr::AbstractMemoryLocation Val);
 } // namespace psr
 
