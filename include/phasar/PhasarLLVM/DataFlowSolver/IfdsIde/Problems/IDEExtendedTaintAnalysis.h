@@ -22,9 +22,11 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
@@ -135,11 +137,21 @@ private:
     if (!HasPrecisePointsToInfo) {
       auto OfFF = makeFlowFact(Of);
       for (const auto *Alias : *PTS) {
+        if (const auto *AliasGlob = llvm::dyn_cast<llvm::GlobalVariable>(Alias);
+            AliasGlob && AliasGlob->isConstant()) {
+          // Assume, data can never flow into the constant data section
+          // Note: If a global constant is marked as source, it keeps being
+          // propagated. We never assume, that the Of value is part of its
+          // alias-set
+          continue;
+        }
+
         auto AliasFF = makeFlowFact(Alias);
 
         if (AliasFF->base() == OfFF->base() && AliasFF != OfFF) {
           continue;
         }
+
         std::invoke(CB, Alias);
       }
     } else {

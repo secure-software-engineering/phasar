@@ -35,21 +35,6 @@
 
 namespace psr::XTaint {
 
-// IDEExtendedTaintAnalysis::IDEExtendedTaintAnalysis(
-//     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-//     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT, const TaintConfig *TSF,
-//     std::set<std::string> EntryPoints, unsigned Bound,
-//     bool DisableStrongUpdates)
-//     : base_t(IRDB, TH, ICF, PT, std::move(EntryPoints)), AnalysisBase(TSF),
-//       FactFactory(IRDB->getNumInstructions()),
-//       DL((*IRDB->getAllModules().begin())->getDataLayout()), Bound(Bound),
-//       PostProcessed(DisableStrongUpdates),
-//       DisableStrongUpdates(DisableStrongUpdates) {
-//   base_t::ZeroValue = createZeroValue();
-
-//   FactFactory.setDataLayout(DL);
-// }
-
 InitialSeeds<IDEExtendedTaintAnalysis::n_t, IDEExtendedTaintAnalysis::d_t,
              IDEExtendedTaintAnalysis::l_t>
 IDEExtendedTaintAnalysis::initialSeeds() {
