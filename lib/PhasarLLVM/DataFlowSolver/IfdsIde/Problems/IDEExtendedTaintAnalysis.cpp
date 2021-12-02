@@ -53,13 +53,19 @@ IDEExtendedTaintAnalysis::initialSeeds() {
     const auto *EntryFn = base_t::ICF->getFunction(Ep);
 
     if (!EntryFn) {
-      std::cerr << "WARNING: Entry-Function \"" << Ep
-                << "\" not contained in the module; skip it\n";
+      llvm::errs() << "WARNING: Entry-Function \"" << Ep
+                   << "\" not contained in the module; skip it\n";
       continue;
     }
 
     Seeds.addSeed(&EntryFn->front().front(), this->base_t::getZeroValue(),
                   bottomElement());
+  }
+
+  if (Seeds.empty()) {
+    llvm::errs() << "WARNING: No initial seeds specified, skip the analysis. "
+                    "Please specify an entrypoint function or in the "
+                    "TaintConfig a source llvm::Instruction*\n";
   }
 
   return Seeds;
@@ -223,9 +229,9 @@ void IDEExtendedTaintAnalysis::generateFromZero(std::set<d_t> &Dest,
                                                 const llvm::Value *FormalArg,
                                                 const llvm::Value *ActualArg,
                                                 bool IncludeActualArg) {
-  // TSF->isSource already covered by TSF->makeInitialSeeds
   if (const auto &SourceCB = TSF->getRegisteredSourceCallBack();
-      SourceCB && SourceCB(Inst).count(ActualArg)) {
+      TSF->isSource(ActualArg) ||
+      (SourceCB && SourceCB(Inst).count(ActualArg))) {
     Dest.insert(makeFlowFact(FormalArg));
     if (IncludeActualArg) {
       Dest.insert(makeFlowFact(ActualArg));
@@ -415,8 +421,9 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   /// pointer-analysis)
   class ArgPointsToCache {
   public:
-    explicit ArgPointsToCache(PointsToInfo<v_t, n_t> *PT, size_t NumArgs)
-        : Vec(NumArgs, nullptr), PT(PT) {}
+    explicit ArgPointsToCache(PointsToInfo<v_t, n_t> *PT, size_t NumArgs,
+                              bool HasPrecisePointsToInfo)
+        : Vec(NumArgs * !!HasPrecisePointsToInfo, nullptr), PT(PT) {}
 
     const PointsToInfo<v_t, n_t>::PointsToSetTy &
     getOrCreatePts(size_t Idx, const llvm::Value *Ptr,
@@ -433,8 +440,14 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
   return makeLambdaFlow<d_t>([this, Call, CalleeFun,
                               ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
-                              PTC{ArgPointsToCache(
-                                  PT, Call->getNumArgOperands())}](d_t Source) {
+                              PTC{ArgPointsToCache(PT,
+                                                   Call->getNumArgOperands(),
+                                                   HasPrecisePointsToInfo)}](
+                                 d_t Source) -> std::set<d_t> {
+    if (isZeroValue(Source)) {
+      return {Source};
+    }
+
     std::set<d_t> Ret;
 
     using ArgIterator = llvm::User::const_op_iterator;
@@ -505,7 +518,7 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
   //   return makeLambdaFlow<d_t>([CallSite, this](d_t Source) -> std::set<d_t>
   //   {
   //     if (isZeroValue(Source)) {
-  //       return {Source};
+  //       return {};
   //     }
 
   //     if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
@@ -538,7 +551,15 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
   // The CTR-FF is traditionally an identity function. All CTR-relevant stuff is
   // handled on the edges.
 
-  return Identity<d_t>::getInstance();
+  auto HasDeclaration =
+      std::any_of(Callees.begin(), Callees.end(),
+                  [](const llvm::Function *F) { return F->isDeclaration(); });
+
+  if (HasDeclaration) {
+    return Identity<d_t>::getInstance();
+  }
+
+  return makeFF<Kill<d_t>>(getZeroValue());
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType

@@ -98,8 +98,9 @@ private:
   static void identity(std::set<d_t> &Ret, d_t Source,
                        const llvm::Instruction *CurrInst,
                        bool AddGlobals = true);
-  static std::set<d_t> identity(d_t Source, const llvm::Instruction *CurrInst,
-                                bool AddGlobals = true);
+  [[nodiscard]] static std::set<d_t> identity(d_t Source,
+                                              const llvm::Instruction *CurrInst,
+                                              bool AddGlobals = true);
 
   [[nodiscard]] static inline bool equivalent(d_t LHS, d_t RHS) {
     return LHS->equivalent(RHS);
@@ -201,6 +202,8 @@ public:
     base_t::ZeroValue = createZeroValue();
 
     FactFactory.setDataLayout(DL);
+
+    this->getIFDSIDESolverConfig().setAutoAddZero(false);
 
     /// TODO: Once we have better PointsToInfo, do a dynamic_cast over PT and
     /// set HasPrecisePointsToInfo accordingly
