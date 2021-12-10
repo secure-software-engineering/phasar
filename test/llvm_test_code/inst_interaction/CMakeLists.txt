@@ -24,7 +24,7 @@ set(Sources
   struct_01.cpp
 )
 
-set(SourceOpt
+set(SourcesOpt
   global_03.cpp
   global_04.cpp
 )
