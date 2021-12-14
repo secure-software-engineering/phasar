@@ -548,6 +548,11 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
   doAnalysisAndCompareResults("global_04_cpp.ll", GroundTruth, false);
 }
 
+TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_05) {
+  std::set<IIACompactResult_t> GroundTruth;
+  doAnalysisAndCompareResults("global_05_cpp.ll", GroundTruth, true);
+}
+
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(

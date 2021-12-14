@@ -17,6 +17,7 @@ set(Sources
   call_06.cpp
   global_01.cpp
   global_02.cpp
+  global_05.cpp
   heap_01.cpp
   KillTest.cpp
   return_01.cpp
