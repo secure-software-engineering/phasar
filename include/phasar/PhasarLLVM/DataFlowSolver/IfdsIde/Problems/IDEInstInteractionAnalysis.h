@@ -115,15 +115,33 @@ public:
   using EdgeFactGeneratorTy =
       std::set<e_t>(std::variant<n_t, const llvm::GlobalVariable *> curr);
 
-  IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
-                              const LLVMTypeHierarchy *TH,
-                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                              std::set<std::string> EntryPoints = {"main"})
+  inline InitialSeeds<n_t, d_t, l_t> oldInitialSeeds() {
+    InitialSeeds<n_t, d_t, l_t> Seeds;
+    for (const auto &EntryPoint : this->EntryPoints) {
+      for (const auto *StartPoint :
+           this->ICF->getStartPointsOf(this->ICF->getFunction(EntryPoint))) {
+        Seeds.addSeed(StartPoint, this->getZeroValue(), this->bottomElement());
+      }
+    }
+    return Seeds;
+  }
+
+  IDEInstInteractionAnalysisT(
+      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+      std::set<std::string> EntryPoints = {"main"},
+      std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
-            IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+            IRDB, TH, ICF, PT, std::move(EntryPoints)),
+        edgeFactGen(std::move(EdgeFactGenerator)) {
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
                                     EnableIndirectTaints>::createZeroValue();
+
+    this->MySeeds =
+        IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
+                                    EnableIndirectTaints>::oldInitialSeeds();
+
     IIAAAddLabelsEF::initEdgeFunctionCleaner();
     IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
@@ -141,6 +159,23 @@ public:
   // start formulating our analysis by specifying the parts required for IFDS
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
+    // if (MySeeds.countInitialSeeds(curr) && !InitializedGlobalsAtSeed[curr]) {
+    //   InitializedGlobalsAtSeed[curr] =
+    //       true; // We are initializing globals here now.
+    //   std::set<d_t> Globals;
+    //   for (const auto *Mod : this->IRDB->getAllModules()) {
+    //     for (const auto &Global : Mod->globals()) {
+    //       Globals.insert(&Global); // collect all global variables
+    //     }
+    //   }
+    //   // Create the flow function that generates the globals.
+    //   auto GlobalFlowFun =
+    //       std::make_shared<GenAll<d_t>>(Globals, this->getZeroValue());
+    //   // Create the flow function for the instruction we are currently misusing.
+    //   auto FlowFun = getNormalFlowFunction(curr, succ);
+    //   return std::make_shared<Union<d_t>>(
+    //       std::vector<FlowFunctionPtrType>({FlowFun, GlobalFlowFun}));
+    // }
     // Generate all local variables
     //
     // Flow function:
@@ -407,7 +442,10 @@ public:
     struct IIAFlowFunction : FlowFunction<d_t> {
       n_t Inst;
 
-      IIAFlowFunction(n_t Inst) : Inst(Inst) {}
+      IIAFlowFunction(n_t Inst) : Inst(Inst) {
+        llvm::outs() << "IIAFlow:" << *Inst << '\n';
+        llvm::outs().flush();
+      }
 
       ~IIAFlowFunction() override = default;
 
@@ -585,6 +623,7 @@ public:
     // variables using generalized initial seeds
     for (const auto *EntryPointFun : EntryPointFuns) {
       // Generate zero value at the entry points
+      assert(!EntryPointFun->isDeclaration() && "Should not be a declaration");
       Seeds.addSeed(&EntryPointFun->front().front(), this->getZeroValue(),
                     bottomElement());
       // Generate all global variables using generalized initial seeds
@@ -594,6 +633,7 @@ public:
             l_t InitialValues = BitVectorSet<e_t>();
             std::set<e_t> EdgeFacts;
             if (edgeFactGen) {
+              llvm::outs() << "--> edgeFactGen\n";
               EdgeFacts = edgeFactGen(GV);
               // fill BitVectorSet
               InitialValues =
@@ -661,6 +701,25 @@ public:
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
     }
+    //static auto Globals = [this]() {
+    //  std::set<d_t> Globals;
+    //  for (const auto *Mod : this->IRDB->getAllModules()) {
+    //    for (const auto &G : Mod->globals()) {
+    //      Globals.insert(&G);
+    //    }
+    //  }
+    //  return Globals;
+    //}();
+    //if (MySeeds.containsInitialSeedsFor(curr) && isZeroValue(currNode) &&
+    //    Globals.count(succNode)) {
+    //  if (const auto *GlobalVarDef =
+    //          llvm::dyn_cast<llvm::GlobalVariable>(succNode)) {
+    //    EdgeFacts = edgeFactGen(GlobalVarDef);
+    //    // fill BitVectorSet
+    //    UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
+    //    return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+    //  }
+    //}
     //
     // i --> i edges
     //
@@ -1363,8 +1422,35 @@ protected:
     if (Rhs == TopElement || Rhs == BottomElement) {
       return Lhs;
     }
-    auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
+    BitVectorSet<e_t>LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
     auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
+
+    std::string sep;
+    llvm::outs() << "{";
+    for (auto It = LhsSet.begin(); It != LhsSet.end(); It++) {
+      llvm::outs() << sep << *It;
+      sep = ", ";
+    }
+    llvm::outs() << "}";
+    sep = "";
+    llvm::outs() << " + ";
+    llvm::outs() << "{";
+    for (auto It = RhsSet.begin(); It != RhsSet.end(); It++) {
+      llvm::outs() << sep << *It;
+      sep = ", ";
+    }
+    llvm::outs() << "}";
+    sep = "";
+    auto Res = LhsSet.setUnion(RhsSet);
+    llvm::outs() << " = ";
+    llvm::outs() << "{";
+    for (auto It = Res.begin(); It != Res.end(); It++) {
+      llvm::outs() << sep << *It;
+      sep = ", ";
+    }
+    llvm::outs() << "}";
+
+    llvm::outs() << "\n";
     return LhsSet.setUnion(RhsSet);
   }
 
@@ -1415,6 +1501,10 @@ private:
     }
     return {};
   }
+  // TODO This is only a temporary mechanism to handle global variables.
+  InitialSeeds<n_t, d_t, l_t> MySeeds;
+  std::unordered_map<n_t, bool>
+      InitializedGlobalsAtSeed; // Globals must be initialized!
 
 }; // namespace psr
 
