@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include <cstdlib>
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
@@ -9,10 +10,13 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
 #include "TestConfig.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace psr;
 
@@ -36,19 +40,7 @@ static SetTy makeSet(const nlohmann::json &J) {
   return Ret;
 }
 
-static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
-                    llvm::StringRef EntryPoint = "main") {
-  ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + File.str()});
-
-  // llvm::outs() << *IRDB.getWPAModule() << '\n';
-
-  LLVMPointsToSet PTS(IRDB, false);
-  LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
-                    &PTS);
-
-  auto Ser = PTS.getAsJson();
+static void checkSer(const nlohmann::json &Ser, const GroundTruthTy &Gt) {
 
   ASSERT_TRUE(Ser.count("PointsToSets"));
   ASSERT_TRUE(Ser.count("AnalyzedFunctions"));
@@ -69,6 +61,38 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
   EXPECT_EQ(GtFuns, FunsSet);
 }
 
+static void checkDeser(const llvm::Module &Mod, LLVMPointsToSet &PTS,
+                       LLVMPointsToSet &Deser) {
+  for (const auto &Glob : Mod.globals()) {
+    EXPECT_EQ(*PTS.getPointsToSet(&Glob), *Deser.getPointsToSet(&Glob));
+  }
+  for (const auto &Fun : Mod) {
+    for (const auto &Inst : llvm::instructions(Fun)) {
+      EXPECT_EQ(*PTS.getPointsToSet(&Inst), *Deser.getPointsToSet(&Inst));
+    }
+  }
+}
+
+static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
+                    llvm::StringRef EntryPoint = "main") {
+  psr::initializeLogger(false);
+  ValueAnnotationPass::resetValueID();
+  ProjectIRDB IRDB({unittest::PathToLLTestFiles + File.str()});
+
+  // llvm::outs() << *IRDB.getWPAModule() << '\n';
+
+  LLVMPointsToSet PTS(IRDB, false);
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
+                    &PTS);
+
+  auto Ser = PTS.getAsJson();
+  checkSer(Ser, Gt);
+
+  LLVMPointsToSet Deser(IRDB, Ser);
+  checkDeser(*IRDB.getWPAModule(), PTS, Deser);
+}
+
 TEST(LLVMPointsToSetSerializationTest, Ser_Intra01) {
   analyze("pointers/basic_01_cpp.ll", {{{"1"}, {"0", "3"}}, {"main"}});
 }
@@ -80,8 +104,14 @@ TEST(LLVMPointsToSetSerializationTest, Ser_Inter01) {
 }
 
 TEST(LLVMPointsToSetSerializationTest, Ser_Global01) {
-  GTEST_SKIP() << "TODO: Add ground truth!!!";
-  analyze("pointers/global_01_cpp.ll", {{}, {}});
+  analyze("pointers/global_01_cpp.ll",
+          {{{"0", "15", "17", "2", "3", "9", "_Z3fooPi.0"},
+            {"1"},
+            {"12"},
+            {"13"},
+            {"7"}},
+           {"_GLOBAL__sub_I_global_01.cpp", "_Z3fooPi", "__cxx_global_var_init",
+            "main"}});
 }
 
 int main(int Argc, char **Argv) {

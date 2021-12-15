@@ -98,8 +98,8 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
   /// Deserialize the PointsToSets - an array of arrays (both are to be
   /// interpreted as sets of metadata-ids)
 
-  Owner.reserve(SerializedPTS.size());
-  for (const auto &PtsJson : SerializedPTS) {
+  Owner.reserve(Sets.size());
+  for (const auto &PtsJson : Sets) {
     assert(PtsJson.is_array());
     auto *PTS = Owner.acquire();
     for (auto Alias : PtsJson) {
@@ -120,12 +120,13 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
 
   AnalyzedFunctions.reserve(Fns.size());
   for (const auto &F : Fns) {
-    const auto *IRFn = IRDB.getFunction(F.get<std::string>());
-    if (!F) {
+    if (!F.is_string()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
                     << "Invalid Function Name: " << F);
       continue;
     }
+
+    const auto *IRFn = IRDB.getFunction(F.get<std::string>());
     AnalyzedFunctions.insert(IRFn);
   }
 }
