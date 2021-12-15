@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -679,7 +680,9 @@ nlohmann::json LLVMPointsToSet::getAsJson() const {
         PtsJson.push_back(std::move(Id));
       }
     }
-    Sets.push_back(std::move(PtsJson));
+    if (!PtsJson.empty()) {
+      Sets.push_back(std::move(PtsJson));
+    }
   });
 
   /// Serialize the AnalyzedFunctions
@@ -690,7 +693,9 @@ nlohmann::json LLVMPointsToSet::getAsJson() const {
   return J;
 }
 
-void LLVMPointsToSet::printAsJson(std::ostream &OS) const {}
+void LLVMPointsToSet::printAsJson(std::ostream &OS) const {
+  OS << std::setw(4) << getAsJson() << std::setw(0);
+}
 
 void LLVMPointsToSet::print(std::ostream &OS) const {
   for (const auto &[V, PTS] : PointsToSets) {
