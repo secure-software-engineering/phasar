@@ -1,0 +1,75 @@
+name: Phasar CI
+
+on:
+  push:
+    branches: [ master, development ]
+  pull_request:
+    branches: [ master, development ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: true
+      matrix:
+        compiler: [ [clang++-12, clang-12] ]
+        build: [ Debug, Release ]
+
+    continue-on-error: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Basic Dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install --no-install-recommends \
+              cmake \
+              ninja-build \
+              libstdc++6 \
+              libboost-all-dev
+
+      - name: Install Phasar Dependencies
+        shell: bash
+        run: |
+          ./utils/InstallAptDependencies.sh
+
+      - name: Install Strategy Dependencies
+        shell: bash
+        run: |
+          sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
+          sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main'
+          sudo apt-get update
+          sudo apt-get -y install --no-install-recommends \
+              ${{ matrix.compiler[1] }} \
+              llvm-12-dev \
+              libllvm12 \
+              libclang-common-12-dev \
+              libclang-12-dev \
+              libclang-cpp12-dev \
+              clang-tidy-12
+
+      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
+        env:
+          BUILD_TYPE: ${{ matrix.build }}
+          CXX: ${{ matrix.compiler[0] }}
+          CC: ${{ matrix.compiler[1] }}
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            -G Ninja
+          cmake --build .
+
+      - name: Run Unittests
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --target check-phasar-unittests

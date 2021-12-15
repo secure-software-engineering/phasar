@@ -11,6 +11,7 @@ list(APPEND
   utils
   phasarllvm_utils
   db
+  taintconfig
 )
 
 foreach(dep ${PHASAR_MONO_DEPS})

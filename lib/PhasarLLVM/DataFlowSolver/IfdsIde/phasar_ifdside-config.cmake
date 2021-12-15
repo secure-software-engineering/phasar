@@ -16,6 +16,7 @@ list(APPEND
   controlflow
   phasarllvm_utils
   db
+  taintconfig
 )
 
 foreach(dep ${IFDSIDE_DEPS})

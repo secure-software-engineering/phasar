@@ -89,7 +89,7 @@ protected:
   const llvm::DataLayout *DL = nullptr;
 
   const detail::AbstractMemoryLocationImpl *
-  getOrCreateImpl(const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&offs,
+  getOrCreateImpl(const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&Offs,
                   unsigned BOUND);
 
   const detail::AbstractMemoryLocationImpl *
@@ -152,6 +152,9 @@ public:
                                 size_t InitialCapacity)
       : detail::AbstractMemoryLocationFactoryBase(DL, InitialCapacity) {}
   AbstractMemoryLocationFactory(const AbstractMemoryLocationFactory &) = delete;
+  ~AbstractMemoryLocationFactory() = default;
+  AbstractMemoryLocationFactory &
+  operator=(const AbstractMemoryLocationFactory &) = delete;
 
   [[nodiscard]] AbstractMemoryLocation Create(const llvm::Value *V,
                                               unsigned BOUND) {

@@ -152,6 +152,10 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V) {
 }
 
 std::string llvmIRToString(const llvm::Value *V) {
+  if (!V) {
+    return "<null>";
+  }
+
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO, getModuleSlotTrackerFor(V));
@@ -162,6 +166,9 @@ std::string llvmIRToString(const llvm::Value *V) {
 }
 
 std::string llvmIRToStableString(const llvm::Value *V) {
+  if (!V) {
+    return "<null>";
+  }
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO, getModuleSlotTrackerFor(V));
@@ -186,6 +193,9 @@ std::string llvmIRToStableString(const llvm::Value *V) {
 }
 
 std::string llvmIRToShortString(const llvm::Value *V) {
+  if (!V) {
+    return "<null>";
+  }
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V);

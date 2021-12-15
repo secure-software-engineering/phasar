@@ -1,0 +1,51 @@
+name: Phasar clang-format review runner
+
+on:
+  pull_request:
+    branches: [ master, development ]
+
+jobs:
+  format:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [ clang-format ]
+        include:
+          - tool: clang-format
+            install: |
+              sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
+              sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main'
+              sudo apt-get update
+              sudo apt-get -y install --no-install-recommends clang-format-12
+            regex: \.(h|c|hpp|cpp)$
+            command: clang-format-12 --style=file -i
+
+    continue-on-error: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        shell: bash
+        run: ${{ matrix.install }}
+
+      - name: Fetch Base Branch
+        shell: bash
+        run: |
+          git fetch --depth=1 origin +refs/heads/${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+
+      - name: Run Tool
+        shell: bash
+        run: |
+          FILES=$(git diff --name-only --diff-filter=AM origin/${{ github.base_ref }} HEAD | egrep "${{ matrix.regex }}" || true)
+          [ -z "$FILES" ] || (${{ matrix.command }} $FILES && git diff --diff-filter=M $FILES)
+
+      - name: Add Suggestions
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: ${{ matrix.tool }}
+          filter_mode: diff_context
+          level: warning

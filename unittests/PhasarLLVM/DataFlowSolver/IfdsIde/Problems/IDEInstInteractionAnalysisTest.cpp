@@ -16,6 +16,9 @@
 
 #include "gtest/gtest.h"
 
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Instruction.h"
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
@@ -72,21 +75,37 @@ protected:
         [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
                Current) -> std::set<std::string> {
       std::set<std::string> Labels;
-      const llvm::Instruction *CurrentInst;
+      // case we are looking at an instruction
       if (std::holds_alternative<const llvm::Instruction *>(Current)) {
-        CurrentInst = std::get<const llvm::Instruction *>(Current);
-      } else {
-        return Labels;
+        const llvm::Instruction *CurrentInst =
+            std::get<const llvm::Instruction *>(Current);
+        if (CurrentInst->hasMetadata()) {
+          std::string Label =
+              llvm::cast<llvm::MDString>(
+                  CurrentInst->getMetadata(PhasarConfig::MetaDataKind())
+                      ->getOperand(0))
+                  ->getString()
+                  .str();
+          Labels.insert(Label);
+          return Labels;
+        }
       }
-      if (CurrentInst->hasMetadata()) {
-        std::string Label =
-            llvm::cast<llvm::MDString>(
-                CurrentInst->getMetadata(PhasarConfig::MetaDataKind())
-                    ->getOperand(0))
-                ->getString()
-                .str();
-        Labels.insert(Label);
+      // case we are looking at a global variable
+      if (std::holds_alternative<const llvm::GlobalVariable *>(Current)) {
+        const llvm::GlobalVariable *CurrentGlobalVar =
+            std::get<const llvm::GlobalVariable *>(Current);
+        if (CurrentGlobalVar->hasMetadata()) {
+          std::string Label =
+              llvm::cast<llvm::MDString>(
+                  CurrentGlobalVar->getMetadata(PhasarConfig::MetaDataKind())
+                      ->getOperand(0))
+                  ->getString()
+                  .str();
+          Labels.insert(Label);
+          return Labels;
+        }
       }
+      // default
       return Labels;
     };
     // register the above generator function
@@ -246,11 +265,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
   doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
-// If we use libcxx this won't work since internal implementation is different
-#ifdef _LIBCPP_VERSION
-  GTEST_SKIP();
-#endif
+PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+  // If we use libcxx this won't work since internal implementation is different
+  LIBCPP_GTEST_SKIP;
+
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
@@ -271,7 +289,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "k", {"10", "11", "12", "16", "19", "20", "25", "27"}));
   doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth, false);
-}
+})
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
@@ -436,7 +454,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 10, "j", {"1", "7", "10", "12", "13"}));
-  doAnalysisAndCompareResults("call_05_cpp.ll", GroundTruth, true);
+  doAnalysisAndCompareResults("call_05_cpp.ll", GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
@@ -469,7 +487,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
           "main", 9, "i", {"0", "7", "8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "j", {"2", "5", "6"}));
+          "main", 9, "j", {"0", "2", "5", "6"}));
   doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, false);
 }
 
@@ -492,8 +510,42 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
           "main", 12, "retval", {"4", "6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "c", {"5", "8", "7", "13"}));
+          "main", 12, "c", {"1", "5", "8", "7", "13"}));
   doAnalysisAndCompareResults("global_02_cpp.ll", GroundTruth, false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_03) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 1, "GlobalFeature", {"0"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 2, "GlobalFeature", {"0", "1"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 17, "GlobalFeature", {"0", "1"}));
+  doAnalysisAndCompareResults("global_03_cpp.ll", GroundTruth, false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 1, "GlobalFeature", {"0"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 2, "GlobalFeature", {"0", "3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 18, "GlobalFeature", {"0", "3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "_Z7doStuffi", 1, "GlobalFeature", {"0", "3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "_Z7doStuffi", 2, "GlobalFeature", {"0", "3"}));
+  doAnalysisAndCompareResults("global_04_cpp.ll", GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
@@ -547,11 +599,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
   doAnalysisAndCompareResults("heap_01_cpp.ll", GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
-// If we use libcxx this won't work since internal implementation is different
-#ifdef _LIBCPP_VERSION
-  GTEST_SKIP();
-#endif
+PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
+  // If we use libcxx this won't work since internal implementation is different
+  LIBCPP_GTEST_SKIP;
+
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
@@ -563,7 +614,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 16, "ref.tmp", {"25", "5", "8", "31", "32", "30"}));
   doAnalysisAndCompareResults("rvo_01_cpp.ll", GroundTruth, false);
-}
+})
 
 // // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
 // //   std::set<IIACompactResult_t> GroundTruth;
