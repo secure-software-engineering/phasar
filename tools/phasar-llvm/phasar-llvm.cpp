@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <algorithm>
+#include <boost/program_options/value_semantic.hpp>
 #include <chrono>
 #include <set>
 #include <string>
@@ -18,13 +19,16 @@
 
 #include "boost/dll.hpp"
 #include "boost/filesystem.hpp"
+#include "nlohmann/json.hpp"
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/Plugins/AnalysisPluginController.h"
 #include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
+#include "llvm/ADT/StringRef.h"
 
 using namespace psr;
 
@@ -171,6 +175,14 @@ void validateParamAnalysisConfig(const std::vector<std::string> &Configs) {
   }
 }
 
+void validatePTAJsonFile(const std::string &Config) {
+  if (!(boost::filesystem::exists(Config) &&
+        !boost::filesystem::is_directory(Config))) {
+    throw boost::program_options::error_with_option_name(
+        "Points-to info file '" + Config + "' does not exist!");
+  }
+}
+
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
@@ -225,11 +237,12 @@ int main(int Argc, const char **Argv) {
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("emit-pta-as-json", "Emit the points-to information as JSON")
+      ("load-pta-from-json", boost::program_options::value<std::string>()->notifier(&validatePTAJsonFile),"Load the points-to info previously exported via emit-pta-as-json from the given file")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
-      
+
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
-      
+
       ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
@@ -434,6 +447,13 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
+
+  nlohmann::json PrecomputedPointsToSet;
+  if (auto PTAFile = PhasarConfig::VariablesMap().find("load-pta-from-json");
+      PTAFile != PhasarConfig::VariablesMap().end()) {
+    PrecomputedPointsToSet =
+        readJsonFile(llvm::StringRef(PTAFile->second.as<std::string>()));
+  }
   // setup output directory
   std::string OutDirectory;
   if (PhasarConfig::VariablesMap().count("out")) {
@@ -447,6 +467,7 @@ int main(int Argc, const char **Argv) {
   AnalysisController Controller(
       IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy, CGTy, SoundnessLevel,
       PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-      Strategy, EmitterOptions, ProjectID, OutDirectory);
+      Strategy, EmitterOptions, ProjectID, OutDirectory,
+      PrecomputedPointsToSet);
   return 0;
 }

@@ -90,6 +90,8 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
     : PTA(IRDB) {
   // Assume, we already have validated the json schema
 
+  llvm::outs() << "Load precomputed points-to info from JSON\n";
+
   const auto &Sets = SerializedPTS.at("PointsToSets");
   assert(Sets.is_array());
   const auto &Fns = SerializedPTS.at("AnalyzedFunctions");

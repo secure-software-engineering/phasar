@@ -51,7 +51,9 @@ class AnalysisController {
 private:
   ProjectIRDB &IRDB;
   LLVMTypeHierarchy TH;
-  LLVMPointsToSet PT;
+  // PTS needs to be a pointer, since PT is not movable and we must
+  // conditionally decide (in our ctor), which PT ctor to call
+  std::unique_ptr<LLVMPointsToSet> PT;
   LLVMBasedICFG ICF;
   std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
@@ -123,7 +125,8 @@ public:
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
                      const std::string &ProjectID = "default-phasar-project",
-                     const std::string &OutDirectory = "");
+                     const std::string &OutDirectory = "",
+                     const nlohmann::json &PrecomputedPointsToInfo = {});
 
   ~AnalysisController() = default;
 
