@@ -126,7 +126,6 @@ public:
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
                                     EnableIndirectTaints>::createZeroValue();
-
     IIAAAddLabelsEF::initEdgeFunctionCleaner();
     IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
@@ -410,10 +409,7 @@ public:
     struct IIAFlowFunction : FlowFunction<d_t> {
       n_t Inst;
 
-      IIAFlowFunction(n_t Inst) : Inst(Inst) {
-        llvm::outs() << "IIAFlow:" << *Inst << '\n';
-        llvm::outs().flush();
-      }
+      IIAFlowFunction(n_t Inst) : Inst(Inst) {}
 
       ~IIAFlowFunction() override = default;
 
