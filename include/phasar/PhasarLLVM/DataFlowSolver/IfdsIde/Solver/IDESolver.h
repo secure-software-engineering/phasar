@@ -715,13 +715,14 @@ protected:
     d_t d = nAndD.second;
     f_t p = ICF->getFunctionOf(n);
     for (const n_t c : ICF->getCallsFromWithin(p)) {
-      auto lookupResults = jumpFn->forwardLookup(d, c);
-      if (!lookupResults) {
+      auto LookupResults = jumpFn->forwardLookup(d, c);
+      if (!LookupResults) {
         continue;
       }
-      for (auto entry : lookupResults->get()) {
-        d_t dPrime = entry.first;
-        EdgeFunctionPtrType fPrime = entry.second;
+      for (size_t i = 0; i < LookupResults->get().size(); ++i) {
+        auto Entry = LookupResults->get()[i];
+        d_t dPrime = Entry.first;
+        EdgeFunctionPtrType fPrime = Entry.second;
         n_t sP = n;
         l_t value = val(sP, d);
         INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -1094,12 +1095,13 @@ protected:
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to
             // return site using the composed function
-            auto revLookupResult = jumpFn->reverseLookup(c, d4);
-            if (revLookupResult) {
-              for (auto valAndFunc : revLookupResult->get()) {
-                EdgeFunctionPtrType f3 = valAndFunc.second;
+            auto RevLookupResult = jumpFn->reverseLookup(c, d4);
+            if (RevLookupResult) {
+              for (size_t i = 0; i < RevLookupResult->get().size(); ++i) {
+                auto ValAndFunc = RevLookupResult->get()[i];
+                EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(allTop)) {
-                  d_t d3 = valAndFunc.first;
+                  d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "Compose: " << fPrime->str() << " * "
