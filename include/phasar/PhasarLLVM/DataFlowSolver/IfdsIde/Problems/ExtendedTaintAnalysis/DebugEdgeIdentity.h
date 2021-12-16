@@ -15,7 +15,7 @@
 
 namespace llvm {
 class Instruction;
-}
+} // namespace llvm
 
 namespace psr::XTaint {
 class DebugEdgeIdentity

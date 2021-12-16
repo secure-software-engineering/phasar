@@ -22,14 +22,14 @@ class JoinEdgeFunction : public EdgeFunctionBase {
     static inline EdgeFunctionPtrType getEmptyKey() {
       static EdgeFunctionPtrType EmptyKey(
           llvm::DenseMapInfo<EdgeFunction<l_t> *>::getEmptyKey(),
-          [](const EdgeFunction<l_t> *) {});
+          [](const EdgeFunction<l_t> * /*unused*/) {});
 
       return EmptyKey;
     }
     static inline EdgeFunctionPtrType getTombstoneKey() {
       static EdgeFunctionPtrType TombstoneKey(
           llvm::DenseMapInfo<EdgeFunction<l_t> *>::getTombstoneKey(),
-          [](const EdgeFunction<l_t> *) {});
+          [](const EdgeFunction<l_t> * /*unused*/) {});
 
       return TombstoneKey;
     }

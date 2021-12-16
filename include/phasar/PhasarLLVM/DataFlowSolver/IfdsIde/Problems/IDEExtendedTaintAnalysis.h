@@ -20,10 +20,13 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
@@ -35,6 +38,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
@@ -91,17 +95,19 @@ private:
 
   /// Add source to ret if it belongs to the same function as CurrInst. If
   /// addGlobals is true, also add llvm::GlobalValue.
-  void identity(std::set<d_t> &Ret, const d_t &Source,
-                const llvm::Instruction *CurrInst, bool AddGlobals = true);
-  std::set<d_t> identity(const d_t &Source, const llvm::Instruction *CurrInst,
-                         bool AddGlobals = true);
+  static void identity(std::set<d_t> &Ret, d_t Source,
+                       const llvm::Instruction *CurrInst,
+                       bool AddGlobals = true);
+  [[nodiscard]] static std::set<d_t> identity(d_t Source,
+                                              const llvm::Instruction *CurrInst,
+                                              bool AddGlobals = true);
 
-  [[nodiscard]] static inline bool equivalent(const d_t &LHS, const d_t &RHS) {
+  [[nodiscard]] static inline bool equivalent(d_t LHS, d_t RHS) {
     return LHS->equivalent(RHS);
   }
 
-  [[nodiscard]] static inline bool
-  equivalentExceptPointerArithmetics(const d_t &LHS, const d_t &RHS) {
+  [[nodiscard]] static inline bool equivalentExceptPointerArithmetics(d_t LHS,
+                                                                      d_t RHS) {
     return LHS->equivalentExceptPointerArithmetics(RHS);
   }
 
@@ -119,6 +125,44 @@ private:
                                  const llvm::Value *ValueOp,
                                  const llvm::Instruction *Store,
                                  unsigned PALevel = 1);
+  std::set<d_t> propagateAtStore(PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS,
+                                 d_t Source, d_t Val, d_t Mem,
+                                 const llvm::Value *PointerOp,
+                                 const llvm::Value *ValueOp,
+                                 const llvm::Instruction *Store);
+
+  template <typename CallBack, typename = std::enable_if_t<std::is_invocable_v<
+                                   CallBack, const llvm::Value *>>>
+  void forEachAliasOf(PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS,
+                      const llvm::Value *Of, CallBack &&CB) {
+    if (!HasPrecisePointsToInfo) {
+      auto OfFF = makeFlowFact(Of);
+      for (const auto *Alias : *PTS) {
+        if (const auto *AliasGlob = llvm::dyn_cast<llvm::GlobalVariable>(Alias);
+            AliasGlob && AliasGlob->isConstant()) {
+          // Assume, data can never flow into the constant data section
+          // Note: If a global constant is marked as source, it keeps being
+          // propagated. We never assume, that the Of value is part of its
+          // alias-set
+          continue;
+        }
+
+        auto AliasFF = makeFlowFact(Alias);
+
+        if (AliasFF->base() == OfFF->base() && AliasFF != OfFF) {
+          continue;
+        }
+
+        std::invoke(CB, Alias);
+      }
+    } else {
+      for (const auto *Alias : *PTS) {
+        std::invoke(CB, Alias);
+      }
+    }
+  }
+
+  static const llvm::Value *getVAListTagOrNull(const llvm::Function *DestFun);
 
   void populateWithMayAliases(SourceConfigTy &Facts) const;
 
@@ -158,6 +202,11 @@ public:
     base_t::ZeroValue = createZeroValue();
 
     FactFactory.setDataLayout(DL);
+
+    this->getIFDSIDESolverConfig().setAutoAddZero(false);
+
+    /// TODO: Once we have better PointsToInfo, do a dynamic_cast over PT and
+    /// set HasPrecisePointsToInfo accordingly
   }
 
   ~IDEExtendedTaintAnalysis() override = default;
@@ -250,6 +299,8 @@ private:
   bool PostProcessed = false;
 
   bool DisableStrongUpdates = false;
+
+  bool HasPrecisePointsToInfo = false;
 
 public:
   BasicBlockOrdering &getBasicBlockOrdering() { return BBO; }
