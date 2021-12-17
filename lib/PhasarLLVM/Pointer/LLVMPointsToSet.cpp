@@ -129,6 +129,13 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
     }
 
     const auto *IRFn = IRDB.getFunction(F.get<std::string>());
+
+    if (!IRFn) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                    << "Function: " << F << " not in the IRDB");
+      continue;
+    }
+
     AnalyzedFunctions.insert(IRFn);
   }
 }

@@ -8,18 +8,20 @@
  *****************************************************************************/
 
 #include <algorithm>
-#include <boost/program_options/value_semantic.hpp>
 #include <chrono>
 #include <set>
 #include <string>
 #include <vector>
 
-#include "boost/filesystem.hpp"
-#include "boost/program_options.hpp"
-
 #include "boost/dll.hpp"
 #include "boost/filesystem.hpp"
+#include "boost/program_options.hpp"
+#include "boost/program_options/value_semantic.hpp"
+
 #include "nlohmann/json.hpp"
+
+#include "llvm/ADT/StringRef.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/Plugins/AnalysisPluginController.h"
@@ -28,7 +30,6 @@
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
-#include "llvm/ADT/StringRef.h"
 
 using namespace psr;
 

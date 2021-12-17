@@ -1,5 +1,10 @@
-#include "gtest/gtest.h"
 #include <cstdlib>
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "gtest/gtest.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
@@ -8,15 +13,11 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-
-#include "llvm/ADT/StringRef.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/Support/raw_ostream.h"
+#include "phasar/Utils/Logger.h"
 
 #include "nlohmann/json.hpp"
 
 #include "TestConfig.h"
-#include "phasar/Utils/Logger.h"
 
 using namespace psr;
 

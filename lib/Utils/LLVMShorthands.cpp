@@ -17,6 +17,7 @@
 #include <cctype>
 #include <charconv>
 #include <cstdlib>
+#include <optional>
 #include <system_error>
 
 #include "boost/algorithm/string/trim.hpp"
@@ -255,40 +256,39 @@ const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id) {
     return nullptr;
   }
 
+  auto ParseInt = [](llvm::StringRef Str) -> std::optional<unsigned> {
+    unsigned Num;
+    auto [Ptr, EC] = std::from_chars(Str.data(), Str.data() + Str.size(), Num);
+
+    if (EC == std::errc{}) {
+      return Num;
+    }
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                  << "Invalid metadata id '" << Str.str()
+                  << "': " << std::make_error_code(EC).message());
+    return std::nullopt;
+  };
+
   if (auto Dot = Id.find('.'); Dot != llvm::StringRef::npos) {
     auto FName = Id.slice(0, Dot);
-    unsigned ArgNr;
-    auto Res =
-        std::from_chars(Id.data() + Dot + 1, Id.data() + Id.size(), ArgNr);
-    if (Res.ec != std::errc{}) {
-      /// TODO: Should we throw an exception here?
-      // throw system_error(std::make_error_code(Res.ec));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                    << "Invalid metadata id '" << Id.str()
-                    << "': " << std::make_error_code(Res.ec).message());
+
+    auto ArgNr = ParseInt(Id.drop_front(Dot + 1));
+
+    if (!ArgNr) {
       return nullptr;
     }
 
     const auto *F = IRDB.getFunction(FName);
     if (F) {
-      return getNthFunctionArgument(F, ArgNr);
+      return getNthFunctionArgument(F, *ArgNr);
     }
 
     return nullptr;
   }
 
-  unsigned IdNr;
-  auto Res = std::from_chars(Id.data(), Id.data() + Id.size(), IdNr);
-  if (Res.ec != std::errc{}) {
-    /// TODO: Should we throw an exception here?
-    // throw system_error(std::make_error_code(Res.ec));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                  << "Invalid metadata id '" << Id.str()
-                  << "': " << std::make_error_code(Res.ec).message());
-    return nullptr;
-  }
-
-  return IRDB.getInstruction(IdNr);
+  auto IdNr = ParseInt(Id);
+  return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
 }
 
 llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}

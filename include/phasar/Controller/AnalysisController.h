@@ -51,9 +51,7 @@ class AnalysisController {
 private:
   ProjectIRDB &IRDB;
   LLVMTypeHierarchy TH;
-  // PTS needs to be a pointer, since PT is not movable and we must
-  // conditionally decide (in our ctor), which PT ctor to call
-  std::unique_ptr<LLVMPointsToSet> PT;
+  LLVMPointsToSet PT;
   LLVMBasedICFG ICF;
   std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
