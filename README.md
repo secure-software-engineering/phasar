@@ -183,4 +183,3 @@ If you obtain output other than a segmentation fault or an exception terminating
 How to use Phasar?
 ------------------
 Please consult our [Phasar wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
-
