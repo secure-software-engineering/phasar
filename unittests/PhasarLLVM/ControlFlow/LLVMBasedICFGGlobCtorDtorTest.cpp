@@ -423,7 +423,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
   Solver.solve();
 
-  // Solver.dumpResults();
+  Solver.dumpResults();
 
   auto *FooGet = IRDB.getInstruction(15);
   auto *LoadFoo = IRDB.getInstruction(14);

@@ -17,6 +17,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 namespace psr {
+// NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
 
 template <typename T, typename = void>
@@ -98,6 +99,7 @@ constexpr bool is_std_hashable_v = detail::is_std_hashable<T>::value;
 
 template <typename T>
 constexpr bool is_llvm_hashable_v = detail::is_llvm_hashable<T>::value;
+// NOLINTEND(readability-identifier-naming)
 } // namespace psr
 
 #endif // PHASAR_UTILS_TYPETRAITS_H

@@ -164,7 +164,7 @@ TEST_F(IDETaintAnalysisTest, XTaint02) {
 
   gt[20] = {"19"};
 
-  doAnalysis({PathToLLFiles + "xtaint02_cpp.ll"}, gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint02_cpp.ll"}, gt, std::monostate{}, true);
 }
 TEST_F(IDETaintAnalysisTest, XTaint03) {
   map<int, set<string>> gt;
@@ -257,7 +257,7 @@ TEST_F(IDETaintAnalysisTest, XTaint12) {
   // kill aliases at all
   gt[30] = {"29"};
 
-  doAnalysis({PathToLLFiles + "xtaint12_cpp.ll"}, gt, std::monostate{}, true);
+  doAnalysis({PathToLLFiles + "xtaint12_cpp.ll"}, gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint13) {
@@ -310,7 +310,7 @@ TEST_F(IDETaintAnalysisTest, XTaint18) {
   doAnalysis({PathToLLFiles + "xtaint18_cpp.ll"}, gt, std::monostate{});
 }
 
-TEST_F(IDETaintAnalysisTest, XTaint19) {
+PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
   // Is now the same as XTaint17
   GTEST_SKIP();
   map<int, set<string>> gt;
@@ -318,7 +318,7 @@ TEST_F(IDETaintAnalysisTest, XTaint19) {
   gt[22] = {"21"};
 
   doAnalysis({PathToLLFiles + "xtaint19_cpp.ll"}, gt, std::monostate{});
-}
+})
 
 TEST_F(IDETaintAnalysisTest, XTaint20) {
   map<int, set<string>> gt;

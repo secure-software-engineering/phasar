@@ -191,7 +191,8 @@ template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 /// "https://en.cppreference.com/w/cpp/algorithm/remove" and optimized for the
 /// case that a sorted list of indices is given instead of an unary predicate
 /// specifying the elements to be removed.
-template <typename It, typename EndIt, typename IdxIt, typename IdxEndIt>
+template <typename It, typename EndIt, typename IdxIt,
+          typename IdxEndIt> // NOLINTNEXTLINE(readability-identifier-naming)
 It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex) {
   if (FirstIndex == LastIndex || First == Last) {
     return Last;
@@ -203,20 +204,40 @@ It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex) {
 
   auto CurrIdx = *FirstIndex;
 
-  /// TODO: Optimize this loop
+  if constexpr (std::is_same_v<It, EndIt> &&
+                std::is_same_v<
+                    std::random_access_iterator_tag,
+                    typename std::iterator_traits<It>::iterator_category>) {
+    size_t GapSize = 1;
+    auto Curr = First + 1;
 
-  for (auto I = First; ++I != Last; ++CurrIdx) {
-    if (FirstIndex == LastIndex || CurrIdx != *FirstIndex) {
-      *First++ = std::move(*I);
-      if (FirstIndex != LastIndex) {
-        ++FirstIndex;
+    while (++FirstIndex != LastIndex) {
+      auto Offset = *FirstIndex - CurrIdx - 1;
+      if (Offset >= std::distance(Curr, Last)) {
+        break;
+      }
+      First = std::move(Curr, Curr + Offset, First);
+      CurrIdx = *FirstIndex;
+      Curr = First + ++GapSize;
+    }
+
+    return std::move(Curr, Last, First);
+  } else {
+
+    for (auto I = First; I != Last; ++CurrIdx, ++I) {
+      if (CurrIdx != *FirstIndex) {
+        *First++ = std::move(*I);
+        if (++FirstIndex == LastIndex) {
+          return std::move(std::next(I), Last, First);
+        }
       }
     }
+    return First;
   }
-  return First;
 }
 
-template <typename Container, typename IdxIt, typename IdxEndIt>
+template <typename Container, typename IdxIt,
+          typename IdxEndIt> // NOLINTNEXTLINE(readability-identifier-naming)
 auto remove_by_index(Container &Cont, IdxIt FirstIndex, IdxEndIt LastIndex) {
   using std::begin;
   using std::end;
@@ -225,7 +246,8 @@ auto remove_by_index(Container &Cont, IdxIt FirstIndex, IdxEndIt LastIndex) {
                          std::move(LastIndex));
 }
 
-template <typename Container, typename Indices>
+template <typename Container,
+          typename Indices> // NOLINTNEXTLINE(readability-identifier-naming)
 auto remove_by_index(Container &Cont, const Indices &Idx) {
   using std::begin;
   using std::end;

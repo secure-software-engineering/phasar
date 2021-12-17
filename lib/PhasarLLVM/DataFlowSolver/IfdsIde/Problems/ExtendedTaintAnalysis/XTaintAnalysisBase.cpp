@@ -47,4 +47,22 @@ auto AnalysisBase::getSanitizerConfigAt(const llvm::Instruction *Inst,
 
   return Ret;
 }
+
+bool AnalysisBase::isSink(const llvm::Value *SinkCandidate,
+                          const llvm::Instruction *AtInst) const {
+  if (TSF->isSink(SinkCandidate)) {
+    return true;
+  }
+
+  if (!AtInst) {
+    return false;
+  }
+
+  if (const auto &SinkCB = TSF->getRegisteredSinkCallBack();
+      SinkCB && SinkCB(AtInst).count(SinkCandidate)) {
+    return true;
+  }
+
+  return false;
+}
 } // namespace psr::XTaint

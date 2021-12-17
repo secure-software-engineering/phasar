@@ -235,11 +235,10 @@ TEST(LLVMBasedCFGTest, HandleFieldStoreField) {
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
 }
 
-TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
-// If we use libcxx this won't work since internal implementation is different
-#ifdef _LIBCPP_VERSION
-  GTEST_SKIP();
-#endif
+PHASAR_SKIP_TEST(TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
+  // If we use libcxx this won't work since internal implementation is different
+  LIBCPP_GTEST_SKIP;
+
   ProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "name_mangling/special_members_2_cpp.ll"});
 
@@ -256,7 +255,7 @@ TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
       "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev");
   ASSERT_EQ(CFG.getSpecialMemberFunctionType(O),
             SpecialMemberFunctionType::Destructor);
-}
+})
 
 TEST(LLVMBasedCFGTest, HandlesCppUserDefinedType) {
   ProjectIRDB IRDB(

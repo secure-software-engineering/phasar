@@ -56,33 +56,34 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data) {
       Data->print(SOS);
       OS << SOS.str();
     }
-  } else if constexpr (is_llvm_printable<ElemTy>::value) {
+  } else if constexpr (is_printable_v<ElemTy, OS_t>) {
     OS << Data;
-  } else if constexpr (is_pair<ElemTy>::value) {
+  } else if constexpr (is_pair_v<ElemTy>) {
     OS << "(";
     printHelper(OS, Data.first);
     OS << ", ";
     printHelper(OS, Data.second);
     OS << ")";
-  } else if constexpr (is_tuple<ElemTy>::value) {
+  } else if constexpr (is_tuple_v<ElemTy>) {
     printTuple(OS, Data, std::make_index_sequence<std::tuple_size_v<ElemTy>>());
-  } else if constexpr (is_iterable<ElemTy>::value) {
+  } else if constexpr (has_str_v<ElemTy>) {
+    OS << Data.str();
+  } else if constexpr (is_iterable_v<ElemTy>) {
     OS << "{ ";
-    bool frst = true;
+    bool Frst = true;
     size_t Cnt = 0;
     for (auto &&Elem : Data) {
       ++Cnt;
-      if (frst)
-        frst = false;
-      else
+      if (Frst) {
+        Frst = false;
+      } else {
         OS << ", ";
+      }
 
       printHelper(OS, Elem);
     }
 
-    OS << (frst ? "}" : " }");
-  } else if constexpr (has_str<ElemTy>::value) {
-    OS << Data.str();
+    OS << (Frst ? "}" : " }");
   } else {
     static_assert(!std::is_same_v<std::decay_t<T>, ElemTy>,
                   "Cannot print elements of the specified type");
