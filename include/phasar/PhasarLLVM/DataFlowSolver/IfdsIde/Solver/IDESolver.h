@@ -128,16 +128,16 @@ public:
         return a.getRowKey() < b.getRowKey();
       });
       n_t curr;
-      for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].getRowKey();
-        std::string n = IDEProblem.NtoString(cells[i].getRowKey());
+      for (unsigned I = 0; I < cells.size(); ++I) {
+        curr = cells[I].getRowKey();
+        std::string n = IDEProblem.NtoString(cells[I].getRowKey());
         boost::algorithm::trim(n);
         std::string node =
             ICF->getFunctionName(ICF->getFunctionOf(curr)) + "::" + n;
         J[DataFlowID][node];
-        std::string fact = IDEProblem.DtoString(cells[i].getColumnKey());
+        std::string fact = IDEProblem.DtoString(cells[I].getColumnKey());
         boost::algorithm::trim(fact);
-        std::string value = IDEProblem.LtoString(cells[i].getValue());
+        std::string value = IDEProblem.LtoString(cells[I].getValue());
         boost::algorithm::trim(value);
         J[DataFlowID][node]["Facts"] += {fact, value};
       }
@@ -315,8 +315,8 @@ public:
       n_t curr = n_t{};
       f_t prevFn = f_t{};
       f_t currFn = f_t{};
-      for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].getRowKey();
+      for (unsigned I = 0; I < cells.size(); ++I) {
+        curr = cells[I].getRowKey();
         currFn = ICF->getFunctionOf(curr);
         if (prevFn != currFn) {
           prevFn = currFn;
@@ -329,8 +329,8 @@ public:
           std::string line(NString.size(), '-');
           OS << "\n\nN: " << NString << "\n---" << line << '\n';
         }
-        OS << "\tD: " << IDEProblem.DtoString(cells[i].getColumnKey())
-           << " | V: " << IDEProblem.LtoString(cells[i].getValue()) << '\n';
+        OS << "\tD: " << IDEProblem.DtoString(cells[I].getColumnKey())
+           << " | V: " << IDEProblem.LtoString(cells[I].getValue()) << '\n';
       }
     }
     OS << '\n';
@@ -719,8 +719,8 @@ protected:
       if (!LookupResults) {
         continue;
       }
-      for (size_t i = 0; i < LookupResults->get().size(); ++i) {
-        auto Entry = LookupResults->get()[i];
+      for (size_t I = 0; I < LookupResults->get().size(); ++I) {
+        auto Entry = LookupResults->get()[I];
         d_t dPrime = Entry.first;
         EdgeFunctionPtrType fPrime = Entry.second;
         n_t sP = n;
@@ -1097,8 +1097,8 @@ protected:
             // return site using the composed function
             auto RevLookupResult = jumpFn->reverseLookup(c, d4);
             if (RevLookupResult) {
-              for (size_t i = 0; i < RevLookupResult->get().size(); ++i) {
-                auto ValAndFunc = RevLookupResult->get()[i];
+              for (size_t I = 0; I < RevLookupResult->get().size(); ++I) {
+                auto ValAndFunc = RevLookupResult->get()[I];
                 EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(allTop)) {
                   d_t d3 = ValAndFunc.first;
