@@ -31,8 +31,8 @@ using json = nlohmann::json;
 
 class ICFGTestPlugin : public ICFGPlugin {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *f_t;
+  using n_t = const llvm::Instruction *;
+  using f_t = const llvm::Function *;
 
   ICFGTestPlugin(ProjectIRDB &IRDB,
                  const std::vector<std::string> &EntryPoints);

@@ -33,7 +33,7 @@ namespace psr {
  */
 struct TypeStateDescription {
   /// Type for states of the finite state machine
-  typedef int State;
+  using State = int;
   virtual ~TypeStateDescription() = default;
   virtual bool isFactoryFunction(const std::string &F) const = 0;
   virtual bool isConsumingFunction(const std::string &F) const = 0;
