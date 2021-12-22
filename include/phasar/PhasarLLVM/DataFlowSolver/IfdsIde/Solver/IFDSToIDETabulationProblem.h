@@ -37,7 +37,7 @@ struct AnalysisDomainExtender : public OriginalAnalysisDomain {
 };
 
 template <typename, typename = void>
-struct is_analysis_domain_extensions : std::false_type {};
+struct is_analysis_domain_extensions : std::false_type {}; // NOLINT
 
 template <typename AnalysisDomainTy>
 struct is_analysis_domain_extensions<
@@ -75,27 +75,27 @@ public:
     this->ZeroValue = Problem.createZeroValue();
   }
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
-    return Problem.getNormalFlowFunction(curr, succ);
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
+    return Problem.getNormalFlowFunction(Curr, Succ);
   }
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override {
-    return Problem.getCallFlowFunction(callSite, destFun);
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override {
+    return Problem.getCallFlowFunction(CallSite, DestFun);
   }
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitInst, n_t retSite) override {
-    return Problem.getRetFlowFunction(callSite, calleeFun, exitInst, retSite);
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitInst, n_t RetSite) override {
+    return Problem.getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite);
   }
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                               std::set<f_t> callees) override {
-    return Problem.getCallToRetFlowFunction(callSite, retSite, callees);
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               std::set<f_t> Callees) override {
+    return Problem.getCallToRetFlowFunction(CallSite, RetSite, Callees);
   }
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
-                                             f_t destFun) override {
-    return Problem.getSummaryFlowFunction(callSite, destFun);
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                             f_t DestFun) override {
+    return Problem.getSummaryFlowFunction(CallSite, DestFun);
   }
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
@@ -110,12 +110,11 @@ public:
 
   BinaryDomain bottomElement() override { return BinaryDomain::BOTTOM; }
 
-  BinaryDomain join(BinaryDomain left, BinaryDomain right) override {
-    if (left == BinaryDomain::TOP && right == BinaryDomain::TOP) {
+  BinaryDomain join(BinaryDomain Lhs, BinaryDomain Rhs) override {
+    if (Lhs == BinaryDomain::TOP && Rhs == BinaryDomain::TOP) {
       return BinaryDomain::TOP;
-    } else {
-      return BinaryDomain::BOTTOM;
     }
+    return BinaryDomain::BOTTOM;
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>> allTopFunction() override {
@@ -123,60 +122,63 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getNormalEdgeFunction(n_t src, d_t srcNode, n_t tgt, d_t tgtNode) override {
-    if (Problem.isZeroValue(srcNode)) {
+  getNormalEdgeFunction(n_t /*Src*/, d_t SrcNode, n_t /*Tgt*/,
+                        d_t /*TgtNode*/) override {
+    if (Problem.isZeroValue(SrcNode)) {
       return ALLBOTTOM;
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallEdgeFunction(n_t callSite, d_t srcNode, f_t destinationFunction,
-                      d_t destNode) override {
-    if (Problem.isZeroValue(srcNode)) {
+  getCallEdgeFunction(n_t /*CallSite*/, d_t SrcNode,
+                      f_t /*DestinationFunction*/, d_t /*DestNode*/) override {
+    if (Problem.isZeroValue(SrcNode)) {
       return ALLBOTTOM;
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitInst,
-                        d_t exitNode, n_t returnSite, d_t retNode) override {
-    if (Problem.isZeroValue(exitNode)) {
+  getReturnEdgeFunction(n_t /*CallSite*/, f_t /*CalleeFunction*/,
+                        n_t /*ExitInst*/, d_t ExitNode, n_t /*ReturnSite*/,
+                        d_t /*RetNode*/) override {
+    if (Problem.isZeroValue(ExitNode)) {
       return ALLBOTTOM;
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t returnSite,
-                           d_t returnSideNode, std::set<f_t> callees) override {
-    if (Problem.isZeroValue(callNode)) {
+  getCallToRetEdgeFunction(n_t /*CallSite*/, d_t CallNode, n_t /*ReturnSite*/,
+                           d_t /*ReturnSideNode*/,
+                           std::set<f_t> /*Callees*/) override {
+    if (Problem.isZeroValue(CallNode)) {
       return ALLBOTTOM;
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                         d_t retSiteNode) override {
+  getSummaryEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/,
+                         d_t /*RetSiteNode*/) override {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  void printNode(std::ostream &os, n_t n) const override {
-    Problem.printNode(os, n);
+  void printNode(std::ostream &OS, n_t Stmt) const override {
+    Problem.printNode(OS, Stmt);
   }
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override {
-    Problem.printDataFlowFact(os, d);
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override {
+    Problem.printDataFlowFact(OS, Fact);
   }
 
-  void printFunction(std::ostream &os, f_t f) const override {
-    Problem.printFunction(os, f);
+  void printFunction(std::ostream &OS, f_t Func) const override {
+    Problem.printFunction(OS, Func);
   }
 
-  void printEdgeFact(std::ostream &os, BinaryDomain v) const override {
-    os << v;
+  void printEdgeFact(std::ostream &OS, BinaryDomain Val) const override {
+    OS << Val;
   }
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,

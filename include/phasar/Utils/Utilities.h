@@ -43,7 +43,7 @@ std::vector<std::string> splitString(const std::string &Str,
                                      const std::string &Delimiter);
 
 template <typename T>
-std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
+std::set<std::set<T>> computePowerSet(const std::set<T> &S) {
   // compute all subsets of {a, b, c, d}
   //  bit-pattern - {d, c, b, a}
   //  0000  {}
@@ -63,12 +63,12 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
   //  1110  {b, c, d}
   //  1111  {a, b, c, d}
   std::set<std::set<T>> Powerset;
-  for (std::size_t i = 0; i < (1 << s.size()); ++i) {
+  for (std::size_t I = 0; I < (1 << S.size()); ++I) {
     std::set<T> Subset;
-    for (std::size_t j = 0; j < s.size(); ++j) {
-      if ((i & (1 << j)) > 0) {
-        auto It = s.begin();
-        advance(It, j);
+    for (std::size_t J = 0; J < S.size(); ++J) {
+      if ((I & (1 << J)) > 0) {
+        auto It = S.begin();
+        advance(It, J);
         Subset.insert(*It);
       }
       Powerset.insert(Subset);
@@ -97,7 +97,7 @@ intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
                              sizeof(ValueTy) <= sizeof(void *),
                          ValueTy, ValueTy *>;
 
-  auto removeFrom = [](auto &Dst, auto &&Elem) {
+  auto removeFrom = [](auto &Dst, auto &&Elem) { // NOLINT
     if constexpr (std::is_same_v<ValueTy, ElementTy>) {
       Dst.erase(Elem);
     } else {
@@ -154,12 +154,12 @@ void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
 
 std::ostream &operator<<(std::ostream &OS, const std::vector<bool> &Bits);
 
-struct stringIDLess {
+struct StringIDLess {
   bool operator()(const std::string &LHS, const std::string &RHS) const;
 };
 
 /// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
-template <typename Fn> class scope_exit {
+template <typename Fn> class scope_exit { // NOLINT
 public:
   template <typename FFn, typename = decltype(std::declval<FFn>()())>
   explicit scope_exit(FFn &&F) noexcept(
@@ -216,24 +216,22 @@ It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex) {
       if (Offset >= std::distance(Curr, Last)) {
         break;
       }
-      First = std::move(Curr, Curr + Offset, First);
+      First = std::move(Curr, Curr + Offset, First); // NOLINT
       CurrIdx = *FirstIndex;
       Curr = First + ++GapSize;
     }
 
-    return std::move(Curr, Last, First);
-  } else {
-
-    for (auto I = First; I != Last; ++CurrIdx, ++I) {
-      if (CurrIdx != *FirstIndex) {
-        *First++ = std::move(*I);
-        if (++FirstIndex == LastIndex) {
-          return std::move(std::next(I), Last, First);
-        }
+    return std::move(Curr, Last, First); // NOLINT
+  }
+  for (auto I = First; I != Last; ++CurrIdx, ++I) {
+    if (CurrIdx != *FirstIndex) {
+      *First++ = std::move(*I);
+      if (++FirstIndex == LastIndex) {
+        return std::move(std::next(I), Last, First);
       }
     }
-    return First;
   }
+  return First;
 }
 
 template <typename Container, typename IdxIt,
