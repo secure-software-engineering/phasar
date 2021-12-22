@@ -15,8 +15,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 
 namespace psr::XTaint {
-EdgeFunctionBase::EdgeFunctionBase(Kind Kind, BasicBlockOrdering &BBO)
-    : BBO(BBO), kind(Kind) {}
+EdgeFunctionBase::EdgeFunctionBase(EFKind Kind, BasicBlockOrdering &BBO)
+    : BBO(BBO), Kind(Kind) {}
 
 EdgeFunctionBase::EdgeFunctionPtrType
 EdgeFunctionBase::composeWith(EdgeFunctionPtrType SecondFunction) {

@@ -72,7 +72,7 @@ IDEExtendedTaintAnalysis::initialSeeds() {
 }
 
 auto IDEExtendedTaintAnalysis::createZeroValue() const -> d_t {
-  return FactFactory.GetOrCreateZero();
+  return FactFactory.getOrCreateZero();
 }
 
 bool IDEExtendedTaintAnalysis::isZeroValue(d_t Fact) const {
@@ -822,7 +822,7 @@ auto IDEExtendedTaintAnalysis::join(l_t LHS, l_t RHS) -> l_t {
 // Helpers:
 
 auto IDEExtendedTaintAnalysis::makeFlowFact(const llvm::Value *V) -> d_t {
-  return FactFactory.Create(V, Bound);
+  return FactFactory.create(V, Bound);
 }
 
 void IDEExtendedTaintAnalysis::identity(std::set<d_t> &Ret, d_t Source,

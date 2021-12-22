@@ -23,11 +23,11 @@ namespace psr::XTaint {
 JoinEdgeFunction::JoinEdgeFunction(BasicBlockOrdering &BBO,
                                    SubEdgeFuctionsTy &&SubEF,
                                    const EdgeDomain &Seed)
-    : EdgeFunctionBase(Kind::Join, BBO), SubEF(std::move(SubEF)), Seed(Seed) {}
+    : EdgeFunctionBase(EFKind::Join, BBO), SubEF(std::move(SubEF)), Seed(Seed) {}
 JoinEdgeFunction::JoinEdgeFunction(
     BasicBlockOrdering &BBO, std::initializer_list<EdgeFunctionPtrType> SubEF,
     const EdgeDomain &Seed)
-    : EdgeFunctionBase(Kind::Join, BBO), SubEF(SubEF), Seed(Seed) {}
+    : EdgeFunctionBase(EFKind::Join, BBO), SubEF(SubEF), Seed(Seed) {}
 
 auto JoinEdgeFunction::create(BasicBlockOrdering &BBO,
                               EdgeFunctionPtrType First,

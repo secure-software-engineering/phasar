@@ -118,7 +118,7 @@ AbstractMemoryLocationFactoryBase::Allocator::create(
 
 AbstractMemoryLocationFactoryBase::AbstractMemoryLocationFactoryBase(
     size_t InitialCapacity)
-    : Owner(InitialCapacity), DL(nullptr) {
+    : Owner(InitialCapacity) {
 
   Pool.reserve(InitialCapacity);
   Cache.reserve(InitialCapacity);
@@ -166,7 +166,7 @@ AbstractMemoryLocationFactoryBase::getOrCreateImpl(const llvm::Value *V,
 }
 
 const AbstractMemoryLocationImpl *
-AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
+AbstractMemoryLocationFactoryBase::createImpl(const llvm::Value *V,
                                               unsigned BOUND) {
   assert(DL);
   if (auto It = Cache.find(V); It != Cache.end()) {
@@ -222,13 +222,14 @@ AbstractMemoryLocationFactoryBase::CreateImpl(const llvm::Value *V,
   auto Lifetime = BOUND - std::min(Ver, BOUND);
 
   // assert(ver >= offs.size());
-
+#ifdef XTAINT_DIAGNOSTICS
   bool IsOverApproximating = false;
-
+#endif
   if (Offs.size() > BOUND) {
     assert(Lifetime == 0);
-
+#ifdef XTAINT_DIAGNOSTICS
     IsOverApproximating = true;
+#endif
     Offs.resize(BOUND);
   }
 
@@ -279,8 +280,9 @@ AbstractMemoryLocationFactoryBase::withIndirectionOfImpl(
 
   llvm::SmallVector<ptrdiff_t, 8> Offs(AML->offsets().begin(),
                                        AML->offsets().end());
-
+#ifdef XTAINT_DIAGNOSTICS
   bool IsOverApproximating = false;
+#endif
 
   if (Ind.empty()) {
     Offs.push_back(0);
@@ -288,7 +290,9 @@ AbstractMemoryLocationFactoryBase::withIndirectionOfImpl(
   } else {
     if (NwLifeTime < Ind.size()) {
       Ind = Ind.slice(0, NwLifeTime);
+#ifdef XTAINT_DIAGNOSTICS
       IsOverApproximating = true;
+#endif
     }
     Offs.append(Ind.begin(), Ind.end());
 
@@ -394,12 +398,17 @@ AbstractMemoryLocationFactoryBase::withTransferToImpl(
 
           if (!From->offsets().empty()) {
             return std::next(AML->offsets().begin(),
-                             From->offsets().size() - 1);
+                             From->offsets().size() -
+                                 1); // FIXME @Fabian clang-tidy complains about
+                                     // narrowing conversion
           }
           return AML->offsets().begin();
         }
         if (!AML->offsets().empty()) {
-          return std::next(From->offsets().begin(), AML->offsets().size() - 1);
+          return std::next(From->offsets().begin(),
+                           AML->offsets().size() -
+                               1); // FIXME @Fabian clang-tidy complains about
+                                   // narrowing conversion
         }
         return From->offsets().begin();
       }(),
@@ -443,11 +452,14 @@ AbstractMemoryLocationFactoryBase::withTransferFromImpl(
   auto MaximumSize = std::min(AML->offsets().size() + AML->lifetime(),
                               To->offsets().size() + NwLifetime);
 
+#ifdef XTAINT_DIAGNOSTICS
   bool IsOverApproximating = false;
+#endif
   if (Offs.size() > MaximumSize) {
     Offs.resize(MaximumSize);
-    NwLifetime = 0;
+#ifdef XTAINT_DIAGNOSTICS
     IsOverApproximating = true;
+#endif
   }
 
   const auto *Ret =

@@ -36,7 +36,7 @@ public:
   inline const llvm::Instruction *getSanitizer() const { return Sani; }
 
   static inline bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == Kind::Gen;
+    return EF->getKind() == EFKind::Gen;
   }
 
   llvm::hash_code getHashCode() const override;
