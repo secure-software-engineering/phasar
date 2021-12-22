@@ -39,7 +39,7 @@ public:
                     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints = {"main"});
 
-  virtual ~IFDSProtoAnalysis() = default;
+  ~IFDSProtoAnalysis() override = default;
 
   FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
 

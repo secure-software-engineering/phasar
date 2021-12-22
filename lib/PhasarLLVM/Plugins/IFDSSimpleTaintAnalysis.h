@@ -37,7 +37,7 @@ public:
   IFDSSimpleTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                           std::set<std::string> EntryPoints = {});
-  ~IFDSSimpleTaintAnalysis() = default;
+  ~IFDSSimpleTaintAnalysis() override = default;
 
   const FlowFact *createZeroValue() const override;
 

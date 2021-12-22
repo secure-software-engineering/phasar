@@ -67,9 +67,9 @@ public:
 
   using typename FlowFunction<D, Container>::container_type;
 
-  virtual ~Identity() = default;
-  Identity(const Identity &i) = delete;
-  Identity &operator=(const Identity &i) = delete;
+  ~Identity() override = default;
+  Identity(const Identity &I) = delete;
+  Identity &operator=(const Identity &I) = delete;
   // simply return what the user provides
   container_type computeTargets(D source) override { return {source}; }
   static std::shared_ptr<Identity> getInstance() {
@@ -89,8 +89,8 @@ public:
 
   LambdaFlow(Fn &&f) : flow(std::move(f)) {}
   LambdaFlow(const Fn &f) : flow(f) {}
-  virtual ~LambdaFlow() = default;
   container_type computeTargets(D source) override { return flow(source); }
+  ~LambdaFlow() override = default;
 
 private:
   // std::function<container_type(D)> flow;
@@ -113,7 +113,7 @@ public:
 
   Compose(const std::vector<FlowFunction<D>> &funcs) : funcs(funcs) {}
 
-  virtual ~Compose() = default;
+  ~Compose() override = default;
 
   container_type computeTargets(const D &source) override {
     container_type current(source);
@@ -161,7 +161,7 @@ protected:
 
 public:
   Gen(D genValue, D zeroValue) : genValue(genValue), zeroValue(zeroValue) {}
-  virtual ~Gen() = default;
+  ~Gen() override = default;
 
   container_type computeTargets(D source) override {
     if (source == zeroValue) {
@@ -187,7 +187,7 @@ public:
   GenIf(container_type GenValues, std::function<bool(D)> Predicate)
       : GenValues(std::move(GenValues)), Predicate(Predicate) {}
 
-  virtual ~GenIf() = default;
+  ~GenIf() override = default;
 
   container_type computeTargets(D Source) override {
     if (Predicate(Source)) {
@@ -212,7 +212,7 @@ public:
 
   GenAll(container_type genValues, D zeroValue)
       : genValues(genValues), zeroValue(zeroValue) {}
-  virtual ~GenAll() = default;
+  ~GenAll() override = default;
   container_type computeTargets(D source) override {
     if (source == zeroValue) {
       genValues.insert(source);
@@ -236,7 +236,7 @@ public:
   using typename FlowFunction<D, Container>::container_type;
 
   Kill(D killValue) : killValue(killValue) {}
-  virtual ~Kill() = default;
+  ~Kill() override = default;
   container_type computeTargets(D source) override {
     if (source == killValue) {
       return {};
@@ -257,7 +257,7 @@ public:
   using typename FlowFunction<D, Container>::container_type;
 
   KillIf(std::function<bool(D)> Predicate) : Predicate(Predicate) {}
-  virtual ~KillIf() = default;
+  ~KillIf() override = default;
   container_type computeTargets(D source) override {
     if (Predicate(source)) {
       return {};
@@ -276,7 +276,7 @@ public:
   using typename FlowFunction<D, Container>::container_type;
 
   KillMultiple(std::set<D> killValues) : killValues(killValues) {}
-  virtual ~KillMultiple() = default;
+  ~KillMultiple() override = default;
   container_type computeTargets(D source) override {
     if (killValues.find(source) != killValues.end()) {
       return {};
@@ -294,10 +294,10 @@ class KillAll : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  virtual ~KillAll() = default;
   KillAll(const KillAll &k) = delete;
   KillAll &operator=(const KillAll &k) = delete;
   container_type computeTargets(D source) override { return container_type(); }
+  ~KillAll() override = default;
   static std::shared_ptr<KillAll<D>> getInstance() {
     static std::shared_ptr<KillAll> instance =
         std::shared_ptr<KillAll>(new KillAll);
@@ -318,7 +318,7 @@ public:
 
   GenAndKillAllOthers(D genValue, D zeroValue)
       : genValue(genValue), zeroValue(zeroValue) {}
-  virtual ~GenAndKillAllOthers() = default;
+  ~GenAndKillAllOthers() override = default;
   container_type computeTargets(D source) override {
     if (source == zeroValue) {
       return {zeroValue, genValue};
@@ -338,7 +338,7 @@ public:
 
   GenAllAndKillAllOthers(container_type genValues, D zeroValue)
       : genValues(genValues), zeroValue(zeroValue) {}
-  virtual ~GenAllAndKillAllOthers() = default;
+  ~GenAllAndKillAllOthers() override = default;
   container_type computeTargets(D source) override {
     if (source == zeroValue) {
       genValues.insert(source);
@@ -362,7 +362,7 @@ public:
   using typename FlowFunction<D, Container>::container_type;
 
   Transfer(D toValue, D fromValue) : toValue(toValue), fromValue(fromValue) {}
-  virtual ~Transfer() = default;
+  ~Transfer() override = default;
   container_type computeTargets(D source) override {
     if (source == fromValue) {
       return {source, toValue};
@@ -394,7 +394,7 @@ public:
             return FlowFuncs;
           }
         }()) {}
-  virtual ~Union() = default;
+  ~Union() override = default;
   container_type computeTargets(D source) override {
     container_type Result;
     for (const auto &FlowFunc : FlowFuncs) {

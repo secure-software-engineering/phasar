@@ -43,7 +43,7 @@ public:
   const std::optional<T> &get() const { return Fact; }
   bool isZero() const { return !Fact; }
 
-  void print(std::ostream &OS) const override final {
+  void print(std::ostream &OS) const final {
     if (isZero()) {
       OS << "Λ";
     } else {

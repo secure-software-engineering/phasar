@@ -40,7 +40,7 @@ public:
                                   LLVMPointsToInfo *PT,
                                   std::set<std::string> EntryPoints);
 
-  ~IFDSTabulationProblemTestPlugin() = default;
+  ~IFDSTabulationProblemTestPlugin() override = default;
 
   const FlowFact *createZeroValue() const override;
 

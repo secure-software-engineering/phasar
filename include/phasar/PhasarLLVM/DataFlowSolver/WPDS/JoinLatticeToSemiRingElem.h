@@ -35,7 +35,7 @@ public:
   JoinLatticeToSemiRingElem(std::shared_ptr<EdgeFunction<V>> F,
                             JoinLattice<V> &L)
       : wali::SemElem(), F(F), L(L) {}
-  virtual ~JoinLatticeToSemiRingElem() = default;
+  ~JoinLatticeToSemiRingElem() override = default;
 
   std::ostream &print(std::ostream &os) const override { return os << *F; }
 

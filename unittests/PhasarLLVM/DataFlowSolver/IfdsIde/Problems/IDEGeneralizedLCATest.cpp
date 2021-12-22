@@ -45,8 +45,8 @@ protected:
   std::unique_ptr<LLVMBasedICFG> ICFG;
   std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
-  IDEGeneralizedLCATest() {}
-  virtual ~IDEGeneralizedLCATest() {}
+  IDEGeneralizedLCATest() = default;
+  ~IDEGeneralizedLCATest() override = default;
 
   void Initialize(const std::string &llFile, size_t maxSetSize = 2) {
     IRDB = std::make_unique<ProjectIRDB>(
