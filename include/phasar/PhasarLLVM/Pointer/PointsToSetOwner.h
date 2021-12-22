@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
-#define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
+#define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 
 #include <memory>
 #include <vector>
@@ -38,4 +38,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
+#endif
