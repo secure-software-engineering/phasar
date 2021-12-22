@@ -73,9 +73,8 @@ OpenSSLEVPKDFDescription::getNextState(std::string Tok,
     // std::cout << "Delta[" << Tok << ", " << stateToString(S)
     //           << "] = " << stateToString(ret) << std::endl;
     return Ret;
-  } else {
-    return OpenSSLEVPKDFState::BOT;
   }
+  return OpenSSLEVPKDFState::BOT;
 }
 
 std::string OpenSSLEVPKDFDescription::getTypeNameOfInterest() const {
@@ -142,11 +141,11 @@ OpenSSLEVPKDFDescription::OpenSSLEVTKDFToken
 OpenSSLEVPKDFDescription::funcNameToToken(const std::string &F) {
   if (F == "EVP_KDF_fetch") {
     return OpenSSLEVTKDFToken::EVP_KDF_FETCH;
-  } else if (F == "EVP_KDF_free") {
-    return OpenSSLEVTKDFToken::EVP_KDF_FREE;
-  } else {
-    return OpenSSLEVTKDFToken::STAR;
   }
+  if (F == "EVP_KDF_free") {
+    return OpenSSLEVTKDFToken::EVP_KDF_FREE;
+  }
+  return OpenSSLEVTKDFToken::STAR;
 }
 
 } // namespace psr
