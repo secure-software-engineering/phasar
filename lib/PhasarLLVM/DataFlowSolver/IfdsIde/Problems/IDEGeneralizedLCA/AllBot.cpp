@@ -21,16 +21,20 @@ std::shared_ptr<AllBot::type> AllBot::getInstance() {
 
 bool AllBot::isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *EdgeFn,
                    bool NonRec) {
-  if (EdgeFn == nullptr)
+  if (EdgeFn == nullptr) {
     return false;
-  if (EdgeFn == getInstance().get())
+  }
+  if (EdgeFn == getInstance().get()) {
     return true;
-  if (dynamic_cast<const type *>(EdgeFn))
+  }
+  if (dynamic_cast<const type *>(EdgeFn)) {
     return true;
+  }
   if (!NonRec) {
-    if (auto JoinEFn = dynamic_cast<const JoinEdgeFunction *>(EdgeFn))
+    if (const auto *JoinEFn = dynamic_cast<const JoinEdgeFunction *>(EdgeFn)) {
       return isBot(JoinEFn->getFirst(), true) &&
              isBot(JoinEFn->getSecond(), true);
+    }
   }
   return false;
 }

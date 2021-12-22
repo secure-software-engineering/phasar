@@ -18,20 +18,20 @@ namespace psr {
 
 class LCAEdgeFunctionComposer
     : public EdgeFunctionComposer<IDEGeneralizedLCA::l_t> {
-  size_t maxSize;
+  size_t MaxSize;
 
 public:
   LCAEdgeFunctionComposer(
       std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> F,
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> G, size_t maxSize);
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> G, size_t MaxSize);
   // IDEGeneralizedLCA::l_t
-  // computeTarget(IDEGeneralizedLCA::l_t source) override;
+  // computeTarget(IDEGeneralizedLCA::l_t Source) override;
   std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction)
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction)
       override;
 
   std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction)
+  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction)
       override;
   const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &getFirst() const;
   const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
