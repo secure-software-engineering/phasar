@@ -130,10 +130,8 @@ private:
 
   bool constructDynamicCall(const llvm::Instruction *I, Resolver &Resolver);
 
-  std::unique_ptr<Resolver> makeResolver(ProjectIRDB &IRDB,
-                                         CallGraphAnalysisType CGT,
-                                         LLVMTypeHierarchy &TH,
-                                         LLVMPointsToInfo &PT);
+  std::unique_ptr<Resolver>
+  makeResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo &PT);
 
   template <typename MapTy>
   static void insertGlobalCtorsDtorsImpl(MapTy &Into, const llvm::Module *M,
@@ -184,7 +182,8 @@ public:
                 LLVMTypeHierarchy *TH = nullptr, LLVMPointsToInfo *PT = nullptr,
                 Soundness S = Soundness::Soundy, bool IncludeGlobals = true);
 
-  LLVMBasedICFG(const LLVMBasedICFG &);
+  LLVMBasedICFG(const LLVMBasedICFG &ICF);
+  LLVMBasedICFG &operator=(const LLVMBasedICFG &) = delete;
 
   ~LLVMBasedICFG() override;
 
@@ -290,7 +289,7 @@ public:
   void print(std::ostream &OS = std::cout) const override;
 
   void printAsDot(std::ostream &OS = std::cout,
-                  bool printEdgeLabels = true) const;
+                  bool PrintEdgeLabels = true) const;
 
   void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
 
@@ -319,26 +318,26 @@ public:
   [[nodiscard]] const llvm::Function *
   getRegisteredDtorsCallerOrNull(const llvm::Module *Mod);
 
-  template <typename Fn> void forEachGlobalCtor(Fn &&fn) const {
+  template <typename Fn> void forEachGlobalCtor(Fn &&F) const {
     for (auto [Prio, Fun] : GlobalCtors) {
-      fn(static_cast<const llvm::Function *>(Fun));
+      F(static_cast<const llvm::Function *>(Fun));
     }
   }
 
-  template <typename Fn> void forEachGlobalDtor(Fn &&fn) const {
+  template <typename Fn> void forEachGlobalDtor(Fn &&F) const {
     for (auto [Prio, Fun] : GlobalDtors) {
-      fn(static_cast<const llvm::Function *>(Fun));
+      F(static_cast<const llvm::Function *>(Fun));
     }
   }
 
 protected:
-  void collectGlobalCtors() override;
+  void collectGlobalCtors() final;
 
-  void collectGlobalDtors() override;
+  void collectGlobalDtors() final;
 
-  void collectGlobalInitializers() override;
+  void collectGlobalInitializers() final;
 
-  void collectRegisteredDtors() override;
+  void collectRegisteredDtors() final;
 };
 
 } // namespace psr

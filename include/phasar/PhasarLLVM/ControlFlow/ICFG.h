@@ -41,7 +41,7 @@ std::string toString(const CallGraphAnalysisType &CGA);
 
 CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
+std::ostream &operator<<(std::ostream &OS, const CallGraphAnalysisType &CGA);
 
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
 

@@ -149,7 +149,7 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
 
     if (SrcStructType && DestStructType &&
         heuristicAntiConstructorVtablePos(BitCast)) {
-      typegraph.addLink(DestStructType, SrcStructType);
+      TypeGraph.addLink(DestStructType, SrcStructType);
     }
   }
 }
@@ -176,7 +176,7 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   const auto *ReceiverType = getReceiverType(CallSite);
 
-  auto PossibleTypes = typegraph.getTypes(ReceiverType);
+  auto PossibleTypes = TypeGraph.getTypes(ReceiverType);
 
   // WARNING We deactivated the check on allocated because it is
   // unabled to get the types allocated in the used libraries

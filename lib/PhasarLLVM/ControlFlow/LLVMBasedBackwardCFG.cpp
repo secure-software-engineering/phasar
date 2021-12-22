@@ -79,7 +79,8 @@ bool LLVMBasedBackwardCFG::isStartPoint(const llvm::Instruction *Inst) const {
 }
 
 bool LLVMBasedBackwardCFG::isFallThroughSuccessor(
-    const llvm::Instruction *Inst, const llvm::Instruction *Succ) const {
+    const llvm::Instruction * /*Inst*/,
+    const llvm::Instruction * /*Succ*/) const {
   assert(false && "FallThrough not valid in LLVM IR");
   return false;
 }
