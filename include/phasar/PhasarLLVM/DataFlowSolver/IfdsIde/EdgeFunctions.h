@@ -67,8 +67,8 @@ public:
   // function is used to extend an edge function in order to construct so-called
   // jump functions that describe the effects of everlonger sequences of code.
   //
-  composeWith(EdgeFunctionPtrType secondFunction) = 0;
   [[nodiscard]] virtual EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType secondFunction) = 0;
 
   //
   // This function describes the join of the two edge functions this and
