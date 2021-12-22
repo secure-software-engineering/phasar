@@ -15,38 +15,40 @@ namespace psr {
 
 IDEGeneralizedLCA::l_t
 TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
-  return performTypecast(Source, dest, bits);
+  return performTypecast(Source, Dest, Bits);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 TypecastEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get()))
+  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
     return shared_from_this();
+  }
   return std::make_shared<LCAEdgeFunctionComposer>(shared_from_this(),
-                                                   SecondFunction, maxSize);
+                                                   SecondFunction, MaxSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 TypecastEdgeFunction::joinWith(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction) {
   return std::make_shared<JoinEdgeFunction>(shared_from_this(), OtherFunction,
-                                            maxSize);
+                                            MaxSize);
 }
 
 bool TypecastEdgeFunction::equal_to(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other) const {
-  if (this == Other.get())
+  if (this == Other.get()) {
     return true;
-  if (auto OtherTC = dynamic_cast<TypecastEdgeFunction *>(Other.get())) {
-    return bits == OtherTC->bits && dest == OtherTC->dest;
+  }
+  if (const auto *OtherTC = dynamic_cast<TypecastEdgeFunction *>(Other.get())) {
+    return Bits == OtherTC->Bits && Dest == OtherTC->Dest;
   }
   return false;
 }
 
-void TypecastEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
-  OS << "TypecastEdgeFn[to=" << EdgeValue::typeToString(dest)
-     << "; bits=" << bits << "]";
+void TypecastEdgeFunction::print(std::ostream &OS, bool /*IsForDebug*/) const {
+  OS << "TypecastEdgeFn[to=" << EdgeValue::typeToString(Dest)
+     << "; bits=" << Bits << "]";
 }
 
 } // namespace psr

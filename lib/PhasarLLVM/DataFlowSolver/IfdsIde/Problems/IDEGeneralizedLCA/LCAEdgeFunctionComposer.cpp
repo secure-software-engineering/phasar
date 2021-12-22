@@ -27,7 +27,7 @@ EdgeFunctionComposer::computeTarget(IDEGeneralizedLCA::l_t source) {
 LCAEdgeFunctionComposer::LCAEdgeFunctionComposer(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> F,
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> G, size_t MaxSize)
-    : EdgeFunctionComposer<IDEGeneralizedLCA::l_t>(F, G), maxSize(MaxSize) {}
+    : EdgeFunctionComposer<IDEGeneralizedLCA::l_t>(F, G), MaxSize(MaxSize) {}
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 LCAEdgeFunctionComposer::composeWith(
@@ -69,7 +69,7 @@ LCAEdgeFunctionComposer::joinWith(
     return AllBot::getInstance();
   }
   return std::make_shared<JoinEdgeFunction>(shared_from_this(), OtherFunction,
-                                            maxSize);
+                                            MaxSize);
 }
 
 const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
