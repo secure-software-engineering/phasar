@@ -127,6 +127,10 @@ public:
 
   WholeProgramAnalysis(WholeProgramAnalysis &&) = delete;
 
+  WholeProgramAnalysis &operator=(WholeProgramAnalysis &) = delete;
+
+  WholeProgramAnalysis &operator=(WholeProgramAnalysis &&) = delete;
+
   ~WholeProgramAnalysis() {
     if (OwnsConfig) {
       delete Config;
