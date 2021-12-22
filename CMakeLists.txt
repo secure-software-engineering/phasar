@@ -20,11 +20,17 @@ include(GNUInstallDirs)
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
+  set(CMAKE_BUILD_TYPE "DebugSan" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'DebugSan')" FORCE)
 endif ()
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
+  message(STATUS "Selected Debug Build with sanitizers")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -fno-omit-frame-pointer -fsanitize=address,undefined")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  message(STATUS "Selected Debug Build")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
 else()
+  message(STATUS "Selected Release Build")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
 endif()
 
@@ -42,7 +48,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 file(STRINGS ${PHASAR_SRC_DIR}/include/phasar/Config/Version.h VERSION_NUMBER_FILE)
 string(REPLACE " " ";" VERSION_NUMBER_FILE ${VERSION_NUMBER_FILE})
 list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
-
 
 include("phasar_macros")
 
@@ -96,11 +101,9 @@ endif()
 configure_file(config.h.in config.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )
-
 
 set(PHASAR_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}/phasar)
 
@@ -121,6 +124,9 @@ find_package(Threads)
 find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 #find_package(Boost 1.72.0 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
+
+# Disable clang-tidy for the external projects
+set(CMAKE_CXX_CLANG_TIDY "")
 
 # We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
 # The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
@@ -237,8 +243,17 @@ endif()
 add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
+# Set up clang-tidy to run during PhASAR's compilation to indicate code smells
+if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
+  message(STATUS "Enabled clang-tidy during build")
+  set(CMAKE_CXX_CLANG_TIDY
+    clang-tidy;
+    -header-filter=include/phasar.*h$;
+    # -warnings-as-errors=*;
+  )
+endif ()
 
-# Add the Phasar subdirectories
+# Add PhASAR's subdirectories
 add_subdirectory(include)
 add_subdirectory(lib)
 
