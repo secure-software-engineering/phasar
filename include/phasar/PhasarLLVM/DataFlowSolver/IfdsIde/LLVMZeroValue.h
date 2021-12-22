@@ -63,7 +63,9 @@ public:
   LLVMZeroValue(LLVMZeroValue &&Z) = delete;
   LLVMZeroValue &operator=(LLVMZeroValue &&Z) = delete;
 
-  llvm::StringRef getName() const { return LLVMZeroValueInternalName; }
+  [[nodiscard]] llvm::StringRef getName() const {
+    return LLVMZeroValueInternalName;
+  }
 
   bool isLLVMZeroValue(const llvm::Value *V) {
     if (V && V->hasName()) {

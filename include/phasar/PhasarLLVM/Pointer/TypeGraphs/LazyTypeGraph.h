@@ -87,7 +87,7 @@ public:
                        const llvm::StructType *to) override;
   virtual void
   printAsDot(const std::string &path = "typegraph.dot") const override;
-  virtual std::set<const llvm::StructType *>
+  [[nodiscard]] std::set<const llvm::StructType *>
   getTypes(const llvm::StructType *StructType) override;
 };
 } // namespace psr

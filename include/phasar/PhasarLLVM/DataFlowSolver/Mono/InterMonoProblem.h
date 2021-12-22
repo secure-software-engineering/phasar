@@ -76,7 +76,7 @@ public:
                                          std::set<f_t> Callees,
                                          const mono_container_t &In) = 0;
 
-  const i_t *getICFG() const { return ICF; }
+  [[nodiscard]] const i_t *getICFG() const { return ICF; }
 };
 
 } // namespace psr

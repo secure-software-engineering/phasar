@@ -60,15 +60,15 @@ public:
   // EdgeFunctions interface: EdgeFunctions::get*EdgeFunction() for more
   // details.
   //
-  virtual L computeTarget(L Source) = 0;
+  [[nodiscard]] virtual L computeTarget(L Source) = 0;
 
   //
   // This function composes the two edge functions this and SecondFunction. This
   // function is used to extend an edge function in order to construct so-called
   // jump functions that describe the effects of everlonger sequences of code.
   //
-  virtual EdgeFunctionPtrType
   composeWith(EdgeFunctionPtrType secondFunction) = 0;
+  [[nodiscard]] virtual EdgeFunctionPtrType
 
   //
   // This function describes the join of the two edge functions this and
@@ -76,15 +76,18 @@ public:
   // be joined, for instance, when two branches lead to a common successor
   // instruction.
   //
-  virtual EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) = 0;
+  [[nodiscard]] virtual EdgeFunctionPtrType
+  joinWith(EdgeFunctionPtrType OtherFunction) = 0;
 
-  virtual bool equal_to(EdgeFunctionPtrType OtherFunction) const = 0;
+  [[nodiscard]] virtual bool
+      equal_to // NOLINT - would break too many client analyses
+      (EdgeFunctionPtrType OtherFunction) const = 0;
 
   virtual void print(std::ostream &OS, bool IsForDebug = false) const {
     OS << "EdgeFunction";
   }
 
-  std::string str() {
+  [[nodiscard]] std::string str() {
     std::ostringstream OSS;
     print(OSS);
     return OSS.str();

@@ -50,7 +50,9 @@ public:
 
   void setWPDSSolverConfig(WPDSSolverConfig Config) { SolverConf = Config; }
 
-  WPDSSolverConfig getWPDSSolverConfig() const { return SolverConf; }
+  [[nodiscard]] WPDSSolverConfig getWPDSSolverConfig() const {
+    return SolverConf;
+  }
 };
 
 } // namespace psr
