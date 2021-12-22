@@ -12,10 +12,10 @@
 
 namespace llvm {
 class Value;
-}
+} // namespace llvm
 
 namespace psr {
-bool isConstant(const llvm::Value *val);
-}
+bool isConstant(const llvm::Value *Val);
+} // namespace psr
 
 #endif

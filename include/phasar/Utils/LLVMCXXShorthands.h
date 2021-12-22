@@ -10,5 +10,5 @@
 
 namespace psr {
 bool isTouchVTableInst(const llvm::StoreInst *Store);
-}
+} // namespace psr
 #endif

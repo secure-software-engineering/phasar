@@ -31,7 +31,7 @@
 
 namespace llvm {
 class StructType;
-}
+} // namespace llvm
 
 namespace psr {
 class CachedTypeGraph : public TypeGraph<CachedTypeGraph> {
