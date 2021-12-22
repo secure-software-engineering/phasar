@@ -77,7 +77,7 @@ protected:
 public:
   LazyTypeGraph() = default;
 
-  virtual ~LazyTypeGraph() = default;
+  ~LazyTypeGraph() override = default;
   // LazyTypeGraph(const LazyTypeGraph &copy) = delete;
   // LazyTypeGraph& operator=(const LazyTypeGraph &copy) = delete;
   // LazyTypeGraph(LazyTypeGraph &&move) = delete;
