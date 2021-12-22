@@ -25,12 +25,12 @@ namespace psr {
 
 template <typename N, typename D> class DefaultSeeds {
 public:
-  static std::map<N, std::set<D>> make(std::vector<N> node, D zeroNode) {
-    std::map<N, std::set<D>> res;
-    for (N n : node) {
-      res.insert(n, std::set<D>{zeroNode});
+  static std::map<N, std::set<D>> make(std::vector<N> Nodes, D ZeroNode) {
+    std::map<N, std::set<D>> Result;
+    for (N Node : Nodes) {
+      Result.insert(Node, {ZeroNode});
     }
-    return res;
+    return Result;
   }
 };
 
