@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
-#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 

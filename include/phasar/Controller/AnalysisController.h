@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_CONTROLLER_ANALYSIS_CONTROLLER_H_
-#define PHASAR_CONTROLLER_ANALYSIS_CONTROLLER_H_
+#ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
+#define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
 #include <iostream>
 #include <set>
