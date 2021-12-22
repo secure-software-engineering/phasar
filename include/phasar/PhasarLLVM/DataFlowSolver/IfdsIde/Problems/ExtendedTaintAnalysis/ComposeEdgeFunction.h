@@ -29,7 +29,7 @@ public:
   llvm::hash_code getHashCode() const override;
 
   static inline bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == Kind::Compose;
+    return EF->getKind() == EFKind::Compose;
   }
 };
 } // namespace psr::XTaint

@@ -214,13 +214,12 @@ namespace llvm {
 
 template <> struct DenseMapInfo<psr::AbstractMemoryLocation> {
   static inline psr::AbstractMemoryLocation getEmptyKey() {
-    return psr::AbstractMemoryLocation(
-        DenseMapInfo<psr::detail::AbstractMemoryLocationImpl *>::getEmptyKey());
+    return {
+        DenseMapInfo<psr::detail::AbstractMemoryLocationImpl *>::getEmptyKey()};
   }
   static inline psr::AbstractMemoryLocation getTombstoneKey() {
-    return psr::AbstractMemoryLocation(
-        DenseMapInfo<
-            psr::detail::AbstractMemoryLocationImpl *>::getTombstoneKey());
+    return {DenseMapInfo<
+        psr::detail::AbstractMemoryLocationImpl *>::getTombstoneKey()};
   }
   static unsigned getHashValue(psr::AbstractMemoryLocation Val) {
     return hash_value(Val);

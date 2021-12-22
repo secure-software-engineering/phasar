@@ -199,7 +199,7 @@ public:
         DL((*IRDB->getAllModules().begin())->getDataLayout()), Bound(Bound),
         PostProcessed(DisableStrongUpdates),
         DisableStrongUpdates(DisableStrongUpdates) {
-    base_t::ZeroValue = createZeroValue();
+    base_t::ZeroValue = IDEExtendedTaintAnalysis::createZeroValue();
 
     FactFactory.setDataLayout(DL);
 

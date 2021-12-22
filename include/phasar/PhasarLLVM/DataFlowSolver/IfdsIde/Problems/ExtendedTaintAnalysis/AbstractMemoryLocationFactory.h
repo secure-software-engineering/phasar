@@ -95,7 +95,7 @@ protected:
   const detail::AbstractMemoryLocationImpl *
   getOrCreateImpl(const llvm::Value *V, unsigned BOUND);
 
-  const AbstractMemoryLocationImpl *CreateImpl(const llvm::Value *V,
+  const AbstractMemoryLocationImpl *createImpl(const llvm::Value *V,
                                                unsigned BOUND);
   const AbstractMemoryLocationImpl *GetOrCreateZeroImpl() const;
   const AbstractMemoryLocationImpl *
@@ -141,7 +141,7 @@ class AbstractMemoryLocationFactory<AbstractMemoryLocation>
     : public detail::AbstractMemoryLocationFactoryBase {
 
   AbstractMemoryLocation limit(const AbstractMemoryLocation &AML) {
-    return AbstractMemoryLocation(limitImpl(AML.operator->()));
+    return {limitImpl(AML.operator->())};
   }
 
 public:
@@ -156,12 +156,12 @@ public:
   AbstractMemoryLocationFactory &
   operator=(const AbstractMemoryLocationFactory &) = delete;
 
-  [[nodiscard]] AbstractMemoryLocation Create(const llvm::Value *V,
+  [[nodiscard]] AbstractMemoryLocation create(const llvm::Value *V,
                                               unsigned BOUND) {
-    return AbstractMemoryLocation(CreateImpl(V, BOUND));
+    return {createImpl(V, BOUND)};
   }
-  [[nodiscard]] AbstractMemoryLocation GetOrCreateZero() const {
-    return AbstractMemoryLocation(GetOrCreateZeroImpl());
+  [[nodiscard]] AbstractMemoryLocation getOrCreateZero() const {
+    return {getOrCreateZeroImpl()};
   }
 
   /// Creates a decendant AbstractMemoryLocation by adding an indirection
@@ -170,19 +170,19 @@ public:
   [[nodiscard]] AbstractMemoryLocation
   withIndirectionOf(const AbstractMemoryLocation &AML,
                     llvm::ArrayRef<ptrdiff_t> Ind) {
-    return AbstractMemoryLocation(withIndirectionOfImpl(AML.operator->(), Ind));
+    return {withIndirectionOfImpl(AML.operator->(), Ind)};
   }
 
   [[nodiscard]] AbstractMemoryLocation
   withOffset(const AbstractMemoryLocation &AML,
              const llvm::GetElementPtrInst *Gep) {
-    return AbstractMemoryLocation(withOffsetImpl(AML.operator->(), Gep));
+    return {withOffsetImpl(AML.operator->(), Gep)};
   }
 
   [[nodiscard]] AbstractMemoryLocation
   withOffsets(const AbstractMemoryLocation &AML,
               llvm::ArrayRef<ptrdiff_t> Offs) {
-    return AbstractMemoryLocation(withOffsetsImpl(AML.operator->(), Offs));
+    return {withOffsetsImpl(AML.operator->(), Offs)};
   }
 
   /// Transfers the taint from AML (source at the callsite) seen as From to To
@@ -191,8 +191,7 @@ public:
   [[nodiscard]] AbstractMemoryLocation
   withTransferTo(const AbstractMemoryLocation &AML,
                  const AbstractMemoryLocation &From, const llvm::Value *To) {
-    return AbstractMemoryLocation(
-        withTransferToImpl(AML.operator->(), From.operator->(), To));
+    return {withTransferToImpl(AML.operator->(), From.operator->(), To)};
   }
 
   /// Transfers the taint from AML (source at the return-site) to To(at the
@@ -201,8 +200,7 @@ public:
   [[nodiscard]] AbstractMemoryLocation
   withTransferFrom(const AbstractMemoryLocation &AML,
                    const AbstractMemoryLocation &To) {
-    return AbstractMemoryLocation(
-        withTransferFromImpl(AML.operator->(), To.operator->()));
+    return {withTransferFromImpl(AML.operator->(), To.operator->())};
   }
 };
 

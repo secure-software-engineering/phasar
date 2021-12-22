@@ -20,7 +20,7 @@ namespace psr::XTaint {
 JoinConstEdgeFunction::JoinConstEdgeFunction(
     BasicBlockOrdering &BBO, EdgeFunctionPtrType OtherFn,
     const llvm::Instruction *OtherConst)
-    : EdgeFunctionBase(Kind::JoinConst, BBO), OtherFn(std::move(OtherFn)),
+    : EdgeFunctionBase(EFKind::JoinConst, BBO), OtherFn(std::move(OtherFn)),
       OtherConst(OtherConst) {
   assert(OtherConst);
 }
