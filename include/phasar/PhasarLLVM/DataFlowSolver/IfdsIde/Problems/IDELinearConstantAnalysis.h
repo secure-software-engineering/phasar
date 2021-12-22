@@ -117,9 +117,9 @@ public:
   FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
                                              f_t destFun) override;
 
-  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 
@@ -253,7 +253,7 @@ public:
 
   static char opToChar(const unsigned op);
 
-  bool isEntryPoint(const std::string &FunctionName) const;
+  [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
 
   void printNode(std::ostream &os, n_t n) const override;
 
@@ -263,7 +263,7 @@ public:
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 
-  lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
+  [[nodiscard]] lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &OS = std::cout) override;

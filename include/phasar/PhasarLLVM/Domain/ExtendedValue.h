@@ -125,9 +125,9 @@ public:
       ++currentVarArgIndex;
   }
 
-  bool isVarArg() const { return varArgIndex > -1L; }
   bool isVarArgTemplate() const {
     return vaListMemLocationSeq.empty() && isVarArg();
+  [[nodiscard]] bool isVarArg() const { return VarArgIndex > -1L; }
   }
 
 private:

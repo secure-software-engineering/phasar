@@ -83,7 +83,7 @@ public:
                                      BinaryDomain> &solverResults,
                  std::ostream &OS = std::cout) override;
 
-  ExtendedValue createZeroValue() const override {
+  [[nodiscard]] ExtendedValue createZeroValue() const override {
     // create a special value to represent the zero value!
     return ExtendedValue(LLVMZeroValue::getInstance());
   }

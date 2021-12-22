@@ -146,7 +146,7 @@ public:
   /**
    * @brief Returns appropriate zero value.
    */
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

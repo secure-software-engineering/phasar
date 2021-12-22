@@ -87,15 +87,21 @@ public:
 
   virtual std::unordered_map<n_t, mono_container_t> initialSeeds() = 0;
 
-  std::set<std::string> getEntryPoints() const { return EntryPoints; }
+  [[nodiscard]] std::set<std::string> getEntryPoints() const {
+    return EntryPoints;
+  }
 
-  const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
-  const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const { return TH; }
+  [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
+    return TH;
+  }
 
-  const c_t *getCFG() const { return CF; }
+  [[nodiscard]] const c_t *getCFG() const { return CF; }
 
-  const PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
+  [[nodiscard]] const PointsToInfo<v_t, n_t> *getPointstoInfo() const {
+    return PT;
+  }
 
   virtual bool setSoundness(Soundness S) { return false; }
 

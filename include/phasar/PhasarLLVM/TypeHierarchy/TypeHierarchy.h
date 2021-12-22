@@ -34,23 +34,23 @@ public:
 
   virtual std::set<T> getSuperTypes(T Type) = 0;
 
-  virtual T getType(std::string TypeName) const = 0;
+  [[nodiscard]] virtual T getType(std::string TypeName) const = 0;
 
-  virtual std::set<T> getAllTypes() const = 0;
+  [[nodiscard]] virtual std::set<T> getAllTypes() const = 0;
 
-  virtual std::string getTypeName(T Type) const = 0;
+  [[nodiscard]] virtual std::string getTypeName(T Type) const = 0;
 
-  virtual bool hasVFTable(T Type) const = 0;
+  [[nodiscard]] virtual bool hasVFTable(T Type) const = 0;
 
-  virtual const VFTable<F> *getVFTable(T Type) const = 0;
+  [[nodiscard]] virtual const VFTable<F> *getVFTable(T Type) const = 0;
 
-  virtual size_t size() const = 0;
+  [[nodiscard]] virtual size_t size() const = 0;
 
-  virtual bool empty() const = 0;
+  [[nodiscard]] virtual bool empty() const = 0;
 
   virtual void print(std::ostream &OS = std::cout) const = 0;
 
-  virtual nlohmann::json getAsJson() const = 0;
+  [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 };
 
 template <typename T, typename F>

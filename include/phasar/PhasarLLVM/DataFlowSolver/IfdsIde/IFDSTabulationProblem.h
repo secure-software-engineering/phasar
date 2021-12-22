@@ -83,15 +83,15 @@ public:
   ~IFDSTabulationProblem() override = default;
 
   /// Returns the tautological lambda (or zero) data-flow fact.
-  virtual d_t createZeroValue() const = 0;
+  [[nodiscard]] virtual d_t createZeroValue() const = 0;
 
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
-  virtual bool isZeroValue(d_t FlowFact) const = 0;
+  [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const = 0;
 
   /// Returns initial seeds to be used for the analysis. This is a mapping of
   /// statements to initial analysis facts.
-  virtual InitialSeeds<n_t, d_t, l_t> initialSeeds() = 0;
+  [[nodiscard]] virtual InitialSeeds<n_t, d_t, l_t> initialSeeds() = 0;
 
   /// Returns the special tautological lambda (or zero) fact.
   [[nodiscard]] d_t getZeroValue() const { return ZeroValue; }

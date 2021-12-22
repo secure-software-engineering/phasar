@@ -42,7 +42,7 @@ public:
 
   ~IFDSTabulationProblemTestPlugin() = default;
 
-  const FlowFact *createZeroValue() const override;
+  [[nodiscard]] const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,

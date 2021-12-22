@@ -94,7 +94,7 @@ struct DOTNode {
   DOTNode() = default;
   DOTNode(std::string fName, std::string l, std::string sId, unsigned fId = 0,
           bool isStmt = true, bool isv = true);
-  std::string str(const std::string &indent = "") const;
+  [[nodiscard]] std::string str(const std::string &Indent = "") const;
 };
 
 bool operator<(const DOTNode &lhs, const DOTNode &rhs);
@@ -110,7 +110,7 @@ struct DOTEdge {
 
   DOTEdge(DOTNode src, DOTNode tar, bool isv = true, std::string efl = "",
           std::string vl = "");
-  std::string str(const std::string &indent = "") const;
+  [[nodiscard]] std::string str(const std::string &Indent = "") const;
 };
 
 bool operator<(const DOTEdge &lhs, const DOTEdge &rhs);
