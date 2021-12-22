@@ -9,7 +9,7 @@
 namespace psr {
 
 std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
-  bool IsAutoIdentity = DataFlowUtils::isAutoIdentity(currentInst, Fact);
+  bool IsAutoIdentity = DataFlowUtils::isAutoIdentity(CurrentInst, Fact);
   if (IsAutoIdentity) {
     return {Fact};
   }
@@ -19,18 +19,18 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
 
   if (IsBranchOrSwitchFact) {
     bool RemoveTaintedBlockInst =
-        DataFlowUtils::removeTaintedBlockInst(Fact, currentInst);
+        DataFlowUtils::removeTaintedBlockInst(Fact, CurrentInst);
     if (RemoveTaintedBlockInst) {
       return {};
     }
 
     // traceStats.add(currentInst);
 
-    bool IsAutoGEN = DataFlowUtils::isAutoGENInTaintedBlock(currentInst);
+    bool IsAutoGEN = DataFlowUtils::isAutoGENInTaintedBlock(CurrentInst);
     if (IsAutoGEN) {
-      traceStats.add(currentInst);
+      TStats.add(CurrentInst);
 
-      return {Fact, ExtendedValue(currentInst)};
+      return {Fact, ExtendedValue(CurrentInst)};
     }
 
     std::set<ExtendedValue> TargetFacts;
@@ -54,30 +54,30 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
      * spot where such memory locations are generated.
      */
     if (const auto *const StoreInst =
-            llvm::dyn_cast<llvm::StoreInst>(currentInst)) {
+            llvm::dyn_cast<llvm::StoreInst>(CurrentInst)) {
       const auto DstMemLocationSeq =
           DataFlowUtils::getMemoryLocationSeqFromMatr(
               StoreInst->getPointerOperand());
 
-      ExtendedValue EV(currentInst);
+      ExtendedValue EV(CurrentInst);
       EV.setMemLocationSeq(DstMemLocationSeq);
 
       TargetFacts.insert(EV);
-      traceStats.add(StoreInst, DstMemLocationSeq);
+      TStats.add(StoreInst, DstMemLocationSeq);
     } else if (const auto *const MemTransferInst =
-                   llvm::dyn_cast<llvm::MemTransferInst>(currentInst)) {
+                   llvm::dyn_cast<llvm::MemTransferInst>(CurrentInst)) {
       const auto DstMemLocationSeq =
           DataFlowUtils::getMemoryLocationSeqFromMatr(
               MemTransferInst->getRawDest());
 
-      ExtendedValue EV(currentInst);
+      ExtendedValue EV(CurrentInst);
       EV.setMemLocationSeq(DstMemLocationSeq);
 
       TargetFacts.insert(EV);
-      traceStats.add(MemTransferInst, DstMemLocationSeq);
+      TStats.add(MemTransferInst, DstMemLocationSeq);
     } else if (const auto *const RetInst =
-                   llvm::dyn_cast<llvm::ReturnInst>(currentInst)) {
-      traceStats.add(RetInst);
+                   llvm::dyn_cast<llvm::ReturnInst>(CurrentInst)) {
+      TStats.add(RetInst);
     }
 
     return TargetFacts;

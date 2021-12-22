@@ -11,12 +11,12 @@ namespace psr {
 
 class CheckOperandsFlowFunction : public FlowFunctionBase {
 public:
-  CheckOperandsFlowFunction(const llvm::Instruction *_currentInst,
-                            TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
+  CheckOperandsFlowFunction(const llvm::Instruction *CurrentInst,
+                            TraceStats &TStats, const ExtendedValue &ZeroValue)
+      : FlowFunctionBase(CurrentInst, TStats, ZeroValue) {}
   ~CheckOperandsFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &Fact) override;
 };
 
 } // namespace psr

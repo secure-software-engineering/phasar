@@ -15,7 +15,7 @@ VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
     return {Fact};
   }
 
-  const auto *const VaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
+  const auto *const VaEndInst = llvm::cast<llvm::VAEndInst>(CurrentInst);
   auto *const VaEndMemLocationMatr = VaEndInst->getArgList();
 
   auto VaEndMemLocationSeq =

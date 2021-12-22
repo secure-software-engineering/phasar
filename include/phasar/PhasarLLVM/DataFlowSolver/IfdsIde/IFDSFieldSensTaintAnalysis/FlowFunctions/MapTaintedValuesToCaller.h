@@ -17,20 +17,20 @@ namespace psr {
 
 class MapTaintedValuesToCaller : public FlowFunction<ExtendedValue> {
 public:
-  MapTaintedValuesToCaller(const llvm::CallInst *_callInst,
-                           const llvm::ReturnInst *_retInst,
-                           TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : callInst(_callInst), retInst(_retInst), traceStats(_traceStats),
-        zeroValue(_zeroValue) {}
+  MapTaintedValuesToCaller(const llvm::CallInst *CallInst,
+                           const llvm::ReturnInst *RetInst,
+                           TraceStats &TraceStats, const ExtendedValue &ZV)
+      : CallInst(CallInst), RetInst(RetInst), TraceStats(TraceStats),
+        ZV(ZV) {}
   ~MapTaintedValuesToCaller() override = default;
 
-  std::set<ExtendedValue> computeTargets(ExtendedValue fact) override;
+  std::set<ExtendedValue> computeTargets(ExtendedValue Fact) override;
 
 private:
-  const llvm::CallInst *callInst;
-  const llvm::ReturnInst *retInst;
-  TraceStats &traceStats;
-  ExtendedValue zeroValue;
+  const llvm::CallInst *CallInst;
+  const llvm::ReturnInst *RetInst;
+  TraceStats &TraceStats;
+  ExtendedValue ZV;
 };
 
 } // namespace psr
