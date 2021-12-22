@@ -11,12 +11,12 @@ namespace psr {
 
 class GenerateFlowFunction : public FlowFunctionBase {
 public:
-  GenerateFlowFunction(const llvm::Instruction *_currentInst,
-                       TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
+  GenerateFlowFunction(const llvm::Instruction *CurrentInst,
+                       TraceStats &TraceStats, const ExtendedValue &ZV)
+      : FlowFunctionBase(CurrentInst, TraceStats, ZV) {}
   ~GenerateFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &Fact) override;
 };
 
 } // namespace psr
