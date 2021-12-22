@@ -72,17 +72,18 @@ private:
 
   // std::map<std::pair<const llvm::Instruction *, const llvm::Value *>, int>
   //     requiredKDFState;
-  IDESolver<IDETypeStateAnalysisDomain> &kdfAnalysisResults;
+  IDESolver<IDETypeStateAnalysisDomain> &KDFAnalysisResults;
   static OpenSSLEVTKDFToken funcNameToToken(const std::string &F);
 
 public:
   OpenSSLEVPKDFCTXDescription(
-      IDESolver<IDETypeStateAnalysisDomain> &kdfAnalysisResults)
-      : kdfAnalysisResults(kdfAnalysisResults) {}
-  bool isFactoryFunction(const std::string &F) const override;
-  bool isConsumingFunction(const std::string &F) const override;
-  bool isAPIFunction(const std::string &F) const override;
-  TypeStateDescription::State
+      IDESolver<IDETypeStateAnalysisDomain> &KDFAnalysisResults)
+      : KDFAnalysisResults(KDFAnalysisResults) {}
+
+  [[nodiscard]] bool isFactoryFunction(const std::string &F) const override;
+  [[nodiscard]] bool isConsumingFunction(const std::string &F) const override;
+  [[nodiscard]] bool isAPIFunction(const std::string &F) const override;
+  [[nodiscard]] TypeStateDescription::State
   getNextState(std::string Tok, TypeStateDescription::State S) const override;
   TypeStateDescription::State
   getNextState(const std::string &Tok, TypeStateDescription::State S,
