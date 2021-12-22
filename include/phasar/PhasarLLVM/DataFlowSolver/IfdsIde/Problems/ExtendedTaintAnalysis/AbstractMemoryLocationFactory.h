@@ -161,7 +161,7 @@ public:
     return AbstractMemoryLocation(CreateImpl(V, BOUND));
   }
   [[nodiscard]] AbstractMemoryLocation GetOrCreateZero() const {
-    return AbstractMemoryLocation(GetOrCreateZeroImpl());
+    return AbstractMemoryLocation(getOrCreateZeroImpl());
   }
 
   /// Creates a decendant AbstractMemoryLocation by adding an indirection

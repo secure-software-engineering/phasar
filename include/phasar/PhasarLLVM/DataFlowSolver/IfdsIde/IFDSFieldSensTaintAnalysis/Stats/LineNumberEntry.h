@@ -18,7 +18,7 @@ public:
     return std::less<unsigned int>{}(lineNumber, rhs.lineNumber);
   }
 
-  [[nodiscard]] unsigned int getLineNumber() const { return LineNumber; }
+  [[nodiscard]] unsigned int getLineNumber() const { return lineNumber; }
 
   bool isReturnValue() const { return returnValue; }
   void setReturnValue(bool _returnValue) { returnValue = _returnValue; }

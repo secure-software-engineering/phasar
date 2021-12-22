@@ -127,8 +127,9 @@ public:
 
   bool isVarArgTemplate() const {
     return vaListMemLocationSeq.empty() && isVarArg();
-  [[nodiscard]] bool isVarArg() const { return VarArgIndex > -1L; }
   }
+
+  [[nodiscard]] bool isVarArg() const { return varArgIndex > -1L; }
 
 private:
   const llvm::Value *value = nullptr;
