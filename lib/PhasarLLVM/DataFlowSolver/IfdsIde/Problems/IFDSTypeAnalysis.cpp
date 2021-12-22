@@ -30,15 +30,15 @@ IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
                                    LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IFDSTypeAnalysis::ZeroValue = createZeroValue();
+  IFDSTypeAnalysis::ZeroValue = IFDSTypeAnalysis::createZeroValue();
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
-IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t Curr,
-                                        IFDSTypeAnalysis::n_t Succ) {
+IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t /*Curr*/,
+                                        IFDSTypeAnalysis::n_t /*Succ*/) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
-    computeTargets(IFDSTypeAnalysis::d_t Source) override {
+    computeTargets(IFDSTypeAnalysis::d_t /*Source*/) override {
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
@@ -46,11 +46,11 @@ IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t Curr,
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
-IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallSite,
-                                      IFDSTypeAnalysis::f_t DestFun) {
+IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t /*CallSite*/,
+                                      IFDSTypeAnalysis::f_t /*DestFun*/) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
-    computeTargets(IFDSTypeAnalysis::d_t Source) override {
+    computeTargets(IFDSTypeAnalysis::d_t /*Source*/) override {
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
@@ -58,11 +58,11 @@ IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t CallSite,
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType IFDSTypeAnalysis::getRetFlowFunction(
-    IFDSTypeAnalysis::n_t CallSite, IFDSTypeAnalysis::f_t CalleeFun,
-    IFDSTypeAnalysis::n_t ExitSite, IFDSTypeAnalysis::n_t RetSite) {
+    IFDSTypeAnalysis::n_t /*CallSite*/, IFDSTypeAnalysis::f_t /*CalleeFun*/,
+    IFDSTypeAnalysis::n_t /*ExitStmt*/, IFDSTypeAnalysis::n_t /*RetSite*/) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
-    computeTargets(IFDSTypeAnalysis::d_t Source) override {
+    computeTargets(IFDSTypeAnalysis::d_t /*Source*/) override {
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
@@ -70,12 +70,12 @@ IFDSTypeAnalysis::FlowFunctionPtrType IFDSTypeAnalysis::getRetFlowFunction(
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
-IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t CallSite,
-                                           IFDSTypeAnalysis::n_t RetSite,
-                                           set<IFDSTypeAnalysis::f_t> Callees) {
+IFDSTypeAnalysis::getCallToRetFlowFunction(
+    IFDSTypeAnalysis::n_t /*CallSite*/, IFDSTypeAnalysis::n_t /*RetSite*/,
+    set<IFDSTypeAnalysis::f_t> /*Callees*/) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
-    computeTargets(IFDSTypeAnalysis::d_t Source) override {
+    computeTargets(IFDSTypeAnalysis::d_t /*Source*/) override {
       return set<IFDSTypeAnalysis::d_t>{};
     }
   };
@@ -83,8 +83,8 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t CallSite,
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
-IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t Curr,
-                                         IFDSTypeAnalysis::f_t DestFun) {
+IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t /*Curr*/,
+                                         IFDSTypeAnalysis::f_t /*DestFun*/) {
   return nullptr;
 }
 
@@ -105,22 +105,23 @@ IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t D) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
+bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t Fact) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
-void IFDSTypeAnalysis::printNode(ostream &OS, IFDSTypeAnalysis::n_t N) const {
-  OS << llvmIRToString(N);
+void IFDSTypeAnalysis::printNode(ostream &OS,
+                                 IFDSTypeAnalysis::n_t Stmt) const {
+  OS << llvmIRToString(Stmt);
 }
 
 void IFDSTypeAnalysis::printDataFlowFact(ostream &OS,
-                                         IFDSTypeAnalysis::d_t D) const {
-  OS << llvmIRToString(D);
+                                         IFDSTypeAnalysis::d_t Fact) const {
+  OS << llvmIRToString(Fact);
 }
 
 void IFDSTypeAnalysis::printFunction(ostream &OS,
-                                     IFDSTypeAnalysis::f_t M) const {
-  OS << M->getName().str();
+                                     IFDSTypeAnalysis::f_t Func) const {
+  OS << Func->getName().str();
 }
 
 } // namespace psr
