@@ -35,51 +35,52 @@ namespace psr {
 class PhasarConfig {
 public:
   /// Current Phasar version
-  static std::string PhasarVersion() { return XSTR(PHASAR_VERSION); }
+  static std::string PhasarVersion() { return XSTR(PHASAR_VERSION); } // NOLINT
 
   /// Stores the label/ tag with which we annotate the LLVM IR.
-  static std::string MetaDataKind() { return "psr.id"; }
+  static std::string MetaDataKind() { return "psr.id"; } // NOLINT
 
-  static std::string ConfigurationDirectory() {
-    return configuration_directory;
+  static std::string ConfigurationDirectory() { // NOLINT
+    return ConfigDir;
   }
 
   /// Specifies the directory in which Phasar is located.
-  static std::string PhasarDirectory() { return PhasarDir; }
+  static std::string PhasarDirectory() { return PhasarDir; } // NOLINT
 
   /// Name of the file storing all standard header search paths used for
   /// compilation.
-  static std::string HeaderSearchPathsFileName() {
+  static std::string HeaderSearchPathsFileName() { // NOLINT
     return "standard_header_paths.conf";
   }
 
   /// Name of the compile_commands.json file (in case we wish to rename)
-  static std::string CompileCommandsJson() { return "compile_commands.json"; }
+  static std::string CompileCommandsJson() { // NOLINT
+    return "compile_commands.json";
+  }
 
   /// Default Source- and Sink-Functions path
-  static std::string DefaultSourceSinkFunctionsPath() {
+  static std::string DefaultSourceSinkFunctionsPath() { // NOLINT
     return std::string(PhasarDirectory() +
                        "config/phasar-source-sink-function.json");
   }
 
   // Variables to be used in JSON export format
   /// Identifier for call graph export
-  static std::string JsonCallGraphID() { return "psr.cg"; }
+  static std::string JsonCallGraphID() { return "psr.cg"; } // NOLINT
 
   /// Identifier for type hierarchy graph export
-  static std::string JsonTypeHierarchyID() { return "psr.th"; }
+  static std::string JsonTypeHierarchyID() { return "psr.th"; } // NOLINT
 
   /// Identifier for points-to graph export
-  static std::string JsonPointsToGraphID() { return "psr.pt"; }
+  static std::string JsonPointsToGraphID() { return "psr.pt"; } // NOLINT
 
   /// Identifier for data-flow results export
-  static std::string JsonDataFlowID() { return "psr.df"; }
+  static std::string JsonDataFlowID() { return "psr.df"; } // NOLINT
 
   static PhasarConfig &getPhasarConfig();
 
   llvm::iterator_range<std::set<std::string>::iterator> specialFunctionNames() {
-    return llvm::make_range(special_function_names.begin(),
-                            special_function_names.end());
+    return llvm::make_range(SpecialFuncNames.begin(), SpecialFuncNames.end());
   }
 
   /// Add a function name to the special functions list.
@@ -89,13 +90,13 @@ public:
   /// Remark: Manually added special functions need to be added before creating
   /// the analysis.
   void addSpecialFunctionName(std::string SFName) {
-    special_function_names.insert(std::move(SFName));
+    SpecialFuncNames.insert(std::move(SFName));
   }
 
   /// Variables map of the parsed command-line parameters
-  static boost::program_options::variables_map &VariablesMap() {
-    static boost::program_options::variables_map variables_map;
-    return variables_map;
+  static boost::program_options::variables_map &VariablesMap() { // NOLINT
+    static boost::program_options::variables_map VMap;
+    return VMap;
   }
 
   ~PhasarConfig() = default;
@@ -105,25 +106,25 @@ public:
 private:
   PhasarConfig();
 
-  static std::string readConfigFile(const std::string &path);
+  static std::string readConfigFile(const std::string &Path);
   void loadGlibcSpecialFunctionNames();
   void loadLLVMSpecialFunctionNames();
 
-  std::set<std::string> special_function_names;
+  std::set<std::string> SpecialFuncNames;
 
   /// Specifies the directory in which important configuration files are
   /// located.
-  inline static const std::string configuration_directory = []() {
-    auto *env_home = std::getenv("HOME");
-    std::string config_folder = "config/";
-    if (env_home) { // Check if HOME was defined in the environment
-      std::string phasar_config = std::string(env_home) + "/.config/phasar/";
-      if (boost::filesystem::exists(phasar_config) &&
-          boost::filesystem::is_directory(phasar_config)) {
-        config_folder = phasar_config;
+  inline static const std::string ConfigDir = []() {
+    auto *EnvHome = std::getenv("HOME");
+    std::string ConfigFolder = "config/";
+    if (EnvHome) { // Check if HOME was defined in the environment
+      std::string PhasarConfDir = std::string(EnvHome) + "/.config/phasar/";
+      if (boost::filesystem::exists(PhasarConfDir) &&
+          boost::filesystem::is_directory(PhasarConfDir)) {
+        ConfigFolder = PhasarConfDir;
       }
     }
-    return config_folder;
+    return ConfigFolder;
   }();
 
   /// Specifies the directory in which Phasar is located.
