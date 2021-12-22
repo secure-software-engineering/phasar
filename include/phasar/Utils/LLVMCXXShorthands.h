@@ -10,5 +10,5 @@
 
 namespace psr {
 bool isTouchVTableInst(const llvm::StoreInst *Store);
-}
-#endif // INCLUDE_PHASAR_UTILS_LLVMCXXSHORTHANDS_H_
+} // namespace psr
+#endif
