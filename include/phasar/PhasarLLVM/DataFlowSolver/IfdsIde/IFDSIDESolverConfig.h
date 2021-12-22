@@ -35,7 +35,7 @@ enum class SolverConfigOptions : uint32_t {
   EmitESG = 16,
   ComputePersistedSummaries = 32,
 
-  All = ~0u
+  All = ~0U
 };
 
 struct IFDSIDESolverConfig {

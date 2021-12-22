@@ -26,7 +26,7 @@ public:
   virtual ~JoinLattice() = default;
   virtual l_t topElement() = 0;
   virtual l_t bottomElement() = 0;
-  virtual l_t join(l_t lhs, l_t rhs) = 0;
+  virtual l_t join(l_t Lhs, l_t Rhs) = 0;
 };
 } // namespace psr
 
