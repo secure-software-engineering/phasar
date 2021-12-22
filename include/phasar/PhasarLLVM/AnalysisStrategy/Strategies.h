@@ -24,7 +24,7 @@ std::string toString(const AnalysisStrategy &S);
 
 AnalysisStrategy toAnalysisStrategy(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const AnalysisStrategy &S);
+std::ostream &operator<<(std::ostream &OS, const AnalysisStrategy &S);
 
 } // namespace psr
 

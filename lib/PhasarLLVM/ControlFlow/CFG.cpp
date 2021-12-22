@@ -37,9 +37,9 @@ SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &os,
+std::ostream &operator<<(std::ostream &OS,
                          const SpecialMemberFunctionType &SMFT) {
-  return os << toString(SMFT);
+  return OS << toString(SMFT);
 }
 
 } // namespace psr

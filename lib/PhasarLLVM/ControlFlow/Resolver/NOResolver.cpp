@@ -31,12 +31,12 @@ void NOResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
 
 void NOResolver::postCall(const llvm::Instruction *Inst) {}
 
-auto NOResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
+auto NOResolver::resolveVirtualCall(const llvm::CallBase * /*CallSite*/)
     -> FunctionSetTy {
   return {};
 }
 
-auto NOResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
+auto NOResolver::resolveFunctionPointer(const llvm::CallBase * /*CallSite*/)
     -> FunctionSetTy {
   return {};
 }
