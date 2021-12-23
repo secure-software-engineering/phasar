@@ -22,7 +22,7 @@ public:
 
   PointsToSetTy *acquire() {
     auto Ptr = std::make_unique<PointsToSetTy>();
-    auto Ret = Ptr.get();
+    auto *Ret = Ptr.get();
     OwnedPTS.try_emplace(Ret, std::move(Ptr));
     return Ret;
   }
