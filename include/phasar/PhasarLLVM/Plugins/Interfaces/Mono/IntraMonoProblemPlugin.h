@@ -32,16 +32,16 @@ public:
   IntraMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                          const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
                          std::set<std::string> EntryPoints)
-      : IntraMonoProblem(IRDB, TH, CF, PT, EntryPoints) {}
+      : IntraMonoProblem(IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
-  void printNode(std::ostream &os, n_t n) const override {
-    os << llvmIRToString((llvm::Value *)n);
+  void printNode(std::ostream &OS, n_t Stmt) const override {
+    OS << llvmIRToString((llvm::Value *)Stmt);
   }
-  void printDataFlowFact(std::ostream &os, d_t d) const override {
-    os << llvmIRToString(d);
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override {
+    OS << llvmIRToString(Fact);
   }
-  void printFunction(std::ostream &os, f_t f) const override {
-    os << f->getName().str();
+  void printFunction(std::ostream &OS, f_t Func) const override {
+    OS << Func->getName().str();
   }
 };
 
@@ -55,7 +55,7 @@ extern std::map<std::string,
                     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                     const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints)>
-    IntraMonoProblemPluginFactory;
+    IntraMonoProblemPluginFactory; // NOLINT
 
 } // namespace psr
 

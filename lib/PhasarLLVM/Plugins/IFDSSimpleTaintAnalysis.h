@@ -31,7 +31,7 @@ struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
 };
 
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {
-  FlowFactManager<ValueFlowFactWrapper> ffManager;
+  FlowFactManager<ValueFlowFactWrapper> FFManager;
 
 public:
   IFDSSimpleTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
@@ -42,27 +42,27 @@ public:
   [[nodiscard]] const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
-  getNormalFlowFunction(const llvm::Instruction *curr,
-                        const llvm::Instruction *succ) override;
+  getNormalFlowFunction(const llvm::Instruction *Curr,
+                        const llvm::Instruction *Succ) override;
 
   FlowFunctionPtrType
-  getCallFlowFunction(const llvm::Instruction *callSite,
-                      const llvm::Function *destFun) override;
+  getCallFlowFunction(const llvm::Instruction *CallSite,
+                      const llvm::Function *DestFun) override;
 
   FlowFunctionPtrType
-  getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeFun,
-                     const llvm::Instruction *exitSite,
-                     const llvm::Instruction *retSite) override;
+  getRetFlowFunction(const llvm::Instruction *CallSite,
+                     const llvm::Function *CalleeFun,
+                     const llvm::Instruction *ExitStmt,
+                     const llvm::Instruction *RetSite) override;
 
   FlowFunctionPtrType
-  getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite,
-                           std::set<const llvm::Function *> callees) override;
+  getCallToRetFlowFunction(const llvm::Instruction *CallSite,
+                           const llvm::Instruction *RetSite,
+                           std::set<const llvm::Function *> Callees) override;
 
   FlowFunctionPtrType
-  getSummaryFlowFunction(const llvm::Instruction *callSite,
-                         const llvm::Function *destFun) override;
+  getSummaryFlowFunction(const llvm::Instruction *CallSite,
+                         const llvm::Function *DestFun) override;
 
   InitialSeeds<const llvm::Instruction *, const FlowFact *, BinaryDomain>
   initialSeeds() override;
