@@ -57,13 +57,13 @@ public:
 
   ~InterMonoProblem() override = default;
 
-  InterMonoProblem(const InterMonoProblem &copy) = delete;
+  InterMonoProblem(const InterMonoProblem &Copy) = delete;
 
-  InterMonoProblem(InterMonoProblem &&move) = delete;
+  InterMonoProblem(InterMonoProblem &&Move) = delete;
 
-  InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
+  InterMonoProblem &operator=(const InterMonoProblem &Copy) = delete;
 
-  InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
+  InterMonoProblem &operator=(InterMonoProblem &&Move) = delete;
 
   virtual mono_container_t callFlow(n_t CallSite, f_t Callee,
                                     const mono_container_t &In) = 0;
