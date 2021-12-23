@@ -20,8 +20,7 @@ public:
   MapTaintedValuesToCaller(const llvm::CallInst *CallInst,
                            const llvm::ReturnInst *RetInst,
                            TraceStats &TraceStats, const ExtendedValue &ZV)
-      : CallInst(CallInst), RetInst(RetInst), TraceStats(TraceStats),
-        ZV(ZV) {}
+      : CallInst(CallInst), RetInst(RetInst), TraceStats(TraceStats), ZV(ZV) {}
   ~MapTaintedValuesToCaller() override = default;
 
   std::set<ExtendedValue> computeTargets(ExtendedValue Fact) override;
