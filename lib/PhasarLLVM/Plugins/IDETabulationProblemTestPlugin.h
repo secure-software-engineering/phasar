@@ -84,4 +84,5 @@ makeIDETabulationProblemtestPlugin(const ProjectIRDB *IRDB,
                                    std::set<std::string> EntryPoints);
 
 } // namespace psr
+
 #endif
