@@ -34,19 +34,19 @@ namespace psr {
 class GeneralStatistics {
 private:
   friend class GeneralStatisticsAnalysis;
-  size_t functions = 0;
-  size_t globals = 0;
-  size_t basicblocks = 0;
-  size_t allocationsites = 0;
-  size_t callsites = 0;
-  size_t instructions = 0;
-  size_t storeInstructions = 0;
-  size_t loadInstructions = 0;
-  size_t memIntrinsic = 0;
-  size_t globalPointers = 0;
-  std::set<const llvm::Type *> allocatedTypes;
-  std::set<const llvm::Instruction *> allocaInstructions;
-  std::set<const llvm::Instruction *> retResInstructions;
+  size_t Functions = 0;
+  size_t Globals = 0;
+  size_t BasicBlocks = 0;
+  size_t AllocationSites = 0;
+  size_t CallSites = 0;
+  size_t Instructions = 0;
+  size_t StoreInstructions = 0;
+  size_t LoadInstructions = 0;
+  size_t MemIntrinsics = 0;
+  size_t GlobalPointers = 0;
+  std::set<const llvm::Type *> AllocatedTypes;
+  std::set<const llvm::Instruction *> AllocaInstructions;
+  std::set<const llvm::Instruction *> RetResInstructions;
 
 public:
   /**
@@ -138,14 +138,14 @@ class GeneralStatisticsAnalysis
     : public llvm::AnalysisInfoMixin<GeneralStatisticsAnalysis> {
 private:
   friend llvm::AnalysisInfoMixin<GeneralStatisticsAnalysis>;
-  static llvm::AnalysisKey Key;
+  static llvm::AnalysisKey Key; // NOLINT
   GeneralStatistics Stats;
 
 public:
   /// The pass itself stores the results.
   using Result = GeneralStatistics;
 
-  explicit GeneralStatisticsAnalysis();
+  explicit GeneralStatisticsAnalysis() = default;
 
   GeneralStatistics run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
 };

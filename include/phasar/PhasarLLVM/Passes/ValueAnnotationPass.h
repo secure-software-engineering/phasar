@@ -40,8 +40,8 @@ class ValueAnnotationPass
     : public llvm::AnalysisInfoMixin<ValueAnnotationPass> {
 private:
   friend llvm::AnalysisInfoMixin<ValueAnnotationPass>;
-  static llvm::AnalysisKey Key;
-  static size_t UniqueValueId;
+  static llvm::AnalysisKey Key; // NOLINT
+  static size_t UniqueValueId;  // NOLINT
 
 public:
   explicit ValueAnnotationPass();

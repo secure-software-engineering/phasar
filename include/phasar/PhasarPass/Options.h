@@ -15,25 +15,25 @@
 
 #include "llvm/Support/CommandLine.h"
 
-extern llvm::cl::OptionCategory PhASARCategory;
+extern llvm::cl::OptionCategory PhASARCategory; // NOLINT
 
 namespace psr {
 
-extern std::string DataFlowAnalysis;
+extern std::string DataFlowAnalysis; // NOLINT
 
-extern std::string PointerAnalysis;
+extern std::string PointerAnalysis; // NOLINT
 
-extern std::string CallGraphAnalysis;
+extern std::string CallGraphAnalysis; // NOLINT
 
-extern std::vector<std::string> EntryPoints;
+extern std::vector<std::string> EntryPoints; // NOLINT
 
-extern std::string PammOutputFile;
+extern std::string PammOutputFile; // NOLINT
 
-extern bool PrintEdgeRecorder;
+extern bool PrintEdgeRecorder; // NOLINT
 
-extern bool InitLogger;
+extern bool InitLogger; // NOLINT
 
-extern bool DumpResults;
+extern bool DumpResults; // NOLINT
 
 } // namespace psr
 

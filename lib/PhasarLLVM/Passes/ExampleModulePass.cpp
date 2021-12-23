@@ -18,12 +18,12 @@ using namespace psr;
 
 namespace psr {
 
-llvm::AnalysisKey ExampleModulePass::Key;
+llvm::AnalysisKey ExampleModulePass::Key; // NOLINT
 
 ExampleModulePass::ExampleModulePass() = default;
 
 llvm::PreservedAnalyses
-ExampleModulePass::run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM) {
+ExampleModulePass::run(llvm::Module &/*M*/, llvm::ModuleAnalysisManager &/*MAM*/) {
   cout << "ExampleModulePass::run()\n";
   return llvm::PreservedAnalyses::all();
 }

@@ -48,8 +48,6 @@
 
 namespace psr {
 
-char PhasarPass::ID = 12;
-
 PhasarPass::PhasarPass() : llvm::ModulePass(ID) {}
 
 llvm::StringRef PhasarPass::getPassName() const { return "PhasarPass"; }
@@ -181,7 +179,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   return false;
 }
 
-bool PhasarPass::doInitialization(llvm::Module &M) {
+bool PhasarPass::doInitialization(llvm::Module & /*M*/) {
   llvm::outs() << "PhasarPass::doInitialization()\n";
   initializeLogger(InitLogger);
   // check the user's parameters
@@ -198,7 +196,7 @@ bool PhasarPass::doInitialization(llvm::Module &M) {
   return false;
 }
 
-bool PhasarPass::doFinalization(llvm::Module &M) {
+bool PhasarPass::doFinalization(llvm::Module & /*M*/) {
   llvm::outs() << "PhasarPass::doFinalization()\n";
   return false;
 }
@@ -207,12 +205,12 @@ void PhasarPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {}
 
 void PhasarPass::releaseMemory() {}
 
-void PhasarPass::print(llvm::raw_ostream &O, const llvm::Module *M) const {
+void PhasarPass::print(llvm::raw_ostream &O, const llvm::Module * /*M*/) const {
   O << "I am a PhasarPass Analysis Result ;-)\n";
 }
 
-static llvm::RegisterPass<PhasarPass> Phasar("phasar", "PhASAR Pass",
-                                             false /* Only looks at CFG */,
-                                             false /* Analysis Pass */);
+static const llvm::RegisterPass<PhasarPass>
+    Phasar("phasar", "PhASAR Pass", false /* Only looks at CFG */,
+           false /* Analysis Pass */);
 
 } // namespace psr
