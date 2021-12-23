@@ -20,7 +20,7 @@ bool isTouchVTableInst(const llvm::StoreInst *Store) {
   if (const auto *CE =
           llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
     // llvm::ConstantExpr *CE = const_cast<llvm::ConstantExpr *>(ConstCE);
-    auto *CEInst = const_cast<llvm::ConstantExpr *>(CE)->getAsInstruction();
+    auto *CEInst = CE->getAsInstruction();
     if (auto *CF = llvm::dyn_cast<llvm::ConstantExpr>(CEInst->getOperand(0))) {
       auto *CFInst = CF->getAsInstruction();
       if (auto *VTable =

@@ -37,7 +37,7 @@ std::string toString(const DataFlowAnalysisType &D);
 
 DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
+std::ostream &operator<<(std::ostream &OS, const DataFlowAnalysisType &D);
 
 } // namespace psr
 

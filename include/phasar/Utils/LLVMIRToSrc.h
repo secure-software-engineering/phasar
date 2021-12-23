@@ -53,8 +53,8 @@ struct SourceCodeInfo {
   std::string SourceCodeLine;
   std::string SourceCodeFilename;
   std::string SourceCodeFunctionName;
-  unsigned Line;
-  unsigned Column;
+  unsigned Line = 0;
+  unsigned Column = 0;
 
   [[nodiscard]] bool empty() const noexcept;
 
@@ -71,10 +71,10 @@ struct SourceCodeInfo {
 
 /// Used from the JSON library internally to implicitly convert between json and
 /// SourceCodeInfo
-void from_json(const nlohmann::json &J, SourceCodeInfo &Info);
+void from_json(const nlohmann::json &J, SourceCodeInfo &Info); // NOLINT
 /// Used from the JSON library internally to implicitly convert between json and
 /// SourceCodeInfo
-void to_json(nlohmann::json &J, const SourceCodeInfo &Info);
+void to_json(nlohmann::json &J, const SourceCodeInfo &Info); // NOLINT
 
 SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V);
 

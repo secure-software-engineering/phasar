@@ -49,9 +49,9 @@ std::string toString(const SeverityLevel &Level);
 
 SeverityLevel toSeverityLevel(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const SeverityLevel &Level);
+std::ostream &operator<<(std::ostream &OS, const SeverityLevel &Level);
 
-extern SeverityLevel LogFilterLevel;
+  extern SeverityLevel LogFilterLevel; // NOLINT
 
 #ifdef DYNAMIC_LOG
 BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(

@@ -85,7 +85,8 @@ unsigned long PAMM::elapsedTime(const std::string &TimerId) {
     PAMM::TimePoint_t Start = RunningTimer[TimerId];
     auto Duration = std::chrono::duration_cast<Duration_t>(End - Start);
     return Duration.count();
-  } else if (StoppedTimer.count(TimerId)) {
+  }
+  if (StoppedTimer.count(TimerId)) {
     auto Duration = std::chrono::duration_cast<Duration_t>(
         StoppedTimer[TimerId].second - StoppedTimer[TimerId].first);
     return Duration.count();
