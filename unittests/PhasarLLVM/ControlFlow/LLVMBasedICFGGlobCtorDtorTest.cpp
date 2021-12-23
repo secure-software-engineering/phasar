@@ -455,7 +455,8 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
   IDESolver Solver(Problem);
 
-  const auto *GlobalDtor = ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
+  const auto *GlobalDtor =
+      ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
 
   ASSERT_NE(nullptr, GlobalDtor);
 

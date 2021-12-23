@@ -19,7 +19,8 @@ struct TestEdgeFunction
 
   int computeTarget(int /*Source*/) override { return 42; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
+  EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
     return this->shared_from_this();
   };
 
