@@ -245,7 +245,7 @@ AbstractMemoryLocationFactoryBase::createImpl(const llvm::Value *V,
 }
 
 [[nodiscard]] const AbstractMemoryLocationImpl *
-AbstractMemoryLocationFactoryBase::GetOrCreateZeroImpl() const {
+AbstractMemoryLocationFactoryBase::getOrCreateZeroImpl() const {
   // Can allocate without Allocator, because the number of offsets is zero
   static detail::AbstractMemoryLocationImpl Zero = nullptr;
   return &Zero;
