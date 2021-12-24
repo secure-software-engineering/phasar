@@ -69,12 +69,7 @@ public:
   }
 
   static bool isLLVMZeroValue(const llvm::Value *V) {
-    if (V && V->hasName()) {
-      // checks if V's name start with "zero_value"
-      return V->getName().find(LLVMZeroValueInternalName) !=
-             llvm::StringRef::npos;
-    }
-    return false;
+    return V == getInstance();
   }
 
   // Do not specify a destructor (at all)!
