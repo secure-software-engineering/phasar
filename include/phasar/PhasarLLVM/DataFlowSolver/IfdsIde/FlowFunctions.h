@@ -185,7 +185,7 @@ public:
       : GenValues({GenValue}), Predicate(std::move(Predicate)) {}
 
   GenIf(container_type GenValues, std::function<bool(D)> Predicate)
-      : GenValues(std::move(GenValues)), Predicate(Predicate) {}
+      : GenValues(std::move(GenValues)), Predicate(std::move(Predicate)) {}
 
   ~GenIf() override = default;
 
@@ -274,7 +274,7 @@ public:
   KillMultiple(std::set<D> KillValues) : KillValues(std::move(KillValues)) {}
   ~KillMultiple() override = default;
   container_type computeTargets(D Source) override {
-    if (KillValues.find(Source) != KillValues.end()) {
+    if (KillValues.count(Source)) {
       return {};
     }
     return {Source};
