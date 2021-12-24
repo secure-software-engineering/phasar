@@ -68,7 +68,7 @@ public:
     return LLVMZeroValueInternalName;
   }
 
-  bool isLLVMZeroValue(const llvm::Value *V) const {
+  static bool isLLVMZeroValue(const llvm::Value *V) {
     if (V && V->hasName()) {
       // checks if V's name start with "zero_value"
       return V->getName().find(LLVMZeroValueInternalName) !=
