@@ -60,7 +60,8 @@ public:
     auto ThisF = static_cast<JoinLatticeToSemiRingElem *>(this);
     auto ThatF = static_cast<JoinLatticeToSemiRingElem *>(SE);
     return wali::ref_ptr<JoinLatticeToSemiRingElem<V>>(
-        new JoinLatticeToSemiRingElem(ThisF->F->composeWith(ThatF->F), Lattice));
+        new JoinLatticeToSemiRingElem(ThisF->F->composeWith(ThatF->F),
+                                      Lattice));
   }
 
   [[nodiscard]] wali::sem_elem_t combine(SemElem *SE) override {
