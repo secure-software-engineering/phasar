@@ -444,8 +444,7 @@ const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {
 }
 
 const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
-  auto It = GlobalCtors.begin();
-  if (It != GlobalCtors.end()) {
+  if (auto It = GlobalCtors.begin(); It != GlobalCtors.end()) {
     return It->second;
   }
   return nullptr;
