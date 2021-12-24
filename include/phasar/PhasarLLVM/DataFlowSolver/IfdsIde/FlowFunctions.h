@@ -274,7 +274,7 @@ public:
   KillMultiple(std::set<D> KillValues) : KillValues(std::move(KillValues)) {}
   ~KillMultiple() override = default;
   container_type computeTargets(D Source) override {
-    if (KillValues.find(Source) != KillValues.end()) {
+    if (KillValues.count(Source)) {
       return {};
     }
     return {Source};
