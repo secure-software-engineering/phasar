@@ -97,7 +97,7 @@ protected:
 
   const AbstractMemoryLocationImpl *createImpl(const llvm::Value *V,
                                                unsigned BOUND);
-  const AbstractMemoryLocationImpl *GetOrCreateZeroImpl() const;
+  const AbstractMemoryLocationImpl *getOrCreateZeroImpl() const;
   const AbstractMemoryLocationImpl *
   withIndirectionOfImpl(const AbstractMemoryLocationImpl *AML,
                         llvm::ArrayRef<ptrdiff_t> Ind);
