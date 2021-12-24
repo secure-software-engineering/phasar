@@ -241,7 +241,8 @@ private:
   static void deleteMSTForModule(const llvm::Module *Module);
 
 public:
-  static llvm::ModuleSlotTracker &getSlotTrackerForModule(const llvm::Module *Module);
+  static llvm::ModuleSlotTracker &
+  getSlotTrackerForModule(const llvm::Module *Module);
 };
 } // namespace psr
 
