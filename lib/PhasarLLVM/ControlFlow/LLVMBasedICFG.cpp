@@ -1271,7 +1271,8 @@ unsigned LLVMBasedICFG::getNumOfEdges() const {
 
 const llvm::Function *
 LLVMBasedICFG::getRegisteredDtorsCallerOrNull(const llvm::Module *Mod) {
-  if (auto It = GlobalRegisteredDtorsCaller.find(Mod); It != GlobalRegisteredDtorsCaller.end()) {
+  if (auto It = GlobalRegisteredDtorsCaller.find(Mod);
+      It != GlobalRegisteredDtorsCaller.end()) {
     return It->second;
   }
 
