@@ -450,8 +450,7 @@ const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
   return nullptr;
 }
 const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
-  auto It = GlobalDtors.rbegin();
-  if (It != GlobalDtors.rend()) {
+  if (auto It = GlobalDtors.rbegin(); It != GlobalDtors.rend()) {
     return It->second;
   }
   return nullptr;
