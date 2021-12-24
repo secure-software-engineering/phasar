@@ -185,7 +185,7 @@ public:
       : GenValues({GenValue}), Predicate(std::move(Predicate)) {}
 
   GenIf(container_type GenValues, std::function<bool(D)> Predicate)
-      : GenValues(std::move(GenValues)), Predicate(Predicate) {}
+      : GenValues(std::move(GenValues)), Predicate(std::move(Predicate)) {}
 
   ~GenIf() override = default;
 
