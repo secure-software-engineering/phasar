@@ -327,7 +327,7 @@ public:
 
   template <typename Fn> void forEachGlobalDtor(Fn &&F) const {
     for (auto [Prio, Fun] : GlobalDtors) {
-      F(static_cast<const llvm::Function *>(Fun));
+      std::invoke(F, static_cast<const llvm::Function *>(Fun));
     }
   }
 
