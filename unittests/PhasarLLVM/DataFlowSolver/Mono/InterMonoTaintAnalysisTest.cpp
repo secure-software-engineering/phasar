@@ -75,8 +75,9 @@ protected:
     return Leaks;
   }
 
-  void doAnalysisAndCompare(const std::string &/*LlvmFilePath*/, size_t /*InstId*/,
-                            const std::set<std::string> &/*GroundTruth*/,
+  void doAnalysisAndCompare(const std::string & /*LlvmFilePath*/,
+                            size_t /*InstId*/,
+                            const std::set<std::string> & /*GroundTruth*/,
                             bool /*PrintDump = false*/) {
     // FIXME
     // auto IR_Files = {PathToLlFiles + LlvmFilePath};

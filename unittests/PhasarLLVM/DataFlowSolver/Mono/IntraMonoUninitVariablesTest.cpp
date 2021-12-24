@@ -48,7 +48,7 @@ protected:
   void TearDown() override { delete IRDB; }
 
   void doAnalysisAndCompareResults(const std::string &LlvmFilePath,
-                                   const CompactResults_t &/*GroundTruth*/,
+                                   const CompactResults_t & /*GroundTruth*/,
                                    bool PrintDump = false) {
     IRDB = new ProjectIRDB({PathToLLFiles + LlvmFilePath});
     if (PrintDump) {
