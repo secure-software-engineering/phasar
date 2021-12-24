@@ -444,15 +444,13 @@ const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {
 }
 
 const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
-  auto It = GlobalCtors.begin();
-  if (It != GlobalCtors.end()) {
+  if (auto It = GlobalCtors.begin(); It != GlobalCtors.end()) {
     return It->second;
   }
   return nullptr;
 }
 const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
-  auto It = GlobalDtors.rbegin();
-  if (It != GlobalDtors.rend()) {
+  if (auto It = GlobalDtors.rbegin(); It != GlobalDtors.rend()) {
     return It->second;
   }
   return nullptr;
@@ -1273,8 +1271,8 @@ unsigned LLVMBasedICFG::getNumOfEdges() const {
 
 const llvm::Function *
 LLVMBasedICFG::getRegisteredDtorsCallerOrNull(const llvm::Module *Mod) {
-  auto It = GlobalRegisteredDtorsCaller.find(Mod);
-  if (It != GlobalRegisteredDtorsCaller.end()) {
+  if (auto It = GlobalRegisteredDtorsCaller.find(Mod);
+      It != GlobalRegisteredDtorsCaller.end()) {
     return It->second;
   }
 
