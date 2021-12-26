@@ -89,7 +89,7 @@ protected:
   const llvm::DataLayout *DL = nullptr;
 
   const detail::AbstractMemoryLocationImpl *
-  getOrCreateImpl(const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&Offs,
+  getOrCreateImpl(const llvm::Value *V, llvm::ArrayRef<ptrdiff_t> Offs,
                   unsigned BOUND);
 
   const detail::AbstractMemoryLocationImpl *
