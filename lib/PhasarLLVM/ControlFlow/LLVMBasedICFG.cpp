@@ -71,7 +71,8 @@ public:
   VertexWriter(const graphType &CGraph) : CGraph(CGraph) {}
   template <class VertexOrEdge>
   void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-    Out << "[label=" << boost::escape_dot_string(CGraph[V].getFunctionName()) << "]";
+    const auto &Label = CGraph[V].getFunctionName();
+    Out << "[label=" << boost::escape_dot_string(Label) << "]";
   }
 
 private:
@@ -83,7 +84,8 @@ public:
   EdgeLabelWriter(const graphType &CGraph) : CGraph(CGraph) {}
   template <class VertexOrEdge>
   void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-    Out << "[label=" << boost::escape_dot_string(CGraph[V].getCallSiteAsString()) << "]";
+    const auto &Label = CGraph[V].getCallSiteAsString();
+    Out << "[label=" << boost::escape_dot_string(Label) << "]";
   }
 
 private:
