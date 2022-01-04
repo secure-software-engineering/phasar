@@ -18,11 +18,11 @@ namespace psr {
 struct AllBot {
   using type = AllBottom<IDEGeneralizedLCA::l_t>;
   static std::shared_ptr<type> getInstance();
-  static bool isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *edgeFn,
-                    bool nonRec = false);
+  static bool isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *EdgeFn,
+                    bool NonRec = false);
   static bool
-  isBot(const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &edgeFn,
-        bool nonRec = false);
+  isBot(const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &EdgeFn,
+        bool NonRec = false);
 };
 
 } // namespace psr

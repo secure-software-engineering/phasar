@@ -44,7 +44,7 @@ public:
                                const llvm::Instruction *ExitStmt,
                                const llvm::Function *Callee);
   std::set<const llvm::Value *>
-  computeTargets(const llvm::Value *source) override;
+  computeTargets(const llvm::Value *Source) override;
 };
 
 } // namespace psr
