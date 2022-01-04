@@ -35,42 +35,46 @@ struct TypeStateDescription {
   /// Type for states of the finite state machine
   using State = int;
   virtual ~TypeStateDescription() = default;
-  virtual bool isFactoryFunction(const std::string &F) const = 0;
-  virtual bool isConsumingFunction(const std::string &F) const = 0;
-  virtual bool isAPIFunction(const std::string &F) const = 0;
+  [[nodiscard]] virtual bool isFactoryFunction(const std::string &F) const = 0;
+  [[nodiscard]] virtual bool
+  isConsumingFunction(const std::string &F) const = 0;
+  [[nodiscard]] virtual bool isAPIFunction(const std::string &F) const = 0;
 
   /**
    * @brief For a given function name (as a string token) and a state, this
    * function returns the next state.
    */
-  virtual State getNextState(std::string Tok, State S) const = 0;
-  virtual State getNextState(const std::string &Tok, State S,
-                             const llvm::CallBase *CallSite) const {
+  [[nodiscard]] virtual State getNextState(std::string Tok, State S) const = 0;
+  [[nodiscard]] virtual State
+  getNextState(const std::string &Tok, State S,
+               const llvm::CallBase * /*CallSite*/) const {
     return getNextState(Tok, S);
   }
-  virtual std::string getTypeNameOfInterest() const = 0;
-  virtual std::set<int> getConsumerParamIdx(const std::string &F) const = 0;
-  virtual std::set<int> getFactoryParamIdx(const std::string &F) const = 0;
-  virtual std::string stateToString(State S) const = 0;
-  virtual State bottom() const = 0;
-  virtual State top() const = 0;
+  [[nodiscard]] virtual std::string getTypeNameOfInterest() const = 0;
+  [[nodiscard]] virtual std::set<int>
+  getConsumerParamIdx(const std::string &F) const = 0;
+  [[nodiscard]] virtual std::set<int>
+  getFactoryParamIdx(const std::string &F) const = 0;
+  [[nodiscard]] virtual std::string stateToString(State S) const = 0;
+  [[nodiscard]] virtual State bottom() const = 0;
+  [[nodiscard]] virtual State top() const = 0;
 
   /**
    * Represents the uninitialized state of an object, e.g. allocation of a file
    * handle
    */
-  virtual State uninit() const = 0;
+  [[nodiscard]] virtual State uninit() const = 0;
 
   /**
    * Represents the start/initial state of an object after creation, e.g. state
    * of a file handle after fopen()
    */
-  virtual State start() const = 0;
+  [[nodiscard]] virtual State start() const = 0;
 
   /**
    * Represents the error state of an object
    */
-  virtual State error() const = 0;
+  [[nodiscard]] virtual State error() const = 0;
 };
 
 } // namespace psr

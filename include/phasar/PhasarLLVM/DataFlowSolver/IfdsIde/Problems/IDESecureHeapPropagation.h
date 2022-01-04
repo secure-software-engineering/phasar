@@ -73,7 +73,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

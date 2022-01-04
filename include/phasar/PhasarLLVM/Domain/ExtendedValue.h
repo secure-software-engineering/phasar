@@ -125,10 +125,11 @@ public:
       ++currentVarArgIndex;
   }
 
-  bool isVarArg() const { return varArgIndex > -1L; }
   bool isVarArgTemplate() const {
     return vaListMemLocationSeq.empty() && isVarArg();
   }
+
+  [[nodiscard]] bool isVarArg() const { return varArgIndex > -1L; }
 
 private:
   const llvm::Value *value = nullptr;

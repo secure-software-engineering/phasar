@@ -70,7 +70,7 @@ public:
   l_t bottomElement() override;
   l_t join(l_t lhs, l_t rhs) override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

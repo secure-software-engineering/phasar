@@ -60,7 +60,7 @@ public:
   // EdgeFunctions interface: EdgeFunctions::get*EdgeFunction() for more
   // details.
   //
-  virtual L computeTarget(L Source) = 0;
+  [[nodiscard]] virtual L computeTarget(L Source) = 0;
 
   //
   // This function composes the two edge functions this and SecondFunction. This
@@ -76,16 +76,19 @@ public:
   // be joined, for instance, when two branches lead to a common successor
   // instruction.
   //
-  virtual EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) = 0;
+  [[nodiscard]] virtual EdgeFunctionPtrType
+  joinWith(EdgeFunctionPtrType OtherFunction) = 0;
 
-  virtual bool equal_to(EdgeFunctionPtrType OtherFunction) const = 0;
+  [[nodiscard]] virtual bool
+      equal_to // NOLINT - would break too many client analyses
+      (EdgeFunctionPtrType OtherFunction) const = 0;
 
   virtual void print(std::ostream &OS,
                      [[maybe_unused]] bool IsForDebug = false) const {
     OS << "EdgeFunction";
   }
 
-  std::string str() {
+  [[nodiscard]] std::string str() {
     std::ostringstream OSS;
     print(OSS);
     return OSS.str();

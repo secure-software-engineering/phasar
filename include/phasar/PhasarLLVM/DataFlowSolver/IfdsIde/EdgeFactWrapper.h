@@ -34,7 +34,7 @@ public:
   EdgeFactWrapper(const T &F) : Fact(F) {}
   EdgeFactWrapper(T &&F) : Fact(std::move(F)) {}
   virtual ~EdgeFactWrapper() = default;
-  const T &get() const { return Fact; }
+  [[nodiscard]] const T &get() const { return Fact; }
   void print(std::ostream &OS) const override { OS << Fact << '\n'; }
 };
 

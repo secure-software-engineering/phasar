@@ -97,7 +97,7 @@ protected:
 
   const AbstractMemoryLocationImpl *CreateImpl(const llvm::Value *V,
                                                unsigned BOUND);
-  const AbstractMemoryLocationImpl *GetOrCreateZeroImpl() const;
+  [[nodiscard]] const AbstractMemoryLocationImpl *getOrCreateZeroImpl() const;
   const AbstractMemoryLocationImpl *
   withIndirectionOfImpl(const AbstractMemoryLocationImpl *AML,
                         llvm::ArrayRef<ptrdiff_t> Ind);
@@ -161,7 +161,7 @@ public:
     return AbstractMemoryLocation(CreateImpl(V, BOUND));
   }
   [[nodiscard]] AbstractMemoryLocation GetOrCreateZero() const {
-    return AbstractMemoryLocation(GetOrCreateZeroImpl());
+    return AbstractMemoryLocation(getOrCreateZeroImpl());
   }
 
   /// Creates a decendant AbstractMemoryLocation by adding an indirection

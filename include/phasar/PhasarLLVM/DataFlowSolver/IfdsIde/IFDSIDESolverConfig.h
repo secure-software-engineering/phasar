@@ -47,12 +47,12 @@ struct IFDSIDESolverConfig {
   IFDSIDESolverConfig(IFDSIDESolverConfig &&) = default;
   IFDSIDESolverConfig &operator=(IFDSIDESolverConfig &&) = default;
 
-  bool followReturnsPastSeeds() const;
-  bool autoAddZero() const;
-  bool computeValues() const;
-  bool recordEdges() const;
-  bool emitESG() const;
-  bool computePersistedSummaries() const;
+  [[nodiscard]] bool followReturnsPastSeeds() const;
+  [[nodiscard]] bool autoAddZero() const;
+  [[nodiscard]] bool computeValues() const;
+  [[nodiscard]] bool recordEdges() const;
+  [[nodiscard]] bool emitESG() const;
+  [[nodiscard]] bool computePersistedSummaries() const;
 
   void setFollowReturnsPastSeeds(bool Set = true);
   void setAutoAddZero(bool Set = true);
