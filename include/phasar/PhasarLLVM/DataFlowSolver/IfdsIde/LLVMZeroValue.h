@@ -55,7 +55,8 @@ private:
             LLVMZeroValueInternalName) {
     setAlignment(llvm::MaybeAlign(4));
   }
-  static constexpr char LLVMZeroValueInternalName[] = "zero_value";
+  ~LLVMZeroValue() = default;
+  static constexpr auto LLVMZeroValueInternalName = "zero_value";
 
 public:
   LLVMZeroValue(const LLVMZeroValue &Z) = delete;
@@ -65,7 +66,7 @@ public:
 
   llvm::StringRef getName() const { return LLVMZeroValueInternalName; }
 
-  bool isLLVMZeroValue(const llvm::Value *V) {
+  bool isLLVMZeroValue(const llvm::Value *V) const {
     if (V && V->hasName()) {
       // checks if V's name start with "zero_value"
       return V->getName().find(LLVMZeroValueInternalName) !=
@@ -75,9 +76,9 @@ public:
   }
 
   // Do not specify a destructor (at all)!
-  static LLVMZeroValue *getInstance() {
-    static LLVMZeroValue *zv = new LLVMZeroValue;
-    return zv;
+  static const LLVMZeroValue *getInstance() {
+    static const auto *ZV = new LLVMZeroValue;
+    return ZV;
   }
 };
 } // namespace psr
