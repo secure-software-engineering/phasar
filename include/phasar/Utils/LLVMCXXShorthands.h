@@ -1,5 +1,5 @@
-#ifndef INCLUDE_PHASAR_UTILS_LLVMCXXSHORTHANDS_H_
-#define INCLUDE_PHASAR_UTILS_LLVMCXXSHORTHANDS_H_
+#ifndef PHASAR_UTILS_LLVMCXXSHORTHANDS_H
+#define PHASAR_UTILS_LLVMCXXSHORTHANDS_H
 // This contains LLVM IR Shorthands specific to C++
 // See
 // https://mapping-high-level-constructs-to-llvm-ir.readthedocs.io/en/latest/object-oriented-constructs/classes.html
@@ -11,4 +11,4 @@
 namespace psr {
 bool isTouchVTableInst(const llvm::StoreInst *Store);
 }
-#endif // INCLUDE_PHASAR_UTILS_LLVMCXXSHORTHANDS_H_
+#endif
