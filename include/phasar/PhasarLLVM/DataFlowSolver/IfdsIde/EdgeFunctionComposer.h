@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
-#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 
@@ -39,8 +39,8 @@ public:
 
 private:
   // For debug purpose only
-  const unsigned EFComposer_Id;
-  static inline unsigned CurrEFComposer_Id = 0;
+  const unsigned EFComposerId;
+  static inline unsigned CurrEFComposerId = 0; // NOLINT
 
 protected:
   /// First edge function
@@ -49,8 +49,8 @@ protected:
   EdgeFunctionPtrType G;
 
 public:
-  EdgeFunctionComposer(EdgeFunctionPtrType F, EdgeFunctionPtrType G)
-      : EFComposer_Id(++CurrEFComposer_Id), F(F), G(G) {}
+  EdgeFunctionComposer(EdgeFunctionPtrType &F, EdgeFunctionPtrType &G)
+      : EFComposerId(++CurrEFComposerId), F(F), G(G) {}
 
   ~EdgeFunctionComposer() override = default;
 
@@ -58,8 +58,8 @@ public:
    * Target value computation is implemented as
    *     G(F(source))
    */
-  L computeTarget(L source) override {
-    return G->computeTarget(F->computeTarget(source));
+  L computeTarget(L Source) override {
+    return G->computeTarget(F->computeTarget(Source));
   }
 
   /**
@@ -69,29 +69,30 @@ public:
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
+    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(SecondFunction.get())) {
       return this->shared_from_this();
     }
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
+    if (auto *AB = dynamic_cast<AllBottom<L> *>(SecondFunction.get())) {
       return this->shared_from_this();
     }
-    return F->composeWith(G->composeWith(secondFunction));
+    return F->composeWith(G->composeWith(SecondFunction));
   }
 
   // virtual EdgeFunctionPtrType
   // joinWith(EdgeFunctionPtrType otherFunction) = 0;
 
-  bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(other.get())) {
+  bool equal_to // NOLINT - would break too many client analyses
+      (EdgeFunctionPtrType Other) const override {
+    if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(Other.get())) {
       return F->equal_to(EFC->F) && G->equal_to(EFC->G);
     }
     return false;
   }
 
-  void print(std::ostream &OS, bool isForDebug = false) const override {
+  void print(std::ostream &OS, bool /*IsForDebug = false*/) const override {
     OS << "COMP[ " << F.get()->str() << " , " << G.get()->str()
-       << " ] (EF:" << EFComposer_Id << ')';
+       << " ] (EF:" << EFComposerId << ')';
   }
 };
 

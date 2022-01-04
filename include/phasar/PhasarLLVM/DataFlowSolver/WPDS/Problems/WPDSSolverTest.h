@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSSOLVERTEST_H_
-#define PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSSOLVERTEST_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSSOLVERTEST_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSSOLVERTEST_H
 
 #include <memory>
 
@@ -70,7 +70,7 @@ public:
   l_t bottomElement() override;
   l_t join(l_t lhs, l_t rhs) override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

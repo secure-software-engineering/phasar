@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
-#define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTERMONOPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTERMONOPROBLEM_H
 
 #include <set>
 #include <string>
@@ -72,7 +72,7 @@ public:
                                          std::set<f_t> Callees,
                                          const mono_container_t &In) = 0;
 
-  const i_t *getICFG() const { return ICF; }
+  [[nodiscard]] const i_t *getICFG() const { return ICF; }
 };
 
 } // namespace psr
