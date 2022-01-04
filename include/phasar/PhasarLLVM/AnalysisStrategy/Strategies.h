@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES
+#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
+#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 
 #include <iosfwd>
 #include <string>

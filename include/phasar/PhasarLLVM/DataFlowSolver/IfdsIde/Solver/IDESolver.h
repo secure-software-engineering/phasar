@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include <fstream>
 #include <iostream>
@@ -128,16 +128,16 @@ public:
         return a.getRowKey() < b.getRowKey();
       });
       n_t curr;
-      for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].getRowKey();
-        std::string n = IDEProblem.NtoString(cells[i].getRowKey());
+      for (unsigned I = 0; I < cells.size(); ++I) {
+        curr = cells[I].getRowKey();
+        std::string n = IDEProblem.NtoString(cells[I].getRowKey());
         boost::algorithm::trim(n);
         std::string node =
             ICF->getFunctionName(ICF->getFunctionOf(curr)) + "::" + n;
         J[DataFlowID][node];
-        std::string fact = IDEProblem.DtoString(cells[i].getColumnKey());
+        std::string fact = IDEProblem.DtoString(cells[I].getColumnKey());
         boost::algorithm::trim(fact);
-        std::string value = IDEProblem.LtoString(cells[i].getValue());
+        std::string value = IDEProblem.LtoString(cells[I].getValue());
         boost::algorithm::trim(value);
         J[DataFlowID][node]["Facts"] += {fact, value};
       }
@@ -315,8 +315,8 @@ public:
       n_t curr = n_t{};
       f_t prevFn = f_t{};
       f_t currFn = f_t{};
-      for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].getRowKey();
+      for (unsigned I = 0; I < cells.size(); ++I) {
+        curr = cells[I].getRowKey();
         currFn = ICF->getFunctionOf(curr);
         if (prevFn != currFn) {
           prevFn = currFn;
@@ -329,8 +329,8 @@ public:
           std::string line(NString.size(), '-');
           OS << "\n\nN: " << NString << "\n---" << line << '\n';
         }
-        OS << "\tD: " << IDEProblem.DtoString(cells[i].getColumnKey())
-           << " | V: " << IDEProblem.LtoString(cells[i].getValue()) << '\n';
+        OS << "\tD: " << IDEProblem.DtoString(cells[I].getColumnKey())
+           << " | V: " << IDEProblem.LtoString(cells[I].getValue()) << '\n';
       }
     }
     OS << '\n';
@@ -715,13 +715,14 @@ protected:
     d_t d = nAndD.second;
     f_t p = ICF->getFunctionOf(n);
     for (const n_t c : ICF->getCallsFromWithin(p)) {
-      auto lookupResults = jumpFn->forwardLookup(d, c);
-      if (!lookupResults) {
+      auto LookupResults = jumpFn->forwardLookup(d, c);
+      if (!LookupResults) {
         continue;
       }
-      for (auto entry : lookupResults->get()) {
-        d_t dPrime = entry.first;
-        EdgeFunctionPtrType fPrime = entry.second;
+      for (size_t I = 0; I < LookupResults->get().size(); ++I) {
+        auto Entry = LookupResults->get()[I];
+        d_t dPrime = Entry.first;
+        EdgeFunctionPtrType fPrime = Entry.second;
         n_t sP = n;
         l_t value = val(sP, d);
         INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -1094,12 +1095,13 @@ protected:
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to
             // return site using the composed function
-            auto revLookupResult = jumpFn->reverseLookup(c, d4);
-            if (revLookupResult) {
-              for (auto valAndFunc : revLookupResult->get()) {
-                EdgeFunctionPtrType f3 = valAndFunc.second;
+            auto RevLookupResult = jumpFn->reverseLookup(c, d4);
+            if (RevLookupResult) {
+              for (size_t I = 0; I < RevLookupResult->get().size(); ++I) {
+                auto ValAndFunc = RevLookupResult->get()[I];
+                EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(allTop)) {
-                  d_t d3 = valAndFunc.first;
+                  d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "Compose: " << fPrime->str() << " * "
