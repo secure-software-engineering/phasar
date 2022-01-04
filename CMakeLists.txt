@@ -20,7 +20,7 @@ include(GNUInstallDirs)
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "DebugSan" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'DebugSan')" FORCE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
 
 if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
@@ -56,6 +56,8 @@ option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
+
+option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
