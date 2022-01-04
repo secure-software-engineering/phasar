@@ -35,7 +35,7 @@ private:
 
   FunctionStats &getFunctionStats(const std::string &File);
   LineNumberStats &getLineNumberStats(const std::string &File,
-                                      const std::string &Function);
+                                      const std::string &FunctionName);
   FileStats Stats;
 };
 
