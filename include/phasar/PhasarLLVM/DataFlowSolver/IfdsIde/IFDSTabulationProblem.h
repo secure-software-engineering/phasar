@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 
 #include <iostream>
 #include <map>
@@ -143,7 +143,7 @@ public:
 
   /// Sets the level of soundness to be used by the analysis. Returns false if
   /// the level of soundness is ignored. Otherwise, true.
-  virtual bool setSoundness(Soundness S) { return false; }
+  virtual bool setSoundness(Soundness /*S*/) { return false; }
 };
 } // namespace psr
 

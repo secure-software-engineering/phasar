@@ -75,7 +75,7 @@ public:
 
   void dump(std::ostream &OS = std::cerr) {
 
-    auto printNode = [&](auto &&Node) {
+    auto printNode = [&](auto &&Node) { // NOLINT
       if constexpr (std::is_same_v<const llvm::Instruction *, N>) {
         OS << llvmIRToString(Node);
       } else {
@@ -83,7 +83,7 @@ public:
       }
     };
 
-    auto printFact = [&](auto &&Node) {
+    auto printFact = [&](auto &&Node) { // NOLINT
       if constexpr (std::is_same_v<const llvm::Value *, D>) {
         OS << llvmIRToString(Node);
       } else {

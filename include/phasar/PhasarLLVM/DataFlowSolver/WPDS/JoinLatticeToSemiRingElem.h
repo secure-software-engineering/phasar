@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_JOINLATTICETOSEMIRINGELEM_H_
-#define PHASAR_PHASARLLVM_WPDS_JOINLATTICETOSEMIRINGELEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
 
 #include <iosfwd>
 #include <memory>

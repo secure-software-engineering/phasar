@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_UTILITIES_H
-#define PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_UTILITIES_H
+#ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
+#define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
 
 #include <algorithm>
 #include <iterator>
@@ -87,4 +87,4 @@ void collectSanitizedFacts(ContainerTy &Dest, const TaintConfig &Config,
 }
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_UTILITIES_H
+#endif

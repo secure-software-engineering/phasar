@@ -102,6 +102,8 @@ public:
   ~PhasarConfig() = default;
   PhasarConfig(const PhasarConfig &) = delete;
   PhasarConfig(PhasarConfig &&) = delete;
+  PhasarConfig &operator=(const PhasarConfig &) = delete;
+  PhasarConfig &operator=(PhasarConfig &&) = delete;
 
 private:
   PhasarConfig();
