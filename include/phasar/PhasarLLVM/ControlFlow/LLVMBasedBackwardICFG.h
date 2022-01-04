@@ -104,7 +104,7 @@ public:
 
   [[nodiscard]] bool isExitInst(const llvm::Instruction *Stmt) const override;
 
-  void mergeWith(const LLVMBasedBackwardsICFG &other);
+  void mergeWith(const LLVMBasedBackwardsICFG &Other);
 
   using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
                                      // prints

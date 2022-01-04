@@ -79,24 +79,26 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   const auto *FPtrCall = getNthInstruction(Main, 7);
   auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
-  auto printCallees = [&]() {
-    std::string Ret;
-    llvm::raw_string_ostream OS(Ret);
+  auto printCallees // NOLINT
+      = [&]() {
+          std::string Ret;
+          llvm::raw_string_ostream OS(Ret);
 
-    OS << "{ ";
-    bool frst = true;
-    for (const auto *Callee : Callees) {
-      if (frst)
-        frst = false;
-      else
-        OS << ", ";
+          OS << "{ ";
+          bool First = true;
+          for (const auto *Callee : Callees) {
+            if (First) {
+              First = false;
+            } else {
+              OS << ", ";
+            }
 
-      OS << Callee->getName();
-    }
+            OS << Callee->getName();
+          }
 
-    OS << " }";
-    return Ret;
-  };
+          OS << " }";
+          return Ret;
+        };
 
   ASSERT_EQ(Callees.size(), 1U) << "Too many callees: " << printCallees();
   ASSERT_EQ(Callees.count(Bar), 1U);
