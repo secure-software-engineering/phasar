@@ -392,7 +392,6 @@ public:
         }()) {}
 
   ~Union() override = default;
-  
   container_type computeTargets(D Source) override {
     container_type Result;
     for (const auto &FlowFunc : FlowFuncs) {
