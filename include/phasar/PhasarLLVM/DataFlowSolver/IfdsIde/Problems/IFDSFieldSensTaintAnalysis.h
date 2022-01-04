@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef IFDSFIELDSENSTAINTANALYSIS_H
-#define IFDSFIELDSENSTAINTANALYSIS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 
 #include <iostream>
 #include <map>
@@ -83,7 +83,7 @@ public:
                                      BinaryDomain> &SolverResults,
                  std::ostream &OS = std::cout) override;
 
-  ExtendedValue createZeroValue() const override {
+  [[nodiscard]] ExtendedValue createZeroValue() const override {
     // create a special value to represent the zero value!
     return ExtendedValue(LLVMZeroValue::getInstance());
   }
@@ -128,4 +128,4 @@ private:
 
 } // namespace psr
 
-#endif // IFDSFIELDSENSTAINTANALYSIS_H
+#endif

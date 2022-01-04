@@ -8,7 +8,7 @@ using namespace psr;
 /* Test fixture */
 class PAMMTest : public ::testing::Test {
 protected:
-  typedef std::chrono::high_resolution_clock::time_point time_point;
+  using time_point = std::chrono::high_resolution_clock::time_point;
   PAMMTest() = default;
   ~PAMMTest() override = default;
 

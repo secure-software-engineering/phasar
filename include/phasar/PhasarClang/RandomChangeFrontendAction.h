@@ -41,7 +41,7 @@ public:
   void EndSourceFileAction() override;
 
   std::unique_ptr<clang::ASTConsumer>
-  CreateASTConsumer(clang::CompilerInstance &CI, llvm::StringRef file) override;
+  CreateASTConsumer(clang::CompilerInstance &CI, llvm::StringRef File) override;
 };
 
 } // namespace psr

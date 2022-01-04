@@ -42,7 +42,7 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
 }
 
 void LLVMBasedBackwardsICFG::createBackwardRets() {
-  for (const auto *Function : getAllFunctions()) {
+  for (const auto *Function : ForwardICFG.getAllFunctions()) {
     BackwardRetToFunction[BackwardRets[Function].getInstance()] = Function;
   }
 }
@@ -126,7 +126,7 @@ LLVMBasedBackwardsICFG::getSuccsOf(const llvm::Instruction *Stmt) const {
   }
   std::vector<const llvm::Instruction *> Succs =
       LLVMBasedBackwardCFG::getSuccsOf(Stmt);
-  if (Succs.size() == 0) {
+  if (Succs.empty()) {
     assert(Stmt->getParent()->getParent() &&
            "Could not find parent of stmt's parent ");
     Succs.push_back(
