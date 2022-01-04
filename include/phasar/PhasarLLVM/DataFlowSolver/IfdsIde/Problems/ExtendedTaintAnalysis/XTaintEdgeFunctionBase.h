@@ -25,25 +25,25 @@ namespace psr::XTaint {
 class EdgeFunctionBase : public EdgeFunction<EdgeDomain>,
                          public std::enable_shared_from_this<EdgeFunctionBase> {
 public:
-  enum class Kind { Gen, Join, JoinConst, Compose, KillIfSani, Transfer };
+  enum class EFKind { Gen, Join, JoinConst, Compose, KillIfSani, Transfer };
 
 protected:
   BasicBlockOrdering &BBO;
 
 private:
-  const Kind kind;
+  const EFKind Kind;
 
 public:
   using l_t = EdgeDomain;
 
-  EdgeFunctionBase(Kind Kind, BasicBlockOrdering &BBO);
+  EdgeFunctionBase(EFKind Kind, BasicBlockOrdering &BBO);
   ~EdgeFunctionBase() override = default;
 
   EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override;
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override;
 
   /// The actualy kind of this edge function. Can be used in a type-switch.
-  [[nodiscard]] inline Kind getKind() const { return kind; }
+  [[nodiscard]] inline EFKind getKind() const { return Kind; }
 
   virtual llvm::hash_code getHashCode() const = 0;
 };

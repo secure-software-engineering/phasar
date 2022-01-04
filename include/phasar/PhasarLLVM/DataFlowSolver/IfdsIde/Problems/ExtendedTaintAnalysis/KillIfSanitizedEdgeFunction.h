@@ -33,7 +33,7 @@ public:
   llvm::hash_code getHashCode() const override;
 
   inline static bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == Kind::KillIfSani;
+    return EF->getKind() == EFKind::KillIfSani;
   }
 };
 

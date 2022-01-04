@@ -21,7 +21,7 @@ namespace psr::XTaint {
 
 GenEdgeFunction::GenEdgeFunction(BasicBlockOrdering &BBO,
                                  const llvm::Instruction *Sani)
-    : EdgeFunctionBase(Kind::Gen, BBO), Sani(Sani) {}
+    : EdgeFunctionBase(EFKind::Gen, BBO), Sani(Sani) {}
 
 GenEdgeFunction::l_t
 GenEdgeFunction::computeTarget([[maybe_unused]] l_t Source) {
