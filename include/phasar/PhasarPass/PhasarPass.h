@@ -29,7 +29,7 @@ public:
   PhasarPass &operator=(const PhasarPass &) = delete;
   ~PhasarPass() override = default;
 
-  llvm::StringRef getPassName() const override;
+  [[nodiscard]] llvm::StringRef getPassName() const override;
 
   bool runOnModule(llvm::Module &M) override;
 

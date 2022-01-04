@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 
 #include <iostream>
 #include <map>
@@ -70,6 +70,8 @@ public:
   IDELinearConstantAnalysis &
   operator=(const IDELinearConstantAnalysis &) = delete;
 
+  IDELinearConstantAnalysis &
+  operator=(const IDELinearConstantAnalysis &) = delete;
   struct LCAResult {
     LCAResult() = default;
     unsigned LineNr = 0;
@@ -120,9 +122,9 @@ public:
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                              f_t DestFun) override;
 
-  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -256,7 +258,7 @@ public:
 
   static char opToChar(unsigned Op);
 
-  bool isEntryPoint(const std::string &FunctionName) const;
+  [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
 
   void printNode(std::ostream &OS, n_t Stmt) const override;
 
@@ -266,7 +268,7 @@ public:
 
   void printEdgeFact(std::ostream &OS, l_t L) const override;
 
-  lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
+  [[nodiscard]] lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &OS = std::cout) override;

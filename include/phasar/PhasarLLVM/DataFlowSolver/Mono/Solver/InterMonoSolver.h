@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
-#define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTERMONOSOLVER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTERMONOSOLVER_H
 
 #include <deque>
 #include <iostream>
@@ -148,8 +148,8 @@ protected:
     }
     // add inter-procedural return edges again
     if (ICF->isExitInst(Dst)) {
-      for (auto caller : ICF->getCallersOf(ICF->getFunctionOf(Dst))) {
-        for (auto Nprimeprime : ICF->getSuccsOf(caller)) {
+      for (const auto *Caller : ICF->getCallersOf(ICF->getFunctionOf(Dst))) {
+        for (const auto *Nprimeprime : ICF->getSuccsOf(Caller)) {
           Worklist.push_back({Dst, Nprimeprime});
         }
       }
@@ -209,11 +209,11 @@ public:
           IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
       if (!FlowFactStabilized) {
         std::cout << "\nNormal stabilized? --> " << FlowFactStabilized << '\n';
-        auto merged = Out[Ctx];
+        auto Merged = Out[Ctx];
         std::cout << "Normal merged:\n";
-        IMProblem.printContainer(std::cout, merged);
+        IMProblem.printContainer(std::cout, Merged);
         std::cout << '\n';
-        Analysis[Dst][Ctx] = merged;
+        Analysis[Dst][Ctx] = Merged;
         addToWorklist({Src, Dst});
       }
     }
@@ -243,11 +243,11 @@ public:
         std::cout << "Call stabilized? --> " << FlowFactStabilized << '\n';
         if (!FlowFactStabilized) {
           // auto merge = IMProblem.merge(Analysis[Dst][CTXAdd], Out[CTXAdd]);
-          auto merge = Out[CTXAdd];
+          auto Merge = Out[CTXAdd];
           std::cout << "Call merge:\n";
-          IMProblem.printContainer(std::cout, merge);
+          IMProblem.printContainer(std::cout, Merge);
           std::cout << '\n';
-          Analysis[Dst][CTXAdd] = merge;
+          Analysis[Dst][CTXAdd] = Merge;
           addToWorklist({Src, Dst});
         }
       }
@@ -271,12 +271,12 @@ public:
         IMProblem.printContainer(std::cout, Analysis[Dst][Ctx]);
         std::cout << '\n';
         if (!FlowFactStabilized) {
-          auto merge = Out[Ctx];
+          auto Merge = Out[Ctx];
           std::cout << "Call to ret merge:\n";
-          IMProblem.printContainer(std::cout, merge);
+          IMProblem.printContainer(std::cout, Merge);
           std::cout << '\n';
           Analysis[Dst][Ctx] =
-              merge; // IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
+              Merge; // IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
           addToWorklist({Src, Dst});
         }
       }
@@ -328,15 +328,15 @@ public:
             IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
         std::cout << "Ret stabilized? --> " << FlowFactStabilized << '\n';
         if (!FlowFactStabilized) {
-          mono_container_t merge;
-          merge.insert(Analysis[RetSite][CTXRm].begin(),
+          mono_container_t Merge;
+          Merge.insert(Analysis[RetSite][CTXRm].begin(),
                        Analysis[RetSite][CTXRm].end());
-          merge.insert(Out[CTXRm].begin(), Out[CTXRm].end());
-          Analysis[RetSite][CTXRm] = merge;
-          Analysis[Dst][CTXRm] = merge;
+          Merge.insert(Out[CTXRm].begin(), Out[CTXRm].end());
+          Analysis[RetSite][CTXRm] = Merge;
+          Analysis[Dst][CTXRm] = Merge;
           // IMProblem.merge(Analysis[RetSite][CTXRm], Out[CTXRm]);
           std::cout << "Merged to: ";
-          IMProblem.printContainer(std::cout, merge);
+          IMProblem.printContainer(std::cout, Merge);
           std::cout << '\n';
           // addToWorklist({Src, RetSite});
         }
@@ -388,9 +388,9 @@ public:
     }
   }
 
-  mono_container_t getResultsAt(n_t n) {
+  mono_container_t getResultsAt(n_t Stmt) {
     mono_container_t Result;
-    for (auto &[Ctx, Facts] : Analysis[n]) {
+    for (auto &[Ctx, Facts] : Analysis[Stmt]) {
       Result.insert(Facts.begin(), Facts.end());
     }
     return Result;

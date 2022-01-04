@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
 
 #include <cstdint>
 #include <iosfwd>
@@ -214,13 +214,12 @@ namespace llvm {
 
 template <> struct DenseMapInfo<psr::AbstractMemoryLocation> {
   static inline psr::AbstractMemoryLocation getEmptyKey() {
-    return psr::AbstractMemoryLocation(
-        DenseMapInfo<psr::detail::AbstractMemoryLocationImpl *>::getEmptyKey());
+    return {
+        DenseMapInfo<psr::detail::AbstractMemoryLocationImpl *>::getEmptyKey()};
   }
   static inline psr::AbstractMemoryLocation getTombstoneKey() {
-    return psr::AbstractMemoryLocation(
-        DenseMapInfo<
-            psr::detail::AbstractMemoryLocationImpl *>::getTombstoneKey());
+    return {DenseMapInfo<
+        psr::detail::AbstractMemoryLocationImpl *>::getTombstoneKey()};
   }
   static unsigned getHashValue(psr::AbstractMemoryLocation Val) {
     return hash_value(Val);
@@ -242,4 +241,4 @@ template <> struct hash<psr::AbstractMemoryLocation> {
 
 } // namespace std
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
+#endif

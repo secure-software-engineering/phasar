@@ -8,7 +8,7 @@ namespace psr {
 
 std::set<ExtendedValue>
 GEPInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  const auto *const GepInst = llvm::cast<llvm::GetElementPtrInst>(currentInst);
+  const auto *const GepInst = llvm::cast<llvm::GetElementPtrInst>(CurrentInst);
   const auto *const GepInstPtr = GepInst->getPointerOperand();
 
   bool IsVarArgFact = Fact.isVarArg();

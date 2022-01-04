@@ -18,15 +18,15 @@ namespace psr {
 
 WPDSSolverConfig::WPDSSolverConfig(bool RecordWitnesses,
                                    WPDSSearchDirection SearchDirection,
-                                   WPDSType Wpdsty)
-    : recordWitnesses(RecordWitnesses), searchDirection(SearchDirection),
-      wpdsty(Wpdsty) {}
+                                   enum WPDSType Wpdsty)
+    : RecordWitnesses(RecordWitnesses), Direction(SearchDirection),
+      WPDSType(Wpdsty) {}
 
 ostream &operator<<(ostream &OS, const WPDSSolverConfig &SC) {
   return OS << "WPDSSolverConfig:\n"
-            << "\trecordWitnesses: " << SC.recordWitnesses << "\n"
-            << "\tsearchDirection: " << SC.searchDirection << "\n"
-            << "\twpdsty: " << SC.wpdsty << "\n";
+            << "\trecordWitnesses: " << SC.RecordWitnesses << "\n"
+            << "\tsearchDirection: " << SC.Direction << "\n"
+            << "\twpdsty: " << SC.WPDSType << "\n";
 }
 
 } // namespace psr

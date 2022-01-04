@@ -93,14 +93,14 @@ long TraceStats::add(const llvm::Instruction *Instruction,
 
 TraceStats::FunctionStats &
 TraceStats::getFunctionStats(const std::string &File) {
-  auto FunctionStatsEntry = stats.find(File);
-  if (FunctionStatsEntry != stats.end()) {
+  auto FunctionStatsEntry = Stats.find(File);
+  if (FunctionStatsEntry != Stats.end()) {
     return FunctionStatsEntry->second;
   }
 
-  stats.insert({File, FunctionStats()});
+  Stats.insert({File, FunctionStats()});
 
-  return stats.find(File)->second;
+  return Stats.find(File)->second;
 }
 
 TraceStats::LineNumberStats &

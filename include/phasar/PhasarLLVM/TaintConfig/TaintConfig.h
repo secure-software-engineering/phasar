@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_H
-#define PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_H
+#ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
+#define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
 
 #include <filesystem>
 #include <functional>

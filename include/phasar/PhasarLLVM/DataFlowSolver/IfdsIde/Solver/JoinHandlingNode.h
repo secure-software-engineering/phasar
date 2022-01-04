@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JOINHANDLINGNODE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JOINHANDLINGNODE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JOINHANDLINGNODE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JOINHANDLINGNODE_H
 
 #include <vector>
 
@@ -24,6 +24,7 @@ namespace psr {
 template <typename T> class JoinHandlingNode {
 public:
   virtual ~JoinHandlingNode();
+  JoinHandlingNode &operator=(JoinHandlingNode &Other) = delete;
   /**
    *
    * @param joiningNode the node abstraction that was propagated to the same

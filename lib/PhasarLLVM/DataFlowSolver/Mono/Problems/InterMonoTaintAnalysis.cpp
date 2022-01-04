@@ -106,7 +106,8 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callFlow(
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
     InterMonoTaintAnalysis::n_t CallSite, const llvm::Function *Callee,
-    InterMonoTaintAnalysis::n_t ExitStmt, InterMonoTaintAnalysis::n_t RetSite,
+    InterMonoTaintAnalysis::n_t ExitStmt,
+    InterMonoTaintAnalysis::n_t /*RetSite*/,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::returnFlow()");
@@ -118,7 +119,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
   }
   // propagate pointer arguments to the caller, since this callee may modify
   // them
-  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   unsigned Index = 0;
   for (const auto &Arg : Callee->args()) {
     if (Arg.getType()->isPointerTy() && In.count(&Arg)) {
@@ -130,7 +131,8 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
 }
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
-    InterMonoTaintAnalysis::n_t CallSite, InterMonoTaintAnalysis::n_t RetSite,
+    InterMonoTaintAnalysis::n_t CallSite,
+    InterMonoTaintAnalysis::n_t /*RetSite*/,
     set<const llvm::Function *> Callees,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

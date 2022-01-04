@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef LINENUMBERENTRY_H
-#define LINENUMBERENTRY_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LINENUMBERENTRY_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LINENUMBERENTRY_H
 
 #include <functional>
 
@@ -11,23 +11,23 @@ namespace psr {
 
 class LineNumberEntry {
 public:
-  LineNumberEntry(unsigned int _lineNumber) : lineNumber(_lineNumber) {}
+  LineNumberEntry(unsigned int LineNumber) : LineNumber(LineNumber) {}
   ~LineNumberEntry() = default;
 
-  bool operator<(const LineNumberEntry &rhs) const {
-    return std::less<unsigned int>{}(lineNumber, rhs.lineNumber);
+  bool operator<(const LineNumberEntry &Rhs) const {
+    return std::less<unsigned int>{}(LineNumber, Rhs.LineNumber);
   }
 
-  unsigned int getLineNumber() const { return lineNumber; }
+  [[nodiscard]] unsigned int getLineNumber() const { return LineNumber; }
 
-  bool isReturnValue() const { return returnValue; }
-  void setReturnValue(bool _returnValue) { returnValue = _returnValue; }
+  [[nodiscard]] bool isReturnValue() const { return ReturnVal; }
+  void setReturnValue(bool ReturnVal) { this->ReturnVal = ReturnVal; }
 
 private:
-  unsigned int lineNumber;
-  bool returnValue = false;
+  unsigned int LineNumber;
+  bool ReturnVal = false;
 };
 
 } // namespace psr
 
-#endif // LINENUMBERENTRY_H
+#endif

@@ -2,14 +2,15 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_UTILS_LOG_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_UTILS_LOG_H
 
 #include "llvm/Support/raw_ostream.h"
 
 #define LOG_INFO(x)                                                            \
   do {                                                                         \
-    llvm::outs() << "[ENV_TRACE] " << x << "\n";                               \
+    llvm::outs() << "[ENV_TRACE] " << x << "\n"; /*NOLINT*/                    \
+                                                                               \
     llvm::outs().flush();                                                      \
   } while (0)
 
@@ -21,4 +22,4 @@
   } while (0)
 #endif
 
-#endif // LOG_H
+#endif
