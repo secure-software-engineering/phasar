@@ -7,15 +7,15 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_CONSTANTHELPER_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_CONSTANTHELPER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_CONSTANTHELPER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_CONSTANTHELPER_H
 
 namespace llvm {
 class Value;
-}
+} // namespace llvm
 
 namespace psr {
-bool isConstant(const llvm::Value *val);
-}
+bool isConstant(const llvm::Value *Val);
+} // namespace psr
 
 #endif

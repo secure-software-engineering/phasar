@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_SYNCSPDS_SOLVER_SYNCSPDSSOLVER_H_
-#define PHASAR_PHASARLLVM_SYNCSPDS_SOLVER_SYNCSPDSSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_SYNCPDS_SOLVER_SYNCPDSSOLVER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_SYNCPDS_SOLVER_SYNCPDSSOLVER_H
 
 namespace psr {
 

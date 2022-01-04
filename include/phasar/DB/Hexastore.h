@@ -81,6 +81,7 @@ public:
    * @param filename Filename of the Hexastore.
    */
   Hexastore(const std::string &filename);
+  Hexastore &operator=(const Hexastore &) = delete;
 
   /**
    * Destructor.

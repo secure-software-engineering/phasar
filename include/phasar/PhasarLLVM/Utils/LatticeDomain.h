@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_LATTICEDOMAIN_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_LATTICEDOMAIN_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
+#define PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 
 #include "llvm/Support/ErrorHandling.h"
 
