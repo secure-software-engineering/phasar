@@ -67,6 +67,8 @@ public:
 
   ~IDELinearConstantAnalysis() override;
 
+  IDELinearConstantAnalysis &
+  operator=(const IDELinearConstantAnalysis &) = delete;
   struct LCAResult {
     LCAResult() = default;
     unsigned line_nr = 0;
