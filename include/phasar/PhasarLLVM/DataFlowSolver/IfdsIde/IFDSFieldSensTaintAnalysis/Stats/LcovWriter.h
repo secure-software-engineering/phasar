@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef LCOVWRITER_H
-#define LCOVWRITER_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LCOVWRITER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LCOVWRITER_H
 
 #include "TraceStatsWriter.h"
 
@@ -20,4 +20,4 @@ public:
 
 } // namespace psr
 
-#endif // LCOVWRITER_H
+#endif

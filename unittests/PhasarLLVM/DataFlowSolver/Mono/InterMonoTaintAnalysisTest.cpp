@@ -36,8 +36,8 @@ protected:
 
   std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    auto IR_Files = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
+    auto IRFiles = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     auto PT = std::make_unique<LLVMPointsToSet>(*IRDB);
@@ -75,9 +75,10 @@ protected:
     return Leaks;
   }
 
-  void doAnalysisAndCompare(const std::string &LlvmFilePath, size_t InstId,
-                            const std::set<std::string> &GroundTruth,
-                            bool PrintDump = false) {
+  void doAnalysisAndCompare(const std::string & /*LlvmFilePath*/,
+                            size_t /*InstId*/,
+                            const std::set<std::string> & /*GroundTruth*/,
+                            bool /*PrintDump = false*/) {
     // FIXME
     // auto IR_Files = {PathToLlFiles + LlvmFilePath};
     // IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);

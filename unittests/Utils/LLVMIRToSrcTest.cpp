@@ -23,9 +23,8 @@ using namespace psr;
 
 class LLVMIRToSrcTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/llvmIRtoSrc/";
+  const std::string PathToLlFiles = PhasarConfig::PhasarDirectory() +
+                                    "build/test/llvm_test_code/llvmIRtoSrc/";
 
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;

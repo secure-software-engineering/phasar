@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_JOINLATTICETOSEMIRINGELEM_H_
-#define PHASAR_PHASARLLVM_WPDS_JOINLATTICETOSEMIRINGELEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
 
 #include <iosfwd>
 #include <memory>
@@ -35,20 +35,21 @@ public:
   JoinLatticeToSemiRingElem(std::shared_ptr<EdgeFunction<V>> F,
                             JoinLattice<V> &L)
       : wali::SemElem(), EdgeFunc(F), Lattice(L) {}
+
   ~JoinLatticeToSemiRingElem() override = default;
 
   std::ostream &print(std::ostream &OS) const override {
     return OS << *EdgeFunc;
   }
 
-  wali::sem_elem_t one() const override {
+  [[nodiscard]] wali::sem_elem_t one() const override {
     // std::cout << "JoinLatticeToSemiRingElem::one()" << std::endl;
     return wali::ref_ptr<JoinLatticeToSemiRingElem<V>>(
         new JoinLatticeToSemiRingElem(
             std::make_shared<AllBottom<V>>(Lattice.bottomElement()), Lattice));
   }
 
-  wali::sem_elem_t zero() const override {
+  [[nodiscard]] wali::sem_elem_t zero() const override {
     // std::cout << "JoinLatticeToSemiRingElem::zero()" << std::endl;
     return wali::ref_ptr<JoinLatticeToSemiRingElem<V>>(
         new JoinLatticeToSemiRingElem(

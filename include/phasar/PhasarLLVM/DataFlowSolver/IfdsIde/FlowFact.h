@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFACT_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACT_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACT_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACT_H
 
 #include <iosfwd>
 #include <type_traits>
@@ -30,7 +30,7 @@ public:
   }
   /// An abbreviation of an unsafe cast to T. Please use this only, if you know
   /// by 100% that this FlowFact is of type T
-  template <typename T> const T *as() const {
+  template <typename T> [[nodiscard]] const T *as() const {
     static_assert(std::is_base_of_v<FlowFact, T>);
     return reinterpret_cast<const T *>(this);
   }
