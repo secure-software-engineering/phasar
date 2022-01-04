@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef EXTENDEDVALUE_H
-#define EXTENDEDVALUE_H
+#ifndef PHASAR_PHASARLLVM_DOMAIN_EXTENDEDVALUE_H
+#define PHASAR_PHASARLLVM_DOMAIN_EXTENDEDVALUE_H
 
 #include <cassert>
 #include <functional>
@@ -176,4 +176,4 @@ template <> struct hash<psr::ExtendedValue> {
 
 } // namespace std
 
-#endif // EXTENDEDVALUE_H
+#endif

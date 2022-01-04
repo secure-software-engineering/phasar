@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Alexander Meinhold and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
 
 #include <iostream>
 #include <memory>
@@ -84,7 +84,7 @@ public:
   static std::string typeToString(Type ty);
 };
 class EdgeValueSet;
-typedef EdgeValueSet ev_t;
+using ev_t = EdgeValueSet;
 
 ev_t performBinOp(llvm::BinaryOperator::BinaryOps op, const ev_t &v1,
                   const ev_t &v2, size_t maxSize);
