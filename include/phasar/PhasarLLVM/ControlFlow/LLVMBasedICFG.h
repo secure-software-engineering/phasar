@@ -185,6 +185,7 @@ public:
                 Soundness S = Soundness::Soundy, bool IncludeGlobals = true);
 
   LLVMBasedICFG(const LLVMBasedICFG &);
+  LLVMBasedICFG &operator=(const LLVMBasedICFG &) = delete;
 
   ~LLVMBasedICFG() override;
 

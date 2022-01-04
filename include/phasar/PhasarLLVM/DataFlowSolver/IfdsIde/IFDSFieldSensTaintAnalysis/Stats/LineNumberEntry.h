@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef LINENUMBERENTRY_H
-#define LINENUMBERENTRY_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LINENUMBERENTRY_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LINENUMBERENTRY_H
 
 #include <functional>
 
@@ -18,7 +18,7 @@ public:
     return std::less<unsigned int>{}(lineNumber, rhs.lineNumber);
   }
 
-  unsigned int getLineNumber() const { return lineNumber; }
+  [[nodiscard]] unsigned int getLineNumber() const { return lineNumber; }
 
   bool isReturnValue() const { return returnValue; }
   void setReturnValue(bool _returnValue) { returnValue = _returnValue; }
@@ -30,4 +30,4 @@ private:
 
 } // namespace psr
 
-#endif // LINENUMBERENTRY_H
+#endif

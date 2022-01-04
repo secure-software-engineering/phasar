@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 
 #include <iostream>
 #include <map>
@@ -45,8 +45,8 @@ private:
     std::map<IFDSUninitializedVariables::n_t,
              std::set<IFDSUninitializedVariables::d_t>>
         ir_trace;
-    bool empty() const;
     void print(std::ostream &os);
+    [[nodiscard]] bool empty() const;
   };
   std::map<n_t, std::set<d_t>> UndefValueUses;
 
@@ -73,7 +73,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 
@@ -86,7 +86,7 @@ public:
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
                       std::ostream &OS = std::cout) override;
 
-  const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
+  [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
 
   std::vector<UninitResult> aggregateResults();
 };

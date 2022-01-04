@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Alexander Meinhold and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
 
 #include <iostream>
 #include <memory>
@@ -47,13 +47,13 @@ public:
   EdgeValue(std::nullptr_t);
   ~EdgeValue();
   const static EdgeValue top;
-  bool tryGetInt(uint64_t &res) const;
-  bool tryGetFP(double &res) const;
-  bool tryGetString(std::string &res) const;
-  bool isTop() const;
-  bool isNumeric() const;
-  bool isString() const;
-  Type getKind() const;
+  [[nodiscard]] bool tryGetInt(uint64_t &Res) const;
+  [[nodiscard]] bool tryGetFP(double &Res) const;
+  [[nodiscard]] bool tryGetString(std::string &Res) const;
+  [[nodiscard]] bool isTop() const;
+  [[nodiscard]] bool isNumeric() const;
+  [[nodiscard]] bool isString() const;
+  [[nodiscard]] Type getKind() const;
   // std::unique_ptr<ObjectLLVM> asObjLLVM(llvm::LLVMContext &ctx) const;
   bool sqSubsetEq(const EdgeValue &other) const;
   EdgeValue performBinOp(llvm::BinaryOperator::BinaryOps op,
@@ -84,7 +84,7 @@ public:
   static std::string typeToString(Type ty);
 };
 class EdgeValueSet;
-typedef EdgeValueSet ev_t;
+using ev_t = EdgeValueSet;
 
 ev_t performBinOp(llvm::BinaryOperator::BinaryOps op, const ev_t &v1,
                   const ev_t &v2, size_t maxSize);
