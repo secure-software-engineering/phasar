@@ -45,6 +45,7 @@ protected:
 public:
   AutoKillTMPs(FlowFunctionPtrType FF, const llvm::Instruction *In)
       : Delegate(std::move(FF)), Inst(In) {}
+
   ~AutoKillTMPs() override = default;
 
   container_type computeTargets(const llvm::Value *Source) override {
@@ -100,7 +101,7 @@ public:
               })
       : CallSite(CallSite), PropagateGlobals(PropagateGlobals),
         Predicate(std::move(Predicate)){};
-  virtual ~MapFactsAlongsideCallSite() = default;
+  ~MapFactsAlongsideCallSite() override = default;
 
   container_type computeTargets(const llvm::Value *Source) override {
     // Pass ZeroValue as is
@@ -403,6 +404,7 @@ protected:
 public:
   StrongUpdateStore(const llvm::StoreInst *S, std::function<bool(D)> P)
       : Store(S), Predicate(std::move(P)) {}
+
   ~StrongUpdateStore() override = default;
 
   std::set<D> computeTargets(D Source) override {

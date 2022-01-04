@@ -67,9 +67,9 @@ public:
 
   using typename FlowFunction<D, Container>::container_type;
 
-  virtual ~Identity() = default;
-  Identity(const Identity &i) = delete;
-  Identity &operator=(const Identity &i) = delete;
+  ~Identity() override = default;
+  Identity(const Identity &I) = delete;
+  Identity &operator=(const Identity &I) = delete;
   // simply return what the user provides
   container_type computeTargets(D Source) override { return {Source}; }
   static std::shared_ptr<Identity> getInstance() {
@@ -113,7 +113,7 @@ public:
 
   Compose(const std::vector<FlowFunction<D>> &Funcs) : Funcs(Funcs) {}
 
-  virtual ~Compose() = default;
+  ~Compose() override = default;
 
   container_type computeTargets(const D &Source) override {
     container_type Current(Source);
@@ -187,7 +187,7 @@ public:
   GenIf(container_type GenValues, std::function<bool(D)> Predicate)
       : GenValues(std::move(GenValues)), Predicate(Predicate) {}
 
-  virtual ~GenIf() = default;
+  ~GenIf() override = default;
 
   container_type computeTargets(D Source) override {
     if (Predicate(Source)) {
@@ -295,6 +295,7 @@ public:
   container_type computeTargets(D /*Source*/) override {
     return container_type();
   }
+
   static std::shared_ptr<KillAll<D>> getInstance() {
     static std::shared_ptr<KillAll> Instance =
         std::shared_ptr<KillAll>(new KillAll);
@@ -358,7 +359,7 @@ public:
   using typename FlowFunction<D, Container>::container_type;
 
   Transfer(D ToValue, D FromValue) : ToValue(ToValue), FromValue(FromValue) {}
-  virtual ~Transfer() = default;
+  ~Transfer() override = default;
   container_type computeTargets(D Source) override {
     if (Source == FromValue) {
       return {Source, ToValue};
@@ -389,6 +390,7 @@ public:
           }
           return FlowFuncs;
         }()) {}
+
   ~Union() override = default;
   container_type computeTargets(D Source) override {
     container_type Result;

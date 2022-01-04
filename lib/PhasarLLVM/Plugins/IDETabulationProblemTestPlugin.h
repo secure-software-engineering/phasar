@@ -28,7 +28,7 @@ public:
                                  const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                  std::set<std::string> EntryPoints);
 
-  ~IDETabulationProblemTestPlugin() = default;
+  ~IDETabulationProblemTestPlugin() override = default;
 
   [[nodiscard]] const FlowFact *createZeroValue() const override;
 

@@ -51,7 +51,7 @@ public:
                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                    std::set<std::string> EntryPoints = {"main"});
 
-  virtual ~IDEProtoAnalysis() = default;
+  ~IDEProtoAnalysis() override = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 

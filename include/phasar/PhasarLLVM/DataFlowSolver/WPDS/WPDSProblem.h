@@ -44,7 +44,7 @@ public:
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints) {
   }
 
-  virtual ~WPDSProblem() override = default;
+  ~WPDSProblem() override = default;
 
   WPDSSolverConfig SolverConf;
 
