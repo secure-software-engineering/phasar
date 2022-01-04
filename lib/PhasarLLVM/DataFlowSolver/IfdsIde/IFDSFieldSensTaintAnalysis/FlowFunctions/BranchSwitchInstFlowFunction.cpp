@@ -11,14 +11,14 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   const llvm::Value *Condition = nullptr;
 
   if (const auto *const BranchInst =
-          llvm::dyn_cast<llvm::BranchInst>(currentInst)) {
+          llvm::dyn_cast<llvm::BranchInst>(CurrentInst)) {
     bool IsConditional = BranchInst->isConditional();
 
     if (IsConditional) {
       Condition = BranchInst->getCondition();
     }
   } else if (const auto *const SwitchInst =
-                 llvm::dyn_cast<llvm::SwitchInst>(currentInst)) {
+                 llvm::dyn_cast<llvm::SwitchInst>(CurrentInst)) {
     Condition = SwitchInst->getCondition();
   } else {
     assert(false && "This MUST not happen");
@@ -30,7 +30,7 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
         DataFlowUtils::isMemoryLocationTainted(Condition, Fact);
 
     if (IsConditionTainted) {
-      const auto *const StartBasicBlock = currentInst->getParent();
+      const auto *const StartBasicBlock = CurrentInst->getParent();
       const auto StartBasicBlockLabel = StartBasicBlock->getName().str();
 
       LOG_DEBUG("Searching end of block label for: " << StartBasicBlockLabel);
@@ -42,10 +42,10 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
 
       LOG_DEBUG("End of block label: " << EndBasicBlockLabel);
 
-      ExtendedValue EV(currentInst);
+      ExtendedValue EV(CurrentInst);
       EV.setEndOfTaintedBlockLabel(EndBasicBlockLabel);
 
-      traceStats.add(currentInst);
+      TStats.add(CurrentInst);
 
       return {Fact, EV};
     }

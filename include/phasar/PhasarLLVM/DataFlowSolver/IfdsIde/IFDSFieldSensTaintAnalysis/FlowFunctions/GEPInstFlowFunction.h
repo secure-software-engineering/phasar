@@ -11,12 +11,12 @@ namespace psr {
 
 class GEPInstFlowFunction : public FlowFunctionBase {
 public:
-  GEPInstFlowFunction(const llvm::Instruction *_currentInst,
-                      TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
+  GEPInstFlowFunction(const llvm::Instruction *CurrentInst, TraceStats &TStats,
+                      const ExtendedValue &ZeroValue)
+      : FlowFunctionBase(CurrentInst, TStats, ZeroValue) {}
   ~GEPInstFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &Fact) override;
 };
 
 } // namespace psr
