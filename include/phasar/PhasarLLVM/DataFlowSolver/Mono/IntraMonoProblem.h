@@ -80,8 +80,8 @@ public:
   virtual mono_container_t merge(const mono_container_t &Lhs,
                                  const mono_container_t &Rhs) = 0;
 
-  virtual bool equal_to(const mono_container_t &Lhs,
-                        const mono_container_t &Rhs) = 0;
+  virtual bool equal_to( // NOLINT - this would break client analyses
+      const mono_container_t &Lhs, const mono_container_t &Rhs) = 0;
 
   virtual mono_container_t allTop() { return mono_container_t{}; }
 
@@ -103,7 +103,7 @@ public:
     return PT;
   }
 
-  virtual bool setSoundness(Soundness S) { return false; }
+  virtual bool setSoundness(Soundness /*S*/) { return false; }
 
   virtual void printContainer(std::ostream &OS, mono_container_t C) const {}
 };
