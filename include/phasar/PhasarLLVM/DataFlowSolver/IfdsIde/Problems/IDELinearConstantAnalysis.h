@@ -66,12 +66,11 @@ public:
                             std::set<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
+
   IDELinearConstantAnalysis(const IDELinearConstantAnalysis &) = delete;
   IDELinearConstantAnalysis &
   operator=(const IDELinearConstantAnalysis &) = delete;
 
-  IDELinearConstantAnalysis &
-  operator=(const IDELinearConstantAnalysis &) = delete;
   struct LCAResult {
     LCAResult() = default;
     unsigned LineNr = 0;
