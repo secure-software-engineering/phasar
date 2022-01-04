@@ -44,13 +44,15 @@ public:
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints) {
   }
 
-  virtual ~WPDSProblem() override = default;
+  ~WPDSProblem() override = default;
 
   WPDSSolverConfig SolverConf;
 
   void setWPDSSolverConfig(WPDSSolverConfig Config) { SolverConf = Config; }
 
-  WPDSSolverConfig getWPDSSolverConfig() const { return SolverConf; }
+  [[nodiscard]] WPDSSolverConfig getWPDSSolverConfig() const {
+    return SolverConf;
+  }
 };
 
 } // namespace psr

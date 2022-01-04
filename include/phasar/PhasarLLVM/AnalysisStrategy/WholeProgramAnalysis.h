@@ -124,8 +124,9 @@ public:
         DataFlowSolver(ProblemDesc) {}
 
   WholeProgramAnalysis(const WholeProgramAnalysis &) = delete;
-
   WholeProgramAnalysis(WholeProgramAnalysis &&) = delete;
+  WholeProgramAnalysis &operator=(WholeProgramAnalysis &) = delete;
+  WholeProgramAnalysis &operator=(WholeProgramAnalysis &&) = delete;
 
   ~WholeProgramAnalysis() {
     if (OwnsConfig) {

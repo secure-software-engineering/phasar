@@ -24,6 +24,7 @@ namespace psr {
 template <typename T> class JoinHandlingNode {
 public:
   virtual ~JoinHandlingNode();
+  JoinHandlingNode &operator=(JoinHandlingNode &Other) = delete;
   /**
    *
    * @param joiningNode the node abstraction that was propagated to the same

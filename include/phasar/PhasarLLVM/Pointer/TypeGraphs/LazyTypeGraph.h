@@ -77,7 +77,7 @@ protected:
 public:
   LazyTypeGraph() = default;
 
-  virtual ~LazyTypeGraph() = default;
+  ~LazyTypeGraph() override = default;
   // LazyTypeGraph(const LazyTypeGraph &copy) = delete;
   // LazyTypeGraph& operator=(const LazyTypeGraph &copy) = delete;
   // LazyTypeGraph(LazyTypeGraph &&move) = delete;
@@ -87,7 +87,7 @@ public:
                        const llvm::StructType *to) override;
   virtual void
   printAsDot(const std::string &path = "typegraph.dot") const override;
-  virtual std::set<const llvm::StructType *>
+  [[nodiscard]] std::set<const llvm::StructType *>
   getTypes(const llvm::StructType *StructType) override;
 };
 } // namespace psr

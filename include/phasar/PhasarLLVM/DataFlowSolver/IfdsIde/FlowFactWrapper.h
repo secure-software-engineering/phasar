@@ -40,10 +40,10 @@ public:
   FlowFactWrapper(const T &F) : Fact(F) {}
   FlowFactWrapper(T &&F) : Fact(std::move(F)) {}
   ~FlowFactWrapper() override = default;
-  const std::optional<T> &get() const { return Fact; }
-  bool isZero() const { return !Fact; }
+  [[nodiscard]] const std::optional<T> &get() const { return Fact; }
+  [[nodiscard]] bool isZero() const { return !Fact; }
 
-  void print(std::ostream &OS) const override final {
+  void print(std::ostream &OS) const final {
     if (isZero()) {
       OS << "Λ";
     } else {
@@ -106,9 +106,9 @@ public:
   }
 
   template <typename... Args>
-  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&...args) {
+  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&...Arguments) {
     std::set<const FlowFact *> Ret;
-    (Ret.insert(getOrCreateFlowFact(std::forward<Args>(args))), ...);
+    (Ret.insert(getOrCreateFlowFact(std::forward<Args>(Arguments))), ...);
     return Ret;
   }
 };

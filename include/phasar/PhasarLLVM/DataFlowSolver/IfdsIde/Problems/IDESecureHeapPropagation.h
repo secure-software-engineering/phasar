@@ -73,7 +73,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 
@@ -121,7 +121,7 @@ public:
 
   struct SHPEdgeFn : public EdgeFunction<l_t>,
                      public std::enable_shared_from_this<SHPEdgeFn> {
-    virtual ~SHPEdgeFn() = default;
+    ~SHPEdgeFn() override = default;
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
@@ -130,13 +130,13 @@ public:
   struct SHPEdgeFunctionComposer
       : public EdgeFunctionComposer<l_t>,
         public std::enable_shared_from_this<SHPEdgeFn> {
-    virtual ~SHPEdgeFunctionComposer() = default;
+    ~SHPEdgeFunctionComposer() override = default;
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
   };
   struct SHPGenEdgeFn : public SHPEdgeFn {
     SHPGenEdgeFn(l_t val);
-    virtual ~SHPGenEdgeFn() = default;
+    ~SHPGenEdgeFn() override = default;
 
     l_t computeTarget(l_t source) override;
 
@@ -151,7 +151,7 @@ public:
   };
 
   struct IdentityEdgeFunction : public SHPEdgeFn {
-    virtual ~IdentityEdgeFunction() = default;
+    ~IdentityEdgeFunction() override = default;
 
     l_t computeTarget(l_t source) override;
     std::shared_ptr<EdgeFunction<l_t>>

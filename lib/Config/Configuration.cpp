@@ -32,7 +32,7 @@ PhasarConfig::PhasarConfig() {
   loadLLVMSpecialFunctionNames();
 
   // Insert allocation operators
-  special_function_names.insert({"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
+  SpecialFuncNames.insert({"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
 }
 
 std::string PhasarConfig::readConfigFile(const std::string &Path) {
@@ -46,8 +46,9 @@ std::string PhasarConfig::readConfigFile(const std::string &Path) {
       size_t FileSize = Ifs.tellg();
       Ifs.seekg(0, std::ifstream::beg);
       std::string Content(FileSize + 1, '\0');
-      Ifs.read(const_cast<char *>(Content.data()), FileSize);
-      return Content;
+      std::stringstream SStream;
+      SStream << Ifs.rdbuf();
+      return SStream.str();
     }
   }
   throw std::ios_base::failure("could not read file: " + Path);
@@ -65,10 +66,10 @@ void PhasarConfig::loadGlibcSpecialFunctionNames() {
     boost::split(GlibcFunctions, Glibc, boost::is_any_of("\n"),
                  boost::token_compress_on);
 
-    special_function_names.insert(GlibcFunctions.begin(), GlibcFunctions.end());
+    SpecialFuncNames.insert(GlibcFunctions.begin(), GlibcFunctions.end());
   } else {
     // Add default glibc function names
-    special_function_names.insert({"_exit"});
+    SpecialFuncNames.insert({"_exit"});
   }
 }
 
@@ -84,11 +85,11 @@ void PhasarConfig::loadLLVMSpecialFunctionNames() {
                  boost::token_compress_on);
 
     // Insert llvm intrinsic function names
-    special_function_names.insert(LLVMIntrinsicFunctions.begin(),
-                                  LLVMIntrinsicFunctions.end());
+    SpecialFuncNames.insert(LLVMIntrinsicFunctions.begin(),
+                            LLVMIntrinsicFunctions.end());
   } else {
     // Add default LLVM function names
-    special_function_names.insert({"llvm.va_start"});
+    SpecialFuncNames.insert({"llvm.va_start"});
   }
 }
 

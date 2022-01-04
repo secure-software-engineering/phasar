@@ -24,7 +24,7 @@ template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I>
 class WPDSGenKillProblem {
 public:
-  WPDSGenKillProblem() {}
+  WPDSGenKillProblem() = default;
   virtual ~WPDSGenKillProblem() = default;
 };
 

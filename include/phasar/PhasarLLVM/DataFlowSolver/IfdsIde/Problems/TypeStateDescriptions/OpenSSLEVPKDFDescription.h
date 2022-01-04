@@ -52,32 +52,35 @@ private:
   static OpenSSLEVTKDFToken funcNameToToken(const std::string &F);
 
 public:
-  bool isFactoryFunction(const std::string &F) const override;
+  [[nodiscard]] bool isFactoryFunction(const std::string &F) const override;
 
-  bool isConsumingFunction(const std::string &F) const override;
+  [[nodiscard]] bool isConsumingFunction(const std::string &F) const override;
 
-  bool isAPIFunction(const std::string &F) const override;
+  [[nodiscard]] bool isAPIFunction(const std::string &F) const override;
 
-  TypeStateDescription::State
+  [[nodiscard]] TypeStateDescription::State
   getNextState(std::string Tok, TypeStateDescription::State S) const override;
 
-  std::string getTypeNameOfInterest() const override;
+  [[nodiscard]] std::string getTypeNameOfInterest() const override;
 
-  std::set<int> getConsumerParamIdx(const std::string &F) const override;
+  [[nodiscard]] std::set<int>
+  getConsumerParamIdx(const std::string &F) const override;
 
-  std::set<int> getFactoryParamIdx(const std::string &F) const override;
+  [[nodiscard]] std::set<int>
+  getFactoryParamIdx(const std::string &F) const override;
 
-  std::string stateToString(TypeStateDescription::State S) const override;
+  [[nodiscard]] std::string
+  stateToString(TypeStateDescription::State S) const override;
 
-  TypeStateDescription::State bottom() const override;
+  [[nodiscard]] TypeStateDescription::State bottom() const override;
 
-  TypeStateDescription::State top() const override;
+  [[nodiscard]] TypeStateDescription::State top() const override;
 
-  TypeStateDescription::State uninit() const override;
+  [[nodiscard]] TypeStateDescription::State uninit() const override;
 
-  TypeStateDescription::State start() const override;
+  [[nodiscard]] TypeStateDescription::State start() const override;
 
-  TypeStateDescription::State error() const override;
+  [[nodiscard]] TypeStateDescription::State error() const override;
 };
 
 } // namespace psr

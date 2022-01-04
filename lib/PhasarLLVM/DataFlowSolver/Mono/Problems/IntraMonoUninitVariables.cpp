@@ -8,21 +8,21 @@
  *****************************************************************************/
 
 #include <algorithm>
-#include <llvm/IR/Constants.h>
 #include <ostream>
 #include <utility>
 
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;
@@ -59,10 +59,10 @@ IntraMonoUninitVariables::mono_container_t IntraMonoUninitVariables::normalFlow(
     IntraMonoUninitVariables::n_t Inst,
     const IntraMonoUninitVariables::mono_container_t &In) {
   auto Out = In;
-  if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(Inst)) {
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Inst)) {
     Out.insert(Alloca);
   }
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Inst)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Inst)) {
     if (Store->getValueOperand()->getType()->isIntegerTy() &&
         llvm::isa<llvm::ConstantData>(Store->getValueOperand())) {
       llvm::outs() << "Found initialization at: ";
@@ -96,8 +96,8 @@ void IntraMonoUninitVariables::printNode(
 }
 
 void IntraMonoUninitVariables::printDataFlowFact(
-    ostream &OS, IntraMonoUninitVariables::d_t d) const {
-  OS << llvmIRToString(d);
+    ostream &OS, IntraMonoUninitVariables::d_t Fact) const {
+  OS << llvmIRToString(Fact);
 }
 
 void IntraMonoUninitVariables::printFunction(
