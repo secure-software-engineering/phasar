@@ -16,9 +16,10 @@ static unsigned CurrAddTwoEfId = 0;
 struct MyEFC : EdgeFunctionComposer<int> {
   MyEFC(std::shared_ptr<EdgeFunction<int>> F,
         std::shared_ptr<EdgeFunction<int>> G)
-      : EdgeFunctionComposer<int>(std::move(F), std::move(G)){};
+      : EdgeFunctionComposer<int>(F, G){};
+
   std::shared_ptr<EdgeFunction<int>>
-  joinWith(std::shared_ptr<EdgeFunction<int>> OtherFunction) override {
+  joinWith(std::shared_ptr<EdgeFunction<int>> /*OtherFunction*/) override {
     return std::make_shared<AllBottom<int>>(-1);
   };
 };
@@ -35,13 +36,13 @@ public:
     return std::make_shared<MyEFC>(this->shared_from_this(), SecondFunction);
   }
   std::shared_ptr<EdgeFunction<int>>
-  joinWith(std::shared_ptr<EdgeFunction<int>> OtherFunction) override {
+  joinWith(std::shared_ptr<EdgeFunction<int>> /*OtherFunction*/) override {
     return std::make_shared<AllBottom<int>>(-1);
   };
   bool equal_to(std::shared_ptr<EdgeFunction<int>> Other) const override {
     return this == Other.get();
   }
-  void print(std::ostream &Os, bool IsForDebug = false) const override {
+  void print(std::ostream &Os, bool /*IsForDebug = false*/) const override {
     Os << "MulTwoEF_" << MulTwoEfId;
   }
 };
@@ -58,13 +59,13 @@ public:
     return std::make_shared<MyEFC>(this->shared_from_this(), SecondFunction);
   }
   std::shared_ptr<EdgeFunction<int>>
-  joinWith(std::shared_ptr<EdgeFunction<int>> OtherFunction) override {
+  joinWith(std::shared_ptr<EdgeFunction<int>> /*OtherFunction*/) override {
     return std::make_shared<AllBottom<int>>(-1);
   };
   bool equal_to(std::shared_ptr<EdgeFunction<int>> Other) const override {
     return this == Other.get();
   }
-  void print(std::ostream &Os, bool IsForDebug = false) const override {
+  void print(std::ostream &Os, bool /*IsForDebug = false*/) const override {
     Os << "AddTwoEF_" << AddTwoEfId;
   }
 };

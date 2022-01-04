@@ -27,8 +27,8 @@
 
 using namespace psr;
 
-typedef std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>
-    groundTruth_t;
+using groundTruth_t =
+    std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>;
 
 /* ============== TEST FIXTURE ============== */
 

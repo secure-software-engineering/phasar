@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_JOINLATTICETOSEMIRINGELEM_H_
-#define PHASAR_PHASARLLVM_WPDS_JOINLATTICETOSEMIRINGELEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
 
 #include <iosfwd>
 #include <memory>
@@ -39,14 +39,14 @@ public:
 
   std::ostream &print(std::ostream &os) const override { return os << *F; }
 
-  wali::sem_elem_t one() const override {
+  [[nodiscard]] wali::sem_elem_t one() const override {
     // std::cout << "JoinLatticeToSemiRingElem::one()" << std::endl;
     return wali::ref_ptr<JoinLatticeToSemiRingElem<V>>(
         new JoinLatticeToSemiRingElem(
             std::make_shared<AllBottom<V>>(L.bottomElement()), L));
   }
 
-  wali::sem_elem_t zero() const override {
+  [[nodiscard]] wali::sem_elem_t zero() const override {
     // std::cout << "JoinLatticeToSemiRingElem::zero()" << std::endl;
     return wali::ref_ptr<JoinLatticeToSemiRingElem<V>>(
         new JoinLatticeToSemiRingElem(

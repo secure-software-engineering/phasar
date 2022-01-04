@@ -39,7 +39,7 @@ public:
                           std::set<std::string> EntryPoints = {});
   ~IFDSSimpleTaintAnalysis() override = default;
 
-  const FlowFact *createZeroValue() const override;
+  [[nodiscard]] const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
