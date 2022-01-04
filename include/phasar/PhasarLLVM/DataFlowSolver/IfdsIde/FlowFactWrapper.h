@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACTWRAPPER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACTWRAPPER_H
 
 #include <iostream>
 #include <map>
@@ -106,9 +106,9 @@ public:
   }
 
   template <typename... Args>
-  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&...args) {
+  std::set<const FlowFact *> getOrCreateFlowFacts(Args &&...Arguments) {
     std::set<const FlowFact *> Ret;
-    (Ret.insert(getOrCreateFlowFact(std::forward<Args>(args))), ...);
+    (Ret.insert(getOrCreateFlowFact(std::forward<Args>(Arguments))), ...);
     return Ret;
   }
 };

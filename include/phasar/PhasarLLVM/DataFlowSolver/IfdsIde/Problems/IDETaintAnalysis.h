@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETAINTANALYSIS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETAINTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETAINTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETAINTANALYSIS_H
 
 #include <map>
 #include <memory>

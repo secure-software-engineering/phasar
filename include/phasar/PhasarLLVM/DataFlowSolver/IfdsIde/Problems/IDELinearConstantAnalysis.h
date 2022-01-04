@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 
 #include <iostream>
 #include <map>
@@ -67,6 +67,8 @@ public:
 
   ~IDELinearConstantAnalysis() override;
 
+  IDELinearConstantAnalysis &
+  operator=(const IDELinearConstantAnalysis &) = delete;
   struct LCAResult {
     LCAResult() = default;
     unsigned line_nr = 0;

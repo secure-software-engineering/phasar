@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H
 
 #include <set>
 #include <string>
@@ -33,7 +33,7 @@ namespace psr {
  */
 struct TypeStateDescription {
   /// Type for states of the finite state machine
-  typedef int State;
+  using State = int;
   virtual ~TypeStateDescription() = default;
   [[nodiscard]] virtual bool isFactoryFunction(const std::string &F) const = 0;
   [[nodiscard]] virtual bool

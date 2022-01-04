@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFACT_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACT_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACT_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACT_H
 
 #include <iosfwd>
 #include <type_traits>

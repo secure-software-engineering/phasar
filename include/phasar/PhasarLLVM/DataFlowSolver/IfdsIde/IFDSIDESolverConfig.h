@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
 
 #include <iosfwd>
 
@@ -35,7 +35,7 @@ enum class SolverConfigOptions : uint32_t {
   EmitESG = 16,
   ComputePersistedSummaries = 32,
 
-  All = ~0u
+  All = ~0U
 };
 
 struct IFDSIDESolverConfig {

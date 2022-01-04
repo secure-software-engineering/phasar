@@ -79,4 +79,4 @@ makeIFDSTabulationProblemTestPlugin(const ProjectIRDB *IRDB,
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_HH_ */
+#endif
