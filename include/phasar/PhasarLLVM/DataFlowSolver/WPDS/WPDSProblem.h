@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
-#define PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSPROBLEM_H
 
 #include <set>
 #include <string>
