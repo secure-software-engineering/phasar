@@ -128,11 +128,8 @@ public:
   ~AnalysisController() = default;
 
   AnalysisController(const AnalysisController &) = delete;
-
   AnalysisController(AnalysisController &&) = delete;
-
   AnalysisController &operator=(const AnalysisController &) = delete;
-
   AnalysisController &operator=(const AnalysisController &&) = delete;
 
   void executeAs(AnalysisStrategy Strategy);
