@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef TRACESTATS_H
-#define TRACESTATS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_TRACESTATS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_TRACESTATS_H
 
 #include "LineNumberEntry.h"
 
@@ -41,4 +41,4 @@ private:
 
 } // namespace psr
 
-#endif // TRACESTATS_H
+#endif
