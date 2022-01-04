@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef STOREINSTFLOWFUNCTION_H
-#define STOREINSTFLOWFUNCTION_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_STOREINSTFLOWFUNCTION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_STOREINSTFLOWFUNCTION_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/FlowFunctionBase.h"
 
@@ -11,14 +11,14 @@ namespace psr {
 
 class StoreInstFlowFunction : public FlowFunctionBase {
 public:
-  StoreInstFlowFunction(const llvm::Instruction *_currentInst,
-                        TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
+  StoreInstFlowFunction(const llvm::Instruction *CurrentInst,
+                        TraceStats &TraceStats, const ExtendedValue &ZV)
+      : FlowFunctionBase(CurrentInst, TraceStats, ZV) {}
   ~StoreInstFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &Fact) override;
 };
 
 } // namespace psr
 
-#endif // STOREINSTFLOWFUNCTION_H
+#endif

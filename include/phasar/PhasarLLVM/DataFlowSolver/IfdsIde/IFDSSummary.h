@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_IFDSSUMMARY_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_IFDSSUMMARY_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSSUMMARY_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSSUMMARY_H
 
 #include <set>
 #include <vector>
@@ -37,13 +37,12 @@ public:
       : StartNode(Start), EndNode(End), Context(std::move(C)), Outputs(Gen),
         ZeroValue(ZV) {}
   virtual ~IFDSSummary() = default;
-  std::set<D> computeTargets(D source) override {
-    if (source == ZeroValue) {
-      Outputs.insert(source);
+  std::set<D> computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      Outputs.insert(Source);
       return Outputs;
-    } else {
-      return {source};
     }
+    return {Source};
   }
 
   N getStartNode() const { return StartNode; }

@@ -92,9 +92,9 @@ public:
                             IRDB, CallGraphAnalysisType::OTF, EntryPoints,
                             this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        EntryPoints(EntryPoints), Config(Config), OwnsConfig(false),
-        ConfigPath(""), ProblemDesc(&IRDB, TypeHierarchy, CallGraph,
-                                    PointerInfo, *Config, EntryPoints),
+        EntryPoints(EntryPoints), Config(Config),
+        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, *Config,
+                    EntryPoints),
         DataFlowSolver(ProblemDesc) {}
 
   template <typename T = ProblemDescription,
@@ -124,8 +124,9 @@ public:
         DataFlowSolver(ProblemDesc) {}
 
   WholeProgramAnalysis(const WholeProgramAnalysis &) = delete;
-
   WholeProgramAnalysis(WholeProgramAnalysis &&) = delete;
+  WholeProgramAnalysis &operator=(WholeProgramAnalysis &) = delete;
+  WholeProgramAnalysis &operator=(WholeProgramAnalysis &&) = delete;
 
   ~WholeProgramAnalysis() {
     if (OwnsConfig) {

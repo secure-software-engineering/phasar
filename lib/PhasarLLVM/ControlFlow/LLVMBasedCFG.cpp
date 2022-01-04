@@ -49,11 +49,11 @@ LLVMBasedCFG::getFunctionOf(const llvm::Instruction *Inst) const {
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
   if (!IgnoreDbgInstructions) {
-    if (auto *PrevInst = I->getPrevNode()) {
+    if (const auto *PrevInst = I->getPrevNode()) {
       return {PrevInst};
     }
   } else {
-    if (auto *PrevNonDbgInst =
+    if (const auto *PrevNonDbgInst =
             I->getPrevNonDebugInstruction(false /*Only debug instructions*/)) {
       return {PrevNonDbgInst};
     }
@@ -165,18 +165,17 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
     return {};
   }
   if (!Fun->isDeclaration()) {
-    auto *EntryInst = &Fun->front().front();
+    const auto *EntryInst = &Fun->front().front();
     if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(EntryInst)) {
       return {EntryInst->getNextNonDebugInstruction(
           false /*Only debug instructions*/)};
     }
     return {EntryInst};
-  } else {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Could not get starting points of '"
-                  << Fun->getName().str() << "' because it is a declaration");
-    return {};
   }
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Could not get starting points of '" << Fun->getName().str()
+                << "' because it is a declaration");
+  return {};
 }
 
 std::set<const llvm::Instruction *>
@@ -189,17 +188,16 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
     std::set<const llvm::Instruction *> ExitPoints;
     auto ExitPointVector = psr::getAllExitPoints(Fun);
 
-    for (auto *ExitPoint : ExitPointVector) {
+    for (const auto *ExitPoint : ExitPointVector) {
       ExitPoints.insert(ExitPoint);
     }
 
     return ExitPoints;
-  } else {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Could not get exit points of '" << Fun->getName().str()
-                  << "' which is declaration!");
-    return {};
   }
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Could not get exit points of '" << Fun->getName().str()
+                << "' which is declaration!");
+  return {};
 }
 
 bool LLVMBasedCFG::isCallSite(const llvm::Instruction *Inst) const {
@@ -240,9 +238,8 @@ bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *Inst,
   if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Inst)) {
     if (B->isConditional()) {
       return &B->getSuccessor(1)->front() == Succ;
-    } else {
-      return &B->getSuccessor(0)->front() == Succ;
     }
+    return &B->getSuccessor(0)->front() == Succ;
   }
   return false;
 }
@@ -313,8 +310,8 @@ LLVMBasedCFG::getSpecialMemberFunctionType(const llvm::Function *Fun) const {
   // test if codes are in function name or type information
   bool NoName = true;
   for (auto Index : Found) {
-    for (auto C = FunctionName.begin(); C < FunctionName.begin() + Index.first;
-         ++C) {
+    for (const auto *C = FunctionName.begin();
+         C < FunctionName.begin() + Index.first; ++C) {
       if (isdigit(*C)) {
         short I = 0;
         while (isdigit(*(C + I))) {
@@ -324,16 +321,14 @@ LLVMBasedCFG::getSpecialMemberFunctionType(const llvm::Function *Fun) const {
         if (Index.first <= std::distance(FunctionName.begin(), C) + stoul(ST)) {
           NoName = false;
           break;
-        } else {
-          C = C + *C;
         }
+        C = C + *C;
       }
     }
     if (NoName) {
       return Index.second;
-    } else {
-      NoName = true;
     }
+    NoName = true;
   }
   return SpecialMemberFunctionType::None;
 }
@@ -358,7 +353,7 @@ void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {
   OS << llvmIRToString(F);
 }
 
-nlohmann::json LLVMBasedCFG::getAsJson(const llvm::Function *F) const {
+nlohmann::json LLVMBasedCFG::getAsJson(const llvm::Function * /*F*/) const {
   return "";
 }
 
@@ -383,37 +378,32 @@ LLVMBasedCFG::exportCFGAsSourceCodeJson(const llvm::Function *F) const {
 
   for (const auto &BB : *F) {
     assert(!BB.empty() && "Invalid IR: Empty BasicBlock");
-    auto it = BB.begin();
-    auto end = BB.end();
-    auto From = getFirstNonEmpty(it, end);
+    auto It = BB.begin();
+    auto End = BB.end();
+    auto From = getFirstNonEmpty(It, End);
 
-    if (it == end) {
+    if (It == End) {
       continue;
     }
-
-    const auto *FromInst = &*it;
-
-    ++it;
-
+    ++It;
     // Edges inside the BasicBlock
-    for (; it != end; ++it) {
-      auto To = getFirstNonEmpty(it, end);
+    for (; It != End; ++It) {
+      auto To = getFirstNonEmpty(It, End);
       if (To.empty()) {
         break;
       }
 
       J.push_back({{"from", From}, {"to", To}});
 
-      FromInst = &*it;
       From = std::move(To);
     }
 
     const auto *Term = BB.getTerminator();
     assert(Term && "Invalid IR: BasicBlock without terminating instruction!");
 
-    auto numSuccessors = Term->getNumSuccessors();
+    const auto NumSuccessors = Term->getNumSuccessors();
 
-    if (numSuccessors != 0) {
+    if (NumSuccessors != 0) {
       // Branch Edges
 
       for (const auto *Succ : llvm::successors(&BB)) {
@@ -441,28 +431,28 @@ void to_json(nlohmann::json &J,
   J["IR"] = Info.IR;
 }
 
-auto LLVMBasedCFG::getFirstNonEmpty(llvm::BasicBlock::const_iterator &it,
-                                    llvm::BasicBlock::const_iterator end)
+auto LLVMBasedCFG::getFirstNonEmpty(llvm::BasicBlock::const_iterator &It,
+                                    llvm::BasicBlock::const_iterator End)
     -> SourceCodeInfoWithIR {
-  assert(it != end);
+  assert(It != End);
 
-  const auto *Inst = &*it;
-  auto ret = getSrcCodeInfoFromIR(Inst);
+  const auto *Inst = &*It;
+  auto Ret = getSrcCodeInfoFromIR(Inst);
 
   // Assume, we aren't skipping relevant calls here
 
-  while ((ret.empty() || it->isDebugOrPseudoInst()) && ++it != end) {
-    Inst = &*it;
-    ret = getSrcCodeInfoFromIR(Inst);
+  while ((Ret.empty() || It->isDebugOrPseudoInst()) && ++It != End) {
+    Inst = &*It;
+    Ret = getSrcCodeInfoFromIR(Inst);
   }
 
-  return {ret, llvmIRToString(Inst)};
+  return {Ret, llvmIRToString(Inst)};
 }
 
 auto LLVMBasedCFG::getFirstNonEmpty(const llvm::BasicBlock *BB)
     -> SourceCodeInfoWithIR {
-  auto it = BB->begin();
-  return getFirstNonEmpty(it, BB->end());
+  auto It = BB->begin();
+  return getFirstNonEmpty(It, BB->end());
 }
 
 } // namespace psr

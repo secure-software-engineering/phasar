@@ -42,9 +42,8 @@ std::ostream &operator<<(std::ostream &OS, const WPDSType &T) {
 WPDSSearchDirection toWPDSSearchDirection(const std::string &S) {
   if (S == "FORWARD") {
     return WPDSSearchDirection::FORWARD;
-  } else {
-    return WPDSSearchDirection::BACKWARD;
   }
+  return WPDSSearchDirection::BACKWARD;
 }
 
 std::string toString(const WPDSSearchDirection &S) {

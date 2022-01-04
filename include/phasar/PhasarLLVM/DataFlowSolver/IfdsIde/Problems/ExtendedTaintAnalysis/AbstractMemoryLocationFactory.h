@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H
 
 #include <memory>
 #include <vector>
@@ -97,7 +97,9 @@ protected:
 
   const AbstractMemoryLocationImpl *createImpl(const llvm::Value *V,
                                                unsigned BOUND);
-  const AbstractMemoryLocationImpl *getOrCreateZeroImpl() const;
+
+  [[nodiscard]] const AbstractMemoryLocationImpl *getOrCreateZeroImpl() const;
+
   const AbstractMemoryLocationImpl *
   withIndirectionOfImpl(const AbstractMemoryLocationImpl *AML,
                         llvm::ArrayRef<ptrdiff_t> Ind);
@@ -160,6 +162,7 @@ public:
                                               unsigned BOUND) {
     return {createImpl(V, BOUND)};
   }
+
   [[nodiscard]] AbstractMemoryLocation getOrCreateZero() const {
     return {getOrCreateZeroImpl()};
   }
@@ -206,4 +209,4 @@ public:
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H_
+#endif
