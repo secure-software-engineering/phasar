@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 
 #include <functional>
 #include <memory>
@@ -140,7 +140,7 @@ public:
    * The return value is a mapping from source value to function.
    */
   std::optional<std::reference_wrapper<
-      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunctionPtrType>>>>
   reverseLookup(n_t target, d_t targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal)) {
       return std::nullopt;
@@ -155,7 +155,7 @@ public:
    * The return value is a mapping from target value to function.
    */
   std::optional<std::reference_wrapper<
-      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunctionPtrType>>>>
   forwardLookup(d_t sourceVal, n_t target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
       return std::nullopt;

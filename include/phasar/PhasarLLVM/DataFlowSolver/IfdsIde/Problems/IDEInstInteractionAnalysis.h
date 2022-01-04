@@ -115,12 +115,14 @@ public:
   using EdgeFactGeneratorTy =
       std::set<e_t>(std::variant<n_t, const llvm::GlobalVariable *> curr);
 
-  IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
-                              const LLVMTypeHierarchy *TH,
-                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                              std::set<std::string> EntryPoints = {"main"})
+  IDEInstInteractionAnalysisT(
+      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+      std::set<std::string> EntryPoints = {"main"},
+      std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
-            IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+            IRDB, TH, ICF, PT, std::move(EntryPoints)),
+        edgeFactGen(std::move(EdgeFactGenerator)) {
     this->ZeroValue =
         IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
                                     EnableIndirectTaints>::createZeroValue();
@@ -1415,7 +1417,6 @@ private:
     }
     return {};
   }
-
 }; // namespace psr
 
 using IDEInstInteractionAnalysis = IDEInstInteractionAnalysisT<>;

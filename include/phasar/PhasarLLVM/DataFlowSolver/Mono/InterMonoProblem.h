@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
-#define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTERMONOPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTERMONOPROBLEM_H
 
 #include <set>
 #include <string>
@@ -56,14 +56,10 @@ public:
         ICF(ICF) {}
 
   ~InterMonoProblem() override = default;
-
-  InterMonoProblem(const InterMonoProblem &copy) = delete;
-
-  InterMonoProblem(InterMonoProblem &&move) = delete;
-
-  InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
-
-  InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
+  InterMonoProblem(const InterMonoProblem &Other) = delete;
+  InterMonoProblem(InterMonoProblem &&Other) = delete;
+  InterMonoProblem &operator=(const InterMonoProblem &Other) = delete;
+  InterMonoProblem &operator=(InterMonoProblem &&Other) = delete;
 
   virtual mono_container_t callFlow(n_t CallSite, f_t Callee,
                                     const mono_container_t &In) = 0;
@@ -76,7 +72,7 @@ public:
                                          std::set<f_t> Callees,
                                          const mono_container_t &In) = 0;
 
-  const i_t *getICFG() const { return ICF; }
+  [[nodiscard]] const i_t *getICFG() const { return ICF; }
 };
 
 } // namespace psr

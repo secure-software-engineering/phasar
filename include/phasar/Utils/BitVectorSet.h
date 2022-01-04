@@ -174,7 +174,7 @@ public:
     insert(First, Last);
   }
 
-  BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
+  [[nodiscard]] BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
     size_t MaxSize = std::max(Bits.size(), Other.Bits.size());
     BitVectorSet<T> Res;
     Res.Bits.reserve(MaxSize);
@@ -183,7 +183,8 @@ public:
     return Res;
   }
 
-  BitVectorSet<T> setIntersect(const BitVectorSet<T> &Other) const {
+  [[nodiscard]] BitVectorSet<T>
+  setIntersect(const BitVectorSet<T> &Other) const {
     BitVectorSet Res = Bits.size() > Other.Bits.size() ? Other : *this;
     const BitVectorSet &Larger =
         Bits.size() > Other.Bits.size() ? *this : Other;
@@ -196,7 +197,7 @@ public:
 
   void setUnionWith(const BitVectorSet<T> &Other) { Bits |= Other.Bits; }
 
-  bool includes(const BitVectorSet<T> &Other) const {
+  [[nodiscard]] bool includes(const BitVectorSet<T> &Other) const {
     return !Other.Bits.test(Bits);
   }
 

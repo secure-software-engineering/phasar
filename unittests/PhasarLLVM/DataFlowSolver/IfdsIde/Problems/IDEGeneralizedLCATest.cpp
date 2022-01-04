@@ -27,8 +27,8 @@
 
 using namespace psr;
 
-typedef std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>
-    groundTruth_t;
+using groundTruth_t =
+    std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>;
 
 /* ============== TEST FIXTURE ============== */
 
@@ -45,8 +45,8 @@ protected:
   std::unique_ptr<LLVMBasedICFG> ICFG;
   std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
-  IDEGeneralizedLCATest() {}
-  virtual ~IDEGeneralizedLCATest() {}
+  IDEGeneralizedLCATest() = default;
+  ~IDEGeneralizedLCATest() override = default;
 
   void initialize(const std::string &LLFile, size_t MaxSetSize = 2) {
     IRDB = std::make_unique<ProjectIRDB>(

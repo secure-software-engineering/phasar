@@ -40,9 +40,9 @@ public:
                                   LLVMPointsToInfo *PT,
                                   std::set<std::string> EntryPoints);
 
-  ~IFDSTabulationProblemTestPlugin() = default;
+  ~IFDSTabulationProblemTestPlugin() override = default;
 
-  const FlowFact *createZeroValue() const override;
+  [[nodiscard]] const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
@@ -79,4 +79,4 @@ makeIFDSTabulationProblemTestPlugin(const ProjectIRDB *IRDB,
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_HH_ */
+#endif

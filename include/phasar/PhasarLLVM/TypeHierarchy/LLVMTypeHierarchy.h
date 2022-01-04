@@ -158,7 +158,7 @@ public:
    */
   LLVMTypeHierarchy(const llvm::Module &M);
 
-  ~LLVMTypeHierarchy() = default;
+  ~LLVMTypeHierarchy() override = default;
 
   /**
    * @brief Constructs the actual class hierarchy graph.

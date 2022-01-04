@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
-#define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
 
 #include <deque>
 #include <iostream>
@@ -110,7 +110,7 @@ public:
     }
   }
 
-  mono_container_t getResultsAt(n_t n) { return Analysis[n]; }
+  mono_container_t getResultsAt(n_t Stmt) { return Analysis[Stmt]; }
 
   virtual void dumpResults(std::ostream &OS = std::cout) {
     OS << "Intra-Monotone solver results:\n"

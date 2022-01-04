@@ -8,10 +8,10 @@ namespace psr {
 
 std::set<ExtendedValue>
 GenerateFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  traceStats.add(currentInst);
+  TStats.add(CurrentInst);
 
-  if (Fact == zeroValue) {
-    return {ExtendedValue(currentInst)};
+  if (Fact == ZeroValue) {
+    return {ExtendedValue(CurrentInst)};
   }
 
   return {Fact};

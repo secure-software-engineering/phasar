@@ -28,9 +28,9 @@ public:
                                  const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                  std::set<std::string> EntryPoints);
 
-  ~IDETabulationProblemTestPlugin() = default;
+  ~IDETabulationProblemTestPlugin() override = default;
 
-  const FlowFact *createZeroValue() const override;
+  [[nodiscard]] const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,
@@ -84,4 +84,5 @@ makeIDETabulationProblemtestPlugin(const ProjectIRDB *IRDB,
                                    std::set<std::string> EntryPoints);
 
 } // namespace psr
+
 #endif
