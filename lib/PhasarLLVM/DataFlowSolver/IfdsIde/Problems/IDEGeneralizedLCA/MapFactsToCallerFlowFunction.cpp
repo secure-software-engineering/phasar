@@ -36,7 +36,7 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *Source) {
   std::set<const llvm::Value *> Res;
   // Handle C-style varargs functions
   if (Callee->isVarArg() && !Callee->isDeclaration()) {
-    const llvm::Instruction *AllocVarArg;
+    const llvm::Instruction *AllocVarArg = nullptr;
     // Find the allocation of %struct.__va_list_tag
     for (const auto &BB : *Callee) {
       for (const auto &I : BB) {
@@ -54,7 +54,8 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *Source) {
       }
     }
     // Generate the varargs things by using an over-approximation
-    if (Source == AllocVarArg && Source->getType()->isPointerTy()) {
+    if (Source != nullptr && Source == AllocVarArg &&
+        Source->getType()->isPointerTy()) {
       for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
         Res.insert(Actuals[Idx]);
       }

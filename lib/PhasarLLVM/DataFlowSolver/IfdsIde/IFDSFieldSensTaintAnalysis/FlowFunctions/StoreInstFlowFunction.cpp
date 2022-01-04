@@ -8,7 +8,7 @@ namespace psr {
 
 std::set<ExtendedValue>
 StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  const auto *const StoreInst = llvm::cast<llvm::StoreInst>(currentInst);
+  const auto *const StoreInst = llvm::cast<llvm::StoreInst>(CurrentInst);
 
   const auto *const SrcMemLocationMatr = StoreInst->getValueOperand();
   const auto *const DstMemLocationMatr = StoreInst->getPointerOperand();
@@ -71,7 +71,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       }
 
       TargetFacts.insert(EV);
-      traceStats.add(StoreInst, DstMemLocationSeq);
+      TStats.add(StoreInst, DstMemLocationSeq);
 
       LOG_DEBUG("Patched memory location (arg/store)");
       LOG_DEBUG("Source");
@@ -101,7 +101,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       EV.setMemLocationSeq(PatchedMemLocationSeq);
 
       TargetFacts.insert(EV);
-      traceStats.add(StoreInst, DstMemLocationSeq);
+      TStats.add(StoreInst, DstMemLocationSeq);
 
       LOG_DEBUG("Patched memory location (ret/store)");
       LOG_DEBUG("Source");
@@ -141,7 +141,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       EV.setMemLocationSeq(RelocatedMemLocationSeq);
 
       TargetFacts.insert(EV);
-      traceStats.add(StoreInst, DstMemLocationSeq);
+      TStats.add(StoreInst, DstMemLocationSeq);
 
       LOG_DEBUG("Relocated memory location (store)");
       LOG_DEBUG("Source");
@@ -163,7 +163,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       EV.setMemLocationSeq(DstMemLocationSeq);
 
       TargetFacts.insert(EV);
-      traceStats.add(StoreInst, DstMemLocationSeq);
+      TStats.add(StoreInst, DstMemLocationSeq);
     }
     if (!KillFact) {
       TargetFacts.insert(Fact);

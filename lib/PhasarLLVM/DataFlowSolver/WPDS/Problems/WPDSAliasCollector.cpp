@@ -34,73 +34,73 @@ WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
                                                     std::move(EntryPoints)) {}
 
 WPDSAliasCollector::FlowFunctionPtrType
-WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t Curr,
-                                          WPDSAliasCollector::n_t Succ) {
+WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t /*Curr*/,
+                                          WPDSAliasCollector::n_t /*Succ*/) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
 WPDSAliasCollector::FlowFunctionPtrType
-WPDSAliasCollector::getCallFlowFunction(WPDSAliasCollector::n_t CallSite,
-                                        WPDSAliasCollector::f_t DestFun) {
+WPDSAliasCollector::getCallFlowFunction(WPDSAliasCollector::n_t /*CallSite*/,
+                                        WPDSAliasCollector::f_t /*DestFun*/) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
 WPDSAliasCollector::FlowFunctionPtrType WPDSAliasCollector::getRetFlowFunction(
-    WPDSAliasCollector::n_t CallSite, WPDSAliasCollector::f_t CalleeFun,
-    WPDSAliasCollector::n_t ExitSite, WPDSAliasCollector::n_t RetSite) {
+    WPDSAliasCollector::n_t /*CallSite*/, WPDSAliasCollector::f_t /*CalleeFun*/,
+    WPDSAliasCollector::n_t /*ExitSite*/, WPDSAliasCollector::n_t /*RetSite*/) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
 WPDSAliasCollector::FlowFunctionPtrType
 WPDSAliasCollector::getCallToRetFlowFunction(
-    WPDSAliasCollector::n_t CallSite, WPDSAliasCollector::n_t RetSite,
-    set<WPDSAliasCollector::f_t> Callees) {
+    WPDSAliasCollector::n_t /*CallSite*/, WPDSAliasCollector::n_t /*RetSite*/,
+    set<WPDSAliasCollector::f_t> /*Callees*/) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
 WPDSAliasCollector::FlowFunctionPtrType
-WPDSAliasCollector::getSummaryFlowFunction(WPDSAliasCollector::n_t Curr,
-                                           WPDSAliasCollector::f_t DestFun) {
+WPDSAliasCollector::getSummaryFlowFunction(
+    WPDSAliasCollector::n_t /*Curr*/, WPDSAliasCollector::f_t /*DestFun*/) {
   return nullptr;
 }
 
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
-WPDSAliasCollector::getNormalEdgeFunction(WPDSAliasCollector::n_t Curr,
-                                          WPDSAliasCollector::d_t CurrNode,
-                                          WPDSAliasCollector::n_t Succ,
-                                          WPDSAliasCollector::d_t SuccNode) {
+WPDSAliasCollector::getNormalEdgeFunction(
+    WPDSAliasCollector::n_t /*Curr*/, WPDSAliasCollector::d_t /*CurrNode*/,
+    WPDSAliasCollector::n_t /*Succ*/, WPDSAliasCollector::d_t /*SuccNode*/) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getCallEdgeFunction(
-    WPDSAliasCollector::n_t CallSite, WPDSAliasCollector::d_t SrcNode,
-    WPDSAliasCollector::f_t DestinationFunction,
-    WPDSAliasCollector::d_t DestNode) {
+    WPDSAliasCollector::n_t /*CallSite*/, WPDSAliasCollector::d_t /*SrcNode*/,
+    WPDSAliasCollector::f_t /*DestinationFunction*/,
+    WPDSAliasCollector::d_t /*DestNode*/) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getReturnEdgeFunction(
-    WPDSAliasCollector::n_t CallSite, WPDSAliasCollector::f_t CalleeFunction,
-    WPDSAliasCollector::n_t ExitSite, WPDSAliasCollector::d_t ExitNode,
-    WPDSAliasCollector::n_t ReSite, WPDSAliasCollector::d_t RetNode) {
+    WPDSAliasCollector::n_t /*CallSite*/,
+    WPDSAliasCollector::f_t /*CalleeFunction*/,
+    WPDSAliasCollector::n_t /*ExitSite*/, WPDSAliasCollector::d_t /*ExitNode*/,
+    WPDSAliasCollector::n_t /*RetSite*/, WPDSAliasCollector::d_t /*RetNode*/) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getCallToRetEdgeFunction(
-    WPDSAliasCollector::n_t CallSite, WPDSAliasCollector::d_t CallNode,
-    WPDSAliasCollector::n_t RetSite, WPDSAliasCollector::d_t RetSiteNode,
-    set<WPDSAliasCollector::f_t> Callees) {
+    WPDSAliasCollector::n_t /*CallSite*/, WPDSAliasCollector::d_t /*CallNode*/,
+    WPDSAliasCollector::n_t /*RetSite*/,
+    WPDSAliasCollector::d_t /*RetSiteNode*/,
+    set<WPDSAliasCollector::f_t> /*Callees*/) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
-WPDSAliasCollector::getSummaryEdgeFunction(WPDSAliasCollector::n_t Curr,
-                                           WPDSAliasCollector::d_t CurrNode,
-                                           WPDSAliasCollector::n_t Succ,
-                                           WPDSAliasCollector::d_t SuccNode) {
+WPDSAliasCollector::getSummaryEdgeFunction(
+    WPDSAliasCollector::n_t /*Curr*/, WPDSAliasCollector::d_t /*CurrNode*/,
+    WPDSAliasCollector::n_t /*Succ*/, WPDSAliasCollector::d_t /*SuccNode*/) {
   return nullptr;
 }
 
@@ -117,8 +117,8 @@ WPDSAliasCollector::l_t WPDSAliasCollector::join(WPDSAliasCollector::l_t Lhs,
              : BinaryDomain::TOP;
 }
 
-bool WPDSAliasCollector::isZeroValue(WPDSAliasCollector::d_t D) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
+bool WPDSAliasCollector::isZeroValue(WPDSAliasCollector::d_t Fact) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
 InitialSeeds<WPDSAliasCollector::n_t, WPDSAliasCollector::d_t,
@@ -133,23 +133,23 @@ WPDSAliasCollector::allTopFunction() {
 }
 
 void WPDSAliasCollector::printNode(std::ostream &OS,
-                                   WPDSAliasCollector::n_t N) const {
-  OS << llvmIRToString(N);
+                                   WPDSAliasCollector::n_t Stmt) const {
+  OS << llvmIRToString(Stmt);
 }
 
 void WPDSAliasCollector::printDataFlowFact(std::ostream &OS,
-                                           WPDSAliasCollector::d_t D) const {
-  OS << llvmIRToString(D);
+                                           WPDSAliasCollector::d_t Fact) const {
+  OS << llvmIRToString(Fact);
 }
 
 void WPDSAliasCollector::printFunction(std::ostream &OS,
-                                       WPDSAliasCollector::f_t M) const {
-  OS << M->getName().str();
+                                       WPDSAliasCollector::f_t Func) const {
+  OS << Func->getName().str();
 }
 
 void WPDSAliasCollector::printEdgeFact(std::ostream &OS,
-                                       WPDSAliasCollector::l_t V) const {
-  if (V == BinaryDomain::TOP) {
+                                       WPDSAliasCollector::l_t L) const {
+  if (L == BinaryDomain::TOP) {
     OS << "TOP";
   } else {
     OS << "BOTTOM";

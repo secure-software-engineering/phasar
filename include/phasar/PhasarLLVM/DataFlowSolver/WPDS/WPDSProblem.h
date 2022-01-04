@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
-#define PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSPROBLEM_H
 
 #include <set>
 #include <string>
@@ -44,13 +44,15 @@ public:
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints) {
   }
 
-  virtual ~WPDSProblem() override = default;
+  ~WPDSProblem() override = default;
 
   WPDSSolverConfig SolverConf;
 
   void setWPDSSolverConfig(WPDSSolverConfig Config) { SolverConf = Config; }
 
-  WPDSSolverConfig getWPDSSolverConfig() const { return SolverConf; }
+  [[nodiscard]] WPDSSolverConfig getWPDSSolverConfig() const {
+    return SolverConf;
+  }
 };
 
 } // namespace psr
