@@ -13,6 +13,7 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include <iostream>
+#include <type_traits>
 #include <variant>
 
 namespace psr {
@@ -22,8 +23,7 @@ namespace psr {
 /// the lattice.
 struct Top {};
 
-static inline std::ostream &operator<<(std::ostream &OS,
-                                       [[maybe_unused]] const Top &T) {
+static inline std::ostream &operator<<(std::ostream &OS, Top /*unused*/) {
   return OS << "Top";
 }
 
@@ -32,8 +32,7 @@ static inline std::ostream &operator<<(std::ostream &OS,
 /// of the lattice.
 struct Bottom {};
 
-static inline std::ostream &operator<<(std::ostream &OS,
-                                       [[maybe_unused]] const Bottom &B) {
+static inline std::ostream &operator<<(std::ostream &OS, Bottom /*unused*/) {
   return OS << "Bottom";
 }
 
@@ -42,31 +41,41 @@ template <typename L> using LatticeDomain = std::variant<L, Top, Bottom>;
 
 template <typename L>
 inline std::ostream &operator<<(std::ostream &OS, const LatticeDomain<L> &LD) {
-  if (auto T = std::get_if<Top>(&LD)) {
-    return OS << *T;
-  }
-  if (auto B = std::get_if<Bottom>(&LD)) {
-    return OS << *B;
-  }
-  return OS << std::get<L>(LD);
+  std::visit([&OS](const auto &LVal) { OS << LVal; }, LD);
+  return OS;
 }
 
 template <typename L>
 inline bool operator==(const LatticeDomain<L> &Lhs,
                        const LatticeDomain<L> &Rhs) {
-  if (std::holds_alternative<Top>(Lhs) && std::holds_alternative<Top>(Rhs)) {
-    return true;
+  if (Lhs.index() != Rhs.index()) {
+    return false;
   }
-  if (std::holds_alternative<Bottom>(Lhs) &&
-      std::holds_alternative<Bottom>(Rhs)) {
-    return true;
-  }
+
   if (auto LhsPtr = std::get_if<L>(&Lhs)) {
     if (auto RhsPtr = std::get_if<L>(&Rhs)) {
       return *LhsPtr == *RhsPtr;
     }
   }
+
+  return true;
+}
+
+template <
+    typename L, typename LL,
+    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
+inline bool operator==(const LL &Lhs, const LatticeDomain<L> Rhs) {
+  if (const auto *RVal = std::get_if<L>(&Rhs)) {
+    return Lhs == *RVal;
+  }
   return false;
+}
+
+template <
+    typename L, typename LL,
+    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
+inline bool operator==(const LatticeDomain<L> Lhs, const LL &Rhs) {
+  return Rhs == Lhs;
 }
 
 template <typename L>

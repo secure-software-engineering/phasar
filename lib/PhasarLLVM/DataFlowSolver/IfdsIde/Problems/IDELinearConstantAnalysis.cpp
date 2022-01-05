@@ -45,11 +45,10 @@ unsigned IDELinearConstantAnalysis::CurrGenConstantId = 0; // NOLINT
 unsigned IDELinearConstantAnalysis::CurrLCAIDId = 0;       // NOLINT
 unsigned IDELinearConstantAnalysis::CurrBinaryId = 0;      // NOLINT
 
-const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::TOP =
-    std::numeric_limits<IDELinearConstantAnalysis::l_t>::min();
+const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::TOP = Top{};
 
 const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
-    std::numeric_limits<IDELinearConstantAnalysis::l_t>::max();
+    Bottom{};
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
@@ -470,8 +469,7 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
   return std::make_shared<AllBottom<l_t>>(BOTTOM);
 }
 
-IDELinearConstantAnalysis::GenConstant::GenConstant(
-    IDELinearConstantAnalysis::l_t IntConst)
+IDELinearConstantAnalysis::GenConstant::GenConstant(int64_t IntConst)
     : GenConstantId(++CurrGenConstantId), IntConst(IntConst) {}
 
 IDELinearConstantAnalysis::l_t
@@ -502,7 +500,7 @@ IDELinearConstantAnalysis::GenConstant::composeWith(
     return std::make_shared<AllBottom<l_t>>(BOTTOM);
   }
 
-  return std::make_shared<GenConstant>(Res);
+  return std::make_shared<GenConstant>(std::get<int64_t>(Res));
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
@@ -583,11 +581,6 @@ IDELinearConstantAnalysis::BinOp::computeTarget(l_t Source) {
                 << "Curr Node : " << llvmIRToString(CurrNode));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-  llvm::errs() << "BinOp::computeTarget(" << Source << ") with Op: " << Op
-               << ", Lop: " << llvmIRToShortString(Lop)
-               << ", Rop: " << llvmIRToShortString(Rop)
-               << ", at CurrNode: " << llvmIRToString(CurrNode) << '\n';
-
   if (LLVMZeroValue::isLLVMZeroValue(CurrNode) &&
       llvm::isa<llvm::ConstantInt>(Lop) && llvm::isa<llvm::ConstantInt>(Rop)) {
     const auto *Lic = llvm::cast<llvm::ConstantInt>(Lop);
@@ -667,30 +660,28 @@ void IDELinearConstantAnalysis::BinOp::print(std::ostream &OS,
 }
 
 char IDELinearConstantAnalysis::opToChar(const unsigned Op) {
-  char OpAsChar;
   switch (Op) {
   case llvm::Instruction::Add:
-    OpAsChar = '+';
-    break;
+    return '+';
   case llvm::Instruction::Sub:
-    OpAsChar = '-';
-    break;
+    return '-';
   case llvm::Instruction::Mul:
-    OpAsChar = '*';
-    break;
+    return '*';
   case llvm::Instruction::UDiv:
   case llvm::Instruction::SDiv:
-    OpAsChar = '/';
-    break;
+    return '/';
   case llvm::Instruction::URem:
   case llvm::Instruction::SRem:
-    OpAsChar = '%';
-    break;
+    return '%';
+  case llvm::Instruction::And:
+    return '&';
+  case llvm::Instruction::Or:
+    return '|';
+  case llvm::Instruction::Xor:
+    return '^';
   default:
-    OpAsChar = ' ';
-    break;
+    return ' ';
   }
-  return OpAsChar;
 }
 
 bool IDELinearConstantAnalysis::isEntryPoint(
@@ -699,66 +690,72 @@ bool IDELinearConstantAnalysis::isEntryPoint(
 }
 
 IDELinearConstantAnalysis::l_t
-IDELinearConstantAnalysis::executeBinOperation(const unsigned Op, l_t Lop,
-                                               l_t Rop) {
+IDELinearConstantAnalysis::executeBinOperation(const unsigned Op, l_t LVal,
+                                               l_t RVal) {
 
-  if (Lop == BOTTOM || Rop == BOTTOM) {
+  auto *LopPtr = std::get_if<int64_t>(&LVal);
+  auto *RopPtr = std::get_if<int64_t>(&RVal);
+
+  if (!LopPtr || !RopPtr) {
     return BOTTOM;
   }
 
+  auto Lop = *LopPtr;
+  auto Rop = *RopPtr;
+
   // default initialize with BOTTOM (all information)
-  l_t Res = BOTTOM;
+  int64_t Res;
   switch (Op) {
   case llvm::Instruction::Add:
     if (llvm::AddOverflow(Lop, Rop, Res)) {
-      Res = BOTTOM;
+      return BOTTOM;
     }
-    break;
+    return Res;
 
   case llvm::Instruction::Sub:
     if (llvm::SubOverflow(Lop, Rop, Res)) {
-      Res = BOTTOM;
+      return BOTTOM;
     }
-    break;
+    return Res;
 
   case llvm::Instruction::Mul:
     if (llvm::MulOverflow(Lop, Rop, Res)) {
-      Res = BOTTOM;
+      return BOTTOM;
     }
-    break;
+    return Res;
 
   case llvm::Instruction::UDiv:
   case llvm::Instruction::SDiv:
-    /// MIN is TOP, so already handled
-
-    // if (Lop == std::numeric_limits<IDELinearConstantAnalysis::l_t>::min() &&
-    //     Rop == -1) { // Would produce and overflow, as the complement of min
-    //     is
-    //                  // not representable in a signed type.
-    //   return BOTTOM;
-    // }
-    if (Rop == 0) { // Division by zero is UB, so we return TOP
+    if (Lop == std::numeric_limits<int64_t>::min() &&
+        Rop == -1) { // Would produce and overflow, as the complement of min is
+                     // not representable in a signed type.
+      return TOP;
+    }
+    if (Rop == 0) { // Division by zero is UB, so we return Bot
       return BOTTOM;
     }
-    Res = Lop / Rop;
-    break;
+    return Lop / Rop;
 
   case llvm::Instruction::URem:
   case llvm::Instruction::SRem:
-    if (Rop == 0) { // Division by zero is UB, so we return TOP
+    if (Rop == 0) { // Division by zero is UB, so we return Bot
       return BOTTOM;
     }
-    Res = Lop % Rop;
-    break;
+    return Lop % Rop;
 
+  case llvm::Instruction::And:
+    return Lop & Rop;
+  case llvm::Instruction::Or:
+    return Lop | Rop;
+  case llvm::Instruction::Xor:
+    return Lop ^ Rop;
   default:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Operation not supported by "
                      "IDELinearConstantAnalysis::"
                      "executeBinOperation()");
-    break;
+    return BOTTOM;
   }
-  return Res;
 }
 
 void IDELinearConstantAnalysis::printNode(std::ostream &OS, n_t Stmt) const {
@@ -776,13 +773,7 @@ void IDELinearConstantAnalysis::printFunction(std::ostream &OS,
 }
 
 void IDELinearConstantAnalysis::printEdgeFact(std::ostream &OS, l_t L) const {
-  if (L == BOTTOM) {
-    OS << "Bottom";
-  } else if (L == TOP) {
-    OS << "Top";
-  } else {
-    OS << L;
-  }
+  OS << L;
 }
 
 void IDELinearConstantAnalysis::emitTextReport(

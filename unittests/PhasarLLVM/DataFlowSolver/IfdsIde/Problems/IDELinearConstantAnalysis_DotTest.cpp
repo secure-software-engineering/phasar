@@ -24,8 +24,8 @@ protected:
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
-  using LCACompactResult_t =
-      std::tuple<std::string, std::size_t, std::string, int64_t>;
+  using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
+                                        IDELinearConstantAnalysisDomain::l_t>;
   std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
