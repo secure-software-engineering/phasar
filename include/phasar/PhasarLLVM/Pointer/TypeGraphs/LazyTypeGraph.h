@@ -14,8 +14,8 @@
  *      Author: nicolas bellec
  */
 
-#ifndef PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H_
-#define PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H
+#define PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H
 
 #include <set>
 #include <string>
@@ -37,8 +37,8 @@ namespace psr {
 class LazyTypeGraph : public TypeGraph<LazyTypeGraph> {
 protected:
   struct VertexProperties {
-    std::string name;
-    const llvm::StructType *type;
+    std::string Name;
+    const llvm::StructType *SType = nullptr;
   };
 
   struct EdgeProperties {
@@ -67,9 +67,9 @@ protected:
 
   struct dfs_visitor;
 
-  std::unordered_map<std::string, vertex_t> type_vertex_map;
-  graph_t g;
-  bool already_visited = false;
+  std::unordered_map<std::string, vertex_t> TypeToVertexMap;
+  graph_t Graph;
+  bool AlreadyVisited = false;
 
   vertex_t addType(const llvm::StructType *NewType);
   void aggregateTypes();
@@ -83,10 +83,9 @@ public:
   // LazyTypeGraph(LazyTypeGraph &&move) = delete;
   // LazyTypeGraph& operator=(LazyTypeGraph &&move) = delete;
 
-  virtual bool addLink(const llvm::StructType *from,
-                       const llvm::StructType *to) override;
-  virtual void
-  printAsDot(const std::string &path = "typegraph.dot") const override;
+  [[nodiscard]] bool addLink(const llvm::StructType *From,
+                             const llvm::StructType *To) override;
+  void printAsDot(const std::string &Path = "typegraph.dot") const override;
   [[nodiscard]] std::set<const llvm::StructType *>
   getTypes(const llvm::StructType *StructType) override;
 };
