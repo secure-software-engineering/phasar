@@ -31,19 +31,19 @@ protected:
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    auto IR_Files = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
+    auto IRFiles = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                        Soundness::Soundy, /*IncludeGlobals*/ true);
 
-    auto hasGlobalCtor = IRDB->getFunctionDefinition(
+    auto HasGlobalCtor = IRDB->getFunctionDefinition(
                              LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
     IDELinearConstantAnalysis LCAProblem(
         IRDB.get(), &TH, &ICFG, &PT,
-        {hasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
+        {HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
                        : "main"});
     IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
     LCASolver.solve();
@@ -71,7 +71,7 @@ protected:
       unsigned Line = std::get<1>(G);
       if (Results.find(FName) != Results.end()) {
         if (auto It = Results[FName].find(Line); It != Results[FName].end()) {
-          for (const auto &VarToVal : It->second.variableToValue) {
+          for (const auto &VarToVal : It->second.VariableToValue) {
             RelevantResults.emplace(FName, Line, VarToVal.first,
                                     VarToVal.second);
           }

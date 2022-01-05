@@ -27,25 +27,25 @@ template <typename N, typename F> class BiDiICFG : public ICFG<N, F> {
 public:
   virtual ~BiDiICFG() = default;
 
-  virtual std::vector<N> getPredsOf(N u) = 0;
+  virtual std::vector<N> getPredsOf(N U) = 0;
 
-  virtual std::set<N> getEndPointsOf(F f) = 0;
+  virtual std::set<N> getEndPointsOf(F Func) = 0;
 
-  virtual std::vector<N> getPredsOfCallAt(N u) = 0;
+  virtual std::vector<N> getPredsOfCallAt(N U) = 0;
 
   virtual std::set<N> allNonCallEndNodes() = 0;
 
   // also exposed to some clients who need it
   // virtual DirectedGraph<N> getOrCreateUnitGraph(F body) = 0;
 
-  virtual std::vector<N> getParameterRefs(F f) = 0;
+  virtual std::vector<N> getParameterRefs(F Func) = 0;
 
   /**
    * Gets whether the given statement is a return site of at least one call
    * @param n The statement to check
    * @return True if the given statement is a return site, otherwise false
    */
-  virtual bool isReturnSite(N n) = 0;
+  virtual bool isReturnSite(N U) = 0;
 
   /**
    * Checks whether the given statement is reachable from the entry point
@@ -53,7 +53,7 @@ public:
    * @return True if there is a control flow path from the entry point of the
    * program to the given statement, otherwise false
    */
-  virtual bool isReachable(N u) = 0;
+  virtual bool isReachable(N U) = 0;
 };
 
 } // namespace psr

@@ -17,17 +17,18 @@ struct TestEdgeFunction
     return EdgeFunctionSingletonFactory<TestEdgeFunction, int>::getCacheData();
   }
 
-  int computeTarget(int Source) override { return 42; }
+  int computeTarget(int /*Source*/) override { return 42; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
+  EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
     return this->shared_from_this();
   };
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType /*OtherFunction*/) override {
     return this->shared_from_this();
   }
 
-  bool equal_to(EdgeFunctionPtrType OtherFunction) const override {
+  bool equal_to(EdgeFunctionPtrType /*OtherFunction*/) const override {
     return false;
   };
 

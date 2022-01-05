@@ -10,11 +10,9 @@
 #ifndef PHASAR_PHASARCLANG_CLANGCONTROLLER_H_
 #define PHASAR_PHASARCLANG_CLANGCONTROLLER_H_
 
-namespace clang {
-namespace tooling {
+namespace clang::tooling {
 class CommonOptionsParser;
-}
-} // namespace clang
+} // namespace clang::tooling
 
 namespace psr {
 

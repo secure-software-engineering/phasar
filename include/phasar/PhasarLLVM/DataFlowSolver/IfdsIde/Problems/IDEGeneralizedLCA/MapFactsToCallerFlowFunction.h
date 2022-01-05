@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLERFLOWFUNCTION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLERFLOWFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLERFLOWFUNCTION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLERFLOWFUNCTION_H
 
 #include <set>
 #include <vector>
@@ -44,7 +44,7 @@ public:
                                const llvm::Instruction *ExitStmt,
                                const llvm::Function *Callee);
   std::set<const llvm::Value *>
-  computeTargets(const llvm::Value *source) override;
+  computeTargets(const llvm::Value *Source) override;
 };
 
 } // namespace psr

@@ -77,7 +77,7 @@ public:
     const llvm::Value *V = nullptr;
     EdgeProperties() = default;
     EdgeProperties(const llvm::Value *v);
-    std::string getValueAsString() const;
+    [[nodiscard]] std::string getValueAsString() const;
   };
 
   /// Data structure for holding the points-to graph.

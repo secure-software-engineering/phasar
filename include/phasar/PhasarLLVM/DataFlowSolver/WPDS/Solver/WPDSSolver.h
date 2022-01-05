@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_SOLVER_WPDSSOLVER_H_
-#define PHASAR_PHASARLLVM_WPDS_SOLVER_WPDSSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_SOLVER_WPDSSOLVER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_SOLVER_WPDSSOLVER_H
 
 #include <fstream>
 #include <iostream>
@@ -76,7 +76,7 @@ private:
   wali::wfa::WFA Query;
   wali::wfa::WFA Answer;
   wali::sem_elem_t SRElem;
-  Table<n_t, d_t, std::map<n_t, std::set<d_t>>> incomingtab;
+  Table<n_t, d_t, std::map<n_t, std::set<d_t>>> Incomingtab;
 
   wali::wpds::WPDS *makePDS(WPDSType Ty, bool Witnesses) {
     wali::wpds::Wrapper *Wrapper =
@@ -105,10 +105,10 @@ public:
   WPDSSolver(WPDSProblem<AnalysisDomainTy> &Problem)
       : IDESolver<AnalysisDomainTy>(Problem), Problem(Problem),
         SolverConf(Problem.getWPDSSolverConfig()),
-        PDS(makePDS(SolverConf.wpdsty, SolverConf.recordWitnesses)),
+        PDS(makePDS(SolverConf.WPDSType, SolverConf.RecordWitnesses)),
         ZeroValue(Problem.getZeroValue()),
-        AcceptingState(wali::getKey("__accept")), SRElem(nullptr) {
-    ZeroPDSState = wali::getKey(ZeroValue);
+        AcceptingState(wali::getKey("__accept")), SRElem(nullptr),
+        ZeroPDSState(wali::getKey(ZeroValue)) {
     DKey[ZeroValue] = ZeroPDSState;
   }
   ~WPDSSolver() override = default;
@@ -117,15 +117,15 @@ public:
 
     // Construct the PDS
     IDESolver<AnalysisDomainTy>::submitInitalSeeds();
-    std::ofstream pdsfile("pds.dot");
-    PDS->print_dot(pdsfile, true);
-    pdsfile.flush();
-    pdsfile.close();
+    std::ofstream PDSFile("pds.dot");
+    PDS->print_dot(PDSFile, true);
+    PDSFile.flush();
+    PDSFile.close();
     // test the SRElem
     wali::test_semelem_impl(SRElem);
     // Solve the PDS
-    wali::sem_elem_t ret = nullptr;
-    if (WPDSSearchDirection::FORWARD == SolverConf.searchDirection) {
+    wali::sem_elem_t Ret = nullptr;
+    if (WPDSSearchDirection::FORWARD == SolverConf.Direction) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "FORWARD");
       doForwardSearch(Answer);
       Answer.path_summary();
@@ -142,12 +142,12 @@ public:
       //   ret = ret->combine(tmp);
       // }
     } else {
-      auto retnode =
+      auto RetNode =
           wali::getKey(&IDESolver<AnalysisDomainTy>::ICF->getFunction("main")
                             ->back()
                             .back());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "BACKWARD");
-      doBackwardSearch(retnode, Answer);
+      doBackwardSearch(RetNode, Answer);
       Answer.path_summary();
 
       // access the results
@@ -192,161 +192,164 @@ public:
     }
   }
 
-  void processNormalFlow(PathEdge<n_t, d_t> edge) override {
+  void processNormalFlow(PathEdge<n_t, d_t> Edge) override {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processNormal");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process normal at target: "
-                  << this->ideTabulationProblem.NtoString(edge.getTarget()));
-    d_t d1 = edge.factAtSource();
-    n_t n = edge.getTarget();
-    d_t d2 = edge.factAtTarget();
-    EdgeFunctionPtrType f = IDESolver<AnalysisDomainTy>::jumpFunction(edge);
-    auto successorInst = IDESolver<AnalysisDomainTy>::ICF->getSuccsOf(n);
-    for (auto f : successorInst) {
-      FlowFunctionPtrType flowFunction =
+                  << this->ideTabulationProblem.NtoString(Edge.getTarget()));
+    d_t d1 = Edge.factAtSource(); // NOLINT
+    n_t n = Edge.getTarget();     // NOLINT
+    d_t d2 = Edge.factAtTarget(); // NOLINT
+    EdgeFunctionPtrType f =       // NOLINT
+        IDESolver<AnalysisDomainTy>::jumpFunction(Edge);
+    auto SuccessorInsts = IDESolver<AnalysisDomainTy>::ICF->getSuccsOf(n);
+    for (auto SuccessorInst : SuccessorInsts) {
+      FlowFunctionPtrType flowFunction = // NOLINT
           IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-              .getNormalFlowFunction(n, f);
+              .getNormalFlowFunction(n, SuccessorInst);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-      std::set<d_t> res =
+      std::set<d_t> Res =
           IDESolver<AnalysisDomainTy>::computeNormalFlowFunction(flowFunction,
                                                                  d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
-      IDESolver<AnalysisDomainTy>::saveEdges(n, f, d2, res, false);
-      for (d_t d3 : res) {
-        EdgeFunctionPtrType g =
+      IDESolver<AnalysisDomainTy>::saveEdges(n, SuccessorInst, d2, Res, false);
+      for (d_t d3 : Res) {      // NOLINT
+        EdgeFunctionPtrType g = // NOLINT
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                .getNormalEdgeFunction(n, d2, f, d3);
+                .getNormalEdgeFunction(n, d2, SuccessorInst, d3);
         // add normal PDS rule
-        auto d2_k = wali::getKey(d2);
+        auto d2_k = wali::getKey(d2); // NOLINT
         DKey[d2] = d2_k;
-        auto d3_k = wali::getKey(d3);
+        auto d3_k = wali::getKey(d3); // NOLINT
         DKey[d3] = d3_k;
-        auto n_k = wali::getKey(n);
-        auto f_k = wali::getKey(f);
-        wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> wptr;
-        wptr = new JoinLatticeToSemiRingElem<l_t>(
+        auto n_k = wali::getKey(n);             // NOLINT
+        auto f_k = wali::getKey(SuccessorInst); // NOLINT
+        wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> Wptr;
+        Wptr = new JoinLatticeToSemiRingElem<l_t>(
             g, static_cast<JoinLattice<l_t> &>(Problem));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "ADD NORMAL RULE: " << Problem.DtoString(d2) << " | "
-                      << Problem.NtoString(n) << " --> "
-                      << Problem.DtoString(d3) << " | " << Problem.DtoString(f)
-                      << ", " << *wptr << ")");
-        PDS->add_rule(d2_k, n_k, d3_k, f_k, wptr);
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "ADD NORMAL RULE: " << Problem.DtoString(d2) << " | "
+            << Problem.NtoString(n) << " --> " << Problem.DtoString(d3) << " | "
+            << Problem.DtoString(SuccessorInst) << ", " << *Wptr << ")");
+        PDS->add_rule(d2_k, n_k, d3_k, f_k, Wptr);
         if (!SRElem.is_valid()) {
-          SRElem = wptr;
+          SRElem = Wptr;
         }
-        EdgeFunctionPtrType fprime = f->composeWith(g);
+        EdgeFunctionPtrType fprime = SuccessorInst->composeWith(g); // NOLINT
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Compose: " << g->str() << " * " << f->str());
+                      << "Compose: " << g->str() << " * "
+                      << SuccessorInst->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        IDESolver<AnalysisDomainTy>::propagate(d1, f, d3, fprime, nullptr,
-                                               false);
+        IDESolver<AnalysisDomainTy>::propagate(d1, SuccessorInst, d3, fprime,
+                                               nullptr, false);
       }
     }
   }
 
-  void processCall(PathEdge<n_t, d_t> edge) override {
+  void processCall(PathEdge<n_t, d_t> Edge) override {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processCall");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process call at target: "
-                  << this->ideTabulationProblem.NtoString(edge.getTarget()));
-    d_t d1 = edge.factAtSource();
-    n_t n = edge.getTarget(); // a call node; line 14...
-    d_t d2 = edge.factAtTarget();
-    EdgeFunctionPtrType f = IDESolver<AnalysisDomainTy>::jumpFunction(edge);
-    std::set<n_t> returnSiteNs =
+                  << this->ideTabulationProblem.NtoString(Edge.getTarget()));
+    d_t d1 = Edge.factAtSource(); // NOLINT
+    n_t n = Edge.getTarget();     // NOLINT a call node; line 14...
+    d_t d2 = Edge.factAtTarget(); // NOLINT
+    EdgeFunctionPtrType f         // NOLINT
+        = IDESolver<AnalysisDomainTy>::jumpFunction(Edge);
+    std::set<n_t> ReturnSiteNs =
         IDESolver<AnalysisDomainTy>::ICF->getReturnSitesOfCallAt(n);
-    std::set<f_t> callees =
+    std::set<f_t> Callees =
         IDESolver<AnalysisDomainTy>::ICF->getCalleesOfCallAt(n);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible callees:");
-    for (auto callee : callees) {
+    for (auto Callee : Callees) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "  " << callee->getName().str());
+                    << "  " << Callee->getName().str());
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible return sites:");
-    for (auto ret : returnSiteNs) {
+    for (auto Ret : ReturnSiteNs) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "  " << this->ideTabulationProblem.NtoString(ret));
+                    << "  " << this->ideTabulationProblem.NtoString(Ret));
     }
     // for each possible callee
-    for (f_t sCalledProcN : callees) { // still line 14
+    for (f_t SCalledProcN : Callees) { // still line 14
       // check if a special summary for the called procedure exists
-      FlowFunctionPtrType specialSum =
+      FlowFunctionPtrType SpecialSum =
           IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-              .getSummaryFlowFunction(n, sCalledProcN);
+              .getSummaryFlowFunction(n, SCalledProcN);
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
-      if (specialSum) {
+      if (SpecialSum) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found and process special summary");
-        for (n_t returnSiteN : returnSiteNs) {
-          std::set<d_t> res =
+        for (n_t ReturnSiteN : ReturnSiteNs) {
+          std::set<d_t> Res =
               IDESolver<AnalysisDomainTy>::computeSummaryFlowFunction(
-                  specialSum, d1, d2);
+                  SpecialSum, d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1,
                       PAMM_SEVERITY_LEVEL::Full);
           ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          IDESolver<AnalysisDomainTy>::saveEdges(n, returnSiteN, d2, res,
+          IDESolver<AnalysisDomainTy>::saveEdges(n, ReturnSiteN, d2, Res,
                                                  false);
-          for (d_t d3 : res) {
-            EdgeFunctionPtrType sumEdgFnE =
+          for (d_t d3 : Res) { // NOLINT
+            EdgeFunctionPtrType SumEdgFnE =
                 IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                    .getSummaryEdgeFunction(n, d2, returnSiteN, d3);
+                    .getSummaryEdgeFunction(n, d2, ReturnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Compose: " << sumEdgFnE->str() << " * "
+                          << "Compose: " << SumEdgFnE->str() << " * "
                           << f->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             IDESolver<AnalysisDomainTy>::propagate(
-                d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
+                d1, ReturnSiteN, d3, f->composeWith(SumEdgFnE), n, false);
           }
         }
       } else {
         // compute the call-flow function
-        FlowFunctionPtrType function =
+        FlowFunctionPtrType Function =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                .getCallFlowFunction(n, sCalledProcN);
+                .getCallFlowFunction(n, SCalledProcN);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        std::set<d_t> res =
-            IDESolver<AnalysisDomainTy>::computeCallFlowFunction(function, d1,
+        std::set<d_t> Res =
+            IDESolver<AnalysisDomainTy>::computeCallFlowFunction(Function, d1,
                                                                  d2);
         ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
         // for each callee's start point(s)
-        std::set<n_t> startPointsOf =
-            IDESolver<AnalysisDomainTy>::ICF->getStartPointsOf(sCalledProcN);
-        if (startPointsOf.empty()) {
+        std::set<n_t> StartPointsOf =
+            IDESolver<AnalysisDomainTy>::ICF->getStartPointsOf(SCalledProcN);
+        if (StartPointsOf.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Start points of '" +
-                               this->ICF->getFunctionName(sCalledProcN) +
+                               this->ICF->getFunctionName(SCalledProcN) +
                                "' currently not available!");
         }
         // if startPointsOf is empty, the called function is a declaration
-        for (n_t sP : startPointsOf) {
-          IDESolver<AnalysisDomainTy>::saveEdges(n, sP, d2, res, true);
+        for (n_t SP : StartPointsOf) {
+          IDESolver<AnalysisDomainTy>::saveEdges(n, SP, d2, Res, true);
           // for each result node of the call-flow function
-          for (d_t d3 : res) {
+          for (d_t d3 : Res) { // NOLINT
             // create initial self-loop
             IDESolver<AnalysisDomainTy>::propagate(
-                d3, sP, d3, EdgeIdentity<l_t>::getInstance(), n,
+                d3, SP, d3, EdgeIdentity<l_t>::getInstance(), n,
                 false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
             // line 15.1 of Naeem/Lhotak/Rodriguez
-            IDESolver<AnalysisDomainTy>::addIncoming(sP, d3, n, d2);
+            IDESolver<AnalysisDomainTy>::addIncoming(SP, d3, n, d2);
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
             std::set<typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell>
-                endSumm = std::set<
+                EndSumm = std::set<
                     typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell>(
-                    IDESolver<AnalysisDomainTy>::endSummary(sP, d3));
+                    IDESolver<AnalysisDomainTy>::endSummary(SP, d3));
             // std::cout << "ENDSUMM" << std::endl;
             // std::cout << "Size: " << endSumm.size() << std::endl;
             // std::cout << "sP: " << ideTabulationProblem.NtoString(sP)
@@ -358,93 +361,93 @@ public:
             // <sP,d3>, create new caller-side jump functions to the return
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
-            for (typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell entry :
-                 endSumm) {
-              n_t eP = entry.getRowKey();
-              d_t d4 = entry.getColumnKey();
-              EdgeFunctionPtrType fCalleeSummary = entry.getValue();
+            for (typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell Entry :
+                 EndSumm) {
+              n_t eP = Entry.getRowKey();    // NOLINT
+              d_t d4 = Entry.getColumnKey(); // NOLINT
+              EdgeFunctionPtrType FCalleeSummary = Entry.getValue();
               // for each return site
-              for (n_t retSiteN : returnSiteNs) {
+              for (n_t RetSiteN : ReturnSiteNs) {
                 // compute return-flow function
-                FlowFunctionPtrType retFunction =
+                FlowFunctionPtrType RetFunction =
                     IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                        .getRetFlowFunction(n, sCalledProcN, eP, retSiteN);
+                        .getRetFlowFunction(n, SCalledProcN, eP, RetSiteN);
                 INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-                std::set<d_t> returnedFacts =
+                std::set<d_t> ReturnedFacts =
                     IDESolver<AnalysisDomainTy>::computeReturnFlowFunction(
-                        retFunction, d3, d4, n, std::set<d_t>{d2});
+                        RetFunction, d3, d4, n, std::set<d_t>{d2});
                 ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1,
                                  PAMM_SEVERITY_LEVEL::Full);
-                IDESolver<AnalysisDomainTy>::saveEdges(eP, retSiteN, d4,
-                                                       returnedFacts, true);
+                IDESolver<AnalysisDomainTy>::saveEdges(eP, RetSiteN, d4,
+                                                       ReturnedFacts, true);
                 // for each target value of the function
-                for (d_t d5 : returnedFacts) {
+                for (d_t d5 : ReturnedFacts) { // NOLINT
                   // update the caller-side summary function
                   // get call edge function
-                  EdgeFunctionPtrType f4 =
+                  EdgeFunctionPtrType f4 = // NOLINT
                       IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                          .getCallEdgeFunction(n, d2, sCalledProcN, d3);
+                          .getCallEdgeFunction(n, d2, SCalledProcN, d3);
                   // add call PDS rule
-                  auto d2_k = wali::getKey(d2);
+                  auto d2_k = wali::getKey(d2); // NOLINT
                   DKey[d2] = d2_k;
-                  auto d3_k = wali::getKey(d3);
+                  auto d3_k = wali::getKey(d3); // NOLINT
                   DKey[d3] = d3_k;
-                  auto n_k = wali::getKey(n);
-                  auto sP_k = wali::getKey(sP);
-                  wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> wptrCall(
+                  auto n_k = wali::getKey(n);   // NOLINT
+                  auto sP_k = wali::getKey(SP); // NOLINT
+                  wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> WptrCall(
                       new JoinLatticeToSemiRingElem<l_t>(
                           f4, static_cast<JoinLattice<l_t> &>(Problem)));
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "ADD CALL RULE: " << Problem.DtoString(d2)
                                 << ", " << Problem.NtoString(n) << ", "
                                 << Problem.DtoString(d3) << ", "
-                                << Problem.NtoString(sP) << ", " << *wptrCall);
-                  auto retSiteN_k = wali::getKey(retSiteN);
-                  PDS->add_rule(d2_k, n_k, d3_k, sP_k, retSiteN_k, wptrCall);
+                                << Problem.NtoString(SP) << ", " << *WptrCall);
+                  auto RetSiteNK = wali::getKey(RetSiteN);
+                  PDS->add_rule(d2_k, n_k, d3_k, sP_k, RetSiteNK, WptrCall);
                   if (!SRElem.is_valid()) {
-                    SRElem = wptrCall;
+                    SRElem = WptrCall;
                   }
                   // get return edge function
-                  EdgeFunctionPtrType f5 =
+                  EdgeFunctionPtrType f5 = // NOLINT
                       IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                          .getReturnEdgeFunction(n, sCalledProcN, eP, d4,
-                                                 retSiteN, d5);
+                          .getReturnEdgeFunction(n, SCalledProcN, eP, d4,
+                                                 RetSiteN, d5);
                   // add ret PDS rule
-                  auto d4_k = wali::getKey(d4);
+                  auto d4_k = wali::getKey(d4); // NOLINT
                   DKey[d4] = d4_k;
-                  auto d5_k = wali::getKey(d5);
+                  auto d5_k = wali::getKey(d5); // NOLINT
                   DKey[d5] = d5_k;
-                  wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> wptrRet(
+                  wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> WptrRet(
                       new JoinLatticeToSemiRingElem<l_t>(
                           f5, static_cast<JoinLattice<l_t> &>(Problem)));
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "ADD RET RULE (CALL): "
                                 << Problem.DtoString(d4) << ", "
-                                << Problem.NtoString(retSiteN) << ", "
-                                << Problem.DtoString(d5) << ", " << *wptrRet);
-                  std::set<n_t> exitPointsN =
+                                << Problem.NtoString(RetSiteN) << ", "
+                                << Problem.DtoString(d5) << ", " << *WptrRet);
+                  std::set<n_t> ExitPointsN =
                       IDESolver<AnalysisDomainTy>::ICF->getExitPointsOf(
-                          IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(sP));
-                  for (auto exitPointN : exitPointsN) {
-                    auto exitPointN_k = wali::getKey(exitPointN);
-                    PDS->add_rule(d4_k, exitPointN_k, d5_k, wptrRet);
+                          IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(SP));
+                  for (auto ExitPointN : ExitPointsN) {
+                    auto ExitPointNK = wali::getKey(ExitPointN);
+                    PDS->add_rule(d4_k, ExitPointNK, d5_k, WptrRet);
                   }
                   if (!SRElem.is_valid()) {
-                    SRElem = wptrRet;
+                    SRElem = WptrRet;
                   }
                   INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Compose: " << f5->str() << " * "
-                                << fCalleeSummary->str() << " * " << f4->str());
+                                << FCalleeSummary->str() << " * " << f4->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "         (return * calleeSummary * call)");
-                  EdgeFunctionPtrType fPrime =
-                      f4->composeWith(fCalleeSummary)->composeWith(f5);
+                  EdgeFunctionPtrType fPrime = // NOLINT
+                      f4->composeWith(FCalleeSummary)->composeWith(f5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "       = " << fPrime->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-                  d_t d5_restoredCtx =
+                  d_t d5_restoredCtx = // NOLINT
                       IDESolver<AnalysisDomainTy>::restoreContextOnReturnedFact(
                           n, d2, d5);
                   // propagte the effects of the entire call
@@ -453,7 +456,7 @@ public:
                                 << f->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                   IDESolver<AnalysisDomainTy>::propagate(
-                      d1, retSiteN, d5_restoredCtx, f->composeWith(fPrime), n,
+                      d1, RetSiteN, d5_restoredCtx, f->composeWith(fPrime), n,
                       false);
                 }
               }
@@ -463,137 +466,138 @@ public:
       }
       // line 17-19 of Naeem/Lhotak/Rodriguez
       // process intra-procedural flows along call-to-return flow functions
-      for (n_t returnSiteN : returnSiteNs) {
-        FlowFunctionPtrType callToReturnFlowFunction =
+      for (n_t ReturnSiteN : ReturnSiteNs) {
+        FlowFunctionPtrType CallToReturnFlowFunction =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                .getCallToRetFlowFunction(n, returnSiteN, callees);
+                .getCallToRetFlowFunction(n, ReturnSiteN, Callees);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        std::set<d_t> returnFacts =
+        std::set<d_t> ReturnFacts =
             IDESolver<AnalysisDomainTy>::computeCallToReturnFlowFunction(
-                callToReturnFlowFunction, d1, d2);
+                CallToReturnFlowFunction, d1, d2);
         ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
-        IDESolver<AnalysisDomainTy>::saveEdges(n, returnSiteN, d2, returnFacts,
+        IDESolver<AnalysisDomainTy>::saveEdges(n, ReturnSiteN, d2, ReturnFacts,
                                                false);
-        for (d_t d3 : returnFacts) {
-          EdgeFunctionPtrType edgeFnE =
+        for (d_t d3 : ReturnFacts) { // NOLINT
+          EdgeFunctionPtrType EdgeFnE =
               IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                  .getCallToRetEdgeFunction(n, d2, returnSiteN, d3, callees);
+                  .getCallToRetEdgeFunction(n, d2, ReturnSiteN, d3, Callees);
           // add calltoret PDS rule
-          auto d2_k = wali::getKey(d2);
+          auto d2_k = wali::getKey(d2); // NOLINT
           DKey[d2] = d2_k;
-          auto d3_k = wali::getKey(d3);
+          auto d3_k = wali::getKey(d3); // NOLINT
           DKey[d3] = d3_k;
-          auto n_k = wali::getKey(n);
-          auto returnSiteN_k = wali::getKey(returnSiteN);
-          wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> wptr(
+          auto n_k = wali::getKey(n); // NOLINT
+          auto ReturnSiteNK = wali::getKey(ReturnSiteN);
+          wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> Wptr(
               new JoinLatticeToSemiRingElem<l_t>(
-                  edgeFnE, static_cast<JoinLattice<l_t> &>(Problem)));
+                  EdgeFnE, static_cast<JoinLattice<l_t> &>(Problem)));
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "ADD CALLTORET RULE: " << Problem.DtoString(d2)
                         << " | " << Problem.NtoString(n) << " --> "
                         << Problem.DtoString(d3) << ", "
-                        << Problem.NtoString(returnSiteN) << ", " << *wptr);
-          PDS->add_rule(d2_k, n_k, d3_k, returnSiteN_k, wptr);
+                        << Problem.NtoString(ReturnSiteN) << ", " << *Wptr);
+          PDS->add_rule(d2_k, n_k, d3_k, ReturnSiteNK, Wptr);
           if (!SRElem.is_valid()) {
-            SRElem = wptr;
+            SRElem = Wptr;
           }
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Compose: " << edgeFnE->str() << " * " << f->str());
+                        << "Compose: " << EdgeFnE->str() << " * " << f->str());
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
           IDESolver<AnalysisDomainTy>::propagate(
-              d1, returnSiteN, d3, f->composeWith(edgeFnE), n, false);
+              d1, ReturnSiteN, d3, f->composeWith(EdgeFnE), n, false);
         }
       }
     }
   }
 
-  void processExit(PathEdge<n_t, d_t> edge) override {
+  void processExit(PathEdge<n_t, d_t> Edge) override {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processExit");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process exit at target: "
-                  << this->ideTabulationProblem.NtoString(edge.getTarget()));
-    n_t n = edge.getTarget(); // an exit node; line 21...
-    EdgeFunctionPtrType f = IDESolver<AnalysisDomainTy>::jumpFunction(edge);
-    f_t functionThatNeedsSummary =
+                  << this->ideTabulationProblem.NtoString(Edge.getTarget()));
+    n_t n = Edge.getTarget(); // NOLINT an exit node; line 21...
+    EdgeFunctionPtrType f     // NOLINT
+        = IDESolver<AnalysisDomainTy>::jumpFunction(Edge);
+    f_t FunctionThatNeedsSummary =
         IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(n);
-    d_t d1 = edge.factAtSource();
-    d_t d2 = edge.factAtTarget();
+    d_t d1 = Edge.factAtSource(); // NOLINT
+    d_t d2 = Edge.factAtTarget(); // NOLINT
     // for each of the method's start points, determine incoming calls
-    std::set<n_t> startPointsOf =
+    std::set<n_t> StartPointsOf =
         IDESolver<AnalysisDomainTy>::ICF->getStartPointsOf(
-            functionThatNeedsSummary);
-    std::map<n_t, std::set<d_t>> inc;
-    for (n_t sP : startPointsOf) {
+            FunctionThatNeedsSummary);
+    std::map<n_t, std::set<d_t>> Inc;
+    for (n_t SP : StartPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
       // register end-summary
-      IDESolver<AnalysisDomainTy>::addEndSummary(sP, d1, n, d2, f);
-      for (auto entry : IDESolver<AnalysisDomainTy>::incoming(d1, sP)) {
-        inc[entry.first] = std::set<d_t>{entry.second};
+      IDESolver<AnalysisDomainTy>::addEndSummary(SP, d1, n, d2, f);
+      for (auto Entry : IDESolver<AnalysisDomainTy>::incoming(d1, SP)) {
+        Inc[Entry.first] = std::set<d_t>{Entry.second};
       }
     }
     IDESolver<AnalysisDomainTy>::printEndSummaryTab();
     IDESolver<AnalysisDomainTy>::printIncomingTab();
     // for each incoming call edge already processed
     //(see processCall(..))
-    for (auto entry : inc) {
+    for (auto Entry : Inc) {
       // line 22
-      n_t c = entry.first;
+      n_t c = Entry.first; // NOLINT
       // for each return site
-      for (n_t retSiteC :
+      for (n_t RetSiteC :
            IDESolver<AnalysisDomainTy>::ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
-        FlowFunctionPtrType retFunction =
+        FlowFunctionPtrType RetFunction =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                .getRetFlowFunction(c, functionThatNeedsSummary, n, retSiteC);
+                .getRetFlowFunction(c, FunctionThatNeedsSummary, n, RetSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
-        for (d_t d4 : entry.second) {
-          std::set<d_t> targets =
+        for (d_t d4 : Entry.second) { // NOLINT
+          std::set<d_t> Targets =
               IDESolver<AnalysisDomainTy>::computeReturnFlowFunction(
-                  retFunction, d1, d2, c, entry.second);
+                  RetFunction, d1, d2, c, Entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          IDESolver<AnalysisDomainTy>::saveEdges(n, retSiteC, d2, targets,
+          IDESolver<AnalysisDomainTy>::saveEdges(n, RetSiteC, d2, Targets,
                                                  true);
-          std::cout << "RETURN TARGETS: " << targets.size() << std::endl;
+          std::cout << "RETURN TARGETS: " << Targets.size() << std::endl;
           // for each target value at the return site
           // line 23
-          for (d_t d5 : targets) {
+          for (d_t d5 : Targets) { // NOLINT
             // compute composed function
             // get call edge function
-            EdgeFunctionPtrType f4 =
+            EdgeFunctionPtrType f4 = // NOLINT
                 IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                     .getCallEdgeFunction(
                         c, d4,
                         IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(n), d1);
             // get return edge function
-            EdgeFunctionPtrType f5 =
+            EdgeFunctionPtrType f5 = // NOLINT
                 IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                     .getReturnEdgeFunction(
                         c, IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(n),
-                        n, d2, retSiteC, d5);
+                        n, d2, RetSiteC, d5);
             // add ret PDS rule
-            auto d1_k = wali::getKey(d1);
+            auto d1_k = wali::getKey(d1); // NOLINT
             DKey[d1] = d1_k;
-            auto d2_k = wali::getKey(d2);
+            auto d2_k = wali::getKey(d2); // NOLINT
             DKey[d2] = d2_k;
-            auto d5_k = wali::getKey(d5);
+            auto d5_k = wali::getKey(d5); // NOLINT
             DKey[d5] = d5_k;
-            auto n_k = wali::getKey(n);
-            wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> wptr(
+            auto n_k = wali::getKey(n); // NOLINT
+            wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> Wptr(
                 new JoinLatticeToSemiRingElem<l_t>(
                     f5, static_cast<JoinLattice<l_t> &>(Problem)));
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "ADD RET RULE: " << Problem.DtoString(d2) << ", "
                           << Problem.NtoString(n) << ", "
-                          << Problem.DtoString(d5) << ", " << *wptr);
-            PDS->add_rule(d2_k, n_k, d5_k, wptr);
+                          << Problem.DtoString(d5) << ", " << *Wptr);
+            PDS->add_rule(d2_k, n_k, d5_k, Wptr);
             if (!SRElem.is_valid()) {
-              SRElem = wptr;
+              SRElem = Wptr;
             }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
@@ -602,18 +606,19 @@ public:
                           << " * " << f4->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "         (return * function * call)");
-            EdgeFunctionPtrType fPrime = f4->composeWith(f)->composeWith(f5);
+            EdgeFunctionPtrType fPrime // NOLINT
+                = f4->composeWith(f)->composeWith(f5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "       = " << fPrime->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to return
             // site using the composed function
-            for (auto valAndFunc :
+            for (auto ValAndFunc :
                  IDESolver<AnalysisDomainTy>::jumpFn->reverseLookup(c, d4)) {
-              EdgeFunctionPtrType f3 = valAndFunc.second;
+              EdgeFunctionPtrType f3 = ValAndFunc.second; // NOLINT
               if (!f3->equal_to(IDESolver<AnalysisDomainTy>::allTop)) {
-                d_t d3 = valAndFunc.first;
-                d_t d5_restoredCtx =
+                d_t d3 = ValAndFunc.first; // NOLINT
+                d_t d5_restoredCtx =       // NOLINT
                     IDESolver<AnalysisDomainTy>::restoreContextOnReturnedFact(
                         c, d4, d5);
                 LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -621,7 +626,7 @@ public:
                               << f3->str());
                 LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                 IDESolver<AnalysisDomainTy>::propagate(
-                    d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime), c,
+                    d3, RetSiteC, d5_restoredCtx, f3->composeWith(fPrime), c,
                     false);
               }
             }
@@ -635,39 +640,39 @@ public:
     // conditionally generated values should only
     // be propagated into callers that have an incoming edge for this condition
     if (IDESolver<AnalysisDomainTy>::SolverConfig.followReturnsPastSeeds &&
-        inc.empty() &&
+        Inc.empty() &&
         IDESolver<AnalysisDomainTy>::ideTabulationProblem.isZeroValue(d1)) {
-      std::set<n_t> callers = IDESolver<AnalysisDomainTy>::ICF->getCallersOf(
-          functionThatNeedsSummary);
-      for (n_t c : callers) {
-        for (n_t retSiteC :
-             IDESolver<AnalysisDomainTy>::ICF->getReturnSitesOfCallAt(c)) {
-          FlowFunctionPtrType retFunction =
+      std::set<n_t> Callers = IDESolver<AnalysisDomainTy>::ICF->getCallersOf(
+          FunctionThatNeedsSummary);
+      for (n_t C : Callers) {
+        for (n_t RetSiteC :
+             IDESolver<AnalysisDomainTy>::ICF->getReturnSitesOfCallAt(C)) {
+          FlowFunctionPtrType RetFunction =
               IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                  .getRetFlowFunction(c, functionThatNeedsSummary, n, retSiteC);
+                  .getRetFlowFunction(C, FunctionThatNeedsSummary, n, RetSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          std::set<d_t> targets =
+          std::set<d_t> Targets =
               IDESolver<AnalysisDomainTy>::computeReturnFlowFunction(
-                  retFunction, d1, d2, c,
+                  RetFunction, d1, d2, C,
                   std::set<d_t>{IDESolver<AnalysisDomainTy>::zeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          IDESolver<AnalysisDomainTy>::saveEdges(n, retSiteC, d2, targets,
+          IDESolver<AnalysisDomainTy>::saveEdges(n, RetSiteC, d2, Targets,
                                                  true);
-          for (d_t d5 : targets) {
-            EdgeFunctionPtrType f5 =
+          for (d_t d5 : Targets) {   // NOLINT
+            EdgeFunctionPtrType f5 = // NOLINT
                 IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
                     .getReturnEdgeFunction(
-                        c, IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(n),
-                        n, d2, retSiteC, d5);
+                        C, IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(n),
+                        n, d2, RetSiteC, d5);
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             IDESolver<AnalysisDomainTy>::propagteUnbalancedReturnFlow(
-                retSiteC, d5, f->composeWith(f5), c);
+                RetSiteC, d5, f->composeWith(f5), C);
             // register for value processing (2nd IDE phase)
-            IDESolver<AnalysisDomainTy>::unbalancedRetSites.insert(retSiteC);
+            IDESolver<AnalysisDomainTy>::unbalancedRetSites.insert(RetSiteC);
           }
         }
       }
@@ -675,13 +680,13 @@ public:
       // normally not be processed at all; this might be undesirable if
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
-      if (callers.empty()) {
-        FlowFunctionPtrType retFunction =
+      if (Callers.empty()) {
+        FlowFunctionPtrType RetFunction =
             IDESolver<AnalysisDomainTy>::cachedFlowEdgeFunctions
-                .getRetFlowFunction(nullptr, functionThatNeedsSummary, n,
+                .getRetFlowFunction(nullptr, FunctionThatNeedsSummary, n,
                                     nullptr);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        retFunction->computeTargets(d2);
+        RetFunction->computeTargets(d2);
       }
     }
   }
@@ -689,123 +694,123 @@ public:
   void doForwardSearch(wali::wfa::WFA &Answer) {
     // Create an automaton to AcceptingState the configuration:
     // <ZeroPDSState, entry>
-    for (auto seed : IDESolver<AnalysisDomainTy>::initialSeeds) {
-      wali::Key entry = wali::getKey(seed.first);
-      Query.addTrans(ZeroPDSState, entry, AcceptingState, SRElem->one());
+    for (auto Seed : IDESolver<AnalysisDomainTy>::initialSeeds) {
+      wali::Key Entry = wali::getKey(Seed.first);
+      Query.addTrans(ZeroPDSState, Entry, AcceptingState, SRElem->one());
     }
     Query.set_initial_state(ZeroPDSState);
     Query.add_final_state(AcceptingState);
     Query.print(std::cout << "BEFORE POSTSTAR\n");
-    std::ofstream before("before_poststar.dot");
-    Query.print_dot(before, true);
+    std::ofstream Before("before_poststar.dot");
+    Query.print_dot(Before, true);
     PDS->poststar(Query, Answer);
     Answer.print(std::cout << "AFTER POSTSTAR\n");
-    std::ofstream after("after_poststar.dot");
-    Answer.print_dot(after, true);
+    std::ofstream After("after_poststar.dot");
+    Answer.print_dot(After, true);
   }
 
-  void doBackwardSearch(wali::Key node, wali::wfa::WFA &Answer) {
+  void doBackwardSearch(wali::Key Node, wali::wfa::WFA &Answer) {
     // Create an automaton to AcceptingState the configurations {n \Gamma^*}
     // Find the set of all return points
-    wali::wpds::WpdsStackSymbols syms;
-    PDS->for_each(syms);
-    auto alloca1 =
+    wali::wpds::WpdsStackSymbols Syms;
+    PDS->for_each(Syms);
+    auto Alloca1 =
         &IDESolver<AnalysisDomainTy>::ICF->getFunction("main")->front().front();
-    auto a1key = wali::getKey(alloca1);
+    auto A1Key = wali::getKey(Alloca1);
     // the weight is essential here!
-    Query.addTrans(a1key, node, AcceptingState, SRElem->one());
-    std::set<wali::Key>::iterator it;
-    for (it = syms.returnPoints.begin(); it != syms.returnPoints.end(); it++) {
-      wali::getKeySource(*it)->print(std::cout);
+    Query.addTrans(A1Key, Node, AcceptingState, SRElem->one());
+    std::set<wali::Key>::iterator It;
+    for (It = Syms.returnPoints.begin(); It != Syms.returnPoints.end(); It++) {
+      wali::getKeySource(*It)->print(std::cout);
       std::cout << std::endl;
-      Query.addTrans(AcceptingState, *it, AcceptingState, SRElem->one());
+      Query.addTrans(AcceptingState, *It, AcceptingState, SRElem->one());
     }
-    Query.set_initial_state(a1key);
+    Query.set_initial_state(A1Key);
     Query.add_final_state(AcceptingState);
     Query.print(std::cout << "BEFORE PRESTAR\n");
-    std::ofstream before("before_prestar.dot");
-    Query.print_dot(before, true);
+    std::ofstream Before("before_prestar.dot");
+    Query.print_dot(Before, true);
     PDS->prestar(Query, Answer);
     Answer.print(std::cout << "AFTER PRESTAR\n");
-    std::ofstream after("after_prestar.dot");
-    Answer.print_dot(after, true);
+    std::ofstream After("after_prestar.dot");
+    Answer.print_dot(After, true);
   }
 
-  void doBackwardSearch(std::vector<wali::Key> node_stack,
+  void doBackwardSearch(std::vector<wali::Key> NodeStack,
                         wali::wfa::WFA &Answer) {
-    assert(!node_stack.empty());
+    assert(!NodeStack.empty());
     // Create an automaton to AcceptingState the configuration <ZeroPDSState,
     // node_stack>
-    wali::Key temp_from = ZeroPDSState;
-    wali::Key temp_to = wali::WALI_EPSILON;
-    for (size_t i = 0; i < node_stack.size(); i++) {
-      std::stringstream ss;
-      ss << "__tmp_state_" << i;
-      temp_to = wali::getKey(ss.str());
-      Query.addTrans(temp_from, node_stack[i], temp_to, SRElem->one());
-      temp_from = temp_to;
+    wali::Key TempFrom = ZeroPDSState;
+    wali::Key TempTo = wali::WALI_EPSILON;
+    for (size_t I = 0; I < NodeStack.size(); I++) {
+      std::stringstream SStr;
+      SStr << "__tmp_state_" << I;
+      TempTo = wali::getKey(SStr.str());
+      Query.addTrans(TempFrom, NodeStack[I], TempTo, SRElem->one());
+      TempFrom = TempTo;
     }
     Query.set_initial_state(ZeroPDSState);
-    Query.add_final_state(temp_to);
+    Query.add_final_state(TempTo);
     PDS->prestar(Query, Answer);
   }
 
-  std::unordered_map<d_t, l_t> resultsAt(n_t stmt,
-                                         bool stripZero = false) override {
+  std::unordered_map<d_t, l_t> resultsAt(n_t Stmt,
+                                         bool StripZero = false) override {
     std::unordered_map<d_t, l_t> Results;
-    wali::wfa::Trans goal;
+    wali::wfa::Trans Goal;
     for (auto Entry : DKey) {
       // Method 1: If query 'stmt' is located within the same function as the
       // starting point
-      if (Answer.find(Entry.second, wali::getKey(stmt), AcceptingState, goal)) {
+      if (Answer.find(Entry.second, wali::getKey(Stmt), AcceptingState, Goal)) {
         Results.insert(std::make_pair(
             Entry.first,
-            static_cast<JoinLatticeToSemiRingElem<l_t> &>(*goal.weight())
+            static_cast<JoinLatticeToSemiRingElem<l_t> &>(*Goal.weight())
                 .F->computeTarget(l_t{})));
       } else {
         // Method 2: If query 'stmt' is located in a different function
-        wali::sem_elem_t ret = SRElem->zero();
-        wali::wfa::TransSet tset;
-        wali::wfa::TransSet::iterator titer;
-        tset = Answer.match(Entry.second, wali::getKey(stmt));
-        for (titer = tset.begin(); titer != tset.end(); titer++) {
-          wali::wfa::ITrans *t = *titer;
-          wali::sem_elem_t tmp(Answer.getState(t->to())->weight());
-          tmp = tmp->extend(t->weight());
-          ret = ret->combine(tmp);
+        wali::sem_elem_t Ret = SRElem->zero();
+        wali::wfa::TransSet Tset;
+        wali::wfa::TransSet::iterator TIter;
+        Tset = Answer.match(Entry.second, wali::getKey(Stmt));
+        for (TIter = Tset.begin(); TIter != Tset.end(); TIter++) {
+          wali::wfa::ITrans *Trans = *TIter;
+          wali::sem_elem_t Tmp(Answer.getState(Trans->to())->weight());
+          Tmp = Tmp->extend(Trans->weight());
+          Ret = Ret->combine(Tmp);
         }
-        if (!ret->equal(SRElem->zero())) {
+        if (!Ret->equal(SRElem->zero())) {
           Results.insert(std::make_pair(
-              Entry.first, static_cast<JoinLatticeToSemiRingElem<l_t> &>(*ret)
+              Entry.first, static_cast<JoinLatticeToSemiRingElem<l_t> &>(*Ret)
                                .F->computeTarget(l_t{})));
         }
       }
     }
-    if (stripZero) {
+    if (StripZero) {
       Results.erase(ZeroValue);
     }
     return Results;
   }
 
-  l_t resultAt(n_t stmt, d_t fact) override {
-    wali::wfa::Trans goal;
-    if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState,
-                    goal)) {
-      return static_cast<JoinLatticeToSemiRingElem<l_t> &>(*goal.weight())
+  l_t resultAt(n_t Stmt, d_t Fact) override {
+    wali::wfa::Trans Goal;
+    if (Answer.find(wali::getKey(Fact), wali::getKey(Stmt), AcceptingState,
+                    Goal)) {
+      return static_cast<JoinLatticeToSemiRingElem<l_t> &>(*Goal.weight())
           .F->computeTarget(l_t{});
     }
-    wali::sem_elem_t ret = SRElem->zero();
-    wali::wfa::TransSet tset;
-    wali::wfa::TransSet::iterator titer;
-    tset = Answer.match(wali::getKey(fact), wali::getKey(stmt));
-    for (titer = tset.begin(); titer != tset.end(); titer++) {
-      wali::wfa::ITrans *t = *titer;
-      wali::sem_elem_t tmp(Answer.getState(t->to())->weight());
-      tmp = tmp->extend(t->weight());
-      ret = ret->combine(tmp);
+    wali::sem_elem_t Ret = SRElem->zero();
+    wali::wfa::TransSet Tset;
+    wali::wfa::TransSet::iterator TIter;
+    Tset = Answer.match(wali::getKey(Fact), wali::getKey(Stmt));
+    for (TIter = Tset.begin(); TIter != Tset.end(); TIter++) {
+      wali::wfa::ITrans *Trans = *TIter;
+      wali::sem_elem_t Tmp(Answer.getState(Trans->to())->weight());
+      Tmp = Tmp->extend(Trans->weight());
+      Ret = Ret->combine(Tmp);
     }
-    if (!ret->equal(SRElem->zero())) {
-      return static_cast<JoinLatticeToSemiRingElem<l_t> &>(*ret)
+    if (!Ret->equal(SRElem->zero())) {
+      return static_cast<JoinLatticeToSemiRingElem<l_t> &>(*Ret)
           .F->computeTarget(l_t{});
     }
     throw std::runtime_error("Requested invalid fact!");

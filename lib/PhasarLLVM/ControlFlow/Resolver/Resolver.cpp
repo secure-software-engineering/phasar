@@ -77,7 +77,7 @@ Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    const llvm::CallBase *CallSite) {
+                                    const llvm::CallBase * /*CallSite*/) {
   if (TH && TH->hasVFTable(T)) {
     const auto *Target = TH->getVFTable(T)->getFunction(Idx);
     if (Target && Target->getName() != "__cxa_pure_virtual") {

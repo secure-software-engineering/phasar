@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_WPDSGENKILLPROBLEM_H_
-#define PHASAR_PHASARLLVM_WPDS_WPDSGENKILLPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSGENKILLPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSGENKILLPROBLEM_H
 
 #include <vector>
 
@@ -24,7 +24,7 @@ template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I>
 class WPDSGenKillProblem {
 public:
-  WPDSGenKillProblem() {}
+  WPDSGenKillProblem() = default;
   virtual ~WPDSGenKillProblem() = default;
 };
 

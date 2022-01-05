@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES
+#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
+#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 
 #include <iosfwd>
 #include <string>
@@ -24,7 +24,7 @@ std::string toString(const AnalysisStrategy &S);
 
 AnalysisStrategy toAnalysisStrategy(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const AnalysisStrategy &S);
+std::ostream &operator<<(std::ostream &OS, const AnalysisStrategy &S);
 
 } // namespace psr
 
