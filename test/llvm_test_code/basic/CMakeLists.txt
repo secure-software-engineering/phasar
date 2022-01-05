@@ -1,4 +1,5 @@
 set(basics
+  module.cpp
   seven_structs.cpp
   two_structs.cpp
 )
