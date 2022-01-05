@@ -4,11 +4,11 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Fabian Schiebel and others
+ *     Fabian Schiebel and Others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_TYPECASTEDGEFUNCTION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_TYPECASTEDGEFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_TYPECASTEDGEFUNCTION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_TYPECASTEDGEFUNCTION_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
@@ -19,28 +19,28 @@ namespace psr {
 class TypecastEdgeFunction
     : public EdgeFunction<IDEGeneralizedLCA::l_t>,
       public std::enable_shared_from_this<TypecastEdgeFunction> {
-  unsigned bits;
-  EdgeValue::Type dest;
-  size_t maxSize;
+  unsigned Bits;
+  EdgeValue::Type Dest;
+  size_t MaxSize;
 
 public:
-  TypecastEdgeFunction(unsigned bits, EdgeValue::Type dest, size_t maxSize)
-      : bits(bits), dest(dest), maxSize(maxSize) {}
+  TypecastEdgeFunction(unsigned Bits, EdgeValue::Type Dest, size_t MaxSize)
+      : Bits(Bits), Dest(Dest), MaxSize(MaxSize) {}
 
-  IDEGeneralizedLCA::l_t computeTarget(IDEGeneralizedLCA::l_t source) override;
+  IDEGeneralizedLCA::l_t computeTarget(IDEGeneralizedLCA::l_t Source) override;
 
   std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction)
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction)
       override;
 
   std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction)
+  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction)
       override;
 
-  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other)
+  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other)
       const override;
 
-  void print(std::ostream &OS, bool isForDebug = false) const override;
+  void print(std::ostream &OS, bool IsForDebug = false) const override;
 };
 
 } // namespace psr

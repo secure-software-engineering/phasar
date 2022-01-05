@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H
 
 #include <memory>
 #include <set>
@@ -102,9 +102,13 @@ public:
     return Problem.initialSeeds();
   }
 
-  d_t createZeroValue() const override { return Problem.createZeroValue(); }
+  [[nodiscard]] d_t createZeroValue() const override {
+    return Problem.createZeroValue();
+  }
 
-  bool isZeroValue(d_t d) const override { return Problem.isZeroValue(d); }
+  [[nodiscard]] bool isZeroValue(d_t Fact) const override {
+    return Problem.isZeroValue(Fact);
+  }
 
   BinaryDomain topElement() override { return BinaryDomain::TOP; }
 

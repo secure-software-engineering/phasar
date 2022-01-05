@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
-#define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
+#define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 
 #include <functional>
 #include <memory>
@@ -24,7 +24,7 @@ public:
 
   PointsToSetTy *acquire() {
     auto Ptr = std::make_unique<PointsToSetTy>();
-    auto Ret = Ptr.get();
+    auto *Ret = Ptr.get();
     OwnedPTS.try_emplace(Ret, std::move(Ptr));
     return Ret;
   }
@@ -59,4 +59,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H_
+#endif // PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H

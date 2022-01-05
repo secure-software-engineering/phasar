@@ -95,7 +95,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
   // GlobalCtor->print(llvm::outs());
 
-  EnsureFunctionOrdering(GlobalCtor, ICFG,
+  ensureFunctionOrdering(GlobalCtor, ICFG,
                          {{"_GLOBAL__sub_I_globals_ctor_1.cpp", "main"},
                           {"main", "__psrCRuntimeGlobalDtorsModel"}});
 }
@@ -115,7 +115,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 
   // GlobalCtor->print(llvm::outs());
 
-  EnsureFunctionOrdering(GlobalCtor, ICFG,
+  ensureFunctionOrdering(GlobalCtor, ICFG,
                          {{"_GLOBAL__sub_I_globals_ctor_2_1.cpp", "main"},
                           {"_GLOBAL__sub_I_globals_ctor_2_2.cpp", "main"}});
 }
@@ -133,7 +133,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
   // GlobalCtor->print(llvm::outs());
 
-  EnsureFunctionOrdering(
+  ensureFunctionOrdering(
       GlobalCtor, ICFG,
       {{"_GLOBAL__sub_I_globals_dtor_1.cpp", "main"},
        {"main", "__psrGlobalDtorsCaller.globals_dtor_1_cpp.ll"}});
@@ -173,7 +173,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
   auto *FooInit = IRDB.getInstruction(6);
   auto *LoadX = IRDB.getInstruction(11);
   auto *End = IRDB.getInstruction(13);
-  auto Foo = IRDB.getGlobalVariableDefinition("foo");
+  const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
 
   auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
 
@@ -210,8 +210,8 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
   auto *LoadX = IRDB.getInstruction(20);
   auto *LoadY = IRDB.getInstruction(21);
   auto *End = IRDB.getInstruction(23);
-  auto Foo = IRDB.getGlobalVariableDefinition("foo");
-  auto Bar = IRDB.getGlobalVariableDefinition("bar");
+  const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
+  const auto *Bar = IRDB.getGlobalVariableDefinition("bar");
 
   auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
   auto BarValueAfterInit = Solver.resultAt(BarInit, Bar);
@@ -253,8 +253,8 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
   auto *LoadX = IRDB.getInstruction(18);
   auto *LoadY = IRDB.getInstruction(19);
   auto *End = IRDB.getInstruction(21);
-  auto Foo = IRDB.getGlobalVariableDefinition("foo");
-  auto Bar = IRDB.getGlobalVariableDefinition("bar");
+  const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
+  const auto *Bar = IRDB.getGlobalVariableDefinition("bar");
 
   auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
   auto BarValueAfterInit = Solver.resultAt(BarInit, Bar);
@@ -353,7 +353,8 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
   IDESolver Solver(Problem);
 
-  auto *GlobalDtor = ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
+  const auto *GlobalDtor =
+      ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
 
   ASSERT_NE(nullptr, GlobalDtor);
 
@@ -364,11 +365,10 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
   Solver.dumpResults();
 
   // FIXME: Why is the 27 missing in the results set?
-  auto AfterGlobalInit = IRDB.getInstruction(4);
-  auto BeforeDtorPrintF = IRDB.getInstruction(11);
-  auto AtMainPrintF = IRDB.getInstruction(29);
+  auto *AfterGlobalInit = IRDB.getInstruction(4);
+  auto *AtMainPrintF = IRDB.getInstruction(29);
 
-  auto Foo = IRDB.getGlobalVariableDefinition("foo");
+  const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
 
   EXPECT_EQ(42, Solver.resultAt(AfterGlobalInit, Foo));
   EXPECT_EQ(42, Solver.resultAt(AtMainPrintF, Foo));

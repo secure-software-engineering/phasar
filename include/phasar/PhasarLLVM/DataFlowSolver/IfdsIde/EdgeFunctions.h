@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 
 #include "llvm/Support/Compiler.h"
 
@@ -60,15 +60,15 @@ public:
   // EdgeFunctions interface: EdgeFunctions::get*EdgeFunction() for more
   // details.
   //
-  virtual L computeTarget(L Source) = 0;
+  [[nodiscard]] virtual L computeTarget(L Source) = 0;
 
   //
   // This function composes the two edge functions this and SecondFunction. This
   // function is used to extend an edge function in order to construct so-called
   // jump functions that describe the effects of everlonger sequences of code.
   //
-  virtual EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType secondFunction) = 0;
+  [[nodiscard]] virtual EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType SecondFunction) = 0;
 
   //
   // This function describes the join of the two edge functions this and
@@ -76,15 +76,19 @@ public:
   // be joined, for instance, when two branches lead to a common successor
   // instruction.
   //
-  virtual EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) = 0;
+  [[nodiscard]] virtual EdgeFunctionPtrType
+  joinWith(EdgeFunctionPtrType OtherFunction) = 0;
 
-  virtual bool equal_to(EdgeFunctionPtrType OtherFunction) const = 0;
+  [[nodiscard]] virtual bool
+      equal_to // NOLINT - would break too many client analyses
+      (EdgeFunctionPtrType OtherFunction) const = 0;
 
-  virtual void print(std::ostream &OS, bool IsForDebug = false) const {
+  virtual void print(std::ostream &OS,
+                     [[maybe_unused]] bool IsForDebug = false) const {
     OS << "EdgeFunction";
   }
 
-  std::string str() {
+  [[nodiscard]] std::string str() {
     std::ostringstream OSS;
     print(OSS);
     return OSS.str();
@@ -111,31 +115,34 @@ public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
 
 private:
-  const L topElement;
+  const L TopElement;
 
 public:
-  AllTop(L topElement) : topElement(topElement) {}
+  AllTop(const L TopElement) : TopElement(std::move(TopElement)) {}
 
   ~AllTop() override = default;
 
-  L computeTarget(L source) override { return topElement; }
+  L computeTarget(L /*Source*/) override { return TopElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
+  EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
     return this->shared_from_this();
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    return otherFunction;
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
+    return OtherFunction;
   }
 
-  bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(other.get())) {
-      return (alltop->topElement == topElement);
+  [[nodiscard]] bool equal_to // NOLINT - would break too many client analyses
+      (EdgeFunctionPtrType Other) const override {
+    if (auto *Alltop = dynamic_cast<AllTop<L> *>(Other.get())) {
+      return (Alltop->TopElement == TopElement);
     }
     return false;
   }
 
-  void print(std::ostream &OS, bool isForDebug = false) const override {
+  void print(std::ostream &OS,
+             [[maybe_unused]] bool IsForDebug = false) const override {
     OS << "AllTop";
   }
 };
@@ -149,47 +156,48 @@ public:
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
 
 private:
-  const L bottomElement;
+  const L BottomElement;
 
 public:
-  AllBottom(L bottomElement) : bottomElement(bottomElement) {}
+  AllBottom(const L BottomElement) : BottomElement(std::move(BottomElement)) {}
 
   ~AllBottom() override = default;
 
-  L computeTarget(L source) override { return bottomElement; }
+  L computeTarget(L /*Source*/) override { return BottomElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
+    if (auto *AB = dynamic_cast<AllBottom<L> *>(SecondFunction.get())) {
       return this->shared_from_this();
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
+    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(SecondFunction.get())) {
       return this->shared_from_this();
     }
-    return secondFunction->composeWith(this->shared_from_this());
+    return SecondFunction->composeWith(this->shared_from_this());
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    if (otherFunction.get() == this ||
-        otherFunction->equal_to(this->shared_from_this())) {
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
+    if (OtherFunction.get() == this ||
+        OtherFunction->equal_to(this->shared_from_this())) {
       return this->shared_from_this();
     }
-    if (auto *alltop = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
+    if (auto *Alltop = dynamic_cast<AllTop<L> *>(OtherFunction.get())) {
       return this->shared_from_this();
     }
-    if (auto *ei = dynamic_cast<EdgeIdentity<L> *>(otherFunction.get())) {
+    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(OtherFunction.get())) {
       return this->shared_from_this();
     }
     return this->shared_from_this();
   }
 
-  bool equal_to(EdgeFunctionPtrType other) const override {
-    if (auto *allbottom = dynamic_cast<AllBottom<L> *>(other.get())) {
-      return (allbottom->bottomElement == bottomElement);
+  [[nodiscard]] bool equal_to // NOLINT - would break too many client analyses
+      (EdgeFunctionPtrType Other) const override {
+    if (auto *AB = dynamic_cast<AllBottom<L> *>(Other.get())) {
+      return (AB->BottomElement == BottomElement);
     }
     return false;
   }
 
-  void print(std::ostream &OS, bool isForDebug = false) const override {
+  void print(std::ostream &OS, bool /*IsForDebug = false*/) const override {
     OS << "AllBottom";
   }
 };
@@ -204,44 +212,45 @@ private:
   EdgeIdentity() = default;
 
 public:
-  EdgeIdentity(const EdgeIdentity &ei) = delete;
+  EdgeIdentity(const EdgeIdentity &EI) = delete;
 
-  EdgeIdentity &operator=(const EdgeIdentity &ei) = delete;
+  EdgeIdentity &operator=(const EdgeIdentity &EI) = delete;
 
   ~EdgeIdentity() override = default;
 
-  L computeTarget(L source) override { return source; }
+  L computeTarget(L Source) override { return Source; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType secondFunction) override {
-    return secondFunction;
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
+    return SecondFunction;
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType otherFunction) override {
-    if ((otherFunction.get() == this) ||
-        otherFunction->equal_to(this->shared_from_this())) {
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
+    if ((OtherFunction.get() == this) ||
+        OtherFunction->equal_to(this->shared_from_this())) {
       return this->shared_from_this();
     }
-    if (auto *ab = dynamic_cast<AllBottom<L> *>(otherFunction.get())) {
-      return otherFunction;
+    if (auto *AB = dynamic_cast<AllBottom<L> *>(OtherFunction.get())) {
+      return OtherFunction;
     }
-    if (auto *at = dynamic_cast<AllTop<L> *>(otherFunction.get())) {
+    if (auto *AT = dynamic_cast<AllTop<L> *>(OtherFunction.get())) {
       return this->shared_from_this();
     }
     // do not know how to join; hence ask other function to decide on this
-    return otherFunction->joinWith(this->shared_from_this());
+    return OtherFunction->joinWith(this->shared_from_this());
   }
 
-  bool equal_to(EdgeFunctionPtrType other) const override {
-    return this == other.get();
+  [[nodiscard]] bool equal_to // NOLINT - would break too many client analyses
+      (EdgeFunctionPtrType Other) const override {
+    return this == Other.get();
   }
 
   static EdgeFunctionPtrType getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
-    static EdgeFunctionPtrType instance(new EdgeIdentity<L>());
-    return instance;
+    static EdgeFunctionPtrType Instance(new EdgeIdentity<L>());
+    return Instance;
   }
 
-  void print(std::ostream &OS, bool isForDebug = false) const override {
+  void print(std::ostream &OS, bool /*IsForDebug = false*/) const override {
     OS << "EdgeIdentity";
   }
 };
@@ -520,11 +529,10 @@ public:
     auto SearchVal = Storage.find(K);
     if (SearchVal != Storage.end() && !SearchVal->second.expired()) {
       return SearchVal->second.lock();
-    } else {
-      auto NewEdgeFunc = std::make_shared<EdgeFunctionType>(K);
-      Storage[K] = NewEdgeFunc;
-      return NewEdgeFunc;
     }
+    auto NewEdgeFunc = std::make_shared<EdgeFunctionType>(K);
+    Storage[K] = NewEdgeFunc;
+    return NewEdgeFunc;
   }
 
   // Initialize a cleaner thread to automatically remove unused/expired

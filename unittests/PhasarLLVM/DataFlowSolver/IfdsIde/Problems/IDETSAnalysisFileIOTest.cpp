@@ -454,7 +454,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   Llvmtssolver.solve();
   // Llvmtssolver.dumpResults();
 
-  auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
+  const auto *Pts = PT->getPointsToSet(IRDB->getInstruction(2));
   std::cout << "PointsTo(2) = {";
   bool Frst = true;
   for (const auto *P : *Pts) {

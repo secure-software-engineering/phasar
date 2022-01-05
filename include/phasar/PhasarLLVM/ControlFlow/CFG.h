@@ -36,7 +36,7 @@ std::string toString(const SpecialMemberFunctionType &SMFT);
 
 SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT);
 
-std::ostream &operator<<(std::ostream &os,
+std::ostream &operator<<(std::ostream &OS,
                          const SpecialMemberFunctionType &SMFT);
 
 template <typename N, typename F> class CFG {

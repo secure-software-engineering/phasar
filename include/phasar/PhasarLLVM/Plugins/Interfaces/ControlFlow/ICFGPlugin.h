@@ -33,14 +33,14 @@ private:
   const std::vector<std::string> EntryPoints;
 
 public:
-  ICFGPlugin(ProjectIRDB &IRDB, const std::vector<std::string> EntryPoints)
-      : IRDB(IRDB), EntryPoints(move(EntryPoints)) {}
+  ICFGPlugin(ProjectIRDB &IRDB, std::vector<std::string> EntryPoints)
+      : IRDB(IRDB), EntryPoints(std::move(EntryPoints)) {}
 };
 
 extern std::map<std::string,
                 std::unique_ptr<ICFGPlugin> (*)(
                     ProjectIRDB &, const std::vector<std::string> &EntryPoints)>
-    ICFGPluginFactory;
+    ICFGPluginFactory; // NOLINT
 
 } // namespace psr
 

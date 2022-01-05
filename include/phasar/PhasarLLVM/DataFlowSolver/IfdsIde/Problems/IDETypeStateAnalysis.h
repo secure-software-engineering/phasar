@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 
 #include <iostream>
 #include <map>
@@ -111,46 +111,46 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitInst, n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitStmt, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                               std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               std::set<f_t> Callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
-                                             f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                             f_t DestFun) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
-  bool isZeroValue(d_t d) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
   // in addition provide specifications for the IDE parts
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                        d_t succNode) override;
+  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                        d_t SuccNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callSite, d_t srcNode, f_t destinationFunction,
-                      d_t destNode) override;
+  getCallEdgeFunction(n_t CallSite, d_t SrcNode, f_t DestinationFunction,
+                      d_t DestNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitInst,
-                        d_t exitNode, n_t reSite, d_t retNode) override;
+  getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction, n_t ExitInst,
+                        d_t ExitNode, n_t RetSite, d_t RetNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<f_t> callees) override;
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                           d_t RetSiteNode, std::set<f_t> Callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                         d_t retSiteNode) override;
+  getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                         d_t RetSiteNode) override;
 
   l_t topElement() override;
 
@@ -164,17 +164,17 @@ public:
    *
    * @note Only one-level lattice's are handled currently
    */
-  l_t join(l_t lhs, l_t rhs) override;
+  l_t join(l_t Lhs, l_t Rhs) override;
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printNode(std::ostream &os, n_t N) const override;
+  void printNode(std::ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &os, f_t m) const override;
+  void printFunction(std::ostream &OS, f_t Func) const override;
 
-  void printEdgeFact(std::ostream &os, l_t l) const override;
+  void printEdgeFact(std::ostream &OS, l_t L) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &OS = std::cout) override;
@@ -182,14 +182,15 @@ public:
   // customize the edge function composer
   class TSEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
   private:
-    l_t botElement;
+    l_t BotElement;
 
   public:
     TSEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                           std::shared_ptr<EdgeFunction<l_t>> G, l_t bot)
-        : EdgeFunctionComposer<l_t>(F, G), botElement(bot){};
+                           std::shared_ptr<EdgeFunction<l_t>> G, l_t Bot)
+        : EdgeFunctionComposer<l_t>(F, G), BotElement(Bot) {}
+
     std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
   };
 
   class TSEdgeFunction : public EdgeFunction<l_t>,
@@ -202,21 +203,21 @@ public:
     const llvm::CallBase *CallSite;
 
   public:
-    TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok,
-                   const llvm::CallBase *cb)
-        : TSD(tsd), Token(tok), CallSite(cb){};
+    TSEdgeFunction(const TypeStateDescription &TSD, const std::string &Tok,
+                   const llvm::CallBase *CB)
+        : TSD(TSD), Token(Tok), CallSite(CB){};
 
-    l_t computeTarget(l_t source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
+    l_t computeTarget(l_t Source) override;
 
     std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
 
-    void print(std::ostream &OS, bool isForDebug = false) const override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
+
+    void print(std::ostream &OS, bool IsForDebug = false) const override;
   };
   class TSConstant : public EdgeFunction<l_t>,
                      public std::enable_shared_from_this<TSConstant> {
@@ -226,17 +227,17 @@ public:
   public:
     TSConstant(const TypeStateDescription &TSD, l_t State);
 
-    l_t computeTarget(l_t source) override;
+    l_t computeTarget(l_t Source) override;
 
     std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
 
     std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool isForDebug = false) const override;
+    void print(std::ostream &OS, bool IsForDebug = false) const override;
   };
 };
 

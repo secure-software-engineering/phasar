@@ -31,15 +31,15 @@
 
 namespace llvm {
 class StructType;
-}
+} // namespace llvm
 
 namespace psr {
 class CachedTypeGraph : public TypeGraph<CachedTypeGraph> {
 protected:
   struct VertexProperties {
-    std::string name;
-    std::set<const llvm::StructType *> types;
-    const llvm::StructType *base_type;
+    std::string Name;
+    std::set<const llvm::StructType *> Types;
+    const llvm::StructType *BaseType = nullptr;
   };
 
   struct EdgeProperties {
@@ -69,9 +69,9 @@ protected:
   struct dfs_visitor;
   struct reverse_type_propagation_dfs_visitor;
 
-  std::unordered_map<std::string, vertex_t> type_vertex_map;
-  graph_t g;
-  bool already_visited = false;
+  std::unordered_map<std::string, vertex_t> TypeVertexMap;
+  graph_t G;
+  bool AlreadyVisited = false;
 
   FRIEND_TEST(TypeGraphTest, AddType);
   FRIEND_TEST(TypeGraphTest, AddLinkSimple);
@@ -84,23 +84,22 @@ protected:
   vertex_t addType(const llvm::StructType *NewType);
   void reverseTypePropagation(const llvm::StructType *BaseStruct);
   void aggregateTypes();
-  bool addLinkWithoutReversePropagation(const llvm::StructType *from,
-                                        const llvm::StructType *to);
+  bool addLinkWithoutReversePropagation(const llvm::StructType *From,
+                                        const llvm::StructType *To);
 
 public:
   CachedTypeGraph() = default;
 
-  virtual ~CachedTypeGraph() = default;
+  ~CachedTypeGraph() override = default;
   // CachedTypeGraph(const CachedTypeGraph &copy) = delete;
   // CachedTypeGraph& operator=(const CachedTypeGraph &copy) = delete;
   // CachedTypeGraph(CachedTypeGraph &&move) = delete;
   // CachedTypeGraph& operator=(CachedTypeGraph &&move) = delete;
 
-  virtual bool addLink(const llvm::StructType *from,
-                       const llvm::StructType *to) override;
-  virtual void
-  printAsDot(const std::string &path = "typegraph.dot") const override;
-  virtual std::set<const llvm::StructType *>
+  bool addLink(const llvm::StructType *From,
+               const llvm::StructType *To) override;
+  void printAsDot(const std::string &Path = "typegraph.dot") const override;
+  std::set<const llvm::StructType *>
   getTypes(const llvm::StructType *StructType) override;
 };
 } // namespace psr

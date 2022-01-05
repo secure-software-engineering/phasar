@@ -153,7 +153,7 @@ void LLVMTypeHierarchy::buildLLVMTypeHierarchy(const llvm::Module &M) {
 }
 
 std::vector<const llvm::StructType *>
-LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
+LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
                                const llvm::StructType &Type) {
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
@@ -285,7 +285,7 @@ LLVMTypeHierarchy::getSubTypes(const llvm::StructType *Type) {
 }
 
 std::set<const llvm::StructType *>
-LLVMTypeHierarchy::getSuperTypes(const llvm::StructType *Type) {
+LLVMTypeHierarchy::getSuperTypes(const llvm::StructType * /*Type*/) {
   std::set<const llvm::StructType *> ReachableTypes;
   // TODO (philipp): what does this function do?
   return ReachableTypes;

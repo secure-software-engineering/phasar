@@ -33,9 +33,9 @@ public:
   IFDSSFB901TaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                           std::set<std::string> EntryPoints);
-  ~IFDSSFB901TaintAnalysis() = default;
+  ~IFDSSFB901TaintAnalysis() override = default;
 
-  const FlowFact *createZeroValue() const override;
+  [[nodiscard]] const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
   getNormalFlowFunction(const llvm::Instruction *curr,

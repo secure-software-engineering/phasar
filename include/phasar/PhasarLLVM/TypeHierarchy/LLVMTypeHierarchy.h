@@ -158,7 +158,7 @@ public:
    */
   LLVMTypeHierarchy(const llvm::Module &M);
 
-  ~LLVMTypeHierarchy() = default;
+  ~LLVMTypeHierarchy() override = default;
 
   /**
    * @brief Constructs the actual class hierarchy graph.
@@ -187,7 +187,7 @@ public:
   [[nodiscard]] inline bool
   isSuperType(const llvm::StructType *Type,
               const llvm::StructType *SuperType) override {
-    return isSubType(SuperType, Type);
+    return isSubType(SuperType, Type); // NOLINT
   }
 
   std::set<const llvm::StructType *>
@@ -228,8 +228,8 @@ public:
   public:
     TypeHierarchyVertexWriter(const bidigraph_t &TyGraph) : TyGraph(TyGraph) {}
     template <class VertexOrEdge>
-    void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << TyGraph[v].getTypeName() << "\"]";
+    void operator()(std::ostream &Out, const VertexOrEdge &V) const {
+      Out << "[label=\"" << TyGraph[V].getTypeName() << "\"]";
     }
 
   private:
@@ -239,7 +239,7 @@ public:
   // a function to conveniently create this writer
   [[nodiscard]] TypeHierarchyVertexWriter
   makeTypeHierarchyVertexWriter(const bidigraph_t &TyGraph) const {
-    return TypeHierarchyVertexWriter(TyGraph);
+    return {TyGraph};
   }
 
   /**
