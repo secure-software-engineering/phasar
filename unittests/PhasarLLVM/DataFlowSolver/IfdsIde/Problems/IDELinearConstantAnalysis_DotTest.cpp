@@ -251,6 +251,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_05) {
   GroundTruth.emplace("main", 6, "j", 10);
   GroundTruth.emplace("main", 6, "i", 42);
   GroundTruth.emplace("main", 8, "j", 10);
+  GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
 }
 
@@ -272,6 +273,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_07) {
   GroundTruth.emplace("main", 6, "j", 10);
   GroundTruth.emplace("main", 6, "i", 30);
   GroundTruth.emplace("main", 8, "j", 10);
+  GroundTruth.emplace("main", 8, "i", 30);
   compareResults(Results, GroundTruth);
 }
 
