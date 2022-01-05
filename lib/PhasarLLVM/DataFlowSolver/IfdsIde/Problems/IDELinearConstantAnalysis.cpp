@@ -428,10 +428,10 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::bottomElement() {
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::join(l_t Lhs,
                                                                l_t Rhs) {
-  if ((Rhs == Lhs) || (Lhs == TOP && Rhs != BOTTOM)) {
+  if (Rhs == Lhs || Lhs == TOP) {
     return Rhs;
   }
-  if (Rhs == TOP && Lhs != BOTTOM) {
+  if (Rhs == TOP) {
     return Lhs;
   }
   return BOTTOM;
@@ -445,13 +445,13 @@ IDELinearConstantAnalysis::allTopFunction() {
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (auto *AB = dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
-  if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
-  if (auto *LCAID = dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
+  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
   return F->composeWith(G->composeWith(SecondFunction));
@@ -464,7 +464,7 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
       OtherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
-  if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
+  if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
     return this->shared_from_this();
   }
   return std::make_shared<AllBottom<l_t>>(BOTTOM);
@@ -622,6 +622,9 @@ IDELinearConstantAnalysis::BinOp::composeWith(
   if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
+  if (dynamic_cast<GenConstant *>(SecondFunction.get())) {
+    return SecondFunction;
+  }
   return std::make_shared<LCAEdgeFunctionComposer>(this->shared_from_this(),
                                                    SecondFunction);
 }
@@ -636,7 +639,7 @@ IDELinearConstantAnalysis::BinOp::joinWith(
   if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
     return this->shared_from_this();
   }
-  return std::make_shared<AllBottom<l_t>>(IDELinearConstantAnalysis::BOTTOM);
+  return std::make_shared<AllBottom<l_t>>(BOTTOM);
 }
 
 bool IDELinearConstantAnalysis::BinOp::equal_to(
