@@ -246,13 +246,11 @@ std::string getMetaDataID(const llvm::Value *V) {
   return "-1";
 }
 
-llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
-
-bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
+bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,
                                  const llvm::Value *Rhs) const {
   std::string LhsId = getMetaDataID(Lhs);
   std::string RhsId = getMetaDataID(Rhs);
-  return sless(LhsId, RhsId);
+  return Sless(LhsId, RhsId);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
@@ -456,8 +454,8 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   assert(llvm::dyn_cast<llvm::GlobalVariable>(CE->getOperand(0)) != nullptr);
 
   auto *AnnoteStr = llvm::dyn_cast<llvm::GlobalVariable>(CE->getOperand(0));
-  assert(llvm::dyn_cast<llvm::ConstantDataSequential>(
-      AnnoteStr->getInitializer()));
+  assert(AnnoteStr != nullptr && llvm::dyn_cast<llvm::ConstantDataSequential>(
+                                     AnnoteStr->getInitializer()));
 
   auto *Data =
       llvm::dyn_cast<llvm::ConstantDataSequential>(AnnoteStr->getInitializer());
@@ -469,12 +467,12 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
 
 llvm::ModuleSlotTracker &
 ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
-  auto &ret = MToST[M];
-  if (M == nullptr && ret == nullptr) {
-    ret = std::make_unique<llvm::ModuleSlotTracker>(M);
+  auto &Ret = MToST[M];
+  if (M == nullptr && Ret == nullptr) {
+    Ret = std::make_unique<llvm::ModuleSlotTracker>(M);
   }
-  assert(ret != nullptr && "no ModuleSlotTracker instance for module cached");
-  return *ret;
+  assert(Ret != nullptr && "no ModuleSlotTracker instance for module cached");
+  return *Ret;
 }
 
 void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *M) {
