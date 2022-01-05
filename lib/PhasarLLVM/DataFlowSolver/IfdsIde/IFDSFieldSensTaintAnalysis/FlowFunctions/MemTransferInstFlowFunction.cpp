@@ -11,7 +11,7 @@ namespace psr {
 std::set<ExtendedValue>
 MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   const auto *const MemTransferInst =
-      llvm::cast<const llvm::MemTransferInst>(currentInst);
+      llvm::cast<const llvm::MemTransferInst>(CurrentInst);
 
   auto *const SrcMemLocationMatr = MemTransferInst->getRawSource();
   auto *const DstMemLocationMatr = MemTransferInst->getRawDest();
@@ -38,7 +38,7 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
     EV.resetVarArgIndex();
 
     TargetFacts.insert(EV);
-    traceStats.add(MemTransferInst, DstMemLocationSeq);
+    TStats.add(MemTransferInst, DstMemLocationSeq);
 
     LOG_DEBUG("Patched memory location (arg/memcpy)");
     LOG_DEBUG("Source");
@@ -72,7 +72,7 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       EV.setMemLocationSeq(RelocatedMemLocationSeq);
 
       TargetFacts.insert(EV);
-      traceStats.add(MemTransferInst, DstMemLocationSeq);
+      TStats.add(MemTransferInst, DstMemLocationSeq);
 
       LOG_DEBUG("Relocated memory location (memcpy/memmove)");
       LOG_DEBUG("Source");

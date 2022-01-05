@@ -19,7 +19,7 @@ using namespace psr;
 class WPDSLinearConstantAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      PhasarConfig::PhasarDirectory() +
       "build/test/llvm_test_code/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 

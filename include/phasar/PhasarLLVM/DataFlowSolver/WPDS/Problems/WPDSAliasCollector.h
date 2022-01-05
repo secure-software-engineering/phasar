@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H_
-#define PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H
 
 #include <memory>
 #include <set>
@@ -47,44 +47,44 @@ public:
 
   ~WPDSAliasCollector() override = default;
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
-  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t ExitInst, n_t retSite) override;
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                               std::set<f_t> callees) override;
-  FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destFun) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitInst, n_t RetSite) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t DestFun) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                        d_t succNode) override;
+  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                        d_t SuccNode) override;
   std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callSite, d_t srcNode, f_t destinationFunction,
-                      d_t destNode) override;
+  getCallEdgeFunction(n_t CallSite, d_t SrcNode, f_t DestinationFunction,
+                      d_t DestNode) override;
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t ExitInst,
-                        d_t exitNode, n_t reSite, d_t retNode) override;
+  getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction, n_t ExitInst,
+                        d_t ExitNode, n_t RetSite, d_t RetNode) override;
   std::shared_ptr<EdgeFunction<l_t>>
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<f_t> callees) override;
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                           d_t RetSiteNode, std::set<f_t> Callees) override;
   std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                         d_t succNode) override;
+  getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                         d_t SuccNode) override;
 
   l_t topElement() override;
   l_t bottomElement() override;
-  l_t join(l_t lhs, l_t rhs) override;
+  l_t join(l_t Lhs, l_t Rhs) override;
 
-  bool isZeroValue(WPDSAliasCollector::d_t d) const override;
+  bool isZeroValue(WPDSAliasCollector::d_t Fact) const override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printNode(std::ostream &os, n_t n) const override;
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
-  void printFunction(std::ostream &os, f_t m) const override;
-  void printEdgeFact(std::ostream &os, l_t v) const override;
+  void printNode(std::ostream &OS, n_t Stmt) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printFunction(std::ostream &OS, f_t Func) const override;
+  void printEdgeFact(std::ostream &OS, l_t L) const override;
 };
 
 } // namespace psr

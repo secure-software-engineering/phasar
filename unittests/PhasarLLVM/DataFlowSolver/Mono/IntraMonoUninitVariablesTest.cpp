@@ -34,7 +34,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IntraMonoUninitVariablesTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLLFiles =
       unittest::PathToLLTestFiles + "/uninitialized_variables/";
 
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
@@ -47,11 +47,11 @@ protected:
 
   void TearDown() override { delete IRDB; }
 
-  void doAnalysisAndCompareResults(const std::string &llvmFilePath,
-                                   const CompactResults_t &GroundTruth,
-                                   bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath});
-    if (printDump) {
+  void doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+                                   const CompactResults_t & /*GroundTruth*/,
+                                   bool PrintDump = false) {
+    IRDB = new ProjectIRDB({PathToLLFiles + LlvmFilePath});
+    if (PrintDump) {
       IRDB->emitPreprocessedIR();
     }
     ValueAnnotationPass::resetValueID();
@@ -61,7 +61,7 @@ protected:
     IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, &PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);
     Solver.solve();
-    if (printDump) {
+    if (PrintDump) {
       Solver.dumpResults();
     }
     // for (auto result :

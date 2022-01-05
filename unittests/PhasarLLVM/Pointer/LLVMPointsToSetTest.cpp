@@ -20,7 +20,7 @@ TEST(LLVMPointsToSet, Intra_01) {
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      auto S = PTS.getPointsToSet(&I);
+      const auto *S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
   PTS.print(std::cout);
@@ -36,7 +36,7 @@ TEST(LLVMPointsToSet, Inter_01) {
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      auto S = PTS.getPointsToSet(&I);
+      const auto *S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
   PTS.print(std::cout);
@@ -51,11 +51,11 @@ TEST(LLVMPointsToSet, Global_01) {
   LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &G : Main->getParent()->globals()) {
-    auto S = PTS.getPointsToSet(&G);
+    const auto *S = PTS.getPointsToSet(&G); // NOLINT
   }
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      auto S = PTS.getPointsToSet(&I);
+      const auto *S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
   PTS.print(std::cout);

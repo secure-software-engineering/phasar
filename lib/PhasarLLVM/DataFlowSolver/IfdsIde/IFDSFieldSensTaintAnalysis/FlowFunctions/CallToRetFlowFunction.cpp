@@ -29,9 +29,9 @@ CallToRetFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
    * getSummaryFlowFunction()!
    */
   bool IsHandledInSummaryFlowFunction =
-      llvm::isa<llvm::MemTransferInst>(currentInst) ||
-      llvm::isa<llvm::MemSetInst>(currentInst) ||
-      llvm::isa<llvm::VAEndInst>(currentInst);
+      llvm::isa<llvm::MemTransferInst>(CurrentInst) ||
+      llvm::isa<llvm::MemSetInst>(CurrentInst) ||
+      llvm::isa<llvm::VAEndInst>(CurrentInst);
 
   if (IsHandledInSummaryFlowFunction) {
     return {};

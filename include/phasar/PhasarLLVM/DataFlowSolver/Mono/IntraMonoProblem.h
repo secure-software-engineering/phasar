@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_INTRAMONOPROBLEM_H_
-#define PHASAR_PHASARLLVM_MONO_INTRAMONOPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 
 #include <set>
 #include <string>
@@ -80,24 +80,30 @@ public:
   virtual mono_container_t merge(const mono_container_t &Lhs,
                                  const mono_container_t &Rhs) = 0;
 
-  virtual bool equal_to(const mono_container_t &Lhs,
-                        const mono_container_t &Rhs) = 0;
+  virtual bool equal_to( // NOLINT - this would break client analyses
+      const mono_container_t &Lhs, const mono_container_t &Rhs) = 0;
 
   virtual mono_container_t allTop() { return mono_container_t{}; }
 
   virtual std::unordered_map<n_t, mono_container_t> initialSeeds() = 0;
 
-  std::set<std::string> getEntryPoints() const { return EntryPoints; }
+  [[nodiscard]] std::set<std::string> getEntryPoints() const {
+    return EntryPoints;
+  }
 
-  const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
-  const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const { return TH; }
+  [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
+    return TH;
+  }
 
-  const c_t *getCFG() const { return CF; }
+  [[nodiscard]] const c_t *getCFG() const { return CF; }
 
-  const PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
+  [[nodiscard]] const PointsToInfo<v_t, n_t> *getPointstoInfo() const {
+    return PT;
+  }
 
-  virtual bool setSoundness(Soundness S) { return false; }
+  virtual bool setSoundness(Soundness /*S*/) { return false; }
 
   virtual void printContainer(std::ostream &OS, mono_container_t C) const {}
 };

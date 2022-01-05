@@ -55,6 +55,8 @@ public:
   ~DOTConfig() = default;
   DOTConfig(const DOTConfig &) = delete;
   DOTConfig(DOTConfig &&) = delete;
+  DOTConfig &operator=(const DOTConfig &) = delete;
+  DOTConfig &operator=(const DOTConfig &&) = delete;
 
 private:
   DOTConfig() = default;

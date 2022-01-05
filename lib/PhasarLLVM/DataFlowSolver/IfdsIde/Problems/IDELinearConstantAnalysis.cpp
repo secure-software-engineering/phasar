@@ -40,9 +40,9 @@ using namespace psr;
 
 namespace psr {
 // Initialize debug counter for edge functions
-unsigned IDELinearConstantAnalysis::CurrGenConstantId = 0;
-unsigned IDELinearConstantAnalysis::CurrLCAIDId = 0;
-unsigned IDELinearConstantAnalysis::CurrBinaryId = 0;
+unsigned IDELinearConstantAnalysis::CurrGenConstantId = 0; // NOLINT
+unsigned IDELinearConstantAnalysis::CurrLCAIDId = 0;       // NOLINT
+unsigned IDELinearConstantAnalysis::CurrBinaryId = 0;      // NOLINT
 
 const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::TOP =
     numeric_limits<IDELinearConstantAnalysis::l_t>::min();
@@ -55,7 +55,8 @@ IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IDETabulationProblem::ZeroValue = createZeroValue();
+  IDETabulationProblem::ZeroValue =
+      IDELinearConstantAnalysis::createZeroValue();
 }
 
 IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
@@ -68,7 +69,8 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(
-    IDELinearConstantAnalysis::n_t Curr, IDELinearConstantAnalysis::n_t Succ) {
+    IDELinearConstantAnalysis::n_t Curr,
+    IDELinearConstantAnalysis::n_t /*Succ*/) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
       return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
@@ -129,7 +131,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
   // std::cout << "found call at: " << llvmIRToString(CallSite) << '\n';
 
   // Map the actual parameters into the formal parameters
-  if (auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+  if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
 
     struct LCAFF : FlowFunction<const llvm::Value *> {
       vector<const llvm::Value *> Actuals;
@@ -197,8 +199,9 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       }
     };
 
-    if (!DestFun->isDeclaration())
+    if (!DestFun->isDeclaration()) {
       return make_shared<LCAFF>(CS, DestFun);
+    }
   }
   // Pass everything else as identity
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -207,13 +210,13 @@ IDELinearConstantAnalysis::getCallFlowFunction(
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
-    IDELinearConstantAnalysis::f_t CalleeFun,
-    IDELinearConstantAnalysis::n_t ExitSite,
-    IDELinearConstantAnalysis::n_t RetSite) {
+    IDELinearConstantAnalysis::f_t /*CalleeFun*/,
+    IDELinearConstantAnalysis::n_t ExitInst,
+    IDELinearConstantAnalysis::n_t /*RetSite*/) {
   // Handle the case: %x = call i32 ...
   if (CallSite->getType()->isIntegerTy()) {
-    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitSite);
-    auto *ReturnValue = Return->getReturnValue();
+    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
+    auto *ReturnValue = Return ? Return->getReturnValue() : nullptr;
 
     if (ReturnValue) {
       struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
@@ -253,8 +256,8 @@ IDELinearConstantAnalysis::getRetFlowFunction(
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
-    IDELinearConstantAnalysis::n_t CallSite,
-    IDELinearConstantAnalysis::n_t RetSite, set<f_t> Callees) {
+    IDELinearConstantAnalysis::n_t /*CallSite*/,
+    IDELinearConstantAnalysis::n_t /*RetSite*/, set<f_t> Callees) {
   for (const auto *Callee : Callees) {
     if (!ICF->getStartPointsOf(Callee).empty()) {
       return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
@@ -269,8 +272,8 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getSummaryFlowFunction(
-    IDELinearConstantAnalysis::n_t CallSite,
-    IDELinearConstantAnalysis::f_t DestFun) {
+    IDELinearConstantAnalysis::n_t /*CallSite*/,
+    IDELinearConstantAnalysis::f_t /*DestFun*/) {
   return nullptr;
 }
 
@@ -319,8 +322,8 @@ IDELinearConstantAnalysis::createZeroValue() const {
 }
 
 bool IDELinearConstantAnalysis::isZeroValue(
-    IDELinearConstantAnalysis::d_t D) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
+    IDELinearConstantAnalysis::d_t Fact) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
 // In addition provide specifications for the IDE parts
@@ -329,7 +332,7 @@ shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::n_t Curr,
     IDELinearConstantAnalysis::d_t CurrNode,
-    IDELinearConstantAnalysis::n_t Succ,
+    IDELinearConstantAnalysis::n_t /*Succ*/,
     IDELinearConstantAnalysis::d_t SuccNode) {
   // ALL_BOTTOM for zero value
   if ((isZeroValue(CurrNode) && isZeroValue(SuccNode)) ||
@@ -386,10 +389,9 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
         !llvm::isa<llvm::ConstantInt>(Rop)) {
       return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
           IDELinearConstantAnalysis::BOTTOM);
-    } else {
-      return make_shared<IDELinearConstantAnalysis::BinOp>(OP, Lop, Rop,
-                                                           CurrNode);
     }
+    return make_shared<IDELinearConstantAnalysis::BinOp>(OP, Lop, Rop,
+                                                         CurrNode);
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Edge identity.");
@@ -401,12 +403,12 @@ shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::d_t SrcNode,
-    IDELinearConstantAnalysis::f_t DestinationFunction,
+    IDELinearConstantAnalysis::f_t /*DestinationFunction*/,
     IDELinearConstantAnalysis::d_t DestNode) {
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
-      const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+      const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
       const auto *Actual = CS->getArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
@@ -419,15 +421,15 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getReturnEdgeFunction(
-    IDELinearConstantAnalysis::n_t CallSite,
-    IDELinearConstantAnalysis::f_t CalleeFunction,
-    IDELinearConstantAnalysis::n_t ExitSite,
+    IDELinearConstantAnalysis::n_t /*CallSite*/,
+    IDELinearConstantAnalysis::f_t /*CalleeFunction*/,
+    IDELinearConstantAnalysis::n_t ExitStmt,
     IDELinearConstantAnalysis::d_t ExitNode,
-    IDELinearConstantAnalysis::n_t ReSite,
+    IDELinearConstantAnalysis::n_t /*RetSite*/,
     IDELinearConstantAnalysis::d_t RetNode) {
   // Case: Returning constant integer
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
-    const auto *Return = llvm::cast<llvm::ReturnInst>(ExitSite);
+    const auto *Return = llvm::cast<llvm::ReturnInst>(ExitStmt);
     auto *ReturnValue = Return->getReturnValue();
     if (auto *CI = llvm::dyn_cast_or_null<llvm::ConstantInt>(ReturnValue)) {
       auto IntConst = CI->getSExtValue();
@@ -439,20 +441,20 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getCallToRetEdgeFunction(
-    IDELinearConstantAnalysis::n_t CallSite,
-    IDELinearConstantAnalysis::d_t CallNode,
-    IDELinearConstantAnalysis::n_t RetSite,
-    IDELinearConstantAnalysis::d_t RetSiteNode,
-    set<IDELinearConstantAnalysis::f_t> Callees) {
+    IDELinearConstantAnalysis::n_t /*CallSite*/,
+    IDELinearConstantAnalysis::d_t /*CallNode*/,
+    IDELinearConstantAnalysis::n_t /*RetSite*/,
+    IDELinearConstantAnalysis::d_t /*RetSiteNode*/,
+    set<IDELinearConstantAnalysis::f_t> /*Callees*/) {
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getSummaryEdgeFunction(
-    IDELinearConstantAnalysis::n_t CallSite,
-    IDELinearConstantAnalysis::d_t CallNode,
-    IDELinearConstantAnalysis::n_t RetSite,
-    IDELinearConstantAnalysis::d_t RetSiteNode) {
+    IDELinearConstantAnalysis::n_t /*CallSite*/,
+    IDELinearConstantAnalysis::d_t /*CallNode*/,
+    IDELinearConstantAnalysis::n_t /*RetSite*/,
+    IDELinearConstantAnalysis::d_t /*RetSiteNode*/) {
   return nullptr;
 }
 
@@ -467,15 +469,13 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::bottomElement() {
 IDELinearConstantAnalysis::l_t
 IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::l_t Lhs,
                                 IDELinearConstantAnalysis::l_t Rhs) {
-  if (Lhs == TOP && Rhs != BOTTOM) {
+  if ((Rhs == Lhs) || (Lhs == TOP && Rhs != BOTTOM)) {
     return Rhs;
-  } else if (Rhs == TOP && Lhs != BOTTOM) {
-    return Lhs;
-  } else if (Rhs == Lhs) {
-    return Rhs;
-  } else {
-    return BOTTOM;
   }
+  if (Rhs == TOP && Lhs != BOTTOM) {
+    return Lhs;
+  }
+  return BOTTOM;
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
@@ -517,12 +517,12 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
 
 IDELinearConstantAnalysis::GenConstant::GenConstant(
     IDELinearConstantAnalysis::l_t IntConst)
-    : GenConstant_Id(++IDELinearConstantAnalysis::CurrGenConstantId),
+    : GenConstantId(++IDELinearConstantAnalysis::CurrGenConstantId),
       IntConst(IntConst) {}
 
 IDELinearConstantAnalysis::l_t
 IDELinearConstantAnalysis::GenConstant::computeTarget(
-    IDELinearConstantAnalysis::l_t Source) {
+    IDELinearConstantAnalysis::l_t /*Source*/) {
   return IntConst;
 }
 
@@ -569,12 +569,12 @@ bool IDELinearConstantAnalysis::GenConstant::equal_to(
 }
 
 void IDELinearConstantAnalysis::GenConstant::print(ostream &OS,
-                                                   bool IsForDebug) const {
-  OS << IntConst << " (EF:" << GenConstant_Id << ')';
+                                                   bool /*IsForDebug*/) const {
+  OS << IntConst << " (EF:" << GenConstantId << ')';
 }
 
 IDELinearConstantAnalysis::LCAIdentity::LCAIdentity()
-    : LCAID_Id(++IDELinearConstantAnalysis::CurrLCAIDId) {}
+    : LCAIDId(++IDELinearConstantAnalysis::CurrLCAIDId) {}
 
 IDELinearConstantAnalysis::l_t
 IDELinearConstantAnalysis::LCAIdentity::computeTarget(
@@ -609,8 +609,8 @@ bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
 }
 
 void IDELinearConstantAnalysis::LCAIdentity::print(ostream &OS,
-                                                   bool IsForDebug) const {
-  OS << "Id (EF:" << LCAID_Id << ')';
+                                                   bool /*IsForDebug*/) const {
+  OS << "Id (EF:" << LCAIDId << ')';
 }
 
 IDELinearConstantAnalysis::BinOp::BinOp(const unsigned Op,
@@ -618,32 +618,35 @@ IDELinearConstantAnalysis::BinOp::BinOp(const unsigned Op,
                                         IDELinearConstantAnalysis::d_t Rop,
                                         IDELinearConstantAnalysis::d_t CurrNode)
     : EdgeFunctionID(++IDELinearConstantAnalysis::CurrBinaryId), Op(Op),
-      lop(Lop), rop(Rop), currNode(CurrNode) {}
+      Lop(Lop), Rop(Rop), CurrNode(CurrNode) {}
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BinOp::computeTarget(
     IDELinearConstantAnalysis::l_t Source) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Left Op   : " << llvmIRToString(lop));
+                << "Left Op   : " << llvmIRToString(Lop));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Right Op  : " << llvmIRToString(rop));
+                << "Right Op  : " << llvmIRToString(Rop));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Curr Node : " << llvmIRToString(currNode));
+                << "Curr Node : " << llvmIRToString(CurrNode));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(currNode) &&
-      llvm::isa<llvm::ConstantInt>(lop) && llvm::isa<llvm::ConstantInt>(rop)) {
-    const auto *Lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
-    const auto *Ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
+  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(CurrNode) &&
+      llvm::isa<llvm::ConstantInt>(Lop) && llvm::isa<llvm::ConstantInt>(Rop)) {
+    const auto *Lic = llvm::dyn_cast<llvm::ConstantInt>(Lop);
+    const auto *Ric = llvm::dyn_cast<llvm::ConstantInt>(Rop);
     return IDELinearConstantAnalysis::executeBinOperation(
         Op, Lic->getSExtValue(), Ric->getSExtValue());
-  } else if (Source == BOTTOM) {
+  }
+  if (Source == BOTTOM) {
     return BOTTOM;
-  } else if (lop == currNode && llvm::isa<llvm::ConstantInt>(rop)) {
-    const auto *Ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
+  }
+  if (Lop == CurrNode && llvm::isa<llvm::ConstantInt>(Rop)) {
+    const auto *Ric = llvm::dyn_cast<llvm::ConstantInt>(Rop);
     return IDELinearConstantAnalysis::executeBinOperation(Op, Source,
                                                           Ric->getSExtValue());
-  } else if (rop == currNode && llvm::isa<llvm::ConstantInt>(lop)) {
-    const auto *Lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
+  }
+  if (Rop == CurrNode && llvm::isa<llvm::ConstantInt>(Lop)) {
+    const auto *Lic = llvm::dyn_cast<llvm::ConstantInt>(Lop);
     return IDELinearConstantAnalysis::executeBinOperation(
         Op, Lic->getSExtValue(), Source);
   }
@@ -688,24 +691,24 @@ bool IDELinearConstantAnalysis::BinOp::equal_to(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> Other) const {
   if (auto *BOP =
           dynamic_cast<IDELinearConstantAnalysis::BinOp *>(Other.get())) {
-    return BOP->Op == this->Op && BOP->lop == this->lop &&
-           BOP->rop == this->rop;
+    return BOP->Op == this->Op && BOP->Lop == this->Lop &&
+           BOP->Rop == this->Rop;
   }
   return this == Other.get();
 }
 
 void IDELinearConstantAnalysis::BinOp::print(ostream &OS,
-                                             bool IsForDebug) const {
-  if (const auto *LIC = llvm::dyn_cast<llvm::ConstantInt>(lop)) {
+                                             bool /*IsForDebug*/) const {
+  if (const auto *LIC = llvm::dyn_cast<llvm::ConstantInt>(Lop)) {
     OS << LIC->getSExtValue();
   } else {
-    OS << "ID:" << getMetaDataID(lop);
+    OS << "ID:" << getMetaDataID(Lop);
   }
   OS << ' ' << opToChar(Op) << ' ';
-  if (const auto *RIC = llvm::dyn_cast<llvm::ConstantInt>(rop)) {
+  if (const auto *RIC = llvm::dyn_cast<llvm::ConstantInt>(Rop)) {
     OS << RIC->getSExtValue();
   } else {
-    OS << "ID:" << getMetaDataID(rop);
+    OS << "ID:" << getMetaDataID(Rop);
   }
 }
 
@@ -799,18 +802,18 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
 }
 
 void IDELinearConstantAnalysis::printNode(
-    ostream &OS, IDELinearConstantAnalysis::n_t N) const {
-  OS << llvmIRToString(N);
+    ostream &OS, IDELinearConstantAnalysis::n_t Stmt) const {
+  OS << llvmIRToString(Stmt);
 }
 
 void IDELinearConstantAnalysis::printDataFlowFact(
-    ostream &OS, IDELinearConstantAnalysis::d_t D) const {
-  OS << llvmIRToShortString(D);
+    ostream &OS, IDELinearConstantAnalysis::d_t Fact) const {
+  OS << llvmIRToShortString(Fact);
 }
 
 void IDELinearConstantAnalysis::printFunction(
-    ostream &OS, IDELinearConstantAnalysis::f_t M) const {
-  OS << M->getName().str();
+    ostream &OS, IDELinearConstantAnalysis::f_t Func) const {
+  OS << Func->getName().str();
 }
 
 void IDELinearConstantAnalysis::printEdgeFact(
@@ -904,7 +907,7 @@ IDELinearConstantAnalysis::getLCAResults(
       }
       LCAResult *LcaRes = &FResults[Lnr];
       // Check if it is a new result
-      if (LcaRes->src_code.empty()) {
+      if (LcaRes->SrcNode.empty()) {
         std::string SourceCode = getSrcCodeFromIR(Stmt);
         // Skip results for line containing only closed braces which is the
         // case for functions with void return value
@@ -912,10 +915,10 @@ IDELinearConstantAnalysis::getLCAResults(
           FResults.erase(Lnr);
           continue;
         }
-        LcaRes->src_code = SourceCode;
-        LcaRes->line_nr = Lnr;
+        LcaRes->SrcNode = SourceCode;
+        LcaRes->LineNr = Lnr;
       }
-      LcaRes->ir_trace.push_back(Stmt);
+      LcaRes->IRTrace.push_back(Stmt);
       if (Stmt->isTerminator() && !ICF->isExitInst(Stmt)) {
         std::cout << "Delete result since stmt is Terminator or Exit!\n";
         FResults.erase(Lnr);
@@ -946,19 +949,19 @@ IDELinearConstantAnalysis::getLCAResults(
               // lcaRes->variableToValue.end()) {
               ValidVarsAtStmt.insert(VarName);
               AllocatedVars.insert(VarName);
-              LcaRes->variableToValue[VarName] = Res.second;
+              LcaRes->VariableToValue[VarName] = Res.second;
             } else if (AllocatedVars.find(VarName) == AllocatedVars.end()) {
               ValidVarsAtStmt.insert(VarName);
-              LcaRes->variableToValue[VarName] = Res.second;
+              LcaRes->VariableToValue[VarName] = Res.second;
             }
           }
         }
         // remove no longer valid variables at current IR stmt
-        for (auto It = LcaRes->variableToValue.begin();
-             It != LcaRes->variableToValue.end();) {
+        for (auto It = LcaRes->VariableToValue.begin();
+             It != LcaRes->VariableToValue.end();) {
           if (ValidVarsAtStmt.find(It->first) == ValidVarsAtStmt.end()) {
             std::cout << "Erase var: " << It->first << '\n';
-            It = LcaRes->variableToValue.erase(It);
+            It = LcaRes->VariableToValue.erase(It);
           } else {
             ++It;
           }
@@ -967,7 +970,7 @@ IDELinearConstantAnalysis::getLCAResults(
     }
     // delete entries with no result
     for (auto It = FResults.begin(); It != FResults.end();) {
-      if (It->second.variableToValue.empty()) {
+      if (It->second.VariableToValue.empty()) {
         It = FResults.erase(It);
       } else {
         ++It;

@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 
 #include <algorithm>
 #include <functional>
@@ -199,7 +199,7 @@ public:
         DL((*IRDB->getAllModules().begin())->getDataLayout()), Bound(Bound),
         PostProcessed(DisableStrongUpdates),
         DisableStrongUpdates(DisableStrongUpdates) {
-    base_t::ZeroValue = createZeroValue();
+    base_t::ZeroValue = IDEExtendedTaintAnalysis::createZeroValue();
 
     FactFactory.setDataLayout(DL);
 
@@ -357,4 +357,4 @@ public:
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H_
+#endif
