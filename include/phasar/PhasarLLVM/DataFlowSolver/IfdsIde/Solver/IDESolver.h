@@ -465,12 +465,11 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process call at target: "
                   << IDEProblem.NtoString(Edge.getTarget()));
-    d_t d1 = Edge.factAtSource(); // NOLINT - keep close to algorithm notion
-    n_t n = Edge.getTarget();     // NOLINT - keep close to algorithm notion
-                                  // a call node; line 14...
-    d_t d2 = Edge.factAtTarget(); // NOLINT - keep close to algorithm notion
-    EdgeFunctionPtrType f =       // NOLINT - keep close to algorithm notion
-        jumpFunction(Edge);
+    d_t d1 = Edge.factAtSource();
+    n_t n = Edge.getTarget();
+    // a call node; line 14...
+    d_t d2 = Edge.factAtTarget();
+    EdgeFunctionPtrType f = jumpFunction(Edge);
     const std::set<n_t> ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
     const std::set<f_t> Callees = ICF->getCalleesOfCallAt(n);
 
@@ -504,7 +503,7 @@ protected:
           ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, ReturnSiteN, d2, Res, false);
-          for (d_t d3 : Res) { // NOLINT - keep close to algorithm notion
+          for (d_t d3 : Res) {
             EdgeFunctionPtrType SumEdgFnE =
                 CachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                ReturnSiteN, d3);
@@ -537,11 +536,10 @@ protected:
                         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         }
         // if startPointsOf is empty, the called function is a declaration
-        for (n_t SP :
-             StartPointsOf) { // NOLINT - keep close to algorithm notion
+        for (n_t SP : StartPointsOf) {
           saveEdges(n, SP, d2, Res, true);
           // for each result node of the call-flow function
-          for (d_t d3 : Res) { // NOLINT - keep close to algorithm notion
+          for (d_t d3 : Res) {
             using TableCell =
                 typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell;
             // create initial self-loop
@@ -570,13 +568,9 @@ protected:
             for (const TableCell &Entry : endSummary(
                      SP,
                      d3)) { // TODO/FIXME: does the reference break the solver?
-              n_t eP =      // NOLINT - keep close to algorithm notion
-                  Entry.getRowKey();
-              d_t d4 = Entry.getColumnKey(); // NOLINT - keep close to algorithm
-                                             // notion
-              EdgeFunctionPtrType
-                  fCalleeSummary = // NOLINT - keep close to algorithm notion
-                  Entry.getValue();
+              n_t eP = Entry.getRowKey();
+              d_t d4 = Entry.getColumnKey();
+              EdgeFunctionPtrType fCalleeSummary = Entry.getValue();
               // for each return site
               for (n_t RetSiteN : ReturnSiteNs) {
                 // compute return-flow function
@@ -590,19 +584,16 @@ protected:
                                  PAMM_SEVERITY_LEVEL::Full);
                 saveEdges(eP, RetSiteN, d4, ReturnedFacts, true);
                 // for each target value of the function
-                for (d_t d5 : // NOLINT - keep close to algorithm notion
-                     ReturnedFacts) {
+                for (d_t d5 : ReturnedFacts) {
                   // update the caller-side summary function
                   // get call edge function
-                  EdgeFunctionPtrType
-                      f4 = // NOLINT - keep close to algorithm notion
+                  EdgeFunctionPtrType f4 =
                       CachedFlowEdgeFunctions.getCallEdgeFunction(
                           n, d2, SCalledProcN, d3);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Queried Call Edge Function: " << f4->str());
                   // get return edge function
-                  EdgeFunctionPtrType
-                      f5 = // NOLINT - keep close to algorithm notion
+                  EdgeFunctionPtrType f5 =
                       CachedFlowEdgeFunctions.getReturnEdgeFunction(
                           n, SCalledProcN, eP, d4, RetSiteN, d5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -625,14 +616,12 @@ protected:
                                     << f4->str();
                                 BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "         (return * calleeSummary * call)");
-                  EdgeFunctionPtrType
-                      fPrime = // NOLINT - keep close to algorithm notion
+                  EdgeFunctionPtrType fPrime =
                       f4->composeWith(fCalleeSummary)->composeWith(f5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "       = " << fPrime->str();
                                 BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-                  d_t d5_restoredCtx // NOLINT - keep close to algorithm notion
-                      = restoreContextOnReturnedFact(n, d2, d5);
+                  d_t d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "Compose: " << fPrime->str() << " * "
@@ -659,7 +648,7 @@ protected:
       ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
       saveEdges(n, ReturnSiteN, d2, ReturnFacts, false);
-      for (d_t d3 : ReturnFacts) { // NOLINT - keep close to algorithm notion
+      for (d_t d3 : ReturnFacts) {
         EdgeFunctionPtrType EdgeFnE =
             CachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, ReturnSiteN,
                                                              d3, Callees);
@@ -671,8 +660,7 @@ protected:
               .push_back(EdgeFnE);
         }
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        auto fPrime = // NOLINT - keep close to algorithm notion
-            f->composeWith(EdgeFnE);
+        auto fPrime = f->composeWith(EdgeFnE);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << EdgeFnE->str() << " * " << f->str()
                           << " = " << fPrime->str();
@@ -692,11 +680,10 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process normal at target: "
                   << IDEProblem.NtoString(Edge.getTarget()));
-    d_t d1 = Edge.factAtSource(); // NOLINT - keep close to algorithm notion
-    n_t n = Edge.getTarget();     // NOLINT - keep close to algorithm notion
-    d_t d2 = Edge.factAtTarget(); // NOLINT - keep close to algorithm notion
-    EdgeFunctionPtrType f =       // NOLINT - keep close to algorithm notion
-        jumpFunction(Edge);
+    d_t d1 = Edge.factAtSource();
+    n_t n = Edge.getTarget();
+    d_t d2 = Edge.factAtTarget();
+    EdgeFunctionPtrType f = jumpFunction(Edge);
     for (const auto Fn : ICF->getSuccsOf(n)) {
       FlowFunctionPtrType FlowFunc =
           CachedFlowEdgeFunctions.getNormalFlowFunction(n, Fn);
@@ -705,23 +692,22 @@ protected:
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
       saveEdges(n, Fn, d2, Res, false);
-      for (d_t d3 : Res) {      // NOLINT - keep close to algorithm notion
-        EdgeFunctionPtrType g = // NOLINT - keep close to algorithm notion
+      for (d_t d3 : Res) {
+        EdgeFunctionPtrType g =
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, Fn, d3);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
-        EdgeFunctionPtrType fprime = // NOLINT - keep close to algorithm notion
-            f->composeWith(g);
+        EdgeFunctionPtrType fPrime = f->composeWith(g);
         if (SolverConfig.emitESG()) {
           IntermediateEdgeFunctions[std::make_tuple(n, d2, Fn, d3)].push_back(
               g);
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << g->str() << " * " << f->str()
-                          << " = " << fprime->str();
+                          << " = " << fPrime->str();
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        propagate(d1, Fn, d3, fprime, nullptr, false);
+        propagate(d1, Fn, d3, fPrime, nullptr, false);
       }
     }
   }
@@ -736,10 +722,9 @@ protected:
         continue;
       }
       for (const auto &Entry :
-           LookupResults->get()) {   // TODO/FIXME: does the & break the solver?
-        d_t dPrime = Entry.first;    // NOLINT - keep close to algorithm notion
-        EdgeFunctionPtrType fPrime = // NOLINT - keep close to algorithm notion
-            Entry.second;
+           LookupResults->get()) { // TODO/FIXME: does the & break the solver?
+        d_t dPrime = Entry.first;
+        EdgeFunctionPtrType fPrime = Entry.second;
         n_t SP = Stmt;
         l_t Val = val(SP, Fact);
         INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -755,8 +740,7 @@ protected:
       FlowFunctionPtrType CallFlowFunction =
           CachedFlowEdgeFunctions.getCallFlowFunction(Stmt, Callee);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-      for (const d_t dPrime // NOLINT - keep close to algorithm notion
-           : CallFlowFunction->computeTargets(Fact)) {
+      for (const d_t dPrime : CallFlowFunction->computeTargets(Fact)) {
         EdgeFunctionPtrType EdgeFn =
             CachedFlowEdgeFunctions.getCallEdgeFunction(Stmt, Fact, Callee,
                                                         dPrime);
@@ -849,9 +833,7 @@ protected:
     return AllTop;
   }
 
-  void addEndSummary(
-      n_t SP, d_t d1, n_t eP, d_t d2, // NOLINT - keep close to algorithm notion
-      EdgeFunctionPtrType f) {        // NOLINT - keep close to algorithm notion
+  void addEndSummary(n_t SP, d_t d1, n_t eP, d_t d2, EdgeFunctionPtrType f) {
     // note: at this point we don't need to join with a potential previous f
     // because f is a jump function, which is already properly joined
     // within propagate(..)
@@ -891,7 +873,7 @@ protected:
 
   // should be made a callable at some point
   void valuePropagationTask(const std::pair<n_t, d_t> NAndD) {
-    n_t n = NAndD.first; // NOLINT - keep close to algorithm notion
+    n_t n = NAndD.first;
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
@@ -910,19 +892,16 @@ protected:
   // should be made a callable at some point
   void valueComputationTask(const std::vector<n_t> &Values) {
     PAMM_GET_INSTANCE;
-    for (n_t n : Values) { // NOLINT - keep close to algorithm notion
+    for (n_t n : Values) {
       for (n_t SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
         using TableCell = typename Table<d_t, d_t, EdgeFunctionPtrType>::Cell;
         Table<d_t, d_t, EdgeFunctionPtrType> LookupByTarget;
         LookupByTarget = JumpFn->lookupByTarget(n);
         for (const TableCell &SourceValTargetValAndFunction :
              LookupByTarget.cellSet()) {
-          d_t dPrime // NOLINT - keep close to algorithm notion
-              = SourceValTargetValAndFunction.getRowKey();
-          d_t d // NOLINT - keep close to algorithm notion
-              = SourceValTargetValAndFunction.getColumnKey();
-          EdgeFunctionPtrType fPrime // NOLINT - keep close to algorithm notion
-              = SourceValTargetValAndFunction.getValue();
+          d_t dPrime = SourceValTargetValAndFunction.getRowKey();
+          d_t d = SourceValTargetValAndFunction.getColumnKey();
+          EdgeFunctionPtrType fPrime = SourceValTargetValAndFunction.getValue();
           l_t TargetVal = val(SP, dPrime);
           setVal(n, d,
                  IDEProblem.join(val(n, d),
@@ -1045,15 +1024,11 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process exit at target: "
                   << IDEProblem.NtoString(Edge.getTarget()));
-    n_t n                   // NOLINT - keep close to algorithm notion
-        = Edge.getTarget(); // an exit node; line 21...
-    EdgeFunctionPtrType f   // NOLINT - keep close to algorithm notion
-        = jumpFunction(Edge);
+    n_t n = Edge.getTarget(); // an exit node; line 21...
+    EdgeFunctionPtrType f = jumpFunction(Edge);
     f_t FunctionThatNeedsSummary = ICF->getFunctionOf(n);
-    d_t d1 // NOLINT - keep close to algorithm notion
-        = Edge.factAtSource();
-    d_t d2 // NOLINT - keep close to algorithm notion
-        = Edge.factAtTarget();
+    d_t d1 = Edge.factAtSource();
+    d_t d2 = Edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
     const std::set<n_t> StartPointsOf =
         ICF->getStartPointsOf(FunctionThatNeedsSummary);
@@ -1073,8 +1048,7 @@ protected:
     //(see processCall(..))
     for (const auto &Entry : Inc) { // TODO/FIXME: does & break the solver?
       // line 22
-      n_t c // NOLINT - keep close to algorithm notion
-          = Entry.first;
+      n_t c = Entry.first;
       // for each return site
       for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
@@ -1083,8 +1057,7 @@ protected:
                 c, FunctionThatNeedsSummary, n, RetSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
-        for (d_t d4 // NOLINT - keep close to algorithm notion
-             : Entry.second) {
+        for (d_t d4 : Entry.second) {
           const container_type Targets =
               computeReturnFlowFunction(RetFunction, d1, d2, c, Entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
@@ -1092,18 +1065,17 @@ protected:
           saveEdges(n, RetSiteC, d2, Targets, true);
           // for each target value at the return site
           // line 23
-          for (d_t d5 // NOLINT - keep close to algorithm notion
-               : Targets) {
+          for (d_t d5 : Targets) {
             // compute composed function
             // get call edge function
-            EdgeFunctionPtrType f4 // NOLINT - keep close to algorithm notion
-                = CachedFlowEdgeFunctions.getCallEdgeFunction(
+            EdgeFunctionPtrType f4 =
+                CachedFlowEdgeFunctions.getCallEdgeFunction(
                     c, d4, ICF->getFunctionOf(n), d1);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Call Edge Function: " << f4->str());
             // get return edge function
-            EdgeFunctionPtrType f5 // NOLINT - keep close to algorithm notion
-                = CachedFlowEdgeFunctions.getReturnEdgeFunction(
+            EdgeFunctionPtrType f5 =
+                CachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, ICF->getFunctionOf(n), n, d2, RetSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
@@ -1122,9 +1094,7 @@ protected:
                               << " * " << f4->str();
                           BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "         (return * function * call)");
-            EdgeFunctionPtrType
-                fPrime // NOLINT - keep close to algorithm notion
-                = f4->composeWith(f)->composeWith(f5);
+            EdgeFunctionPtrType fPrime = f4->composeWith(f)->composeWith(f5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                               << "       = " << fPrime->str();
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
@@ -1135,14 +1105,10 @@ protected:
               for (const auto &ValAndFunc :
                    RevLookupResult
                        ->get()) { // TODO/FIXME: does & break the solver?
-                EdgeFunctionPtrType
-                    f3 // NOLINT - keep close to algorithm notion
-                    = ValAndFunc.second;
+                EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(AllTop)) {
-                  d_t d3 = // NOLINT - keep close to algorithm notion
-                      ValAndFunc.first;
-                  d_t d5_restoredCtx // NOLINT - keep close to algorithm notion
-                      = restoreContextOnReturnedFact(c, d4, d5);
+                  d_t d3 = ValAndFunc.first;
+                  d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "Compose: " << fPrime->str() << " * "
                                     << f3->str();
@@ -1176,10 +1142,9 @@ protected:
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, RetSiteC, d2, Targets, true);
-          for (d_t d5 // NOLINT - keep close to algorithm notion
-               : Targets) {
-            EdgeFunctionPtrType f5 // NOLINT - keep close to algorithm notion
-                = CachedFlowEdgeFunctions.getReturnEdgeFunction(
+          for (d_t d5 : Targets) {
+            EdgeFunctionPtrType f5 =
+                CachedFlowEdgeFunctions.getReturnEdgeFunction(
                     Caller, ICF->getFunctionOf(n), n, d2, RetSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
@@ -1231,10 +1196,7 @@ protected:
   ///            Fact that originally should be propagated to the caller.
   /// @return Fact that will be propagated to the caller.
   ///
-  d_t restoreContextOnReturnedFact(
-      n_t /*CallSite*/, d_t /*d4*/,
-      d_t d5 // NOLINT - keep close to algorithm notion
-  ) {
+  d_t restoreContextOnReturnedFact(n_t /*CallSite*/, d_t /*d4*/, d_t d5) {
     // TODO support LinkedNode and JoinHandlingNode
     //		if (d5 instanceof LinkedNode) {
     //			((LinkedNode<D>) d5).setCallingContext(d4);
@@ -1253,18 +1215,14 @@ protected:
   /// @param d2 The abstraction at the current node
   /// @return The set of abstractions at the successor node
   ///
-  container_type
-  computeNormalFlowFunction(const FlowFunctionPtrType &FlowFunc, d_t /*d1*/,
-                            d_t d2 // NOLINT - keep close to algorithm notion
-  ) {
+  container_type computeNormalFlowFunction(const FlowFunctionPtrType &FlowFunc,
+                                           d_t /*d1*/, d_t d2) {
     return FlowFunc->computeTargets(d2);
   }
 
   container_type
   computeSummaryFlowFunction(const FlowFunctionPtrType &SummaryFlowFunction,
-                             d_t /*d1*/,
-                             d_t d2 // NOLINT - keep close to algorithm notion
-  ) {
+                             d_t /*d1*/, d_t d2) {
     return SummaryFlowFunction->computeTargets(d2);
   }
 
@@ -1276,9 +1234,7 @@ protected:
   ///
   container_type
   computeCallFlowFunction(const FlowFunctionPtrType &CallFlowFunction,
-                          d_t /*d1*/,
-                          d_t d2 // NOLINT - keep close to algorithm notion
-  ) {
+                          d_t /*d1*/, d_t d2) {
     return CallFlowFunction->computeTargets(d2);
   }
 
@@ -1291,9 +1247,7 @@ protected:
   /// @return The set of caller-side abstractions at the return site
   ///
   container_type computeCallToReturnFlowFunction(
-      const FlowFunctionPtrType &CallToReturnFlowFunction, d_t /*d1*/,
-      d_t d2 // NOLINT - keep close to algorithm notion
-  ) {
+      const FlowFunctionPtrType &CallToReturnFlowFunction, d_t /*d1*/, d_t d2) {
     return CallToReturnFlowFunction->computeTargets(d2);
   }
 
@@ -1306,10 +1260,10 @@ protected:
   /// @param callerSideDs The abstractions at the call site
   /// @return The set of caller-side abstractions at the return site
   ///
-  container_type computeReturnFlowFunction(
-      const FlowFunctionPtrType &RetFlowFunction, d_t /*d1*/,
-      d_t d2, // NOLINT - keep close to algorithm notion
-      n_t /*CallSite*/, const Container & /*CallerSideDs*/) {
+  container_type
+  computeReturnFlowFunction(const FlowFunctionPtrType &RetFlowFunction,
+                            d_t /*d1*/, d_t d2, n_t /*CallSite*/,
+                            const Container & /*CallerSideDs*/) {
     return RetFlowFunction->computeTargets(d2);
   }
 
@@ -1329,13 +1283,12 @@ protected:
   /// unbalanced return (this value is not used within this implementation
   /// but may be useful for subclasses of {@link IDESolver})
   ///
-  void propagate(
-      d_t SourceVal, n_t Target, d_t TargetVal,
-      const EdgeFunctionPtrType &f, // NOLINT - keep close to algorithm notion
-                                    /* deliberately exposed to clients */
-      n_t /*RelatedCallSite*/,
-      /* deliberately exposed to clients */
-      bool /*IsUnbalancedReturn*/) {
+  void propagate(d_t SourceVal, n_t Target, d_t TargetVal,
+                 const EdgeFunctionPtrType &f,
+                 /* deliberately exposed to clients */
+                 n_t /*RelatedCallSite*/,
+                 /* deliberately exposed to clients */
+                 bool /*IsUnbalancedReturn*/) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Propagate flow";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Source value  : " << IDEProblem.DtoString(SourceVal);
@@ -1362,8 +1315,7 @@ protected:
       // jump function is initialized to all-top if no entry was found
       return AllTop;
     }();
-    EdgeFunctionPtrType fPrime // NOLINT - keep close to algorithm notion
-        = JumpFnE->joinWith(f);
+    EdgeFunctionPtrType fPrime = JumpFnE->joinWith(f);
     bool NewFunction = !(fPrime->equal_to(JumpFnE));
 
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1401,9 +1353,7 @@ protected:
   }
 
   std::set<typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell>
-  endSummary(n_t SP,
-             d_t d3 // NOLINT - keep close to algorithm notion
-  ) {
+  endSummary(n_t SP, d_t d3) {
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       auto Key = std::make_pair(SP, d3);
       auto FindND = FSummaryReuse.find(Key);
@@ -1416,17 +1366,11 @@ protected:
     return EndsummaryTab.get(SP, d3).cellSet();
   }
 
-  std::map<n_t, container_type>
-  incoming(d_t d1, // NOLINT - keep close to algorithm notion
-           n_t SP) {
+  std::map<n_t, container_type> incoming(d_t d1, n_t SP) {
     return IncomingTab.get(SP, d1);
   }
 
-  void addIncoming(n_t SP,
-                   d_t d3, // NOLINT - keep close to algorithm notion
-                   n_t n,  // NOLINT - keep close to algorithm notion
-                   d_t d2  // NOLINT - keep close to algorithm notion
-  ) {
+  void addIncoming(n_t SP, d_t d3, n_t n, d_t d2) {
     IncomingTab.get(SP, d3)[n].insert(d2);
   }
 

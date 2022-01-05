@@ -48,8 +48,8 @@ public:
   [[nodiscard]] D factAtTarget() const { return DTarget; }
 
   friend std::ostream &operator<<(std::ostream &OS, const PathEdge &Edge) {
-    return OS << "<" << Edge.dSource << "> -> <" << Edge.target << ","
-              << Edge.dTarget << ">";
+    return OS << "<" << Edge.DSource << "> -> <" << Edge.Target << ","
+              << Edge.DTarget << ">";
   }
 };
 
