@@ -34,8 +34,7 @@ public:
 
   ~RTAResolver() override = default;
 
-  virtual FunctionSetTy
-  resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 };
 } // namespace psr
 

@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUESET_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUESET_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUESET_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUESET_H
 
 #include <initializer_list>
 #include <unordered_set>
@@ -18,27 +18,27 @@
 namespace psr {
 
 class EdgeValueSet {
-  std::unordered_set<EdgeValue> underlying;
+  std::unordered_set<EdgeValue> Underlying;
 
 public:
   EdgeValueSet();
   template <typename Iter>
-  EdgeValueSet(Iter beg, Iter ed) : underlying(beg, ed) {}
-  EdgeValueSet(std::initializer_list<EdgeValue> ilist);
-  auto begin() -> decltype(underlying.begin());
-  auto end() -> decltype(underlying.end());
-  auto begin() const -> decltype(underlying.begin());
-  auto end() const -> decltype(underlying.end());
-  int count(const EdgeValue &ev) const;
-  auto find(const EdgeValue &ev) -> decltype(underlying.find(ev));
-  auto find(const EdgeValue &ev) const -> decltype(underlying.find(ev));
+  EdgeValueSet(Iter Begin, Iter End) : Underlying(Begin, End) {}
+  EdgeValueSet(std::initializer_list<EdgeValue> IList);
+  auto begin() -> decltype(Underlying.begin());
+  auto end() -> decltype(Underlying.end());
+  auto begin() const -> decltype(Underlying.begin());
+  auto end() const -> decltype(Underlying.end());
+  int count(const EdgeValue &EV) const;
+  auto find(const EdgeValue &EV) -> decltype(Underlying.find(EV));
+  auto find(const EdgeValue &EV) const -> decltype(Underlying.find(EV));
 
   size_t size() const;
-  auto insert(const EdgeValue &ev) -> decltype(underlying.insert(ev));
-  auto insert(EdgeValue &&ev) -> decltype(underlying.insert(ev));
+  auto insert(const EdgeValue &EV) -> decltype(Underlying.insert(EV));
+  auto insert(EdgeValue &&EV) -> decltype(Underlying.insert(EV));
   bool empty() const;
-  bool operator==(const EdgeValueSet &other) const;
-  bool operator!=(const EdgeValueSet &other) const;
+  bool operator==(const EdgeValueSet &Other) const;
+  bool operator!=(const EdgeValueSet &Other) const;
 };
 
 } // namespace psr

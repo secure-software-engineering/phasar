@@ -19,7 +19,7 @@
 namespace psr::XTaint {
 KillIfSanitizedEdgeFunction::KillIfSanitizedEdgeFunction(
     BasicBlockOrdering &BBO, const llvm::Instruction *Load)
-    : EdgeFunctionBase(Kind::KillIfSani, BBO), Load(Load) {}
+    : EdgeFunctionBase(EFKind::KillIfSani, BBO), Load(Load) {}
 
 KillIfSanitizedEdgeFunction::l_t
 KillIfSanitizedEdgeFunction::computeTarget(l_t Source) {

@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef LINENUMBERWRITER_H
-#define LINENUMBERWRITER_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LINENUMBERWRITER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_LINENUMBERWRITER_H
 
 #include "TraceStatsWriter.h"
 
@@ -11,8 +11,8 @@ namespace psr {
 
 class LineNumberWriter : public TraceStatsWriter {
 public:
-  LineNumberWriter(const TraceStats &_traceStats, const std::string _outFile)
-      : TraceStatsWriter(_traceStats, _outFile) {}
+  LineNumberWriter(const TraceStats &TraceStats, const std::string &OutFile)
+      : TraceStatsWriter(TraceStats, OutFile) {}
   ~LineNumberWriter() override = default;
 
   void write() const override;
@@ -20,4 +20,4 @@ public:
 
 } // namespace psr
 
-#endif // LINENUMBERWRITER_H
+#endif

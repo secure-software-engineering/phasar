@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_DEFAULTSEEDS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_DEFAULTSEEDS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_DEFAULTSEEDS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_DEFAULTSEEDS_H
 
 #include <map>
 #include <set>
@@ -25,12 +25,12 @@ namespace psr {
 
 template <typename N, typename D> class DefaultSeeds {
 public:
-  static std::map<N, std::set<D>> make(std::vector<N> node, D zeroNode) {
-    std::map<N, std::set<D>> res;
-    for (N n : node) {
-      res.insert(n, std::set<D>{zeroNode});
+  static std::map<N, std::set<D>> make(std::vector<N> Nodes, D ZeroNode) {
+    std::map<N, std::set<D>> Result;
+    for (N Node : Nodes) {
+      Result.insert(std::move(Node), {ZeroNode});
     }
-    return res;
+    return Result;
   }
 };
 

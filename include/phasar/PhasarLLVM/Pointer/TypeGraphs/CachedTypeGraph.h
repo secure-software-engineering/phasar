@@ -31,7 +31,7 @@
 
 namespace llvm {
 class StructType;
-}
+} // namespace llvm
 
 namespace psr {
 class CachedTypeGraph : public TypeGraph<CachedTypeGraph> {
@@ -90,7 +90,7 @@ protected:
 public:
   CachedTypeGraph() = default;
 
-  virtual ~CachedTypeGraph() = default;
+  ~CachedTypeGraph() override = default;
   // CachedTypeGraph(const CachedTypeGraph &copy) = delete;
   // CachedTypeGraph& operator=(const CachedTypeGraph &copy) = delete;
   // CachedTypeGraph(CachedTypeGraph &&move) = delete;

@@ -23,7 +23,7 @@
 
 namespace llvm {
 class StructType;
-}
+} // namespace llvm
 
 namespace psr {
 template <class ConcreteTypeGraph> class TypeGraph {

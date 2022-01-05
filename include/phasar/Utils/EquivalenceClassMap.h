@@ -7,8 +7,8 @@
  *     Florian Sattler and others
  *****************************************************************************/
 
-#ifndef PHASAR_UTILS_EQUIVALENCELCASSMAP_H_
-#define PHASAR_UTILS_EQUIVALENCELCASSMAP_H_
+#ifndef PHASAR_UTILS_EQUIVALENCECLASSMAP_H
+#define PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 
 #include <initializer_list>
 #include <optional>
@@ -170,4 +170,4 @@ private:
 
 } // namespace psr
 
-#endif // PHASAR_UTILS_EQUIVALENCELCASSMAP_H_
+#endif

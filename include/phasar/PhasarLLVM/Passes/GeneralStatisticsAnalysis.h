@@ -52,67 +52,69 @@ public:
   /**
    * @brief Returns the number of Allocation sites.
    */
-  size_t getAllocationsites() const;
+  [[nodiscard]] size_t getAllocationsites() const;
 
   /**
    * @brief Returns the number of Function calls.
    */
-  size_t getFunctioncalls() const;
+  [[nodiscard]] size_t getFunctioncalls() const;
 
   /**
    * @brief Returns the number of Instructions.
    */
-  size_t getInstructions() const;
+  [[nodiscard]] size_t getInstructions() const;
 
   /**
    * @brief Returns the number of global pointers.
    */
-  size_t getGlobalPointers() const;
+  [[nodiscard]] size_t getGlobalPointers() const;
 
   /**
    * @brief Returns the number of basic blocks.
    */
-  size_t getBasicBlocks() const;
+  [[nodiscard]] size_t getBasicBlocks() const;
 
   /**
    * @brief Returns the number of functions.
    */
-  size_t getFunctions() const;
+  [[nodiscard]] size_t getFunctions() const;
 
   /**
    * @brief Returns the number of globals.
    */
-  size_t getGlobals() const;
+  [[nodiscard]] size_t getGlobals() const;
 
   /**
    * @brief Returns the number of memory intrinsics.
    */
-  size_t getMemoryIntrinsics() const;
+  [[nodiscard]] size_t getMemoryIntrinsics() const;
 
   /**
    * @brief Returns the number of store instructions.
    */
-  size_t getStoreInstructions() const;
+  [[nodiscard]] size_t getStoreInstructions() const;
 
   /**
    * @brief Returns the number of load instructions.
    */
-  size_t getLoadInstructions();
+  [[nodiscard]] size_t getLoadInstructions();
 
   /**
    * @brief Returns all possible Types.
    */
-  std::set<const llvm::Type *> getAllocatedTypes() const;
+  [[nodiscard]] std::set<const llvm::Type *> getAllocatedTypes() const;
 
   /**
    * @brief Returns all stack and heap allocating instructions.
    */
-  std::set<const llvm::Instruction *> getAllocaInstructions() const;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getAllocaInstructions() const;
 
   /**
    * @brief Returns all Return and Resume Instructions.
    */
-  std::set<const llvm::Instruction *> getRetResInstructions() const;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getRetResInstructions() const;
 };
 
 /**

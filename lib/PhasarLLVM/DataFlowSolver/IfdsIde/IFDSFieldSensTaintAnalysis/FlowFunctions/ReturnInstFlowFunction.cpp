@@ -8,7 +8,7 @@ namespace psr {
 
 std::set<ExtendedValue>
 ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  const auto *const RetInst = llvm::cast<llvm::ReturnInst>(currentInst);
+  const auto *const RetInst = llvm::cast<llvm::ReturnInst>(CurrentInst);
   auto *const RetValMemLocationMatr = RetInst->getReturnValue();
 
   if (RetValMemLocationMatr) {
@@ -23,7 +23,7 @@ ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
      * entry point is added as for that case no mapping function is called.
      */
     if (IsRetValTainted) {
-      traceStats.add(RetInst);
+      TStats.add(RetInst);
     }
   }
 

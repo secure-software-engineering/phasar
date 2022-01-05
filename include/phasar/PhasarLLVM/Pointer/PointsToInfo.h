@@ -48,15 +48,15 @@ public:
 
   virtual ~PointsToInfo() = default;
 
-  virtual bool isInterProcedural() const = 0;
+  [[nodiscard]] virtual bool isInterProcedural() const = 0;
 
-  virtual PointerAnalysisType getPointerAnalysistype() const = 0;
+  [[nodiscard]] virtual PointerAnalysisType getPointerAnalysistype() const = 0;
 
-  virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
+  [[nodiscard]] virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
 
-  virtual PointsToSetPtrTy getPointsToSet(V V1, N I = N{}) = 0;
+  [[nodiscard]] virtual PointsToSetPtrTy getPointsToSet(V V1, N I = N{}) = 0;
 
-  virtual AllocationSiteSetPtrTy
+  [[nodiscard]] virtual AllocationSiteSetPtrTy
   getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
 
   // Checks if V2 is a reachable allocation in the points to set of V1.
@@ -66,7 +66,7 @@ public:
 
   virtual void print(std::ostream &OS = std::cout) const = 0;
 
-  virtual nlohmann::json getAsJson() const = 0;
+  [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 
   virtual void printAsJson(std::ostream &OS) const = 0;
 

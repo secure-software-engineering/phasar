@@ -14,8 +14,8 @@
  *      Author: nicolas bellec
  */
 
-#ifndef PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H_
-#define PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H
+#define PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_LAZYTYPEGRAPH_H
 
 #include <set>
 #include <string>
@@ -31,7 +31,7 @@
 
 namespace llvm {
 class StructType;
-}
+} // namespace llvm
 
 namespace psr {
 class LazyTypeGraph : public TypeGraph<LazyTypeGraph> {
@@ -77,7 +77,7 @@ protected:
 public:
   LazyTypeGraph() = default;
 
-  virtual ~LazyTypeGraph() = default;
+  ~LazyTypeGraph() override = default;
   // LazyTypeGraph(const LazyTypeGraph &copy) = delete;
   // LazyTypeGraph& operator=(const LazyTypeGraph &copy) = delete;
   // LazyTypeGraph(LazyTypeGraph &&move) = delete;

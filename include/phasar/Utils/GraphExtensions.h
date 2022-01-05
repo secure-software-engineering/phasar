@@ -50,13 +50,12 @@ void merge_by_stitching(
     GraphTy &g1, const GraphTy &g2,
     std::vector<std::pair<VertexTy, VertexTy>> vs_in_g1_us_in_g2,
     Args &&...args) {
-  typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
-      index_map_t;
+  using index_map_t =
+      typename boost::property_map<GraphTy, boost::vertex_index_t>::type;
   // for simple adjacency_list<> this type would be more efficient:
-  typedef typename boost::iterator_property_map<
+  using IsoMap = typename boost::iterator_property_map<
       typename std::vector<VertexTy>::iterator, index_map_t, VertexTy,
-      VertexTy &>
-      IsoMap;
+      VertexTy &>;
   // for more generic graphs, one can try  //typedef std::map<vertex_t,
   // vertex_t> IsoMap;
   std::vector<VertexTy> orig2copy_data(num_vertices(g2));
@@ -76,13 +75,12 @@ template <typename GraphTy, typename VertexTy, typename EdgeProperty,
 void merge_graphs(GraphTy &g1, const GraphTy &g2,
                   std::vector<std::pair<VertexTy, VertexTy>> v_in_g1_u_in_g2,
                   Args &&...args) {
-  typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
-      index_map_t;
+  using index_map_t =
+      typename boost::property_map<GraphTy, boost::vertex_index_t>::type;
   // for simple adjacency_list<> this type would be more efficient:
-  typedef typename boost::iterator_property_map<
+  using IsoMap = typename boost::iterator_property_map<
       typename std::vector<VertexTy>::iterator, index_map_t, VertexTy,
-      VertexTy &>
-      IsoMap;
+      VertexTy &>;
   // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
   // IsoMap;
   std::vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
@@ -101,13 +99,12 @@ template <typename GraphTy, typename VertexTy, typename EdgeProperty,
 void merge_graphs(
     GraphTy &g1, const GraphTy &g2,
     std::vector<std::tuple<VertexTy, VertexTy, Arg>> v_in_g1_u_in_g2_prop) {
-  typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
-      index_map_t;
+  using index_map_t =
+      typename boost::property_map<GraphTy, boost::vertex_index_t>::type;
   // for simple adjacency_list<> this type would be more efficient:
-  typedef typename boost::iterator_property_map<
+  using IsoMap = typename boost::iterator_property_map<
       typename std::vector<VertexTy>::iterator, index_map_t, VertexTy,
-      VertexTy &>
-      IsoMap;
+      VertexTy &>;
   // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
   // IsoMap;
   std::vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
@@ -122,13 +119,12 @@ void merge_graphs(
 
 template <typename GraphTy, typename VertexTy>
 void copy_graph(GraphTy &g1, const GraphTy &g2) {
-  typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
-      index_map_t;
+  using index_map_t =
+      typename boost::property_map<GraphTy, boost::vertex_index_t>::type;
   // for simple adjacency_list<> this type would be more efficient:
-  typedef typename boost::iterator_property_map<
+  using IsoMap = typename boost::iterator_property_map<
       typename std::vector<VertexTy>::iterator, index_map_t, VertexTy,
-      VertexTy &>
-      IsoMap;
+      VertexTy &>;
   // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
   // IsoMap;
   std::vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
