@@ -30,14 +30,14 @@ TEST(TypeGraphTest, AddType) {
 
     auto Node = Tg.addType(StructType);
 
-    ASSERT_TRUE(Tg.g[Node].name == StructType->getName().str());
-    ASSERT_TRUE(Tg.g[Node].base_type == StructType);
-    ASSERT_TRUE(Tg.g[Node].types.size() == 1);
-    ASSERT_TRUE(Tg.g[Node].types.count(StructType));
+    ASSERT_TRUE(Tg.G[Node].Name == StructType->getName().str());
+    ASSERT_TRUE(Tg.G[Node].BaseType == StructType);
+    ASSERT_TRUE(Tg.G[Node].Types.size() == 1);
+    ASSERT_TRUE(Tg.G[Node].Types.count(StructType));
 
     boost::add_vertex(G);
 
-    ASSERT_TRUE(boost::isomorphism(G, Tg.g));
+    ASSERT_TRUE(boost::isomorphism(G, Tg.G));
 
     ++NbStruct;
   }
@@ -86,7 +86,7 @@ TEST(TypeGraphTest, ReverseTypePropagation) {
         StructE = StructType;
         break;
       case 5:
-        break;
+        [[fallthrough]];
       case 6:
         break;
       default:
@@ -129,18 +129,18 @@ TEST(TypeGraphTest, ReverseTypePropagation) {
   boost::add_edge(VertexC, VertexD, G);
   boost::add_edge(VertexE, VertexB, G);
 
-  ASSERT_TRUE(boost::isomorphism(G, Tg.g));
+  ASSERT_TRUE(boost::isomorphism(G, Tg.G));
 
-  auto TgEdges = boost::edges(Tg.g);
+  auto TgEdges = boost::edges(Tg.G);
 
   int NumberEdge = 0;
 
-  TgEdges = boost::edges(Tg.g);
+  TgEdges = boost::edges(Tg.G);
   for (auto It = TgEdges.first; It != TgEdges.second; ++It) {
     ++NumberEdge;
 
-    auto Src = boost::source(*It, Tg.g);
-    auto Target = boost::target(*It, Tg.g);
+    auto Src = boost::source(*It, Tg.G);
+    auto Target = boost::target(*It, Tg.G);
 
     ASSERT_TRUE(NumberEdge <= 4);
 
@@ -157,38 +157,38 @@ TEST(TypeGraphTest, ReverseTypePropagation) {
   }
 
   ASSERT_TRUE(NumberEdge == 4);
-  NumberEdge = 0; // Avoid stupid mistakes
+  NumberEdge = 0; // NOLINT Avoid stupid mistakes
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA));
-  ASSERT_TRUE(Tg.g[VertexA].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB));
-  ASSERT_TRUE(Tg.g[VertexB].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC));
-  ASSERT_TRUE(Tg.g[VertexC].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE));
-  ASSERT_TRUE(Tg.g[VertexE].types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexA].Types.count(StructA));
+  ASSERT_TRUE(Tg.G[VertexA].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexB].Types.count(StructB));
+  ASSERT_TRUE(Tg.G[VertexB].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexC].Types.count(StructC));
+  ASSERT_TRUE(Tg.G[VertexC].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexD].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexD].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexE].Types.count(StructE));
+  ASSERT_TRUE(Tg.G[VertexE].Types.size() == 1);
 
   Tg.reverseTypePropagation(StructC);
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA) &&
-              Tg.g[VertexA].types.count(StructB) &&
-              Tg.g[VertexA].types.count(StructC));
-  ASSERT_TRUE(Tg.g[VertexA].types.size() == 3);
-  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB) &&
-              Tg.g[VertexB].types.count(StructC));
-  ASSERT_TRUE(Tg.g[VertexB].types.size() == 2);
-  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC));
-  ASSERT_TRUE(Tg.g[VertexC].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE) &&
-              Tg.g[VertexE].types.count(StructB) &&
-              Tg.g[VertexE].types.count(StructC));
-  ASSERT_TRUE(Tg.g[VertexE].types.size() == 3);
+  ASSERT_TRUE(Tg.G[VertexA].Types.count(StructA) &&
+              Tg.G[VertexA].Types.count(StructB) &&
+              Tg.G[VertexA].Types.count(StructC));
+  ASSERT_TRUE(Tg.G[VertexA].Types.size() == 3);
+  ASSERT_TRUE(Tg.G[VertexB].Types.count(StructB) &&
+              Tg.G[VertexB].Types.count(StructC));
+  ASSERT_TRUE(Tg.G[VertexB].Types.size() == 2);
+  ASSERT_TRUE(Tg.G[VertexC].Types.count(StructC));
+  ASSERT_TRUE(Tg.G[VertexC].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexD].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexD].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexE].Types.count(StructE) &&
+              Tg.G[VertexE].Types.count(StructB) &&
+              Tg.G[VertexE].Types.count(StructC));
+  ASSERT_TRUE(Tg.G[VertexE].Types.size() == 3);
 }
 
 TEST(TypeGraphTest, AddLinkSimple) {
@@ -237,9 +237,9 @@ TEST(TypeGraphTest, AddLinkSimple) {
 
   boost::add_edge(VertexA, VertexB, G);
 
-  ASSERT_TRUE(boost::isomorphism(G, Tg.g));
+  ASSERT_TRUE(boost::isomorphism(G, Tg.G));
 
-  auto P = edges(Tg.g);
+  auto P = edges(Tg.G);
 
   auto Begin = P.first;
   auto End = P.second;
@@ -249,8 +249,8 @@ TEST(TypeGraphTest, AddLinkSimple) {
   for (auto It = Begin; It != End; ++It) {
     ++NumberEdge;
 
-    auto Src = boost::source(*It, Tg.g);
-    auto Target = boost::target(*It, Tg.g);
+    auto Src = boost::source(*It, Tg.G);
+    auto Target = boost::target(*It, Tg.G);
 
     ASSERT_TRUE(NumberEdge == 1);
     ASSERT_TRUE(Src == NodeA);
@@ -297,7 +297,7 @@ TEST(TypeGraphTest, TypeAggregation) {
         StructE = StructType;
         break;
       case 5:
-        break;
+        [[fallthrough]];
       case 6:
         break;
       default:
@@ -340,18 +340,18 @@ TEST(TypeGraphTest, TypeAggregation) {
   boost::add_edge(VertexC, VertexD, G);
   boost::add_edge(VertexE, VertexB, G);
 
-  ASSERT_TRUE(boost::isomorphism(G, Tg.g));
+  ASSERT_TRUE(boost::isomorphism(G, Tg.G));
 
-  auto TgEdges = boost::edges(Tg.g);
+  auto TgEdges = boost::edges(Tg.G);
 
   int NumberEdge = 0;
 
-  TgEdges = boost::edges(Tg.g);
+  TgEdges = boost::edges(Tg.G);
   for (auto It = TgEdges.first; It != TgEdges.second; ++It) {
     ++NumberEdge;
 
-    auto Src = boost::source(*It, Tg.g);
-    auto Target = boost::target(*It, Tg.g);
+    auto Src = boost::source(*It, Tg.G);
+    auto Target = boost::target(*It, Tg.G);
 
     ASSERT_TRUE(NumberEdge <= 4);
 
@@ -368,42 +368,42 @@ TEST(TypeGraphTest, TypeAggregation) {
   }
 
   ASSERT_TRUE(NumberEdge == 4);
-  NumberEdge = 0; // Avoid stupid mistakes
+  NumberEdge = 0; // NOLINT Avoid stupid mistakes
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA));
-  ASSERT_TRUE(Tg.g[VertexA].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB));
-  ASSERT_TRUE(Tg.g[VertexB].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC));
-  ASSERT_TRUE(Tg.g[VertexC].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE));
-  ASSERT_TRUE(Tg.g[VertexE].types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexA].Types.count(StructA));
+  ASSERT_TRUE(Tg.G[VertexA].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexB].Types.count(StructB));
+  ASSERT_TRUE(Tg.G[VertexB].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexC].Types.count(StructC));
+  ASSERT_TRUE(Tg.G[VertexC].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexD].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexD].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexE].Types.count(StructE));
+  ASSERT_TRUE(Tg.G[VertexE].Types.size() == 1);
 
   Tg.aggregateTypes();
 
   // Check that the type are coherent in the graph
-  ASSERT_TRUE(Tg.g[VertexA].types.count(StructA) &&
-              Tg.g[VertexA].types.count(StructB) &&
-              Tg.g[VertexA].types.count(StructC) &&
-              Tg.g[VertexA].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexA].types.size() == 4);
-  ASSERT_TRUE(Tg.g[VertexB].types.count(StructB) &&
-              Tg.g[VertexB].types.count(StructC) &&
-              Tg.g[VertexB].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexB].types.size() == 3);
-  ASSERT_TRUE(Tg.g[VertexC].types.count(StructC) &&
-              Tg.g[VertexC].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexC].types.size() == 2);
-  ASSERT_TRUE(Tg.g[VertexD].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexD].types.size() == 1);
-  ASSERT_TRUE(Tg.g[VertexE].types.count(StructE) &&
-              Tg.g[VertexE].types.count(StructB) &&
-              Tg.g[VertexE].types.count(StructC) &&
-              Tg.g[VertexE].types.count(StructD));
-  ASSERT_TRUE(Tg.g[VertexE].types.size() == 4);
+  ASSERT_TRUE(Tg.G[VertexA].Types.count(StructA) &&
+              Tg.G[VertexA].Types.count(StructB) &&
+              Tg.G[VertexA].Types.count(StructC) &&
+              Tg.G[VertexA].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexA].Types.size() == 4);
+  ASSERT_TRUE(Tg.G[VertexB].Types.count(StructB) &&
+              Tg.G[VertexB].Types.count(StructC) &&
+              Tg.G[VertexB].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexB].Types.size() == 3);
+  ASSERT_TRUE(Tg.G[VertexC].Types.count(StructC) &&
+              Tg.G[VertexC].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexC].Types.size() == 2);
+  ASSERT_TRUE(Tg.G[VertexD].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexD].Types.size() == 1);
+  ASSERT_TRUE(Tg.G[VertexE].Types.count(StructE) &&
+              Tg.G[VertexE].Types.count(StructB) &&
+              Tg.G[VertexE].Types.count(StructC) &&
+              Tg.G[VertexE].Types.count(StructD));
+  ASSERT_TRUE(Tg.G[VertexE].Types.size() == 4);
 }
 } // namespace psr
 

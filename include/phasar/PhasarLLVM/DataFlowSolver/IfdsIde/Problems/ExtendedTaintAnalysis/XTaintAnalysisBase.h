@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTANALYSISBASE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTANALYSISBASE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTANALYSISBASE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTANALYSISBASE_H
 
 #include "llvm/ADT/SmallPtrSet.h"
 
@@ -45,10 +45,13 @@ protected:
   getSinkConfigAt(const llvm::Instruction *Inst,
                   const llvm::Function *Callee = nullptr) const;
 
+  [[nodiscard]] bool isSink(const llvm::Value *SinkCandidate,
+                            const llvm::Instruction *AtInst) const;
+
   [[nodiscard]] SanitizerConfigTy
   getSanitizerConfigAt(const llvm::Instruction *Inst,
                        const llvm::Function *Callee = nullptr) const;
 };
 } // namespace psr::XTaint
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTANALYSISBASE_H_
+#endif

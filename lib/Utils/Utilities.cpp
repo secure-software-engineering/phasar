@@ -94,7 +94,7 @@ ostream &operator<<(ostream &OS, const vector<bool> &Bits) {
   return OS;
 }
 
-bool stringIDLess::operator()(const std::string &Lhs,
+bool StringIDLess::operator()(const std::string &Lhs,
                               const std::string &Rhs) const {
   char *Endptr1;
 
@@ -103,13 +103,14 @@ bool stringIDLess::operator()(const std::string &Lhs,
   long RhsVal = strtol(Rhs.c_str(), &Endptr2, 10);
   if (Lhs.c_str() == Endptr1 && Lhs.c_str() == Endptr2) {
     return Lhs < Rhs;
-  } else if (Lhs.c_str() == Endptr1 && Rhs.c_str() != Endptr2) {
-    return false;
-  } else if (Lhs.c_str() != Endptr1 && Rhs.c_str() == Endptr2) {
-    return true;
-  } else {
-    return LhsVal < RhsVal;
   }
+  if (Lhs.c_str() == Endptr1 && Rhs.c_str() != Endptr2) {
+    return false;
+  }
+  if (Lhs.c_str() != Endptr1 && Rhs.c_str() == Endptr2) {
+    return true;
+  }
+  return LhsVal < RhsVal;
 }
 
 } // namespace psr

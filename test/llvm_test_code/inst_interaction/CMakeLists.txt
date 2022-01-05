@@ -24,6 +24,15 @@ set(Sources
   struct_01.cpp
 )
 
+set(SourcesOpt
+  global_03.cpp
+  global_04.cpp
+)
+
 foreach(TEST_SRC ${Sources})
   generate_ll_file(FILE ${TEST_SRC})
+endforeach(TEST_SRC)
+
+foreach(TEST_SRC ${SourcesOpt})
+  generate_ll_file(FILE ${TEST_SRC} O1)
 endforeach(TEST_SRC)

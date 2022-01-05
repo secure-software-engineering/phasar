@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JOINHANDLINGNODE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JOINHANDLINGNODE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JOINHANDLINGNODE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JOINHANDLINGNODE_H
 
 #include <vector>
 
@@ -24,6 +24,8 @@ namespace psr {
 template <typename T> class JoinHandlingNode {
 public:
   virtual ~JoinHandlingNode();
+  JoinHandlingNode(JoinHandlingNode &Other) = delete;
+  JoinHandlingNode &operator=(JoinHandlingNode &Other) = delete;
   /**
    *
    * @param joiningNode the node abstraction that was propagated to the same
@@ -32,11 +34,11 @@ public:
    * {@code joiningNode} is necessary, otherwise false meaning
    * the node should be propagated by the solver.
    */
-  virtual bool handleJoin(T joiningNode) = 0;
+  virtual bool handleJoin(T JoiningNode) = 0;
 
   class JoinKey {
   private:
-    std::vector<T> elements;
+    std::vector<T> Elements;
 
   public:
     /**
@@ -44,7 +46,7 @@ public:
      * @param elements Passed elements must be immutable with respect to their
      * hashCode and equals implementations.
      */
-    JoinKey(std::vector<T> elems) : elements(elems) {}
+    JoinKey(std::vector<T> Elems) : Elements(Elems) {}
     int hash() { return 0; }
     bool equals() { return false; }
   };

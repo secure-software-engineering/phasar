@@ -3,7 +3,6 @@
 PhASAR a LLVM-based Static Analysis Framework
 =============================================
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
 [![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
@@ -12,63 +11,59 @@ Version 0521
 Secure Software Engineering Group
 ---------------------------------
 
-+ Philipp Schubert (philipp.schubert@upb.de) and others
++ Philipp Dominik Schubert (philipp.schubert@upb.de) and others
 + Please also refer to https://phasar.org/
-
-|branch | status |
-| :---: | :---: |
-| master | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=master"> |
-| development | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=development"> |
 
 Required version of the C++ standard
 ------------------------------------
-Phasar requires C++-17.
+PhASAR requires C++-17.
 
 Currently supported version of LLVM
 -----------------------------------
-Phasar is currently set up to support LLVM-12.0.
+PhASAR is currently set up to support LLVM-12.0.
 
-What is Phasar?
+What is PhASAR?
 ---------------
-Phasar is a LLVM-based static analysis framework written in C++. It allows users
-to specify arbitrary data-flow problems which are then solved in a 
+PhASAR is a LLVM-based static analysis framework written in C++. It allows users
+to specify arbitrary data-flow problems which are then solved in a
 fully-automated manner on the specified LLVM IR target code. Computing points-to
 information, call-graph(s), etc. is done by the framework, thus you can focus on
 what matters.
 
-How do I get started with Phasar?
+How do I get started with PhASAR?
 ---------------------------------
-We have some documentation on Phasar in our [_**wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read 
+We have some documentation on PhASAR in our [_**wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
 this README first and then have a look on the material provided on https://phasar.org/
-as well. Please also have a look on Phasar's project directory and notice the project directory
+as well. Please also have a look on PhASAR's project directory and notice the project directory
 examples/ as well as the custom tool tools/myphasartool.cpp.
 
-Building Phasar
+Building PhASAR
 ---------------
-If you cannot work with one of the pre-built versions of Phasar and would like to
-compile Phasar yourself, then please check the wiki for installing the 
-prerequisites and compilation. It is recommended to compile Phasar yourself in
-order to get the full C++ experience and to have full control over the build 
+If you cannot work with one of the pre-built versions of PhASAR and would like to
+compile PhASAR yourself, then please check the wiki for installing the
+prerequisites and compilation. It is recommended to compile PhASAR yourself in
+order to get the full C++ experience and to have full control over the build
 mode.
 
-Please help us to improve Phasar
+Please help us to improve PhASAR
 --------------------------------
-You are using Phasar and would like to help us in the future? Then please 
+You are using PhASAR and would like to help us in the future? Then please
 support us by filling out this [web form](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
 
-By giving us feedback you help to decide in what direction Phasar should stride in
+By giving us feedback you help to decide in what direction PhASAR should stride in
 the future and give us clues about our user base. Thank you very much!
 
 
 Installation
 ------------
-Phasar can be installed using the installer scripts as explained in the following.
+PhASAR can be installed using the installer scripts as explained in the following.
 
-### Installing Phasar on an Ubuntu system
-In the following, we would like to give an complete example of how to install 
-Phasar using an Ubuntu or Unix-like system. 
 
-Therefore, we provide an installation script. To install Phasar, just navigate to the top-level
+### Installing PhASAR on an Ubuntu system
+In the following, we would like to give an complete example of how to install
+PhASAR using an Ubuntu or Unix-like system.
+
+Therefore, we provide an installation script. To install PhASAR, just navigate to the top-level
 directory of PhASAR and use the following command:
 ```
 $ sudo ./bootstrap.sh
@@ -77,7 +72,7 @@ $ sudo ./bootstrap.sh
 Done!
 
 
-### Installing Phasar a MacOS system
+### Installing PhASAR a MacOS system
 Mac OS 10.13.1 or higher only!
 To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
@@ -87,13 +82,13 @@ Please follow the instructions down below.
 $ brew install boost
 $ brew install python3
 # Install llvm version 10
-$ brew install llvm 
+$ brew install llvm
 # Setting the paths
 # Use LLVM's Clang rather than Apple's Clang compiler
 $ export CC=/usr/local/opt/llvm/bin/clang
 $ export CXX=/usr/local/opt/llvm/bin/clang++
 # Set PATH env variable to /usr/local/opt/llvm/bin
-# Go to Phasar directory run the following commands
+# Go to PhASAR directory run the following commands
 $ git submodule init
 $ git submodule update
 $ mkdir build
@@ -103,11 +98,8 @@ $ make -j $(nproc) # or use a different number of cores to compile it
 $ sudo make install # if you wish a system-wise installation
 ```
 
-### Installing Phasar on a Windows system
 
-**A solution is under implementation.**
-
-### Compiling Phasar (if not already done using the installation scripts)
+### Compiling PhASAR (if not already done using the installation scripts)
 Set the system's variables for the C and C++ compiler to clang:
 ```
 $ export CC=/usr/local/bin/clang
@@ -126,23 +118,23 @@ If you downloaded PhASAR as a compressed release (e.g. .zip or .tar.gz) you can 
 $ utils/init-submodules-release.sh
 ```
 
-Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
+Navigate into the PhASAR directory. The following commands will do the job and compile the PhASAR framework:
 
 ```
 $ mkdir build
 $ cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make -j $(nproc) # or use a different number of cores to compile it
-$ sudo make install # if you wish to install Phasar system wide
+$ sudo make install # if you wish to install PhASAR system wide
 ```
 
-When you have used the `bootstrap.sh` script to install Phasar, the above steps are already done.
-Use them as a reference if you wish to modify Phasar and recompile it.
+When you have used the `bootstrap.sh` script to install PhASAR, the above steps are already done.
+Use them as a reference if you wish to modify PhASAR and recompile it.
 
 After compilation using cmake the following two binaries can be found in the build/ directory:
 
-+ phasar-llvm - the actual Phasar command-line tool
-+ myphasartool - an example tool that shows how tools can be build on top of Phasar
++ phasar-llvm - the actual PhASAR command-line tool
++ myphasartool - an example tool that shows how tools can be build on top of PhASAR
 
 Use the command:
 
@@ -154,15 +146,17 @@ in order to display the manual and help message.
 
 Please be careful and check if errors occur during the compilation.
 
-When using CMake to compile Phasar the following optional parameters can be used:
+When using CMake to compile PhASAR the following optional parameters can be used:
 
 | Parameter : Type|  Effect |
 |-----------|--------|
-| <b>BUILD_SHARED_LIBS</b> : BOOL | Build shared libraries (default is OFF) |
-| <b>CMAKE_BUILD_TYPE</b> : STRING | Build Phasar in 'Debug' or 'Release' mode <br> (default is 'Debug') |
-| <b>CMAKE_INSTALL_PREFIX</b> : PATH | Path where Phasar will be installed if <br> “make install” is invoked or the “install” <br> target is built (default is /usr/local) |
-| <b>PHASAR_BUILD_DOC</b> : BOOL | Build Phasar documentation (default is OFF) |
-| <b>PHASAR_BUILD_UNITTESTS</b> : BOOL | Build Phasar unittests (default is OFF) |
+| <b>BUILD_SHARED_LIBS</b> : BOOL | Build shared libraries (default is ON) |
+| <b>CMAKE_BUILD_TYPE</b> : STRING | Build PhASAR in 'Debug' or 'Release' mode <br> (default is 'Debug') |
+| <b>CMAKE_INSTALL_PREFIX</b> : PATH | Path where PhASAR will be installed if <br> “make install” is invoked or the “install” <br> target is built (default is /usr/local/phasar) |
+| <b>PHASAR_BUILD_DOC</b> : BOOL | Build PhASAR documentation (default is OFF) |
+| <b>PHASAR_BUILD_UNITTESTS</b> : BOOL | Build PhASAR unit tests (default is ON) |
+| <b>PHASAR_BUILD_IR</b> : BOOL | Build PhASAR IR (required for running the unit tests) (default is ON) |
+| <b>PHASAR_BUILD_OPENSSL_TS_UNITTESTS</b> : BOOL | Build PhASAR unit tests that require OpenSSL (default is OFF) |
 | <b>PHASAR_ENABLE_PAMM</b> : STRING | Enable the performance measurement mechanism <br> ('Off', 'Core' or 'Full', default is Off) |
 | <b>PHASAR_ENABLE_PIC</b> : BOOL | Build Position-Independed Code (default is ON) |
 | <b>PHASAR_ENABLE_WARNINGS</b> : BOOL | Enable compiler warnings (default is ON) |
@@ -180,6 +174,22 @@ To test if everything works as expected please run the following command:
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 
-How to use Phasar?
+How to use PhASAR?
 ------------------
-Please consult our [Phasar wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
+Please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
+
+
+### Installing PhASAR's Git pre-commit hook
+You are very much welcome to contribute to the PhASAR project.
+Please make sure that you install our pre-commit hook that ensures your commit adheres to the most important coding rules of the PhASAR project.
+For more details please consult [Coding Conventions](https://github.com/secure-software-engineering/phasar/wiki/Coding-Conventions) and [Contributing to PhASAR](https://github.com/secure-software-engineering/phasar/wiki/Contributing-to-PhASAR).
+
+To install the pre-commit hook, please run the following commands in PhASAR's root directory:
+
+```
+$ pip install pre-commit
+$ pre-commit install
+
+```
+
+Thanks. And have fun with the project.

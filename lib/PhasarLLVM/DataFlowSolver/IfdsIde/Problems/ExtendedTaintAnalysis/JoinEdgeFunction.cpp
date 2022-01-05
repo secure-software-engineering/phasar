@@ -23,11 +23,12 @@ namespace psr::XTaint {
 JoinEdgeFunction::JoinEdgeFunction(BasicBlockOrdering &BBO,
                                    SubEdgeFuctionsTy &&SubEF,
                                    const EdgeDomain &Seed)
-    : EdgeFunctionBase(Kind::Join, BBO), SubEF(std::move(SubEF)), Seed(Seed) {}
+    : EdgeFunctionBase(EFKind::Join, BBO), SubEF(std::move(SubEF)), Seed(Seed) {
+}
 JoinEdgeFunction::JoinEdgeFunction(
     BasicBlockOrdering &BBO, std::initializer_list<EdgeFunctionPtrType> SubEF,
     const EdgeDomain &Seed)
-    : EdgeFunctionBase(Kind::Join, BBO), SubEF(SubEF), Seed(Seed) {}
+    : EdgeFunctionBase(EFKind::Join, BBO), SubEF(SubEF), Seed(Seed) {}
 
 auto JoinEdgeFunction::create(BasicBlockOrdering &BBO,
                               EdgeFunctionPtrType First,
@@ -44,6 +45,7 @@ auto JoinEdgeFunction::create(BasicBlockOrdering &BBO,
   }
   // Helper-function to handle the case where exactly one of {First, Second} is
   // a JoinEdgeFunction
+  // NOLINTNEXTLINE(readability-identifier-naming)
   auto joinSingle =
       [&BBO](
           const EdgeFunctionPtrType &Single, const JoinEdgeFunction *Other,
@@ -64,49 +66,55 @@ auto JoinEdgeFunction::create(BasicBlockOrdering &BBO,
     return makeEF<JoinEdgeFunction>(BBO, std::move(Subs), Other->Seed);
   };
 
-  EdgeDomain Seed = psr::Top{};
+  /// Check for JoinConstEF:
 
-  if (auto *FirstJC = dynamic_cast<JoinConstEdgeFunction *>(&*First)) {
-    if (auto *SecondJC = dynamic_cast<JoinConstEdgeFunction *>(&*Second)) {
-      Seed = EdgeDomain(FirstJC->getConstant()).join(SecondJC->getConstant());
-      First = FirstJC->getFunction();
-      Second = SecondJC->getFunction();
-    } else {
-      Seed = FirstJC->getConstant();
-      First = FirstJC->getFunction();
-    }
-  } else if (auto *SecondJC = dynamic_cast<JoinConstEdgeFunction *>(&*Second)) {
+  EdgeDomain Seed = psr::Top{};
+  auto *FirstJC = dynamic_cast<JoinConstEdgeFunction *>(&*First);
+  auto *SecondJC = dynamic_cast<JoinConstEdgeFunction *>(&*Second);
+  if (FirstJC && SecondJC) {
+    Seed = EdgeDomain(FirstJC->getConstant()).join(SecondJC->getConstant());
+    First = FirstJC->getFunction();
+    Second = SecondJC->getFunction();
+  } else if (FirstJC) {
+    Seed = FirstJC->getConstant();
+    First = FirstJC->getFunction();
+  } else if (SecondJC) {
     Seed = SecondJC->getConstant();
     Second = SecondJC->getFunction();
   }
 
-  if (&*First == &*Second || First->equal_to(Second)) // Just to be sure...
+  if (&*First == &*Second || First->equal_to(Second)) {
+    // Just to be sure...
     return First;
+  }
 
-  if (auto *FirstEF = dynamic_cast<JoinEdgeFunction *>(&*First)) {
-    if (auto *SecondEF = dynamic_cast<JoinEdgeFunction *>(&*Second)) {
-      // Most difficult case: Both First and Second are JoinEdgeFunctions. Merge
-      // the subEF-sets by using set-union (deduplicating)
+  /// Check for JoinEF:
 
-      if (SecondEF->SubEF.size() < FirstEF->SubEF.size()) {
-        std::swap(FirstEF, SecondEF);
-      }
-      SubEdgeFuctionsTy Subs(SecondEF->SubEF);
-      for (const auto &Sub : FirstEF->SubEF) {
-        Subs.insert(Sub);
-      }
+  auto *FirstEF = dynamic_cast<JoinEdgeFunction *>(&*First);
+  auto *SecondEF = dynamic_cast<JoinEdgeFunction *>(&*Second);
+  if (FirstEF && SecondEF) {
+    // Most difficult case: Both First and Second are JoinEdgeFunctions. Merge
+    // the subEF-sets by using set-union (deduplicating)
 
-      if (Subs.size() > SubEFThreshold) {
-        return getAllBot();
-      }
-
-      return makeEF<JoinEdgeFunction>(BBO, std::move(Subs),
-                                      FirstEF->Seed.join(SecondEF->Seed, &BBO));
+    if (SecondEF->SubEF.size() < FirstEF->SubEF.size()) {
+      std::swap(FirstEF, SecondEF);
+    }
+    SubEdgeFuctionsTy Subs(SecondEF->SubEF);
+    for (const auto &Sub : FirstEF->SubEF) {
+      Subs.insert(Sub);
     }
 
+    if (Subs.size() > SubEFThreshold) {
+      return getAllBot();
+    }
+
+    return makeEF<JoinEdgeFunction>(BBO, std::move(Subs),
+                                    FirstEF->Seed.join(SecondEF->Seed, &BBO));
+  }
+  if (FirstEF) {
     return joinSingle(Second, FirstEF, First);
   }
-  if (auto *SecondEF = dynamic_cast<JoinEdgeFunction *>(&*Second)) {
+  if (SecondEF) {
     return joinSingle(First, SecondEF, Second);
   }
 

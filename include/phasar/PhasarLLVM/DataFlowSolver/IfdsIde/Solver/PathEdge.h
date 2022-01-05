@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_PATHEDGE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_PATHEDGE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
 
 #include <ostream>
 
@@ -23,13 +23,13 @@ namespace psr {
 
 template <typename N, typename D> class PathEdge {
 private:
-  const N target;
-  const D dSource;
-  const D dTarget;
+  const N Target;
+  const D DSource;
+  const D DTarget;
 
 public:
-  PathEdge(D dSource, N target, D dTarget)
-      : target(target), dSource(dSource), dTarget(dTarget) {}
+  PathEdge(D DSource, N Target, D DTarget)
+      : Target(Target), DSource(DSource), DTarget(DTarget) {}
 
   ~PathEdge() = default;
 
@@ -37,19 +37,19 @@ public:
 
   PathEdge &operator=(const PathEdge &) = default;
 
-  PathEdge(PathEdge &&) = default;
+  PathEdge(PathEdge &&) noexcept = default;
 
-  PathEdge &operator=(PathEdge &&) = default;
+  PathEdge &operator=(PathEdge &&) noexcept = default;
 
-  [[nodiscard]] N getTarget() const { return target; }
+  [[nodiscard]] N getTarget() const { return Target; }
 
-  [[nodiscard]] D factAtSource() const { return dSource; }
+  [[nodiscard]] D factAtSource() const { return DSource; }
 
-  [[nodiscard]] D factAtTarget() const { return dTarget; }
+  [[nodiscard]] D factAtTarget() const { return DTarget; }
 
-  friend std::ostream &operator<<(std::ostream &os, const PathEdge &pathEdge) {
-    return os << "<" << pathEdge.dSource << "> -> <" << pathEdge.target << ","
-              << pathEdge.dTarget << ">";
+  friend std::ostream &operator<<(std::ostream &OS, const PathEdge &Edge) {
+    return OS << "<" << Edge.DSource << "> -> <" << Edge.Target << ","
+              << Edge.DTarget << ">";
   }
 };
 

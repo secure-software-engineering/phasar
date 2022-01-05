@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef FLOWFUNCTIONBASE_H
-#define FLOWFUNCTIONBASE_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_FLOWFUNCTIONBASE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_FLOWFUNCTIONBASE_H
 
 #include "../Stats/TraceStats.h"
 
@@ -20,21 +20,20 @@ namespace psr {
 
 class FlowFunctionBase : public FlowFunction<ExtendedValue> {
 public:
-  FlowFunctionBase(const llvm::Instruction *_currentInst,
-                   TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : currentInst(_currentInst), traceStats(_traceStats),
-        zeroValue(_zeroValue) {}
+  FlowFunctionBase(const llvm::Instruction *CurrentInst, TraceStats &TStats,
+                   const ExtendedValue &ZeroValue)
+      : CurrentInst(CurrentInst), TStats(TStats), ZeroValue(ZeroValue) {}
   ~FlowFunctionBase() override = default;
 
-  std::set<ExtendedValue> computeTargets(ExtendedValue fact) override;
-  virtual std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) = 0;
+  std::set<ExtendedValue> computeTargets(ExtendedValue Fact) override;
+  virtual std::set<ExtendedValue> computeTargetsExt(ExtendedValue &Fact) = 0;
 
 protected:
-  const llvm::Instruction *currentInst;
-  TraceStats &traceStats;
-  ExtendedValue zeroValue;
+  const llvm::Instruction *CurrentInst;
+  TraceStats &TStats;
+  ExtendedValue ZeroValue;
 };
 
 } // namespace psr
 
-#endif // FLOWFUNCTIONBASE_H
+#endif

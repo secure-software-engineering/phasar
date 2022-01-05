@@ -7,14 +7,14 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_GENEDGEFUNCTION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_GENEDGEFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_GENEDGEFUNCTION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_GENEDGEFUNCTION_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintEdgeFunctionBase.h"
 
 namespace llvm {
 class Instruction;
-}
+} // namespace llvm
 
 namespace psr::XTaint {
 class GenEdgeFunction : public EdgeFunctionBase {
@@ -36,11 +36,11 @@ public:
   inline const llvm::Instruction *getSanitizer() const { return Sani; }
 
   static inline bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == Kind::Gen;
+    return EF->getKind() == EFKind::Gen;
   }
 
   llvm::hash_code getHashCode() const override;
 };
 } // namespace psr::XTaint
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_GENEDGEFUNCTION_H_
+#endif

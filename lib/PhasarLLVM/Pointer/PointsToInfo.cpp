@@ -35,13 +35,14 @@ std::string toString(AliasResult AR) {
 AliasResult toAliasResult(const std::string &S) {
   if (S == "NoAlias") {
     return AliasResult::NoAlias;
-  } else if (S == "MayAlias") {
-    return AliasResult::MayAlias;
-  } else if (S == "PartialAlias") {
-    return AliasResult::PartialAlias;
-  } else {
-    return AliasResult::MustAlias;
   }
+  if (S == "MayAlias") {
+    return AliasResult::MayAlias;
+  }
+  if (S == "PartialAlias") {
+    return AliasResult::PartialAlias;
+  }
+  return AliasResult::MustAlias;
 }
 
 std::ostream &operator<<(std::ostream &OS, const AliasResult &AR) {
@@ -75,8 +76,8 @@ PointerAnalysisType toPointerAnalysisType(const std::string &S) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA) {
-  return os << tostring(PA);
+std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA) {
+  return OS << tostring(PA);
 }
 
 } // namespace psr

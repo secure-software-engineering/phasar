@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef IFDSFIELDSENSTAINTANALYSIS_H
-#define IFDSFIELDSENSTAINTANALYSIS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 
 #include <iostream>
 #include <map>
@@ -53,69 +53,71 @@ public:
   ~IFDSFieldSensTaintAnalysis() override = default;
 
   FlowFunctionPtrType
-  getNormalFlowFunction(const llvm::Instruction *curr,
-                        const llvm::Instruction *succ) override;
+  getNormalFlowFunction(const llvm::Instruction *Curr,
+                        const llvm::Instruction *Succ) override;
 
   FlowFunctionPtrType
-  getCallFlowFunction(const llvm::Instruction *callSite,
-                      const llvm::Function *destFun) override;
+  getCallFlowFunction(const llvm::Instruction *CallSite,
+                      const llvm::Function *DestFun) override;
 
   FlowFunctionPtrType
-  getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeFun,
-                     const llvm::Instruction *exitInst,
-                     const llvm::Instruction *retSite) override;
+  getRetFlowFunction(const llvm::Instruction *CallSite,
+                     const llvm::Function *CalleeFun,
+                     const llvm::Instruction *ExitStmt,
+                     const llvm::Instruction *RetSite) override;
 
   FlowFunctionPtrType
-  getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite,
-                           std::set<const llvm::Function *> callees) override;
+  getCallToRetFlowFunction(const llvm::Instruction *CallSite,
+                           const llvm::Instruction *RetSite,
+                           std::set<const llvm::Function *> Callees) override;
 
   FlowFunctionPtrType
-  getSummaryFlowFunction(const llvm::Instruction *callSite,
-                         const llvm::Function *destFun) override;
+  getSummaryFlowFunction(const llvm::Instruction *CallSite,
+                         const llvm::Function *DestFun) override;
 
   InitialSeeds<const llvm::Instruction *, ExtendedValue, l_t>
   initialSeeds() override;
 
   void
   emitTextReport(const SolverResults<const llvm::Instruction *, ExtendedValue,
-                                     BinaryDomain> &solverResults,
+                                     BinaryDomain> &SolverResults,
                  std::ostream &OS = std::cout) override;
 
-  ExtendedValue createZeroValue() const override {
+  [[nodiscard]] ExtendedValue createZeroValue() const override {
     // create a special value to represent the zero value!
     return ExtendedValue(LLVMZeroValue::getInstance());
   }
 
-  bool isZeroValue(ExtendedValue ev) const override {
-    return LLVMZeroValue::getInstance()->isLLVMZeroValue(ev.getValue());
+  [[nodiscard]] bool isZeroValue(ExtendedValue EV) const override {
+    return LLVMZeroValue::getInstance()->isLLVMZeroValue(EV.getValue());
   }
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override {
-    os << llvmIRToString(n);
+  void printNode(std::ostream &OS,
+                 const llvm::Instruction *Stmt) const override {
+    OS << llvmIRToString(Stmt);
   }
 
-  void printDataFlowFact(std::ostream &os, ExtendedValue ev) const override {
-    os << llvmIRToString(ev.getValue()) << "\n";
-    for (const auto memLocationPart : ev.getMemLocationSeq()) {
-      os << "A:\t" << llvmIRToString(memLocationPart) << "\n";
+  void printDataFlowFact(std::ostream &OS, ExtendedValue EV) const override {
+    OS << llvmIRToString(EV.getValue()) << "\n";
+    for (const auto *MemLocationPart : EV.getMemLocationSeq()) {
+      OS << "A:\t" << llvmIRToString(MemLocationPart) << "\n";
     }
-    if (!ev.getEndOfTaintedBlockLabel().empty()) {
-      os << "L:\t" << ev.getEndOfTaintedBlockLabel() << "\n";
+    if (!EV.getEndOfTaintedBlockLabel().empty()) {
+      OS << "L:\t" << EV.getEndOfTaintedBlockLabel() << "\n";
     }
-    if (ev.isVarArg()) {
-      os << "VT:\t" << ev.isVarArgTemplate() << "\n";
-      for (const auto vaListMemLocationPart : ev.getVaListMemLocationSeq()) {
-        os << "VLA:\t" << llvmIRToString(vaListMemLocationPart) << "\n";
+    if (EV.isVarArg()) {
+      OS << "VT:\t" << EV.isVarArgTemplate() << "\n";
+      for (const auto *VAListMemLocationPart : EV.getVaListMemLocationSeq()) {
+        OS << "VLA:\t" << llvmIRToString(VAListMemLocationPart) << "\n";
       }
-      os << "VI:\t" << ev.getVarArgIndex() << "\n";
-      os << "CI:\t" << ev.getCurrentVarArgIndex() << "\n";
+      OS << "VI:\t" << EV.getVarArgIndex() << "\n";
+      OS << "CI:\t" << EV.getCurrentVarArgIndex() << "\n";
     }
   }
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override {
-    os << m->getName().str();
+  void printFunction(std::ostream &OS,
+                     const llvm::Function *Func) const override {
+    OS << Func->getName().str();
   }
 
 private:
@@ -126,4 +128,4 @@ private:
 
 } // namespace psr
 
-#endif // IFDSFIELDSENSTAINTANALYSIS_H
+#endif

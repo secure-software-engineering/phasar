@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef TRACESTATS_H
-#define TRACESTATS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_TRACESTATS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_TRACESTATS_H
 
 #include "LineNumberEntry.h"
 
@@ -21,24 +21,24 @@ public:
   using FunctionStats = std::map<std::string, std::set<LineNumberEntry>>;
   using LineNumberStats = std::set<LineNumberEntry>;
 
-  TraceStats() {}
+  TraceStats() = default;
   ~TraceStats() = default;
 
-  long add(const llvm::Instruction *instruction,
-           const std::vector<const llvm::Value *> &memLocationSeq =
+  long add(const llvm::Instruction *Inst,
+           const std::vector<const llvm::Value *> &MemLocationSeq =
                std::vector<const llvm::Value *>());
 
-  const FileStats getStats() const { return stats; }
+  [[nodiscard]] FileStats getStats() const { return Stats; }
 
 private:
-  long add(const llvm::Instruction *instruction, bool isReturnValue);
+  long add(const llvm::Instruction *Inst, bool IsReturnValue);
 
-  FunctionStats &getFunctionStats(const std::string &file);
-  LineNumberStats &getLineNumberStats(const std::string &file,
-                                      const std::string &function);
-  FileStats stats;
+  FunctionStats &getFunctionStats(const std::string &File);
+  LineNumberStats &getLineNumberStats(const std::string &File,
+                                      const std::string &FunctionName);
+  FileStats Stats;
 };
 
 } // namespace psr
 
-#endif // TRACESTATS_H
+#endif

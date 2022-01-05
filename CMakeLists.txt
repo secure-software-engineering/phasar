@@ -15,14 +15,22 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(GNUInstallDirs)
+
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
+  message(STATUS "Selected Debug Build with sanitizers")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -fno-omit-frame-pointer -fsanitize=address,undefined")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  message(STATUS "Selected Debug Build")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
 else()
+  message(STATUS "Selected Release Build")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
 endif()
 
@@ -41,7 +49,6 @@ file(STRINGS ${PHASAR_SRC_DIR}/include/phasar/Config/Version.h VERSION_NUMBER_FI
 string(REPLACE " " ";" VERSION_NUMBER_FILE ${VERSION_NUMBER_FILE})
 list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
 
-
 include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
@@ -49,6 +56,8 @@ option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
+
+option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
@@ -94,12 +103,13 @@ endif()
 configure_file(config.h.in config.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )
 
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(PHASAR_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}/phasar)
+
+set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${PHASAR_INSTALL_LIBDIR})
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 if (LLVM_ENABLE_LIBCXX)
@@ -117,17 +127,38 @@ find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log
 #find_package(Boost 1.72.0 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-# JSON library
-option(JSON_BuildTests OFF)
-set(JSON_Install ON)
-add_subdirectory(external/json EXCLUDE_FROM_ALL)
+# Disable clang-tidy for the external projects
+set(CMAKE_CXX_CLANG_TIDY "")
+
+# We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
+# The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
+# is not installed, leading to linker error. But just including nlohmann_json is not sufficient, as
+# in the installed state the nlohmann_json_schema_validator needs the nlohmann_json package which needs
+# to be installed.
+# The following workaround may collapse or become unnecessary once the issue is
+# changed or fixed in nlohmann_json_schema_validator.
+
+#Override option of nlohmann_json_schema_validator to not build its tests
+set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
+
+# Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
 include_directories(external/json/single_include/)
 
-# JSON Schema Validator
-set(BUILD_TESTS OFF)
-set(BUILD_EXAMPLES OFF)
-add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
-include_directories(external/json-schema-validator/src)
+if (PHASAR_IN_TREE)
+  set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
+endif()
+
+set(nlohmann_json_DIR ${PHASAR_SRC_DIR}/external/json/single_include/)
+
+# Json Schema Validator
+set(JSON_VALIDATOR_INSTALL ON)
+add_subdirectory(external/json-schema-validator)
+include_directories(external/json-schema-validator/src/)
+
+# now we finally add the subdirectory
+set(JSON_BuildTests OFF)
+set(JSON_Install ON)
+add_subdirectory(external/json)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -166,7 +197,7 @@ endif()
 # Clang
 # The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
 if(NOT PHASAR_IN_TREE)
-  find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+  find_library(CLANG_LIBRARY NAMES clang-cpp libclang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
   if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
     set(NEED_LIBCLANG_COMPONENT_LIBS on)
   endif()
@@ -214,8 +245,17 @@ endif()
 add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
+# Set up clang-tidy to run during PhASAR's compilation to indicate code smells
+if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
+  message(STATUS "Enabled clang-tidy during build")
+  set(CMAKE_CXX_CLANG_TIDY
+    clang-tidy;
+    -header-filter=include/phasar.*h$;
+    # -warnings-as-errors=*;
+  )
+endif ()
 
-# Add the Phasar subdirectories
+# Add PhASAR's subdirectories
 add_subdirectory(include)
 add_subdirectory(lib)
 

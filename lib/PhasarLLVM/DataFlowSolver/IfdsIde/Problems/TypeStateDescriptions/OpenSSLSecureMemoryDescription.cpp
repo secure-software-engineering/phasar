@@ -82,9 +82,8 @@ TypeStateDescription::State OpenSSLSecureMemoryDescription::getNextState(
   if (isAPIFunction(Tok)) {
     return Delta[static_cast<std::underlying_type_t<OpenSSLSecureMemoryToken>>(
         funcNameToToken(Tok))][S];
-  } else {
-    return OpenSSLSecureMemoryState::BOT;
   }
+  return OpenSSLSecureMemoryState::BOT;
 }
 
 std::string OpenSSLSecureMemoryDescription::getTypeNameOfInterest() const {

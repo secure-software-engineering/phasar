@@ -21,19 +21,19 @@ template <typename F> class VFTable {
 public:
   virtual ~VFTable() = default;
 
-  virtual F getFunction(unsigned Idx) const = 0;
+  [[nodiscard]] virtual F getFunction(unsigned Idx) const = 0;
 
-  virtual std::vector<F> getAllFunctions() const = 0;
+  [[nodiscard]] virtual std::vector<F> getAllFunctions() const = 0;
 
-  virtual int getIndex(F f) const = 0;
+  [[nodiscard]] virtual int getIndex(F Func) const = 0;
 
-  virtual bool empty() const = 0;
+  [[nodiscard]] virtual bool empty() const = 0;
 
-  virtual size_t size() const = 0;
+  [[nodiscard]] virtual size_t size() const = 0;
 
   virtual void print(std::ostream &OS) const = 0;
 
-  virtual nlohmann::json getAsJson() const = 0;
+  [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 };
 
 template <typename T, typename F>

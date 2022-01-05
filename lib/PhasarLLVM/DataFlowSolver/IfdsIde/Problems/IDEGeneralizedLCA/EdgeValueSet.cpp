@@ -11,47 +11,47 @@
 
 namespace psr {
 
-EdgeValueSet::EdgeValueSet() : underlying({EdgeValue(nullptr)}) {}
+EdgeValueSet::EdgeValueSet() : Underlying({EdgeValue(nullptr)}) {}
 
 EdgeValueSet::EdgeValueSet(std::initializer_list<EdgeValue> Ilist)
-    : underlying(Ilist) {}
-auto EdgeValueSet::begin() -> decltype(underlying.begin()) {
-  return underlying.begin();
+    : Underlying(Ilist) {}
+auto EdgeValueSet::begin() -> decltype(Underlying.begin()) {
+  return Underlying.begin();
 }
-auto EdgeValueSet::end() -> decltype(underlying.end()) {
-  return underlying.end();
+auto EdgeValueSet::end() -> decltype(Underlying.end()) {
+  return Underlying.end();
 }
-auto EdgeValueSet::begin() const -> decltype(underlying.begin()) {
-  return underlying.begin();
+auto EdgeValueSet::begin() const -> decltype(Underlying.begin()) {
+  return Underlying.begin();
 }
-auto EdgeValueSet::end() const -> decltype(underlying.end()) {
-  return underlying.end();
+auto EdgeValueSet::end() const -> decltype(Underlying.end()) {
+  return Underlying.end();
 }
 int EdgeValueSet::count(const EdgeValue &Ev) const {
-  return underlying.count(Ev);
+  return Underlying.count(Ev);
 }
-auto EdgeValueSet::find(const EdgeValue &Ev) -> decltype(underlying.find(Ev)) {
-  return underlying.find(Ev);
+auto EdgeValueSet::find(const EdgeValue &Ev) -> decltype(Underlying.find(Ev)) {
+  return Underlying.find(Ev);
 }
 auto EdgeValueSet::find(const EdgeValue &Ev) const
-    -> decltype(underlying.find(Ev)) {
-  return underlying.find(Ev);
+    -> decltype(Underlying.find(Ev)) {
+  return Underlying.find(Ev);
 }
 
-size_t EdgeValueSet::size() const { return underlying.size(); }
+size_t EdgeValueSet::size() const { return Underlying.size(); }
 auto EdgeValueSet::insert(const EdgeValue &Ev)
-    -> decltype(underlying.insert(Ev)) {
-  return underlying.insert(Ev);
+    -> decltype(Underlying.insert(Ev)) {
+  return Underlying.insert(Ev);
 }
-auto EdgeValueSet::insert(EdgeValue &&Ev) -> decltype(underlying.insert(Ev)) {
-  return underlying.insert(Ev);
+auto EdgeValueSet::insert(EdgeValue &&Ev) -> decltype(Underlying.insert(Ev)) {
+  return Underlying.insert(Ev);
 }
-bool EdgeValueSet::empty() const { return underlying.empty(); }
+bool EdgeValueSet::empty() const { return Underlying.empty(); }
 bool EdgeValueSet::operator==(const EdgeValueSet &Other) const {
-  return underlying == Other.underlying;
+  return Underlying == Other.Underlying;
 }
 bool EdgeValueSet::operator!=(const EdgeValueSet &Other) const {
-  return underlying != Other.underlying;
+  return Underlying != Other.Underlying;
 }
 
 } // namespace psr

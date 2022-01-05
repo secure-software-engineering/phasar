@@ -71,9 +71,9 @@ auto AbstractMemoryLocationImpl::computeOffset(
 [[nodiscard]] auto AbstractMemoryLocationImpl::operator-(
     const AbstractMemoryLocationImpl &TV) const -> llvm::ArrayRef<ptrdiff_t> {
   if (NumOffsets > TV.offsets().size()) {
-    return offsets().slice(std::max(size_t(1), TV.offsets().size()) - 1);
+    return offsets().drop_front(std::max(size_t(1), TV.offsets().size()) - 1);
   }
-  return TV.offsets().slice(std::max(1U, NumOffsets) - 1);
+  return TV.offsets().drop_front(std::max(1U, NumOffsets) - 1);
 }
 
 bool AbstractMemoryLocationImpl::equivalentOffsets(
@@ -112,6 +112,7 @@ bool AbstractMemoryLocationImpl::mustAlias(
                 << llvmIRToShortString(TV.base()) << ") = " << std::boolalpha
                 << (PT.alias(base(), TV.base()) == AliasResult::MustAlias));
 
+  // NOLINTNEXTLINE(readability-identifier-naming)
   auto getFunctionOrNull = [](const llvm::Value *V) -> const llvm::Function * {
     if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
       return Inst->getFunction();
@@ -184,14 +185,14 @@ AbstractMemoryLocation::AbstractMemoryLocation(
   assert(Impl);
 }
 
-std::ostream &operator<<(std::ostream &OS, const AbstractMemoryLocation &TV) {
+std::ostream &operator<<(std::ostream &OS, AbstractMemoryLocation TV) {
   llvm::raw_os_ostream ROS(OS);
   ROS << TV;
   return OS;
 }
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const AbstractMemoryLocation &TV) {
+                              AbstractMemoryLocation TV) {
   // -> Think about better representation
   OS << "(";
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(TV->base())) {
@@ -211,12 +212,9 @@ std::string DToString(const AbstractMemoryLocation &AML) {
   return OS.str();
 }
 
-} // namespace psr
-
-namespace llvm {
-llvm::hash_code hash_value(const psr::AbstractMemoryLocation &Val) {
+llvm::hash_code hash_value(psr::AbstractMemoryLocation Val) {
   return hash_combine(
       Val->base(), Val->lifetime() == 0,
-      hash_combine_range(Val->offsets().begin(), Val->offsets().end()));
+      llvm::hash_combine_range(Val->offsets().begin(), Val->offsets().end()));
 }
-} // namespace llvm
+} // namespace psr

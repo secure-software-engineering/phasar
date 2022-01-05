@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include <fstream>
 #include <iostream>
@@ -103,9 +103,9 @@ public:
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
         ICF(Problem.getICFG()), SolverConfig(Problem.getIFDSIDESolverConfig()),
-        cachedFlowEdgeFunctions(Problem), allTop(Problem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
-            allTop, IDEProblem)),
+        CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
+        JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
+            AllTop, IDEProblem)),
         Seeds(Problem.initialSeeds()) {}
 
   IDESolver(const IDESolver &) = delete;
@@ -119,27 +119,27 @@ public:
     using TableCell = typename Table<n_t, d_t, l_t>::Cell;
     const static std::string DataFlowID = "DataFlow";
     nlohmann::json J;
-    auto results = this->valtab.cellSet();
-    if (results.empty()) {
+    auto Results = this->ValTab.cellSet();
+    if (Results.empty()) {
       J[DataFlowID] = "EMPTY";
     } else {
-      std::vector<TableCell> cells(results.begin(), results.end());
-      sort(cells.begin(), cells.end(), [](TableCell a, TableCell b) {
-        return a.getRowKey() < b.getRowKey();
+      std::vector<TableCell> Cells(Results.begin(), Results.end());
+      sort(Cells.begin(), Cells.end(), [](TableCell Lhs, TableCell Rhs) {
+        return Lhs.getRowKey() < Rhs.getRowKey();
       });
-      n_t curr;
-      for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].getRowKey();
-        std::string n = IDEProblem.NtoString(cells[i].getRowKey());
-        boost::algorithm::trim(n);
-        std::string node =
-            ICF->getFunctionName(ICF->getFunctionOf(curr)) + "::" + n;
-        J[DataFlowID][node];
-        std::string fact = IDEProblem.DtoString(cells[i].getColumnKey());
-        boost::algorithm::trim(fact);
-        std::string value = IDEProblem.LtoString(cells[i].getValue());
-        boost::algorithm::trim(value);
-        J[DataFlowID][node]["Facts"] += {fact, value};
+      n_t Curr;
+      for (unsigned I = 0; I < Cells.size(); ++I) {
+        Curr = Cells[I].getRowKey();
+        std::string NStr = IDEProblem.NtoString(Cells[I].getRowKey());
+        boost::algorithm::trim(NStr);
+        std::string NodeStr =
+            ICF->getFunctionName(ICF->getFunctionOf(Curr)) + "::" + NStr;
+        J[DataFlowID][NodeStr];
+        std::string FactStr = IDEProblem.DtoString(Cells[I].getColumnKey());
+        boost::algorithm::trim(FactStr);
+        std::string ValueStr = IDEProblem.LtoString(Cells[I].getValue());
+        boost::algorithm::trim(ValueStr);
+        J[DataFlowID][NodeStr]["Facts"] += {FactStr, ValueStr};
       }
     }
     return J;
@@ -195,8 +195,8 @@ public:
   }
 
   /// Returns the L-type result for the given value at the given statement.
-  [[nodiscard]] virtual l_t resultAt(n_t stmt, d_t value) {
-    return valtab.get(stmt, value);
+  [[nodiscard]] virtual l_t resultAt(n_t Stmt, d_t Value) {
+    return ValTab.get(Stmt, Value);
   }
 
   /// Returns the L-type result at the given statement for the given data-flow
@@ -217,30 +217,30 @@ public:
   template <typename NTy = n_t>
   [[nodiscard]] typename std::enable_if_t<
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>, l_t>
-  resultAtInLLVMSSA(NTy stmt, d_t value) {
-    if (stmt->getType()->isVoidTy()) {
-      return valtab.get(stmt, value);
+  resultAtInLLVMSSA(NTy Stmt, d_t Value) {
+    if (Stmt->getType()->isVoidTy()) {
+      return ValTab.get(Stmt, Value);
     }
-    assert(stmt->getNextNode() && "Expected to find a valid successor node!");
-    return valtab.get(stmt->getNextNode(), value);
+    assert(Stmt->getNextNode() && "Expected to find a valid successor node!");
+    return ValTab.get(Stmt->getNextNode(), Value);
   }
 
   /// Returns the resulting environment for the given statement.
   /// The artificial zero value can be automatically stripped.
   /// TOP values are never returned.
   [[nodiscard]] virtual std::unordered_map<d_t, l_t>
-  resultsAt(n_t stmt, bool stripZero = false) /*TODO const*/ {
-    std::unordered_map<d_t, l_t> result = valtab.row(stmt);
-    if (stripZero) {
-      for (auto it = result.begin(); it != result.end();) {
-        if (IDEProblem.isZeroValue(it->first)) {
-          it = result.erase(it);
+  resultsAt(n_t Stmt, bool StripZero = false) /*TODO const*/ {
+    std::unordered_map<d_t, l_t> Result = ValTab.row(Stmt);
+    if (StripZero) {
+      for (auto It = Result.begin(); It != Result.end();) {
+        if (IDEProblem.isZeroValue(It->first)) {
+          It = Result.erase(It);
         } else {
-          ++it;
+          ++It;
         }
       }
     }
-    return result;
+    return Result;
   }
 
   /// Returns the data-flow results at the given statement while respecting
@@ -262,24 +262,24 @@ public:
   [[nodiscard]] typename std::enable_if_t<
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
       std::unordered_map<d_t, l_t>>
-  resultsAtInLLVMSSA(NTy stmt, bool stripZero = false) {
-    std::unordered_map<d_t, l_t> result = [this, stmt]() {
-      if (stmt->getType()->isVoidTy()) {
-        return valtab.row(stmt);
+  resultsAtInLLVMSSA(NTy Stmt, bool StripZero = false) {
+    std::unordered_map<d_t, l_t> Result = [this, Stmt]() {
+      if (Stmt->getType()->isVoidTy()) {
+        return ValTab.row(Stmt);
       }
-      return valtab.row(stmt->getNextNode());
+      return ValTab.row(Stmt->getNextNode());
     }();
-    if (stripZero) {
+    if (StripZero) {
       // TODO: replace with std::erase_if (C++20)
-      for (auto it = result.begin(); it != result.end();) {
-        if (IDEProblem.isZeroValue(it->first)) {
-          it = result.erase(it);
+      for (auto It = Result.begin(); It != Result.end();) {
+        if (IDEProblem.isZeroValue(It->first)) {
+          It = Result.erase(It);
         } else {
-          ++it;
+          ++It;
         }
       }
     }
-    return result;
+    return Result;
   }
 
   virtual void emitTextReport(std::ostream &OS = std::cout) {
@@ -296,41 +296,41 @@ public:
     OS << "\n***************************************************************\n"
        << "*                  Raw IDESolver results                      *\n"
        << "***************************************************************\n";
-    auto cells = this->valtab.cellVec();
-    if (cells.empty()) {
+    auto Cells = this->ValTab.cellVec();
+    if (Cells.empty()) {
       OS << "No results computed!" << std::endl;
     } else {
-      llvmValueIDLess llvmIDLess;
+      LLVMValueIDLess LLVMIDLess;
       std::sort(
-          cells.begin(), cells.end(),
-          [&llvmIDLess](const auto &a, const auto &b) {
+          Cells.begin(), Cells.end(),
+          [&LLVMIDLess](const auto &Lhs, const auto &Rhs) {
             if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-              return llvmIDLess(a.getRowKey(), b.getRowKey());
+              return LLVMIDLess(Lhs.getRowKey(), Rhs.getRowKey());
             } else {
               // If non-LLVM IR is used
-              return a.getRowKey() < b.getRowKey();
+              return Lhs.getRowKey() < Rhs.getRowKey();
             }
           });
-      n_t prev = n_t{};
-      n_t curr = n_t{};
-      f_t prevFn = f_t{};
-      f_t currFn = f_t{};
-      for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].getRowKey();
-        currFn = ICF->getFunctionOf(curr);
-        if (prevFn != currFn) {
-          prevFn = currFn;
+      n_t Prev = n_t{};
+      n_t Curr = n_t{};
+      f_t PrevFn = f_t{};
+      f_t CurrFn = f_t{};
+      for (unsigned I = 0; I < Cells.size(); ++I) {
+        Curr = Cells[I].getRowKey();
+        CurrFn = ICF->getFunctionOf(Curr);
+        if (PrevFn != CurrFn) {
+          PrevFn = CurrFn;
           OS << "\n\n============ Results for function '" +
-                    ICF->getFunctionName(currFn) + "' ============\n";
+                    ICF->getFunctionName(CurrFn) + "' ============\n";
         }
-        if (prev != curr) {
-          prev = curr;
-          std::string NString = IDEProblem.NtoString(curr);
-          std::string line(NString.size(), '-');
-          OS << "\n\nN: " << NString << "\n---" << line << '\n';
+        if (Prev != Curr) {
+          Prev = Curr;
+          std::string NString = IDEProblem.NtoString(Curr);
+          std::string Line(NString.size(), '-');
+          OS << "\n\nN: " << NString << "\n---" << Line << '\n';
         }
-        OS << "\tD: " << IDEProblem.DtoString(cells[i].getColumnKey())
-           << " | V: " << IDEProblem.LtoString(cells[i].getValue()) << '\n';
+        OS << "\tD: " << IDEProblem.DtoString(Cells[I].getColumnKey())
+           << " | V: " << IDEProblem.LtoString(Cells[I].getValue()) << '\n';
       }
     }
     OS << '\n';
@@ -339,19 +339,19 @@ public:
 
   void dumpAllInterPathEdges() {
     std::cout << "COMPUTED INTER PATH EDGES" << std::endl;
-    auto interpe = this->computedInterPathEdges.cellSet();
-    for (const auto &cell : interpe) {
+    auto Interpe = this->computedInterPathEdges.cellSet();
+    for (const auto &Cell : Interpe) {
       std::cout << "FROM" << std::endl;
-      IDEProblem.printNode(std::cout, cell.getRowKey());
+      IDEProblem.printNode(std::cout, Cell.getRowKey());
       std::cout << "TO" << std::endl;
-      IDEProblem.printNode(std::cout, cell.getColumnKey());
+      IDEProblem.printNode(std::cout, Cell.getColumnKey());
       std::cout << "FACTS" << std::endl;
-      for (const auto &fact : cell.getValue()) {
+      for (const auto &Fact : Cell.getValue()) {
         std::cout << "fact" << std::endl;
-        IDEProblem.printDataFlowFact(std::cout, fact.first);
+        IDEProblem.printDataFlowFact(std::cout, Fact.first);
         std::cout << "produces" << std::endl;
-        for (const auto &out : fact.second) {
-          IDEProblem.printDataFlowFact(std::cout, out);
+        for (const auto &Out : Fact.second) {
+          IDEProblem.printDataFlowFact(std::cout, Out);
         }
       }
     }
@@ -359,26 +359,26 @@ public:
 
   void dumpAllIntraPathEdges() {
     std::cout << "COMPUTED INTRA PATH EDGES" << std::endl;
-    auto intrape = this->computedIntraPathEdges.cellSet();
-    for (auto &cell : intrape) {
+    auto Intrape = this->computedIntraPathEdges.cellSet();
+    for (auto &Cell : Intrape) {
       std::cout << "FROM" << std::endl;
-      IDEProblem.printNode(std::cout, cell.getRowKey());
+      IDEProblem.printNode(std::cout, Cell.getRowKey());
       std::cout << "TO" << std::endl;
-      IDEProblem.printNode(std::cout, cell.getColumnKey());
+      IDEProblem.printNode(std::cout, Cell.getColumnKey());
       std::cout << "FACTS" << std::endl;
-      for (auto &fact : cell.getValue()) {
+      for (auto &Fact : Cell.getValue()) {
         std::cout << "fact" << std::endl;
-        IDEProblem.printDataFlowFact(std::cout, fact.first);
+        IDEProblem.printDataFlowFact(std::cout, Fact.first);
         std::cout << "produces" << std::endl;
-        for (auto &out : fact.second) {
-          IDEProblem.printDataFlowFact(std::cout, out);
+        for (auto &Out : Fact.second) {
+          IDEProblem.printDataFlowFact(std::cout, Out);
         }
       }
     }
   }
 
   SolverResults<n_t, d_t, l_t> getSolverResults() {
-    return SolverResults<n_t, d_t, l_t>(this->valtab,
+    return SolverResults<n_t, d_t, l_t>(this->ValTab,
                                         IDEProblem.getZeroValue());
   }
 
@@ -390,36 +390,36 @@ protected:
   IFDSIDESolverConfig &SolverConfig;
   unsigned PathEdgeCount = 0;
 
-  FlowEdgeFunctionCache<AnalysisDomainTy, Container> cachedFlowEdgeFunctions;
+  FlowEdgeFunctionCache<AnalysisDomainTy, Container> CachedFlowEdgeFunctions;
 
-  Table<n_t, n_t, std::map<d_t, Container>> computedIntraPathEdges;
+  Table<n_t, n_t, std::map<d_t, Container>> ComputedIntraPathEdges;
 
-  Table<n_t, n_t, std::map<d_t, Container>> computedInterPathEdges;
+  Table<n_t, n_t, std::map<d_t, Container>> ComputedInterPathEdges;
 
-  EdgeFunctionPtrType allTop;
+  EdgeFunctionPtrType AllTop;
 
-  std::shared_ptr<JumpFunctions<AnalysisDomainTy, Container>> jumpFn;
+  std::shared_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn;
 
   std::map<std::tuple<n_t, d_t, n_t, d_t>, std::vector<EdgeFunctionPtrType>>
-      intermediateEdgeFunctions;
+      IntermediateEdgeFunctions;
 
   // stores summaries that were queried before they were computed
   // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<n_t, d_t, Table<n_t, d_t, EdgeFunctionPtrType>> endsummarytab;
+  Table<n_t, d_t, Table<n_t, d_t, EdgeFunctionPtrType>> EndsummaryTab;
 
   // edges going along calls
   // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<n_t, d_t, std::map<n_t, Container>> incomingtab;
+  Table<n_t, d_t, std::map<n_t, Container>> IncomingTab;
 
   // stores the return sites (inside callers) to which we have unbalanced
   // returns if SolverConfig.followReturnPastSeeds is enabled
-  std::set<n_t> unbalancedRetSites;
+  std::set<n_t> UnbalancedRetSites;
 
   InitialSeeds<n_t, d_t, l_t> Seeds;
 
-  Table<n_t, d_t, l_t> valtab;
+  Table<n_t, d_t, l_t> ValTab;
 
-  std::map<std::pair<n_t, d_t>, size_t> fSummaryReuse;
+  std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
 
   // When transforming an IFDSTabulationProblem into an IDETabulationProblem,
   // we need to allocate dynamically, otherwise the objects lifetime runs out
@@ -436,10 +436,10 @@ protected:
         IDEProblem(*this->TransformedProblem),
         ZeroValue(IDEProblem.getZeroValue()), ICF(IDEProblem.getICFG()),
         SolverConfig(IDEProblem.getIFDSIDESolverConfig()),
-        cachedFlowEdgeFunctions(IDEProblem),
-        allTop(IDEProblem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
-            allTop, IDEProblem)),
+        CachedFlowEdgeFunctions(IDEProblem),
+        AllTop(IDEProblem.allTopFunction()),
+        JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
+            AllTop, IDEProblem)),
         Seeds(IDEProblem.initialSeeds()) {}
 
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
@@ -459,97 +459,98 @@ protected:
   ///
   /// @param edge an edge whose target node resembles a method call
   ///
-  virtual void processCall(const PathEdge<n_t, d_t> edge) {
+  virtual void processCall(const PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process call at target: "
-                  << IDEProblem.NtoString(edge.getTarget()));
-    d_t d1 = edge.factAtSource();
-    n_t n = edge.getTarget(); // a call node; line 14...
-    d_t d2 = edge.factAtTarget();
-    EdgeFunctionPtrType f = jumpFunction(edge);
-    const std::set<n_t> returnSiteNs = ICF->getReturnSitesOfCallAt(n);
-    const std::set<f_t> callees = ICF->getCalleesOfCallAt(n);
+                  << IDEProblem.NtoString(Edge.getTarget()));
+    d_t d1 = Edge.factAtSource();
+    n_t n = Edge.getTarget();
+    // a call node; line 14...
+    d_t d2 = Edge.factAtTarget();
+    EdgeFunctionPtrType f = jumpFunction(Edge);
+    const std::set<n_t> ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
+    const std::set<f_t> Callees = ICF->getCalleesOfCallAt(n);
 
     LOG_IF_ENABLE(
         BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible callees:";
-        for (auto callee
-             : callees) {
-          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << callee->getName().str();
+        for (auto Callee
+             : Callees) {
+          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << Callee->getName().str();
         } BOOST_LOG_SEV(lg::get(), DEBUG)
         << "Possible return sites:";
         for (auto ret
-             : returnSiteNs) {
+             : ReturnSiteNs) {
           BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << IDEProblem.NtoString(ret);
         } BOOST_LOG_SEV(lg::get(), DEBUG)
         << ' ');
 
     // for each possible callee
-    for (f_t sCalledProcN : callees) { // still line 14
+    for (f_t SCalledProcN : Callees) { // still line 14
       // check if a special summary for the called procedure exists
-      FlowFunctionPtrType specialSum =
-          cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN);
+      FlowFunctionPtrType SpecialSum =
+          CachedFlowEdgeFunctions.getSummaryFlowFunction(n, SCalledProcN);
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
-      if (specialSum) {
+      if (SpecialSum) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found and process special summary");
-        for (n_t returnSiteN : returnSiteNs) {
-          container_type res = computeSummaryFlowFunction(specialSum, d1, d2);
+        for (n_t ReturnSiteN : ReturnSiteNs) {
+          container_type Res = computeSummaryFlowFunction(SpecialSum, d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1,
                       PAMM_SEVERITY_LEVEL::Full);
           ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          saveEdges(n, returnSiteN, d2, res, false);
-          for (d_t d3 : res) {
-            EdgeFunctionPtrType sumEdgFnE =
-                cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
-                                                               returnSiteN, d3);
+          saveEdges(n, ReturnSiteN, d2, Res, false);
+          for (d_t d3 : Res) {
+            EdgeFunctionPtrType SumEdgFnE =
+                CachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
+                                                               ReturnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(
                 BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Queried Summary Edge Function: " << sumEdgFnE->str();
+                    << "Queried Summary Edge Function: " << SumEdgFnE->str();
                 BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Compose: " << sumEdgFnE->str() << " * " << f->str();
+                << "Compose: " << SumEdgFnE->str() << " * " << f->str();
                 BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-            propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
+            propagate(d1, ReturnSiteN, d3, f->composeWith(SumEdgFnE), n, false);
           }
         }
       } else {
         // compute the call-flow function
-        FlowFunctionPtrType function =
-            cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
+        FlowFunctionPtrType Function =
+            CachedFlowEdgeFunctions.getCallFlowFunction(n, SCalledProcN);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        container_type res = computeCallFlowFunction(function, d1, d2);
+        container_type Res = computeCallFlowFunction(Function, d1, d2);
         ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
         // for each callee's start point(s)
-        std::set<n_t> startPointsOf = ICF->getStartPointsOf(sCalledProcN);
-        if (startPointsOf.empty()) {
+        std::set<n_t> StartPointsOf = ICF->getStartPointsOf(SCalledProcN);
+        if (StartPointsOf.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                             << "Start points of '" +
-                                   ICF->getFunctionName(sCalledProcN) +
+                                   ICF->getFunctionName(SCalledProcN) +
                                    "' currently not available!";
                         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         }
         // if startPointsOf is empty, the called function is a declaration
-        for (n_t sP : startPointsOf) {
-          saveEdges(n, sP, d2, res, true);
+        for (n_t SP : StartPointsOf) {
+          saveEdges(n, SP, d2, Res, true);
           // for each result node of the call-flow function
-          for (d_t d3 : res) {
+          for (d_t d3 : Res) {
             using TableCell =
                 typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell;
             // create initial self-loop
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Create initial self-loop with D: "
                           << IDEProblem.DtoString(d3));
-            propagate(d3, sP, d3, EdgeIdentity<l_t>::getInstance(), n,
+            propagate(d3, SP, d3, EdgeIdentity<l_t>::getInstance(), n,
                       false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
             // line 15.1 of Naeem/Lhotak/Rodriguez
-            addIncoming(sP, d3, n, d2);
+            addIncoming(SP, d3, n, d2);
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
             // const std::set<TableCell> endSumm(endSummary(sP, d3));
@@ -564,44 +565,44 @@ protected:
             // <sP,d3>, create new caller-side jump functions to the return
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
-            for (const TableCell entry : endSummary(sP, d3)) {
-              n_t eP = entry.getRowKey();
-              d_t d4 = entry.getColumnKey();
-              EdgeFunctionPtrType fCalleeSummary = entry.getValue();
+            for (const TableCell &Entry : endSummary(SP, d3)) {
+              n_t eP = Entry.getRowKey();
+              d_t d4 = Entry.getColumnKey();
+              EdgeFunctionPtrType fCalleeSummary = Entry.getValue();
               // for each return site
-              for (n_t retSiteN : returnSiteNs) {
+              for (n_t RetSiteN : ReturnSiteNs) {
                 // compute return-flow function
-                FlowFunctionPtrType retFunction =
-                    cachedFlowEdgeFunctions.getRetFlowFunction(n, sCalledProcN,
-                                                               eP, retSiteN);
+                FlowFunctionPtrType RetFunction =
+                    CachedFlowEdgeFunctions.getRetFlowFunction(n, SCalledProcN,
+                                                               eP, RetSiteN);
                 INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-                const container_type returnedFacts = computeReturnFlowFunction(
-                    retFunction, d3, d4, n, Container{d2});
+                const container_type ReturnedFacts = computeReturnFlowFunction(
+                    RetFunction, d3, d4, n, Container{d2});
                 ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1,
                                  PAMM_SEVERITY_LEVEL::Full);
-                saveEdges(eP, retSiteN, d4, returnedFacts, true);
+                saveEdges(eP, RetSiteN, d4, ReturnedFacts, true);
                 // for each target value of the function
-                for (d_t d5 : returnedFacts) {
+                for (d_t d5 : ReturnedFacts) {
                   // update the caller-side summary function
                   // get call edge function
                   EdgeFunctionPtrType f4 =
-                      cachedFlowEdgeFunctions.getCallEdgeFunction(
-                          n, d2, sCalledProcN, d3);
+                      CachedFlowEdgeFunctions.getCallEdgeFunction(
+                          n, d2, SCalledProcN, d3);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Queried Call Edge Function: " << f4->str());
                   // get return edge function
                   EdgeFunctionPtrType f5 =
-                      cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                          n, sCalledProcN, eP, d4, retSiteN, d5);
+                      CachedFlowEdgeFunctions.getReturnEdgeFunction(
+                          n, SCalledProcN, eP, d4, RetSiteN, d5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Queried Return Edge Function: "
                                 << f5->str());
                   if (SolverConfig.emitESG()) {
-                    for (auto sP : ICF->getStartPointsOf(sCalledProcN)) {
-                      intermediateEdgeFunctions[std::make_tuple(n, d2, sP, d3)]
+                    for (auto SP : ICF->getStartPointsOf(SCalledProcN)) {
+                      IntermediateEdgeFunctions[std::make_tuple(n, d2, SP, d3)]
                           .push_back(f4);
                     }
-                    intermediateEdgeFunctions[std::make_tuple(eP, d4, retSiteN,
+                    IntermediateEdgeFunctions[std::make_tuple(eP, d4, RetSiteN,
                                                               d5)]
                         .push_back(f5);
                   }
@@ -624,7 +625,7 @@ protected:
                                     << "Compose: " << fPrime->str() << " * "
                                     << f->str();
                                 BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-                  propagate(d1, retSiteN, d5_restoredCtx,
+                  propagate(d1, RetSiteN, d5_restoredCtx,
                             f->composeWith(fPrime), n, false);
                 }
               }
@@ -635,34 +636,34 @@ protected:
     }
     // line 17-19 of Naeem/Lhotak/Rodriguez
     // process intra-procedural flows along call-to-return flow functions
-    for (n_t returnSiteN : returnSiteNs) {
-      FlowFunctionPtrType callToReturnFlowFunction =
-          cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
-                                                           callees);
+    for (n_t ReturnSiteN : ReturnSiteNs) {
+      FlowFunctionPtrType CallToReturnFF =
+          CachedFlowEdgeFunctions.getCallToRetFlowFunction(n, ReturnSiteN,
+                                                           Callees);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-      container_type returnFacts =
-          computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
+      container_type ReturnFacts =
+          computeCallToReturnFlowFunction(CallToReturnFF, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
-      saveEdges(n, returnSiteN, d2, returnFacts, false);
-      for (d_t d3 : returnFacts) {
-        EdgeFunctionPtrType edgeFnE =
-            cachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, returnSiteN,
-                                                             d3, callees);
+      saveEdges(n, ReturnSiteN, d2, ReturnFacts, false);
+      for (d_t d3 : ReturnFacts) {
+        EdgeFunctionPtrType EdgeFnE =
+            CachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, ReturnSiteN,
+                                                             d3, Callees);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Call-to-Return Edge Function: "
-                      << edgeFnE->str());
+                      << EdgeFnE->str());
         if (SolverConfig.emitESG()) {
-          intermediateEdgeFunctions[std::make_tuple(n, d2, returnSiteN, d3)]
-              .push_back(edgeFnE);
+          IntermediateEdgeFunctions[std::make_tuple(n, d2, ReturnSiteN, d3)]
+              .push_back(EdgeFnE);
         }
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        auto fPrime = f->composeWith(edgeFnE);
+        auto fPrime = f->composeWith(EdgeFnE);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Compose: " << edgeFnE->str() << " * " << f->str()
+                          << "Compose: " << EdgeFnE->str() << " * " << f->str()
                           << " = " << fPrime->str();
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-        propagate(d1, returnSiteN, d3, fPrime, n, false);
+        propagate(d1, ReturnSiteN, d3, fPrime, n, false);
       }
     }
   }
@@ -671,150 +672,151 @@ protected:
   /// Simply propagate normal, intra-procedural flows.
   /// @param edge
   ///
-  virtual void processNormalFlow(const PathEdge<n_t, d_t> edge) {
+  virtual void processNormalFlow(const PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process normal at target: "
-                  << IDEProblem.NtoString(edge.getTarget()));
-    d_t d1 = edge.factAtSource();
-    n_t n = edge.getTarget();
-    d_t d2 = edge.factAtTarget();
-    EdgeFunctionPtrType f = jumpFunction(edge);
-    for (const auto fn : ICF->getSuccsOf(n)) {
-      FlowFunctionPtrType flowFunction =
-          cachedFlowEdgeFunctions.getNormalFlowFunction(n, fn);
+                  << IDEProblem.NtoString(Edge.getTarget()));
+    d_t d1 = Edge.factAtSource();
+    n_t n = Edge.getTarget();
+    d_t d2 = Edge.factAtTarget();
+    EdgeFunctionPtrType f = jumpFunction(Edge);
+    for (const auto Fn : ICF->getSuccsOf(n)) {
+      FlowFunctionPtrType FlowFunc =
+          CachedFlowEdgeFunctions.getNormalFlowFunction(n, Fn);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-      const container_type res =
-          computeNormalFlowFunction(flowFunction, d1, d2);
+      const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
-      saveEdges(n, fn, d2, res, false);
-      for (d_t d3 : res) {
+      saveEdges(n, Fn, d2, Res, false);
+      for (d_t d3 : Res) {
         EdgeFunctionPtrType g =
-            cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, fn, d3);
+            CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, Fn, d3);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
-        EdgeFunctionPtrType fprime = f->composeWith(g);
+        EdgeFunctionPtrType fPrime = f->composeWith(g);
         if (SolverConfig.emitESG()) {
-          intermediateEdgeFunctions[std::make_tuple(n, d2, fn, d3)].push_back(
+          IntermediateEdgeFunctions[std::make_tuple(n, d2, Fn, d3)].push_back(
               g);
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << g->str() << " * " << f->str()
-                          << " = " << fprime->str();
+                          << " = " << fPrime->str();
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        propagate(d1, fn, d3, fprime, nullptr, false);
+        propagate(d1, Fn, d3, fPrime, nullptr, false);
       }
     }
   }
 
-  void propagateValueAtStart(const std::pair<n_t, d_t> nAndD, n_t n) {
+  void propagateValueAtStart(const std::pair<n_t, d_t> NAndD, n_t Stmt) {
     PAMM_GET_INSTANCE;
-    d_t d = nAndD.second;
-    f_t p = ICF->getFunctionOf(n);
-    for (const n_t c : ICF->getCallsFromWithin(p)) {
-      auto lookupResults = jumpFn->forwardLookup(d, c);
-      if (!lookupResults) {
+    d_t Fact = NAndD.second;
+    f_t Func = ICF->getFunctionOf(Stmt);
+    for (const n_t CallSite : ICF->getCallsFromWithin(Func)) {
+      auto LookupResults = JumpFn->forwardLookup(Fact, CallSite);
+      if (!LookupResults) {
         continue;
       }
-      for (auto entry : lookupResults->get()) {
-        d_t dPrime = entry.first;
-        EdgeFunctionPtrType fPrime = entry.second;
-        n_t sP = n;
-        l_t value = val(sP, d);
+      for (const auto &Entry : LookupResults->get()) {
+        d_t dPrime = Entry.first;
+        EdgeFunctionPtrType fPrime = Entry.second;
+        n_t SP = Stmt;
+        l_t Val = val(SP, Fact);
         INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
-        propagateValue(c, dPrime, fPrime->computeTarget(value));
+        propagateValue(CallSite, dPrime, fPrime->computeTarget(Val));
       }
     }
   }
 
-  void propagateValueAtCall(const std::pair<n_t, d_t> nAndD, n_t n) {
+  void propagateValueAtCall(const std::pair<n_t, d_t> NAndD, n_t Stmt) {
     PAMM_GET_INSTANCE;
-    d_t d = nAndD.second;
-    for (const f_t q : ICF->getCalleesOfCallAt(n)) {
-      FlowFunctionPtrType callFlowFunction =
-          cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
+    d_t Fact = NAndD.second;
+    for (const f_t Callee : ICF->getCalleesOfCallAt(Stmt)) {
+      FlowFunctionPtrType CallFlowFunction =
+          CachedFlowEdgeFunctions.getCallFlowFunction(Stmt, Callee);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-      for (const d_t dPrime : callFlowFunction->computeTargets(d)) {
-        EdgeFunctionPtrType edgeFn =
-            cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
+      for (const d_t dPrime : CallFlowFunction->computeTargets(Fact)) {
+        EdgeFunctionPtrType EdgeFn =
+            CachedFlowEdgeFunctions.getCallEdgeFunction(Stmt, Fact, Callee,
+                                                        dPrime);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Queried Call Edge Function: " << edgeFn->str());
+                      << "Queried Call Edge Function: " << EdgeFn->str());
         if (SolverConfig.emitESG()) {
-          for (const auto sP : ICF->getStartPointsOf(q)) {
-            intermediateEdgeFunctions[std::make_tuple(n, d, sP, dPrime)]
-                .push_back(edgeFn);
+          for (const auto SP : ICF->getStartPointsOf(Callee)) {
+            IntermediateEdgeFunctions[std::make_tuple(Stmt, Fact, SP, dPrime)]
+                .push_back(EdgeFn);
           }
         }
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        for (const n_t startPoint : ICF->getStartPointsOf(q)) {
+        for (const n_t StartPoint : ICF->getStartPointsOf(Callee)) {
           INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
-          propagateValue(startPoint, dPrime, edgeFn->computeTarget(val(n, d)));
+          propagateValue(StartPoint, dPrime,
+                         EdgeFn->computeTarget(val(Stmt, Fact)));
         }
       }
     }
   }
 
-  void propagateValue(n_t nHashN, d_t nHashD, const l_t &l) {
-    l_t valNHash = val(nHashN, nHashD);
-    l_t lPrime = joinValueAt(nHashN, nHashD, valNHash, l);
-    if (!(lPrime == valNHash)) {
-      setVal(nHashN, nHashD, std::move(lPrime));
-      valuePropagationTask(std::pair<n_t, d_t>(nHashN, nHashD));
+  void propagateValue(n_t NHashN, d_t NHashD, const l_t &L) {
+    l_t ValNHash = val(NHashN, NHashD);
+    l_t LPrime = joinValueAt(NHashN, NHashD, ValNHash, L);
+    if (!(LPrime == ValNHash)) {
+      setVal(NHashN, NHashD, std::move(LPrime));
+      valuePropagationTask(std::pair<n_t, d_t>(NHashN, NHashD));
     }
   }
 
-  l_t val(n_t nHashN, d_t nHashD) {
-    if (valtab.contains(nHashN, nHashD)) {
-      return valtab.get(nHashN, nHashD);
+  l_t val(n_t NHashN, d_t NHashD) {
+    if (ValTab.contains(NHashN, NHashD)) {
+      return ValTab.get(NHashN, NHashD);
     }
     // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
     return IDEProblem.topElement();
   }
 
-  void setVal(n_t nHashN, d_t nHashD, l_t l) {
+  void setVal(n_t NHashN, d_t NHashD, l_t L) {
     LOG_IF_ENABLE([&]() {
       BOOST_LOG_SEV(lg::get(), DEBUG)
-          << "Function : " << ICF->getFunctionOf(nHashN)->getName().str();
+          << "Function : " << ICF->getFunctionOf(NHashN)->getName().str();
       BOOST_LOG_SEV(lg::get(), DEBUG)
-          << "Inst.    : " << IDEProblem.NtoString(nHashN);
+          << "Inst.    : " << IDEProblem.NtoString(NHashN);
       BOOST_LOG_SEV(lg::get(), DEBUG)
-          << "Fact     : " << IDEProblem.DtoString(nHashD);
+          << "Fact     : " << IDEProblem.DtoString(NHashD);
       BOOST_LOG_SEV(lg::get(), DEBUG)
-          << "Value    : " << IDEProblem.LtoString(l);
+          << "Value    : " << IDEProblem.LtoString(L);
       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
     }());
     // TOP is the implicit default value which we do not need to store.
     // if (l == IDEProblem.topElement()) {
     // do not store top values
-    // valtab.remove(nHashN, nHashD);
+    // ValTab.remove(nHashN, nHashD);
     // } else {
-    valtab.insert(nHashN, nHashD, std::move(l));
+    ValTab.insert(NHashN, NHashD, std::move(L));
     // }
   }
 
-  EdgeFunctionPtrType jumpFunction(const PathEdge<n_t, d_t> edge) {
+  EdgeFunctionPtrType jumpFunction(const PathEdge<n_t, d_t> Edge) {
     LOG_IF_ENABLE(
         BOOST_LOG_SEV(lg::get(), DEBUG) << " ";
         BOOST_LOG_SEV(lg::get(), DEBUG) << "JumpFunctions Forward-Lookup:";
         BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "   Source D: " << IDEProblem.DtoString(edge.factAtSource());
+        << "   Source D: " << IDEProblem.DtoString(Edge.factAtSource());
         BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "   Target N: " << IDEProblem.NtoString(edge.getTarget());
+        << "   Target N: " << IDEProblem.NtoString(Edge.getTarget());
         BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "   Target D: " << IDEProblem.DtoString(edge.factAtTarget()));
+        << "   Target D: " << IDEProblem.DtoString(Edge.factAtTarget()));
 
-    auto fwdLookupRes =
-        jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget());
-    if (fwdLookupRes) {
-      auto &ref = fwdLookupRes->get();
-      if (auto Find = std::find_if(ref.begin(), ref.end(),
-                                   [edge](const auto &Pair) {
-                                     return edge.factAtTarget() == Pair.first;
+    auto FwdLookupRes =
+        JumpFn->forwardLookup(Edge.factAtSource(), Edge.getTarget());
+    if (FwdLookupRes) {
+      auto &Ref = FwdLookupRes->get();
+      if (auto Find = std::find_if(Ref.begin(), Ref.end(),
+                                   [Edge](const auto &Pair) {
+                                     return Edge.factAtTarget() == Pair.first;
                                    });
-          Find != ref.end()) {
+          Find != Ref.end()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "  => EdgeFn: " << Find->second->str();
                       BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
@@ -822,21 +824,21 @@ protected:
       }
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "  => EdgeFn: " << allTop->str();
+                      << "  => EdgeFn: " << AllTop->str();
                   BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     // JumpFn initialized to all-top, see line [2] in SRH96 paper
-    return allTop;
+    return AllTop;
   }
 
-  void addEndSummary(n_t sP, d_t d1, n_t eP, d_t d2, EdgeFunctionPtrType f) {
+  void addEndSummary(n_t SP, d_t d1, n_t eP, d_t d2, EdgeFunctionPtrType f) {
     // note: at this point we don't need to join with a potential previous f
     // because f is a jump function, which is already properly joined
     // within propagate(..)
-    endsummarytab.get(sP, d1).insert(eP, d2, std::move(f));
+    EndsummaryTab.get(SP, d1).insert(eP, d2, std::move(f));
   }
 
   // should be made a callable at some point
-  void pathEdgeProcessingTask(const PathEdge<n_t, d_t> edge) {
+  void pathEdgeProcessingTask(const PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("JumpFn Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(
@@ -847,75 +849,75 @@ protected:
         BOOST_LOG_SEV(lg::get(), DEBUG)
         << "Process " << PathEdgeCount << ". path edge:";
         BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "< D source: " << IDEProblem.DtoString(edge.factAtSource()) << " ;";
+        << "< D source: " << IDEProblem.DtoString(Edge.factAtSource()) << " ;";
         BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "  N target: " << IDEProblem.NtoString(edge.getTarget()) << " ;";
+        << "  N target: " << IDEProblem.NtoString(Edge.getTarget()) << " ;";
         BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "  D target: " << IDEProblem.DtoString(edge.factAtTarget()) << " >";
+        << "  D target: " << IDEProblem.DtoString(Edge.factAtTarget()) << " >";
         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-    if (!ICF->isCallSite(edge.getTarget())) {
-      if (ICF->isExitInst(edge.getTarget())) {
-        processExit(edge);
+    if (!ICF->isCallSite(Edge.getTarget())) {
+      if (ICF->isExitInst(Edge.getTarget())) {
+        processExit(Edge);
       }
-      if (!ICF->getSuccsOf(edge.getTarget()).empty()) {
-        processNormalFlow(edge);
+      if (!ICF->getSuccsOf(Edge.getTarget()).empty()) {
+        processNormalFlow(Edge);
       }
     } else {
-      processCall(edge);
+      processCall(Edge);
     }
   }
 
   // should be made a callable at some point
-  void valuePropagationTask(const std::pair<n_t, d_t> nAndD) {
-    n_t n = nAndD.first;
+  void valuePropagationTask(const std::pair<n_t, d_t> NAndD) {
+    n_t n = NAndD.first;
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
     if (ICF->isStartPoint(n) || Seeds.containsInitialSeedsFor(n) ||
-        unbalancedRetSites.count(n)) {
+        UnbalancedRetSites.count(n)) {
       // FIXME: is currently not executed for main!!!
       // initial seeds are set in the global constructor, and main is also not
       // officially called by any other function
-      propagateValueAtStart(nAndD, n);
+      propagateValueAtStart(NAndD, n);
     }
     if (ICF->isCallSite(n)) {
-      propagateValueAtCall(nAndD, n);
+      propagateValueAtCall(NAndD, n);
     }
   }
 
   // should be made a callable at some point
-  void valueComputationTask(const std::vector<n_t> &values) {
+  void valueComputationTask(const std::vector<n_t> &Values) {
     PAMM_GET_INSTANCE;
-    for (n_t n : values) {
-      for (n_t sP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
+    for (n_t n : Values) {
+      for (n_t SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
         using TableCell = typename Table<d_t, d_t, EdgeFunctionPtrType>::Cell;
-        Table<d_t, d_t, EdgeFunctionPtrType> lookupByTarget;
-        lookupByTarget = jumpFn->lookupByTarget(n);
-        for (const TableCell &sourceValTargetValAndFunction :
-             lookupByTarget.cellSet()) {
-          d_t dPrime = sourceValTargetValAndFunction.getRowKey();
-          d_t d = sourceValTargetValAndFunction.getColumnKey();
-          EdgeFunctionPtrType fPrime = sourceValTargetValAndFunction.getValue();
-          l_t targetVal = val(sP, dPrime);
+        Table<d_t, d_t, EdgeFunctionPtrType> LookupByTarget;
+        LookupByTarget = JumpFn->lookupByTarget(n);
+        for (const TableCell &SourceValTargetValAndFunction :
+             LookupByTarget.cellSet()) {
+          d_t dPrime = SourceValTargetValAndFunction.getRowKey();
+          d_t d = SourceValTargetValAndFunction.getColumnKey();
+          EdgeFunctionPtrType fPrime = SourceValTargetValAndFunction.getValue();
+          l_t TargetVal = val(SP, dPrime);
           setVal(n, d,
                  IDEProblem.join(val(n, d),
-                                 fPrime->computeTarget(std::move(targetVal))));
+                                 fPrime->computeTarget(std::move(TargetVal))));
           INC_COUNTER("Value Computation", 1, PAMM_SEVERITY_LEVEL::Full);
         }
       }
     }
   }
 
-  virtual void saveEdges(n_t sourceNode, n_t sinkStmt, d_t sourceVal,
-                         const container_type &destVals, bool interP) {
+  virtual void saveEdges(n_t SourceNode, n_t SinkStmt, d_t SourceVal,
+                         const container_type &DestVals, bool InterP) {
     if (!SolverConfig.recordEdges()) {
       return;
     }
-    Table<n_t, n_t, std::map<d_t, container_type>> &tgtMap =
-        (interP) ? computedInterPathEdges : computedIntraPathEdges;
-    tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
-                                                       destVals.end());
+    Table<n_t, n_t, std::map<d_t, container_type>> &TgtMap =
+        (InterP) ? ComputedInterPathEdges : ComputedIntraPathEdges;
+    TgtMap.get(SourceNode, SinkStmt)[SourceVal].insert(DestVals.begin(),
+                                                       DestVals.end());
   }
 
   /// Computes the final values for edge functions.
@@ -923,9 +925,9 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Start computing values");
     // Phase II(i)
     std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
-    for (n_t unbalancedRetSite : unbalancedRetSites) {
-      if (AllSeeds.find(unbalancedRetSite) == AllSeeds.end()) {
-        AllSeeds[unbalancedRetSite][ZeroValue] = IDEProblem.topElement();
+    for (n_t UnbalancedRetSite : UnbalancedRetSites) {
+      if (AllSeeds.find(UnbalancedRetSite) == AllSeeds.end()) {
+        AllSeeds[UnbalancedRetSite][ZeroValue] = IDEProblem.topElement();
       }
     }
     // do processing
@@ -939,16 +941,16 @@ protected:
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
         setVal(StartPoint, Fact, Value);
-        std::pair<n_t, d_t> superGraphNode(StartPoint, Fact);
-        valuePropagationTask(superGraphNode);
+        std::pair<n_t, d_t> SuperGraphNode(StartPoint, Fact);
+        valuePropagationTask(SuperGraphNode);
       }
     }
     // Phase II(ii)
     // we create an array of all nodes and then dispatch fractions of this
     // array to multiple threads
-    const std::set<n_t> allNonCallStartNodes = ICF->allNonCallStartNodes();
+    const std::set<n_t> AllNonCallStartNodes = ICF->allNonCallStartNodes();
     valueComputationTask(
-        {allNonCallStartNodes.begin(), allNonCallStartNodes.end()});
+        {AllNonCallStartNodes.begin(), AllNonCallStartNodes.end()});
   }
 
   /// Schedules the processing of initial seeds, initiating the analysis.
@@ -999,7 +1001,7 @@ protected:
         }
         propagate(Fact, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
                   nullptr, false);
-        jumpFn->addFunction(Fact, StartPoint, Fact,
+        JumpFn->addFunction(Fact, StartPoint, Fact,
                             EdgeIdentity<l_t>::getInstance());
       }
     }
@@ -1013,72 +1015,72 @@ protected:
   ///
   /// @param edge an edge whose target node resembles a method exit
   ///
-  virtual void processExit(const PathEdge<n_t, d_t> edge) {
+  virtual void processExit(const PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process exit at target: "
-                  << IDEProblem.NtoString(edge.getTarget()));
-    n_t n = edge.getTarget(); // an exit node; line 21...
-    EdgeFunctionPtrType f = jumpFunction(edge);
-    f_t functionThatNeedsSummary = ICF->getFunctionOf(n);
-    d_t d1 = edge.factAtSource();
-    d_t d2 = edge.factAtTarget();
+                  << IDEProblem.NtoString(Edge.getTarget()));
+    n_t n = Edge.getTarget(); // an exit node; line 21...
+    EdgeFunctionPtrType f = jumpFunction(Edge);
+    f_t FunctionThatNeedsSummary = ICF->getFunctionOf(n);
+    d_t d1 = Edge.factAtSource();
+    d_t d2 = Edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
-    const std::set<n_t> startPointsOf =
-        ICF->getStartPointsOf(functionThatNeedsSummary);
-    std::map<n_t, container_type> inc;
-    for (n_t sP : startPointsOf) {
+    const std::set<n_t> StartPointsOf =
+        ICF->getStartPointsOf(FunctionThatNeedsSummary);
+    std::map<n_t, container_type> Inc;
+    for (n_t SP : StartPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
       // register end-summary
-      addEndSummary(sP, d1, n, d2, f);
-      for (auto entry : incoming(d1, sP)) {
-        inc[entry.first] = Container{entry.second};
+      addEndSummary(SP, d1, n, d2, f);
+      for (const auto &Entry : incoming(d1, SP)) {
+        Inc[Entry.first] = Container{Entry.second};
       }
     }
     printEndSummaryTab();
     printIncomingTab();
     // for each incoming call edge already processed
     //(see processCall(..))
-    for (auto entry : inc) {
+    for (const auto &Entry : Inc) {
       // line 22
-      n_t c = entry.first;
+      n_t c = Entry.first;
       // for each return site
-      for (n_t retSiteC : ICF->getReturnSitesOfCallAt(c)) {
+      for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
-        FlowFunctionPtrType retFunction =
-            cachedFlowEdgeFunctions.getRetFlowFunction(
-                c, functionThatNeedsSummary, n, retSiteC);
+        FlowFunctionPtrType RetFunction =
+            CachedFlowEdgeFunctions.getRetFlowFunction(
+                c, FunctionThatNeedsSummary, n, RetSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
-        for (d_t d4 : entry.second) {
-          const container_type targets =
-              computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
+        for (d_t d4 : Entry.second) {
+          const container_type Targets =
+              computeReturnFlowFunction(RetFunction, d1, d2, c, Entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          saveEdges(n, retSiteC, d2, targets, true);
+          saveEdges(n, RetSiteC, d2, Targets, true);
           // for each target value at the return site
           // line 23
-          for (d_t d5 : targets) {
+          for (d_t d5 : Targets) {
             // compute composed function
             // get call edge function
             EdgeFunctionPtrType f4 =
-                cachedFlowEdgeFunctions.getCallEdgeFunction(
+                CachedFlowEdgeFunctions.getCallEdgeFunction(
                     c, d4, ICF->getFunctionOf(n), d1);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Call Edge Function: " << f4->str());
             // get return edge function
             EdgeFunctionPtrType f5 =
-                cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                    c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
+                CachedFlowEdgeFunctions.getReturnEdgeFunction(
+                    c, ICF->getFunctionOf(n), n, d2, RetSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
             if (SolverConfig.emitESG()) {
-              for (auto sP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
-                intermediateEdgeFunctions[std::make_tuple(c, d4, sP, d1)]
+              for (auto SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
+                IntermediateEdgeFunctions[std::make_tuple(c, d4, SP, d1)]
                     .push_back(f4);
               }
-              intermediateEdgeFunctions[std::make_tuple(n, d2, retSiteC, d5)]
+              IntermediateEdgeFunctions[std::make_tuple(n, d2, RetSiteC, d5)]
                   .push_back(f5);
             }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
@@ -1094,18 +1096,18 @@ protected:
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to
             // return site using the composed function
-            auto revLookupResult = jumpFn->reverseLookup(c, d4);
-            if (revLookupResult) {
-              for (auto valAndFunc : revLookupResult->get()) {
-                EdgeFunctionPtrType f3 = valAndFunc.second;
-                if (!f3->equal_to(allTop)) {
-                  d_t d3 = valAndFunc.first;
+            auto RevLookupResult = JumpFn->reverseLookup(c, d4);
+            if (RevLookupResult) {
+              for (const auto &ValAndFunc : RevLookupResult->get()) {
+                EdgeFunctionPtrType f3 = ValAndFunc.second;
+                if (!f3->equal_to(AllTop)) {
+                  d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "Compose: " << fPrime->str() << " * "
                                     << f3->str();
                                 BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-                  propagate(d3, retSiteC, d5_restoredCtx,
+                  propagate(d3, RetSiteC, d5_restoredCtx,
                             f3->composeWith(fPrime), c, false);
                 }
               }
@@ -1120,37 +1122,38 @@ protected:
     // conditionally generated values should only
     // be propagated into callers that have an incoming edge for this
     // condition
-    if (SolverConfig.followReturnsPastSeeds() && inc.empty() &&
+    if (SolverConfig.followReturnsPastSeeds() && Inc.empty() &&
         IDEProblem.isZeroValue(d1)) {
-      const std::set<n_t> callers = ICF->getCallersOf(functionThatNeedsSummary);
-      for (n_t c : callers) {
-        for (n_t retSiteC : ICF->getReturnSitesOfCallAt(c)) {
-          FlowFunctionPtrType retFunction =
-              cachedFlowEdgeFunctions.getRetFlowFunction(
-                  c, functionThatNeedsSummary, n, retSiteC);
+      const std::set<n_t> Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
+      for (n_t Caller : Callers) {
+        for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(Caller)) {
+          FlowFunctionPtrType RetFunction =
+              CachedFlowEdgeFunctions.getRetFlowFunction(
+                  Caller, FunctionThatNeedsSummary, n, RetSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          const container_type targets = computeReturnFlowFunction(
-              retFunction, d1, d2, c, Container{ZeroValue});
+          const container_type Targets = computeReturnFlowFunction(
+              RetFunction, d1, d2, Caller, Container{ZeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          saveEdges(n, retSiteC, d2, targets, true);
-          for (d_t d5 : targets) {
+          saveEdges(n, RetSiteC, d2, Targets, true);
+          for (d_t d5 : Targets) {
             EdgeFunctionPtrType f5 =
-                cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                    c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
+                CachedFlowEdgeFunctions.getReturnEdgeFunction(
+                    Caller, ICF->getFunctionOf(n), n, d2, RetSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
             if (SolverConfig.emitESG()) {
-              intermediateEdgeFunctions[std::make_tuple(n, d2, retSiteC, d5)]
+              IntermediateEdgeFunctions[std::make_tuple(n, d2, RetSiteC, d5)]
                   .push_back(f5);
             }
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                               << "Compose: " << f5->str() << " * " << f->str();
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-            propagteUnbalancedReturnFlow(retSiteC, d5, f->composeWith(f5), c);
+            propagteUnbalancedReturnFlow(RetSiteC, d5, f->composeWith(f5),
+                                         Caller);
             // register for value processing (2nd IDE phase)
-            unbalancedRetSites.insert(retSiteC);
+            UnbalancedRetSites.insert(RetSiteC);
           }
         }
       }
@@ -1158,21 +1161,21 @@ protected:
       // normally not be processed at all; this might be undesirable if
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
-      if (callers.empty()) {
-        FlowFunctionPtrType retFunction =
-            cachedFlowEdgeFunctions.getRetFlowFunction(
-                nullptr, functionThatNeedsSummary, n, nullptr);
+      if (Callers.empty()) {
+        FlowFunctionPtrType RetFunction =
+            CachedFlowEdgeFunctions.getRetFlowFunction(
+                nullptr, FunctionThatNeedsSummary, n, nullptr);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        retFunction->computeTargets(d2);
+        RetFunction->computeTargets(d2);
       }
     }
   }
 
-  void propagteUnbalancedReturnFlow(n_t retSiteC, d_t targetVal,
-                                    EdgeFunctionPtrType edgeFunction,
-                                    n_t relatedCallSite) {
-    propagate(ZeroValue, retSiteC, targetVal, std::move(edgeFunction),
-              relatedCallSite, true);
+  void propagteUnbalancedReturnFlow(n_t RetSiteC, d_t TargetVal,
+                                    EdgeFunctionPtrType EdgeFunc,
+                                    n_t RelatedCallSite) {
+    propagate(ZeroValue, RetSiteC, TargetVal, std::move(EdgeFunc),
+              RelatedCallSite, true);
   }
 
   /// This method will be called for each incoming edge and can be used to
@@ -1187,7 +1190,7 @@ protected:
   ///            Fact that originally should be propagated to the caller.
   /// @return Fact that will be propagated to the caller.
   ///
-  d_t restoreContextOnReturnedFact(n_t callSite, d_t d4, d_t d5) {
+  d_t restoreContextOnReturnedFact(n_t /*CallSite*/, d_t /*d4*/, d_t d5) {
     // TODO support LinkedNode and JoinHandlingNode
     //		if (d5 instanceof LinkedNode) {
     //			((LinkedNode<D>) d5).setCallingContext(d4);
@@ -1206,15 +1209,14 @@ protected:
   /// @param d2 The abstraction at the current node
   /// @return The set of abstractions at the successor node
   ///
-  container_type
-  computeNormalFlowFunction(const FlowFunctionPtrType &flowFunction, d_t d1,
-                            d_t d2) {
-    return flowFunction->computeTargets(d2);
+  container_type computeNormalFlowFunction(const FlowFunctionPtrType &FlowFunc,
+                                           d_t /*d1*/, d_t d2) {
+    return FlowFunc->computeTargets(d2);
   }
 
   container_type
   computeSummaryFlowFunction(const FlowFunctionPtrType &SummaryFlowFunction,
-                             d_t d1, d_t d2) {
+                             d_t /*d1*/, d_t d2) {
     return SummaryFlowFunction->computeTargets(d2);
   }
 
@@ -1225,9 +1227,9 @@ protected:
   /// @return The set of caller-side abstractions at the callee's start node
   ///
   container_type
-  computeCallFlowFunction(const FlowFunctionPtrType &callFlowFunction, d_t d1,
-                          d_t d2) {
-    return callFlowFunction->computeTargets(d2);
+  computeCallFlowFunction(const FlowFunctionPtrType &CallFlowFunction,
+                          d_t /*d1*/, d_t d2) {
+    return CallFlowFunction->computeTargets(d2);
   }
 
   /// Computes the call-to-return flow function for the given call-site
@@ -1239,8 +1241,8 @@ protected:
   /// @return The set of caller-side abstractions at the return site
   ///
   container_type computeCallToReturnFlowFunction(
-      const FlowFunctionPtrType &callToReturnFlowFunction, d_t d1, d_t d2) {
-    return callToReturnFlowFunction->computeTargets(d2);
+      const FlowFunctionPtrType &CallToReturnFlowFunction, d_t /*d1*/, d_t d2) {
+    return CallToReturnFlowFunction->computeTargets(d2);
   }
 
   /// Computes the return flow function for the given set of caller-side
@@ -1253,21 +1255,21 @@ protected:
   /// @return The set of caller-side abstractions at the return site
   ///
   container_type
-  computeReturnFlowFunction(const FlowFunctionPtrType &retFunction, d_t d1,
-                            d_t d2, n_t callSite,
-                            const Container &callerSideDs) {
-    return retFunction->computeTargets(d2);
+  computeReturnFlowFunction(const FlowFunctionPtrType &RetFlowFunction,
+                            d_t /*d1*/, d_t d2, n_t /*CallSite*/,
+                            const Container & /*CallerSideDs*/) {
+    return RetFlowFunction->computeTargets(d2);
   }
 
   /// Propagates the flow further down the exploded super graph, merging any
-  /// edge function that might already have been computed for targetVal at
-  /// target.
+  /// edge function that might already have been computed for TargetVal at
+  /// Target.
   ///
-  /// @param sourceVal the source value of the propagated summary edge
-  /// @param target the target statement
-  /// @param targetVal the target value at the target statement
-  /// @param f the new edge function computed from (s0,sourceVal) to
-  /// (target,targetVal)
+  /// @param SourceVal the source value of the propagated summary edge
+  /// @param Target the target statement
+  /// @param TargetVal the target value at the target statement
+  /// @param f the new edge function computed from (s0,SourceVal) to
+  /// (Target,TargetVal)
   /// @param relatedCallSite for call and return flows the related call
   /// statement, nullptr otherwise (this value is not used within this
   /// implementation but may be useful for subclasses of IDESolver)
@@ -1275,61 +1277,62 @@ protected:
   /// unbalanced return (this value is not used within this implementation
   /// but may be useful for subclasses of {@link IDESolver})
   ///
-  void
-  propagate(d_t sourceVal, n_t target, d_t targetVal,
-            const EdgeFunctionPtrType &f,
-            /* deliberately exposed to clients */ n_t relatedCallSite,
-            /* deliberately exposed to clients */ bool isUnbalancedReturn) {
+  void propagate(d_t SourceVal, n_t Target, d_t TargetVal,
+                 const EdgeFunctionPtrType &f,
+                 /* deliberately exposed to clients */
+                 n_t /*RelatedCallSite*/,
+                 /* deliberately exposed to clients */
+                 bool /*IsUnbalancedReturn*/) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Propagate flow";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Source value  : " << IDEProblem.DtoString(sourceVal);
+                  << "Source value  : " << IDEProblem.DtoString(SourceVal);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Target        : " << IDEProblem.NtoString(target);
+                  << "Target        : " << IDEProblem.NtoString(Target);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Target value  : " << IDEProblem.DtoString(targetVal);
+                  << "Target value  : " << IDEProblem.DtoString(TargetVal);
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Edge function : " << f.get()->str()
                   << " (result of previous compose)";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
-    EdgeFunctionPtrType jumpFnE = [&]() {
-      const auto revLookupResult = jumpFn->reverseLookup(target, targetVal);
-      if (revLookupResult) {
-        const auto &JumpFnContainer = revLookupResult->get();
+    EdgeFunctionPtrType JumpFnE = [&]() {
+      const auto RevLookupResult = JumpFn->reverseLookup(Target, TargetVal);
+      if (RevLookupResult) {
+        const auto &JumpFnContainer = RevLookupResult->get();
         const auto Find = std::find_if(
             JumpFnContainer.begin(), JumpFnContainer.end(),
-            [sourceVal](auto &KVpair) { return KVpair.first == sourceVal; });
+            [SourceVal](auto &KVpair) { return KVpair.first == SourceVal; });
         if (Find != JumpFnContainer.end()) {
           return Find->second;
         }
       }
       // jump function is initialized to all-top if no entry was found
-      return allTop;
+      return AllTop;
     }();
-    EdgeFunctionPtrType fPrime = jumpFnE->joinWith(f);
-    bool newFunction = !(fPrime->equal_to(jumpFnE));
+    EdgeFunctionPtrType fPrime = JumpFnE->joinWith(f);
+    bool NewFunction = !(fPrime->equal_to(JumpFnE));
 
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Join: " << jumpFnE->str() << " & " << f.get()->str()
-                      << (jumpFnE->equal_to(f) ? " (EF's are equal)" : " ");
+                      << "Join: " << JumpFnE->str() << " & " << f.get()->str()
+                      << (JumpFnE->equal_to(f) ? " (EF's are equal)" : " ");
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "    = " << fPrime->str()
-                  << (newFunction ? " (new jump func)" : " ");
+                  << (NewFunction ? " (new jump func)" : " ");
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    if (newFunction) {
-      jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
-      const PathEdge<n_t, d_t> edge(sourceVal, target, targetVal);
+    if (NewFunction) {
+      JumpFn->addFunction(SourceVal, Target, TargetVal, fPrime);
+      const PathEdge<n_t, d_t> Edge(SourceVal, Target, TargetVal);
       PathEdgeCount++;
-      pathEdgeProcessingTask(edge);
+      pathEdgeProcessingTask(Edge);
 
-      LOG_IF_ENABLE(if (!IDEProblem.isZeroValue(targetVal)) {
+      LOG_IF_ENABLE(if (!IDEProblem.isZeroValue(TargetVal)) {
         BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "EDGE: <F: " << target->getFunction()->getName().str()
-            << ", D: " << IDEProblem.DtoString(sourceVal) << '>';
+            << "EDGE: <F: " << Target->getFunction()->getName().str()
+            << ", D: " << IDEProblem.DtoString(SourceVal) << '>';
         BOOST_LOG_SEV(lg::get(), DEBUG)
-            << " ---> <N: " << IDEProblem.NtoString(target) << ',';
+            << " ---> <N: " << IDEProblem.NtoString(Target) << ',';
         BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "       D: " << IDEProblem.DtoString(targetVal) << ',';
+            << "       D: " << IDEProblem.DtoString(TargetVal) << ',';
         BOOST_LOG_SEV(lg::get(), DEBUG) << "      EF: " << fPrime->str() << '>';
         BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
       });
@@ -1339,47 +1342,47 @@ protected:
     }
   }
 
-  l_t joinValueAt(n_t unit, d_t fact, l_t curr, l_t newVal) {
-    return IDEProblem.join(std::move(curr), std::move(newVal));
+  l_t joinValueAt(n_t /*Unit*/, d_t /*Fact*/, l_t Curr, l_t NewVal) {
+    return IDEProblem.join(std::move(Curr), std::move(NewVal));
   }
 
   std::set<typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell>
-  endSummary(n_t sP, d_t d3) {
+  endSummary(n_t SP, d_t d3) {
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
-      auto key = std::make_pair(sP, d3);
-      auto findND = fSummaryReuse.find(key);
-      if (findND == fSummaryReuse.end()) {
-        fSummaryReuse.emplace(key, 0);
+      auto Key = std::make_pair(SP, d3);
+      auto FindND = FSummaryReuse.find(Key);
+      if (FindND == FSummaryReuse.end()) {
+        FSummaryReuse.emplace(Key, 0);
       } else {
-        fSummaryReuse[key] += 1;
+        FSummaryReuse[Key] += 1;
       }
     }
-    return endsummarytab.get(sP, d3).cellSet();
+    return EndsummaryTab.get(SP, d3).cellSet();
   }
 
-  std::map<n_t, container_type> incoming(d_t d1, n_t sP) {
-    return incomingtab.get(sP, d1);
+  std::map<n_t, container_type> incoming(d_t d1, n_t SP) {
+    return IncomingTab.get(SP, d1);
   }
 
-  void addIncoming(n_t sP, d_t d3, n_t n, d_t d2) {
-    incomingtab.get(sP, d3)[n].insert(d2);
+  void addIncoming(n_t SP, d_t d3, n_t n, d_t d2) {
+    IncomingTab.get(SP, d3)[n].insert(d2);
   }
 
   void printIncomingTab() const {
 #ifdef DYNAMIC_LOG
     if (boost::log::core::get()->get_logging_enabled()) {
       BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of incomingtab entry";
-      for (auto cell : incomingtab.cellSet()) {
+      for (const auto &Cell : IncomingTab.cellSet()) {
         BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "sP: " << IDEProblem.NtoString(cell.getRowKey());
+            << "sP: " << IDEProblem.NtoString(Cell.getRowKey());
         BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "d3: " << IDEProblem.DtoString(cell.getColumnKey());
-        for (auto entry : cell.getValue()) {
+            << "d3: " << IDEProblem.DtoString(Cell.getColumnKey());
+        for (const auto &Entry : Cell.getValue()) {
           BOOST_LOG_SEV(lg::get(), DEBUG)
-              << "  n: " << IDEProblem.NtoString(entry.first);
-          for (auto fact : entry.second) {
+              << "  n: " << IDEProblem.NtoString(Entry.first);
+          for (const auto &Fact : Entry.second) {
             BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "  d2: " << IDEProblem.DtoString(fact);
+                << "  d2: " << IDEProblem.DtoString(Fact);
           }
         }
         BOOST_LOG_SEV(lg::get(), DEBUG) << "---------------";
@@ -1394,18 +1397,18 @@ protected:
 #ifdef DYNAMIC_LOG
     if (boost::log::core::get()->get_logging_enabled()) {
       BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of endsummarytab entry";
-      for (auto cell : endsummarytab.cellVec()) {
+      for (const auto &Cell : EndsummaryTab.cellVec()) {
         BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "sP: " << IDEProblem.NtoString(cell.getRowKey());
+            << "sP: " << IDEProblem.NtoString(Cell.getRowKey());
         BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "d1: " << IDEProblem.DtoString(cell.getColumnKey());
-        for (auto inner_cell : cell.getValue().cellVec()) {
+            << "d1: " << IDEProblem.DtoString(Cell.getColumnKey());
+        for (const auto &InnerCell : Cell.getValue().cellVec()) {
           BOOST_LOG_SEV(lg::get(), DEBUG)
-              << "  eP: " << IDEProblem.NtoString(inner_cell.getRowKey());
+              << "  eP: " << IDEProblem.NtoString(InnerCell.getRowKey());
           BOOST_LOG_SEV(lg::get(), DEBUG)
-              << "  d2: " << IDEProblem.DtoString(inner_cell.getColumnKey());
+              << "  d2: " << IDEProblem.DtoString(InnerCell.getColumnKey());
           BOOST_LOG_SEV(lg::get(), DEBUG)
-              << "  EF: " << inner_cell.getValue()->str();
+              << "  EF: " << InnerCell.getValue()->str();
           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
         }
         BOOST_LOG_SEV(lg::get(), DEBUG) << "---------------";
@@ -1424,18 +1427,18 @@ protected:
         << "\n**********************************************************\n";
 
     // Sort intra-procedural path edges
-    auto cells = computedIntraPathEdges.cellVec();
-    StmtLess stmtless(ICF);
-    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
-      return stmtless(a.getRowKey(), b.getRowKey());
+    auto Cells = ComputedIntraPathEdges.cellVec();
+    StmtLess Stmtless(ICF);
+    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
+      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
-      std::string n2_label = IDEProblem.NtoString(Edge.second);
+    for (const auto &Cell : Cells) {
+      auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
+      std::string N2Label = IDEProblem.NtoString(Edge.second);
       std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
-                << "N2: " << n2_label << "\n----"
-                << std::string(n2_label.size(), '-') << '\n';
-      for (auto D1ToD2Set : cell.getValue()) {
+                << "N2: " << N2Label << "\n----"
+                << std::string(N2Label.size(), '-') << '\n';
+      for (auto D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
@@ -1451,17 +1454,17 @@ protected:
         << "\n**********************************************************\n";
 
     // Sort intra-procedural path edges
-    cells = computedInterPathEdges.cellVec();
-    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
-      return stmtless(a.getRowKey(), b.getRowKey());
+    Cells = ComputedInterPathEdges.cellVec();
+    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
+      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
-      std::string n2_label = IDEProblem.NtoString(Edge.second);
+    for (const auto &Cell : Cells) {
+      auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
+      std::string N2Label = IDEProblem.NtoString(Edge.second);
       std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
-                << "N2: " << n2_label << "\n----"
-                << std::string(n2_label.size(), '-') << '\n';
-      for (auto D1ToD2Set : cell.getValue()) {
+                << "N2: " << N2Label << "\n----"
+                << std::string(N2Label.size(), '-') << '\n';
+      for (auto D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
@@ -1499,13 +1502,13 @@ protected:
     // d1 --> d2-Set
     // Case 1: d1 in d2-Set
     // Case 2: d1 not in d2-Set, i.e., d1 was killed. d2-Set could be empty.
-    for (auto cell : computedIntraPathEdges.cellSet()) {
-      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
+    for (const auto &Cell : ComputedIntraPathEdges.cellSet()) {
+      auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "N1: " << IDEProblem.NtoString(Edge.first);
                     BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "N2: " << IDEProblem.NtoString(Edge.second));
-      for (auto &[D1, D2s] : cell.getValue()) {
+      for (auto &[D1, D2s] : Cell.getValue()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1));
         NumIntraPathEdges += D2s.size();
@@ -1540,8 +1543,8 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "==============================================";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << "INTER PATH EDGES");
-    for (auto cell : computedInterPathEdges.cellSet()) {
-      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
+    for (const auto &Cell : ComputedInterPathEdges.cellSet()) {
+      auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "N1: " << IDEProblem.NtoString(Edge.first);
                     BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1561,7 +1564,7 @@ protected:
       // Special Case: Summary was applied for a particular call
       //   Process the summary's #gen and #kill.
       if (ICF->isCallSite(Edge.first)) {
-        for (auto &[D1, D2s] : cell.getValue()) {
+        for (auto &[D1, D2s] : Cell.getValue()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d1: " << IDEProblem.DtoString(D1));
           NumInterPathEdges += D2s.size();
@@ -1573,7 +1576,7 @@ protected:
             if (ProcessSummaryFacts.find(std::make_pair(Edge.second, D2)) !=
                 ProcessSummaryFacts.end()) {
               std::multiset<d_t> SummaryDMultiSet =
-                  endsummarytab.get(Edge.second, D2).columnKeySet();
+                  EndsummaryTab.get(Edge.second, D2).columnKeySet();
               // remove duplicates from multiset
               std::set<d_t> SummaryDSet(SummaryDMultiSet.begin(),
                                         SummaryDMultiSet.end());
@@ -1603,8 +1606,8 @@ protected:
       // caller will count as a kill. If an actual new fact is propagated to
       // the caller, we have to increase the number of generated facts by one.
       // Zero value does not count towards generated/killed facts.
-      if (ICF->isExitInst(cell.getRowKey())) {
-        for (auto &[D1, D2s] : cell.getValue()) {
+      if (ICF->isExitInst(Cell.getRowKey())) {
+        for (auto &[D1, D2s] : Cell.getValue()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d1: " << IDEProblem.DtoString(D1));
           NumInterPathEdges += D2s.size();
@@ -1627,14 +1630,14 @@ protected:
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "SUMMARY REUSE");
     std::size_t TotalSummaryReuse = 0;
-    for (auto entry : fSummaryReuse) {
+    for (const auto &Entry : FSummaryReuse) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "N1: " << IDEProblem.NtoString(entry.first.first);
+                        << "N1: " << IDEProblem.NtoString(Entry.first.first);
                     BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "D1: " << IDEProblem.DtoString(entry.first.second);
+                    << "D1: " << IDEProblem.DtoString(Entry.first.second);
                     BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "#Reuse: " << entry.second);
-      TotalSummaryReuse += entry.second;
+                    << "#Reuse: " << Entry.second);
+      TotalSummaryReuse += Entry.second;
     }
     INC_COUNTER("Gen facts", NumGenFacts, PAMM_SEVERITY_LEVEL::Core);
     INC_COUNTER("Kill facts", NumKillFacts, PAMM_SEVERITY_LEVEL::Core);
@@ -1680,7 +1683,7 @@ protected:
           << "Phase II duration: " << PRINT_TIMER("DFA Phase II");
           BOOST_LOG_SEV(lg::get(), INFO)
           << "----------------------------------------------");
-      cachedFlowEdgeFunctions.print();
+      CachedFlowEdgeFunctions.print();
     }
   }
 
@@ -1701,65 +1704,65 @@ public:
     DOTFunctionSubGraph *FG = nullptr;
 
     // Sort intra-procedural path edges
-    auto cells = computedIntraPathEdges.cellVec();
-    StmtLess stmtless(ICF);
-    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
-      return stmtless(a.getRowKey(), b.getRowKey());
+    auto Cells = ComputedIntraPathEdges.cellVec();
+    StmtLess Stmtless(ICF);
+    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
+      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
-      std::string n1_label = IDEProblem.NtoString(Edge.first);
-      std::string n2_label = IDEProblem.NtoString(Edge.second);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << n1_label;
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << n2_label);
-      std::string n1_stmtId = ICF->getStatementId(Edge.first);
-      std::string n2_stmtId = ICF->getStatementId(Edge.second);
-      std::string fnName = ICF->getFunctionOf(Edge.first)->getName().str();
+    for (const auto &Cell : Cells) {
+      auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
+      std::string N1Label = IDEProblem.NtoString(Edge.first);
+      std::string N2Label = IDEProblem.NtoString(Edge.second);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << N1Label;
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << N2Label);
+      std::string N1StmtId = ICF->getStatementId(Edge.first);
+      std::string N2StmtId = ICF->getStatementId(Edge.second);
+      std::string FuncName = ICF->getFunctionOf(Edge.first)->getName().str();
       // Get or create function subgraph
-      if (!FG || FG->id != fnName) {
-        FG = &G.functions[fnName];
-        FG->id = fnName;
+      if (!FG || FG->Id != FuncName) {
+        FG = &G.Functions[FuncName];
+        FG->Id = FuncName;
       }
 
       // Create control flow nodes
-      DOTNode N1(fnName, n1_label, n1_stmtId);
-      DOTNode N2(fnName, n2_label, n2_stmtId);
+      DOTNode N1(FuncName, N1Label, N1StmtId);
+      DOTNode N2(FuncName, N2Label, N2StmtId);
       // Add control flow node(s) to function subgraph
-      FG->stmts.insert(N1);
+      FG->Stmts.insert(N1);
       if (ICF->isExitInst(Edge.second)) {
-        FG->stmts.insert(N2);
+        FG->Stmts.insert(N2);
       }
 
       // Set control flow edge
-      FG->intraCFEdges.emplace(N1, N2);
+      FG->IntraCFEdges.emplace(N1, N2);
 
-      DOTFactSubGraph *D1_FSG = nullptr;
+      DOTFactSubGraph *D1FSG = nullptr;
       unsigned D1FactId = 0;
       unsigned D2FactId = 0;
-      for (auto D1ToD2Set : cell.getValue()) {
+      for (const auto &D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1Fact));
 
         DOTNode D1;
         if (IDEProblem.isZeroValue(D1Fact)) {
-          D1 = {fnName, "Λ", n1_stmtId, 0, false, true};
+          D1 = {FuncName, "Λ", N1StmtId, 0, false, true};
           D1FactId = 0;
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string d1_label = IDEProblem.DtoString(D1Fact);
+          std::string D1Label = IDEProblem.DtoString(D1Fact);
 
           // Get or create the fact subgraph
-          D1_FSG = FG->getOrCreateFactSG(D1FactId, d1_label);
+          D1FSG = FG->getOrCreateFactSG(D1FactId, D1Label);
 
           // Insert D1 to fact subgraph
-          D1 = {fnName, d1_label, n1_stmtId, D1FactId, false, true};
-          D1_FSG->nodes.insert(std::make_pair(n1_stmtId, D1));
+          D1 = {FuncName, D1Label, N1StmtId, D1FactId, false, true};
+          D1FSG->Nodes.insert(std::make_pair(N1StmtId, D1));
         }
 
-        DOTFactSubGraph *D2_FSG = nullptr;
-        for (auto D2Fact : D1ToD2Set.second) {
+        DOTFactSubGraph *D2FSG = nullptr;
+        for (const auto &D2Fact : D1ToD2Set.second) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d2: " << IDEProblem.DtoString(D2Fact));
           // We do not need to generate any intra-procedural nodes and edges
@@ -1767,26 +1770,26 @@ public:
           if (!IDEProblem.isZeroValue(D2Fact)) {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string d2_label = IDEProblem.DtoString(D2Fact);
-            DOTNode D2 = {fnName, d2_label, n2_stmtId, D2FactId, false, true};
+            std::string D2Label = IDEProblem.DtoString(D2Fact);
+            DOTNode D2 = {FuncName, D2Label, N2StmtId, D2FactId, false, true};
             std::string EFLabel;
-            auto EFVec = intermediateEdgeFunctions[std::make_tuple(
+            auto EFVec = IntermediateEdgeFunctions[std::make_tuple(
                 Edge.first, D1Fact, Edge.second, D2Fact)];
-            for (auto EF : EFVec) {
+            for (const auto &EF : EFVec) {
               EFLabel += EF->str() + ", ";
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "EF LABEL: " << EFLabel);
             if (D1FactId == D2FactId && !IDEProblem.isZeroValue(D1Fact)) {
-              assert(D1_FSG && "D1_FSG was nullptr but should be valid.");
-              D1_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
-              D1_FSG->edges.emplace(D1, D2, true, EFLabel);
+              assert(D1FSG && "D1_FSG was nullptr but should be valid.");
+              D1FSG->Nodes.insert(std::make_pair(N2StmtId, D2));
+              D1FSG->Edges.emplace(D1, D2, true, EFLabel);
             } else {
               // Get or create the fact subgraph
-              D2_FSG = FG->getOrCreateFactSG(D2FactId, d2_label);
+              D2FSG = FG->getOrCreateFactSG(D2FactId, D2Label);
 
-              D2_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
-              FG->crossFactEdges.emplace(D1, D2, true, EFLabel);
+              D2FSG->Nodes.insert(std::make_pair(N2StmtId, D2));
+              FG->CrossFactEdges.emplace(D1, D2, true, EFLabel);
             }
           }
         }
@@ -1801,111 +1804,111 @@ public:
                   << "Process inter-procedural path edges";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "=============================================");
-    cells = computedInterPathEdges.cellVec();
-    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
-      return stmtless(a.getRowKey(), b.getRowKey());
+    Cells = ComputedInterPathEdges.cellVec();
+    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
+      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
-      std::string n1_label = IDEProblem.NtoString(Edge.first);
-      std::string n2_label = IDEProblem.NtoString(Edge.second);
-      std::string fNameOfN1 = ICF->getFunctionOf(Edge.first)->getName().str();
-      std::string fNameOfN2 = ICF->getFunctionOf(Edge.second)->getName().str();
-      std::string n1_stmtId = ICF->getStatementId(Edge.first);
-      std::string n2_stmtId = ICF->getStatementId(Edge.second);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << n1_label;
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << n2_label);
+    for (const auto &Cell : Cells) {
+      auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
+      std::string N1Label = IDEProblem.NtoString(Edge.first);
+      std::string N2Label = IDEProblem.NtoString(Edge.second);
+      std::string FNameOfN1 = ICF->getFunctionOf(Edge.first)->getName().str();
+      std::string FNameOfN2 = ICF->getFunctionOf(Edge.second)->getName().str();
+      std::string N1StmtId = ICF->getStatementId(Edge.first);
+      std::string N2StmtId = ICF->getStatementId(Edge.second);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << N1Label;
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << N2Label);
 
       // Add inter-procedural control flow edge
-      DOTNode N1(fNameOfN1, n1_label, n1_stmtId);
-      DOTNode N2(fNameOfN2, n2_label, n2_stmtId);
+      DOTNode N1(FNameOfN1, N1Label, N1StmtId);
+      DOTNode N2(FNameOfN2, N2Label, N2StmtId);
 
       // Handle recursion control flow as intra-procedural control flow
       // since those eges never leave the function subgraph
       FG = nullptr;
-      if (fNameOfN1 == fNameOfN2) {
+      if (FNameOfN1 == FNameOfN2) {
         // This function subgraph is guaranteed to exist
-        FG = &G.functions[fNameOfN1];
-        FG->intraCFEdges.emplace(N1, N2);
+        FG = &G.Functions[FNameOfN1];
+        FG->IntraCFEdges.emplace(N1, N2);
       } else {
         // Check the case where the callee is a single statement function,
         // thus does not contain intra-procedural path edges. We have to
         // generate the function sub graph here!
-        if (!G.functions.count(fNameOfN1)) {
-          FG = &G.functions[fNameOfN1];
-          FG->id = fNameOfN1;
-          FG->stmts.insert(N1);
-        } else if (!G.functions.count(fNameOfN2)) {
-          FG = &G.functions[fNameOfN2];
-          FG->id = fNameOfN2;
-          FG->stmts.insert(N2);
+        if (!G.Functions.count(FNameOfN1)) {
+          FG = &G.Functions[FNameOfN1];
+          FG->Id = FNameOfN1;
+          FG->Stmts.insert(N1);
+        } else if (!G.Functions.count(FNameOfN2)) {
+          FG = &G.Functions[FNameOfN2];
+          FG->Id = FNameOfN2;
+          FG->Stmts.insert(N2);
         }
-        G.interCFEdges.emplace(N1, N2);
+        G.InterCFEdges.emplace(N1, N2);
       }
 
       // Create D1 and D2, if D1 == D2 == lambda then add Edge(D1, D2) to
       // interLambdaEges otherwise add Edge(D1, D2) to interFactEdges
       unsigned D1FactId = 0;
       unsigned D2FactId = 0;
-      for (auto D1ToD2Set : cell.getValue()) {
+      for (const auto &D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1Fact));
         DOTNode D1;
         if (IDEProblem.isZeroValue(D1Fact)) {
-          D1 = {fNameOfN1, "Λ", n1_stmtId, 0, false, true};
+          D1 = {FNameOfN1, "Λ", N1StmtId, 0, false, true};
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string d1_label = IDEProblem.DtoString(D1Fact);
-          D1 = {fNameOfN1, d1_label, n1_stmtId, D1FactId, false, true};
+          std::string D1Label = IDEProblem.DtoString(D1Fact);
+          D1 = {FNameOfN1, D1Label, N1StmtId, D1FactId, false, true};
           // FG should already exist even for single statement functions
-          if (!G.containsFactSG(fNameOfN1, D1FactId)) {
-            FG = &G.functions[fNameOfN1];
-            auto *D1_FSG = FG->getOrCreateFactSG(D1FactId, d1_label);
-            D1_FSG->nodes.insert(std::make_pair(n1_stmtId, D1));
+          if (!G.containsFactSG(FNameOfN1, D1FactId)) {
+            FG = &G.Functions[FNameOfN1];
+            auto *D1FSG = FG->getOrCreateFactSG(D1FactId, D1Label);
+            D1FSG->Nodes.insert(std::make_pair(N1StmtId, D1));
           }
         }
 
         auto D2Set = D1ToD2Set.second;
-        for (auto D2Fact : D2Set) {
+        for (const auto &D2Fact : D2Set) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d2: " << IDEProblem.DtoString(D2Fact));
           DOTNode D2;
           if (IDEProblem.isZeroValue(D2Fact)) {
-            D2 = {fNameOfN2, "Λ", n2_stmtId, 0, false, true};
+            D2 = {FNameOfN2, "Λ", N2StmtId, 0, false, true};
           } else {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string d2_label = IDEProblem.DtoString(D2Fact);
-            D2 = {fNameOfN2, d2_label, n2_stmtId, D2FactId, false, true};
+            std::string D2Label = IDEProblem.DtoString(D2Fact);
+            D2 = {FNameOfN2, D2Label, N2StmtId, D2FactId, false, true};
             // FG should already exist even for single statement functions
-            if (!G.containsFactSG(fNameOfN2, D2FactId)) {
-              FG = &G.functions[fNameOfN2];
-              auto *D2_FSG = FG->getOrCreateFactSG(D2FactId, d2_label);
-              D2_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
+            if (!G.containsFactSG(FNameOfN2, D2FactId)) {
+              FG = &G.Functions[FNameOfN2];
+              auto *D2FSG = FG->getOrCreateFactSG(D2FactId, D2Label);
+              D2FSG->Nodes.insert(std::make_pair(N2StmtId, D2));
             }
           }
 
           if (IDEProblem.isZeroValue(D1Fact) &&
               IDEProblem.isZeroValue(D2Fact)) {
             // Do not add lambda recursion edges as inter-procedural edges
-            if (D1.funcName != D2.funcName) {
-              G.interLambdaEdges.emplace(D1, D2, true, "AllBottom", "BOT");
+            if (D1.FuncName != D2.FuncName) {
+              G.InterLambdaEdges.emplace(D1, D2, true, "AllBottom", "BOT");
             }
           } else {
             // std::string EFLabel = EF ? EF->str() : " ";
             std::string EFLabel;
-            auto EFVec = intermediateEdgeFunctions[std::make_tuple(
+            auto EFVec = IntermediateEdgeFunctions[std::make_tuple(
                 Edge.first, D1Fact, Edge.second, D2Fact)];
-            for (auto EF : EFVec) {
+            for (const auto &EF : EFVec) {
               LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                             << "Partial EF Label: " << EF->str());
               EFLabel.append(EF->str() + ", ");
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "EF LABEL: " << EFLabel);
-            G.interFactEdges.emplace(D1, D2, true, EFLabel);
+            G.InterFactEdges.emplace(D1, D2, true, EFLabel);
           }
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "----------");
@@ -1918,20 +1921,19 @@ public:
   /// @brief: Allows less-than comparison based on the statement ID.
   struct StmtLess {
     const i_t *ICF;
-    stringIDLess strIDLess;
-    StmtLess(const i_t *ICF) : ICF(ICF), strIDLess(stringIDLess()) {}
-    bool operator()(n_t lhs, n_t rhs) {
-      return strIDLess(ICF->getStatementId(lhs), ICF->getStatementId(rhs));
+    StringIDLess StrIDLess;
+    StmtLess(const i_t *ICF) : ICF(ICF), StrIDLess(StringIDLess()) {}
+    bool operator()(n_t Lhs, n_t Rhs) {
+      return StrIDLess(ICF->getStatementId(Lhs), ICF->getStatementId(Rhs));
     }
   };
 };
 
 template <typename AnalysisDomainTy, typename Container>
-std::ostream &
-operator<<(std::ostream &os,
-           const IDESolver<AnalysisDomainTy, Container> &ide_solver) {
-  ide_solver.dumpResults(os);
-  return os;
+std::ostream &operator<<(std::ostream &OS,
+                         const IDESolver<AnalysisDomainTy, Container> &Solver) {
+  Solver.dumpResults(OS);
+  return OS;
 }
 
 template <typename Problem>

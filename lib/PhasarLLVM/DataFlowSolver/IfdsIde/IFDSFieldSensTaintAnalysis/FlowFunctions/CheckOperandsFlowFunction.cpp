@@ -8,7 +8,7 @@ namespace psr {
 
 std::set<ExtendedValue>
 CheckOperandsFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  for (const auto &Use : currentInst->operands()) {
+  for (const auto &Use : CurrentInst->operands()) {
     const auto &Operand = Use.get();
 
     bool IsOperandTainted =
@@ -16,9 +16,9 @@ CheckOperandsFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
         DataFlowUtils::isMemoryLocationTainted(Operand, Fact);
 
     if (IsOperandTainted) {
-      traceStats.add(currentInst);
+      TStats.add(CurrentInst);
 
-      return {Fact, ExtendedValue(currentInst)};
+      return {Fact, ExtendedValue(CurrentInst)};
     }
   }
 

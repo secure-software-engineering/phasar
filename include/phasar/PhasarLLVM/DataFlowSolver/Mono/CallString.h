@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_CALLSTRING_H_
-#define PHASAR_PHASARLLVM_MONO_CALLSTRING_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CALLSTRING_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CALLSTRING_H
 
 #include <algorithm>
 #include <deque>
@@ -28,48 +28,49 @@ namespace psr {
 
 template <typename T, unsigned K> class CallString {
 private:
-  std::deque<T> cs;
-  static const unsigned k = K;
+  std::deque<T> CS;
+  static const unsigned KLimit = K;
 
 public:
   CallString() = default;
-  CallString(std::initializer_list<T> ilist) : cs(ilist) {
-    if (ilist.size() > k) {
+  CallString(std::initializer_list<T> IList) : CS(IList) {
+    if (IList.size() > KLimit) {
       throw std::runtime_error(
           "initial call string length exceeds maximal length K");
     }
   }
-  void push(T s) {
-    if (cs.size() > k - 1) {
-      cs.pop_front();
+  void push(T S) {
+    if (CS.size() > KLimit - 1) {
+      CS.pop_front();
     }
-    cs.push_back(s);
+    CS.push_back(S);
   }
   T returnSite() {
-    if (cs.size() > 0)
-      return cs.back();
-    return nullptr;
+    if (!CS.empty()) {
+      return CS.back();
+    }
+    return {};
   }
   void pop() {
-    if (cs.size() > 0) {
-      cs.pop_back();
+    if (!CS.empty()) {
+      CS.pop_back();
     }
   }
-  size_t size() { return cs.size(); }
-  std::deque<T> getInternalCS() const { return cs; }
-  friend bool operator==(const CallString &lhs, const CallString &rhs) {
-    return lhs.cs == rhs.cs;
+  size_t size() { return CS.size(); }
+  std::deque<T> getInternalCS() const { return CS; }
+  friend bool operator==(const CallString &Lhs, const CallString &Rhs) {
+    return Lhs.cs == Rhs.cs;
   }
-  friend bool operator!=(const CallString &lhs, const CallString &rhs) {
-    return !(lhs == rhs);
+  friend bool operator!=(const CallString &Lhs, const CallString &Rhs) {
+    return !(Lhs == Rhs);
   }
-  friend bool operator<(const CallString &lhs, const CallString &rhs) {
-    return lhs.cs < rhs.cs;
+  friend bool operator<(const CallString &Lhs, const CallString &Rhs) {
+    return Lhs.cs < Rhs.cs;
   }
-  friend std::ostream &operator<<(std::ostream &os, const CallString &c) {
-    std::copy(c.cs.begin(), --c.cs.end(), std::ostream_iterator<T>(os, " * "));
-    os << c.cs.back();
-    return os;
+  friend std::ostream &operator<<(std::ostream &OS, const CallString &C) {
+    std::copy(C.CS.begin(), --C.CS.end(), std::ostream_iterator<T>(OS, " * "));
+    OS << C.CS.back();
+    return OS;
   }
 };
 

@@ -2,6 +2,13 @@ file(GLOB_RECURSE TAINTCONFIG_SRC *.h *.cpp)
 
 set(PHASAR_LINK_LIBS
   phasar_utils
+  phasar_db
+  phasar_phasarllvm_utils
+)
+
+set(LLVM_LINK_COMPONENTS
+  Core
+  Support
 )
 
 if(BUILD_SHARED_LIBS)
@@ -18,7 +25,6 @@ endif()
 
 target_link_libraries(phasar_taintconfig
   LINK_PUBLIC
-  nlohmann_json::nlohmann_json
   nlohmann_json_schema_validator
 )
 

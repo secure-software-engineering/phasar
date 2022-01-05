@@ -99,7 +99,9 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
         if (Inst->getParent()) {
 
           computeFunctionsPointsToSet(
-              const_cast<llvm::Function *>(Inst->getFunction()));
+              const_cast<llvm::Function *> // NOLINT - FIXME when it is fixed in
+                                           // LLVM
+              (Inst->getFunction()));
           if (!llvm::isa<llvm::Function>(G) && isInterestingPointer(User)) {
             mergePointsToSets(User, G);
           } else if (const auto *Store =
@@ -117,7 +119,9 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
 
   } else {
     const auto *VF = retrieveFunction(V);
-    computeFunctionsPointsToSet(const_cast<llvm::Function *>(VF));
+    computeFunctionsPointsToSet(
+        const_cast<llvm::Function *> // NOLINT - FIXME when it is fixed in LLVM
+        (VF));
   }
 }
 
@@ -374,7 +378,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
 
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
 
-  auto addPointer = [this, &AA, &DL](const llvm::Value *V,
+  auto addPointer = [this, &AA, &DL](const llvm::Value *V, // NOLINT
                                      std::vector<const llvm::Value *> &Reps) {
     return this->addPointer(AA, DL, V, Reps);
   };
@@ -512,7 +516,7 @@ auto LLVMPointsToSet::getReachableAllocationSites(
   }
   computeValuesPointsToSet(V);
 
-  const auto PTS = PointsToSets[V];
+  const auto *PTS = PointsToSets[V];
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
     for (const auto *P : *PTS) {
@@ -558,7 +562,7 @@ bool LLVMPointsToSet::isInReachableAllocationSites(
   }
 
   if (PVIsReachableAllocationSiteType) {
-    const auto PTS = PointsToSets[V];
+    const auto *PTS = PointsToSets[V];
     return PTS->count(PotentialValue);
   }
 

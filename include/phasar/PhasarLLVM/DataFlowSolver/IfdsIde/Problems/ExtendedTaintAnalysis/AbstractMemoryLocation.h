@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
 
 #include <cstdint>
 #include <iosfwd>
@@ -78,6 +78,7 @@ public:
 
   AbstractMemoryLocationImpl(const AbstractMemoryLocationImpl &) = delete;
   AbstractMemoryLocationImpl(AbstractMemoryLocationImpl &&) = delete;
+  ~AbstractMemoryLocationImpl() = default;
 
   AbstractMemoryLocationImpl &
   operator=(const AbstractMemoryLocationImpl &) = delete;
@@ -153,31 +154,45 @@ public:
 class AbstractMemoryLocation {
 public:
   explicit AbstractMemoryLocation() noexcept = default;
+
+  AbstractMemoryLocation(const AbstractMemoryLocation &) noexcept = default;
+  AbstractMemoryLocation(AbstractMemoryLocation &&) noexcept = default;
+  ~AbstractMemoryLocation() = default;
+
+  AbstractMemoryLocation &
+  operator=(const AbstractMemoryLocation &) noexcept = default;
+  AbstractMemoryLocation &
+  operator=(AbstractMemoryLocation &&) noexcept = default;
+
   AbstractMemoryLocation(
       const detail::AbstractMemoryLocationImpl *Impl) noexcept;
+
   inline const detail::AbstractMemoryLocationImpl *operator->() const {
     return PImpl;
   }
 
   /// Provide an arbitrary partial order for being able to store TaintedValues
   /// in std::set or as key in std::map
-  inline bool operator<(const AbstractMemoryLocation &TV) const {
-    return PImpl->base() < TV->base();
+  inline bool operator<(AbstractMemoryLocation TV) const {
+    return PImpl < TV.PImpl;
   }
 
-  inline bool operator==(const AbstractMemoryLocation &AML) const {
+  inline bool operator==(AbstractMemoryLocation AML) const {
     return PImpl == AML.PImpl;
   }
 
-  friend std::ostream &operator<<(std::ostream &OS,
-                                  const AbstractMemoryLocation &TV);
+  inline bool operator!=(AbstractMemoryLocation AML) const {
+    return !(*this == AML);
+  }
+
+  friend std::ostream &operator<<(std::ostream &OS, AbstractMemoryLocation TV);
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const AbstractMemoryLocation &TV);
+                                       AbstractMemoryLocation TV);
 
   /// Computes the absolute offset-difference between this and TV assuming,
   /// either this->isProperPrefixOf(TV) or vice versa.
   [[nodiscard]] inline llvm::ArrayRef<ptrdiff_t>
-  operator-(const AbstractMemoryLocation &TV) const {
+  operator-(AbstractMemoryLocation TV) const {
     return *PImpl - *TV.PImpl;
   }
 
@@ -187,29 +202,30 @@ private:
   const detail::AbstractMemoryLocationImpl *PImpl = nullptr;
 };
 
+// NOLINTNEXTLINE(readability-identifier-naming)
 std::string DToString(const AbstractMemoryLocation &AML);
+
+// NOLINTNEXTLINE(readability-identifier-naming)
+llvm::hash_code hash_value(psr::AbstractMemoryLocation Val);
 } // namespace psr
 
 // Hashing support
 namespace llvm {
 
-hash_code hash_value(const psr::AbstractMemoryLocation &Val);
-
 template <> struct DenseMapInfo<psr::AbstractMemoryLocation> {
   static inline psr::AbstractMemoryLocation getEmptyKey() {
-    return psr::AbstractMemoryLocation(
-        DenseMapInfo<psr::detail::AbstractMemoryLocationImpl *>::getEmptyKey());
+    return {
+        DenseMapInfo<psr::detail::AbstractMemoryLocationImpl *>::getEmptyKey()};
   }
   static inline psr::AbstractMemoryLocation getTombstoneKey() {
-    return psr::AbstractMemoryLocation(
-        DenseMapInfo<
-            psr::detail::AbstractMemoryLocationImpl *>::getTombstoneKey());
+    return {DenseMapInfo<
+        psr::detail::AbstractMemoryLocationImpl *>::getTombstoneKey()};
   }
-  static unsigned getHashValue(const psr::AbstractMemoryLocation &Val) {
+  static unsigned getHashValue(psr::AbstractMemoryLocation Val) {
     return hash_value(Val);
   }
-  static bool isEqual(const psr::AbstractMemoryLocation &LHS,
-                      const psr::AbstractMemoryLocation &RHS) {
+  static bool isEqual(psr::AbstractMemoryLocation LHS,
+                      psr::AbstractMemoryLocation RHS) {
     return LHS.operator->() == RHS.operator->();
   }
 };
@@ -219,10 +235,10 @@ template <> struct DenseMapInfo<psr::AbstractMemoryLocation> {
 namespace std {
 template <> struct hash<psr::AbstractMemoryLocation> {
   size_t operator()(const psr::AbstractMemoryLocation &Val) const {
-    return llvm::hash_value(Val);
+    return hash_value(Val);
   }
 };
 
 } // namespace std
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H_
+#endif

@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSSOLVER_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
 
 #include <memory>
 #include <set>
@@ -48,7 +48,7 @@ public:
   [[nodiscard]] virtual std::set<D> ifdsResultsAt(N Inst) {
     std::set<D> KeySet;
     std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(Inst);
-    for (auto FlowFact : ResultMap) {
+    for (const auto &FlowFact : ResultMap) {
       KeySet.insert(FlowFact.first);
     }
     return KeySet;
@@ -74,18 +74,18 @@ public:
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
       std::set<D>>
   ifdsResultsAtInLLVMSSA(NTy Inst) {
-    auto getResultMap = [this, Inst]() {
-      if (Inst->getType()->isVoidTy()) {
-        return this->resultsAt(Inst);
-      } else {
-        // In this case we have a value on the left-hand side and must return
-        // the results at the successor instruction. Note that terminator
-        // instructions are always of void type.
-        assert(Inst->getNextNode() &&
-               "Expected to find a valid successor node!");
-        return this->resultsAt(Inst->getNextNode());
-      }
-    };
+    auto getResultMap // NOLINT
+        = [this, Inst]() {
+            if (Inst->getType()->isVoidTy()) {
+              return this->resultsAt(Inst);
+            }
+            // In this case we have a value on the left-hand side and must
+            // return the results at the successor instruction. Note that
+            // terminator instructions are always of void type.
+            assert(Inst->getNextNode() &&
+                   "Expected to find a valid successor node!");
+            return this->resultsAt(Inst->getNextNode());
+          };
     std::set<D> KeySet;
     for (auto &[FlowFact, LatticeValue] : getResultMap()) {
       KeySet.insert(FlowFact);
