@@ -80,9 +80,9 @@ public:
       IDESolver<IDETypeStateAnalysisDomain> &KDFAnalysisResults)
       : KDFAnalysisResults(KDFAnalysisResults) {}
 
-  [[nodiscard]] bool isFactoryFunction(const std::string &F) const override;
-  [[nodiscard]] bool isConsumingFunction(const std::string &F) const override;
-  [[nodiscard]] bool isAPIFunction(const std::string &F) const override;
+  [[nodiscard]] bool isFactoryFunction(const std::string &FuncName) const override;
+  [[nodiscard]] bool isConsumingFunction(const std::string &FuncName) const override;
+  [[nodiscard]] bool isAPIFunction(const std::string &FuncName) const override;
   [[nodiscard]] TypeStateDescription::State
   getNextState(std::string Tok, TypeStateDescription::State S) const override;
   TypeStateDescription::State
