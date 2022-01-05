@@ -175,7 +175,7 @@ public:
   }
 
   [[nodiscard]] inline bool
-  isSubType(const llvm::StructType *Type, // NOLINT
+  isSubType(const llvm::StructType *Type,
             const llvm::StructType *SubType) override {
     auto ReachableTypes = getSubTypes(Type);
     return ReachableTypes.count(SubType);
@@ -238,7 +238,7 @@ public:
 
   // a function to conveniently create this writer
   [[nodiscard]] TypeHierarchyVertexWriter
-  makeTypeHierarchyVertexWriter(const bidigraph_t &TyGraph) const { // NOLINT
+  makeTypeHierarchyVertexWriter(const bidigraph_t &TyGraph) const {
     return {TyGraph};
   }
 
