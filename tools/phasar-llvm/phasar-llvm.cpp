@@ -232,10 +232,8 @@ int main(int Argc, const char **Argv) {
       ("record-edges", boost::program_options::value<bool>()->default_value(true), "Let the IFDS/IDE Solver record all ESG edges whole solving the dataflow problem. This can have massive performance impact")
       ("persisted-summaries", boost::program_options::value<bool>()->default_value(false), "Let the IFDS/IDE Solver compute presisted procedure summaries (Currently not supported)")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
-      
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
-      
       ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible (Currently not available)");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
