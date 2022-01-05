@@ -291,9 +291,7 @@ const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id) {
   return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
 }
 
-llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
-
-bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
+bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,
                                  const llvm::Value *Rhs) const {
   std::string LhsId = getMetaDataID(Lhs);
   std::string RhsId = getMetaDataID(Rhs);
