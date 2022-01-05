@@ -1,5 +1,5 @@
-#ifndef _PHASAR_PHASARLLVM_MONO_CALLSTRINGCTX_H_
-#define _PHASAR_PHASARLLVM_MONO_CALLSTRINGCTX_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
 
 #include <deque>
 #include <functional>
@@ -12,39 +12,43 @@ namespace psr {
 
 template <typename N, unsigned K> class CallStringCTX {
 protected:
-  std::deque<N> cs;
-  static const unsigned k = K;
+  std::deque<N> CallString;
+  static const unsigned KLimit = K;
   friend struct std::hash<psr::CallStringCTX<N, K>>;
 
 public:
-  CallStringCTX() {}
+  CallStringCTX() = default;
 
-  CallStringCTX(std::initializer_list<N> ilist) : cs(ilist) {
-    if (ilist.size() > k) {
+  CallStringCTX(std::initializer_list<N> IList) : CallString(IList) {
+    if (IList.size() > KLimit) {
       throw std::runtime_error(
           "initial call std::string length exceeds maximal length K");
     }
   }
 
-  void push_back(N n) {
-    if (cs.size() > k - 1) {
-      cs.pop_front();
+  void push_back(N Stmt) { // NOLINT
+    if (CallString.size() > KLimit - 1) {
+      CallString.pop_front();
     }
-    cs.push_back(n);
+    CallString.push_back(Stmt);
   }
 
-  N pop_back() {
-    if (cs.size() > 0) {
-      N n = cs.back();
-      cs.pop_back();
-      return n;
+  N pop_back() { // NOLINT
+    if (!CallString.empty()) {
+      N Stmt = CallString.back();
+      CallString.pop_back();
+      return Stmt;
     }
     return N{};
   }
 
-  bool isEqual(const CallStringCTX &rhs) const { return cs == rhs.cs; }
+  [[nodiscard]] bool isEqual(const CallStringCTX &Rhs) const {
+    return CallString == Rhs.CallString;
+  }
 
-  bool isDifferent(const CallStringCTX &rhs) const { return !isEqual(rhs); }
+  [[nodiscard]] bool isDifferent(const CallStringCTX &Rhs) const {
+    return !isEqual(Rhs);
+  }
 
   friend bool operator==(const CallStringCTX<N, K> &Lhs,
                          const CallStringCTX<N, K> &Rhs) {
@@ -61,26 +65,26 @@ public:
     return Lhs.cs < Rhs.cs;
   }
 
-  void print(std::ostream &os) const {
-    os << "Call string: [ ";
-    for (auto C : cs) {
-      os << llvmIRToString(C);
-      if (C != cs.back()) {
-        os << " * ";
+  void print(std::ostream &OS) const {
+    OS << "Call string: [ ";
+    for (auto C : CallString) {
+      OS << llvmIRToString(C);
+      if (C != CallString.back()) {
+        OS << " * ";
       }
     }
-    os << " ]";
+    OS << " ]";
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const CallStringCTX<N, K> &c) {
-    c.print(os);
-    return os;
+  friend std::ostream &operator<<(std::ostream &OS,
+                                  const CallStringCTX<N, K> &C) {
+    C.print(OS);
+    return OS;
   }
 
-  bool empty() const { return cs.empty(); }
+  [[nodiscard]] bool empty() const { return CallString.empty(); }
 
-  std::size_t size() const { return cs.size(); }
+  [[nodiscard]] std::size_t size() const { return CallString.size(); }
 };
 
 } // namespace psr
@@ -89,11 +93,11 @@ namespace std {
 
 template <typename N, unsigned K> struct hash<psr::CallStringCTX<N, K>> {
   size_t operator()(const psr::CallStringCTX<N, K> &CS) const noexcept {
-    boost::hash<std::deque<N>> hash_deque;
-    std::hash<unsigned> hash_unsigned;
-    size_t u = hash_unsigned(K);
-    size_t h = hash_deque(CS.cs);
-    return u ^ (h << 1);
+    boost::hash<std::deque<N>> HashDeque;
+    std::hash<unsigned> HashUnsigned;
+    size_t U = HashUnsigned(K);
+    size_t H = HashDeque(CS.CallString);
+    return U ^ (H << 1);
   }
 };
 

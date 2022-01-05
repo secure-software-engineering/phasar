@@ -54,8 +54,8 @@ protected:
   doAnalysisAndCompareResults(const std::string &LlvmFilePath,
                               const std::set<IMFCPCompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    auto IR_Files = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
+    auto IRFiles = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }

@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_JOINEDGEFUNCTION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_JOINEDGEFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_JOINEDGEFUNCTION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_JOINEDGEFUNCTION_H
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
@@ -88,9 +88,9 @@ public:
   llvm::hash_code getHashCode() const override;
 
   static inline bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == Kind::Join;
+    return EF->getKind() == EFKind::Join;
   }
 };
 } // namespace psr::XTaint
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_JOINEDGEFUNCTION_H_
+#endif
