@@ -102,7 +102,7 @@ std::string getMetaDataID(const llvm::Value *V);
  */
 struct LLVMValueIDLess {
   StringIDLess Sless;
-  LLVMValueIDLess();
+  LLVMValueIDLess() : Sless(StringIDLess()) {}
   bool operator()(const llvm::Value *Lhs, const llvm::Value *Rhs) const;
 };
 
