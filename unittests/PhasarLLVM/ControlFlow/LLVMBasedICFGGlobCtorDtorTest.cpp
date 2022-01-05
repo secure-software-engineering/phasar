@@ -50,7 +50,7 @@ protected:
     ValueAnnotationPass::resetValueID();
   }
 
-  void EnsureFunctionOrdering(
+  void ensureFunctionOrdering(
       llvm::Function *F, LLVMBasedICFG &ICFG,
       std::initializer_list<std::pair<llvm::StringRef, llvm::StringRef>>
           FixedOrdering) {

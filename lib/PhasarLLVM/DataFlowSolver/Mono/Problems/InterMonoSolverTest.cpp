@@ -66,8 +66,7 @@ InterMonoSolverTest::callFlow(InterMonoSolverTest::n_t CallSite,
                               InterMonoSolverTest::f_t /*Callee*/,
                               const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::callFlow()\n";
-  InterMonoSolverTest::mono_container_t Result;
-  Result.setUnion(In);
+  InterMonoSolverTest::mono_container_t Result(In);
   if (const auto *const Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
   }
