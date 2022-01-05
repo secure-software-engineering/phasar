@@ -565,9 +565,7 @@ protected:
             // <sP,d3>, create new caller-side jump functions to the return
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
-            for (const TableCell &Entry : endSummary(
-                     SP,
-                     d3)) { // TODO/FIXME: does the reference break the solver?
+            for (const TableCell &Entry : endSummary(SP, d3)) {
               n_t eP = Entry.getRowKey();
               d_t d4 = Entry.getColumnKey();
               EdgeFunctionPtrType fCalleeSummary = Entry.getValue();
@@ -721,8 +719,7 @@ protected:
       if (!LookupResults) {
         continue;
       }
-      for (const auto &Entry :
-           LookupResults->get()) { // TODO/FIXME: does the & break the solver?
+      for (const auto &Entry : LookupResults->get()) {
         d_t dPrime = Entry.first;
         EdgeFunctionPtrType fPrime = Entry.second;
         n_t SP = Stmt;
@@ -1037,8 +1034,7 @@ protected:
       // line 21.1 of Naeem/Lhotak/Rodriguez
       // register end-summary
       addEndSummary(SP, d1, n, d2, f);
-      for (const auto &Entry :
-           incoming(d1, SP)) { // FIXME: does & break the solver?
+      for (const auto &Entry : incoming(d1, SP)) {
         Inc[Entry.first] = Container{Entry.second};
       }
     }
@@ -1046,7 +1042,7 @@ protected:
     printIncomingTab();
     // for each incoming call edge already processed
     //(see processCall(..))
-    for (const auto &Entry : Inc) { // TODO/FIXME: does & break the solver?
+    for (const auto &Entry : Inc) {
       // line 22
       n_t c = Entry.first;
       // for each return site
@@ -1102,9 +1098,7 @@ protected:
             // return site using the composed function
             auto RevLookupResult = JumpFn->reverseLookup(c, d4);
             if (RevLookupResult) {
-              for (const auto &ValAndFunc :
-                   RevLookupResult
-                       ->get()) { // TODO/FIXME: does & break the solver?
+              for (const auto &ValAndFunc : RevLookupResult->get()) {
                 EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(AllTop)) {
                   d_t d3 = ValAndFunc.first;
@@ -1378,18 +1372,15 @@ protected:
 #ifdef DYNAMIC_LOG
     if (boost::log::core::get()->get_logging_enabled()) {
       BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of incomingtab entry";
-      for (const auto &Cell :
-           IncomingTab.cellSet()) { // TODO/FIXME: does & break the solver?
+      for (const auto &Cell : IncomingTab.cellSet()) {
         BOOST_LOG_SEV(lg::get(), DEBUG)
             << "sP: " << IDEProblem.NtoString(Cell.getRowKey());
         BOOST_LOG_SEV(lg::get(), DEBUG)
             << "d3: " << IDEProblem.DtoString(Cell.getColumnKey());
-        for (const auto &Entry :
-             Cell.getValue()) { // TODO/FIXME: does & break the solver?
+        for (const auto &Entry : Cell.getValue()) {
           BOOST_LOG_SEV(lg::get(), DEBUG)
               << "  n: " << IDEProblem.NtoString(Entry.first);
-          for (const auto &Fact :
-               Entry.second) { // TODO/FIXME: does & break the solver?
+          for (const auto &Fact : Entry.second) {
             BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "  d2: " << IDEProblem.DtoString(Fact);
           }
@@ -1406,15 +1397,12 @@ protected:
 #ifdef DYNAMIC_LOG
     if (boost::log::core::get()->get_logging_enabled()) {
       BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of endsummarytab entry";
-      for (const auto &Cell :
-           EndsummaryTab.cellVec()) { // TODO/FIXME: does & break the solver?
+      for (const auto &Cell : EndsummaryTab.cellVec()) {
         BOOST_LOG_SEV(lg::get(), DEBUG)
             << "sP: " << IDEProblem.NtoString(Cell.getRowKey());
         BOOST_LOG_SEV(lg::get(), DEBUG)
             << "d1: " << IDEProblem.DtoString(Cell.getColumnKey());
-        for (const auto &InnerCell :
-             Cell.getValue()
-                 .cellVec()) { // TODO/FIXME: does & break the solver?
+        for (const auto &InnerCell : Cell.getValue().cellVec()) {
           BOOST_LOG_SEV(lg::get(), DEBUG)
               << "  eP: " << IDEProblem.NtoString(InnerCell.getRowKey());
           BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1444,7 +1432,7 @@ protected:
     sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
       return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (const auto &Cell : Cells) { // TODO/FIXME: does & break the solver?
+    for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       std::string N2Label = IDEProblem.NtoString(Edge.second);
       std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
@@ -1470,7 +1458,7 @@ protected:
     sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
       return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (const auto &Cell : Cells) { // TODO/FIXME: does & break the solver?
+    for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       std::string N2Label = IDEProblem.NtoString(Edge.second);
       std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
@@ -1514,9 +1502,7 @@ protected:
     // d1 --> d2-Set
     // Case 1: d1 in d2-Set
     // Case 2: d1 not in d2-Set, i.e., d1 was killed. d2-Set could be empty.
-    for (const auto &Cell :
-         ComputedIntraPathEdges
-             .cellSet()) { // TODO/FIXME: does & break the solver?
+    for (const auto &Cell : ComputedIntraPathEdges.cellSet()) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "N1: " << IDEProblem.NtoString(Edge.first);
@@ -1557,9 +1543,7 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "==============================================";
                   BOOST_LOG_SEV(lg::get(), DEBUG) << "INTER PATH EDGES");
-    for (const auto &Cell :
-         ComputedInterPathEdges
-             .cellSet()) { // TODO/FIXME: does & break the solver?
+    for (const auto &Cell : ComputedInterPathEdges.cellSet()) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "N1: " << IDEProblem.NtoString(Edge.first);
@@ -1646,8 +1630,7 @@ protected:
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "SUMMARY REUSE");
     std::size_t TotalSummaryReuse = 0;
-    for (const auto &Entry :
-         FSummaryReuse) { // TODO/FIXME: does & break the solver?
+    for (const auto &Entry : FSummaryReuse) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "N1: " << IDEProblem.NtoString(Entry.first.first);
                     BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1726,7 +1709,7 @@ public:
     sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
       return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (const auto &Cell : Cells) { // TODO/FIXME: does & break the solver?
+    for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       std::string N1Label = IDEProblem.NtoString(Edge.first);
       std::string N2Label = IDEProblem.NtoString(Edge.second);
@@ -1756,8 +1739,7 @@ public:
       DOTFactSubGraph *D1FSG = nullptr;
       unsigned D1FactId = 0;
       unsigned D2FactId = 0;
-      for (const auto &D1ToD2Set :
-           Cell.getValue()) { // TODO/FIXME: does & break the solver?
+      for (const auto &D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1Fact));
@@ -1826,7 +1808,7 @@ public:
     sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
       return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
     });
-    for (const auto &Cell : Cells) { // TODO/FIXME: does & break the solver?
+    for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       std::string N1Label = IDEProblem.NtoString(Edge.first);
       std::string N2Label = IDEProblem.NtoString(Edge.second);
