@@ -892,8 +892,8 @@ protected:
     for (n_t n : Values) {
       for (n_t SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
         using TableCell = typename Table<d_t, d_t, EdgeFunctionPtrType>::Cell;
-        Table<d_t, d_t, EdgeFunctionPtrType> LookupByTarget;
-        LookupByTarget = JumpFn->lookupByTarget(n);
+        Table<d_t, d_t, EdgeFunctionPtrType> &LookupByTarget =
+            JumpFn->lookupByTarget(n);
         for (const TableCell &SourceValTargetValAndFunction :
              LookupByTarget.cellSet()) {
           d_t dPrime = SourceValTargetValAndFunction.getRowKey();
