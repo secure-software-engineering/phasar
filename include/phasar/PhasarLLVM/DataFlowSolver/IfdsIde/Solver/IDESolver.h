@@ -1098,9 +1098,7 @@ protected:
             // return site using the composed function
             auto RevLookupResult = JumpFn->reverseLookup(c, d4);
             if (RevLookupResult) {
-              llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 2> ResCopy(
-                  RevLookupResult->get().begin(), RevLookupResult->get().end());
-              for (const auto &ValAndFunc : ResCopy) {
+              for (auto ValAndFunc : RevLooupResult->get()) {
                 EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(AllTop)) {
                   d_t d3 = ValAndFunc.first;
