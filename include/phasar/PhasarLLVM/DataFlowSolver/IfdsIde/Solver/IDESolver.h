@@ -892,8 +892,8 @@ protected:
     for (n_t n : Values) {
       for (n_t SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
         using TableCell = typename Table<d_t, d_t, EdgeFunctionPtrType>::Cell;
-        Table<d_t, d_t, EdgeFunctionPtrType> LookupByTarget;
-        LookupByTarget = JumpFn->lookupByTarget(n);
+        Table<d_t, d_t, EdgeFunctionPtrType> &LookupByTarget =
+            JumpFn->lookupByTarget(n);
         for (const TableCell &SourceValTargetValAndFunction :
              LookupByTarget.cellSet()) {
           d_t dPrime = SourceValTargetValAndFunction.getRowKey();
@@ -1098,7 +1098,9 @@ protected:
             // return site using the composed function
             auto RevLookupResult = JumpFn->reverseLookup(c, d4);
             if (RevLookupResult) {
-              for (const auto &ValAndFunc : RevLookupResult->get()) {
+              llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 2> ResCopy(
+                  RevLookupResult->get().begin(), RevLookupResult->get().end());
+              for (const auto &ValAndFunc : ResCopy) {
                 EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(AllTop)) {
                   d_t d3 = ValAndFunc.first;
