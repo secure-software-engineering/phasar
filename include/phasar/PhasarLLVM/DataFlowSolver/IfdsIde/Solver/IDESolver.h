@@ -1098,7 +1098,7 @@ protected:
             // return site using the composed function
             auto RevLookupResult = JumpFn->reverseLookup(c, d4);
             if (RevLookupResult) {
-              for (auto ValAndFunc : RevLooupResult->get()) {
+              for (auto ValAndFunc : RevLookupResult->get()) {
                 EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(AllTop)) {
                   d_t d3 = ValAndFunc.first;
