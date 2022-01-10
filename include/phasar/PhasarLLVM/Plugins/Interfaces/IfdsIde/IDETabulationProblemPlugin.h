@@ -61,7 +61,8 @@ public:
 
   bool isZeroValue(d_t Fact) const override { return Fact == getZeroValue(); }
 
-  void printNode(std::ostream &OS, const llvm::Instruction *Stmt) const override {
+  void printNode(std::ostream &OS,
+                 const llvm::Instruction *Stmt) const override {
     OS << llvmIRToString(Stmt);
   }
 
