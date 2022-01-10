@@ -73,8 +73,8 @@ void mergeByStitching(GraphTy &Graph1, const GraphTy &Graph2,
 template <typename GraphTy, typename VertexTy, typename EdgeProperty,
           typename... Args>
 void mergeGraphs(GraphTy &Graph1, const GraphTy &Graph2,
-                  std::vector<std::pair<VertexTy, VertexTy>> VInG1UInG2,
-                  Args &&...Arguments) {
+                 std::vector<std::pair<VertexTy, VertexTy>> VInG1UInG2,
+                 Args &&...Arguments) {
   using index_map_t =
       typename boost::property_map<GraphTy, boost::vertex_index_t>::type;
   // for simple adjacency_list<> this type would be more efficient:
