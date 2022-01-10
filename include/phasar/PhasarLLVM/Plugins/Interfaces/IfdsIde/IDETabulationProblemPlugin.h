@@ -71,7 +71,8 @@ public:
     Fact->print(OS);
   }
 
-  void printFunction(std::ostream &OS, const llvm::Function *Func) const override {
+  void printFunction(std::ostream &OS,
+                     const llvm::Function *Func) const override {
     OS << Func->getName().str();
   }
 
