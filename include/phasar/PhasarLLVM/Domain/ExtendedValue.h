@@ -108,7 +108,8 @@ public:
   [[nodiscard]] std::vector<const llvm::Value *> getMemLocationSeq() const {
     return MemLocationSeq;
   }
-  void setMemLocationSeq(const std::vector<const llvm::Value *> &MemLocationSeq) {
+  void
+  setMemLocationSeq(const std::vector<const llvm::Value *> &MemLocationSeq) {
     this->MemLocationSeq = MemLocationSeq;
   }
 
