@@ -35,7 +35,7 @@ using namespace psr;
 
 namespace psr {
 
-  llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
+llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
 GeneralStatistics
 GeneralStatisticsAnalysis::run(llvm::Module &M,
                                llvm::ModuleAnalysisManager &/*AM*/) {
