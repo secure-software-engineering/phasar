@@ -35,47 +35,54 @@ namespace psr {
 class PhasarConfig {
 public:
   /// Current Phasar version
-  static std::string PhasarVersion() { return XSTR(PHASAR_VERSION); } // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string PhasarVersion() { return XSTR(PHASAR_VERSION); }
 
   /// Stores the label/ tag with which we annotate the LLVM IR.
-  static std::string MetaDataKind() { return "psr.id"; } // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string MetaDataKind() { return "psr.id"; }
 
-  static std::string ConfigurationDirectory() { // NOLINT
-    return ConfigDir;
-  }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string ConfigurationDirectory() { return ConfigDir; }
 
   /// Specifies the directory in which Phasar is located.
-  static std::string PhasarDirectory() { return PhasarDir; } // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string PhasarDirectory() { return PhasarDir; }
 
   /// Name of the file storing all standard header search paths used for
   /// compilation.
-  static std::string HeaderSearchPathsFileName() { // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string HeaderSearchPathsFileName() {
     return "standard_header_paths.conf";
   }
 
   /// Name of the compile_commands.json file (in case we wish to rename)
-  static std::string CompileCommandsJson() { // NOLINT
-    return "compile_commands.json";
-  }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string CompileCommandsJson() { return "compile_commands.json"; }
 
   /// Default Source- and Sink-Functions path
-  static std::string DefaultSourceSinkFunctionsPath() { // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string DefaultSourceSinkFunctionsPath() {
     return std::string(PhasarDirectory() +
                        "config/phasar-source-sink-function.json");
   }
 
   // Variables to be used in JSON export format
   /// Identifier for call graph export
-  static std::string JsonCallGraphID() { return "psr.cg"; } // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string JsonCallGraphID() { return "psr.cg"; }
 
   /// Identifier for type hierarchy graph export
-  static std::string JsonTypeHierarchyID() { return "psr.th"; } // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string JsonTypeHierarchyID() { return "psr.th"; }
 
   /// Identifier for points-to graph export
-  static std::string JsonPointsToGraphID() { return "psr.pt"; } // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string JsonPointsToGraphID() { return "psr.pt"; }
 
   /// Identifier for data-flow results export
-  static std::string JsonDataFlowID() { return "psr.df"; } // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static std::string JsonDataFlowID() { return "psr.df"; }
 
   static PhasarConfig &getPhasarConfig();
 
@@ -94,16 +101,17 @@ public:
   }
 
   /// Variables map of the parsed command-line parameters
-  static boost::program_options::variables_map &VariablesMap() { // NOLINT
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static boost::program_options::variables_map &VariablesMap() {
     static boost::program_options::variables_map VMap;
     return VMap;
   }
 
   ~PhasarConfig() = default;
   PhasarConfig(const PhasarConfig &) = delete;
+  PhasarConfig operator=(const PhasarConfig &) = delete;
   PhasarConfig(PhasarConfig &&) = delete;
-  PhasarConfig &operator=(const PhasarConfig &) = delete;
-  PhasarConfig &operator=(PhasarConfig &&) = delete;
+  PhasarConfig operator=(PhasarConfig &&) = delete;
 
 private:
   PhasarConfig();

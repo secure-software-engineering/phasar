@@ -138,11 +138,11 @@ TypeStateDescription::State OpenSSLEVPKDFDescription::error() const {
 }
 
 OpenSSLEVPKDFDescription::OpenSSLEVTKDFToken
-OpenSSLEVPKDFDescription::funcNameToToken(const std::string &F) {
-  if (F == "EVP_KDF_fetch") {
+OpenSSLEVPKDFDescription::funcNameToToken(const std::string &FuncName) {
+  if (FuncName == "EVP_KDF_fetch") {
     return OpenSSLEVTKDFToken::EVP_KDF_FETCH;
   }
-  if (F == "EVP_KDF_free") {
+  if (FuncName == "EVP_KDF_free") {
     return OpenSSLEVTKDFToken::EVP_KDF_FREE;
   }
   return OpenSSLEVTKDFToken::STAR;

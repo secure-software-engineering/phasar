@@ -56,14 +56,10 @@ public:
         ICF(ICF) {}
 
   ~InterMonoProblem() override = default;
-
-  InterMonoProblem(const InterMonoProblem &copy) = delete;
-
-  InterMonoProblem(InterMonoProblem &&move) = delete;
-
-  InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
-
-  InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
+  InterMonoProblem(const InterMonoProblem &Other) = delete;
+  InterMonoProblem(InterMonoProblem &&Other) = delete;
+  InterMonoProblem &operator=(const InterMonoProblem &Other) = delete;
+  InterMonoProblem &operator=(InterMonoProblem &&Other) = delete;
 
   virtual mono_container_t callFlow(n_t CallSite, f_t Callee,
                                     const mono_container_t &In) = 0;

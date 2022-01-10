@@ -89,7 +89,7 @@ protected:
   const llvm::DataLayout *DL = nullptr;
 
   const detail::AbstractMemoryLocationImpl *
-  getOrCreateImpl(const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&Offs,
+  getOrCreateImpl(const llvm::Value *V, llvm::ArrayRef<ptrdiff_t> Offs,
                   unsigned BOUND);
 
   const detail::AbstractMemoryLocationImpl *
@@ -97,7 +97,9 @@ protected:
 
   const AbstractMemoryLocationImpl *createImpl(const llvm::Value *V,
                                                unsigned BOUND);
+
   [[nodiscard]] const AbstractMemoryLocationImpl *getOrCreateZeroImpl() const;
+
   const AbstractMemoryLocationImpl *
   withIndirectionOfImpl(const AbstractMemoryLocationImpl *AML,
                         llvm::ArrayRef<ptrdiff_t> Ind);
@@ -160,6 +162,7 @@ public:
                                               unsigned BOUND) {
     return {createImpl(V, BOUND)};
   }
+
   [[nodiscard]] AbstractMemoryLocation getOrCreateZero() const {
     return {getOrCreateZeroImpl()};
   }

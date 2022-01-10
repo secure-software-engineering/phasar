@@ -246,8 +246,6 @@ std::string getMetaDataID(const llvm::Value *V) {
   return "-1";
 }
 
-LLVMValueIDLess::LLVMValueIDLess() : Sless(StringIDLess()) {}
-
 bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,
                                  const llvm::Value *Rhs) const {
   std::string LhsId = getMetaDataID(Lhs);

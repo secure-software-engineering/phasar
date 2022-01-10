@@ -71,7 +71,8 @@ public:
   VertexWriter(const graphType &CGraph) : CGraph(CGraph) {}
   template <class VertexOrEdge>
   void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-    Out << "[label=\"" << CGraph[V].getFunctionName() << "\"]";
+    const auto &Label = CGraph[V].getFunctionName();
+    Out << "[label=" << boost::escape_dot_string(Label) << "]";
   }
 
 private:
@@ -83,7 +84,8 @@ public:
   EdgeLabelWriter(const graphType &CGraph) : CGraph(CGraph) {}
   template <class VertexOrEdge>
   void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-    Out << "[label=\"" << CGraph[V].getCallSiteAsString() << "\"]";
+    const auto &Label = CGraph[V].getCallSiteAsString();
+    Out << "[label=" << boost::escape_dot_string(Label) << "]";
   }
 
 private:
@@ -444,13 +446,15 @@ const llvm::Function *LLVMBasedICFG::getFunction(const string &Fun) const {
 }
 
 const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
-  if (auto It = GlobalCtors.begin(); It != GlobalCtors.end()) {
+  auto It = GlobalCtors.begin();
+  if (It != GlobalCtors.end()) {
     return It->second;
   }
   return nullptr;
 }
 const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
-  if (auto It = GlobalDtors.rbegin(); It != GlobalDtors.rend()) {
+  auto It = GlobalDtors.rbegin();
+  if (It != GlobalDtors.rend()) {
     return It->second;
   }
   return nullptr;
@@ -1271,8 +1275,8 @@ unsigned LLVMBasedICFG::getNumOfEdges() const {
 
 const llvm::Function *
 LLVMBasedICFG::getRegisteredDtorsCallerOrNull(const llvm::Module *Mod) {
-  if (auto It = GlobalRegisteredDtorsCaller.find(Mod);
-      It != GlobalRegisteredDtorsCaller.end()) {
+  auto It = GlobalRegisteredDtorsCaller.find(Mod);
+  if (It != GlobalRegisteredDtorsCaller.end()) {
     return It->second;
   }
 

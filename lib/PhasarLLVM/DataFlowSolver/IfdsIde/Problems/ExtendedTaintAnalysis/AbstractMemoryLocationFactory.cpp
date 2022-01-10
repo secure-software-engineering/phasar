@@ -7,7 +7,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <exception>
 #include <limits>
 #include <new>
 
@@ -141,8 +140,7 @@ void AbstractMemoryLocationFactoryBase::setDataLayout(
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::getOrCreateImpl(
-    const llvm::Value *V, llvm::SmallVectorImpl<ptrdiff_t> &&Offs,
-    unsigned BOUND) {
+    const llvm::Value *V, llvm::ArrayRef<ptrdiff_t> Offs, unsigned BOUND) {
   llvm::FoldingSetNodeID ID;
   detail::AbstractMemoryLocationImpl::MakeProfile(ID, V, Offs, BOUND);
   void *Pos;
@@ -157,11 +155,7 @@ AbstractMemoryLocationFactoryBase::getOrCreateImpl(
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::getOrCreateImpl(const llvm::Value *V,
                                                    unsigned BOUND) {
-
-  llvm::SmallVector<ptrdiff_t, 1> Offs = {0};
-  const auto *Ret =
-      getOrCreateImpl(V, std::move(Offs), BOUND == 0 ? 0 : BOUND - 1);
-
+  const auto *Ret = getOrCreateImpl(V, {0}, BOUND == 0 ? 0 : BOUND - 1);
   return Ret;
 }
 
@@ -233,7 +227,7 @@ AbstractMemoryLocationFactoryBase::createImpl(const llvm::Value *V,
     Offs.resize(BOUND);
   }
 
-  const auto *Mem = getOrCreateImpl(Baseptr, std::move(Offs), Lifetime);
+  const auto *Mem = getOrCreateImpl(Baseptr, Offs, Lifetime);
 
 #ifdef XTAINT_DIAGNOSTICS
   if (IsOverApproximating)
@@ -253,10 +247,12 @@ AbstractMemoryLocationFactoryBase::getOrCreateZeroImpl() const {
 
 const AbstractMemoryLocationImpl *AbstractMemoryLocationFactoryBase::limitImpl(
     const AbstractMemoryLocationImpl *AML) {
-  const auto *Beg = AML->offsets().begin();
-  const auto *End = AML->offsets().end();
-  llvm::SmallVector<ptrdiff_t, 8> Offs(Beg, Beg == End ? End : End - 1);
-  const auto *Ret = getOrCreateImpl(AML->base(), std::move(Offs), 0);
+  auto Offs = AML->offsets();
+  if (!Offs.empty()) {
+    Offs = Offs.drop_back();
+  }
+
+  const auto *Ret = getOrCreateImpl(AML->base(), Offs, 0);
 
 #ifdef XTAINT_DIAGNOSTICS
   overApproximatedAMLs.insert(ret);
@@ -299,7 +295,7 @@ AbstractMemoryLocationFactoryBase::withIndirectionOfImpl(
     NwLifeTime -= Ind.size();
   }
 
-  const auto *Ret = getOrCreateImpl(AML->base(), std::move(Offs), NwLifeTime);
+  const auto *Ret = getOrCreateImpl(AML->base(), Offs, NwLifeTime);
 
 #ifdef XTAINT_DIAGNOSTICS
   if (isOverApproximating)
@@ -331,7 +327,7 @@ AbstractMemoryLocationFactoryBase::withOffsetImpl(
                                          AML->offsets().end());
     Offs.back() += *GepOffs;
 
-    return getOrCreateImpl(AML->base(), std::move(Offs), AML->lifetime());
+    return getOrCreateImpl(AML->base(), Offs, AML->lifetime());
   }
 }
 
@@ -366,8 +362,8 @@ AbstractMemoryLocationFactoryBase::withOffsetsImpl(
 
   OffsCpy.append(std::next(Offs.begin()), Offs.end());
 
-  const auto *Ret = getOrCreateImpl(AML->base(), std::move(OffsCpy),
-                                    NwLifetime - Offs.size() + 1);
+  const auto *Ret =
+      getOrCreateImpl(AML->base(), OffsCpy, NwLifetime - Offs.size() + 1);
 #ifdef XTAINT_DIAGNOSTICS
   if (isOverApproximating)
     overApproximatedAMLs.insert(ret);
@@ -390,40 +386,26 @@ AbstractMemoryLocationFactoryBase::withTransferToImpl(
     return Ret;
   }
 
+  auto [LargerOffs, SmallerOffs] = [&] {
+    if (AML->offsets().size() >= From->offsets().size()) {
+      return std::make_pair(AML->offsets(), From->offsets());
+    }
+    return std::make_pair(From->offsets(), AML->offsets());
+  }();
+
+  if (!SmallerOffs.empty()) {
+    LargerOffs = LargerOffs.drop_front(SmallerOffs.size() - 1);
+  }
+
   // already checked that either offsets() is a prefix of From.offsets() or
   // vice versa
-  llvm::SmallVector<ptrdiff_t, 8> Offs(
-      [&] {
-        if (AML->offsets().size() >= From->offsets().size()) {
-
-          if (!From->offsets().empty()) {
-            return std::next(AML->offsets().begin(),
-                             From->offsets().size() -
-                                 1); // FIXME @Fabian clang-tidy complains about
-                                     // narrowing conversion
-          }
-          return AML->offsets().begin();
-        }
-        if (!AML->offsets().empty()) {
-          return std::next(From->offsets().begin(),
-                           AML->offsets().size() -
-                               1); // FIXME @Fabian clang-tidy complains about
-                                   // narrowing conversion
-        }
-        return From->offsets().begin();
-      }(),
-      [&] {
-        return AML->offsets().size() >= From->offsets().size()
-                   ? AML->offsets().end()
-                   : From->offsets().end();
-      }());
+  llvm::SmallVector<ptrdiff_t, 8> Offs(LargerOffs.begin(), LargerOffs.end());
 
   if (!Offs.empty()) {
     Offs.back() = 0;
   }
 
-  return getOrCreateImpl(To, std::move(Offs),
-                         std::min(AML->lifetime(), From->lifetime()));
+  return getOrCreateImpl(To, Offs, std::min(AML->lifetime(), From->lifetime()));
 }
 
 const AbstractMemoryLocationImpl *
@@ -462,9 +444,8 @@ AbstractMemoryLocationFactoryBase::withTransferFromImpl(
 #endif
   }
 
-  const auto *Ret =
-      getOrCreateImpl(To->base(), std::move(Offs),
-                      std::min(AML->lifetime(), MaximumSize - Offs.size()));
+  const auto *Ret = getOrCreateImpl(
+      To->base(), Offs, std::min(AML->lifetime(), MaximumSize - Offs.size()));
 
 #ifdef XTAINT_DIAGNOSTICS
   if (isOverApproximating)

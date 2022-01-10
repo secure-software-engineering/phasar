@@ -274,7 +274,7 @@ public:
   KillMultiple(std::set<D> KillValues) : KillValues(std::move(KillValues)) {}
   ~KillMultiple() override = default;
   container_type computeTargets(D Source) override {
-    if (KillValues.count(Source)) {
+    if (KillValues.find(Source) != KillValues.end()) {
       return {};
     }
     return {Source};
@@ -295,6 +295,7 @@ public:
   container_type computeTargets(D /*Source*/) override {
     return container_type();
   }
+
   static std::shared_ptr<KillAll<D>> getInstance() {
     static std::shared_ptr<KillAll> Instance =
         std::shared_ptr<KillAll>(new KillAll);
@@ -358,7 +359,7 @@ public:
   using typename FlowFunction<D, Container>::container_type;
 
   Transfer(D ToValue, D FromValue) : ToValue(ToValue), FromValue(FromValue) {}
-  virtual ~Transfer() = default;
+  ~Transfer() override = default;
   container_type computeTargets(D Source) override {
     if (Source == FromValue) {
       return {Source, ToValue};
@@ -389,6 +390,7 @@ public:
           }
           return FlowFuncs;
         }()) {}
+
   ~Union() override = default;
   container_type computeTargets(D Source) override {
     container_type Result;

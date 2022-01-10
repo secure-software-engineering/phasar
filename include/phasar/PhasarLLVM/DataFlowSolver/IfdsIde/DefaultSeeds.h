@@ -28,7 +28,7 @@ public:
   static std::map<N, std::set<D>> make(std::vector<N> Nodes, D ZeroNode) {
     std::map<N, std::set<D>> Result;
     for (N Node : Nodes) {
-      Result.insert(Node, {ZeroNode});
+      Result.insert(std::move(Node), {ZeroNode});
     }
     return Result;
   }

@@ -187,7 +187,8 @@ public:
   public:
     TSEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
                            std::shared_ptr<EdgeFunction<l_t>> G, l_t Bot)
-        : EdgeFunctionComposer<l_t>(F, G), BotElement(Bot){};
+        : EdgeFunctionComposer<l_t>(F, G), BotElement(Bot) {}
+
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
   };

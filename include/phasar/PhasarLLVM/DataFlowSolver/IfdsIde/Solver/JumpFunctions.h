@@ -141,7 +141,7 @@ public:
    * The return value is a mapping from source value to function.
    */
   std::optional<std::reference_wrapper<
-      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunctionPtrType>>>>
   reverseLookup(n_t Target, d_t TargetVal) {
     if (!NonEmptyReverseLookup.contains(Target, TargetVal)) {
       return std::nullopt;
@@ -155,7 +155,7 @@ public:
    * The return value is a mapping from target value to function.
    */
   std::optional<std::reference_wrapper<
-      llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>>
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunctionPtrType>>>>
   forwardLookup(d_t SourceVal, n_t Target) {
     if (!NonEmptyForwardLookup.contains(SourceVal, Target)) {
       return std::nullopt;
@@ -169,7 +169,7 @@ public:
    * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
-  Table<d_t, d_t, EdgeFunctionPtrType> lookupByTarget(n_t Target) {
+  Table<d_t, d_t, EdgeFunctionPtrType> &lookupByTarget(n_t Target) {
     return NonEmptyLookupByTargetNode[Target];
   }
 

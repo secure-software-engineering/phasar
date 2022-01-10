@@ -38,7 +38,7 @@ std::string toString(const PointerAnalysisType &PA);
 
 PointerAnalysisType toPointerAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
+std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA);
 
 template <typename V, typename N> class PointsToInfo {
 public:
@@ -60,9 +60,9 @@ public:
   getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
 
   // Checks if V2 is a reachable allocation in the points to set of V1.
-  virtual bool isInReachableAllocationSites(V V1, V V2,
-                                            bool IntraProcOnly = false,
-                                            N I = N{}) = 0;
+  [[nodiscard]] virtual bool
+  isInReachableAllocationSites(V V1, V V2, bool IntraProcOnly = false,
+                               N I = N{}) = 0;
 
   virtual void print(std::ostream &OS = std::cout) const = 0;
 

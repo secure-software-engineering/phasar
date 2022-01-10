@@ -60,8 +60,8 @@ public:
 
 private:
   DOTConfig() = default;
-  inline static const std::string fontSize = "fontsize=11";    // NOLINT
-  inline static const std::string arrowSize = "arrowsize=0.7"; // NOLINT
+  inline static const std::string FontSize = "fontsize=11";
+  inline static const std::string ArrowSize = "arrowsize=0.7";
 
   inline static std::string CFNode = // NOLINT
       "node [style=filled, shape=record]";
@@ -69,19 +69,19 @@ private:
   inline static std::string CFInterEdge = "edge [weight=0.1]"; // NOLINT
   inline static std::string FactNode = "node [style=rounded]"; // NOLINT
   inline static std::string FactIDEdge =                       // NOLINT
-      "edge [style=dotted, arrowhead=normal, " + fontSize + ", " + arrowSize +
+      "edge [style=dotted, arrowhead=normal, " + FontSize + ", " + ArrowSize +
       ']';
   inline static std::string FactCrossEdge = // NOLINT
-      "edge [style=dotted, arrowhead=normal, " + fontSize + ", " + arrowSize +
+      "edge [style=dotted, arrowhead=normal, " + FontSize + ", " + ArrowSize +
       ']';
   inline static std::string FactInterEdge = // NOLINT
-      "edge [weight=0.1, style=dashed, " + fontSize + ", " + arrowSize + ']';
+      "edge [weight=0.1, style=dashed, " + FontSize + ", " + ArrowSize + ']';
   inline static std::string LambdaNode = "node [style=rounded]"; // NOLINT
   inline static std::string LambdaIDEdge =                       // NOLINT
-      "edge [style=dotted, arrowhead=normal, " + fontSize + ", " + arrowSize +
+      "edge [style=dotted, arrowhead=normal, " + FontSize + ", " + ArrowSize +
       ']';
   inline static std::string LambdaInterEdge = // NOLINT
-      "edge [weight=0.1, style=dashed, " + fontSize + ", " + arrowSize + ']';
+      "edge [weight=0.1, style=dashed, " + FontSize + ", " + ArrowSize + ']';
 };
 
 struct DOTNode {
