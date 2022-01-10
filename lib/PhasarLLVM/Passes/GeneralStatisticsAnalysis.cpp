@@ -38,7 +38,7 @@ namespace psr {
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
 GeneralStatistics
 GeneralStatisticsAnalysis::run(llvm::Module &M,
-                               llvm::ModuleAnalysisManager &/*AM*/) {
+                               llvm::ModuleAnalysisManager & /*AM*/) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Running GeneralStatisticsAnalysis");
   static const std::set<std::string> MemAllocatingFunctions = {
