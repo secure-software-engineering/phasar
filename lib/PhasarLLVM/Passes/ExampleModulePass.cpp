@@ -18,7 +18,7 @@ using namespace psr;
 
 namespace psr {
 
-llvm::AnalysisKey ExampleModulePass::Key; // NOLINT
+llvm::AnalysisKey ExampleModulePass::Key;
 
 ExampleModulePass::ExampleModulePass() = default;
 

@@ -35,9 +35,9 @@ using namespace psr;
 
 namespace psr {
 
-llvm::AnalysisKey ValueAnnotationPass::Key; // NOLINT
+llvm::AnalysisKey ValueAnnotationPass::Key;
 
-size_t ValueAnnotationPass::UniqueValueId = 0; // NOLINT
+size_t ValueAnnotationPass::UniqueValueId = 0;
 
 ValueAnnotationPass::ValueAnnotationPass() = default;
 
