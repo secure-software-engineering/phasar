@@ -30,7 +30,7 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data);
 
 template <typename OS_t, typename... Args, size_t... Idx>
 void printTuple(OS_t &OS, const std::tuple<Args...> &Tup,
-                std::index_sequence<Idx...>) {
+                std::index_sequence<Idx...> /*unused*/) {
   OS << "(";
   ((OS << (Idx == 0 ? "" : ", "), printHelper(OS, std::get<Idx>(Tup))), ...);
   OS << ")";

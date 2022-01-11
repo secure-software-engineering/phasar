@@ -40,7 +40,8 @@ public:
 class BasicBlockOrdering {
   /// Note: Cannot use std::function, because we need to support move-only
   /// functors(e.g. DefaultDominatorTreeAnalysis)
-  llvm::unique_function<llvm::DominatorTree &(const llvm::Function *)> getDom;
+  llvm::unique_function<llvm::DominatorTree &(const llvm::Function *)>
+      getDom; // NOLINT
 
 public:
   template <

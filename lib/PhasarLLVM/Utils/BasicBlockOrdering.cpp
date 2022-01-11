@@ -14,8 +14,9 @@ llvm::DominatorTree &
 DefaultDominatorTreeAnalysis::operator()(const llvm::Function *F) {
   auto &Ret = Dom[F];
   if (!Ret) {
-    Ret =
-        std::make_unique<llvm::DominatorTree>(*const_cast<llvm::Function *>(F));
+    Ret = std::make_unique<llvm::DominatorTree>(
+        *const_cast<llvm::Function *> // NOLINT - ugly, FIXME when llvm fixes it
+        (F));
   }
   return *Ret;
 }

@@ -38,9 +38,9 @@ protected:
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
-    set<string> entry_points = {"main"};
+    set<string> EntryPoints = {"main"};
     ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
-                                      entry_points, TH.get(), PT.get());
+                                      EntryPoints, TH.get(), PT.get());
   }
 
   void SetUp() override {

@@ -25,7 +25,7 @@ std::string toString(const Soundness &S);
 
 Soundness toSoundness(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const Soundness &S);
+std::ostream &operator<<(std::ostream &OS, const Soundness &S);
 
 } // namespace psr
 
