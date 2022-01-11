@@ -33,7 +33,7 @@ public:
   InterMonoProblemPlugin(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                          const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                          std::set<std::string> EntryPoints)
-      : InterMonoProblem(IRDB, TH, ICF, PT, EntryPoints) {}
+      : InterMonoProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
   void printNode(std::ostream &OS, n_t Inst) const override {
     OS << llvmIRToString((llvm::Value *)Inst);
