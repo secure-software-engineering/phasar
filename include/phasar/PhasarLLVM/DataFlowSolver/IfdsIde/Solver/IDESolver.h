@@ -614,14 +614,12 @@ protected:
                                     << f4->str();
                                 BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "         (return * calleeSummary * call)");
-                  EdgeFunctionPtrType
-                      fPrime = // NOLINT - keep close to algorithm notion
+                  EdgeFunctionPtrType fPrime =
                       f4->composeWith(fCalleeSummary)->composeWith(f5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "       = " << fPrime->str();
                                 BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-                  d_t d5_restoredCtx // NOLINT - keep close to algorithm notion
-                      = restoreContextOnReturnedFact(n, d2, d5);
+                  d_t d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                     << "Compose: " << fPrime->str() << " * "
@@ -1092,9 +1090,7 @@ protected:
                               << " * " << f4->str();
                           BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "         (return * function * call)");
-            EdgeFunctionPtrType
-                fPrime // NOLINT - keep close to algorithm notion
-                = f4->composeWith(f)->composeWith(f5);
+            EdgeFunctionPtrType fPrime = f4->composeWith(f)->composeWith(f5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                               << "       = " << fPrime->str();
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
