@@ -719,7 +719,8 @@ protected:
       if (!LookupResults) {
         continue;
       }
-      for (const auto &Entry : LookupResults->get()) {
+      for (size_t I = 0; I < LookupResults->get().size(); ++I) {
+        auto Entry = LookupResults->get()[I];
         d_t dPrime = Entry.first;
         EdgeFunctionPtrType fPrime = Entry.second;
         n_t SP = Stmt;
@@ -1098,9 +1099,8 @@ protected:
             // return site using the composed function
             auto RevLookupResult = JumpFn->reverseLookup(c, d4);
             if (RevLookupResult) {
-              llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 2> ResCopy(
-                  RevLookupResult->get().begin(), RevLookupResult->get().end());
-              for (const auto &ValAndFunc : ResCopy) {
+              for (size_t I = 0; I < RevLookupResult->get().size(); ++I) {
+                auto ValAndFunc = RevLookupResult->get()[I];
                 EdgeFunctionPtrType f3 = ValAndFunc.second;
                 if (!f3->equal_to(AllTop)) {
                   d_t d3 = ValAndFunc.first;
