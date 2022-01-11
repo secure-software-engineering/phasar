@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_PLUGINS_PLUGINFACTORIES_H_
-#define PHASAR_PHASARLLVM_PLUGINS_PLUGINFACTORIES_H_
+#ifndef PHASAR_PHASARLLVM_PLUGINS_PLUGINFACTORIES_H
+#define PHASAR_PHASARLLVM_PLUGINS_PLUGINFACTORIES_H
 
 // Problem constructors
 #include "phasar/PhasarLLVM/Plugins/PluginCtors.h"
