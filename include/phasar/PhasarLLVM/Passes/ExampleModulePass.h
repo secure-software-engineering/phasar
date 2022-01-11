@@ -21,7 +21,7 @@ namespace psr {
 class ExampleModulePass : public llvm::AnalysisInfoMixin<ExampleModulePass> {
 private:
   friend llvm::AnalysisInfoMixin<ExampleModulePass>;
-  static llvm::AnalysisKey Key; // NOLINT
+  static llvm::AnalysisKey Key;
 
 public:
   explicit ExampleModulePass();

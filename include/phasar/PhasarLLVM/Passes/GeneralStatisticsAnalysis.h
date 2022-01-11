@@ -138,7 +138,7 @@ class GeneralStatisticsAnalysis
     : public llvm::AnalysisInfoMixin<GeneralStatisticsAnalysis> {
 private:
   friend llvm::AnalysisInfoMixin<GeneralStatisticsAnalysis>;
-  static llvm::AnalysisKey Key; // NOLINT
+  static llvm::AnalysisKey Key;
   GeneralStatistics Stats;
 
 public:
