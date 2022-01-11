@@ -315,7 +315,7 @@ IDESecureHeapPropagation::SHPGenEdgeFn::getInstance(l_t Val) {
                                                                nullptr};
   auto Ind = static_cast<std::underlying_type<l_t>::type>(Val);
   if (!Cache.at(Ind)) {
-    Cache.at(Ind) = std::make_shared<SHPGenEdgeFn>(Val);
+    Cache[Ind] = std::make_shared<SHPGenEdgeFn>(Val);
   }
   return Cache.at(Ind);
 }

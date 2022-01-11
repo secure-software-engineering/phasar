@@ -17,8 +17,6 @@
 
 namespace psr {
 
-char PhasarPrinterPass::ID = 12;
-
 PhasarPrinterPass::PhasarPrinterPass() : llvm::ModulePass(ID) {}
 
 llvm::StringRef PhasarPrinterPass::getPassName() const {
@@ -32,12 +30,12 @@ bool PhasarPrinterPass::runOnModule(llvm::Module &M) {
   return false;
 }
 
-bool PhasarPrinterPass::doInitialization(llvm::Module &M) {
+bool PhasarPrinterPass::doInitialization(llvm::Module & /*M*/) {
   llvm::outs() << "PhasarPrinterPass::doInitialization()\n";
   return false;
 }
 
-bool PhasarPrinterPass::doFinalization(llvm::Module &M) {
+bool PhasarPrinterPass::doFinalization(llvm::Module & /*M*/) {
   llvm::outs() << "PhasarPrinterPass::doFinalization()\n";
   return false;
 }

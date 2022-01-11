@@ -56,27 +56,29 @@ public:
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {}
+      : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
   ~IDETabulationProblemPlugin() override = default;
 
-  bool isZeroValue(d_t d) const override { return d == getZeroValue(); }
+  bool isZeroValue(d_t Fact) const override { return Fact == getZeroValue(); }
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override {
-    os << llvmIRToString(n);
+  void printNode(std::ostream &OS,
+                 const llvm::Instruction *Stmt) const override {
+    OS << llvmIRToString(Stmt);
   }
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override {
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override {
     // os << llvmIRToString(d);
-    d->print(os);
+    Fact->print(OS);
   }
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override {
-    os << m->getName().str();
+  void printFunction(std::ostream &OS,
+                     const llvm::Function *Func) const override {
+    OS << Func->getName().str();
   }
 
-  void printEdgeFact(std::ostream &os, l_t l) const override {
+  void printEdgeFact(std::ostream &OS, l_t L) const override {
     // os << llvmIRToString(l);
-    l->print(os);
+    L->print(OS);
   }
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {

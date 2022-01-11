@@ -19,14 +19,14 @@
 
 namespace psr {
 /// Defines the different level of severity of PAMM's performance evaluation
-enum PAMM_SEVERITY_LEVEL { Off = 0, Core, Full };
+enum PAMM_SEVERITY_LEVEL { Off = 0, Core, Full }; // NOLINT
 
 #if defined(PAMM_FULL)
-static constexpr unsigned PAMM_CURR_SEV_LEVEL = 2;
+static constexpr unsigned PAMM_CURR_SEV_LEVEL = 2; // NOLINT
 #elif defined(PAMM_CORE)
-static constexpr unsigned PAMM_CURR_SEV_LEVEL = 1;
+static constexpr unsigned PAMM_CURR_SEV_LEVEL = 1; // NOLINT
 #else
-static constexpr unsigned PAMM_CURR_SEV_LEVEL = 0;
+static constexpr unsigned PAMM_CURR_SEV_LEVEL = 0; // NOLINT
 #endif
 
 } // namespace psr

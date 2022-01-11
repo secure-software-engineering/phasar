@@ -79,7 +79,7 @@ void validateParamModule(const std::vector<std::string> &Modules) {
   }
 }
 
-void validateParamExport(const std::string &Export) {
+void validateParamExport(const std::string & /*Export*/) {
   throw boost::program_options::error_with_option_name(
       "Parameter not supported, yet.");
 }
@@ -226,10 +226,10 @@ int main(int Argc, const char **Argv) {
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("emit-pta-as-json", "Emit the points-to information as JSON")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
-      
+
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
-      
+
       ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;

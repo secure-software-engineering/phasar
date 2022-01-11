@@ -130,17 +130,18 @@ void AnalysisController::executeVariational() {}
 
 void AnalysisController::executeWholeProgram() {
   size_t ConfigIdx = 0;
-  for (auto _DataFlowAnalysis : DataFlowAnalyses) {
+  for (const auto &DFA : DataFlowAnalyses) {
     std::string AnalysisConfigPath =
         (ConfigIdx < AnalysisConfigs.size()) ? AnalysisConfigs[ConfigIdx] : "";
-    if (std::holds_alternative<DataFlowAnalysisType>(_DataFlowAnalysis)) {
-      auto getTaintConfig = [&]() {
-        if (!AnalysisConfigPath.empty()) {
-          return TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath));
-        }
-        return TaintConfig(IRDB);
-      };
-      auto DataFlowAnalysis = std::get<DataFlowAnalysisType>(_DataFlowAnalysis);
+    if (std::holds_alternative<DataFlowAnalysisType>(DFA)) {
+      auto getTaintConfig // NOLINT
+          = [&]() {
+              if (!AnalysisConfigPath.empty()) {
+                return TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath));
+              }
+              return TaintConfig(IRDB);
+            };
+      auto DataFlowAnalysis = std::get<DataFlowAnalysisType>(DFA);
       switch (DataFlowAnalysis) {
       case DataFlowAnalysisType::IFDSUninitializedVariables: {
         WholeProgramAnalysis<IFDSSolver_P<IFDSUninitializedVariables>,
@@ -295,34 +296,30 @@ void AnalysisController::executeWholeProgram() {
       default:
         break;
       }
-    } else if (std::holds_alternative<IFDSPluginConstructor>(
-                   _DataFlowAnalysis)) {
-      auto Problem = std::get<IFDSPluginConstructor>(_DataFlowAnalysis)(
-          &IRDB, &TH, &ICF, &PT, EntryPoints);
+    } else if (std::holds_alternative<IFDSPluginConstructor>(DFA)) {
+      auto Problem = std::get<IFDSPluginConstructor>(DFA)(&IRDB, &TH, &ICF, &PT,
+                                                          EntryPoints);
       IFDSSolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
           *Problem);
       Solver.solve();
       emitRequestedDataFlowResults(Solver);
-    } else if (std::holds_alternative<IDEPluginConstructor>(
-                   _DataFlowAnalysis)) {
-      auto Problem = std::get<IDEPluginConstructor>(_DataFlowAnalysis)(
-          &IRDB, &TH, &ICF, &PT, EntryPoints);
+    } else if (std::holds_alternative<IDEPluginConstructor>(DFA)) {
+      auto Problem = std::get<IDEPluginConstructor>(DFA)(&IRDB, &TH, &ICF, &PT,
+                                                         EntryPoints);
       IDESolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
           *Problem);
       Solver.solve();
       emitRequestedDataFlowResults(Solver);
-    } else if (std::holds_alternative<IntraMonoPluginConstructor>(
-                   _DataFlowAnalysis)) {
+    } else if (std::holds_alternative<IntraMonoPluginConstructor>(DFA)) {
 
-      auto Problem = std::get<IntraMonoPluginConstructor>(_DataFlowAnalysis)(
+      auto Problem = std::get<IntraMonoPluginConstructor>(DFA)(
           &IRDB, &TH, &ICF, &PT, EntryPoints);
       IntraMonoSolver_P<std::remove_reference<decltype(*Problem)>::type> Solver(
           *Problem);
       Solver.solve();
       emitRequestedDataFlowResults(Solver);
-    } else if (std::holds_alternative<InterMonoPluginConstructor>(
-                   _DataFlowAnalysis)) {
-      auto Problem = std::get<InterMonoPluginConstructor>(_DataFlowAnalysis)(
+    } else if (std::holds_alternative<InterMonoPluginConstructor>(DFA)) {
+      auto Problem = std::get<InterMonoPluginConstructor>(DFA)(
           &IRDB, &TH, &ICF, &PT, EntryPoints);
       InterMonoSolver_P<std::remove_reference<decltype(*Problem)>::type, K>
           Solver(*Problem);
