@@ -33,12 +33,12 @@ template <typename AnalysisDomainTy> struct NodePrinter {
   NodePrinter &operator=(NodePrinter &&) = delete;
   virtual ~NodePrinter() = default;
 
-  virtual void printNode(std::ostream &os, N n) const = 0;
+  virtual void printNode(std::ostream &OS, N Stmt) const = 0;
 
-  virtual std::string NtoString(N n) const {
-    std::stringstream ss;
-    printNode(ss, n);
-    return ss.str();
+  virtual std::string NtoString(N Stmt) const { // NOLINT
+    std::stringstream StrS;
+    printNode(StrS, Stmt);
+    return StrS.str();
   }
 };
 
@@ -52,12 +52,12 @@ template <typename AnalysisDomainTy> struct DataFlowFactPrinter {
   DataFlowFactPrinter &operator=(DataFlowFactPrinter &&) = delete;
   virtual ~DataFlowFactPrinter() = default;
 
-  virtual void printDataFlowFact(std::ostream &os, D d) const = 0;
+  virtual void printDataFlowFact(std::ostream &OS, D Fact) const = 0;
 
-  virtual std::string DtoString(D d) const {
-    std::stringstream ss;
-    printDataFlowFact(ss, d);
-    return ss.str();
+  [[nodiscard]] virtual std::string DtoString(D Fact) const { // NOLINT
+    std::stringstream StrS;
+    printDataFlowFact(StrS, Fact);
+    return StrS.str();
   }
 };
 
@@ -69,12 +69,12 @@ template <typename V> struct ValuePrinter {
   ValuePrinter &operator=(ValuePrinter &&) = delete;
   virtual ~ValuePrinter() = default;
 
-  virtual void printValue(std::ostream &os, V v) const = 0;
+  virtual void printValue(std::ostream &OS, V Val) const = 0;
 
-  virtual std::string VtoString(V v) const {
-    std::stringstream ss;
-    printValue(ss, v);
-    return ss.str();
+  virtual std::string VtoString(V Val) const { // NOLINT
+    std::stringstream StrS;
+    printValue(StrS, Val);
+    return StrS.str();
   }
 };
 
@@ -86,12 +86,12 @@ template <typename T> struct TypePrinter {
   TypePrinter &operator=(TypePrinter &&) = delete;
   virtual ~TypePrinter() = default;
 
-  virtual void printType(std::ostream &os, T t) const = 0;
+  virtual void printType(std::ostream &OS, T Ty) const = 0;
 
-  virtual std::string TtoString(T t) const {
-    std::stringstream ss;
-    printType(ss, t);
-    return ss.str();
+  virtual std::string TtoString(T Ty) const { // NOLINT
+    std::stringstream StrS;
+    printType(StrS, Ty);
+    return StrS.str();
   }
 };
 
@@ -105,12 +105,12 @@ template <typename AnalysisDomainTy> struct EdgeFactPrinter {
   EdgeFactPrinter &operator=(EdgeFactPrinter &&) = delete;
   virtual ~EdgeFactPrinter() = default;
 
-  virtual void printEdgeFact(std::ostream &os, l_t l) const = 0;
+  virtual void printEdgeFact(std::ostream &OS, l_t L) const = 0;
 
-  [[nodiscard]] virtual std::string LtoString(l_t l) const {
-    std::stringstream ss;
-    printEdgeFact(ss, l);
-    return ss.str();
+  [[nodiscard]] virtual std::string LtoString(l_t L) const { // NOLINT
+    std::stringstream StrS;
+    printEdgeFact(StrS, L);
+    return StrS.str();
   }
 };
 
@@ -124,12 +124,12 @@ template <typename AnalysisDomainTy> struct FunctionPrinter {
   FunctionPrinter &operator=(FunctionPrinter &&) = delete;
   virtual ~FunctionPrinter() = default;
 
-  virtual void printFunction(std::ostream &os, F f) const = 0;
+  virtual void printFunction(std::ostream &OS, F Func) const = 0;
 
-  virtual std::string FtoString(F f) const {
-    std::stringstream ss;
-    printFunction(ss, f);
-    return ss.str();
+  virtual std::string FtoString(F Func) const { // NOLINT
+    std::stringstream StrS;
+    printFunction(StrS, Func);
+    return StrS.str();
   }
 };
 
@@ -141,12 +141,13 @@ template <typename ContainerTy> struct ContainerPrinter {
   ContainerPrinter &operator=(ContainerPrinter &&) = delete;
   virtual ~ContainerPrinter() = default;
 
-  virtual void printContainer(std::ostream &os, ContainerTy c) const = 0;
+  virtual void printContainer(std::ostream &OS,
+                              ContainerTy Container) const = 0;
 
-  virtual std::string ContainertoString(ContainerTy c) const {
-    std::stringstream ss;
-    printContainer(ss, c);
-    return ss.str();
+  virtual std::string ContainertoString(ContainerTy Container) const { // NOLINT
+    std::stringstream StrS;
+    printContainer(StrS, Container);
+    return StrS.str();
   }
 };
 

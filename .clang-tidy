@@ -54,6 +54,8 @@ CheckOptions:
     value:           (c|d|d1|d2|d3|d4|d5|d5_restoredCtx|eP|f|f3|f4|f5|fCalleeSummary|g|n|dPrime|fPrime)
   - key:             readability-identifier-naming.ParameterIgnoredRegexp
     value:           (d|d1|d2|d3|d4|d5|eP|f|n)
+  - key:             readability-identifier-naming.FunctionIgnoredRegexp
+    value:           (try_emplace|from_json|to_json)
   - key:             cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
     value:           1
   - key:             cppcoreguidelines-special-member-functions.AllowMissingMoveFunctions

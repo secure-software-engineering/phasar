@@ -18,7 +18,7 @@ namespace psr {
 
 enum class Scope { function, module, project };
 
-std::ostream &operator<<(std::ostream &os, const Scope &s);
+std::ostream &operator<<(std::ostream &OS, const Scope &S);
 
 extern const std::map<std::string, Scope> StringToScope;
 
