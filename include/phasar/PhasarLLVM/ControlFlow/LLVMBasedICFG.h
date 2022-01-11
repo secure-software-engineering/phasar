@@ -321,13 +321,13 @@ public:
 
   template <typename Fn> void forEachGlobalCtor(Fn &&F) const {
     for (auto [Prio, Fun] : GlobalCtors) {
-      F(static_cast<const llvm::Function *>(Fun));
+      std::invoke(F, static_cast<const llvm::Function *>(Fun));
     }
   }
 
   template <typename Fn> void forEachGlobalDtor(Fn &&F) const {
     for (auto [Prio, Fun] : GlobalDtors) {
-      F(static_cast<const llvm::Function *>(Fun));
+      std::invoke(F, static_cast<const llvm::Function *>(Fun));
     }
   }
 
