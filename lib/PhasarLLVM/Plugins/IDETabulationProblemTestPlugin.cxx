@@ -40,7 +40,7 @@ IDETabulationProblemTestPlugin::IDETabulationProblemTestPlugin(
 }
 
 const FlowFact *IDETabulationProblemTestPlugin::createZeroValue() const {
-  static auto *Zero = new ValueFlowFactWrapper(nullptr); // NOLINT
+  static auto *Zero = new ValueFlowFactWrapper(nullptr);
   return Zero;
 }
 

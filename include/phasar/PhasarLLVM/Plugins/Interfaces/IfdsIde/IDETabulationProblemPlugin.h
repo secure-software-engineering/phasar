@@ -91,7 +91,7 @@ extern std::map<std::string,
                     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints)>
-    IDETabulationProblemPluginFactory; // NOLINT
+    IDETabulationProblemPluginFactory;
 
 } // namespace psr
 

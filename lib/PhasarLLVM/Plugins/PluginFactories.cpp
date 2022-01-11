@@ -7,24 +7,26 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <memory>
+
 #include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 
-using namespace std;
 using namespace psr;
 
 namespace psr {
 
 // Maps for registering the plugins
-map<string, IFDSPluginConstructor> IFDSTabulationProblemPluginFactory; // NOLINT
+std::map<std::string, IFDSPluginConstructor> IFDSTabulationProblemPluginFactory;
 
-map<string, IDEPluginConstructor> IDETabulationProblemPluginFactory; // NOLINT
+std::map<std::string, IDEPluginConstructor> IDETabulationProblemPluginFactory;
 
-map<string, IntraMonoPluginConstructor> IntraMonoProblemPluginFactory; // NOLINT
+std::map<std::string, IntraMonoPluginConstructor> IntraMonoProblemPluginFactory;
 
-map<string, InterMonoPluginConstructor> InterMonoProblemPluginFactory; // NOLINT
+std::map<std::string, InterMonoPluginConstructor> InterMonoProblemPluginFactory;
 
-map<string, unique_ptr<ICFGPlugin> (*)(ProjectIRDB &,
-                                       const vector<string> &EntryPoints)>
-    ICFGPluginFactory; // NOLINT
+std::map<std::string,
+         std::unique_ptr<ICFGPlugin> (*)(
+             ProjectIRDB &, const std::vector<std::string> &EntryPoints)>
+    ICFGPluginFactory;
 
 } // namespace psr

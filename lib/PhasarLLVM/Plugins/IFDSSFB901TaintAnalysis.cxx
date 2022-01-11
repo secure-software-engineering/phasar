@@ -58,7 +58,7 @@ const FlowFact *IFDSSFB901TaintAnalysis::createZeroValue() const {
   // static auto zero =
   //     std::make_unique<ValueFlowFactWrapper>(LLVMZeroValue::getInstance());
   // return zero.get();
-  static auto *Zero = new ValueFlowFactWrapper(nullptr); // NOLINT
+  static auto *Zero = new ValueFlowFactWrapper(nullptr);
   return Zero;
 }
 

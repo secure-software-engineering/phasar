@@ -55,7 +55,7 @@ extern std::map<std::string,
                     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                     const LLVMBasedCFG *CF, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints)>
-    IntraMonoProblemPluginFactory; // NOLINT
+    IntraMonoProblemPluginFactory;
 
 } // namespace psr
 
