@@ -71,10 +71,10 @@ struct SourceCodeInfo {
 
 /// Used from the JSON library internally to implicitly convert between json and
 /// SourceCodeInfo
-void from_json(const nlohmann::json &J, SourceCodeInfo &Info); // NOLINT
+void from_json(const nlohmann::json &J, SourceCodeInfo &Info);
 /// Used from the JSON library internally to implicitly convert between json and
 /// SourceCodeInfo
-void to_json(nlohmann::json &J, const SourceCodeInfo &Info); // NOLINT
+void to_json(nlohmann::json &J, const SourceCodeInfo &Info);
 
 SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V);
 
