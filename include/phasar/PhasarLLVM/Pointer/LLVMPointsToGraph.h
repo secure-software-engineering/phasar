@@ -76,7 +76,7 @@ public:
     /// This may contain a call or invoke instruction.
     const llvm::Value *V = nullptr;
     EdgeProperties() = default;
-    EdgeProperties(const llvm::Value *v);
+    EdgeProperties(const llvm::Value *V);
     [[nodiscard]] std::string getValueAsString() const;
   };
 
