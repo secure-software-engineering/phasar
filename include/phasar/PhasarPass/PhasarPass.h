@@ -22,7 +22,7 @@ namespace psr {
 
 class PhasarPass : public llvm::ModulePass {
 public:
-  static char ID;
+  static inline char ID = 12;
 
   explicit PhasarPass();
   PhasarPass(const PhasarPass &) = delete;
