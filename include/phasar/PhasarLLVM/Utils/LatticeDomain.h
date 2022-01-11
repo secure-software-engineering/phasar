@@ -61,8 +61,8 @@ inline bool operator==(const LatticeDomain<L> &Lhs,
       std::holds_alternative<Bottom>(Rhs)) {
     return true;
   }
-  if (auto LhsPtr = std::get_if<L>(&Lhs)) {
-    if (auto RhsPtr = std::get_if<L>(&Rhs)) {
+  if (auto *LhsPtr = std::get_if<L>(&Lhs)) {
+    if (auto *RhsPtr = std::get_if<L>(&Rhs)) {
       return *LhsPtr == *RhsPtr;
     }
   }
@@ -86,8 +86,8 @@ inline bool operator<(const LatticeDomain<L> &Lhs,
     return true;
   }
 
-  if (auto LhsPtr = std::get_if<L>(&Lhs)) {
-    if (auto RhsPtr = std::get_if<L>(&Rhs)) {
+  if (auto *LhsPtr = std::get_if<L>(&Lhs)) {
+    if (auto *RhsPtr = std::get_if<L>(&Rhs)) {
       return *LhsPtr < *RhsPtr;
     }
   }
