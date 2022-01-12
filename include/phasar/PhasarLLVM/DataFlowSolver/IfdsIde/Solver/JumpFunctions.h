@@ -169,7 +169,7 @@ public:
    * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
-  Table<d_t, d_t, EdgeFunctionPtrType> lookupByTarget(n_t Target) {
+  Table<d_t, d_t, EdgeFunctionPtrType> &lookupByTarget(n_t Target) {
     return NonEmptyLookupByTargetNode[Target];
   }
 

@@ -42,7 +42,8 @@ size_t ValueAnnotationPass::UniqueValueId = 0;
 ValueAnnotationPass::ValueAnnotationPass() = default;
 
 llvm::PreservedAnalyses
-ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {
+ValueAnnotationPass::run(llvm::Module &M,
+                         llvm::ModuleAnalysisManager & /*AM*/) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Running ValueAnnotationPass");
   auto &Context = M.getContext();

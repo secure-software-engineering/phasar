@@ -20,6 +20,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -62,6 +63,7 @@ private:
   std::string ProjectID;
   std::string OutDirectory;
   boost::filesystem::path ResultDirectory;
+  IFDSIDESolverConfig SolverConfig;
   [[maybe_unused]] Soundness SoundnessLevel;
   [[maybe_unused]] bool AutoGlobalSupport;
 
@@ -122,6 +124,7 @@ public:
                      const std::set<std::string> &EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
+                     IFDSIDESolverConfig SolverConfig,
                      const std::string &ProjectID = "default-phasar-project",
                      const std::string &OutDirectory = "");
 

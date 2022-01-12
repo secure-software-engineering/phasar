@@ -21,7 +21,7 @@ namespace psr {
 
 class PhasarPrinterPass : public llvm::ModulePass {
 public:
-  static char ID;
+  static inline char ID = 12; // NOLINT FIXME: make const when LLVM supports it
 
   explicit PhasarPrinterPass();
   PhasarPrinterPass(const PhasarPrinterPass &) = delete;
