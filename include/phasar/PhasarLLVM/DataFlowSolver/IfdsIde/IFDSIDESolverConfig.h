@@ -22,7 +22,6 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 
@@ -39,13 +38,14 @@ enum class SolverConfigOptions : uint32_t {
 };
 
 struct IFDSIDESolverConfig {
-  IFDSIDESolverConfig();
-  IFDSIDESolverConfig(SolverConfigOptions Options);
+  IFDSIDESolverConfig() noexcept = default;
+  IFDSIDESolverConfig(SolverConfigOptions Options) noexcept;
   ~IFDSIDESolverConfig() = default;
-  IFDSIDESolverConfig(const IFDSIDESolverConfig &) = default;
-  IFDSIDESolverConfig &operator=(const IFDSIDESolverConfig &) = default;
-  IFDSIDESolverConfig(IFDSIDESolverConfig &&) = default;
-  IFDSIDESolverConfig &operator=(IFDSIDESolverConfig &&) = default;
+  IFDSIDESolverConfig(const IFDSIDESolverConfig &) noexcept = default;
+  IFDSIDESolverConfig &
+  operator=(const IFDSIDESolverConfig &) noexcept = default;
+  IFDSIDESolverConfig(IFDSIDESolverConfig &&) noexcept = default;
+  IFDSIDESolverConfig &operator=(IFDSIDESolverConfig &&) noexcept = default;
 
   [[nodiscard]] bool followReturnsPastSeeds() const;
   [[nodiscard]] bool autoAddZero() const;
@@ -60,6 +60,8 @@ struct IFDSIDESolverConfig {
   void setRecordEdges(bool Set = true);
   void setEmitESG(bool Set = true);
   void setComputePersistedSummaries(bool Set = true);
+
+  void setConfig(SolverConfigOptions Opt);
 
   friend std::ostream &operator<<(std::ostream &OS,
                                   const IFDSIDESolverConfig &SC);

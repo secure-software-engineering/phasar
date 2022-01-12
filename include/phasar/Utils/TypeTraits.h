@@ -15,6 +15,8 @@
 #include <type_traits>
 #include <variant>
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+
 #include "llvm/Support/raw_ostream.h"
 
 namespace psr {
@@ -75,6 +77,13 @@ template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
 
+template <typename T, typename = void>
+struct has_setIFDSIDESolverConfig : std::false_type {};
+template <typename T>
+struct has_setIFDSIDESolverConfig<
+    T, decltype(std::declval<T>().setIFDSIDESolverConfig(
+           std::declval<IFDSIDESolverConfig>()))> : std::true_type {};
+
 } // namespace detail
 
 template <typename T>
@@ -110,6 +119,10 @@ constexpr bool is_std_hashable_v = detail::is_std_hashable<T>::value; // NOLINT
 template <typename T>
 constexpr bool is_llvm_hashable_v = // NOLINT
     detail::is_llvm_hashable<T>::value;
+
+template <typename T>
+constexpr bool has_setIFDSIDESolverConfig_v = // NOLINT
+    detail::has_setIFDSIDESolverConfig<T>::value;
 
 template <typename T> struct is_variant : std::false_type {}; // NOLINT
 
