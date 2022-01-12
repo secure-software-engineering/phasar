@@ -29,8 +29,8 @@ public:
   void SetUp() override { psr::ValueAnnotationPass::resetValueID(); }
 
   std::string getFunctionName(std::string MangledFunctionName) {
-    if (MangledFunctionName.find("(") != std::string::npos) {
-      return MangledFunctionName.substr(0, MangledFunctionName.find("("));
+    if (MangledFunctionName.find('(') != std::string::npos) {
+      return MangledFunctionName.substr(0, MangledFunctionName.find('('));
     }
     return MangledFunctionName;
   }
@@ -83,7 +83,7 @@ TEST_F(TaintConfigTest, Basic_02) {
   std::cout << Config << '\n';
   const llvm::Value *I1 = IR.getInstruction(9);
   const llvm::Value *I2 = IR.getInstruction(23);
-  ASSERT_TRUE(Config.isSource(I2));
+  ASSERT_TRUE(Config.isSource(I1));
   ASSERT_TRUE(Config.isSource(I2));
 }
 
@@ -92,9 +92,9 @@ TEST_F(TaintConfigTest, Basic_03) {
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   std::cout << Config << '\n';
-  const auto *taintPair = IR.getFunction("taintPair");
-  assert(taintPair);
-  for (const auto &User : taintPair->users()) {
+  const auto *TaintPair = IR.getFunction("taintPair");
+  assert(TaintPair);
+  for (const auto &User : TaintPair->users()) {
     if (llvm::isa<llvm::CallBase>(User)) {
       ASSERT_TRUE(Config.isSource(User));
     }
@@ -208,7 +208,7 @@ TEST_F(TaintConfigTest, StaticFun_02) {
   std::cout << Config << '\n';
   const llvm::Value *CallInst = IR.getInstruction(16);
   const auto *I = llvm::dyn_cast<llvm::CallBase>(CallInst);
-  ASSERT_TRUE(Config.isSource(I->getCalledFunction()->getArg(0)));
+  ASSERT_TRUE(I && Config.isSource(I->getCalledFunction()->getArg(0)));
   for (const auto *F : IR.getAllFunctions()) {
     std::string FName = getFunctionName(llvm::demangle(F->getName().str()));
     if (FName == "bar") {
@@ -288,7 +288,7 @@ TEST_F(TaintConfigTest, Basic_02_Json) {
   std::cout << TConfig << '\n';
   const llvm::Value *I1 = IR.getInstruction(7);
   const llvm::Value *I2 = IR.getInstruction(18);
-  ASSERT_TRUE(TConfig.isSource(I2));
+  ASSERT_TRUE(TConfig.isSource(I1));
   ASSERT_TRUE(TConfig.isSource(I2));
 }
 
@@ -300,9 +300,9 @@ TEST_F(TaintConfigTest, Basic_03_Json) {
   psr::ProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   psr::TaintConfig TConfig(IR, JsonConfig);
   std::cout << TConfig << '\n';
-  const auto *taintPair = IR.getFunction("taintPair");
-  assert(taintPair);
-  for (const auto &User : taintPair->users()) {
+  const auto *TaintPair = IR.getFunction("taintPair");
+  assert(TaintPair);
+  for (const auto &User : TaintPair->users()) {
     if (llvm::isa<llvm::CallBase>(User)) {
       ASSERT_TRUE(TConfig.isSource(User));
     }
@@ -378,8 +378,8 @@ TEST_F(TaintConfigTest, FunMember_02_Json) {
   ASSERT_TRUE(TConfig.isSource(I4));
   const auto *DestructorX = IR.getFunction("_ZN1XD2Ev");
   assert(DestructorX);
-  for (auto Arg = DestructorX->arg_begin(); Arg != DestructorX->arg_end();
-       ++Arg) {
+  for (const auto *Arg = DestructorX->arg_begin();
+       Arg != DestructorX->arg_end(); ++Arg) {
     ASSERT_TRUE(TConfig.isSink(Arg));
   }
 
@@ -445,7 +445,7 @@ TEST_F(TaintConfigTest, StaticFun_02_Json) {
   std::cout << TConfig << '\n';
   const llvm::Value *CallInst = IR.getInstruction(13);
   const auto *I = llvm::dyn_cast<llvm::CallBase>(CallInst);
-  ASSERT_TRUE(TConfig.isSource(I->getCalledFunction()->getArg(0)));
+  ASSERT_TRUE(I && TConfig.isSource(I->getCalledFunction()->getArg(0)));
   for (const auto *F : IR.getAllFunctions()) {
     std::string FName = getFunctionName(llvm::demangle(F->getName().str()));
     if (FName == "bar") {

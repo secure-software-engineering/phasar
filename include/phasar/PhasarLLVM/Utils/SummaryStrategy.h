@@ -30,7 +30,7 @@ extern const std::map<SummaryGenerationStrategy, std::string>
 extern const std::map<std::string, SummaryGenerationStrategy>
     StringToSummaryGenerationStrategy;
 
-std::ostream &operator<<(std::ostream &os, const SummaryGenerationStrategy &s);
+std::ostream &operator<<(std::ostream &Os, const SummaryGenerationStrategy &S);
 
 } // namespace psr
 
