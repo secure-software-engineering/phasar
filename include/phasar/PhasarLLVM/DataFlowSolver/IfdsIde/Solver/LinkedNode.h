@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LINKEDNODE_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LINKEDNODE_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_LINKEDNODE_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_LINKEDNODE_H
 
 namespace psr {
 
@@ -34,8 +34,8 @@ public:
    * been merged
    * with this one of paths were not being tracked.
    */
-  virtual void addNeighbor(D originalAbstraction) = 0;
-  virtual void setCallingContext(D callingContext) = 0;
+  virtual void addNeighbor(D OriginalAbstraction) = 0;
+  virtual void setCallingContext(D CallingContext) = 0;
 };
 
 } // namespace psr

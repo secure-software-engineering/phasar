@@ -43,7 +43,8 @@ IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
     const TaintConfig &TaintConfig, std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
       Config(TaintConfig) {
-  IFDSFieldSensTaintAnalysis::ZeroValue = createZeroValue();
+  IFDSFieldSensTaintAnalysis::ZeroValue =
+      IFDSFieldSensTaintAnalysis::createZeroValue();
 }
 
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
@@ -102,11 +103,11 @@ IFDSFieldSensTaintAnalysis::getCallFlowFunction(
 
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getRetFlowFunction(
-    const llvm::Instruction *CallSite, const llvm::Function *CalleeFun,
-    const llvm::Instruction *ExitSite, const llvm::Instruction *RetSite) {
+    const llvm::Instruction *CallSite, const llvm::Function * /*CalleeFun*/,
+    const llvm::Instruction *ExitStmt, const llvm::Instruction * /*RetSite*/) {
   return std::make_shared<MapTaintedValuesToCaller>(
       llvm::cast<llvm::CallInst>(CallSite),
-      llvm::cast<llvm::ReturnInst>(ExitSite), Stats, getZeroValue());
+      llvm::cast<llvm::ReturnInst>(ExitStmt), Stats, getZeroValue());
 }
 
 /*
@@ -117,8 +118,8 @@ IFDSFieldSensTaintAnalysis::getRetFlowFunction(
  */
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-    std::set<const llvm::Function *> Callees) {
+    const llvm::Instruction *CallSite, const llvm::Instruction * /*RetSite*/,
+    std::set<const llvm::Function *> /*Callees*/) {
   /*
    * It is important to wrap the identity call here. Consider the following
    * example:
@@ -149,8 +150,6 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Function *DestFun) {
-  const auto DestFunName = DestFun->getName();
-
   /*
    * We exclude function ptr calls as they will be applied to every
    * function matching its signature (@see LLVMBasedICFG.cpp:217).
@@ -239,8 +238,8 @@ IFDSFieldSensTaintAnalysis::initialSeeds() {
 
 void IFDSFieldSensTaintAnalysis::emitTextReport(
     const SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
-        &SolverResults,
-    std::ostream &OS) {
+        & /*SolverResults*/,
+    std::ostream & /*OS*/) {
   std::string FirstEntryPoints = *EntryPoints.begin();
   const std::string LcovTraceFile =
       DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints + "-trace.txt");

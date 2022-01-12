@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef DATAFLOWUTILS_H
-#define DATAFLOWUTILS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_UTILS_DATAFLOWUTILS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_UTILS_DATAFLOWUTILS_H
 
 #include <set>
 #include <string>
@@ -20,82 +20,82 @@ class DataFlowUtils {
 public:
   DataFlowUtils() = delete;
 
-  static bool isValueTainted(const llvm::Value *currentInst,
-                             const ExtendedValue &fact);
+  static bool isValueTainted(const llvm::Value *CurrentInst,
+                             const ExtendedValue &Fact);
 
-  static bool isMemoryLocationTainted(const llvm::Value *memLocationMatr,
-                                      const ExtendedValue &fact);
+  static bool isMemoryLocationTainted(const llvm::Value *MemLocationMatr,
+                                      const ExtendedValue &Fact);
 
   static std::vector<const llvm::Value *>
-  getMemoryLocationSeqFromMatr(const llvm::Value *memLocationMatr);
+  getMemoryLocationSeqFromMatr(const llvm::Value *MemLocationMatr);
   static std::vector<const llvm::Value *>
-  getMemoryLocationSeqFromFact(const ExtendedValue &memLocationFact);
+  getMemoryLocationSeqFromFact(const ExtendedValue &MemLocationFact);
   static std::vector<const llvm::Value *>
-  getVaListMemoryLocationSeqFromFact(const ExtendedValue &vaListFact);
+  getVaListMemoryLocationSeqFromFact(const ExtendedValue &VaListFact);
 
   static bool isMemoryLocationSeqsEqual(
-      const std::vector<const llvm::Value *> &memLocationSeq1,
-      const std::vector<const llvm::Value *> &memLocationSeq2);
+      const std::vector<const llvm::Value *> &MemLocationSeq1,
+      const std::vector<const llvm::Value *> &MemLocationSeq2);
 
   static bool isSubsetMemoryLocationSeq(
-      const std::vector<const llvm::Value *> &memLocationSeqInst,
-      const std::vector<const llvm::Value *> &memLocationSeqFact);
+      const std::vector<const llvm::Value *> &MemLocationSeqInst,
+      const std::vector<const llvm::Value *> &MemLocationSeqFact);
   static std::vector<const llvm::Value *> getRelocatableMemoryLocationSeq(
-      const std::vector<const llvm::Value *> &taintedMemLocationSeq,
-      const std::vector<const llvm::Value *> &srcMemLocationSeq);
+      const std::vector<const llvm::Value *> &TaintedMemLocationSeq,
+      const std::vector<const llvm::Value *> &SrcMemLocationSeq);
   static std::vector<const llvm::Value *> joinMemoryLocationSeqs(
-      const std::vector<const llvm::Value *> &memLocationSeq1,
-      const std::vector<const llvm::Value *> &memLocationSeq2);
+      const std::vector<const llvm::Value *> &MemLocationSeq1,
+      const std::vector<const llvm::Value *> &MemLocationSeq2);
 
-  static bool isPatchableArgumentStore(const llvm::Value *srcValue,
-                                       const ExtendedValue &fact);
+  static bool isPatchableArgumentStore(const llvm::Value *SrcValue,
+                                       const ExtendedValue &Fact);
   static bool isPatchableArgumentMemcpy(
-      const llvm::Value *srcValue,
-      const std::vector<const llvm::Value *> &srcMemLocationSeq,
-      const ExtendedValue &fact);
-  static bool isPatchableVaListArgument(const llvm::Value *srcValue,
-                                        const ExtendedValue &fact);
-  static bool isPatchableReturnValue(const llvm::Value *srcValue,
-                                     const ExtendedValue &fact);
+      const llvm::Value *SrcValue,
+      const std::vector<const llvm::Value *> &SrcMemLocationSeq,
+      const ExtendedValue &Fact);
+  static bool isPatchableVaListArgument(const llvm::Value *SrcValue,
+                                        const ExtendedValue &Fact);
+  static bool isPatchableReturnValue(const llvm::Value *SrcValue,
+                                     const ExtendedValue &Fact);
   static std::vector<const llvm::Value *> patchMemoryLocationFrame(
-      const std::vector<const llvm::Value *> &patchableMemLocationSeq,
-      const std::vector<const llvm::Value *> &patchMemLocationSeq);
+      const std::vector<const llvm::Value *> &PatchableMemLocationSeq,
+      const std::vector<const llvm::Value *> &PatchMemLocationSeq);
 
   static std::vector<
       std::tuple<const llvm::Value *, const std::vector<const llvm::Value *>,
                  const llvm::Value *>>
-  getSanitizedArgList(const llvm::CallInst *callInst,
-                      const llvm::Function *destFun,
-                      const llvm::Value *zeroValue);
+  getSanitizedArgList(const llvm::CallInst *CallInst,
+                      const llvm::Function *DestFun,
+                      const llvm::Value *ZeroValue);
 
   static const llvm::BasicBlock *
-  getEndOfTaintedBlock(const llvm::BasicBlock *startBasicBlock);
-  static bool removeTaintedBlockInst(const ExtendedValue &fact,
-                                     const llvm::Instruction *currentInst);
-  static bool isAutoGENInTaintedBlock(const llvm::Instruction *currentInst);
+  getEndOfTaintedBlock(const llvm::BasicBlock *StartBasicBlock);
+  static bool removeTaintedBlockInst(const ExtendedValue &Fact,
+                                     const llvm::Instruction *CurrentInst);
+  static bool isAutoGENInTaintedBlock(const llvm::Instruction *CurrentInst);
 
-  static bool isMemoryLocationFact(const ExtendedValue &ev);
-  static bool isKillAfterStoreFact(const ExtendedValue &ev);
-  static bool isCheckOperandsInst(const llvm::Instruction *currentInst);
-  static bool isAutoIdentity(const llvm::Instruction *currentInst,
-                             const ExtendedValue &fact);
-  static bool isVarArgParam(const llvm::Value *param,
-                            const llvm::Value *zeroValue);
-  static bool isVaListType(const llvm::Type *type);
-  static bool isReturnValue(const llvm::Instruction *currentInst,
-                            const llvm::Instruction *successorInst);
-  static bool isArrayDecay(const llvm::Value *memLocationMatr);
+  static bool isMemoryLocationFact(const ExtendedValue &Ev);
+  static bool isKillAfterStoreFact(const ExtendedValue &Ev);
+  static bool isCheckOperandsInst(const llvm::Instruction *CurrentInst);
+  static bool isAutoIdentity(const llvm::Instruction *CurrentInst,
+                             const ExtendedValue &Fact);
+  static bool isVarArgParam(const llvm::Value *Param,
+                            const llvm::Value *ZeroValue);
+  static bool isVaListType(const llvm::Type *Type);
+  static bool isReturnValue(const llvm::Instruction *CurrentInst,
+                            const llvm::Instruction *SuccessorInst);
+  static bool isArrayDecay(const llvm::Value *MemLocationMatr);
   static bool isGlobalMemoryLocationSeq(
-      const std::vector<const llvm::Value *> &memLocationSeq);
+      const std::vector<const llvm::Value *> &MemLocationSeq);
 
-  static void dumpFact(const ExtendedValue &ev);
+  static void dumpFact(const ExtendedValue &Ev);
 
   static std::set<std::string> getTaintedFunctions();
   static std::set<std::string> getBlacklistedFunctions();
 
-  static std::string getTraceFilenamePrefix(const std::string &entryPoint);
+  static std::string getTraceFilenamePrefix(const std::string &EntryPoint);
 };
 
 } // namespace psr
 
-#endif // DATAFLOWUTILS_H
+#endif

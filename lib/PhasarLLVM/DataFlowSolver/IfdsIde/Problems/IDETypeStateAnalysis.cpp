@@ -46,14 +46,14 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
                                            std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)), TSD(TSD),
       TOP(TSD.top()), BOTTOM(TSD.bottom()) {
-  IDETabulationProblem::ZeroValue = createZeroValue();
+  IDETabulationProblem::ZeroValue = IDETypeStateAnalysis::createZeroValue();
 }
 
 // Start formulating our analysis by specifying the parts required for IFDS
 
 IDETypeStateAnalysis::FlowFunctionPtrType
-IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
-                                            IDETypeStateAnalysis::n_t Succ) {
+IDETypeStateAnalysis::getNormalFlowFunction(
+    IDETypeStateAnalysis::n_t Curr, IDETypeStateAnalysis::n_t /*Succ*/) {
   // Check if Alloca's type matches the target type. If so, generate from zero
   // value.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
@@ -155,10 +155,9 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallSite,
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
-IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
-                                         IDETypeStateAnalysis::f_t CalleeFun,
-                                         IDETypeStateAnalysis::n_t ExitSite,
-                                         IDETypeStateAnalysis::n_t RetSite) {
+IDETypeStateAnalysis::getRetFlowFunction(
+    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::f_t CalleeFun,
+    IDETypeStateAnalysis::n_t ExitStmt, IDETypeStateAnalysis::n_t /*RetSite*/) {
   // Besides mapping the formal parameter back into the actual parameter and
   // propagating the return value into the caller context, we also propagate
   // all related alloca's of the formal parameter and the return value.
@@ -239,20 +238,19 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
         }
         Res.insert(RelAllocas.begin(), RelAllocas.end());
         return Res;
-      } else {
-        return {Source};
       }
+      return {Source};
     }
   };
   return make_shared<TSFlowFunction>(llvm::cast<llvm::CallBase>(CallSite),
-                                     CalleeFun, ExitSite, this);
+                                     CalleeFun, ExitStmt, this);
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallToRetFlowFunction(
-    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::n_t RetSite,
+    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::n_t /*RetSite*/,
     set<IDETypeStateAnalysis::f_t> Callees) {
-  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
     // Generate the return value of factory functions from zero value
@@ -304,7 +302,8 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
 
 IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getSummaryFlowFunction(
-    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::f_t DestFun) {
+    IDETypeStateAnalysis::n_t /*CallSite*/,
+    IDETypeStateAnalysis::f_t /*DestFun*/) {
   return nullptr;
 }
 
@@ -327,8 +326,8 @@ IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t D) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(D);
+bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t Fact) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts
@@ -336,7 +335,7 @@ bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t D) const {
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t Curr, IDETypeStateAnalysis::d_t CurrNode,
-    IDETypeStateAnalysis::n_t Succ, IDETypeStateAnalysis::d_t SuccNode) {
+    IDETypeStateAnalysis::n_t /*Succ*/, IDETypeStateAnalysis::d_t SuccNode) {
   // Set alloca instructions of target type to uninitialized.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
@@ -347,7 +346,8 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
                      const llvm::AllocaInst *Alloca)
               : TSConstant(Tsd, Tsd.uninit()), Alloca(Alloca) {}
 
-          void print(std::ostream &OS, bool IsForDebug = false) const override {
+          void print(std::ostream &OS,
+                     bool /*IsForDebug = false*/) const override {
             OS << "Alloca(" << llvmIRToShortString(Alloca) << ")";
           }
         };
@@ -360,27 +360,31 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallEdgeFunction(
-    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t SrcNode,
-    IDETypeStateAnalysis::f_t DestinationFunction,
-    IDETypeStateAnalysis::d_t DestNode) {
+    IDETypeStateAnalysis::n_t /*CallSite*/,
+    IDETypeStateAnalysis::d_t /*SrcNode*/,
+    IDETypeStateAnalysis::f_t /*DestinationFunction*/,
+    IDETypeStateAnalysis::d_t /*DestNode*/) {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getReturnEdgeFunction(
-    IDETypeStateAnalysis::n_t CallSite,
-    IDETypeStateAnalysis::f_t CalleeFunction,
-    IDETypeStateAnalysis::n_t ExitSite, IDETypeStateAnalysis::d_t ExitNode,
-    IDETypeStateAnalysis::n_t ReSite, IDETypeStateAnalysis::d_t RetNode) {
+    IDETypeStateAnalysis::n_t /*CallSite*/,
+    IDETypeStateAnalysis::f_t /*CalleeFunction*/,
+    IDETypeStateAnalysis::n_t /*ExitSite*/,
+    IDETypeStateAnalysis::d_t /*ExitNode*/,
+    IDETypeStateAnalysis::n_t /*ReSite*/,
+    IDETypeStateAnalysis::d_t /*RetNode*/) {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
-    IDETypeStateAnalysis::n_t RetSite, IDETypeStateAnalysis::d_t RetSiteNode,
+    IDETypeStateAnalysis::n_t /*RetSite*/,
+    IDETypeStateAnalysis::d_t RetSiteNode,
     std::set<IDETypeStateAnalysis::f_t> Callees) {
-  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
 
@@ -420,8 +424,10 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getSummaryEdgeFunction(
-    IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
-    IDETypeStateAnalysis::n_t RetSite, IDETypeStateAnalysis::d_t RetSiteNode) {
+    IDETypeStateAnalysis::n_t /*CallSite*/,
+    IDETypeStateAnalysis::d_t /*CallNode*/,
+    IDETypeStateAnalysis::n_t /*RetSite*/,
+    IDETypeStateAnalysis::d_t /*RetSiteNode*/) {
   return nullptr;
 }
 
@@ -451,17 +457,17 @@ IDETypeStateAnalysis::allTopFunction() {
   return make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TOP);
 }
 
-void IDETypeStateAnalysis::printNode(std::ostream &OS, n_t N) const {
-  OS << llvmIRToString(N);
+void IDETypeStateAnalysis::printNode(std::ostream &OS, n_t Stmt) const {
+  OS << llvmIRToString(Stmt);
 }
 
-void IDETypeStateAnalysis::printDataFlowFact(std::ostream &OS, d_t D) const {
-  OS << llvmIRToString(D);
+void IDETypeStateAnalysis::printDataFlowFact(std::ostream &OS, d_t Fact) const {
+  OS << llvmIRToString(Fact);
 }
 
 void IDETypeStateAnalysis::printFunction(ostream &OS,
-                                         IDETypeStateAnalysis::f_t M) const {
-  OS << M->getName().str();
+                                         IDETypeStateAnalysis::f_t Func) const {
+  OS << Func->getName().str();
 }
 
 void IDETypeStateAnalysis::printEdgeFact(ostream &OS,
@@ -480,7 +486,7 @@ IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
           OtherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(botElement);
+  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(BotElement);
 }
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
@@ -541,7 +547,7 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
 }
 
 void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
-                                                 bool IsForDebug) const {
+                                                 bool /*IsForDebug*/) const {
   OS << "TSEF(" << Token << " at " << llvmIRToShortString(CallSite) << ")";
 }
 
@@ -549,20 +555,22 @@ IDETypeStateAnalysis::TSConstant::TSConstant(const TypeStateDescription &TSD,
                                              l_t State)
     : TSD(TSD), State(State) {}
 
-auto IDETypeStateAnalysis::TSConstant::computeTarget(l_t source) -> l_t {
+auto IDETypeStateAnalysis::TSConstant::computeTarget(l_t /*Source*/) -> l_t {
   return State;
 }
 
 auto IDETypeStateAnalysis::TSConstant::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction)
     -> std::shared_ptr<EdgeFunction<l_t>> {
-  auto ret = SecondFunction->computeTarget(State);
-  if (ret == State)
+  auto Ret = SecondFunction->computeTarget(State);
+  if (Ret == State) {
     return shared_from_this();
-  if (ret == TSD.bottom())
-    return std::make_shared<AllBottom<l_t>>(ret);
+  }
+  if (Ret == TSD.bottom()) {
+    return std::make_shared<AllBottom<l_t>>(Ret);
+  }
 
-  return std::make_shared<TSConstant>(TSD, ret);
+  return std::make_shared<TSConstant>(TSD, Ret);
 }
 
 auto IDETypeStateAnalysis::TSConstant::joinWith(
@@ -579,28 +587,30 @@ auto IDETypeStateAnalysis::TSConstant::joinWith(
   }
 
   if (auto *C = dynamic_cast<TSConstant *>(&*OtherFunction)) {
-    if (C->State == State)
+    if (C->State == State || C->State == TSD.top()) {
       return shared_from_this();
-    if (C->State == TSD.top())
-      return shared_from_this();
-    if (State == TSD.top())
+    }
+    if (State == TSD.top()) {
       return OtherFunction;
+    }
   }
   return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSD.bottom());
 }
 
 bool IDETypeStateAnalysis::TSConstant::equal_to(
-    std::shared_ptr<EdgeFunction<l_t>> other) const {
-  if (this == &*other)
+    std::shared_ptr<EdgeFunction<l_t>> Other) const {
+  if (this == &*Other) {
     return true;
-  if (auto OtherC = dynamic_cast<TSConstant *>(&*other))
+  }
+  if (const auto *OtherC = dynamic_cast<TSConstant *>(&*Other)) {
     return State == OtherC->State;
+  }
 
   return false;
 }
 
 void IDETypeStateAnalysis::TSConstant::print(std::ostream &OS,
-                                             bool isForDebug) const {
+                                             bool /*IsForDebug*/) const {
   OS << "TSConstant[" << TSD.stateToString(State) << "]";
 }
 
@@ -608,47 +618,46 @@ std::set<IDETypeStateAnalysis::d_t>
 IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
   if (RelevantAllocaCache.find(V) != RelevantAllocaCache.end()) {
     return RelevantAllocaCache[V];
-  } else {
-    auto PointsToSet = getWMPointsToSet(V);
-    std::set<IDETypeStateAnalysis::d_t> RelevantAllocas;
+  }
+  auto PointsToSet = getWMPointsToSet(V);
+  std::set<IDETypeStateAnalysis::d_t> RelevantAllocas;
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Compute relevant alloca's of "
+                << IDETypeStateAnalysis::DtoString(V));
+  for (const auto *Alias : PointsToSet) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Compute relevant alloca's of "
-                  << IDETypeStateAnalysis::DtoString(V));
-    for (const auto *Alias : PointsToSet) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
-      // Collect the pointer operand of a aliased load instruciton
-      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
-        if (hasMatchingType(Alias)) {
-          LOG_IF_ENABLE(
-              BOOST_LOG_SEV(lg::get(), DEBUG)
-              << " -> Alloca: "
-              << IDETypeStateAnalysis::DtoString(Load->getPointerOperand()));
-          RelevantAllocas.insert(Load->getPointerOperand());
-        }
-      } else {
-        // For all other types of aliases, e.g. callsites, function arguments,
-        // we check store instructions where thoses aliases are value operands.
-        for (const auto *User : Alias->users()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "  User: " << IDETypeStateAnalysis::DtoString(User));
-          if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
-            if (hasMatchingType(Store)) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                            << "    -> Alloca: "
-                            << IDETypeStateAnalysis::DtoString(
-                                   Store->getPointerOperand()));
-              RelevantAllocas.insert(Store->getPointerOperand());
-            }
+                  << "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
+    // Collect the pointer operand of a aliased load instruciton
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
+      if (hasMatchingType(Alias)) {
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+            << " -> Alloca: "
+            << IDETypeStateAnalysis::DtoString(Load->getPointerOperand()));
+        RelevantAllocas.insert(Load->getPointerOperand());
+      }
+    } else {
+      // For all other types of aliases, e.g. callsites, function arguments,
+      // we check store instructions where thoses aliases are value operands.
+      for (const auto *User : Alias->users()) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "  User: " << IDETypeStateAnalysis::DtoString(User));
+        if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
+          if (hasMatchingType(Store)) {
+            LOG_IF_ENABLE(
+                BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "    -> Alloca: "
+                << IDETypeStateAnalysis::DtoString(Store->getPointerOperand()));
+            RelevantAllocas.insert(Store->getPointerOperand());
           }
         }
       }
     }
-    for (const auto *Alias : PointsToSet) {
-      RelevantAllocaCache[Alias] = RelevantAllocas;
-    }
-    return RelevantAllocas;
   }
+  for (const auto *Alias : PointsToSet) {
+    RelevantAllocaCache[Alias] = RelevantAllocas;
+  }
+  return RelevantAllocas;
 }
 
 std::set<IDETypeStateAnalysis::d_t>
@@ -657,16 +666,15 @@ IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
     std::set<IDETypeStateAnalysis::d_t> PointsToSet(PointsToCache[V].begin(),
                                                     PointsToCache[V].end());
     return PointsToSet;
-  } else {
-    const auto PTS = PT->getPointsToSet(V);
-    for (const auto *Alias : *PTS) {
-      if (hasMatchingType(Alias)) {
-        PointsToCache[Alias] = *PTS;
-      }
-    }
-    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
-    return PointsToSet;
   }
+  const auto *PTS = PT->getPointsToSet(V);
+  for (const auto *Alias : *PTS) {
+    if (hasMatchingType(Alias)) {
+      PointsToCache[Alias] = *PTS;
+    }
+  }
+  std::set<IDETypeStateAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
+  return PointsToSet;
 }
 
 std::set<IDETypeStateAnalysis::d_t>
@@ -681,7 +689,7 @@ IDETypeStateAnalysis::getWMAliasesAndAllocas(IDETypeStateAnalysis::d_t V) {
 
 std::set<IDETypeStateAnalysis::d_t>
 IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
-                                                const std::string &Fname) {
+                                                const std::string & /*Fname*/) {
   std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas;
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas = getRelevantAllocas(V);
   std::set<IDETypeStateAnalysis::d_t>
@@ -699,14 +707,13 @@ IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
 bool hasMatchingTypeName(const llvm::Type *Ty, const std::string &Pattern) {
   if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
     return StructTy->getName().contains(Pattern);
-  } else {
-    // primitive type
-    std::string Str;
-    llvm::raw_string_ostream S(Str);
-    S << *Ty;
-    S.flush();
-    return Str.find(Pattern) != std::string::npos;
   }
+  // primitive type
+  std::string Str;
+  llvm::raw_string_ostream S(Str);
+  S << *Ty;
+  S.flush();
+  return Str.find(Pattern) != std::string::npos;
 }
 bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   // General case

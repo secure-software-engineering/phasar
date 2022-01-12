@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_UTILITIES_H
-#define PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_UTILITIES_H
+#ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
+#define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
 
 #include <algorithm>
 #include <iterator>
@@ -37,9 +37,9 @@ void collectGeneratedFacts(ContainerTy &Dest, const TaintConfig &Config,
     Dest.insert(CB);
   }
 
-  for (unsigned i = 0, end = Callee->arg_size(); i < end; ++i) {
-    if (Config.isSource(Callee->getArg(i))) {
-      Dest.insert(CB->getArgOperand(i));
+  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+    if (Config.isSource(Callee->getArg(I))) {
+      Dest.insert(CB->getArgOperand(I));
     }
   }
 }
@@ -58,9 +58,9 @@ void collectLeakedFacts(ContainerTy &Dest, const TaintConfig &Config,
                  std::inserter(Dest, Dest.end()), LeakIf);
   }
 
-  for (unsigned i = 0, end = Callee->arg_size(); i < end; ++i) {
-    if (Config.isSink(Callee->getArg(i)) && LeakIf(CB->getArgOperand(i))) {
-      Dest.insert(CB->getArgOperand(i));
+  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+    if (Config.isSink(Callee->getArg(I)) && LeakIf(CB->getArgOperand(I))) {
+      Dest.insert(CB->getArgOperand(I));
     }
   }
 }
@@ -70,7 +70,7 @@ inline void collectLeakedFacts(ContainerTy &Dest, const TaintConfig &Config,
                                const llvm::CallBase *CB,
                                const llvm::Function *Callee) {
   collectLeakedFacts(Dest, Config, CB, Callee,
-                     [](const llvm::Value *V) { return true; });
+                     [](const llvm::Value * /*V*/) { return true; });
 }
 
 template <typename ContainerTy,
@@ -79,12 +79,12 @@ template <typename ContainerTy,
 void collectSanitizedFacts(ContainerTy &Dest, const TaintConfig &Config,
                            const llvm::CallBase *CB,
                            const llvm::Function *Callee) {
-  for (unsigned i = 0, end = Callee->arg_size(); i < end; ++i) {
-    if (Config.isSanitizer(Callee->getArg(i))) {
-      Dest.insert(CB->getArgOperand(i));
+  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+    if (Config.isSanitizer(Callee->getArg(I))) {
+      Dest.insert(CB->getArgOperand(I));
     }
   }
 }
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_TAINT_CONFIG_TAINT_CONFIG_UTILITIES_H
+#endif

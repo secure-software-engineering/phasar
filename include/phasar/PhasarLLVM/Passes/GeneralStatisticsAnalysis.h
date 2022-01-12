@@ -34,85 +34,87 @@ namespace psr {
 class GeneralStatistics {
 private:
   friend class GeneralStatisticsAnalysis;
-  size_t functions = 0;
-  size_t globals = 0;
-  size_t basicblocks = 0;
-  size_t allocationsites = 0;
-  size_t callsites = 0;
-  size_t instructions = 0;
-  size_t storeInstructions = 0;
-  size_t loadInstructions = 0;
-  size_t memIntrinsic = 0;
-  size_t globalPointers = 0;
-  std::set<const llvm::Type *> allocatedTypes;
-  std::set<const llvm::Instruction *> allocaInstructions;
-  std::set<const llvm::Instruction *> retResInstructions;
+  size_t Functions = 0;
+  size_t Globals = 0;
+  size_t BasicBlocks = 0;
+  size_t AllocationSites = 0;
+  size_t CallSites = 0;
+  size_t Instructions = 0;
+  size_t StoreInstructions = 0;
+  size_t LoadInstructions = 0;
+  size_t MemIntrinsics = 0;
+  size_t GlobalPointers = 0;
+  std::set<const llvm::Type *> AllocatedTypes;
+  std::set<const llvm::Instruction *> AllocaInstructions;
+  std::set<const llvm::Instruction *> RetResInstructions;
 
 public:
   /**
    * @brief Returns the number of Allocation sites.
    */
-  size_t getAllocationsites() const;
+  [[nodiscard]] size_t getAllocationsites() const;
 
   /**
    * @brief Returns the number of Function calls.
    */
-  size_t getFunctioncalls() const;
+  [[nodiscard]] size_t getFunctioncalls() const;
 
   /**
    * @brief Returns the number of Instructions.
    */
-  size_t getInstructions() const;
+  [[nodiscard]] size_t getInstructions() const;
 
   /**
    * @brief Returns the number of global pointers.
    */
-  size_t getGlobalPointers() const;
+  [[nodiscard]] size_t getGlobalPointers() const;
 
   /**
    * @brief Returns the number of basic blocks.
    */
-  size_t getBasicBlocks() const;
+  [[nodiscard]] size_t getBasicBlocks() const;
 
   /**
    * @brief Returns the number of functions.
    */
-  size_t getFunctions() const;
+  [[nodiscard]] size_t getFunctions() const;
 
   /**
    * @brief Returns the number of globals.
    */
-  size_t getGlobals() const;
+  [[nodiscard]] size_t getGlobals() const;
 
   /**
    * @brief Returns the number of memory intrinsics.
    */
-  size_t getMemoryIntrinsics() const;
+  [[nodiscard]] size_t getMemoryIntrinsics() const;
 
   /**
    * @brief Returns the number of store instructions.
    */
-  size_t getStoreInstructions() const;
+  [[nodiscard]] size_t getStoreInstructions() const;
 
   /**
    * @brief Returns the number of load instructions.
    */
-  size_t getLoadInstructions();
+  [[nodiscard]] size_t getLoadInstructions();
 
   /**
    * @brief Returns all possible Types.
    */
-  std::set<const llvm::Type *> getAllocatedTypes() const;
+  [[nodiscard]] std::set<const llvm::Type *> getAllocatedTypes() const;
 
   /**
    * @brief Returns all stack and heap allocating instructions.
    */
-  std::set<const llvm::Instruction *> getAllocaInstructions() const;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getAllocaInstructions() const;
 
   /**
    * @brief Returns all Return and Resume Instructions.
    */
-  std::set<const llvm::Instruction *> getRetResInstructions() const;
+  [[nodiscard]] std::set<const llvm::Instruction *>
+  getRetResInstructions() const;
 };
 
 /**
@@ -143,7 +145,7 @@ public:
   /// The pass itself stores the results.
   using Result = GeneralStatistics;
 
-  explicit GeneralStatisticsAnalysis();
+  explicit GeneralStatisticsAnalysis() = default;
 
   GeneralStatistics run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
 };

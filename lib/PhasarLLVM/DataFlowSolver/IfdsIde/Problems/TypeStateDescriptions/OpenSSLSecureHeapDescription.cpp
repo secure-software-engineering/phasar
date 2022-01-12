@@ -56,7 +56,7 @@ const OpenSSLSecureHeapDescription::OpenSSLSecureHeapState
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapDescription(
     IDESolver<IDESecureHeapPropagationAnalysisDomain>
         &SecureHeapPropagationResults)
-    : secureHeapPropagationResults(SecureHeapPropagationResults) {}
+    : SecureHeapPropagationResults(SecureHeapPropagationResults) {}
 
 bool OpenSSLSecureHeapDescription::isFactoryFunction(
     const std::string &F) const {
@@ -87,9 +87,8 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
         funcNameToToken(Tok));
 
     return Delta[Ftok][S];
-  } else {
-    return OpenSSLSecureHeapState::BOT;
   }
+  return OpenSSLSecureHeapState::BOT;
 }
 
 TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
@@ -98,7 +97,7 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
   if (isAPIFunction(Tok)) {
     auto Ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
         funcNameToToken(Tok));
-    auto Results = secureHeapPropagationResults.resultAt(
+    auto Results = SecureHeapPropagationResults.resultAt(
         CallSite, SecureHeapFact::INITIALIZED);
     if (Results != SecureHeapValue::INITIALIZED) {
       // std::cerr << "ERROR: SecureHeap not initialized at "
@@ -106,9 +105,8 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
       return error();
     }
     return Delta[Ftok][S];
-  } else {
-    return error();
   }
+  return error();
 }
 
 std::string OpenSSLSecureHeapDescription::getTypeNameOfInterest() const {

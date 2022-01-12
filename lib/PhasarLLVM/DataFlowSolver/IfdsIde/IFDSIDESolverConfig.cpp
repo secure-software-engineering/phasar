@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <ios>
 #include <ostream>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
@@ -16,12 +17,7 @@ using namespace psr;
 
 namespace psr {
 
-IFDSIDESolverConfig::IFDSIDESolverConfig() {
-  setFlag(
-      Options, SolverConfigOptions::EmitESG,
-      PhasarConfig::getPhasarConfig().VariablesMap().count("emit-esg-as-dot"));
-}
-IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options)
+IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options) noexcept
     : Options(Options) {}
 
 bool IFDSIDESolverConfig::followReturnsPastSeeds() const {
@@ -62,11 +58,13 @@ void IFDSIDESolverConfig::setComputePersistedSummaries(bool Set) {
   setFlag(Options, SolverConfigOptions::ComputePersistedSummaries, Set);
 }
 
+void IFDSIDESolverConfig::setConfig(SolverConfigOptions Opt) { Options = Opt; }
+
 ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
   return OS << "IFDSIDESolverConfig:\n"
             << "\tfollowReturnsPastSeeds: " << SC.followReturnsPastSeeds()
             << "\n"
-            << "\tautoAddZero: " << SC.autoAddZero() << "\n"
+            << "\tautoAddZero: " << std::boolalpha << SC.autoAddZero() << "\n"
             << "\tcomputeValues: " << SC.computeValues() << "\n"
             << "\trecordEdges: " << SC.recordEdges() << "\n"
             << "\tcomputePersistedSummaries: " << SC.computePersistedSummaries()

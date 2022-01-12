@@ -15,15 +15,14 @@ namespace psr {
 
 IDEGeneralizedLCA::l_t
 BinaryEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
-  /*auto ret = leftConst ? performBinOp(op, cnst, source, maxSize)
-                       : performBinOp(op, source, cnst, maxSize);
+  /*auto ret = leftConst ? performBinOp(op, cnst, source, MaxSize)
+                       : performBinOp(op, source, cnst, MaxSize);
   std::cout << "Binary(" << source << ") = " << ret << std::endl;
   return ret;*/
-  if (leftConst) {
-    return performBinOp(op, cnst, Source, maxSize);
-  } else {
-    return performBinOp(op, Source, cnst, maxSize);
+  if (LeftConst) {
+    return performBinOp(Op, Const, Source, MaxSize);
   }
+  return performBinOp(Op, Source, Const, MaxSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
@@ -39,7 +38,7 @@ BinaryEdgeFunction::composeWith(
     return shared_from_this();
   }
   return std::make_shared<LCAEdgeFunctionComposer>(this->shared_from_this(),
-                                                   SecondFunction, maxSize);
+                                                   SecondFunction, MaxSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
@@ -62,8 +61,8 @@ bool BinaryEdgeFunction::equal_to(
   return this == Other.get();
 }
 
-void BinaryEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
-  OS << "Binary_" << op;
+void BinaryEdgeFunction::print(std::ostream &OS, bool /*IsForDebug*/) const {
+  OS << "Binary_" << Op;
 }
 
 } // namespace psr

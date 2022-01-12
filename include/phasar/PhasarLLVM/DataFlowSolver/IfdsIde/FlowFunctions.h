@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
 
 #include <functional>
 #include <memory>
@@ -67,15 +67,15 @@ public:
 
   using typename FlowFunction<D, Container>::container_type;
 
-  virtual ~Identity() = default;
-  Identity(const Identity &i) = delete;
-  Identity &operator=(const Identity &i) = delete;
+  ~Identity() override = default;
+  Identity(const Identity &I) = delete;
+  Identity &operator=(const Identity &I) = delete;
   // simply return what the user provides
-  container_type computeTargets(D source) override { return {source}; }
+  container_type computeTargets(D Source) override { return {Source}; }
   static std::shared_ptr<Identity> getInstance() {
-    static std::shared_ptr<Identity> instance =
+    static std::shared_ptr<Identity> Instance =
         std::shared_ptr<Identity>(new Identity);
-    return instance;
+    return Instance;
   }
 
 private:
@@ -87,20 +87,20 @@ class LambdaFlow : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  LambdaFlow(Fn &&f) : flow(std::move(f)) {}
-  LambdaFlow(const Fn &f) : flow(f) {}
-  virtual ~LambdaFlow() = default;
-  container_type computeTargets(D source) override { return flow(source); }
+  LambdaFlow(Fn &&F) : Flow(std::move(F)) {}
+  LambdaFlow(const Fn &F) : Flow(F) {}
+  ~LambdaFlow() override = default;
+  container_type computeTargets(D Source) override { return Flow(Source); }
 
 private:
   // std::function<container_type(D)> flow;
-  Fn flow;
+  Fn Flow;
 };
 
 template <typename D, typename Fn, typename Container = std::set<D>>
-typename FlowFunction<D>::FlowFunctionPtrType makeLambdaFlow(Fn &&fn) {
+typename FlowFunction<D>::FlowFunctionPtrType makeLambdaFlow(Fn &&F) {
   return std::make_shared<LambdaFlow<D, std::decay_t<Fn>, Container>>(
-      std::forward<Fn>(fn));
+      std::forward<Fn>(F));
 }
 
 template <typename D, typename Container = std::set<D>>
@@ -111,41 +111,42 @@ public:
 
   using typename FlowFunction<D, Container>::container_type;
 
-  Compose(const std::vector<FlowFunction<D>> &funcs) : funcs(funcs) {}
+  Compose(const std::vector<FlowFunction<D>> &Funcs) : Funcs(Funcs) {}
 
-  virtual ~Compose() = default;
+  ~Compose() override = default;
 
-  container_type computeTargets(const D &source) override {
-    container_type current(source);
-    for (const FlowFunctionType &func : funcs) {
-      container_type next;
-      for (const D &d : current) {
-        container_type target = func.computeTargets(d);
-        next.insert(target.begin(), target.end());
+  container_type computeTargets(const D &Source) override {
+    container_type Current(Source);
+    for (const FlowFunctionType &Func : Funcs) {
+      container_type Next;
+      for (const D &Fact : Current) {
+        container_type Target = Func.computeTargets(Fact);
+        Next.insert(Target.begin(), Target.end());
       }
-      current = next;
+      Current = Next;
     }
-    return current;
+    return Current;
   }
 
   static FlowFunctionPtrType
-  compose(const std::vector<FlowFunctionType> &funcs) {
-    std::vector<FlowFunctionType> vec;
-    for (const FlowFunctionType &func : funcs) {
-      if (func != Identity<D, Container>::getInstance()) {
-        vec.insert(func);
+  compose(const std::vector<FlowFunctionType> &Funcs) {
+    std::vector<FlowFunctionType> Vec;
+    for (const FlowFunctionType &Func : Funcs) {
+      if (Func != Identity<D, Container>::getInstance()) {
+        Vec.insert(Func);
       }
     }
-    if (vec.size == 1) {
-      return vec[0];
-    } else if (vec.empty()) {
+    if (Vec.size() == 1) { // NOLINT(readability-container-size-empty)
+      return Vec[0];
+    }
+    if (Vec.empty()) {
       return Identity<D, Container>::getInstance();
     }
-    return std::make_shared<Compose>(vec);
+    return std::make_shared<Compose>(Vec);
   }
 
 protected:
-  const std::vector<FlowFunctionType> funcs;
+  const std::vector<FlowFunctionType> Funcs;
 };
 
 //===----------------------------------------------------------------------===//
@@ -156,19 +157,18 @@ class Gen : public FlowFunction<D, Container> {
   using typename FlowFunction<D, Container>::container_type;
 
 protected:
-  D genValue;
-  D zeroValue;
+  D GenValue;
+  D ZeroValue;
 
 public:
-  Gen(D genValue, D zeroValue) : genValue(genValue), zeroValue(zeroValue) {}
-  virtual ~Gen() = default;
+  Gen(D GenValue, D ZeroValue) : GenValue(GenValue), ZeroValue(ZeroValue) {}
+  ~Gen() override = default;
 
-  container_type computeTargets(D source) override {
-    if (source == zeroValue) {
-      return {source, genValue};
-    } else {
-      return {source};
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      return {Source, GenValue};
     }
+    return {Source};
   }
 };
 
@@ -182,12 +182,12 @@ public:
   using typename FlowFunction<D, Container>::container_type;
 
   GenIf(D GenValue, std::function<bool(D)> Predicate)
-      : GenValues({GenValue}), Predicate(Predicate) {}
+      : GenValues({GenValue}), Predicate(std::move(Predicate)) {}
 
   GenIf(container_type GenValues, std::function<bool(D)> Predicate)
-      : GenValues(std::move(GenValues)), Predicate(Predicate) {}
+      : GenValues(std::move(GenValues)), Predicate(std::move(Predicate)) {}
 
-  virtual ~GenIf() = default;
+  ~GenIf() override = default;
 
   container_type computeTargets(D Source) override {
     if (Predicate(Source)) {
@@ -195,9 +195,8 @@ public:
       ToGenerate.insert(Source);
       ToGenerate.insert(GenValues.begin(), GenValues.end());
       return ToGenerate;
-    } else {
-      return {Source};
     }
+    return {Source};
   }
 
 protected:
@@ -210,21 +209,20 @@ class GenAll : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  GenAll(container_type genValues, D zeroValue)
-      : genValues(genValues), zeroValue(zeroValue) {}
-  virtual ~GenAll() = default;
-  container_type computeTargets(D source) override {
-    if (source == zeroValue) {
-      genValues.insert(source);
-      return genValues;
-    } else {
-      return {source};
+  GenAll(container_type GenValues, D ZeroValue)
+      : GenValues(std::move(GenValues)), ZeroValue(ZeroValue) {}
+  ~GenAll() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      GenValues.insert(Source);
+      return GenValues;
     }
+    return {Source};
   }
 
 protected:
-  container_type genValues;
-  D zeroValue;
+  container_type GenValues;
+  D ZeroValue;
 };
 
 //===----------------------------------------------------------------------===//
@@ -235,18 +233,17 @@ class Kill : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  Kill(D killValue) : killValue(killValue) {}
-  virtual ~Kill() = default;
-  container_type computeTargets(D source) override {
-    if (source == killValue) {
+  Kill(D KillValue) : KillValue(KillValue) {}
+  ~Kill() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == KillValue) {
       return {};
-    } else {
-      return {source};
     }
+    return {Source};
   }
 
 protected:
-  D killValue;
+  D KillValue;
 };
 
 /// \brief Kills all facts for which the given predicate evaluates to true.
@@ -256,14 +253,13 @@ class KillIf : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  KillIf(std::function<bool(D)> Predicate) : Predicate(Predicate) {}
-  virtual ~KillIf() = default;
-  container_type computeTargets(D source) override {
-    if (Predicate(source)) {
+  KillIf(std::function<bool(D)> Predicate) : Predicate(std::move(Predicate)) {}
+  ~KillIf() override = default;
+  container_type computeTargets(D Source) override {
+    if (Predicate(Source)) {
       return {};
-    } else {
-      return {source};
     }
+    return {Source};
   }
 
 protected:
@@ -275,18 +271,17 @@ class KillMultiple : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  KillMultiple(std::set<D> killValues) : killValues(killValues) {}
-  virtual ~KillMultiple() = default;
-  container_type computeTargets(D source) override {
-    if (killValues.find(source) != killValues.end()) {
+  KillMultiple(std::set<D> KillValues) : KillValues(std::move(KillValues)) {}
+  ~KillMultiple() override = default;
+  container_type computeTargets(D Source) override {
+    if (KillValues.find(Source) != KillValues.end()) {
       return {};
-    } else {
-      return {source};
     }
+    return {Source};
   }
 
 protected:
-  container_type killValues;
+  container_type KillValues;
 };
 
 template <typename D, typename Container = std::set<D>>
@@ -294,14 +289,17 @@ class KillAll : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  virtual ~KillAll() = default;
-  KillAll(const KillAll &k) = delete;
-  KillAll &operator=(const KillAll &k) = delete;
-  container_type computeTargets(D source) override { return container_type(); }
+  ~KillAll() override = default;
+  KillAll(const KillAll &K) = delete;
+  KillAll &operator=(const KillAll &K) = delete;
+  container_type computeTargets(D /*Source*/) override {
+    return container_type();
+  }
+
   static std::shared_ptr<KillAll<D>> getInstance() {
-    static std::shared_ptr<KillAll> instance =
+    static std::shared_ptr<KillAll> Instance =
         std::shared_ptr<KillAll>(new KillAll);
-    return instance;
+    return Instance;
   }
 
 private:
@@ -316,19 +314,19 @@ class GenAndKillAllOthers : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  GenAndKillAllOthers(D genValue, D zeroValue)
-      : genValue(genValue), zeroValue(zeroValue) {}
-  virtual ~GenAndKillAllOthers() = default;
-  container_type computeTargets(D source) override {
-    if (source == zeroValue) {
-      return {zeroValue, genValue};
+  GenAndKillAllOthers(D GenValue, D ZeroValue)
+      : GenValue(GenValue), ZeroValue(ZeroValue) {}
+  ~GenAndKillAllOthers() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      return {ZeroValue, GenValue};
     }
     return {};
   }
 
 private:
-  D genValue;
-  D zeroValue;
+  D GenValue;
+  D ZeroValue;
 };
 
 template <typename D, typename Container = std::set<D>>
@@ -336,21 +334,20 @@ class GenAllAndKillAllOthers : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  GenAllAndKillAllOthers(container_type genValues, D zeroValue)
-      : genValues(genValues), zeroValue(zeroValue) {}
-  virtual ~GenAllAndKillAllOthers() = default;
-  container_type computeTargets(D source) override {
-    if (source == zeroValue) {
-      genValues.insert(source);
-      return genValues;
-    } else {
-      return {};
+  GenAllAndKillAllOthers(const container_type &GenValues, D ZeroValue)
+      : GenValues(GenValues), ZeroValue(ZeroValue) {}
+  ~GenAllAndKillAllOthers() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      GenValues.insert(Source);
+      return GenValues;
     }
+    return {};
   }
 
 protected:
-  container_type genValues;
-  D zeroValue;
+  container_type GenValues;
+  D ZeroValue;
 };
 
 //===----------------------------------------------------------------------===//
@@ -361,21 +358,21 @@ class Transfer : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  Transfer(D toValue, D fromValue) : toValue(toValue), fromValue(fromValue) {}
-  virtual ~Transfer() = default;
-  container_type computeTargets(D source) override {
-    if (source == fromValue) {
-      return {source, toValue};
-    } else if (source == toValue) {
-      return {};
-    } else {
-      return {source};
+  Transfer(D ToValue, D FromValue) : ToValue(ToValue), FromValue(FromValue) {}
+  ~Transfer() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == FromValue) {
+      return {Source, ToValue};
     }
+    if (Source == ToValue) {
+      return {};
+    }
+    return {Source};
   }
 
 protected:
-  D toValue;
-  D fromValue;
+  D ToValue;
+  D FromValue;
 };
 
 template <typename D, typename Container = std::set<D>>
@@ -390,16 +387,16 @@ public:
           if (FlowFuncs.empty()) {
             return std::vector<FlowFunctionPtrType>(
                 {Identity<D, Container>::getInstance()});
-          } else {
-            return FlowFuncs;
           }
+          return FlowFuncs;
         }()) {}
-  virtual ~Union() = default;
-  container_type computeTargets(D source) override {
+
+  ~Union() override = default;
+  container_type computeTargets(D Source) override {
     container_type Result;
     for (const auto &FlowFunc : FlowFuncs) {
-      container_type target = FlowFunc->computeTargets(source);
-      Result.insert(target.begin(), target.end());
+      container_type Target = FlowFunc->computeTargets(Source);
+      Result.insert(Target.begin(), Target.end());
     }
     return Result;
   }
@@ -414,21 +411,20 @@ class ZeroedFlowFunction : public FlowFunction<D, Container> {
   using typename FlowFunction<D, Container>::FlowFunctionPtrType;
 
 public:
-  ZeroedFlowFunction(FlowFunctionPtrType ff, D zv)
-      : delegate(ff), zerovalue(zv) {}
-  container_type computeTargets(D source) override {
-    if (source == zerovalue) {
-      container_type result = delegate->computeTargets(source);
-      result.insert(zerovalue);
-      return result;
-    } else {
-      return delegate->computeTargets(source);
+  ZeroedFlowFunction(FlowFunctionPtrType FF, D ZV)
+      : Delegate(std::move(FF)), ZeroValue(ZV) {}
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      container_type Result = Delegate->computeTargets(Source);
+      Result.insert(ZeroValue);
+      return Result;
     }
+    return Delegate->computeTargets(Source);
   }
 
 private:
-  FlowFunctionPtrType delegate;
-  D zerovalue;
+  FlowFunctionPtrType Delegate;
+  D ZeroValue;
 };
 
 //===----------------------------------------------------------------------===//

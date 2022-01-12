@@ -24,17 +24,17 @@ protected:
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
-  using LCACompactResult_t =
-      std::tuple<std::string, std::size_t, std::string, int64_t>;
+  using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
+                                        IDELinearConstantAnalysisDomain::l_t>;
   std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false,
-             bool emitESG = false) {
-    auto IR_Files = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
+             bool EmitESG = false) {
+    auto IRFiles = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
@@ -44,7 +44,7 @@ protected:
                                          EntryPoints);
     IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
     LCASolver.solve();
-    if (emitESG) {
+    if (EmitESG) {
       boost::log::core::get()->set_logging_enabled(true);
       const std::string PhasarRootPath = "./";
       LCASolver.emitESGAsDot(std::cout, PhasarRootPath);
@@ -72,7 +72,7 @@ protected:
       unsigned Line = std::get<1>(G);
       if (Results.find(FName) != Results.end()) {
         if (auto It = Results[FName].find(Line); It != Results[FName].end()) {
-          for (const auto &VarToVal : It->second.variableToValue) {
+          for (const auto &VarToVal : It->second.VariableToValue) {
             RelevantResults.emplace(FName, Line, VarToVal.first,
                                     VarToVal.second);
           }
@@ -251,6 +251,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_05) {
   GroundTruth.emplace("main", 6, "j", 10);
   GroundTruth.emplace("main", 6, "i", 42);
   GroundTruth.emplace("main", 8, "j", 10);
+  GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
 }
 
@@ -272,6 +273,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_07) {
   GroundTruth.emplace("main", 6, "j", 10);
   GroundTruth.emplace("main", 6, "i", 30);
   GroundTruth.emplace("main", 8, "j", 10);
+  GroundTruth.emplace("main", 8, "i", 30);
   compareResults(Results, GroundTruth);
 }
 

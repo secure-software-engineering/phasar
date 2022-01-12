@@ -7,8 +7,8 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
 #include "llvm/ADT/StringRef.h"
 
@@ -39,8 +39,8 @@ struct IDESecureHeapPropagationAnalysisDomain : LLVMAnalysisDomainDefault {
 class IDESecureHeapPropagation
     : public IDETabulationProblem<IDESecureHeapPropagationAnalysisDomain> {
 
-  const llvm::StringLiteral initializerFn = "CRYPTO_secure_malloc_init";
-  const llvm::StringLiteral shutdownFn = "CRYPTO_secure_malloc_done";
+  const llvm::StringLiteral InitializerFn = "CRYPTO_secure_malloc_init";
+  const llvm::StringLiteral ShutdownFn = "CRYPTO_secure_malloc_done";
 
 public:
   using IDETabProblemType =
@@ -58,107 +58,107 @@ public:
                            std::set<std::string> EntryPoints = {"main"});
   ~IDESecureHeapPropagation() override = default;
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destMthd) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFunc) override;
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
-                                         n_t exitInst, n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
+                                         n_t ExitInst, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                               std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               std::set<f_t> Callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
-                                             f_t destMthd) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                             f_t DestMthd) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
-  bool isZeroValue(d_t d) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &os, f_t f) const override;
+  void printFunction(std::ostream &OS, f_t Func) const override;
 
   // in addition provide specifications for the IDE parts
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                        d_t succNode) override;
+  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                        d_t SuccNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callSite,
-                                                         d_t srcNode,
-                                                         f_t destinationMethod,
-                                                         d_t destNode) override;
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitInst,
-                        d_t exitNode, n_t reSite, d_t retNode) override;
+  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t CallSite,
+                                                         d_t SrcNode,
+                                                         f_t DestinationMethod,
+                                                         d_t DestNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<f_t> callees) override;
+  getReturnEdgeFunction(n_t CallSite, f_t CalleeMethod, n_t ExitInst,
+                        d_t ExitNode, n_t RetSite, d_t RetNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                         d_t retSiteNode) override;
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                           d_t RetSiteNode, std::set<f_t> Callees) override;
+
+  std::shared_ptr<EdgeFunction<l_t>>
+  getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                         d_t RetSiteNode) override;
 
   l_t topElement() override;
 
   l_t bottomElement() override;
 
-  l_t join(l_t lhs, l_t rhs) override;
+  l_t join(l_t Lhs, l_t Rhs) override;
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printEdgeFact(std::ostream &os, l_t l) const override;
+  void printEdgeFact(std::ostream &OS, l_t L) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &os) override;
+                      std::ostream &OS) override;
 
   struct SHPEdgeFn : public EdgeFunction<l_t>,
                      public std::enable_shared_from_this<SHPEdgeFn> {
-    virtual ~SHPEdgeFn() = default;
+    ~SHPEdgeFn() override = default;
 
     std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
   };
 
   struct SHPEdgeFunctionComposer
       : public EdgeFunctionComposer<l_t>,
         public std::enable_shared_from_this<SHPEdgeFn> {
-    virtual ~SHPEdgeFunctionComposer() = default;
+    ~SHPEdgeFunctionComposer() override = default;
     std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
   };
   struct SHPGenEdgeFn : public SHPEdgeFn {
-    SHPGenEdgeFn(l_t val);
-    virtual ~SHPGenEdgeFn() = default;
+    SHPGenEdgeFn(l_t Val);
+    ~SHPGenEdgeFn() override = default;
 
-    l_t computeTarget(l_t source) override;
+    l_t computeTarget(l_t Source) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
     std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
-    void print(std::ostream &OS, bool isForDebug = false) const override;
-    static std::shared_ptr<SHPGenEdgeFn> getInstance(l_t val);
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
+    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    static std::shared_ptr<SHPGenEdgeFn> getInstance(l_t Val);
 
   private:
-    l_t value;
+    l_t Value;
   };
 
   struct IdentityEdgeFunction : public SHPEdgeFn {
-    virtual ~IdentityEdgeFunction() = default;
+    ~IdentityEdgeFunction() override = default;
 
-    l_t computeTarget(l_t source) override;
+    l_t computeTarget(l_t Source) override;
     std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool isForDebug = false) const override;
+    void print(std::ostream &OS, bool IsForDebug = false) const override;
 
     static std::shared_ptr<IdentityEdgeFunction> getInstance();
   };

@@ -38,8 +38,8 @@ struct CachedTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
     CachedTypeGraph::vertex_t Src = boost::source(E, U);
     CachedTypeGraph::vertex_t Target = boost::target(E, U);
 
-    for (const auto *TargetType : U[Target].types) {
-      (*G)[Src].types.insert(TargetType);
+    for (const auto *TargetType : U[Target].Types) {
+      (*G)[Src].Types.insert(TargetType);
     }
   }
 
@@ -54,8 +54,8 @@ struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
     auto Src = boost::source(E, U);
     auto Target = boost::target(E, U);
 
-    for (const auto *SrcType : U[Src].types) {
-      (*G)[Target].types.insert(SrcType);
+    for (const auto *SrcType : U[Src].Types) {
+      (*G)[Target].Types.insert(SrcType);
     }
   }
 
@@ -73,77 +73,77 @@ CachedTypeGraph::addType(const llvm::StructType *NewType) {
     Name = StrS.str();
   }
 
-  if (type_vertex_map.find(Name) == type_vertex_map.end()) {
-    auto Vertex = boost::add_vertex(g);
-    type_vertex_map[Name] = Vertex;
-    g[Vertex].name = Name;
-    g[Vertex].base_type = NewType;
-    g[Vertex].types.insert(NewType);
+  if (TypeVertexMap.find(Name) == TypeVertexMap.end()) {
+    auto Vertex = boost::add_vertex(G);
+    TypeVertexMap[Name] = Vertex;
+    G[Vertex].Name = Name;
+    G[Vertex].BaseType = NewType;
+    G[Vertex].Types.insert(NewType);
   }
 
-  return type_vertex_map[Name];
+  return TypeVertexMap[Name];
 }
 
 bool CachedTypeGraph::addLink(const llvm::StructType *From,
                               const llvm::StructType *To) {
-  if (already_visited) {
+  if (AlreadyVisited) {
     return false;
   }
 
-  already_visited = true;
+  AlreadyVisited = true;
 
   auto FromVertex = addType(From);
   auto ToVertex = addType(To);
 
-  auto ResultEdge = boost::add_edge(FromVertex, ToVertex, g);
+  auto ResultEdge = boost::add_edge(FromVertex, ToVertex, G);
 
   if (ResultEdge.second) {
     reverseTypePropagation(To);
   }
 
-  already_visited = false;
+  AlreadyVisited = false;
   return ResultEdge.second;
 }
 
 bool CachedTypeGraph::addLinkWithoutReversePropagation(
     const llvm::StructType *From, const llvm::StructType *To) {
-  if (already_visited) {
+  if (AlreadyVisited) {
     return false;
   }
 
-  already_visited = true;
+  AlreadyVisited = true;
 
   auto FromVertex = addType(From);
   auto ToVertex = addType(To);
 
-  auto ResultEdge = boost::add_edge(FromVertex, ToVertex, g);
+  auto ResultEdge = boost::add_edge(FromVertex, ToVertex, G);
 
-  already_visited = false;
+  AlreadyVisited = false;
   return ResultEdge.second;
 }
 
 void CachedTypeGraph::printAsDot(const std::string &Path) const {
   std::ofstream Ofs(Path);
   boost::write_graphviz(
-      Ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
+      Ofs, G, boost::make_label_writer(boost::get(&VertexProperties::Name, G)));
 }
 
 void CachedTypeGraph::aggregateTypes() {
-  dfs_visitor Vis(&g);
-  boost::depth_first_search(g, boost::visitor(Vis));
+  dfs_visitor Vis(&G);
+  boost::depth_first_search(G, boost::visitor(Vis));
 }
 
 void CachedTypeGraph::reverseTypePropagation(
     const llvm::StructType *BaseStruct) {
   auto Name = BaseStruct->getName().str();
 
-  std::vector<boost::default_color_type> ColorMap(boost::num_vertices(g));
+  std::vector<boost::default_color_type> ColorMap(boost::num_vertices(G));
 
   auto Reversed = boost::reverse_graph<CachedTypeGraph::graph_t,
-                                       CachedTypeGraph::graph_t &>(g);
+                                       CachedTypeGraph::graph_t &>(G);
   reverse_type_propagation_dfs_visitor Vis(&Reversed);
 
-  boost::depth_first_visit(Reversed, type_vertex_map[Name], Vis,
+  boost::depth_first_visit(Reversed, TypeVertexMap[Name], Vis,
                            boost::make_iterator_property_map(
                                ColorMap.begin(),
                                boost::get(boost::vertex_index, Reversed),
@@ -153,7 +153,7 @@ void CachedTypeGraph::reverseTypePropagation(
 std::set<const llvm::StructType *>
 CachedTypeGraph::getTypes(const llvm::StructType *StructType) {
   auto StructTyVertex = addType(StructType);
-  return g[StructTyVertex].types;
+  return G[StructTyVertex].Types;
 }
 
 } // namespace psr

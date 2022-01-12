@@ -18,7 +18,7 @@ VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
     return TargetFacts;
   }
 
-  const auto *const VaStartInst = llvm::cast<llvm::VAStartInst>(currentInst);
+  const auto *const VaStartInst = llvm::cast<llvm::VAStartInst>(CurrentInst);
   auto *const VaListMemLocationMatr = VaStartInst->getArgList();
 
   auto VaListMemLocationSeq =

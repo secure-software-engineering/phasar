@@ -43,7 +43,7 @@ std::vector<std::string> splitString(const std::string &Str,
                                      const std::string &Delimiter);
 
 template <typename T>
-std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
+std::set<std::set<T>> computePowerSet(const std::set<T> &S) {
   // compute all subsets of {a, b, c, d}
   //  bit-pattern - {d, c, b, a}
   //  0000  {}
@@ -63,12 +63,12 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
   //  1110  {b, c, d}
   //  1111  {a, b, c, d}
   std::set<std::set<T>> Powerset;
-  for (std::size_t i = 0; i < (1 << s.size()); ++i) {
+  for (std::size_t I = 0; I < (1 << S.size()); ++I) {
     std::set<T> Subset;
-    for (std::size_t j = 0; j < s.size(); ++j) {
-      if ((i & (1 << j)) > 0) {
-        auto It = s.begin();
-        advance(It, j);
+    for (std::size_t J = 0; J < S.size(); ++J) {
+      if ((I & (1 << J)) > 0) {
+        auto It = S.begin();
+        advance(It, J);
         Subset.insert(*It);
       }
       Powerset.insert(Subset);
@@ -97,7 +97,7 @@ intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
                              sizeof(ValueTy) <= sizeof(void *),
                          ValueTy, ValueTy *>;
 
-  auto removeFrom = [](auto &Dst, auto &&Elem) {
+  auto removeFrom = [](auto &Dst, auto &&Elem) { // NOLINT
     if constexpr (std::is_same_v<ValueTy, ElementTy>) {
       Dst.erase(Elem);
     } else {
@@ -154,12 +154,12 @@ void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
 
 std::ostream &operator<<(std::ostream &OS, const std::vector<bool> &Bits);
 
-struct stringIDLess {
+struct StringIDLess {
   bool operator()(const std::string &LHS, const std::string &RHS) const;
 };
 
 /// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
-template <typename Fn> class scope_exit {
+template <typename Fn> class scope_exit { // NOLINT
 public:
   template <typename FFn, typename = decltype(std::declval<FFn>()())>
   explicit scope_exit(FFn &&F) noexcept(
@@ -182,10 +182,10 @@ private:
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
 // Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
 // explicit deduction guide (not needed as of C++20)
-template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
 
 /// Based on the reference implementation of std::remove_if
 /// "https://en.cppreference.com/w/cpp/algorithm/remove" and optimized for the
@@ -197,33 +197,38 @@ It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex) {
   if (FirstIndex == LastIndex || First == Last) {
     return Last;
   }
-  First = std::next(First, *FirstIndex);
-  if (First == Last) {
-    return First;
-  }
-
-  auto CurrIdx = *FirstIndex;
 
   if constexpr (std::is_same_v<It, EndIt> &&
                 std::is_same_v<
                     std::random_access_iterator_tag,
                     typename std::iterator_traits<It>::iterator_category>) {
-    size_t GapSize = 1;
-    auto Curr = First + 1;
+    /// Random-access version inspired from
+    /// "https://codereview.stackexchange.com/a/207056" and slightly changed
 
+    auto Bounds = size_t(std::distance(First, Last));
+    auto Out = std::next(First, *FirstIndex);
+    auto In = std::next(Out);
     while (++FirstIndex != LastIndex) {
-      auto Offset = *FirstIndex - CurrIdx - 1;
-      if (Offset >= std::distance(Curr, Last)) {
+      auto CurrIdx = *FirstIndex;
+      if (*std::prev(FirstIndex) + 1 == CurrIdx) {
+        ++In;
+        continue;
+      }
+      if (LLVM_UNLIKELY(CurrIdx >= Bounds)) {
         break;
       }
-      First = std::move(Curr, Curr + Offset, First);
-      CurrIdx = *FirstIndex;
-      Curr = First + ++GapSize;
+
+      auto Tar = std::next(First, CurrIdx);
+      Out = std::move(In, Tar, Out);
+      In = std::next(Tar);
     }
-
-    return std::move(Curr, Last, First);
+    return std::move(In, Last, Out);
   } else {
-
+    auto CurrIdx = *FirstIndex;
+    First = std::next(First, CurrIdx);
+    if (First == Last) {
+      return First;
+    }
     for (auto I = First; I != Last; ++CurrIdx, ++I) {
       if (CurrIdx != *FirstIndex) {
         *First++ = std::move(*I);

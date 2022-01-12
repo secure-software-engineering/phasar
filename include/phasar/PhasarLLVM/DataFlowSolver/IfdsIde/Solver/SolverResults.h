@@ -14,8 +14,8 @@
  *      Author: rleer
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_SOLVERRESULTS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_SOLVERRESULTS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
 
 #include <set>
 #include <type_traits>
@@ -29,27 +29,26 @@ namespace psr {
 
 template <typename N, typename D, typename L> class SolverResults {
 private:
-  Table<N, D, L> &results;
-  D zeroValue;
+  Table<N, D, L> &Results;
+  D ZV;
 
 public:
-  SolverResults(Table<N, D, L> &res_tab, D zv)
-      : results(res_tab), zeroValue(zv) {}
+  SolverResults(Table<N, D, L> &ResTab, D ZV) : Results(ResTab), ZV(ZV) {}
 
-  L resultAt(N stmt, D node) const { return results.get(stmt, node); }
+  L resultAt(N Stmt, D Node) const { return Results.get(Stmt, Node); }
 
-  std::unordered_map<D, L> resultsAt(N stmt, bool stripZero = false) const {
-    std::unordered_map<D, L> result = results.row(stmt);
-    if (stripZero) {
-      for (auto it = result.begin(); it != result.end();) {
-        if (it->first == zeroValue) {
-          it = result.erase(it);
+  std::unordered_map<D, L> resultsAt(N Stmt, bool StripZero = false) const {
+    std::unordered_map<D, L> Result = Results.row(Stmt);
+    if (StripZero) {
+      for (auto It = Result.begin(); It != Result.end();) {
+        if (It->first == ZV) {
+          It = Result.erase(It);
         } else {
-          ++it;
+          ++It;
         }
       }
     }
-    return result;
+    return Result;
   }
 
   // this function only exists for IFDS problems which use BinaryDomain as their
@@ -57,17 +56,18 @@ public:
   template <typename ValueDomain = L,
             typename = typename std::enable_if_t<
                 std::is_same_v<ValueDomain, BinaryDomain>>>
-  std::set<D> ifdsResultsAt(N stmt) const {
+  std::set<D> ifdsResultsAt(N Stmt) const {
     std::set<D> KeySet;
-    std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(stmt);
+    std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(Stmt);
     for (auto FlowFact : ResultMap) {
       KeySet.insert(FlowFact.first);
     }
     return KeySet;
   }
 
-  std::vector<typename Table<N, D, L>::Cell> getAllResultEntries() const {
-    return results.cellVec();
+  [[nodiscard]] std::vector<typename Table<N, D, L>::Cell>
+  getAllResultEntries() const {
+    return Results.cellVec();
   }
 };
 

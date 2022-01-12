@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
@@ -83,7 +83,7 @@ public:
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitInst, n_t RetSite) override;
+                                         n_t ExitStmt, n_t RetSite) override;
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                std::set<f_t> Callees) override;
@@ -97,11 +97,11 @@ public:
 
   bool isZeroValue(d_t FlowFact) const override;
 
-  void printNode(std::ostream &Os, n_t Inst) const override;
+  void printNode(std::ostream &OS, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &Os, d_t FlowFact) const override;
+  void printDataFlowFact(std::ostream &OS, d_t FlowFact) const override;
 
-  void printFunction(std::ostream &Os, f_t Fun) const override;
+  void printFunction(std::ostream &OS, f_t Fun) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                       std::ostream &OS = std::cout) override;

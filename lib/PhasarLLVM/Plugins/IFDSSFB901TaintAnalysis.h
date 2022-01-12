@@ -23,9 +23,9 @@ namespace psr {
 struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
 
   using FlowFactWrapper::FlowFactWrapper;
-  void print(std::ostream &os,
-             const llvm::Value *const &nonzeroFact) const override {
-    os << llvmIRToShortString(nonzeroFact) << '\n';
+  void print(std::ostream &OS,
+             const llvm::Value *const &NonzeroFact) const override {
+    OS << llvmIRToShortString(NonzeroFact) << '\n';
   }
 };
 class IFDSSFB901TaintAnalysis : public IFDSTabulationProblemPlugin {
@@ -33,32 +33,32 @@ public:
   IFDSSFB901TaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                           std::set<std::string> EntryPoints);
-  ~IFDSSFB901TaintAnalysis() = default;
+  ~IFDSSFB901TaintAnalysis() override = default;
 
-  const FlowFact *createZeroValue() const override;
-
-  FlowFunctionPtrType
-  getNormalFlowFunction(const llvm::Instruction *curr,
-                        const llvm::Instruction *succ) override;
+  [[nodiscard]] const FlowFact *createZeroValue() const override;
 
   FlowFunctionPtrType
-  getCallFlowFunction(const llvm::Instruction *callSite,
-                      const llvm::Function *destFun) override;
+  getNormalFlowFunction(const llvm::Instruction *Curr,
+                        const llvm::Instruction *Succ) override;
 
   FlowFunctionPtrType
-  getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeFun,
-                     const llvm::Instruction *exitSite,
-                     const llvm::Instruction *retSite) override;
+  getCallFlowFunction(const llvm::Instruction *CallSite,
+                      const llvm::Function *DestFun) override;
 
   FlowFunctionPtrType
-  getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite,
-                           std::set<const llvm::Function *> callees) override;
+  getRetFlowFunction(const llvm::Instruction *CallSite,
+                     const llvm::Function *CalleeFun,
+                     const llvm::Instruction *ExitSite,
+                     const llvm::Instruction *RetSite) override;
 
   FlowFunctionPtrType
-  getSummaryFlowFunction(const llvm::Instruction *callSite,
-                         const llvm::Function *destFun) override;
+  getCallToRetFlowFunction(const llvm::Instruction *CallSite,
+                           const llvm::Instruction *RetSite,
+                           std::set<const llvm::Function *> Callees) override;
+
+  FlowFunctionPtrType
+  getSummaryFlowFunction(const llvm::Instruction *CallSite,
+                         const llvm::Function *DestFun) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 };

@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESUMMARYGENERATOR_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESUMMARYGENERATOR_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESUMMARYGENERATOR_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESUMMARYGENERATOR_H
 
 #include <map>
 #include <set>
@@ -29,17 +29,17 @@ template <typename N, typename D, typename F, typename I, typename V,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
 class IDESummaryGenerator {
 protected:
-  const std::string toSummarize;
-  const I icfg;
+  const std::string ToSummarize;
+  const I ICFG;
   const SummaryGenerationStrategy CTXStrategy;
 
   class CTXFunctionProblem : public ConcreteTabulationProblem {
   public:
-    const N start;
-    std::set<D> facts;
+    const N Start;
+    std::set<D> Facts;
 
-    CTXFunctionProblem(N start, std::set<D> facts, I icfg)
-        : ConcreteTabulationProblem(icfg), start(start), facts(facts) {
+    CTXFunctionProblem(N Start, std::set<D> Facts, I ICFG)
+        : ConcreteTabulationProblem(ICFG), Start(Start), Facts(Facts) {
       this->solver_config.followReturnsPastSeeds = false;
       this->solver_config.autoAddZero = true;
       this->solver_config.computeValues = true;
@@ -47,17 +47,17 @@ protected:
       this->solver_config.computePersistedSummaries = false;
     }
 
-    virtual std::map<N, std::set<D>> initialSeeds() override {
-      std::map<N, std::set<D>> seeds;
-      seeds.insert(make_pair(start, facts));
-      return seeds;
+    std::map<N, std::set<D>> initialSeeds() override {
+      std::map<N, std::set<D>> Seeds;
+      Seeds.insert({Start, Facts});
+      return Seeds;
     }
   };
 
 public:
   IDESummaryGenerator(std::string Function, I Icfg,
                       SummaryGenerationStrategy Strategy)
-      : toSummarize(Function), icfg(Icfg), CTXStrategy(Strategy) {}
+      : ToSummarize(std::move(Function)), ICFG(Icfg), CTXStrategy(Strategy) {}
   virtual ~IDESummaryGenerator() = default;
   void generateSummaries() {
     // initialize the input combinations that should be considered

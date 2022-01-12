@@ -36,43 +36,48 @@ IDETabulationProblemTestPlugin::IDETabulationProblemTestPlugin(
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  ZeroValue = createZeroValue();
+  ZeroValue = IDETabulationProblemTestPlugin::createZeroValue();
 }
 
 const FlowFact *IDETabulationProblemTestPlugin::createZeroValue() const {
-  static auto zero = new ValueFlowFactWrapper(nullptr);
-  return zero;
+  static auto *Zero = new ValueFlowFactWrapper(nullptr);
+  return Zero;
 }
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getNormalFlowFunction(
-    const llvm::Instruction *Curr, const llvm::Instruction *Succ) {
+    const llvm::Instruction * /*Curr*/, const llvm::Instruction * /*Succ*/) {
   return Identity<const FlowFact *>::getInstance();
 }
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getCallFlowFunction(
-    const llvm::Instruction *CallSite, const llvm::Function *DestFun) {
+    const llvm::Instruction * /*CallSite*/,
+    const llvm::Function * /*DestFun*/) {
   return Identity<const FlowFact *>::getInstance();
 }
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getRetFlowFunction(
-    const llvm::Instruction *CallSite, const llvm::Function *CalleeFun,
-    const llvm::Instruction *ExitSite, const llvm::Instruction *RetSite) {
+    const llvm::Instruction * /*CallSite*/,
+    const llvm::Function * /*CalleeFun*/,
+    const llvm::Instruction * /*ExitSite*/,
+    const llvm::Instruction * /*RetSite*/) {
   return Identity<const FlowFact *>::getInstance();
 }
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getCallToRetFlowFunction(
-    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-    set<const llvm::Function *> Callees) {
+    const llvm::Instruction * /*CallSite*/,
+    const llvm::Instruction * /*RetSite*/,
+    set<const llvm::Function *> /*Callees*/) {
   return Identity<const FlowFact *>::getInstance();
 }
 
 IDETabulationProblemTestPlugin::FlowFunctionPtrType
 IDETabulationProblemTestPlugin::getSummaryFlowFunction(
-    const llvm::Instruction *CallSite, const llvm::Function *DestFun) {
+    const llvm::Instruction * /*CallSite*/,
+    const llvm::Function * /*DestFun*/) {
   return nullptr;
 }
 
@@ -93,51 +98,54 @@ IDETabulationProblemTestPlugin::initialSeeds() {
 }
 
 IDETabulationProblemTestPlugin::EdgeFunctionPtrType
-IDETabulationProblemTestPlugin::getNormalEdgeFunction(n_t curr, d_t currNode,
-                                                      n_t succ, d_t succNode) {
+IDETabulationProblemTestPlugin::getNormalEdgeFunction(n_t /*Curr*/,
+                                                      d_t /*CurrNode*/,
+                                                      n_t /*Succ*/,
+                                                      d_t /*SuccNode*/) {
   return EdgeIdentity<l_t>::getInstance();
 }
 IDETabulationProblemTestPlugin::EdgeFunctionPtrType
-IDETabulationProblemTestPlugin::getCallEdgeFunction(n_t callSite, d_t srcNode,
-                                                    f_t destinationFunction,
-                                                    d_t destNode) {
+IDETabulationProblemTestPlugin::getCallEdgeFunction(n_t /*CallSite*/,
+                                                    d_t /*SrcNode*/,
+                                                    f_t /*DestinationFunction*/,
+                                                    d_t /*DestNode*/) {
   return EdgeIdentity<l_t>::getInstance();
 }
 IDETabulationProblemTestPlugin::EdgeFunctionPtrType
-IDETabulationProblemTestPlugin::getReturnEdgeFunction(n_t callSite,
-                                                      f_t calleeFunction,
-                                                      n_t exitSite,
-                                                      d_t exitNode, n_t reSite,
-                                                      d_t retNode) {
+IDETabulationProblemTestPlugin::getReturnEdgeFunction(
+    n_t /*CallSite*/, f_t /*CalleeFunction*/, n_t /*ExitSite*/,
+    d_t /*ExitNode*/, n_t /*RetSite*/, d_t /*RetNode*/) {
   return EdgeIdentity<l_t>::getInstance();
 }
 IDETabulationProblemTestPlugin::EdgeFunctionPtrType
 IDETabulationProblemTestPlugin::getCallToRetEdgeFunction(
-    n_t callSite, d_t callNode, n_t retSite, d_t retSiteNode,
-    std::set<f_t> callees) {
+    n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/,
+    std::set<f_t> /*Callees*/) {
   return EdgeIdentity<l_t>::getInstance();
 }
 IDETabulationProblemTestPlugin::EdgeFunctionPtrType
-IDETabulationProblemTestPlugin::getSummaryEdgeFunction(n_t curr, d_t currNode,
-                                                       n_t succ, d_t succNode) {
+IDETabulationProblemTestPlugin::getSummaryEdgeFunction(n_t /*Curr*/,
+                                                       d_t /*CurrNode*/,
+                                                       n_t /*Succ*/,
+                                                       d_t /*SuccNode*/) {
   return nullptr;
 }
 
 IDETabulationProblemTestPlugin::l_t
 IDETabulationProblemTestPlugin::topElement() {
-  return efManager.getOrCreateEdgeFact(-1);
+  return EFManager.getOrCreateEdgeFact(-1);
 }
 IDETabulationProblemTestPlugin::l_t
 IDETabulationProblemTestPlugin::bottomElement() {
-  return efManager.getOrCreateEdgeFact(0);
+  return EFManager.getOrCreateEdgeFact(0);
 }
 IDETabulationProblemTestPlugin::l_t
-IDETabulationProblemTestPlugin::join(l_t lhs, l_t rhs) {
-  if (lhs == rhs || rhs == topElement()) {
-    return lhs;
+IDETabulationProblemTestPlugin::join(l_t Lhs, l_t Rhs) {
+  if (Lhs == Rhs || Rhs == topElement()) {
+    return Lhs;
   }
-  if (lhs == topElement()) {
-    return rhs;
+  if (Lhs == topElement()) {
+    return Rhs;
   }
   return bottomElement();
 }

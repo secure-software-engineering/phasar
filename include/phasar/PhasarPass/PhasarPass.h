@@ -22,14 +22,14 @@ namespace psr {
 
 class PhasarPass : public llvm::ModulePass {
 public:
-  static char ID;
+  static inline char ID = 12;
 
   explicit PhasarPass();
   PhasarPass(const PhasarPass &) = delete;
   PhasarPass &operator=(const PhasarPass &) = delete;
   ~PhasarPass() override = default;
 
-  llvm::StringRef getPassName() const override;
+  [[nodiscard]] llvm::StringRef getPassName() const override;
 
   bool runOnModule(llvm::Module &M) override;
 

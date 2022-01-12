@@ -23,7 +23,7 @@
 
 namespace llvm {
 class StructType;
-}
+} // namespace llvm
 
 namespace psr {
 template <class ConcreteTypeGraph> class TypeGraph {
@@ -39,11 +39,11 @@ public:
   /* Add a link if not already in the graph
    * Return true if the node has been added, false otherwise
    */
-  virtual bool addLink(const llvm::StructType *from,
-                       const llvm::StructType *to) = 0;
-  virtual void printAsDot(const std::string &path = "typegraph.dot") const = 0;
+  virtual bool addLink(const llvm::StructType *From,
+                       const llvm::StructType *To) = 0;
+  virtual void printAsDot(const std::string &Path = "typegraph.dot") const = 0;
   virtual std::set<const llvm::StructType *>
-  getTypes(const llvm::StructType *struct_type) = 0;
+  getTypes(const llvm::StructType *ST) = 0;
 };
 } // namespace psr
 

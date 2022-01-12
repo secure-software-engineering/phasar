@@ -17,21 +17,24 @@ namespace psr {
 
 bool isConstant(const llvm::Value *Val) {
   // is constantInt, constantFP or constant string
-  if (llvm::isa<llvm::ConstantInt>(Val)) // const int
+  if (llvm::isa<llvm::ConstantInt>(Val)) { // const int
     return true;
-  if (llvm::isa<llvm::ConstantFP>(Val)) // const fp
+  }
+  if (llvm::isa<llvm::ConstantFP>(Val)) { // const fp
     return true;
-  if (llvm::isa<llvm::ConstantPointerNull>(Val)) // NULL
+  }
+  if (llvm::isa<llvm::ConstantPointerNull>(Val)) { // NULL
     return true;
-  if (auto Gep = llvm::dyn_cast<llvm::ConstantExpr>(Val);
+  }
+  if (const auto *Gep = llvm::dyn_cast<llvm::ConstantExpr>(Val);
       Gep && Val->getType()->isPointerTy() &&
       Val->getType()->getPointerElementType()->isIntegerTy()) {
     // const string
     // val isa GEP
-    auto Op1 = Gep->getOperand(0); // op1 is pointer-operand
-    if (auto Glob = llvm::dyn_cast<llvm::GlobalVariable>(Op1);
+    auto *Op1 = Gep->getOperand(0); // op1 is pointer-operand
+    if (auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(Op1);
         Glob && Glob->hasInitializer()) {
-      if (auto Cdat =
+      if (auto *Cdat =
               llvm::dyn_cast<llvm::ConstantDataArray>(Glob->getInitializer())) {
         return true; // it is definitely a const string
       }

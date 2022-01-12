@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef CHECKOPERANDSFLOWFUNCTION_H
-#define CHECKOPERANDSFLOWFUNCTION_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_CHECKOPERANDSFLOWFUNCTION_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_CHECKOPERANDSFLOWFUNCTION_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/FlowFunctionBase.h"
 
@@ -11,14 +11,14 @@ namespace psr {
 
 class CheckOperandsFlowFunction : public FlowFunctionBase {
 public:
-  CheckOperandsFlowFunction(const llvm::Instruction *_currentInst,
-                            TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
+  CheckOperandsFlowFunction(const llvm::Instruction *CurrentInst,
+                            TraceStats &TStats, const ExtendedValue &ZeroValue)
+      : FlowFunctionBase(CurrentInst, TStats, ZeroValue) {}
   ~CheckOperandsFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &Fact) override;
 };
 
 } // namespace psr
 
-#endif // CHECKOPERANDSFLOWFUNCTION_H
+#endif

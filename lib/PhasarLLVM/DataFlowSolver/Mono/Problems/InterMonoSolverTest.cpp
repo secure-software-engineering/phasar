@@ -63,11 +63,11 @@ InterMonoSolverTest::mono_container_t InterMonoSolverTest::normalFlow(
 
 InterMonoSolverTest::mono_container_t
 InterMonoSolverTest::callFlow(InterMonoSolverTest::n_t CallSite,
-                              InterMonoSolverTest::f_t Callee,
+                              InterMonoSolverTest::f_t /*Callee*/,
                               const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::callFlow()\n";
   InterMonoSolverTest::mono_container_t Result;
-  Result.setUnion(In);
+  Result = Result.setUnion(In);
   if (const auto *const Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
   }
@@ -75,16 +75,16 @@ InterMonoSolverTest::callFlow(InterMonoSolverTest::n_t CallSite,
 }
 
 InterMonoSolverTest::mono_container_t InterMonoSolverTest::returnFlow(
-    InterMonoSolverTest::n_t CallSite, InterMonoSolverTest::f_t Callee,
-    InterMonoSolverTest::n_t ExitStmt, InterMonoSolverTest::n_t RetSite,
+    InterMonoSolverTest::n_t /*CallSite*/, InterMonoSolverTest::f_t /*Callee*/,
+    InterMonoSolverTest::n_t /*ExitStmt*/, InterMonoSolverTest::n_t /*RetSite*/,
     const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::returnFlow()\n";
   return In;
 }
 
 InterMonoSolverTest::mono_container_t InterMonoSolverTest::callToRetFlow(
-    InterMonoSolverTest::n_t CallSite, InterMonoSolverTest::n_t RetSite,
-    set<InterMonoSolverTest::f_t> Callees,
+    InterMonoSolverTest::n_t /*CallSite*/, InterMonoSolverTest::n_t /*RetSite*/,
+    set<InterMonoSolverTest::f_t> /*Callees*/,
     const InterMonoSolverTest::mono_container_t &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;

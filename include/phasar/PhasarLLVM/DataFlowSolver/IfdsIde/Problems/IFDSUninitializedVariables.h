@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 
 #include <iostream>
 #include <map>
@@ -37,16 +37,16 @@ class IFDSUninitializedVariables
 private:
   struct UninitResult {
     UninitResult() = default;
-    unsigned int line = 0;
-    std::string func_name;
-    std::string file_path;
-    std::string src_code;
-    std::vector<std::string> var_names;
+    unsigned int Line = 0;
+    std::string FuncName;
+    std::string FilePath;
+    std::string SrcCode;
+    std::vector<std::string> VarNames;
     std::map<IFDSUninitializedVariables::n_t,
              std::set<IFDSUninitializedVariables::d_t>>
-        ir_trace;
-    bool empty() const;
-    void print(std::ostream &os);
+        IRTrace;
+    [[nodiscard]] bool empty() const;
+    void print(std::ostream &OS);
   };
   std::map<n_t, std::set<d_t>> UndefValueUses;
 
@@ -58,35 +58,35 @@ public:
 
   ~IFDSUninitializedVariables() override = default;
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callSite, f_t destFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeFun,
-                                         n_t exitInst, n_t retSite) override;
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitStmt, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                               std::set<f_t> callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               std::set<f_t> Callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t callSite,
-                                             f_t destFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                             f_t DestFun) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const override;
 
-  bool isZeroValue(d_t d) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &os, f_t m) const override;
+  void printFunction(std::ostream &OS, f_t Func) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
                       std::ostream &OS = std::cout) override;
 
-  const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
+  [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
 
   std::vector<UninitResult> aggregateResults();
 };
