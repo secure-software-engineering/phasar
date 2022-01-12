@@ -115,19 +115,18 @@ inline bool operator==(const LatticeDomain<L> &Lhs,
 template <
     typename L, typename LL,
     typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
-inline bool operator==(const LatticeDomain<L> Lhs, const LL &Rhs) {
-  return Rhs == Lhs;
+inline bool operator==(const LL &Lhs, const LatticeDomain<L> Rhs) {
+  if (auto RVal = Rhs.getValueOrNull()) {
+    return Lhs == *RVal;
+  }
+  return false;
 }
 
-template <typename L, typename M>
-inline bool operator==(const L &Lhs, const M &Rhs) {
-  if constexpr (is_variant_v<L> && !is_variant_v<M>) {
-    return Lhs == std::variant<M>(Rhs);
-  }
-  if constexpr (!is_variant_v<L> && is_variant_v<M>) {
-    return std::variant<L>(Lhs) == Rhs;
-  }
-  return Lhs == Rhs;
+template <
+    typename L, typename LL,
+    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
+inline bool operator==(const LatticeDomain<L> Lhs, const LL &Rhs) {
+  return Rhs == Lhs;
 }
 
 template <typename L>
