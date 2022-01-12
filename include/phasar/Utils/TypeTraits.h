@@ -118,7 +118,6 @@ constexpr bool is_std_hashable_v = detail::is_std_hashable<T>::value; // NOLINT
 template <typename T>
 constexpr bool is_llvm_hashable_v = // NOLINT
     detail::is_llvm_hashable<T>::value;
-  
 template <typename T>
 constexpr bool has_setIFDSIDESolverConfig_v = // NOLINT
     detail::has_setIFDSIDESolverConfig<T>::value;
