@@ -24,8 +24,8 @@ protected:
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
-  using LCACompactResult_t =
-      std::tuple<std::string, std::size_t, std::string, int64_t>;
+  using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
+                                        IDELinearConstantAnalysisDomain::l_t>;
   std::unique_ptr<ProjectIRDB> IRDB;
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
@@ -251,6 +251,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_05) {
   GroundTruth.emplace("main", 6, "j", 10);
   GroundTruth.emplace("main", 6, "i", 42);
   GroundTruth.emplace("main", 8, "j", 10);
+  GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
 }
 
@@ -272,6 +273,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_07) {
   GroundTruth.emplace("main", 6, "j", 10);
   GroundTruth.emplace("main", 6, "i", 30);
   GroundTruth.emplace("main", 8, "j", 10);
+  GroundTruth.emplace("main", 8, "i", 30);
   compareResults(Results, GroundTruth);
 }
 
