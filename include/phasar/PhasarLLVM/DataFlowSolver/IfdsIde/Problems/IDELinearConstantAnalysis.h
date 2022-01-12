@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -31,7 +32,7 @@ namespace psr {
 
 struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
   // int64_t corresponds to llvm's type of constant integer
-  using l_t = int64_t;
+  using l_t = LatticeDomain<int64_t>;
 };
 
 class LLVMBasedICFG;
@@ -176,10 +177,10 @@ public:
                       public std::enable_shared_from_this<GenConstant> {
   private:
     const unsigned GenConstantId;
-    const l_t IntConst;
+    const int64_t IntConst;
 
   public:
-    explicit GenConstant(l_t IntConst);
+    explicit GenConstant(int64_t IntConst);
 
     l_t computeTarget(l_t Source) override;
 
@@ -253,7 +254,7 @@ public:
    * @param rop right operand
    * @return Result of binary operation
    */
-  static l_t executeBinOperation(unsigned Op, l_t Lop, l_t Rop);
+  static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal);
 
   static char opToChar(unsigned Op);
 
