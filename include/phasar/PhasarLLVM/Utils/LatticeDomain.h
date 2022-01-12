@@ -10,12 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 #define PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
-
 #include <iostream>
 #include <type_traits>
 #include <variant>
+
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "phasar/Utils/TypeTraits.h"
 
 namespace psr {
 
@@ -117,6 +119,17 @@ template <
     typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
 inline bool operator==(const LatticeDomain<L> Lhs, const LL &Rhs) {
   return Rhs == Lhs;
+}
+
+template <typename L, typename M>
+inline bool operator==(const L &Lhs, const M &Rhs) {
+  if constexpr (is_variant_v<L>) {
+    return Lhs == std::variant<M>(Rhs);
+  }
+  if constexpr (is_variant_v<M>) {
+    return std::variant<L>(Lhs) == Rhs;
+  }
+  return Lhs == Rhs;
 }
 
 template <typename L>
