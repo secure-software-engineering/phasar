@@ -27,17 +27,15 @@ using namespace std;
 using namespace psr;
 
 size_t hash<LCAPair>::operator()(const LCAPair &K) const {
-  return hash<const llvm::Value *>()(K.first) ^ hash<int>()(K.second);
+  return hash<const llvm::Value *>()(K.First) ^ hash<int>()(K.Second);
 }
 
 namespace psr {
 
-LCAPair::LCAPair() : first(nullptr), second(0) {}
-
-LCAPair::LCAPair(const llvm::Value *V, int I) : first(V), second(I) {}
+LCAPair::LCAPair(const llvm::Value *V, int I) : First(V), Second(I) {}
 
 bool operator==(const LCAPair &Lhs, const LCAPair &Rhs) {
-  return tie(Lhs.first, Lhs.second) == tie(Rhs.first, Rhs.second);
+  return tie(Lhs.First, Lhs.Second) == tie(Rhs.First, Rhs.Second);
 }
 
 bool operator!=(const LCAPair &Lhs, const LCAPair &Rhs) {
@@ -45,7 +43,7 @@ bool operator!=(const LCAPair &Lhs, const LCAPair &Rhs) {
 }
 
 bool operator<(const LCAPair &Lhs, const LCAPair &Rhs) {
-  return tie(Lhs.first, Lhs.second) < tie(Rhs.first, Rhs.second);
+  return tie(Lhs.First, Lhs.Second) < tie(Rhs.First, Rhs.Second);
 }
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
@@ -53,44 +51,45 @@ IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IFDSLinearConstantAnalysis::ZeroValue = createZeroValue();
+  IFDSLinearConstantAnalysis::ZeroValue =
+      IFDSLinearConstantAnalysis::createZeroValue();
 }
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getNormalFlowFunction(
-    IFDSLinearConstantAnalysis::n_t Curr,
-    IFDSLinearConstantAnalysis::n_t Succ) {
+    IFDSLinearConstantAnalysis::n_t /*Curr*/,
+    IFDSLinearConstantAnalysis::n_t /*Succ*/) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getCallFlowFunction(
-    IFDSLinearConstantAnalysis::n_t CallSite,
-    IFDSLinearConstantAnalysis::f_t DestFun) {
+    IFDSLinearConstantAnalysis::n_t /*CallSite*/,
+    IFDSLinearConstantAnalysis::f_t /*DestFun*/) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getRetFlowFunction(
-    IFDSLinearConstantAnalysis::n_t CallSite,
-    IFDSLinearConstantAnalysis::f_t CalleeFun,
-    IFDSLinearConstantAnalysis::n_t ExitSite,
-    IFDSLinearConstantAnalysis::n_t RetSite) {
+    IFDSLinearConstantAnalysis::n_t /*CallSite*/,
+    IFDSLinearConstantAnalysis::f_t /*CalleeFun*/,
+    IFDSLinearConstantAnalysis::n_t /*ExitStmt*/,
+    IFDSLinearConstantAnalysis::n_t /*RetSite*/) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
-    IFDSLinearConstantAnalysis::n_t CallSite,
-    IFDSLinearConstantAnalysis::n_t RetSite,
-    set<IFDSLinearConstantAnalysis::f_t> Callees) {
+    IFDSLinearConstantAnalysis::n_t /*CallSite*/,
+    IFDSLinearConstantAnalysis::n_t /*RetSite*/,
+    set<IFDSLinearConstantAnalysis::f_t> /* Callees */) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getSummaryFlowFunction(
-    IFDSLinearConstantAnalysis::n_t CallSite,
-    IFDSLinearConstantAnalysis::f_t DestFun) {
+    IFDSLinearConstantAnalysis::n_t /*CallSite*/,
+    IFDSLinearConstantAnalysis::f_t /*DestFun*/) {
   return nullptr;
 }
 
@@ -114,27 +113,28 @@ IFDSLinearConstantAnalysis::createZeroValue() const {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSLinearConstantAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
-  return LCAPair(LLVMZeroValue::getInstance(), 0);
+  return {LLVMZeroValue::getInstance(), 0};
 }
 
 bool IFDSLinearConstantAnalysis::isZeroValue(
-    IFDSLinearConstantAnalysis::d_t D) const {
-  return D == ZeroValue;
+    IFDSLinearConstantAnalysis::d_t Fact) const {
+  return Fact == ZeroValue;
 }
 
 void IFDSLinearConstantAnalysis::printNode(
-    ostream &OS, IFDSLinearConstantAnalysis::n_t N) const {
-  OS << llvmIRToString(N);
+    ostream &OS, IFDSLinearConstantAnalysis::n_t Stmt) const {
+  OS << llvmIRToString(Stmt);
 }
 
 void IFDSLinearConstantAnalysis::printDataFlowFact(
-    ostream &OS, IFDSLinearConstantAnalysis::d_t D) const {
-  OS << '<' + llvmIRToString(D.first) + ", " + std::to_string(D.second) + '>';
+    ostream &OS, IFDSLinearConstantAnalysis::d_t Fact) const {
+  OS << '<' + llvmIRToString(Fact.First) + ", " + std::to_string(Fact.Second) +
+            '>';
 }
 
 void IFDSLinearConstantAnalysis::printFunction(
-    ostream &OS, IFDSLinearConstantAnalysis::f_t M) const {
-  OS << M->getName().str();
+    ostream &OS, IFDSLinearConstantAnalysis::f_t Func) const {
+  OS << Func->getName().str();
 }
 
 } // namespace psr

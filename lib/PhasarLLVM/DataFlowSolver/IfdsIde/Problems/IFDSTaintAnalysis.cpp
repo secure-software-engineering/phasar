@@ -41,7 +41,7 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB,
                                      std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
       Config(Config) {
-  IFDSTaintAnalysis::ZeroValue = createZeroValue();
+  IFDSTaintAnalysis::ZeroValue = IFDSTaintAnalysis::createZeroValue();
 }
 
 bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
@@ -100,7 +100,7 @@ bool IFDSTaintAnalysis::isSinkCall(const llvm::CallBase *CB,
                      });
 }
 
-bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase *CB,
+bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
                                         const llvm::Function *Callee) const {
   return std::any_of(
       Callee->arg_begin(), Callee->arg_end(),
@@ -110,7 +110,7 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase *CB,
 void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
   std::set<d_t> Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT->getPointsToSet(Fact);
+    const auto *Aliases = PT->getPointsToSet(Fact);
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
@@ -180,13 +180,13 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallSite,
 
 IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t CalleeFun,
-    IFDSTaintAnalysis::n_t ExitSite,
+    IFDSTaintAnalysis::n_t ExitStmt,
     [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
   return make_shared<MapFactsToCaller<>>(
-      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitSite, true,
+      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt, true,
       [](IFDSTaintAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
       });
@@ -338,7 +338,7 @@ void IFDSTaintAnalysis::printFunction(ostream &Os,
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, BinaryDomain> &SR, std::ostream &OS) {
+    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/, std::ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
   if (Leaks.empty()) {
     OS << "No leaks found!\n";

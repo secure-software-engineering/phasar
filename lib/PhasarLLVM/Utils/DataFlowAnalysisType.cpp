@@ -33,17 +33,20 @@ std::string toString(const DataFlowAnalysisType &D) {
 std::string toString(const DataFlowAnalysisKind &D) {
   if (std::holds_alternative<DataFlowAnalysisType>(D)) {
     return toString(std::get<DataFlowAnalysisType>(D));
-  } else if (std::holds_alternative<IFDSPluginConstructor>(D)) {
-    return "IFDS Plugin";
-  } else if (std::holds_alternative<IDEPluginConstructor>(D)) {
-    return "IDE Plugin";
-  } else if (std::holds_alternative<IntraMonoPluginConstructor>(D)) {
-    return "IntraMono Plugin";
-  } else if (std::holds_alternative<InterMonoPluginConstructor>(D)) {
-    return "InterMono Plugin";
-  } else {
-    return "None";
   }
+  if (std::holds_alternative<IFDSPluginConstructor>(D)) {
+    return "IFDS Plugin";
+  }
+  if (std::holds_alternative<IDEPluginConstructor>(D)) {
+    return "IDE Plugin";
+  }
+  if (std::holds_alternative<IntraMonoPluginConstructor>(D)) {
+    return "IntraMono Plugin";
+  }
+  if (std::holds_alternative<InterMonoPluginConstructor>(D)) {
+    return "InterMono Plugin";
+  }
+  return "None";
 }
 
 DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {

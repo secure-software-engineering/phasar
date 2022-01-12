@@ -80,7 +80,7 @@ void validateParamModule(const std::vector<std::string> &Modules) {
   }
 }
 
-void validateParamExport(const std::string &Export) {
+void validateParamExport(const std::string & /*Export*/) {
   throw boost::program_options::error_with_option_name(
       "Parameter not supported, yet.");
 }
