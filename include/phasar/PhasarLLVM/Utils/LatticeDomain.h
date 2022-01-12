@@ -66,8 +66,6 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   }
 };
 
-// template <typename L> using LatticeDomain = std::variant<L, Top, Bottom>;
-
 template <typename L,
           typename = std::void_t<decltype(std::declval<std::ostream &>()
                                           << std::declval<L>())>>
@@ -123,10 +121,10 @@ inline bool operator==(const LatticeDomain<L> Lhs, const LL &Rhs) {
 
 template <typename L, typename M>
 inline bool operator==(const L &Lhs, const M &Rhs) {
-  if constexpr (is_variant_v<L>) {
+  if constexpr (is_variant_v<L> && !is_variant_v<M>) {
     return Lhs == std::variant<M>(Rhs);
   }
-  if constexpr (is_variant_v<M>) {
+  if constexpr (!is_variant_v<L> && is_variant_v<M>) {
     return std::variant<L>(Lhs) == Rhs;
   }
   return Lhs == Rhs;
