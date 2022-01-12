@@ -37,7 +37,7 @@ namespace attrs = boost::log::attributes;
 
 namespace psr {
 
-SeverityLevel LogFilterLevel = DEBUG;
+SeverityLevel LogFilterLevel = DEBUG; // NOLINT
 
 std::string toString(const SeverityLevel &Level) {
   switch (Level) {
@@ -97,9 +97,8 @@ void initializeLogger(bool UseLogger, const string &LogFile) {
     if (LogFile.empty()) {
       // the easiest way is to write the logs to std::clog
       return boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter{});
-    } else {
-      return boost::make_shared<std::ofstream>(LogFile);
     }
+    return boost::make_shared<std::ofstream>(LogFile);
   }(LogFile);
   Sink->locked_backend()->add_stream(Stream);
   Sink->set_filter(&logFilter);

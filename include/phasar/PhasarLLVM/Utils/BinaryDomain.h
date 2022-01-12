@@ -28,7 +28,7 @@ extern const std::map<std::string, BinaryDomain> StringToBinaryDomain;
 
 extern const std::map<BinaryDomain, std::string> BinaryDomainToString;
 
-std::ostream &operator<<(std::ostream &os, const BinaryDomain &b);
+std::ostream &operator<<(std::ostream &OS, const BinaryDomain &B);
 
 } // namespace psr
 

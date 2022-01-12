@@ -32,9 +32,10 @@ using namespace psr;
 namespace psr {
 
 AnalysisPluginController::AnalysisPluginController(
-    const std::vector<std::string> &AnalysisPlygins, const ProjectIRDB *IRDB,
-    const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
-    const LLVMPointsToInfo *PT, const std::set<std::string> &EntryPoints) {
+    const std::vector<std::string> &AnalysisPlygins,
+    const ProjectIRDB * /*IRDB*/, const LLVMTypeHierarchy * /*TH*/,
+    const LLVMBasedICFG * /*ICF*/, const LLVMPointsToInfo * /*PT*/,
+    const std::set<std::string> & /*EntryPoints*/) {
   for (const auto &AnalysisPlugin : AnalysisPlygins) {
     boost::filesystem::path LibPath(AnalysisPlugin);
     boost::system::error_code Err;

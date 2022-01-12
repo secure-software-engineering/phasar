@@ -26,41 +26,46 @@ IDESecureHeapPropagation::IDESecureHeapPropagation(
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  ZeroValue = createZeroValue();
+  ZeroValue = IDESecureHeapPropagation::createZeroValue();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getNormalFlowFunction(n_t Curr, n_t Succ) {
+IDESecureHeapPropagation::getNormalFlowFunction(n_t /*Curr*/, n_t /*Succ*/) {
   return Identity<d_t>::getInstance();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getCallFlowFunction(n_t CallSite, f_t DestMthd) {
+IDESecureHeapPropagation::getCallFlowFunction(n_t /*CallSite*/,
+                                              f_t /*DestMthd*/) {
   return Identity<d_t>::getInstance();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
-                                             n_t ExitInst, n_t RetSite) {
+IDESecureHeapPropagation::getRetFlowFunction(n_t /*CallSite*/,
+                                             f_t /*CalleeMthd*/,
+                                             n_t /*ExitInst*/,
+                                             n_t /*RetSite*/) {
   return Identity<d_t>::getInstance();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                                   std::set<f_t> Callees) {
+IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite,
+                                                   n_t /*RetSite*/,
+                                                   std::set<f_t> /*Callees*/) {
 
   // Change to CallSite everywhere
-  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
   auto FName = CS->getCalledFunction()->getName();
-  if (FName == initializerFn) {
+  if (FName == InitializerFn) {
     return std::make_shared<Gen<d_t>>(SecureHeapFact::INITIALIZED,
                                       getZeroValue());
   }
   return Identity<d_t>::getInstance();
 }
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getSummaryFlowFunction(n_t CallSite, f_t DestMthd) {
+IDESecureHeapPropagation::getSummaryFlowFunction(n_t /*CallSite*/,
+                                                 f_t /*DestMthd*/) {
   return nullptr;
 }
 
@@ -84,17 +89,17 @@ IDESecureHeapPropagation::createZeroValue() const {
   return SecureHeapFact::ZERO;
 }
 
-bool IDESecureHeapPropagation::isZeroValue(d_t D) const {
-  return D == SecureHeapFact::ZERO;
+bool IDESecureHeapPropagation::isZeroValue(d_t Fact) const {
+  return Fact == SecureHeapFact::ZERO;
 }
 
-void IDESecureHeapPropagation::printNode(std::ostream &Os, n_t N) const {
-  Os << llvmIRToString(N);
+void IDESecureHeapPropagation::printNode(std::ostream &Os, n_t Stmt) const {
+  Os << llvmIRToString(Stmt);
 }
 
 void IDESecureHeapPropagation::printDataFlowFact(std::ostream &Os,
-                                                 d_t D) const {
-  switch (D) {
+                                                 d_t Fact) const {
+  switch (Fact) {
   case SecureHeapFact::ZERO:
     Os << "ZERO";
     break;
@@ -114,37 +119,39 @@ void IDESecureHeapPropagation::printFunction(std::ostream &Os, f_t F) const {
 // in addition provide specifications for the IDE parts
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
-                                                n_t Succ, d_t SuccNode) {
+IDESecureHeapPropagation::getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
+                                                n_t /*Succ*/,
+                                                d_t /*SuccNode*/) {
   return IdentityEdgeFunction::getInstance();
 }
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                              f_t DestinationMethod,
-                                              d_t DestNode) {
+IDESecureHeapPropagation::getCallEdgeFunction(n_t /*CallSite*/, d_t /*SrcNode*/,
+                                              f_t /*DestinationMethod*/,
+                                              d_t /*DestNode*/) {
   return IdentityEdgeFunction::getInstance();
 }
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getReturnEdgeFunction(n_t CallSite, f_t CalleeMethod,
-                                                n_t ExitInst, d_t ExitNode,
-                                                n_t ReSite, d_t RetNode) {
+IDESecureHeapPropagation::getReturnEdgeFunction(
+    n_t /*CallSite*/, f_t /*CalleeMethod*/, n_t /*ExitInst*/, d_t /*ExitNode*/,
+    n_t /*RetSite*/, d_t /*RetNode*/) {
   return IdentityEdgeFunction::getInstance();
 }
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
-                                                   n_t RetSite, d_t RetSiteNode,
-                                                   std::set<f_t> Callees) {
+                                                   n_t /*RetSite*/,
+                                                   d_t RetSiteNode,
+                                                   std::set<f_t> /*Callees*/) {
   if (CallNode == ZeroValue && RetSiteNode != ZeroValue) {
     // generate
     // std::cerr << "Generate at " << llvmIRToShortString(callSite) <<
     // std::endl;
     return SHPGenEdgeFn::getInstance(l_t::INITIALIZED);
   }
-  const llvm::CallBase *CS = llvm::cast<llvm::CallBase>(CallSite);
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   if (CallNode != ZeroValue &&
-      CS->getCalledFunction()->getName() == shutdownFn) {
+      CS->getCalledFunction()->getName() == ShutdownFn) {
     // std::cerr << "Kill at " << llvmIRToShortString(callSite) << std::endl;
     return SHPGenEdgeFn::getInstance(l_t::BOT);
   }
@@ -152,8 +159,10 @@ IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
 }
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
-                                                 n_t RetSite, d_t RetSiteNode) {
+IDESecureHeapPropagation::getSummaryEdgeFunction(n_t /*CallSite*/,
+                                                 d_t /*CallNode*/,
+                                                 n_t /*RetSite*/,
+                                                 d_t /*RetSiteNode*/) {
   return nullptr;
 }
 
@@ -236,7 +245,7 @@ bool IDESecureHeapPropagation::IdentityEdgeFunction::equal_to(
 }
 
 void IDESecureHeapPropagation::IdentityEdgeFunction::print(
-    std::ostream &OS, bool IsForDebug) const {
+    std::ostream &OS, bool /*IsForDebug*/) const {
   OS << "IdentityEdgeFn";
 }
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
@@ -265,16 +274,16 @@ IDESecureHeapPropagation::SHPEdgeFn::joinWith(
 
 // -- SHPGenEdgeFn --
 
-IDESecureHeapPropagation::SHPGenEdgeFn::SHPGenEdgeFn(l_t Val) : value(Val) {}
+IDESecureHeapPropagation::SHPGenEdgeFn::SHPGenEdgeFn(l_t Val) : Value(Val) {}
 
 IDESecureHeapPropagation::l_t
-IDESecureHeapPropagation::SHPGenEdgeFn::computeTarget(l_t Source) {
-  return value;
+IDESecureHeapPropagation::SHPGenEdgeFn::computeTarget(l_t /*Source*/) {
+  return Value;
 }
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::SHPGenEdgeFn::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  return SHPGenEdgeFn::getInstance(SecondFunction->computeTarget(value));
+  return SHPGenEdgeFn::getInstance(SecondFunction->computeTarget(Value));
 }
 bool IDESecureHeapPropagation::SHPGenEdgeFn::equal_to(
     std::shared_ptr<EdgeFunction<l_t>> Other) const {
@@ -282,9 +291,9 @@ bool IDESecureHeapPropagation::SHPGenEdgeFn::equal_to(
 }
 
 void IDESecureHeapPropagation::SHPGenEdgeFn::print(std::ostream &OS,
-                                                   bool IsForDebug) const {
+                                                   bool /*IsForDebug*/) const {
   OS << "GenEdgeFn[";
-  switch (value) {
+  switch (Value) {
   case l_t::BOT:
     OS << "BOT";
     break;
@@ -305,9 +314,9 @@ IDESecureHeapPropagation::SHPGenEdgeFn::getInstance(l_t Val) {
   static std::array<std::shared_ptr<SHPGenEdgeFn>, 3> Cache = {nullptr, nullptr,
                                                                nullptr};
   auto Ind = static_cast<std::underlying_type<l_t>::type>(Val);
-  if (!Cache[Ind]) {
+  if (!Cache.at(Ind)) {
     Cache[Ind] = std::make_shared<SHPGenEdgeFn>(Val);
   }
-  return Cache[Ind];
+  return Cache.at(Ind);
 }
 } // namespace psr

@@ -389,12 +389,15 @@ ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) const {
 std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(V)) {
     return LLVMZeroValue::getInstance()->getName().str();
-  } else if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+  }
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
-  } else if (const auto *A = llvm::dyn_cast<llvm::Argument>(V)) {
+  }
+  if (const auto *A = llvm::dyn_cast<llvm::Argument>(V)) {
     return A->getParent()->getName().str() + ".f" +
            std::to_string(A->getArgNo());
-  } else if (const auto *G = llvm::dyn_cast<llvm::GlobalValue>(V)) {
+  }
+  if (const auto *G = llvm::dyn_cast<llvm::GlobalValue>(V)) {
     std::cout << "special case: WE ARE AN GLOBAL VARIABLE\n";
     std::cout << "all user:\n";
     for (const auto *User : V->users()) {
@@ -403,7 +406,8 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
       }
     }
     return G->getName().str();
-  } else if (llvm::isa<llvm::Value>(V)) {
+  }
+  if (llvm::isa<llvm::Value>(V)) {
     // In this case we should have an operand of an instruction which can be
     // identified by the instruction id and the operand index.
     std::cout << "special case: WE ARE AN OPERAND\n";
@@ -420,23 +424,25 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
     }
     llvm::report_fatal_error("Error: llvm::Value is of unexpected type.");
     return "";
-  } else {
-    llvm::report_fatal_error("Error: llvm::Value is of unexpected type.");
-    return "";
   }
+  llvm::report_fatal_error("Error: llvm::Value is of unexpected type.");
+  return "";
 }
 
 const llvm::Value *
 ProjectIRDB::persistedStringToValue(const std::string &S) const {
   if (S.find(LLVMZeroValue::getInstance()->getName()) != std::string::npos) {
     return LLVMZeroValue::getInstance();
-  } else if (S.find('.') == std::string::npos) {
+  }
+  if (S.find('.') == std::string::npos) {
     return getGlobalVariableDefinition(S);
-  } else if (S.find(".f") != std::string::npos) {
+  }
+  if (S.find(".f") != std::string::npos) {
     unsigned Argno = stoi(S.substr(S.find(".f") + 2, S.size()));
     return getNthFunctionArgument(
         getFunctionDefinition(S.substr(0, S.find(".f"))), Argno);
-  } else if (S.find(".o.") != std::string::npos) {
+  }
+  if (S.find(".o.") != std::string::npos) {
     unsigned I = S.find('.');
     unsigned J = S.find(".o.");
     unsigned InstID = stoi(S.substr(I + 1, J));
@@ -529,7 +535,7 @@ bool ProjectIRDB::debugInfoAvailable() const {
     return wasCompiledWithDebugInfo(WPAModule);
   }
   // During unittests WPAMOD might not be set
-  else if (!Modules.empty()) {
+  if (!Modules.empty()) {
     for (const auto &[File, Module] : Modules) {
       if (!wasCompiledWithDebugInfo(Module.get())) {
         return false;

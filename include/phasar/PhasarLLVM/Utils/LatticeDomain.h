@@ -105,23 +105,11 @@ inline bool operator==(const LatticeDomain<L> &Lhs,
   if (Lhs.index() != Rhs.index()) {
     return false;
   }
-
   if (auto LhsPtr = Lhs.getValueOrNull()) {
     /// No need to check whether Lhs is an L; the indices are already the same
     return *LhsPtr == *Rhs.getValueOrNull();
   }
-
   return true;
-}
-
-template <
-    typename L, typename LL,
-    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
-inline bool operator==(const LL &Lhs, const LatticeDomain<L> Rhs) {
-  if (const auto *RVal = Rhs.getValueOrNull()) {
-    return Lhs == *RVal;
-  }
-  return false;
 }
 
 template <
@@ -147,21 +135,17 @@ inline bool operator<(const LatticeDomain<L> &Lhs,
   if (Lhs.isTop()) {
     return true;
   }
-
   if (auto LhsPtr = Lhs.getValueOrNull()) {
     if (auto RhsPtr = Rhs.getValueOrNull()) {
       return *LhsPtr < *RhsPtr;
     }
   }
-
   if (Lhs.isBottom()) {
     return false;
   }
-
   if (Rhs.isBottom()) {
     return true;
   }
-
   llvm_unreachable("All comparision cases should be handled above.");
 }
 
