@@ -43,6 +43,7 @@ private:
   using PointsToSetMap = llvm::DenseMap<const llvm::Value *, PointsToSetTy *>;
 
   LLVMBasedPointsToAnalysis PTA;
+  bool FunctionLocalPTAwoGlobals;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
   PointsToSetOwner<PointsToSetTy> Owner;
@@ -83,7 +84,8 @@ public:
    * considered. False, if May and Must Aliases should be considered.
    */
   LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-                  PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+                  PointerAnalysisType PATy = PointerAnalysisType::CFLAnders,
+                  bool FunctionLocalPTAwoGlobals = false);
 
   ~LLVMPointsToSet() override = default;
 

@@ -49,8 +49,10 @@ using namespace std;
 namespace psr {
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
-                                 PointerAnalysisType PATy)
-    : PTA(IRDB, UseLazyEvaluation, PATy) {
+                                 PointerAnalysisType PATy,
+                                 bool FunctionLocalPTAwoGlobals)
+    : PTA(IRDB, UseLazyEvaluation, PATy),
+      FunctionLocalPTAwoGlobals(FunctionLocalPTAwoGlobals) {
 
   auto NumGlobals = IRDB.getNumGlobals();
   PointsToSets.reserve(NumGlobals);
@@ -88,35 +90,36 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
   // Add set for the queried value if none exists, yet
   addSingletonPointsToSet(V);
   if (const auto *G = llvm::dyn_cast<llvm::GlobalObject>(V)) {
-    // A global object can be a function or a global variable. We need to
-    // consider functions here, too, because function pointer magic may be
-    // used by the target program. Add a set for global object.
-    // A global object may be used in multiple functions.
-    for (const auto *User : G->users()) {
-      if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(User)) {
-        // The may be no corresponding function when the instruction is used in
-        // a vtable, for instance.
-        if (Inst->getParent()) {
+    if (!FunctionLocalPTAwoGlobals) {
+      // A global object can be a function or a global variable. We need to
+      // consider functions here, too, because function pointer magic may be
+      // used by the target program. Add a set for global object.
+      // A global object may be used in multiple functions.
+      for (const auto *User : G->users()) {
+        if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(User)) {
+          // The may be no corresponding function when the instruction is used
+          // in a vtable, for instance.
+          if (Inst->getParent()) {
 
-          computeFunctionsPointsToSet(
-              const_cast<llvm::Function *> // NOLINT - FIXME when it is fixed in
-                                           // LLVM
-              (Inst->getFunction()));
-          if (!llvm::isa<llvm::Function>(G) && isInterestingPointer(User)) {
-            mergePointsToSets(User, G);
-          } else if (const auto *Store =
-                         llvm::dyn_cast<llvm::StoreInst>(User)) {
-            if (isInterestingPointer(Store->getValueOperand())) {
-              // Store->getPointerOperand() doesn't require checking: it is
-              // always an interesting pointer
-              mergePointsToSets(Store->getValueOperand(),
-                                Store->getPointerOperand());
+            computeFunctionsPointsToSet(
+                const_cast<llvm::Function *> // NOLINT - FIXME when it is fixed
+                                             // in LLVM
+                (Inst->getFunction()));
+            if (!llvm::isa<llvm::Function>(G) && isInterestingPointer(User)) {
+              mergePointsToSets(User, G);
+            } else if (const auto *Store =
+                           llvm::dyn_cast<llvm::StoreInst>(User)) {
+              if (isInterestingPointer(Store->getValueOperand())) {
+                // Store->getPointerOperand() doesn't require checking: it is
+                // always an interesting pointer
+                mergePointsToSets(Store->getValueOperand(),
+                                  Store->getPointerOperand());
+              }
             }
           }
         }
       }
     }
-
   } else {
     const auto *VF = retrieveFunction(V);
     computeFunctionsPointsToSet(
