@@ -1,5 +1,5 @@
-FROM ubuntu:latest
-ARG LLVM_INSTALL_DIR="/usr/local/llvm-10"
+FROM ubuntu:20.04
+ARG LLVM_INSTALL_DIR="/usr/local/llvm-12"
 LABEL Name=phasar Version=1.0.0
 
 RUN apt -y update && apt install bash sudo -y
@@ -21,7 +21,7 @@ RUN apt install libboost-all-dev -y
 # installing LLVM
 COPY utils/safeCommandsSet.sh /usr/src/phasar/utils/safeCommandsSet.sh
 COPY utils/install-llvm.sh /usr/src/phasar/utils/install-llvm.sh
-RUN ./utils/install-llvm.sh $(nproc) . ${LLVM_INSTALL_DIR} "llvmorg-10.0.0"
+RUN ./utils/install-llvm.sh $(nproc) . ${LLVM_INSTALL_DIR} "llvmorg-12.0.0"
 
 # installing wllvm
 RUN pip3 install wllvm
