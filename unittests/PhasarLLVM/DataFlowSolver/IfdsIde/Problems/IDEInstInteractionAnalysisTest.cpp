@@ -378,6 +378,16 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
   doAnalysisAndCompareResults("basic_10_cpp.ll", GroundTruth, false);
 }
 
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
+  std::set<IIACompactResult_t> GroundTruth;
+  doAnalysisAndCompareResults("basic_11_cpp.ll", GroundTruth, false);
+}
+
+// TEST_F(IDEInstInteractionAnalysisTest, RetFail) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   doAnalysisAndCompareResults("dump_trace_ld-te.ll", GroundTruth, true);
+// }
+
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
