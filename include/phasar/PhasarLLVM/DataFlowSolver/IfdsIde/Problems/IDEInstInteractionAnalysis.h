@@ -286,11 +286,17 @@ public:
                     Problem.OnlyConsiderLocalAliases)) {}
 
           container_type computeTargets(d_t Src) override {
+            // Override old value(s), i.e., kill value(s) that is written to and
+            // generate from value that is stored.
+            if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
+              return {};
+            }
             container_type Facts;
             Facts.insert(Src);
             if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
               return Facts;
             }
+            // y/Y now obtains its new value(s) from x/X
             // If a value is stored that holds we must generate all potential
             // memory locations the store might write to.
             if (Store->getValueOperand() == Src || ValuePTS->count(Src)) {
@@ -324,9 +330,9 @@ public:
     //
     // Flow function:
     //
-    //             0  x
-    //             |  |\
-    // store x y   |  | \
+    //             0  x  y
+    //             |  |\ |
+    // store x y   |  | \|
     //             v  v  v
     //             0  x  y
     //
@@ -343,7 +349,13 @@ public:
           ~IIAAFlowFunction() override = default;
 
           container_type computeTargets(d_t Src) override {
+            // Override old value, i.e., kill value that is written to and
+            // generate from value that is stored.
+            if (Store->getPointerOperand() == Src) {
+              return {};
+            }
             container_type Facts;
+            // y now obtains its new value from x
             if (Load == Src || Load->getPointerOperand() == Src) {
               Facts.insert(Src);
               Facts.insert(Load->getPointerOperand());
