@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 
 #include <functional>
 #include <initializer_list>
@@ -293,14 +293,17 @@ public:
             }
             container_type Facts;
             Facts.insert(Src);
-            if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-              return Facts;
-            }
             // y/Y now obtains its new value(s) from x/X
             // If a value is stored that holds we must generate all potential
             // memory locations the store might write to.
             if (Store->getValueOperand() == Src || ValuePTS->count(Src)) {
               Facts.insert(Store->getValueOperand());
+              Facts.insert(Store->getPointerOperand());
+              Facts.insert(PointerPTS->begin(), PointerPTS->end());
+            }
+            // ... or from zero, if a constant literal is stored to y
+            if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+                IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
               Facts.insert(Store->getPointerOperand());
               Facts.insert(PointerPTS->begin(), PointerPTS->end());
             }
@@ -384,9 +387,20 @@ public:
         ~IIAAFlowFunction() override = default;
 
         container_type computeTargets(d_t Src) override {
+          // Override old value, i.e., kill value that is written to and
+          // generate from value that is stored.
+          if (Store->getPointerOperand() == Src) {
+            return {};
+          }
           container_type Facts;
           Facts.insert(Src);
+          // y now obtains its new value from x
           if (Store->getValueOperand() == Src) {
+            Facts.insert(Store->getPointerOperand());
+          }
+          // ... or from zero, if a constant literal is stored to y
+          if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+              IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
             Facts.insert(Store->getPointerOperand());
           }
           LOG_IF_ENABLE([&]() {
@@ -552,7 +566,7 @@ public:
         }
       }
     }
-    // Just use the auto mapping for values, pointer parameters and global
+    // Just use the auto mapping for values; pointer parameters and global
     // variables are killed and handled by getCallFlowfunction() and
     // getRetFlowFunction().
     // However, if only declarations are available as callee targets we would
@@ -573,9 +587,18 @@ public:
                      globals here (as they are propagated via call- and
                      ret-functions. */
         ,
-        [](const llvm::CallBase * /* CS */, const llvm::Value * /* V */) {
-          return false; // treat as not involved in the call since this also
-                        // caputes usages of the parameter
+        [](const llvm::CallBase * /* CS */, const llvm::Value *V) {
+          // Treat global variables as involved, since we wish to have them
+          // handled by getCallFlowFunction() and getRetFlowFunction() to model
+          // potential effects of the callee.
+          // Constants covers global variables as well as ConstantExpr and
+          // ConstantAggregate
+          if (llvm::isa<llvm::Constant>(V)) {
+            return true;
+          }
+          // Treat all other values as not involved in the call since this also
+          // captures usages of the parameter.
+          return false;
         });
   }
 
@@ -631,7 +654,7 @@ public:
                         d_t SuccNode) override {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
                   << "Process edge: " << llvmIRToShortString(CurrNode) << " --"
-                  << llvmIRToShortString(Curr) << "--> "
+                  << llvmIRToString(Curr) << "--> "
                   << llvmIRToShortString(SuccNode));
     //
     // Zero --> Zero edges
@@ -746,7 +769,7 @@ public:
             BOOST_LOG_SEV(lg::get(), DFADEBUG)
                 << "at '" << llvmIRToString(Curr) << "'\n";
           }());
-          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
+          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
         // Kill all labels that are propagated along the edge of the value that
         // is overridden.
@@ -1080,13 +1103,13 @@ public:
     l_t Replacement;
 
     explicit IIAAKillOrReplaceEF() : Replacement(BitVectorSet<e_t>()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                    << "IIAAKillOrReplaceEF");
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      //               << "IIAAKillOrReplaceEF");
     }
 
     explicit IIAAKillOrReplaceEF(l_t Replacement) : Replacement(Replacement) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                    << "IIAAKillOrReplaceEF");
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      //               << "IIAAKillOrReplaceEF");
     }
 
     ~IIAAKillOrReplaceEF() override = default;
@@ -1095,9 +1118,9 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                    << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
-                    << " * " << SecondFunction->str());
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      //               << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
+      //               << " * " << SecondFunction->str());
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
@@ -1193,7 +1216,7 @@ public:
     const l_t Data;
 
     explicit IIAAAddLabelsEF(l_t Data) : Data(Data) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "IIAAAddLabelsEF");
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "IIAAAddLabelsEF");
     }
 
     ~IIAAAddLabelsEF() override = default;
@@ -1204,9 +1227,10 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                    << "IIAAAddLabelEF::composeWith(): " << this->str() << " * "
-                    << SecondFunction->str());
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      //               << "IIAAAddLabelEF::composeWith(): " << this->str() << "
+      //               * "
+      //               << SecondFunction->str());
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }

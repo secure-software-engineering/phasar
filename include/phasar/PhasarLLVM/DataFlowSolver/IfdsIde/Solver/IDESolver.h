@@ -682,30 +682,30 @@ protected:
     n_t n = Edge.getTarget();
     d_t d2 = Edge.factAtTarget();
     EdgeFunctionPtrType f = jumpFunction(Edge);
-    for (const auto Fn : ICF->getSuccsOf(n)) {
+    for (const auto nPrime : ICF->getSuccsOf(n)) {
       FlowFunctionPtrType FlowFunc =
-          CachedFlowEdgeFunctions.getNormalFlowFunction(n, Fn);
+          CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
-      saveEdges(n, Fn, d2, Res, false);
+      saveEdges(n, nPrime, d2, Res, false);
       for (d_t d3 : Res) {
         EdgeFunctionPtrType g =
-            CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, Fn, d3);
+            CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
         EdgeFunctionPtrType fPrime = f->composeWith(g);
         if (SolverConfig.emitESG()) {
-          IntermediateEdgeFunctions[std::make_tuple(n, d2, Fn, d3)].push_back(
-              g);
+          IntermediateEdgeFunctions[std::make_tuple(n, d2, nPrime, d3)]
+              .push_back(g);
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << g->str() << " * " << f->str()
                           << " = " << fPrime->str();
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        propagate(d1, Fn, d3, fPrime, nullptr, false);
+        propagate(d1, nPrime, d3, fPrime, nullptr, false);
       }
     }
   }
