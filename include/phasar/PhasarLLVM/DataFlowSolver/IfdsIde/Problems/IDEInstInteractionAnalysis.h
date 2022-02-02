@@ -748,29 +748,6 @@ public:
     // Overrides at store instructions
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
       if (SyntacticAnalysisOnly) {
-        //
-        // x --> y
-        //
-        // Edge function:
-        //
-        //             x
-        //              \
-        // store x y     \ \x.{ commit of('store x y') }
-        //                v
-        //                y
-        //
-        if (CurrNode == Store->getValueOperand() &&
-            SuccNode == Store->getPointerOperand()) {
-          LOG_IF_ENABLE([&]() {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Var-Override: ";
-            for (const auto &EF : EdgeFacts) {
-              BOOST_LOG_SEV(lg::get(), DFADEBUG) << EF << ", ";
-            }
-            BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                << "at '" << llvmIRToString(Curr) << "'\n";
-          }());
-          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-        }
         // Kill all labels that are propagated along the edge of the value that
         // is overridden.
         //
@@ -814,6 +791,29 @@ public:
           }
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
+        //
+        // x --> y
+        //
+        // Edge function:
+        //
+        //             x
+        //              \
+        // store x y     \ \x.{ commit of('store x y') }
+        //                v
+        //                y
+        //
+        if (CurrNode == Store->getValueOperand() &&
+            SuccNode == Store->getPointerOperand()) {
+          LOG_IF_ENABLE([&]() {
+            BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Var-Override: ";
+            for (const auto &EF : EdgeFacts) {
+              BOOST_LOG_SEV(lg::get(), DFADEBUG) << EF << ", ";
+            }
+            BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                << "at '" << llvmIRToString(Curr) << "'\n";
+          }());
+          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        }
       } else {
         // Use points-to information to find all possible overriding edges.
 
@@ -840,6 +840,24 @@ public:
              Store->getPointerOperand() == CurrNode)) {
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
+        // Kill all labels that are propagated along the edge of the
+        // value/values that is/are overridden.
+        //
+        // y --> y
+        //
+        // Edge function:
+        //
+        //            y
+        //            |
+        // store x y  | \x.{}
+        //            v
+        //            y
+        //
+        if (CurrNode == SuccNode && this->PT->isInReachableAllocationSites(
+                                        Store->getPointerOperand(), CurrNode,
+                                        OnlyConsiderLocalAliases)) {
+          return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
+        }
         // Overriding edge: obtain labels from value to be stored (and may add
         // UserEdgeFacts, if any).
         //
@@ -864,24 +882,6 @@ public:
                                                    Store->getPointerOperand(),
                                                    OnlyConsiderLocalAliases)) {
           return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-        }
-        // Kill all labels that are propagated along the edge of the
-        // value/values that is/are overridden.
-        //
-        // y --> y
-        //
-        // Edge function:
-        //
-        //            y
-        //            |
-        // store x y  | \x.{}
-        //            v
-        //            y
-        //
-        if (CurrNode == SuccNode && this->PT->isInReachableAllocationSites(
-                                        Store->getPointerOperand(), CurrNode,
-                                        OnlyConsiderLocalAliases)) {
-          return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
         }
       }
     }
