@@ -10,6 +10,6 @@ repos:
     -   id: check-added-large-files
     -   id: requirements-txt-fixer
 -   repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: 'v12.0.1'
+    rev: 'v13.0.0'
     hooks:
     -   id: clang-format
