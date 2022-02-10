@@ -6,7 +6,7 @@ PhASAR a LLVM-based Static Analysis Framework
 [![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
-Version 0521
+Version 0222
 
 Secure Software Engineering Group
 ---------------------------------
@@ -20,7 +20,7 @@ PhASAR requires C++-17.
 
 Currently supported version of LLVM
 -----------------------------------
-PhASAR is currently set up to support LLVM-12.0.
+PhASAR is currently set up to support LLVM-13.0.
 
 What is PhASAR?
 ---------------
