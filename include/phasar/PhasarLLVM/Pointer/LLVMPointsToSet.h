@@ -11,17 +11,11 @@
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H_
 
 #include <iostream>
-#include <memory>
 #include <memory_resource>
-#include <numeric>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 
 #include "nlohmann/json.hpp"
 
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/Support/FormatVariadic.h"
 
 #include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
@@ -43,7 +37,6 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
-  /// Map to an index in AllPointsToSets
   using PointsToSetMap =
       llvm::DenseMap<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>;
 
@@ -63,9 +56,8 @@ private:
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 
-  DynamicPointsToSetPtr<PointsToSetTy>
-  mergePointsToSets(DynamicPointsToSetPtr<PointsToSetTy> PTS1,
-                    DynamicPointsToSetPtr<PointsToSetTy> PTS2);
+  void mergePointsToSets(DynamicPointsToSetPtr<PointsToSetTy> PTS1,
+                         DynamicPointsToSetPtr<PointsToSetTy> PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);

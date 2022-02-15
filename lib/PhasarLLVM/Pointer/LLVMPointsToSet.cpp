@@ -13,18 +13,14 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
-#include <numeric>
 #include <type_traits>
-#include <unordered_set>
 #include <utility>
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalValue.h"
@@ -36,9 +32,11 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/FormatVariadic.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -50,7 +48,7 @@ namespace psr {
 
 template class DynamicPointsToSetPtr<>;
 template class DynamicPointsToSetConstPtr<>;
-template class PointsToSetOwner<llvm::DenseSet<const llvm::Value *>>;
+template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
@@ -157,12 +155,11 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   mergePointsToSets(SearchV1->second, SearchV2->second);
 }
 
-auto LLVMPointsToSet::mergePointsToSets(
+void LLVMPointsToSet::mergePointsToSets(
     DynamicPointsToSetPtr<PointsToSetTy> PTS1,
-    DynamicPointsToSetPtr<PointsToSetTy> PTS2)
-    -> DynamicPointsToSetPtr<PointsToSetTy> {
+    DynamicPointsToSetPtr<PointsToSetTy> PTS2) {
   if (PTS1 == PTS2 || PTS1.get() == PTS2.get()) {
-    return PTS1;
+    return;
   }
 
   assert(PTS1 && PTS1.get());
@@ -195,8 +192,6 @@ auto LLVMPointsToSet::mergePointsToSets(
   }
 
   Owner.release(ToDelete);
-
-  return LargerSet;
 }
 
 bool LLVMPointsToSet::interIsReachableAllocationSiteTy(

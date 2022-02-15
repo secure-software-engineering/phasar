@@ -11,8 +11,6 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
 #include <iostream>
-#include <memory>
-#include <unordered_set>
 
 #include "llvm/ADT/DenseSet.h"
 

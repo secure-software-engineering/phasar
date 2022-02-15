@@ -10,14 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 
-#include <memory>
 #include <memory_resource>
-#include <vector>
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/Utils/StableVector.h"
 
 namespace llvm {
@@ -68,7 +67,7 @@ private:
   StableVector<PointsToSetTy *> AllPTS;
 };
 
-extern template class PointsToSetOwner<llvm::DenseSet<const llvm::Value *>>;
+extern template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H

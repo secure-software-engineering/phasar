@@ -12,10 +12,11 @@
 
 #include <cstddef>
 #include <iterator>
-#include <llvm-12/llvm/ADT/ArrayRef.h>
 #include <memory_resource>
 #include <type_traits>
 
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace psr {
@@ -34,6 +35,8 @@ public:
     Data.push_back(Ret);
     return *Ret;
   }
+
+  void reserve(size_t Capacity) { Data.reserve(Capacity); }
 
   [[nodiscard]] T &back() noexcept { return *Data.back(); }
   [[nodiscard]] const T &back() const noexcept { return *Data.back(); }
@@ -201,12 +204,14 @@ public:
 
   void pop_back_n(size_t N) noexcept {
     if constexpr (DeallocateElements) {
-      for (auto *Elem : llvm::ArrayRef<T *>(this->Data).take_back(N)) {
+      for (auto *Elem :
+           llvm::reverse(llvm::ArrayRef<T *>(this->Data).take_back(N))) {
         Elem->~T();
         this->Alloc.deallocate(Elem, 1);
       }
     } else if constexpr (!std::is_trivially_destructible_v<T>) {
-      for (auto *Elem : llvm::ArrayRef<T *>(this->Data).take_back(N)) {
+      for (auto *Elem :
+           llvm::reverse(llvm::ArrayRef<T *>(this->Data).take_back(N))) {
         Elem->~T();
       }
     }
@@ -216,12 +221,12 @@ public:
 
   void clear() noexcept {
     if constexpr (DeallocateElements) {
-      for (auto *Elem : this->Data) {
+      for (auto *Elem : llvm::reverse(this->Data)) {
         Elem->~T();
         this->Alloc.deallocate(Elem, 1);
       }
     } else if constexpr (!std::is_trivially_destructible_v<T>) {
-      for (auto *Elem : this->Data) {
+      for (auto *Elem : llvm::reverse(this->Data)) {
         Elem->~T();
       }
     }

@@ -13,12 +13,11 @@
 #include <string>
 #include <vector>
 
+#include "boost/dll.hpp"
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 #include "boost/program_options/value_semantic.hpp"
 
-#include "boost/dll.hpp"
-#include "boost/filesystem.hpp"
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/Plugins/AnalysisPluginController.h"

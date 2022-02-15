@@ -180,6 +180,12 @@ template <typename C> struct hash<psr::DynamicPointsToSetPtr<C>> {
     return std::hash<C **>{}(Ptr.value());
   }
 };
+template <typename C> struct hash<psr::DynamicPointsToSetConstPtr<C>> {
+  constexpr size_t
+  operator()(psr::DynamicPointsToSetConstPtr<C> Ptr) const noexcept {
+    return std::hash<C const *const *>{}(Ptr.value());
+  }
+};
 } // namespace std
 
 namespace llvm {
@@ -198,6 +204,24 @@ template <typename C> struct DenseMapInfo<psr::DynamicPointsToSetPtr<C>> {
 
   inline static unsigned
   getHashValue(psr::DynamicPointsToSetPtr<C> Ptr) noexcept {
+    return hash_value(Ptr);
+  }
+};
+template <typename C> struct DenseMapInfo<psr::DynamicPointsToSetConstPtr<C>> {
+  inline static psr::DynamicPointsToSetConstPtr<C> getEmptyKey() noexcept {
+    return DenseMapInfo<C **>::getEmptyKey();
+  }
+  inline static psr::DynamicPointsToSetConstPtr<C> getTombstoneKey() noexcept {
+    return DenseMapInfo<C **>::getTombstoneKey();
+  }
+
+  inline static bool isEqual(psr::DynamicPointsToSetConstPtr<C> LHS,
+                             psr::DynamicPointsToSetConstPtr<C> RHS) noexcept {
+    return LHS == RHS;
+  }
+
+  inline static unsigned
+  getHashValue(psr::DynamicPointsToSetConstPtr<C> Ptr) noexcept {
     return hash_value(Ptr);
   }
 };
