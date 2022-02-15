@@ -18,6 +18,8 @@
 
 #include "nlohmann/json.hpp"
 
+#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
+
 namespace psr {
 
 enum class AliasResult { NoAlias, MayAlias, PartialAlias, MustAlias };
@@ -43,7 +45,7 @@ std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA);
 template <typename V, typename N> class PointsToInfo {
 public:
   using PointsToSetTy = llvm::DenseSet<V>;
-  using PointsToSetPtrTy = const PointsToSetTy *;
+  using PointsToSetPtrTy = DynamicPointsToSetConstPtr<PointsToSetTy>;
   using AllocationSiteSetPtrTy = std::unique_ptr<PointsToSetTy>;
 
   virtual ~PointsToInfo() = default;

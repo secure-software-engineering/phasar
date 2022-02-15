@@ -11,31 +11,64 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 
 #include <memory>
+#include <memory_resource>
 #include <vector>
 
-#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/Support/ErrorHandling.h"
+
+#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
+#include "phasar/Utils/StableVector.h"
+
+namespace llvm {
+class Value;
+} // namespace llvm
 
 namespace psr {
 template <typename PointsToSetTy> class PointsToSetOwner {
 public:
-  explicit PointsToSetOwner() noexcept = default;
+  PointsToSetOwner(std::pmr::polymorphic_allocator<PointsToSetTy> Alloc =
+                       std::pmr::get_default_resource()) noexcept
+      : Alloc(Alloc), AllPTS(Alloc.resource()) {}
+  PointsToSetOwner(PointsToSetOwner &&) noexcept = default;
 
-  PointsToSetTy *acquire() {
-    auto Ptr = std::make_unique<PointsToSetTy>();
-    auto *Ret = Ptr.get();
-    OwnedPTS.try_emplace(Ret, std::move(Ptr));
-    return Ret;
+  PointsToSetOwner(const PointsToSetOwner &) = delete;
+  PointsToSetOwner &operator=(const PointsToSetOwner &) = delete;
+  PointsToSetOwner &operator=(PointsToSetOwner &&) = delete;
+
+  ~PointsToSetOwner() {
+    for (auto PTS : OwnedPTS) {
+      std::destroy_at(PTS);
+      Alloc.deallocate(PTS, 1);
+    }
+    OwnedPTS.clear();
   }
-  void release(PointsToSetTy *PTS) noexcept { OwnedPTS.erase(PTS); }
+
+  DynamicPointsToSetPtr<PointsToSetTy> acquire() {
+    auto Ptr = new (Alloc.allocate(1)) PointsToSetTy();
+    OwnedPTS.insert(Ptr);
+    return &AllPTS.emplace_back(Ptr);
+  }
+  void release(PointsToSetTy *PTS) noexcept {
+    if (LLVM_UNLIKELY(!OwnedPTS.erase(PTS))) {
+      llvm::report_fatal_error(
+          "ERROR: release PointsToSet that was either already "
+          "freed, or never allocated with this PointsToSetOwner!");
+    }
+    std::destroy_at(PTS);
+    Alloc.deallocate(PTS, 1);
+    /// NOTE: Do not delete from AllPTS!
+  }
 
   void reserve(size_t Capacity) { OwnedPTS.reserve(Capacity); }
 
 private:
-  /// Note: Cannot use a set here, because llvm::DenseSet requires the key-type
-  /// to be copy-constructible and the STL containers do not support
-  /// heterogenous lookup as of C++17
-  llvm::DenseMap<PointsToSetTy *, std::unique_ptr<PointsToSetTy>> OwnedPTS;
+  std::pmr::polymorphic_allocator<PointsToSetTy> Alloc;
+  llvm::DenseSet<PointsToSetTy *> OwnedPTS;
+  StableVector<PointsToSetTy *> AllPTS;
 };
+
+extern template class PointsToSetOwner<llvm::DenseSet<const llvm::Value *>>;
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H

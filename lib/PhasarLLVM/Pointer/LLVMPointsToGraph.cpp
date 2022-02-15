@@ -258,8 +258,8 @@ AliasResult LLVMPointsToGraph::alias(const llvm::Value *V1,
                                      const llvm::Instruction * /*I*/) {
   computePointsToGraph(V1);
   computePointsToGraph(V2);
-  const auto *PTS = getPointsToSet(V1);
-  if (PTS->find(V2) != PTS->end()) {
+  auto PTS = getPointsToSet(V1);
+  if (PTS->contains(V2)) {
     return AliasResult::MustAlias;
   }
   return AliasResult::NoAlias;
@@ -388,7 +388,7 @@ auto LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
       PAG, ValueVertexMap.at(V), Vis,
       boost::make_iterator_property_map(
           ColorMap.begin(), boost::get(boost::vertex_index, PAG), ColorMap[0]));
-  auto *ResultSet = [this, V] {
+  auto ResultSet = [this, V] {
     auto &Ret = Cache[V];
 
     if (!Ret) {

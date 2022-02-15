@@ -189,7 +189,7 @@ IDETypeStateAnalysis::getRetFlowFunction(
 
     set<IDETypeStateAnalysis::d_t>
     computeTargets(IDETypeStateAnalysis::d_t Source) override {
-      if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+      if (!LLVMZeroValue::isLLVMZeroValue(Source)) {
         set<const llvm::Value *> Res;
         // Handle C-style varargs functions
         if (CalleeFun->isVarArg() && !CalleeFun->isDeclaration()) {
@@ -327,7 +327,7 @@ IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() const {
 }
 
 bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts
@@ -667,7 +667,7 @@ IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
                                                     PointsToCache[V].end());
     return PointsToSet;
   }
-  const auto *PTS = PT->getPointsToSet(V);
+  auto PTS = PT->getPointsToSet(V);
   for (const auto *Alias : *PTS) {
     if (hasMatchingType(Alias)) {
       PointsToCache[Alias] = *PTS;

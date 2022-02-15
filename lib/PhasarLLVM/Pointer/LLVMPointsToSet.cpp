@@ -48,6 +48,10 @@ using namespace std;
 
 namespace psr {
 
+template class DynamicPointsToSetPtr<>;
+template class DynamicPointsToSetConstPtr<>;
+template class PointsToSetOwner<llvm::DenseSet<const llvm::Value *>>;
+
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy) {
@@ -125,18 +129,17 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
   }
 }
 
-auto LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V)
-    -> PointsToSetPtrTy {
+void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
+  auto [It, Inserted] = PointsToSets.try_emplace(V, nullptr);
 
-  auto &PTS = PointsToSets[V];
-
-  if (!PTS) {
-    PTS = Owner.acquire();
-    PTS->insert(V);
+  if (!Inserted) {
+    assert(It->second->count(V));
+    return;
   }
 
-  assert(PTS->count(V));
-  return PTS;
+  auto PTS = Owner.acquire();
+  PTS->insert(V);
+  It->second = PTS;
 }
 
 void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
@@ -154,15 +157,16 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   mergePointsToSets(SearchV1->second, SearchV2->second);
 }
 
-auto LLVMPointsToSet::mergePointsToSets(PointsToSetTy *PTS1,
-                                        PointsToSetTy *PTS2)
-    -> PointsToSetTy * {
-  if (PTS1 == PTS2) {
+auto LLVMPointsToSet::mergePointsToSets(
+    DynamicPointsToSetPtr<PointsToSetTy> PTS1,
+    DynamicPointsToSetPtr<PointsToSetTy> PTS2)
+    -> DynamicPointsToSetPtr<PointsToSetTy> {
+  if (PTS1 == PTS2 || PTS1.get() == PTS2.get()) {
     return PTS1;
   }
 
-  assert(PTS1);
-  assert(PTS2);
+  assert(PTS1 && PTS1.get());
+  assert(PTS2 && PTS2.get());
 
   auto [SmallerSet, LargerSet] = [&]() {
     if (PTS1->size() > PTS2->size()) {
@@ -172,16 +176,25 @@ auto LLVMPointsToSet::mergePointsToSets(PointsToSetTy *PTS1,
   }();
 
   // reindex the contents of the smaller set
-  for (const auto *Ptr : *SmallerSet) {
-    PointsToSets[Ptr] = LargerSet;
-  }
+  // for (const auto *Ptr : *SmallerSet) {
+  //   PointsToSets[Ptr] = LargerSet;
+  // }
 
   // add smaller set to larger one and get rid of the smaller set
   LargerSet->reserve(LargerSet->size() + SmallerSet->size());
   LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
 
-  SmallerSet->clear();
-  Owner.release(SmallerSet);
+  // *SmallerSet.value() = LargerSet.get();
+  auto *ToDelete = SmallerSet.get();
+  for (const auto *Vals : *SmallerSet) {
+    auto PTS = PointsToSets[Vals];
+    if (PTS.get() == ToDelete) {
+
+      *PTS.value() = LargerSet.get();
+    }
+  }
+
+  Owner.release(ToDelete);
 
   return LargerSet;
 }
@@ -284,7 +297,7 @@ void LLVMPointsToSet::addPointer(llvm::AAResults &AA,
     Reps.push_back(V);
     addSingletonPointsToSet(V);
   } else if (ToMerge.size() == 1) {
-    auto *PTS = PointsToSets[Reps[ToMerge[0]]];
+    auto PTS = PointsToSets[Reps[ToMerge[0]]];
     assert(PTS && "Only added to Reps together with a "
                   "\"addSingletonPointsToSet\" call");
 
@@ -300,13 +313,13 @@ void LLVMPointsToSet::addPointer(llvm::AAResults &AA,
     }
 
   } else {
-    auto *PTS = PointsToSets[Reps[ToMerge[0]]];
+    auto PTS = PointsToSets[Reps[ToMerge[0]]];
     llvm::SmallPtrSet<const llvm::Type *, 6> OccurringTypes{
         Reps[ToMerge[0]]->getType()};
     llvm::SmallVector<unsigned> ToRemove;
 
     for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
-      PTS = mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
+      mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
       if (auto [Unused, Inserted] = OccurringTypes.insert(Reps[Idx]->getType());
           !Inserted) {
         ToRemove.push_back(Idx);
@@ -482,9 +495,11 @@ LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
                                      : AliasResult::NoAlias;
 }
 
-auto LLVMPointsToSet::getEmptyPointsToSet() -> PointsToSetPtrTy {
+auto LLVMPointsToSet::getEmptyPointsToSet()
+    -> DynamicPointsToSetPtr<PointsToSetTy> {
   static PointsToSetTy EmptySet{};
-  return &EmptySet;
+  static PointsToSetTy *EmptySetPtr = &EmptySet;
+  return &EmptySetPtr;
 }
 
 auto LLVMPointsToSet::getPointsToSet(
@@ -516,7 +531,7 @@ auto LLVMPointsToSet::getReachableAllocationSites(
   }
   computeValuesPointsToSet(V);
 
-  const auto *PTS = PointsToSets[V];
+  const auto PTS = PointsToSets[V];
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
     for (const auto *P : *PTS) {
@@ -562,7 +577,7 @@ bool LLVMPointsToSet::isInReachableAllocationSites(
   }
 
   if (PVIsReachableAllocationSiteType) {
-    const auto *PTS = PointsToSets[V];
+    const auto PTS = PointsToSets[V];
     return PTS->count(PotentialValue);
   }
 
@@ -599,7 +614,7 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
     // if none of the pointers of a set of other is known in this, we need to
     // perform a copy
     if (!FoundElemPtr) {
-      auto *PTS = Owner.acquire();
+      auto PTS = Owner.acquire();
       *PTS = *Set;
       PointsToSets.try_emplace(KeyPtr, PTS);
     }

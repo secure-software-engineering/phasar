@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <memory>
+#include <memory_resource>
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
@@ -19,12 +20,14 @@
 
 #include "nlohmann/json.hpp"
 
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/Support/FormatVariadic.h"
+
+#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
-
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/Support/FormatVariadic.h"
+#include "phasar/Utils/StableVector.h"
 
 namespace llvm {
 class Value;
@@ -40,23 +43,29 @@ namespace psr {
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
-  using PointsToSetMap = llvm::DenseMap<const llvm::Value *, PointsToSetTy *>;
+  /// Map to an index in AllPointsToSets
+  using PointsToSetMap =
+      llvm::DenseMap<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>;
 
   LLVMBasedPointsToAnalysis PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
-  PointsToSetOwner<PointsToSetTy> Owner;
+  std::pmr::unsynchronized_pool_resource MRes;
+
+  PointsToSetOwner<PointsToSetTy> Owner{&MRes};
   PointsToSetMap PointsToSets;
 
   void computeValuesPointsToSet(const llvm::Value *V);
 
   void computeFunctionsPointsToSet(llvm::Function *F);
 
-  PointsToSetPtrTy addSingletonPointsToSet(const llvm::Value *V);
+  void addSingletonPointsToSet(const llvm::Value *V);
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 
-  PointsToSetTy *mergePointsToSets(PointsToSetTy *PTS1, PointsToSetTy *PTS2);
+  DynamicPointsToSetPtr<PointsToSetTy>
+  mergePointsToSets(DynamicPointsToSetPtr<PointsToSetTy> PTS1,
+                    DynamicPointsToSetPtr<PointsToSetTy> PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);
@@ -70,7 +79,8 @@ private:
   void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
                   const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
 
-  [[nodiscard]] static PointsToSetPtrTy getEmptyPointsToSet();
+  [[nodiscard]] static DynamicPointsToSetPtr<PointsToSetTy>
+  getEmptyPointsToSet();
 
 public:
   /**

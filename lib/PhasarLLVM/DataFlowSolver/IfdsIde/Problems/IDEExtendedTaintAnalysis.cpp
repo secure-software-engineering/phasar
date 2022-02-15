@@ -256,7 +256,7 @@ void IDEExtendedTaintAnalysis::populateWithMayAliases(
 
   SourceConfigTy Tmp = Facts;
   for (const auto *Fact : Facts) {
-    const auto *Aliases = PT->getPointsToSet(Fact);
+    auto Aliases = PT->getPointsToSet(Fact);
 
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
