@@ -12,6 +12,7 @@
 
 #include <cstddef>
 #include <iterator>
+#include <memory>
 #include <memory_resource>
 #include <type_traits>
 
@@ -54,9 +55,7 @@ public:
     using reference = value_type &;
     using pointer = value_type *;
     using difference_type = ptrdiff_t;
-    /// NOTE: This could as well be a random_access_iterator, but I am just too
-    /// lazy now to implement all that stuff...
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
 
     Iterator &operator++() noexcept {
       ++Ptr;
@@ -69,15 +68,69 @@ public:
       return Ret;
     }
 
+    Iterator &operator--() noexcept {
+      --Ptr;
+      return *this;
+    }
+
+    Iterator operator--(int) noexcept {
+      auto Ret = *this;
+      --*this;
+      return Ret;
+    }
+
+    Iterator &operator+=(difference_type N) noexcept {
+      Ptr += N;
+      return *this;
+    }
+
+    Iterator &operator-=(difference_type N) noexcept {
+      Ptr -= N;
+      return *this;
+    }
+
+    friend Iterator operator+(Iterator LHS, difference_type RHS) noexcept {
+      return LHS.Ptr + RHS;
+    }
+    friend Iterator operator+(difference_type LHS, Iterator RHS) noexcept {
+      return RHS + LHS;
+    }
+    friend Iterator operator-(Iterator LHS, difference_type RHS) noexcept {
+      return LHS.Ptr - RHS;
+    }
+
+    friend difference_type operator-(Iterator LHS, Iterator RHS) noexcept {
+      return LHS.Ptr - RHS.Ptr;
+    }
+
     reference operator*() noexcept { return **Ptr; }
     pointer operator->() noexcept { return *Ptr; }
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    reference operator[](difference_type Idx) noexcept { return *(Ptr[Idx]); }
 
-    bool operator==(Iterator Other) const noexcept { return Ptr == Other.Ptr; }
-    bool operator!=(Iterator Other) const noexcept { return !(*this == Other); }
+    friend bool operator==(Iterator LHS, Iterator RHS) noexcept {
+      return LHS.Ptr == RHS.Ptr;
+    }
+    friend bool operator!=(Iterator LHS, Iterator RHS) noexcept {
+      return !(LHS == RHS);
+    }
+    friend bool operator<(Iterator LHS, Iterator RHS) noexcept {
+      return LHS.Ptr < RHS.Ptr;
+    }
+
+    friend bool operator>(Iterator LHS, Iterator RHS) noexcept {
+      return RHS < LHS;
+    }
+    friend bool operator<=(Iterator LHS, Iterator RHS) noexcept {
+      return !(LHS > RHS);
+    }
+    friend bool operator>=(Iterator LHS, Iterator RHS) noexcept {
+      return !(LHS < RHS);
+    }
 
     Iterator(const Iterator &) noexcept = default;
     template <bool C, typename = std::enable_if_t<IsConst && !C>>
-    Iterator(const Iterator<C> &Other) noexcept : Ptr(Other.Ptr) {}
+    Iterator(Iterator<C> Other) noexcept : Ptr(Other.Ptr) {}
 
     ~Iterator() = default;
     Iterator &operator=(const Iterator &) noexcept = default;
@@ -196,23 +249,20 @@ public:
 
   void pop_back() noexcept {
     auto Elem = this->Data.pop_back_val();
-    Elem->~T();
+    std::destroy_at(Elem);
     if constexpr (DeallocateElements) {
       this->Alloc.deallocate(Elem, 1);
     }
   }
 
   void pop_back_n(size_t N) noexcept {
-    if constexpr (DeallocateElements) {
+    if constexpr (DeallocateElements || !std::is_trivially_destructible_v<T>) {
       for (auto *Elem :
            llvm::reverse(llvm::ArrayRef<T *>(this->Data).take_back(N))) {
-        Elem->~T();
-        this->Alloc.deallocate(Elem, 1);
-      }
-    } else if constexpr (!std::is_trivially_destructible_v<T>) {
-      for (auto *Elem :
-           llvm::reverse(llvm::ArrayRef<T *>(this->Data).take_back(N))) {
-        Elem->~T();
+        std::destroy_at(Elem);
+        if constexpr (DeallocateElements) {
+          this->Alloc.deallocate(Elem, 1);
+        }
       }
     }
 
@@ -220,16 +270,15 @@ public:
   }
 
   void clear() noexcept {
-    if constexpr (DeallocateElements) {
+    if constexpr (DeallocateElements || !std::is_trivially_destructible_v<T>) {
       for (auto *Elem : llvm::reverse(this->Data)) {
-        Elem->~T();
-        this->Alloc.deallocate(Elem, 1);
-      }
-    } else if constexpr (!std::is_trivially_destructible_v<T>) {
-      for (auto *Elem : llvm::reverse(this->Data)) {
-        Elem->~T();
+        std::destroy_at(Elem);
+        if constexpr (DeallocateElements) {
+          this->Alloc.deallocate(Elem, 1);
+        }
       }
     }
+
     this->Data.clear();
   }
 
