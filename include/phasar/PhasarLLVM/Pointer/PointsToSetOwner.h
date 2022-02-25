@@ -28,7 +28,7 @@ template <typename PointsToSetTy> class PointsToSetOwner {
 public:
   PointsToSetOwner(std::pmr::polymorphic_allocator<PointsToSetTy> Alloc =
                        std::pmr::get_default_resource()) noexcept
-      : Alloc(Alloc), AllPTS(Alloc.resource()) {}
+      : Alloc(Alloc) {}
   PointsToSetOwner(PointsToSetOwner &&) noexcept = default;
 
   PointsToSetOwner(const PointsToSetOwner &) = delete;

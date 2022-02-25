@@ -44,8 +44,8 @@ private:
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
   std::pmr::unsynchronized_pool_resource MRes;
-
   PointsToSetOwner<PointsToSetTy> Owner{&MRes};
+
   PointsToSetMap PointsToSets;
 
   void computeValuesPointsToSet(const llvm::Value *V);
@@ -76,13 +76,9 @@ private:
 
 public:
   /**
-   * Creates points-to set(s) based on the computed alias results.
-   *
-   * @brief Creates points-to set(s) for a given function.
-   * @param AA Contains the computed Alias Results.
-   * @param F Points-to set is created for this particular function.
-   * @param onlyConsiderMustAlias True, if only Must Aliases should be
-   * considered. False, if May and Must Aliases should be considered.
+   * Creates points-to set(s) for all functions in the IRDB. If
+   * UseLazyEvaluation is true, computes points-to-sets for functions that do
+   * not use global variables on the fly
    */
   LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
                   PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);

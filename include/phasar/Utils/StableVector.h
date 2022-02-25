@@ -10,55 +10,68 @@
 #ifndef PHASAR_UTILS_STABLEVECTOR_H_
 #define PHASAR_UTILS_STABLEVECTOR_H_
 
+#include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <memory>
-#include <memory_resource>
 #include <type_traits>
 
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/MathExtras.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
-template <typename T, bool DeallocateElements = true> class StableVector;
+
 // NOLINTBEGIN(readability-identifier-naming)
 
-/// Common base class of StableVector<T, true> and StableVector<T, false>.
-/// Should be used for genericly passing const-ref arguments
-template <typename T> class StableVectorBase {
+/// A special-purpose container designed for providing the almost complete
+/// interface from std::vector, but with the guarantee that references to stored
+/// elements are not invalidated by insertion or deletion of other elements.
+///
+/// This container can be used as memory owner for objects of any size
+/// providing the allocator properties of std::pmr::monotonoc_buffer_resource
+/// but with the convenience of a standard container.
+///
+/// NOTE: This container performs slightly to very much better than std::deque
+/// depending on the task.
+template <typename T, typename Allocator = std::allocator<T>>
+class StableVector {
+
+  constexpr static size_t InitialLogCapacity = 5;
+  constexpr static size_t InitialCapacity = size_t(1) << InitialLogCapacity;
+
 public:
-  void push_back(const T &Elem) { emplace_back(Elem); }
-  void push_back(T &&Elem) { emplace_back(std::move(Elem)); }
-
-  template <typename... ArgTys> T &emplace_back(ArgTys &&...Args) {
-    auto Ret = new (Alloc.allocate(1)) T(std::forward<ArgTys>(Args)...);
-    Data.push_back(Ret);
-    return *Ret;
-  }
-
-  void reserve(size_t Capacity) { Data.reserve(Capacity); }
-
-  [[nodiscard]] T &back() noexcept { return *Data.back(); }
-  [[nodiscard]] const T &back() const noexcept { return *Data.back(); }
-
-  T &operator[](size_t Idx) noexcept { return *Data[Idx]; }
-  const T &operator[](size_t Idx) const noexcept { return *Data[Idx]; }
-
-  [[nodiscard]] bool empty() const noexcept { return Data.empty(); }
-  [[nodiscard]] size_t size() const noexcept { return Data.size(); }
-  [[nodiscard]] size_t capacity() const noexcept { return Data.capacity(); }
-
   template <bool IsConst> class Iterator {
   public:
     using value_type = std::conditional_t<IsConst, const T, T>;
     using reference = value_type &;
     using pointer = value_type *;
     using difference_type = ptrdiff_t;
-    using iterator_category = std::random_access_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     Iterator &operator++() noexcept {
-      ++Ptr;
+      if (++It != ItEnd) {
+        return *this;
+      }
+
+      if (++Outer == OuterEnd) {
+        // We are at the end of the tail loop
+        return *this;
+      }
+      if (Outer == OuterEnd - 1) {
+        // We are at the end of the main loop => enter the tail loop now
+        It = *Outer;
+        ItEnd = Pos;
+        return *this;
+      }
+      // We are still in the main loop
+
+      Cap = Total;
+      Total <<= 1;
+
+      It = *Outer;
+      ItEnd = It + Cap;
       return *this;
     }
 
@@ -68,239 +81,462 @@ public:
       return Ret;
     }
 
-    Iterator &operator--() noexcept {
-      --Ptr;
-      return *this;
+    [[nodiscard]] reference operator*() const noexcept { return *It; }
+    [[nodiscard]] pointer operator->() const noexcept { return It; }
+
+    [[nodiscard]] bool operator==(const Iterator &Other) const noexcept {
+      return Outer == Other.Outer;
     }
 
-    Iterator operator--(int) noexcept {
-      auto Ret = *this;
-      --*this;
-      return Ret;
-    }
-
-    Iterator &operator+=(difference_type N) noexcept {
-      Ptr += N;
-      return *this;
-    }
-
-    Iterator &operator-=(difference_type N) noexcept {
-      Ptr -= N;
-      return *this;
-    }
-
-    friend Iterator operator+(Iterator LHS, difference_type RHS) noexcept {
-      return LHS.Ptr + RHS;
-    }
-    friend Iterator operator+(difference_type LHS, Iterator RHS) noexcept {
-      return RHS + LHS;
-    }
-    friend Iterator operator-(Iterator LHS, difference_type RHS) noexcept {
-      return LHS.Ptr - RHS;
-    }
-
-    friend difference_type operator-(Iterator LHS, Iterator RHS) noexcept {
-      return LHS.Ptr - RHS.Ptr;
-    }
-
-    reference operator*() noexcept { return **Ptr; }
-    pointer operator->() noexcept { return *Ptr; }
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    reference operator[](difference_type Idx) noexcept { return *(Ptr[Idx]); }
-
-    friend bool operator==(Iterator LHS, Iterator RHS) noexcept {
-      return LHS.Ptr == RHS.Ptr;
-    }
-    friend bool operator!=(Iterator LHS, Iterator RHS) noexcept {
-      return !(LHS == RHS);
-    }
-    friend bool operator<(Iterator LHS, Iterator RHS) noexcept {
-      return LHS.Ptr < RHS.Ptr;
-    }
-
-    friend bool operator>(Iterator LHS, Iterator RHS) noexcept {
-      return RHS < LHS;
-    }
-    friend bool operator<=(Iterator LHS, Iterator RHS) noexcept {
-      return !(LHS > RHS);
-    }
-    friend bool operator>=(Iterator LHS, Iterator RHS) noexcept {
-      return !(LHS < RHS);
+    [[nodiscard]] bool operator!=(const Iterator &Other) const noexcept {
+      return !(*this == Other);
     }
 
     Iterator(const Iterator &) noexcept = default;
-    template <bool C, typename = std::enable_if_t<IsConst && !C>>
-    Iterator(Iterator<C> Other) noexcept : Ptr(Other.Ptr) {}
+    template <bool C, typename = std::enable_if_t<!C && IsConst>>
+    Iterator(const Iterator<C> &Other) noexcept
+        : It(Other.It), ItEnd(Other.ItEnd), Outer(Other.Outer),
+          OuterEnd(Other.OuterEnd), Cap(Other.Cap), Total(Other.Total),
+          Pos(Other.Pos) {}
 
     ~Iterator() = default;
+
     Iterator &operator=(const Iterator &) noexcept = default;
+    template <bool C, typename = std::enable_if_t<!C && IsConst>>
+    Iterator &operator=(const Iterator<C> &Other) noexcept {
+      new (this) Iterator(Other);
+      return *this;
+    }
 
   private:
-    friend class StableVectorBase;
-    Iterator(T *const *Ptr) noexcept : Ptr(Ptr) {}
+    friend class StableVector;
 
-    T *const *Ptr = nullptr;
+    Iterator(T *const *Outer, T *const *OuterEnd, T *Pos) noexcept
+        : Outer(Outer), OuterEnd(OuterEnd), Pos(Pos) {
+      if (OuterEnd == Outer) {
+        return;
+      }
+
+      It = *Outer;
+      if (OuterEnd - 1 == Outer) {
+        ItEnd = Pos;
+      } else {
+        ItEnd = It + InitialCapacity;
+      }
+    }
+
+    T *It = nullptr;
+    T *ItEnd = nullptr;
+    T *const *Outer = nullptr;
+    T *const *OuterEnd = nullptr;
+    size_t Cap = InitialCapacity;
+    size_t Total = InitialCapacity;
+    T *Pos = nullptr;
   };
 
   using iterator = Iterator<false>;
   using const_iterator = Iterator<true>;
   using value_type = T;
+  using reference = value_type &;
+  using const_reference = const value_type &;
+  using difference_type = ptrdiff_t;
+  using size_type = size_t;
+  using allocator_type =
+      typename std::allocator_traits<Allocator>::template rebind_alloc<T>;
 
-  iterator begin() noexcept { return Data.data(); }
-  iterator end() noexcept { return Data.data() + Data.size(); }
+  StableVector(const allocator_type &Alloc = allocator_type()) noexcept(
+      std::is_nothrow_copy_constructible_v<allocator_type>)
+      : Alloc(Alloc) {}
 
-  const_iterator cbegin() const noexcept { return Data.data(); }
-  const_iterator cend() const noexcept { return Data.data() + Data.size(); }
-
-  const_iterator begin() const noexcept { return cbegin(); }
-  const_iterator end() const noexcept { return cend(); }
-
-  /// Don't copy objects of the base-class!
-  StableVectorBase(const StableVectorBase &) = delete;
-  StableVectorBase &operator=(const StableVectorBase &) = delete;
-  StableVectorBase &operator=(StableVectorBase &&) = delete;
-  ~StableVectorBase() = default;
-
-private:
-  friend class StableVector<T, true>;
-  friend class StableVector<T, false>;
-
-  StableVectorBase(std::pmr::polymorphic_allocator<T> Alloc) noexcept
-      : Alloc(std::move(Alloc)) {}
-  StableVectorBase(llvm::SmallVector<T *, 0> Data,
-                   std::pmr::polymorphic_allocator<T> Alloc) noexcept
-      : Data(std::move(Data)), Alloc(std::move(Alloc)) {}
-
-  StableVectorBase(StableVectorBase &&) noexcept = default;
-
-  llvm::SmallVector<T *, 0> Data;
-  std::pmr::polymorphic_allocator<T> Alloc;
-};
-
-/// A vector, where references to elements remain stable after reallocations.
-/// Iterators, however, are still being invalidated in contrast to
-/// boost::container::stable_vector. As an additional optimization,
-/// DeallocateElements can be set to false to defer the deallocation of the
-/// individual elements to the destruction of the allocator. Only recommended
-/// when using an allocator other than the new_delete_resource.
-///
-/// NOTE: This container propagates the allocator on copy/move assignment and
-/// swap, although polymorphic allocators in general do not do so
-///
-/// NOTE: In theory, we could also use a deque, but it pays at least 80 bytes of
-/// struct-size + additional bookkeeping overhead.
-///
-/// NOTE: We can very likely further optimize this structure, but for now it is
-/// sufficient as is.
-template <typename T, bool DeallocateElements /*= true*/>
-class StableVector final : public StableVectorBase<T> {
-public:
-  StableVector(std::pmr::polymorphic_allocator<T> Alloc =
-                   std::pmr::get_default_resource()) noexcept
-      : StableVectorBase<T>(std::move(Alloc)) {}
-
-  StableVector(StableVector &&Other) noexcept = default;
+  StableVector(StableVector &&Other) noexcept
+      : Blocks(std::move(Other.Blocks)), Start(Other.Start), Pos(Other.Pos),
+        End(Other.End), Size(Other.Size), BlockIdx(Other.BlockIdx),
+        Alloc(std::move(Other.Alloc)) {
+    Other.Start = nullptr;
+    Other.Pos = nullptr;
+    Other.End = nullptr;
+    Other.Size = 0;
+    Other.BlockIdx = 0;
+  }
 
   explicit StableVector(const StableVector &Other)
-      : StableVectorBase<T>(Other.Data, Other.Alloc) {
-    if constexpr (DeallocateElements) {
-      for (auto *&Elem : this->Data) {
-        Elem = new (this->Alloc.allocate(1)) T(*Elem);
-      }
+      : Size(Other.Size), BlockIdx(Other.BlockIdx),
+        Alloc(std::allocator_traits<allocator_type>::
+                  select_on_container_copy_construction(Other.Alloc)) {
+    if (Other.empty()) {
+      return;
+    }
+    Blocks.reserve(BlockIdx + 1);
+    auto Cap = InitialCapacity;
+    auto Total = InitialCapacity;
+
+    for (size_t I = 0; I < BlockIdx; ++I) {
+      auto Blck =
+          (T *)std::allocator_traits<allocator_type>::allocate(Alloc, Cap);
+
+      std::uninitialized_copy_n(Other.Blocks[I], Cap, Blck);
+      Blocks.push_back(Blck);
+
+      Cap = Total;
+      Total <<= 1;
+    }
+
+    auto Blck =
+        (T *)std::allocator_traits<allocator_type>::allocate(Alloc, Cap);
+    std::uninitialized_copy(Other.Start, Other.Pos, Blck);
+    Blocks.push_back(Blck);
+
+    Start = Blck;
+    End = Blck + Cap;
+    Pos = Blck + (Other.Pos - Other.Start);
+  }
+
+  friend void swap(StableVector &LHS, StableVector &RHS) noexcept {
+    std::swap(LHS.Blocks, RHS.Blocks);
+    std::swap(LHS.Start, RHS.Start);
+    std::swap(LHS.Pos, RHS.Pos);
+    std::swap(LHS.End, RHS.End);
+    std::swap(LHS.Size, RHS.Size);
+    std::swap(LHS.BlockIdx, RHS.BlockIdx);
+
+    if constexpr (std::allocator_traits<
+                      allocator_type>::propagate_on_container_swap::value) {
+      std::swap(LHS.Alloc, RHS.Alloc);
     } else {
-      auto Ptr = this->Alloc.allocate(this->Data.size());
-      for (auto *&Elem : this->Data) {
-        Elem = new (Ptr) T(*Elem);
-        ++Ptr;
-      }
+      assert(LHS.Alloc == RHS.Alloc &&
+             "Do not swap two StableVectors with incompatible "
+             "allocators that do not propagate on swap!");
     }
   }
 
-  /// Pass by value to enforce the explicit constructor to trigger at the
-  /// call-site
+  void swap(StableVector &Other) noexcept { swap(*this, Other); }
+
   StableVector &operator=(StableVector Other) noexcept {
     swap(*this, Other);
     return *this;
   }
+
   StableVector &operator=(StableVector &&Other) noexcept {
     swap(*this, Other);
     return *this;
   }
 
-  friend void swap(StableVector &LHS, StableVector &RHS) noexcept {
-    std::swap(LHS.Data, RHS.Data);
-    auto LHSMRes = LHS.Alloc.resource();
-    auto RHSMRes = RHS.Alloc.resource();
+  ~StableVector() {
+    auto Cap = InitialCapacity;
+    auto TotalSize = Cap;
 
-    /// The polymorphic_allocator is just a thin wrapper over a pointer to
-    /// std::pmr::memory_resource, so why not swapping them???
+    for (size_t I = 0; I < BlockIdx; ++I) {
+      std::destroy_n(Blocks[I], Cap);
 
-    static_assert(
-        std::is_trivially_destructible_v<std::pmr::polymorphic_allocator<T>>);
-    static_assert(
-        std::is_nothrow_constructible_v<std::pmr::polymorphic_allocator<T>,
-                                        std::pmr::memory_resource *>);
+      std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[I], Cap);
 
-    new (&LHS.Alloc) std::pmr::polymorphic_allocator<T>(RHSMRes);
-    new (&RHS.Alloc) std::pmr::polymorphic_allocator<T>(LHSMRes);
+      Cap = TotalSize;
+      TotalSize <<= 1;
+    }
+
+    std::destroy(Start, Pos);
+
+    for (size_t I = BlockIdx; I < Blocks.size(); ++I) {
+      std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[I], Cap);
+
+      Cap = TotalSize;
+      TotalSize <<= 1;
+    }
+
+    Blocks.clear();
   }
 
-  ~StableVector() { clear(); }
+  /// Due to the 'explicit' copy ctor, creating copies may be cumbersome, i.e.
+  /// having to specify the whole type. So, provide a utility function for it
+  [[nodiscard]] StableVector clone() const { return StableVector(*this); }
+
+  template <typename... ArgTys> T &emplace_back(ArgTys &&...Args) {
+    if (Pos == End) {
+      return growAndEmplace(std::forward<ArgTys>(Args)...);
+    }
+
+    auto Ret = Pos;
+    std::allocator_traits<allocator_type>::construct(
+        Alloc, Ret, std::forward<ArgTys>(Args)...);
+    ++Pos;
+    ++Size;
+    return *Ret;
+  }
+
+  void push_back(const T &Elem) { emplace_back(Elem); }
+  void push_back(T &&Elem) { emplace_back(std::move(Elem)); }
+
+  [[nodiscard]] T &operator[](size_t Index) noexcept {
+    return subscriptHelper(Index);
+  }
+
+  [[nodiscard]] const T &operator[](size_t Index) const noexcept {
+    return subscriptHelper(Index);
+  }
+
+  [[nodiscard]] iterator begin() noexcept {
+    if (empty()) {
+      return end();
+    }
+    return {Blocks.begin(), Blocks.begin() + BlockIdx + 1, Pos};
+  }
+  [[nodiscard]] iterator end() noexcept {
+    return {Blocks.begin() + BlockIdx + 1, Blocks.begin() + BlockIdx + 1,
+            nullptr};
+  }
+
+  [[nodiscard]] const_iterator cbegin() const noexcept {
+    if (empty()) {
+      return cend();
+    }
+    return {Blocks.begin(), Blocks.begin() + BlockIdx + 1, Pos};
+  }
+  [[nodiscard]] const_iterator cend() const noexcept {
+    return {Blocks.begin() + BlockIdx + 1, Blocks.begin() + BlockIdx + 1,
+            nullptr};
+  }
+
+  [[nodiscard]] const_iterator begin() const noexcept { return cbegin(); }
+  [[nodiscard]] const_iterator end() const noexcept { return cend(); }
+
+  [[nodiscard]] size_t size() const noexcept { return Size; }
+  [[nodiscard]] bool empty() const noexcept { return Size == 0; }
+
+  [[nodiscard]] size_t max_size() const noexcept {
+    /// In theory, we could allocate as many blocks as necessary, such that the
+    /// accumulated size of them is exactly SIZE_MAX+1, but this will already
+    /// overflow the Size field and we still need to store the blocks and the
+    /// other metadata somewhere, such that we will never be able to allocate
+    /// the last block (with size SIZE_MAX/2). So, the maximum number of
+    /// elements will be SIZE_MAX/2;
+    return (SIZE_MAX / 2) / sizeof(T);
+  };
+
+  [[nodiscard]] T &front() noexcept {
+    assert(!empty() && "Do not call front() on an empty StableVector!");
+    return *Blocks[0];
+  }
+
+  [[nodiscard]] const T &front() const noexcept {
+    assert(!empty() && "Do not call front() on an empty StableVector!");
+    return *Blocks[0];
+  }
+
+  [[nodiscard]] T &back() noexcept {
+    assert(!empty() && "Do not call back() on an empty StableVector!");
+    return Pos[-1];
+  }
+
+  [[nodiscard]] const T &back() const noexcept {
+    assert(!empty() && "Do not call back() on an empty StableVector!");
+    return Pos[-1];
+  }
 
   void pop_back() noexcept {
-    auto Elem = this->Data.pop_back_val();
-    std::destroy_at(Elem);
-    if constexpr (DeallocateElements) {
-      this->Alloc.deallocate(Elem, 1);
+    assert(!empty() && "Do not call pop_back() on an empty StableVector!");
+
+    std::destroy_at(--Pos);
+    --Size;
+    if (Pos != Start) {
+      return;
+    }
+
+    if (BlockIdx) {
+      if (--BlockIdx) {
+        auto BlockSize = size_t(End - Start);
+        assert(llvm::isPowerOf2_64(BlockSize));
+        assert(BlockSize == Size);
+        Start = Blocks[BlockIdx];
+        End = Pos = Start + BlockSize / 2;
+      } else {
+        Start = Blocks[0];
+        End = Pos = Start + InitialCapacity;
+      }
+    }
+  }
+
+  [[nodiscard]] T pop_back_val() noexcept {
+    auto Ret = std::move(back());
+    pop_back();
+    return Ret;
+  }
+
+  void clear() noexcept {
+    auto Cap = InitialCapacity;
+    auto TotalSize = Cap;
+
+    for (size_t I = 0; I < BlockIdx; ++I) {
+      std::destroy_n(Blocks[I], Cap);
+      Cap = TotalSize;
+      TotalSize += Cap;
+    }
+
+    std::destroy(Start, Pos);
+    BlockIdx = 0;
+    Size = 0;
+    if (!Blocks.empty()) {
+      Start = Pos = Blocks.front();
+      End = Start + InitialCapacity;
     }
   }
 
   void pop_back_n(size_t N) noexcept {
-    if constexpr (DeallocateElements || !std::is_trivially_destructible_v<T>) {
-      for (auto *Elem :
-           llvm::reverse(llvm::ArrayRef<T *>(this->Data).take_back(N))) {
-        std::destroy_at(Elem);
-        if constexpr (DeallocateElements) {
-          this->Alloc.deallocate(Elem, 1);
-        }
-      }
+    assert(Size >= N && "Do not call pop_back() on an empty StableVector!");
+    if (!N) {
+      return;
     }
 
-    this->Data.pop_back_n(N);
+    do {
+      auto NumElementsInCurrBlock = size_t(Pos - Start);
+      if (NumElementsInCurrBlock > N) {
+        Pos -= N;
+        Size -= N;
+        std::destroy_n(Pos, N);
+        return;
+      }
+
+      std::destroy(Start, Pos);
+      Size -= NumElementsInCurrBlock;
+      N -= NumElementsInCurrBlock;
+
+      if (BlockIdx) {
+        if (--BlockIdx) {
+          auto BlockSize = size_t(End - Start);
+          Start = Blocks[BlockIdx];
+          Pos = End = Start + BlockSize / 2;
+        } else {
+          Start = Blocks.front();
+          Pos = End = Start + InitialCapacity;
+        }
+      } else {
+        Start = Pos = Blocks.front();
+        End = Start + InitialCapacity;
+      }
+    } while (N);
   }
 
-  void clear() noexcept {
-    if constexpr (DeallocateElements || !std::is_trivially_destructible_v<T>) {
-      for (auto *Elem : llvm::reverse(this->Data)) {
-        std::destroy_at(Elem);
-        if constexpr (DeallocateElements) {
-          this->Alloc.deallocate(Elem, 1);
-        }
-      }
+  void shrink_to_fit() noexcept {
+    if (Blocks.empty() || BlockIdx == Blocks.size() - 1) {
+      return;
     }
 
-    this->Data.clear();
+    if (Size == 0) {
+      assert(BlockIdx == 0);
+      std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[0],
+                                                        InitialCapacity);
+    }
+
+    auto Cap = size_t(1) << (BlockIdx + InitialLogCapacity);
+
+    for (size_t I = BlockIdx + 1, BlocksEnd = Blocks.size(); I < BlocksEnd;
+         ++I) {
+      std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[I], Cap);
+      Cap <<= 1;
+    }
+
+    Blocks.resize(BlockIdx + (Size != 0));
   }
 
-  bool operator==(const StableVector &Other) const
-      noexcept(noexcept(std::declval<T>() != std::declval<T>())) {
-    if (this->size() != Other.size()) {
+  [[nodiscard]] friend bool operator==(const StableVector &LHS,
+                                       const StableVector &RHS) noexcept {
+    if (LHS.size() != RHS.size()) {
       return false;
     }
+    if (LHS.empty()) {
+      return true;
+    }
 
-    for (auto It1 = this->cbegin(), It2 = Other.cbegin(), End = this->cend();
-         It1 != End; ++It1, ++It2) {
-      if (*It1 != *It2) {
+    size_t Cap = InitialCapacity;
+    size_t Total = InitialCapacity;
+
+    for (size_t I = 0; I < LHS.BlockIdx; ++I) {
+      for (T *LIt = LHS.Blocks[I], *RIt = RHS.Blocks[I], *LEnd = LIt + Cap;
+           LIt != LEnd; ++LIt, ++RIt) {
+        if (*LIt != *RIt) {
+          return false;
+        }
+      }
+
+      Cap = Total;
+      Total <<= 1;
+    }
+
+    for (T *LIt = LHS.Start, *RIt = RHS.Start, *LEnd = LHS.Pos; LIt != LEnd;
+         ++LIt, ++RIt) {
+      if (*LIt != *RIt) {
         return false;
       }
     }
     return true;
   }
 
-  bool operator!=(const StableVector &Other) const
-      noexcept(noexcept(std::declval<T>() != std::declval<T>())) {
-    return !(*this == Other);
+  [[nodiscard]] friend bool operator!=(const StableVector &LHS,
+                                       const StableVector &RHS) noexcept {
+    return !(LHS == RHS);
   }
+
+  [[nodiscard]] allocator_type get_allocator() const
+      noexcept(std::is_nothrow_copy_constructible_v<allocator_type>) {
+    return Alloc;
+  }
+
+private:
+  template <typename... ArgTys>
+  [[nodiscard]] T &growAndEmplace(ArgTys &&...Args) {
+    auto makeBlock = [this](size_t N) {
+      return std::allocator_traits<allocator_type>::allocate(Alloc, N);
+    };
+
+    if (Blocks.empty()) {
+      Blocks.push_back(makeBlock(InitialCapacity));
+      End = Blocks.back() + InitialCapacity;
+    } else if (BlockIdx < Blocks.size() - 1) {
+      assert(llvm::isPowerOf2_64(Size));
+      BlockIdx++;
+      End = Blocks[BlockIdx] + Size;
+    } else {
+      assert(llvm::isPowerOf2_64(Size));
+      BlockIdx++;
+      Blocks.push_back(makeBlock(Size));
+      End = Blocks.back() + Size;
+    }
+
+    auto Ret = Blocks[BlockIdx];
+
+    Start = Ret;
+    Pos = Ret + 1;
+    ++Size;
+
+    std::allocator_traits<allocator_type>::construct(
+        Alloc, Ret, std::forward<ArgTys>(Args)...);
+    return *Ret;
+  }
+
+  [[nodiscard]] inline T &subscriptHelper(size_t Index) const noexcept {
+    if (Index < InitialCapacity) {
+      return Blocks[0][Index];
+    }
+
+    auto Log = llvm::Log2_64(Index);
+    auto LogIdx = Log - (InitialLogCapacity - 1);
+    auto Offset = Index - (size_t(1) << Log);
+    return Blocks[LogIdx][Offset];
+
+    // auto GreaterEqual32Mask = -(Index >= InitialCapacity);
+    // auto Log = llvm::Log2_64_Ceil(Index + 1);
+    // // Really wish to call @llvm.usub.sat here...
+    // auto LogIdx = (Log - InitialLogCapacity) & GreaterEqual32Mask;
+    // auto Offset = Index & (((size_t(1) << Log) >> 1) - 1);
+    // return Blocks[LogIdx][Offset];
+  }
+
+  llvm::SmallVector<T *, 0> Blocks;
+  T *Start = nullptr;
+  T *Pos = nullptr;
+  T *End = nullptr;
+  size_t Size = 0;
+  size_t BlockIdx = 0;
+  [[no_unique_address]] allocator_type Alloc;
 };
 
 // NOLINTEND(readability-identifier-naming)
