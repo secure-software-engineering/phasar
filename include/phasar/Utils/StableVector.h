@@ -51,15 +51,16 @@ public:
     using iterator_category = std::forward_iterator_tag;
 
     Iterator &operator++() noexcept {
-      if (++It != ItEnd) {
+      if (LLVM_LIKELY(++It != ItEnd)) {
         return *this;
       }
 
-      if (++Outer == OuterEnd) {
+      if (Outer == OuterEnd - 1) {
         // We are at the end of the tail loop
+        It = nullptr;
         return *this;
       }
-      if (Outer == OuterEnd - 1) {
+      if (++Outer == OuterEnd - 1) {
         // We are at the end of the main loop => enter the tail loop now
         It = *Outer;
         ItEnd = Pos;
@@ -67,11 +68,10 @@ public:
       }
       // We are still in the main loop
 
-      Cap = Total;
-      Total <<= 1;
-
       It = *Outer;
-      ItEnd = It + Cap;
+      ItEnd = It + Total;
+
+      Total <<= 1;
       return *this;
     }
 
@@ -85,7 +85,7 @@ public:
     [[nodiscard]] pointer operator->() const noexcept { return It; }
 
     [[nodiscard]] bool operator==(const Iterator &Other) const noexcept {
-      return Outer == Other.Outer;
+      return It == Other.It;
     }
 
     [[nodiscard]] bool operator!=(const Iterator &Other) const noexcept {
@@ -96,8 +96,7 @@ public:
     template <bool C, typename = std::enable_if_t<!C && IsConst>>
     Iterator(const Iterator<C> &Other) noexcept
         : It(Other.It), ItEnd(Other.ItEnd), Outer(Other.Outer),
-          OuterEnd(Other.OuterEnd), Cap(Other.Cap), Total(Other.Total),
-          Pos(Other.Pos) {}
+          OuterEnd(Other.OuterEnd), Total(Other.Total), Pos(Other.Pos) {}
 
     ~Iterator() = default;
 
@@ -129,7 +128,6 @@ public:
     T *ItEnd = nullptr;
     T *const *Outer = nullptr;
     T *const *OuterEnd = nullptr;
-    size_t Cap = InitialCapacity;
     size_t Total = InitialCapacity;
     T *Pos = nullptr;
   };
