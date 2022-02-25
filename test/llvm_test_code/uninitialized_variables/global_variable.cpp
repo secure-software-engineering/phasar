@@ -1,4 +1,4 @@
-// implicitly initialized to 0 
+// implicitly initialized to 0
 int i;
 int j = 42;
 

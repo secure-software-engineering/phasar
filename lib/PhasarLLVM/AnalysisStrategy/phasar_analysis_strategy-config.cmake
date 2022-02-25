@@ -4,4 +4,3 @@ list(APPEND
   PHASAR_LLVM_DEPS
   Support
   Core)
-

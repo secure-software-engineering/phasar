@@ -1,7 +1,7 @@
 void foo() {}
 
 int main() {
-	int i;
-	foo();
-	return 0;
+  int i;
+  foo();
+  return 0;
 }

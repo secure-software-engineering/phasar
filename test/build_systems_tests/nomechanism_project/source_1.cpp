@@ -7,12 +7,6 @@ int src1_nonconst = 13;
 
 int one = 1;
 
-int increment(int a)
-{
-	return a + one;
-}
+int increment(int a) { return a + one; }
 
-int add_and_div(int a, int b, int c)
-{
-	return a + divide(b, c);
-}
+int add_and_div(int a, int b, int c) { return a + divide(b, c); }

@@ -48,10 +48,10 @@ protected:
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
-    std::cerr << "ModuleRef: " << IRDB.getWPAModule() << "\n";
-
     auto Ret =
         AsSrcCode ? ICFG.exportICFGAsSourceCodeJson() : ICFG.exportICFGAsJson();
+
+    // llvm::errs() << "Result: " << Ret.dump(4) << '\n';
 
     return Ret;
   }
@@ -66,10 +66,10 @@ protected:
     assert(F != nullptr && "Invalid function");
     // ASSERT_NE(nullptr, F);
 
-    std::cerr << "ModuleRef: " << IRDB.getWPAModule() << "\n";
-
     auto Ret =
         AsSrcCode ? CFG.exportCFGAsSourceCodeJson(F) : CFG.exportCFGAsJson(F);
+
+    // llvm::errs() << "Result: " << Ret.dump(4) << '\n';
 
     return Ret;
   }

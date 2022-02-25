@@ -1,9 +1,9 @@
-int foo(int x){
-    x = x + 1;
-    return x;
+int foo(int x) {
+  x = x + 1;
+  return x;
 }
 
-int main(){
-    int i = foo(13);
-    return i;
+int main() {
+  int i = foo(13);
+  return i;
 }

@@ -1,9 +1,9 @@
 int foo() {
-	int i;
-	return i;
+  int i;
+  return i;
 }
 
 int main() {
-	int a = foo();
-	return 0;
+  int a = foo();
+  return 0;
 }
