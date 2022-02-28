@@ -52,6 +52,8 @@ public:
 
     Iterator &operator++() noexcept {
       if (LLVM_LIKELY(++It != ItEnd)) {
+        /// Let the compiler optimize away the operator== call entirely
+        __builtin_assume(It != nullptr);
         return *this;
       }
 
@@ -64,6 +66,7 @@ public:
         // We are at the end of the main loop => enter the tail loop now
         It = *Outer;
         ItEnd = Pos;
+        __builtin_assume(It != nullptr);
         return *this;
       }
       // We are still in the main loop
@@ -72,6 +75,7 @@ public:
       ItEnd = It + Total;
 
       Total <<= 1;
+      __builtin_assume(It != nullptr);
       return *this;
     }
 
