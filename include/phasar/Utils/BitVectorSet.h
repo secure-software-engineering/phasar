@@ -270,6 +270,11 @@ public:
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
 
   friend bool operator==(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
+    bool LeftEmpty = Lhs.empty();
+    bool RightEmpty = Rhs.empty();
+    if (LeftEmpty || RightEmpty) {
+      return LeftEmpty == RightEmpty;
+    }
     // Check, whether Lhs and Rhs actually have the same bits set and not
     // whether their internal representation is exactly identitcal
     auto LhsWords = Lhs.Bits.getData();

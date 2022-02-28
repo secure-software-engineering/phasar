@@ -42,8 +42,9 @@ public:
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
 
-  FlowFunctionPtrType getCallFlowFunction(const llvm::Instruction *callSite,
-                                       const llvm::Function *destMthd) override;
+  FlowFunctionPtrType
+  getCallFlowFunction(const llvm::Instruction *callSite,
+                      const llvm::Function *destMthd) override;
 
   FlowFunctionPtrType
   getRetFlowFunction(const llvm::Instruction *callSite,

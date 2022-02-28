@@ -1,5 +1,3 @@
 #include "src2.h"
 
-int foo(int i) {
-	return id(i);
-}
+int foo(int i) { return id(i); }

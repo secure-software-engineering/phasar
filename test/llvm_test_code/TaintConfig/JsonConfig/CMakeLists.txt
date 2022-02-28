@@ -35,4 +35,3 @@ set(JsonTaintConfigFiles
 foreach(TEST_CONFIG ${JsonTaintConfigFiles})
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_CONFIG} ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 endforeach(TEST_CONFIG)
-

@@ -18,7 +18,8 @@ set(Sources
   global_01.cpp
   global_02.cpp
   heap_01.cpp
-  KillTest.cpp
+  KillTest_01.cpp
+  KillTest_02.cpp
   return_01.cpp
   rvo_01.cpp
   struct_01.cpp

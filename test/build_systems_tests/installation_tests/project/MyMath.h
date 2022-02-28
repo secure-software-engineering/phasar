@@ -4,4 +4,3 @@
 int sum(int i, int j);
 
 #endif
-

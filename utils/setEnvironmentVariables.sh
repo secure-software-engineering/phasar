@@ -26,6 +26,7 @@ else
     echo '# PhASAR' >>"$RCPATH"
     echo 'export PATH=${PATH}:'"${PHASAR_INSTALL_DIR}"'/bin' >>"$RCPATH"
     echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:'"${PHASAR_INSTALL_DIR}"'/lib' >>"$RCPATH"
+    echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:'"${PHASAR_INSTALL_DIR}"'/lib/phasar' >>"$RCPATH"
     echo 'export LIBRARY_PATH=${LIBRARY_PATH}:'"${PHASAR_INSTALL_DIR}"'/include' >>"$RCPATH"
     echo 'export PHASAR_INCLUDE_DIR='"${PHASAR_INSTALL_DIR}"'/include' >>"$RCPATH"
     echo 'export PHASAR_LIBRARY_DIR='"${PHASAR_INSTALL_DIR}"'/lib' >>"$RCPATH"

@@ -6,7 +6,7 @@
             "line": 1,
             "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
             "sourceCodeFunctionName": "foo(int)",
-            "sourceCodeLine": "void foo(int a) {"
+            "sourceCodeLine": "void foo(int a) { // clang-format off"
         },
         "to": {
             "IR": "%b = alloca i32, align 4, !psr.id !13 | ID: 1",
@@ -104,12 +104,12 @@
             "line": 1,
             "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",
             "sourceCodeFunctionName": "foo(int)",
-            "sourceCodeLine": "void foo(int a) {"
+            "sourceCodeLine": "void foo(int a) { // clang-format off"
         }
     },
     {
         "from": {
-            "IR": "store i32 %0, i32* %b, align 4, !dbg !19, !psr.id !23 | ID: 6",
+            "IR": "store i32 %0, i32* %b, align 4 | ID: 6",
             "column": 7,
             "line": 2,
             "sourceCodeFileName": "test/llvm_test_code/linear_constant/call_01.cpp",

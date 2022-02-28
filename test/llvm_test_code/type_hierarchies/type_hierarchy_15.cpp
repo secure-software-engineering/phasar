@@ -1,11 +1,12 @@
 class Base {
   int x;
+
 public:
   virtual void test();
   virtual ~Base();
 };
 
-class Child: public Base {
+class Child : public Base {
 public:
   virtual ~Child();
 };
@@ -14,16 +15,12 @@ public:
 // void Base::test() {
 // }
 
-Base::~Base() {
-}
+Base::~Base() {}
 
-Child::~Child() {
-}
+Child::~Child() {}
 
 void use() {
   Child *c = new Child();
 
   delete c;
 }
-
-

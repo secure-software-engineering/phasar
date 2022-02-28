@@ -32,7 +32,7 @@ inter-mono-taint      - taint analysis                                    - MONO
 -D Plugin --analysis-plugin <?>
 
 Currently the following analysis plugins are available:
-	
+
 	* IFDSTabulationProblemPlugin
 	* IDETabulationProblemPlugin
 	* IntraMonoProblemPlugin

@@ -136,7 +136,7 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
   auto TV = makeFlowFact(ValueOp);
   /// Defer computing the PointsToSet; this may an expensive operation that
   /// should only be done, if necessary
-  decltype(PT->getPointsToSet(PointerOp, Store)) PTS = nullptr;
+  PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS = nullptr;
 
   auto Mem = makeFlowFact(PointerOp);
   return makeLambdaFlow<d_t>([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
@@ -256,7 +256,7 @@ void IDEExtendedTaintAnalysis::populateWithMayAliases(
 
   SourceConfigTy Tmp = Facts;
   for (const auto *Fact : Facts) {
-    const auto *Aliases = PT->getPointsToSet(Fact);
+    auto Aliases = PT->getPointsToSet(Fact);
 
     Tmp.insert(Aliases->begin(), Aliases->end());
   }

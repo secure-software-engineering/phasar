@@ -1,6 +1,6 @@
 /* immutable: y */
 struct A {
-	int i;
+  int i;
 };
 
 int main() {
@@ -9,5 +9,5 @@ int main() {
   A *y;
   y = &x;
   y->i = 42;
-	return 0;
+  return 0;
 }

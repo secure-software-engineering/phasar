@@ -1,7 +1,6 @@
 #include "src1.h"
 
-
 int main() {
-	foo();
-	return 0;
+  foo();
+  return 0;
 }

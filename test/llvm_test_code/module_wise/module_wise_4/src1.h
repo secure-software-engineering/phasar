@@ -2,7 +2,7 @@
 #define SRC1_H_
 
 struct MyStruct {
-	int i = 0;
+  int i = 0;
 };
 
 void foo(MyStruct &s);
