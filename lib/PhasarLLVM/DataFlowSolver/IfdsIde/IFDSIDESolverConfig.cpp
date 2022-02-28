@@ -61,15 +61,15 @@ void IFDSIDESolverConfig::setComputePersistedSummaries(bool Set) {
 void IFDSIDESolverConfig::setConfig(SolverConfigOptions Opt) { Options = Opt; }
 
 ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
-  return OS << "IFDSIDESolverConfig:\n"
+  return OS << std::boolalpha << "IFDSIDESolverConfig:\n"
             << "\tfollowReturnsPastSeeds: " << SC.followReturnsPastSeeds()
-            << "\n"
-            << "\tautoAddZero: " << std::boolalpha << SC.autoAddZero() << "\n"
-            << "\tcomputeValues: " << SC.computeValues() << "\n"
-            << "\trecordEdges: " << SC.recordEdges() << "\n"
+            << '\n'
+            << "\tautoAddZero: " << SC.autoAddZero() << '\n'
+            << "\tcomputeValues: " << SC.computeValues() << '\n'
+            << "\trecordEdges: " << SC.recordEdges() << '\n'
             << "\tcomputePersistedSummaries: " << SC.computePersistedSummaries()
-            << "\n"
-            << "\temitESG: " << SC.emitESG();
+            << '\n'
+            << "\temitESG: " << SC.emitESG() << std::noboolalpha;
 }
 
 } // namespace psr
