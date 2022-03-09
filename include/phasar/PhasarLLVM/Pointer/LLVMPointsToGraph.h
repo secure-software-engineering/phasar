@@ -108,7 +108,8 @@ private:
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
   LLVMBasedPointsToAnalysis PTA;
   PointsToSetOwner<PointsToSetTy> Owner;
-  std::unordered_map<const llvm::Value *, PointsToSetTy *> Cache;
+  std::unordered_map<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>
+      Cache;
 
   // void mergeGraph(const LLVMPointsToGraph &Other);
 

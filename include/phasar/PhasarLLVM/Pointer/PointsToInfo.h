@@ -11,12 +11,12 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
 #include <iostream>
-#include <memory>
-#include <unordered_set>
 
 #include "llvm/ADT/DenseSet.h"
 
 #include "nlohmann/json.hpp"
+
+#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 
 namespace psr {
 
@@ -43,7 +43,7 @@ std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA);
 template <typename V, typename N> class PointsToInfo {
 public:
   using PointsToSetTy = llvm::DenseSet<V>;
-  using PointsToSetPtrTy = const PointsToSetTy *;
+  using PointsToSetPtrTy = DynamicPointsToSetConstPtr<PointsToSetTy>;
   using AllocationSiteSetPtrTy = std::unique_ptr<PointsToSetTy>;
 
   virtual ~PointsToInfo() = default;

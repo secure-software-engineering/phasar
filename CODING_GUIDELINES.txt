@@ -1,17 +1,17 @@
 Coding Guidelines
 =================
 
-In order to unify the look and feel of the Phasar code base, code should be 
+In order to unify the look and feel of the Phasar code base, code should be
 written according to the LLVM coding guidelines wherever possible. The LLVM
 coding guidelines can be here:
 
 	https://llvm.org/docs/CodingStandards.html
 
-In addition, the pre-commit script in githooks/ has to be copied into the 
+In addition, the pre-commit script in githooks/ has to be copied into the
 ./git/hooks/ directory:
 
 	$ cp githooks/pre-commit .git/hooks/
 
 The script will run some useful clang-tidy checks as well as clang-format over
 the entire code base just before your changes are committed in order to reduce
-the number of unnecessary merge conflicts and to unify the code base. 
+the number of unnecessary merge conflicts and to unify the code base.

@@ -25,7 +25,7 @@ target_link_libraries(phasar-llvm
   phasar_db
   phasar_experimental
   phasar_passes
-  # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
+  # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins
   phasar_plugins
   # ${PHASAR_PLUGINS_LIB}
   phasar_pointer

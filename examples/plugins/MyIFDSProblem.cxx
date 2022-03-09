@@ -37,9 +37,7 @@ MyIFDSProblem::MyIFDSProblem(const ProjectIRDB *IRDB,
   ZeroValue = FFManager.getOrCreateZero();
 }
 
- const FlowFact *MyIFDSProblem::createZeroValue() const {
-   return ZeroValue;
- }
+const FlowFact *MyIFDSProblem::createZeroValue() const { return ZeroValue; }
 
 MyIFDSProblem::FlowFunctionPtrType
 MyIFDSProblem::getNormalFlowFunction(const llvm::Instruction *curr,

@@ -454,18 +454,18 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   Llvmtssolver.solve();
   // Llvmtssolver.dumpResults();
 
-  const auto *Pts = PT->getPointsToSet(IRDB->getInstruction(2));
-  std::cout << "PointsTo(2) = {";
-  bool Frst = true;
-  for (const auto *P : *Pts) {
-    if (Frst) {
-      Frst = false;
-    } else {
-      std::cout << ", ";
-    }
-    std::cout << llvmIRToShortString(P);
-  }
-  std::cout << "}" << std::endl;
+  // auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
+  // std::cout << "PointsTo(2) = {";
+  // bool Frst = true;
+  // for (const auto *P : *Pts) {
+  //   if (Frst) {
+  //     Frst = false;
+  //   } else {
+  //     std::cout << ", ";
+  //   }
+  //   std::cout << llvmIRToShortString(P);
+  // }
+  // std::cout << "}" << std::endl;
 
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()

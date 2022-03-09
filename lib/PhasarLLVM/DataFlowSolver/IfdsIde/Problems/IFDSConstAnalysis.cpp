@@ -64,7 +64,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Pointer operand of store Instruction: "
                   << llvmIRToString(PointerOp));
-    const auto *PTS = PT->getPointsToSet(PointerOp);
+    auto PTS = PT->getPointsToSet(PointerOp);
     std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
     // Check if this store instruction is the second write access to the memory
     // location the pointer operand or it's alias are pointing to.
@@ -153,7 +153,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::d_t PointerOp = CallSite->getOperand(0);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Pointer Operand: " << llvmIRToString(PointerOp));
-    const auto *PTS = PT->getPointsToSet(PointerOp);
+    auto PTS = PT->getPointsToSet(PointerOp);
     std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
     for (const auto *Alias : PointsToSet) {
       if (isInitialized(Alias)) {
@@ -205,7 +205,7 @@ IFDSConstAnalysis::d_t IFDSConstAnalysis::createZeroValue() const {
 }
 
 bool IFDSConstAnalysis::isZeroValue(IFDSConstAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSConstAnalysis::printNode(ostream &OS,

@@ -3,14 +3,14 @@ image: pdschbrt/phasar-build-environment:latest
 stages:
   - build
 
-# install the necessary build tools 
-before_script: 
+# install the necessary build tools
+before_script:
   - git submodule update --init --recursive
-  
+
 build:
   stage: build
   # build all interesting targets
-  script: 
+  script:
     - mkdir -p build
     - cd build
     - echo "checking RAM"

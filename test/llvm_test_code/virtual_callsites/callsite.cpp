@@ -1,14 +1,13 @@
 struct Base {
-	virtual void foo() {}
+  virtual void foo() {}
 };
 
 struct Derived : Base {
-	void foo() override {}
+  void foo() override {}
 };
 
-int main()
-{
-	Derived d;
-	d.foo();
-	return 0;
+int main() {
+  Derived d;
+  d.foo();
+  return 0;
 }

@@ -46,7 +46,7 @@ Describe here the issue that you are experiencing.
 
 <!-- Which build-* script are you using for the build? -->
 
-**Build Type:** 
+**Build Type:**
   - [ ] cmake
   - [ ] custom build
 

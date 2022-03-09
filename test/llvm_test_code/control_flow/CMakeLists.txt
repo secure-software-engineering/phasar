@@ -1,9 +1,9 @@
 set(NoMem2regSources
-  branch.cpp 
-  calls.cpp 
+  branch.cpp
+  calls.cpp
   function_call.cpp
   function_call_2.cpp
-  global_stmt.cpp 
+  global_stmt.cpp
   if_else.cpp
   loop.cpp
   multi_calls.cpp

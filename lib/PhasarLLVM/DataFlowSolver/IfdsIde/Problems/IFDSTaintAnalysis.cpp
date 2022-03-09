@@ -110,7 +110,7 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
 void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
   std::set<d_t> Tmp = Facts;
   for (const auto *Fact : Facts) {
-    const auto *Aliases = PT->getPointsToSet(Fact);
+    auto Aliases = PT->getPointsToSet(Fact);
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
@@ -247,7 +247,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   if (Kill.empty()) {
     return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
                                 this, CallSite](d_t Source) -> std::set<d_t> {
-      if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+      if (LLVMZeroValue::isLLVMZeroValue(Source)) {
         return Gen;
       }
 
@@ -261,7 +261,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
                               Kill{std::move(Kill)}, this,
                               CallSite](d_t Source) -> std::set<d_t> {
-    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+    if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return Gen;
     }
 
@@ -319,7 +319,7 @@ IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
 }
 
 bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t FlowFact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(FlowFact);
+  return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
 void IFDSTaintAnalysis::printNode(ostream &Os,

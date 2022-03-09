@@ -1,3 +1,1 @@
-int id(int i) {
-	return i;
-}
+int id(int i) { return i; }
