@@ -232,10 +232,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
           "main", 24, "retval", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argc.addr", {"1", "7", "13"}));
+          "main", 24, "argc.addr", {"7", "13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argv.addr", {"2", "8"}));
+          "main", 24, "argv.addr", {"8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "i", {"16", "18", "20"}));
@@ -272,7 +272,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
           "main", 23, "retval", {"13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "argc.addr", {"8", "14", "21"}));
+          "main", 23, "argc.addr", {"14", "21"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "argv.addr", {"9", "15"}));
@@ -326,10 +326,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
           "main", 15, "retval", {"5"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "argc.addr", {"1", "6"}));
+          "main", 15, "argc.addr", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "argv.addr", {"2", "7"}));
+          "main", 15, "argv.addr", {"7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 15, "i", {"12", "13"}));
@@ -375,10 +375,16 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
   doAnalysisAndCompareResults("basic_10_cpp.ll", GroundTruth, false);
 }
 
-// TEST_F(IDEInstInteractionAnalysisTest, RetFail) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   doAnalysisAndCompareResults("dump_trace_ld-te.ll", GroundTruth, false);
-// }
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 20, "FeatureSelector", {"5", "7", "8", "9"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 20, "retval", {"11", "16", "18"}));
+  doAnalysisAndCompareResults("basic_11_cpp.ll", GroundTruth, false);
+}
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
@@ -644,18 +650,19 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
   doAnalysisAndCompareResults("rvo_01_cpp.ll", GroundTruth, false);
 })
 
-// // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
-// //   std::set<IIACompactResult_t> GroundTruth;
-// //   GroundTruth.emplace(
-// //       std::tuple<std::string, size_t, std::string,
-// //       BitVectorSet<std::string>>(
-// //           "main", 3, "retval", {"0"}));
-// //   doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, false);
-// // }
-
-// // TEST_F(IDEInstInteractionAnalysisTest, HandleRealWorldProgram_GZipTest) {
-// //   doAnalysisAndCompareResults("gzip-gzip-81c9fe4d09.ll", {}, false);
-// // }
+TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 10, "retval", {"3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 10, "a", {"1", "4", "5", "6", "7", "8", "13"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 10, "x", {"1", "4", "5", "13"}));
+  doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, false);
+}
 
 // main function for the test case/*  */
 int main(int Argc, char **Argv) {
