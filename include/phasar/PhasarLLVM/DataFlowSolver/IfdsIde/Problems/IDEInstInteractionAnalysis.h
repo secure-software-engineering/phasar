@@ -620,6 +620,12 @@ public:
       // Generate zero value at the entry points
       Seeds.addSeed(&EntryPointFun->front().front(), this->getZeroValue(),
                     bottomElement());
+      // Generate formal parameters of entry points, e.g. main(). Formal
+      // parameters will otherwise cause trouble by overriding alloca
+      // instructions without being valid data-flow facts themselves.
+      for (const auto &Arg : EntryPointFun->args()) {
+        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, BottomElement);
+      }
       // Generate all global variables using generalized initial seeds
       for (const auto *M : this->IRDB->getAllModules()) {
         for (const auto &G : M->globals()) {
