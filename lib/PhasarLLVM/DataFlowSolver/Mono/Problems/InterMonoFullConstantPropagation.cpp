@@ -79,7 +79,7 @@ InterMonoFullConstantPropagation::callFlow(
       llvm::isa<llvm::InvokeInst>(CallSite)) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
     // early exit; varargs not handled yet
-    if (CS->arg_size() == 0 || Callee->isVarArg()) {
+    if (CS->arg_empty() || Callee->isVarArg()) {
       return Out;
     }
     vector<const llvm::Value *> Actuals;
