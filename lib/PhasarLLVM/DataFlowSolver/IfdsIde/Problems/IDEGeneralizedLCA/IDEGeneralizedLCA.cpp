@@ -398,8 +398,8 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
                                        IDEGeneralizedLCA::d_t DestNode) {
   const auto *CallSite = llvm::cast<llvm::CallBase>(CallStmt);
   if (isZeroValue(SrcNode)) {
-    auto Len = std::min<size_t>(CallSite->getNumArgOperands(),
-                                DestinationMethod->arg_size());
+    auto Len =
+        std::min<size_t>(CallSite->arg_size(), DestinationMethod->arg_size());
     for (size_t I = 0; I < Len; ++I) {
       const auto *FormalArg = getNthFunctionArgument(DestinationMethod, I);
       if (DestNode == FormalArg) {

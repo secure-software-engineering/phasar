@@ -14,6 +14,7 @@
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/GetElementPtrTypeIterator.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
@@ -55,7 +56,8 @@ uint64_t VarAnnotation::getLine() const {
 llvm::StringRef VarAnnotation::retrieveString(unsigned Idx) const {
   if (const auto *ConstExpr = llvm::dyn_cast<llvm::ConstantExpr>(
           AnnotationCall->getArgOperand(Idx))) {
-    if (ConstExpr->isGEPWithNoNotionalOverIndexing()) {
+    if (true // ConstExpr->isGEPWithNoNotionalOverIndexing()
+    ) {
       if (const auto *GlobalVar =
               llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
         if (GlobalVar->hasInitializer()) {
@@ -109,7 +111,8 @@ llvm::StringRef GlobalAnnotation::retrieveString(unsigned Idx) const {
   const auto *AnnotationGepOp = AnnotationStruct->getOperand(Idx);
   if (const auto *ConstExpr =
           llvm::dyn_cast<llvm::ConstantExpr>(AnnotationGepOp)) {
-    if (ConstExpr->isGEPWithNoNotionalOverIndexing()) {
+    if (true // ConstExpr->isGEPWithNoNotionalOverIndexing()
+    ) {
       if (const auto *GlobalVar =
               llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
         if (GlobalVar->hasInitializer()) {

@@ -253,7 +253,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
            const llvm::Value *ZV)
           : DestFun(DM), CallSite(CallSite), Zerovalue(ZV) {
         // set up the actual parameters
-        for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+        for (unsigned Idx = 0; Idx < CallSite->arg_size(); ++Idx) {
           Actuals.push_back(CallSite->getArgOperand(Idx));
         }
         // set up the formal parameters

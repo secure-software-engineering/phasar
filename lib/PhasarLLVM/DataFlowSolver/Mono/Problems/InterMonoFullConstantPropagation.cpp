@@ -79,13 +79,13 @@ InterMonoFullConstantPropagation::callFlow(
       llvm::isa<llvm::InvokeInst>(CallSite)) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
     // early exit; varargs not handled yet
-    if (CS->getNumArgOperands() == 0 || Callee->isVarArg()) {
+    if (CS->arg_size() == 0 || Callee->isVarArg()) {
       return Out;
     }
     vector<const llvm::Value *> Actuals;
     vector<const llvm::Value *> Formals;
     // Set up the actual parameters
-    for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
+    for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
       Actuals.push_back(CS->getArgOperand(Idx));
     }
     // Set up the formal parameters

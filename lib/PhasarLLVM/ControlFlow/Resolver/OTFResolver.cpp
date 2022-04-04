@@ -261,12 +261,11 @@ std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
 OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                                          const llvm::Function *CalleeTarget) {
   std::vector<std::pair<const llvm::Value *, const llvm::Value *>> Pairs;
-  Pairs.reserve(CallSite->getNumArgOperands());
+  Pairs.reserve(CallSite->arg_size());
   // ordinary case
 
   unsigned Idx = 0;
-  for (; Idx < CallSite->getNumArgOperands() && Idx < CalleeTarget->arg_size();
-       ++Idx) {
+  for (; Idx < CallSite->arg_size() && Idx < CalleeTarget->arg_size(); ++Idx) {
     // only collect pointer typed pairs
     if (CallSite->getArgOperand(Idx)->getType()->isPointerTy() &&
         CalleeTarget->getArg(Idx)->getType()->isPointerTy()) {
@@ -297,7 +296,7 @@ OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CallSite,
     }
 
     if (VarArgs) {
-      for (; Idx < CallSite->getNumArgOperands(); ++Idx) {
+      for (; Idx < CallSite->arg_size(); ++Idx) {
         if (CallSite->getArgOperand(Idx)->getType()->isPointerTy()) {
           Pairs.emplace_back(CallSite->getArgOperand(Idx), VarArgs);
         }

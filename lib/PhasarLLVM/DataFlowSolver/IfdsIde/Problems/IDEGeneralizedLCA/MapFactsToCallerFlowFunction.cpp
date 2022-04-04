@@ -22,7 +22,7 @@ MapFactsToCallerFlowFunction::MapFactsToCallerFlowFunction(
     const llvm::Function *Callee)
     : CallSite(CallSite), ExitStmt(llvm::cast<llvm::ReturnInst>(ExitStmt)),
       Callee(Callee) {
-  for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+  for (unsigned Idx = 0; Idx < CallSite->arg_size(); ++Idx) {
     Actuals.push_back(CallSite->getArgOperand(Idx));
   }
   // Set up the formal parameters

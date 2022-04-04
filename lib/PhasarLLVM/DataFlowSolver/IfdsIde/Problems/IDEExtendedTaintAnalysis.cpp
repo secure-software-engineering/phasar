@@ -440,8 +440,7 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
   return makeLambdaFlow<d_t>([this, Call, CalleeFun,
                               ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
-                              PTC{ArgPointsToCache(PT,
-                                                   Call->getNumArgOperands(),
+                              PTC{ArgPointsToCache(PT, Call->arg_size(),
                                                    HasPrecisePointsToInfo)}](
                                  d_t Source) -> std::set<d_t> {
     if (isZeroValue(Source)) {

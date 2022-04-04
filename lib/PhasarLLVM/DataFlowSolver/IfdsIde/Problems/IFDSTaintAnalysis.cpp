@@ -216,7 +216,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   if (HasBody && Gen.empty() && Leak.empty() && Kill.empty()) {
     // We have a normal function-call and the ret-FF is responsible for handling
     // pointer parameters. So we need to kill them here
-    for (const auto &Arg : CS->arg_operands()) {
+    for (const auto &Arg : CS->args()) {
       if (Arg->getType()->isPointerTy()) {
         Kill.insert(Arg.get());
       }

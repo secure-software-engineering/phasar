@@ -42,7 +42,7 @@ AnalysisPluginController::AnalysisPluginController(
     boost::dll::shared_library SharedLib(LibPath,
                                          boost::dll::load_mode::rtld_lazy, Err);
     if (Err) {
-      llvm::report_fatal_error(Err.message());
+      llvm::report_fatal_error(Err.message().c_str());
     }
     // if (!IDETabulationProblemPluginFactory.empty()) {
     //   for (auto Problem : IDETabulationProblemPluginFactory) {

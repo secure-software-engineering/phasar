@@ -346,7 +346,7 @@ int main(int Argc, const char **Argv) {
       boost::system::error_code Err;
       PluginLibs.emplace_back(LibPath, boost::dll::load_mode::rtld_lazy, Err);
       if (Err) {
-        llvm::report_fatal_error(Err.message());
+        llvm::report_fatal_error(Err.message().c_str());
       }
     }
     // check what plugins have registed themselves and add those to the vector
