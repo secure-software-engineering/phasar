@@ -56,7 +56,7 @@ uint64_t VarAnnotation::getLine() const {
 llvm::StringRef VarAnnotation::retrieveString(unsigned Idx) const {
   if (const auto *ConstExpr = llvm::dyn_cast<llvm::ConstantExpr>(
           AnnotationCall->getArgOperand(Idx))) {
-    if (true // ConstExpr->isGEPWithNoNotionalOverIndexing()
+    if (llvm::isa<llvm::GEPOperator>(ConstExpr)
     ) {
       if (const auto *GlobalVar =
               llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
