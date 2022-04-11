@@ -107,7 +107,9 @@ private:
   /// Keep track of what has already been merged into this points-to graph.
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
   LLVMBasedPointsToAnalysis PTA;
-  PointsToSetOwner<PointsToSetTy> Owner;
+
+  PointsToSetOwner<PointsToSetTy>::memory_resource_type MRes;
+  PointsToSetOwner<PointsToSetTy> Owner{&MRes};
   std::unordered_map<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>
       Cache;
 

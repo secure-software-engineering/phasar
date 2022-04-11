@@ -10,14 +10,26 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 
-#include <memory_resource>
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
+#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/Utils/StableVector.h"
+#include <type_traits>
+
+/// On some MAC systems, <memory_resource> is still not fully implemented, so do
+/// a workaround here
+
+#if !defined(__has_include) || __has_include(<memory_resource>)
+#define HAS_MEMORY_RESOURCE 1
+#include <memory_resource>
+#else
+#define HAS_MEMORY_RESOURCE 0
+#include "llvm/Support/RecyclingAllocator.h"
+#endif
 
 namespace llvm {
 class Value;
@@ -26,9 +38,27 @@ class Value;
 namespace psr {
 template <typename PointsToSetTy> class PointsToSetOwner {
 public:
-  PointsToSetOwner(std::pmr::polymorphic_allocator<PointsToSetTy> Alloc =
-                       std::pmr::get_default_resource()) noexcept
-      : Alloc(Alloc) {}
+  using allocator_type =
+#if HAS_MEMORY_RESOURCE
+      std::pmr::polymorphic_allocator<PointsToSetTy>
+#else
+      llvm::RecyclingAllocator<llvm::BumpPtrAllocator, PointsToSetTy> *
+#endif
+      ;
+
+  using memory_resource_type =
+#if HAS_MEMORY_RESOURCE
+      std::pmr::unsynchronized_pool_resource
+#else
+      llvm::RecyclingAllocator<llvm::BumpPtrAllocator, PointsToSetTy>
+#endif
+      ;
+
+  PointsToSetOwner(allocator_type Alloc) noexcept : Alloc(Alloc) {
+    if constexpr (std::is_pointer_v<allocator_type>) {
+      assert(Alloc != nullptr);
+    }
+  }
   PointsToSetOwner(PointsToSetOwner &&) noexcept = default;
 
   PointsToSetOwner(const PointsToSetOwner &) = delete;
@@ -38,16 +68,28 @@ public:
   ~PointsToSetOwner() {
     for (auto PTS : OwnedPTS) {
       std::destroy_at(PTS);
+#if HAS_MEMORY_RESOURCE
       Alloc.deallocate(PTS, 1);
+#else
+      Alloc->Deallocate(PTS);
+#endif
     }
     OwnedPTS.clear();
   }
 
   DynamicPointsToSetPtr<PointsToSetTy> acquire() {
-    auto Ptr = new (Alloc.allocate(1)) PointsToSetTy();
+    auto RawMem =
+#if HAS_MEMORY_RESOURCE
+        Alloc.allocate(1)
+#else
+        Alloc->Allocate()
+#endif
+        ;
+    auto Ptr = new (RawMem) PointsToSetTy();
     OwnedPTS.insert(Ptr);
     return &AllPTS.emplace_back(Ptr);
   }
+
   void release(PointsToSetTy *PTS) noexcept {
     if (LLVM_UNLIKELY(!OwnedPTS.erase(PTS))) {
       llvm::report_fatal_error(
@@ -55,14 +97,18 @@ public:
           "freed, or never allocated with this PointsToSetOwner!");
     }
     std::destroy_at(PTS);
+#if HAS_MEMORY_RESOURCE
     Alloc.deallocate(PTS, 1);
+#else
+    Alloc->Deallocate(PTS);
+#endif
     /// NOTE: Do not delete from AllPTS!
   }
 
   void reserve(size_t Capacity) { OwnedPTS.reserve(Capacity); }
 
 private:
-  std::pmr::polymorphic_allocator<PointsToSetTy> Alloc;
+  allocator_type Alloc{};
   llvm::DenseSet<PointsToSetTy *> OwnedPTS;
   StableVector<PointsToSetTy *> AllPTS;
 };

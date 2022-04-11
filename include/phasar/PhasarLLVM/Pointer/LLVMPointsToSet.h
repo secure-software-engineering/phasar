@@ -10,18 +10,17 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H_
 
-#include <iostream>
-#include <memory_resource>
-
-#include "nlohmann/json.hpp"
-
-#include "llvm/ADT/DenseSet.h"
-
 #include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
 #include "phasar/Utils/StableVector.h"
+
+#include "llvm/ADT/DenseSet.h"
+
+#include "nlohmann/json.hpp"
+
+#include <iostream>
 
 namespace llvm {
 class Value;
@@ -43,7 +42,7 @@ private:
   LLVMBasedPointsToAnalysis PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
-  std::pmr::unsynchronized_pool_resource MRes;
+  PointsToSetOwner<PointsToSetTy>::memory_resource_type MRes;
   PointsToSetOwner<PointsToSetTy> Owner{&MRes};
 
   PointsToSetMap PointsToSets;
