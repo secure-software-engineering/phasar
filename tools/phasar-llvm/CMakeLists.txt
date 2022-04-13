@@ -1,3 +1,14 @@
+set(LLVM_LINK_COMPONENTS
+  Analysis
+  BitWriter
+  Core
+  Demangle
+  IRReader
+  Linker
+  Passes
+  Support
+)
+
 # Build a stand-alone executable
 if(PHASAR_IN_TREE)
   add_phasar_executable(phasar-llvm
@@ -38,17 +49,16 @@ target_link_libraries(phasar-llvm
   ${PHASAR_STD_FILESYSTEM}
 )
 
-if(USE_LLVM_FAT_LIB)
-  llvm_config(phasar-llvm USE_SHARED ${LLVM_LINK_COMPONENTS})
-else()
-  llvm_config(phasar-llvm ${LLVM_LINK_COMPONENTS})
+if (NOT PHASAR_IN_TREE)
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(phasar-llvm USE_SHARED ${LLVM_LINK_COMPONENTS})
+  else()
+    llvm_config(phasar-llvm ${LLVM_LINK_COMPONENTS})
+  endif()
+
+  install(TARGETS phasar-llvm
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+  )
 endif()
-
-set(LLVM_LINK_COMPONENTS
-)
-
-install(TARGETS phasar-llvm
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-)
