@@ -32,7 +32,7 @@ namespace psr {
 
 struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
   // int64_t corresponds to llvm's type of constant integer
-  using l_t = LatticeDomain<int64_t>;
+  using l_t = LatticeDomainWithUninit<int64_t>;
 };
 
 class LLVMBasedICFG;
@@ -43,6 +43,7 @@ class IDELinearConstantAnalysis
     : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
 private:
   // For debug purpose only
+  static unsigned CurrGenUninitId;   // NOLINT
   static unsigned CurrGenConstantId; // NOLINT
   static unsigned CurrLCAIDId;       // NOLINT
   static unsigned CurrBinaryId;      // NOLINT
@@ -58,8 +59,9 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  static const l_t TOP;
-  static const l_t BOTTOM;
+  static constexpr l_t TOP = Top{};
+  static constexpr l_t BOTTOM = Bottom{};
+  static constexpr l_t UNINIT = Uninit{};
 
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
                             const LLVMTypeHierarchy *TH,
@@ -171,6 +173,27 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
+  };
+
+  class GenUninit : public EdgeFunction<l_t>,
+                    public std::enable_shared_from_this<GenUninit> {
+  private:
+    const unsigned GenUninitId;
+
+  public:
+    explicit GenUninit();
+
+    l_t computeTarget(l_t Source) override;
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
+
+    void print(std::ostream &OS, bool IsForDebug = false) const override;
   };
 
   class GenConstant : public EdgeFunction<l_t>,

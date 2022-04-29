@@ -41,14 +41,10 @@ using namespace psr;
 
 namespace psr {
 // Initialize debug counter for edge functions
+unsigned IDELinearConstantAnalysis::CurrGenUninitId = 0;   // NOLINT
 unsigned IDELinearConstantAnalysis::CurrGenConstantId = 0; // NOLINT
 unsigned IDELinearConstantAnalysis::CurrLCAIDId = 0;       // NOLINT
 unsigned IDELinearConstantAnalysis::CurrBinaryId = 0;      // NOLINT
-
-const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::TOP = Top{};
-
-const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
-    Bottom{};
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
@@ -60,6 +56,7 @@ IDELinearConstantAnalysis::IDELinearConstantAnalysis(
 }
 
 IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
+  CurrGenUninitId = 0;
   CurrGenConstantId = 0;
   CurrLCAIDId = 0;
   CurrBinaryId = 0;
@@ -301,12 +298,18 @@ bool IDELinearConstantAnalysis::isZeroValue(d_t Fact) const {
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
                                                  n_t /*Succ*/, d_t SuccNode) {
-  // ALL_BOTTOM for zero value
-  if ((isZeroValue(CurrNode) && isZeroValue(SuccNode)) ||
-      (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Zero value.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    return std::make_shared<AllBottom<l_t>>(BOTTOM);
+  if (isZeroValue(CurrNode)) {
+    // ALL_BOTTOM for zero value
+    if (isZeroValue(SuccNode)) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Zero value.");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      return std::make_shared<AllBottom<l_t>>(BOTTOM);
+    } else if (llvm::isa<llvm::AllocaInst>(Curr)) {
+      // GenUninit for generated allocas
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Uninit alloca.");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      return std::make_shared<GenUninit>();
+    }
   }
 
   // Check store instruction
@@ -445,7 +448,7 @@ std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
   if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
+    return SecondFunction;
   }
   if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
     return this->shared_from_this();
@@ -469,12 +472,57 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
   return std::make_shared<AllBottom<l_t>>(BOTTOM);
 }
 
+IDELinearConstantAnalysis::GenUninit::GenUninit()
+    : GenUninitId(++CurrGenUninitId) {}
+
+IDELinearConstantAnalysis::l_t
+IDELinearConstantAnalysis::GenUninit::computeTarget(
+    IDELinearConstantAnalysis::l_t /*Source*/) {
+  return UNINIT;
+}
+
+std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::GenUninit::composeWith(
+    std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
+    return this->shared_from_this();
+  }
+  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
+    return this->shared_from_this();
+  }
+  return SecondFunction;
+}
+
+std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::GenUninit::joinWith(
+    std::shared_ptr<EdgeFunction<l_t>> OtherFunction) {
+  if (OtherFunction.get() == this ||
+      OtherFunction->equal_to(this->shared_from_this())) {
+    return this->shared_from_this();
+  }
+  if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
+    return this->shared_from_this();
+  }
+  return std::make_shared<AllBottom<l_t>>(BOTTOM);
+}
+
+bool IDELinearConstantAnalysis::GenUninit::equal_to(
+    std::shared_ptr<EdgeFunction<l_t>> Other) const {
+  return this == Other.get() ||
+         dynamic_cast<GenUninit *>(Other.get()) != nullptr;
+}
+
+void IDELinearConstantAnalysis::GenUninit::print(std::ostream &OS,
+                                                 bool /*IsForDebug*/) const {
+  OS << "Uninit (EF: " << GenUninitId << ')';
+}
+
 IDELinearConstantAnalysis::GenConstant::GenConstant(int64_t IntConst)
     : GenConstantId(++CurrGenConstantId), IntConst(IntConst) {}
 
 IDELinearConstantAnalysis::l_t
 IDELinearConstantAnalysis::GenConstant::computeTarget(
-    IDELinearConstantAnalysis::l_t /*Source*/) {
+    IDELinearConstantAnalysis::l_t S /*Source*/) {
   return IntConst;
 }
 
@@ -482,7 +530,8 @@ std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::GenConstant::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
   if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
+    std::cout << "break here\n";
+    return SecondFunction;
   }
   if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
     return this->shared_from_this();
@@ -607,7 +656,7 @@ std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::BinOp::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
   if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
+    return SecondFunction;
   }
   if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
     return this->shared_from_this();
@@ -727,8 +776,8 @@ IDELinearConstantAnalysis::executeBinOperation(const unsigned Op, l_t LVal,
   case llvm::Instruction::UDiv:
   case llvm::Instruction::SDiv:
     if (Lop == std::numeric_limits<int64_t>::min() &&
-        Rop == -1) { // Would produce and overflow, as the complement of min is
-                     // not representable in a signed type.
+        Rop == -1) { // Would produce and overflow, as the complement of min
+                     // is not representable in a signed type.
       return TOP;
     }
     if (Rop == 0) { // Division by zero is UB, so we return Bot
@@ -882,8 +931,8 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
                     << " | V: " << LtoString(Res.second)
                     << " | Var: " << VarName << '\n';
           if (!VarName.empty()) {
-            // Only store/overwrite values of variables from allocas or globals
-            // unless there is no value stored for a variable
+            // Only store/overwrite values of variables from allocas or
+            // globals unless there is no value stored for a variable
             if (llvm::isa<llvm::AllocaInst>(Res.first) ||
                 llvm::isa<llvm::GlobalVariable>(Res.first)) {
               // lcaRes->variableToValue.find(varName) ==
