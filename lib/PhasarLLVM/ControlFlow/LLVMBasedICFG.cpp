@@ -924,6 +924,8 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
     IRB.CreateRetVoid();
   }
 
+  IRDB.preprocessModule(&M);
+
   ModulesToSlotTracker::updateMSTForModule(&M);
 
   return GlobModel;

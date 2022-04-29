@@ -64,7 +64,10 @@ private:
 
   void buildIDModuleMapping(llvm::Module *M);
 
+public:
   void preprocessModule(llvm::Module *M);
+
+private:
   static bool wasCompiledWithDebugInfo(llvm::Module *M) {
     return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
   };
