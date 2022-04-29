@@ -105,6 +105,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_03) {
   auto Results = doAnalysis("basic_03_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 10);
+  GroundTruth.emplace("main", 2, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 3, "i", 10);
   GroundTruth.emplace("main", 3, "j", 14);
   GroundTruth.emplace("main", 4, "i", 14);
@@ -116,8 +117,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_04) {
   auto Results = doAnalysis("basic_04_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "i", 14);
+  GroundTruth.emplace("main", 3, "j", psr::IDELinearConstantAnalysis::UNINIT);
+  GroundTruth.emplace("main", 3, "k", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 4, "i", 14);
   GroundTruth.emplace("main", 4, "j", 20);
+  GroundTruth.emplace("main", 4, "k", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 5, "i", 14);
   GroundTruth.emplace("main", 5, "j", 20);
   GroundTruth.emplace("main", 6, "i", 14);
@@ -129,6 +133,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_05) {
   auto Results = doAnalysis("basic_05_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 3);
+  GroundTruth.emplace("main", 2, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 3, "i", 3);
   GroundTruth.emplace("main", 3, "j", 14);
   compareResults(Results, GroundTruth);
@@ -147,6 +152,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_07) {
   auto Results = doAnalysis("basic_07_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 4);
+  GroundTruth.emplace("main", 2, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 3, "i", 4);
   GroundTruth.emplace("main", 3, "j", 3);
   GroundTruth.emplace("main", 4, "j", 3);
@@ -158,6 +164,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_08) {
   auto Results = doAnalysis("basic_08_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
+  GroundTruth.emplace("main", 2, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 3, "i", 42);
   GroundTruth.emplace("main", 3, "j", 40);
   GroundTruth.emplace("main", 4, "i", 42);
@@ -169,6 +176,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_09) {
   auto Results = doAnalysis("basic_09_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
+  GroundTruth.emplace("main", 2, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 3, "i", 42);
   GroundTruth.emplace("main", 3, "j", 126);
   GroundTruth.emplace("main", 4, "i", 42);
@@ -180,6 +188,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_10) {
   auto Results = doAnalysis("basic_10_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
+  GroundTruth.emplace("main", 2, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 3, "i", 42);
   GroundTruth.emplace("main", 3, "j", 14);
   GroundTruth.emplace("main", 4, "i", 42);
@@ -191,6 +200,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_11) {
   auto Results = doAnalysis("basic_11_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
+  GroundTruth.emplace("main", 2, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 3, "i", 42);
   GroundTruth.emplace("main", 3, "j", 2);
   GroundTruth.emplace("main", 4, "i", 42);
@@ -234,6 +244,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_04) {
   auto Results = doAnalysis("branch_04_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "j", 10);
+  GroundTruth.emplace("main", 3, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 4, "j", 10);
   GroundTruth.emplace("main", 4, "i", 42);
   GroundTruth.emplace("main", 6, "j", 10);
@@ -246,6 +257,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_05) {
   auto Results = doAnalysis("branch_05_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "j", 10);
+  GroundTruth.emplace("main", 3, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 4, "j", 10);
   GroundTruth.emplace("main", 4, "i", 42);
   GroundTruth.emplace("main", 6, "j", 10);
@@ -268,6 +280,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_07) {
   auto Results = doAnalysis("branch_07_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "j", 10);
+  GroundTruth.emplace("main", 3, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 4, "j", 10);
   GroundTruth.emplace("main", 4, "i", 30);
   GroundTruth.emplace("main", 6, "j", 10);
@@ -290,8 +303,8 @@ TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_01) {
 TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_02) {
   auto Results = doAnalysis("while_02_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("main", 2, "i", psr::IDELinearConstantAnalysis::UNINIT);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["main"].find(2) == Results["main"].end());
   EXPECT_TRUE(Results["main"].find(4) == Results["main"].end());
   EXPECT_TRUE(Results["main"].find(6) == Results["main"].end());
 }
@@ -300,10 +313,10 @@ TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_03) {
   auto Results = doAnalysis("while_03_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
+  GroundTruth.emplace("main", 2, "a", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 7, "a", 13);
   GroundTruth.emplace("main", 8, "a", 13);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["main"].find(4) == Results["main"].end());
   EXPECT_TRUE(Results["main"].find(6) == Results["main"].end());
 }
 
@@ -311,6 +324,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_04) {
   auto Results = doAnalysis("while_04_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
+  GroundTruth.emplace("main", 2, "a", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 4, "a", 0);
   GroundTruth.emplace("main", 5, "a", 0);
   compareResults(Results, GroundTruth);
@@ -321,6 +335,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_05) {
   auto Results = doAnalysis("for_01_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "a", 0);
+  GroundTruth.emplace("main", 2, "i", psr::IDELinearConstantAnalysis::UNINIT);
   compareResults(Results, GroundTruth);
   EXPECT_TRUE(Results["main"].find(4) == Results["main"].end());
   EXPECT_TRUE(Results["main"].find(6) == Results["main"].end());
@@ -331,6 +346,8 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_01) {
   auto Results = doAnalysis("call_01_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3fooi", 1, "a", 42);
+  GroundTruth.emplace("_Z3fooi", 1, "b",
+                      psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("_Z3fooi", 2, "a", 42);
   GroundTruth.emplace("_Z3fooi", 2, "b", 42);
 
@@ -347,10 +364,10 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_02) {
   GroundTruth.emplace("_Z3fooi", 1, "a", 2);
   GroundTruth.emplace("_Z3fooi", 2, "a", 2);
 
+  GroundTruth.emplace("main", 6, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 7, "i", 42);
   GroundTruth.emplace("main", 8, "i", 42);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["main"].find(6) == Results["main"].end());
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_03) {
@@ -373,7 +390,8 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_04) {
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_05) {
   auto Results = doAnalysis("call_05_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
-  EXPECT_TRUE(Results["main"].empty());
+  GroundTruth.emplace("main", 1, "i", psr::IDELinearConstantAnalysis::UNINIT);
+  compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_06) {
@@ -392,8 +410,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_07) {
   auto Results = doAnalysis("call_07_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "i", 42);
+  GroundTruth.emplace("main", 6, "j", psr::IDELinearConstantAnalysis::UNINIT);
+  GroundTruth.emplace("main", 6, "k", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 7, "i", 42);
   GroundTruth.emplace("main", 7, "j", 43);
+  GroundTruth.emplace("main", 7, "k", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 8, "i", 42);
   GroundTruth.emplace("main", 8, "j", 43);
   GroundTruth.emplace("main", 8, "k", 44);
@@ -416,10 +437,14 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_08) {
   GroundTruth.emplace("_Z3fooii", 2, "b", 1);
 
   GroundTruth.emplace("main", 6, "i", 10);
+  GroundTruth.emplace("main", 6, "j", psr::IDELinearConstantAnalysis::UNINIT);
+  GroundTruth.emplace("main", 6, "k", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 7, "i", 10);
   GroundTruth.emplace("main", 7, "j", 1);
+  GroundTruth.emplace("main", 7, "k", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 8, "i", 10);
   GroundTruth.emplace("main", 8, "j", 1);
+  GroundTruth.emplace("main", 8, "k", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 9, "i", 10);
   GroundTruth.emplace("main", 9, "j", 1);
   GroundTruth.emplace("main", 10, "i", 10);
@@ -434,6 +459,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_09) {
   GroundTruth.emplace("_Z9incrementi", 2, "a", 43);
 
   GroundTruth.emplace("main", 6, "i", 43);
+  GroundTruth.emplace("main", 6, "j", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 7, "i", 43);
   GroundTruth.emplace("main", 7, "j", 43);
   GroundTruth.emplace("main", 8, "i", 43);
@@ -447,9 +473,10 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_10) {
   GroundTruth.emplace("_Z3bari", 1, "b", 2);
   GroundTruth.emplace("_Z3fooi", 3, "a", 2);
   GroundTruth.emplace("_Z3fooi", 4, "a", 2);
+  GroundTruth.emplace("main", 8, "i", psr::IDELinearConstantAnalysis::UNINIT);
+  GroundTruth.emplace("main", 9, "i", psr::IDELinearConstantAnalysis::UNINIT);
+  GroundTruth.emplace("main", 10, "i", psr::IDELinearConstantAnalysis::UNINIT);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["main"].find(8) == Results["main"].end());
-  EXPECT_TRUE(Results["main"].find(9) == Results["main"].end());
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_11) {
@@ -551,6 +578,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_04) {
   GroundTruth.emplace("_Z3fooi", 4, "g", 1);
   GroundTruth.emplace("_Z3fooi", 4, "a", 2);
 
+  GroundTruth.emplace("main", 8, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 8, "g", 1);
   GroundTruth.emplace("main", 9, "g", 1);
   GroundTruth.emplace("main", 9, "i", 2);
@@ -567,6 +595,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_05) {
   GroundTruth.emplace("_Z3fooi", 4, "g", 2);
   GroundTruth.emplace("_Z3fooi", 4, "a", 3);
 
+  GroundTruth.emplace("main", 8, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 8, "g", 1);
   GroundTruth.emplace("main", 9, "g", 2);
   GroundTruth.emplace("main", 9, "i", 3);
@@ -579,6 +608,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_06) {
   auto Results = doAnalysis("global_06_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3foov", 4, "g", 2);
+  GroundTruth.emplace("main", 8, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 8, "g", 1);
   GroundTruth.emplace("main", 9, "g", 2);
   GroundTruth.emplace("main", 9, "i", 2);
@@ -602,6 +632,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_07) {
   GroundTruth.emplace("_Z3bari", 10, "g", 2);
   GroundTruth.emplace("_Z3bari", 10, "b", 3);
 
+  GroundTruth.emplace("main", 14, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 14, "g", 1);
   GroundTruth.emplace("main", 15, "g", 1);
   GroundTruth.emplace("main", 15, "i", 0);
@@ -631,6 +662,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_08) {
   GroundTruth.emplace("_Z3fooi", 12, "g", 2);
   GroundTruth.emplace("_Z3fooi", 12, "a", 1);
 
+  GroundTruth.emplace("main", 16, "i", psr::IDELinearConstantAnalysis::UNINIT);
   GroundTruth.emplace("main", 16, "g", 2);
   GroundTruth.emplace("main", 17, "g", 2);
   GroundTruth.emplace("main", 17, "i", 0);
