@@ -1430,9 +1430,9 @@ protected:
 
     // Sort intra-procedural path edges
     auto Cells = ComputedIntraPathEdges.cellVec();
-    StmtLess Stmtless(ICF);
-    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
-      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
+    LLVMValueIDLess ValueIDLess;
+    sort(Cells.begin(), Cells.end(), [&ValueIDLess](auto Lhs, auto Rhs) {
+      return ValueIDLess(Lhs.getRowKey(), Rhs.getRowKey());
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
@@ -1457,8 +1457,8 @@ protected:
 
     // Sort intra-procedural path edges
     Cells = ComputedInterPathEdges.cellVec();
-    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
-      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
+    sort(Cells.begin(), Cells.end(), [&ValueIDLess](auto Lhs, auto Rhs) {
+      return ValueIDLess(Lhs.getRowKey(), Rhs.getRowKey());
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
@@ -1707,9 +1707,9 @@ public:
 
     // Sort intra-procedural path edges
     auto Cells = ComputedIntraPathEdges.cellVec();
-    StmtLess Stmtless(ICF);
-    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
-      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
+    LLVMValueIDLess ValueIDLess;
+    sort(Cells.begin(), Cells.end(), [&ValueIDLess](auto Lhs, auto Rhs) {
+      return ValueIDLess(Lhs.getRowKey(), Rhs.getRowKey());
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
@@ -1717,8 +1717,8 @@ public:
       std::string N2Label = IDEProblem.NtoString(Edge.second);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << N1Label;
                     BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << N2Label);
-      std::string N1StmtId = ICF->getStatementId(Edge.first);
-      std::string N2StmtId = ICF->getStatementId(Edge.second);
+      std::string N1StmtId = getMetaDataID(Edge.first);
+      std::string N2StmtId = getMetaDataID(Edge.second);
       std::string FuncName = ICF->getFunctionOf(Edge.first)->getName().str();
       // Get or create function subgraph
       if (!FG || FG->Id != FuncName) {
@@ -1807,8 +1807,8 @@ public:
                   BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "=============================================");
     Cells = ComputedInterPathEdges.cellVec();
-    sort(Cells.begin(), Cells.end(), [&Stmtless](auto Lhs, auto Rhs) {
-      return Stmtless(Lhs.getRowKey(), Rhs.getRowKey());
+    sort(Cells.begin(), Cells.end(), [&ValueIDLess](auto Lhs, auto Rhs) {
+      return ValueIDLess(Lhs.getRowKey(), Rhs.getRowKey());
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
@@ -1816,8 +1816,8 @@ public:
       std::string N2Label = IDEProblem.NtoString(Edge.second);
       std::string FNameOfN1 = ICF->getFunctionOf(Edge.first)->getName().str();
       std::string FNameOfN2 = ICF->getFunctionOf(Edge.second)->getName().str();
-      std::string N1StmtId = ICF->getStatementId(Edge.first);
-      std::string N2StmtId = ICF->getStatementId(Edge.second);
+      std::string N1StmtId = getMetaDataID(Edge.first);
+      std::string N2StmtId = getMetaDataID(Edge.second);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << N1Label;
                     BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << N2Label);
 
@@ -1919,16 +1919,6 @@ public:
     }
     OS << G;
   }
-
-  /// @brief: Allows less-than comparison based on the statement ID.
-  struct StmtLess {
-    const i_t *ICF;
-    StringIDLess StrIDLess;
-    StmtLess(const i_t *ICF) : ICF(ICF), StrIDLess(StringIDLess()) {}
-    bool operator()(n_t Lhs, n_t Rhs) {
-      return StrIDLess(ICF->getStatementId(Lhs), ICF->getStatementId(Rhs));
-    }
-  };
 };
 
 template <typename AnalysisDomainTy, typename Container>
