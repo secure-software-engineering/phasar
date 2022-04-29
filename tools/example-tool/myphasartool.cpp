@@ -29,7 +29,8 @@ class Value;
 using namespace psr;
 
 int main(int Argc, const char **Argv) {
-  initializeLogger(false);
+  initializeLogger(true);
+  setLoggerFilterLevel(DEBUG);
   if (Argc < 2 || !boost::filesystem::exists(Argv[1]) ||
       boost::filesystem::is_directory(Argv[1])) {
     std::cerr << "myphasartool\n"
@@ -45,18 +46,20 @@ int main(int Argc, const char **Argv) {
     LLVMPointsToSet P(DB);
     // print points-to information
     P.print();
-    LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
+    LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P,
+                    Soundness::Soundy, /*IncludeGlobals*/ true);
     // print inter-procedural control-flow graph
     I.print();
-    // IFDS template parametrization test
-    std::cout << "Testing IFDS:\n";
-    IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver S(L);
-    S.solve();
-    S.dumpResults();
+    // // IFDS template parametrization test
+    // std::cout << "Testing IFDS:\n";
+    // IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
+    // IFDSSolver S(L);
+    // S.solve();
+    // S.dumpResults();
     // IDE template parametrization test
     std::cout << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
+    IDELinearConstantAnalysis M(&DB, &H, &I, &P,
+                                {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
     IDESolver T(M);
     T.solve();
     T.dumpResults();
