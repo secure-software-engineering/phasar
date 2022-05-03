@@ -263,7 +263,7 @@ IDELinearConstantAnalysis::initialSeeds() {
   // integer-typed variables using generalized initial seeds
   for (const auto *EntryPointFun : EntryPointFuns) {
     Seeds.addSeed(&EntryPointFun->front().front(), getZeroValue(),
-                  bottomElement());
+                  topElement());
     // Generate global integer-typed variables using generalized initial seeds
     for (const auto *M : IRDB->getAllModules()) {
       for (const auto &G : M->globals()) {
@@ -299,11 +299,11 @@ std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
                                                  n_t /*Succ*/, d_t SuccNode) {
   if (isZeroValue(CurrNode)) {
-    // ALL_BOTTOM for zero value
+    // ALL TOP for zero value
     if (isZeroValue(SuccNode)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Zero value.");
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      return std::make_shared<AllBottom<l_t>>(BOTTOM);
+      return std::make_shared<AllTop<l_t>>(TOP);
     } else if (llvm::isa<llvm::AllocaInst>(Curr)) {
       // GenUninit for generated allocas
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Uninit alloca.");

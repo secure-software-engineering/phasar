@@ -17,7 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
 
+#include "phasar/Utils/LLVMShorthands.h"
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <type_traits>

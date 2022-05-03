@@ -969,7 +969,7 @@ protected:
             BOOST_LOG_SEV(lg::get(), DEBUG)
             << "Zero-Value has been added automatically to start point: "
             << IDEProblem.NtoString(StartPoint));
-        Seeds.addSeed(StartPoint, ZeroValue, IDEProblem.bottomElement());
+        Seeds.addSeed(StartPoint, ZeroValue, IDEProblem.topElement());
       }
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1102,16 +1102,16 @@ protected:
               for (size_t I = 0; I < RevLookupResult->get().size(); ++I) {
                 auto ValAndFunc = RevLookupResult->get()[I];
                 EdgeFunctionPtrType f3 = ValAndFunc.second;
-                if (!f3->equal_to(AllTop)) {
-                  d_t d3 = ValAndFunc.first;
-                  d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                    << "Compose: " << fPrime->str() << " * "
-                                    << f3->str();
-                                BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-                  propagate(d3, RetSiteC, d5_restoredCtx,
-                            f3->composeWith(fPrime), c, false);
-                }
+                // if (!f3->equal_to(AllTop)) {
+                d_t d3 = ValAndFunc.first;
+                d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                                  << "Compose: " << fPrime->str() << " * "
+                                  << f3->str();
+                              BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                propagate(d3, RetSiteC, d5_restoredCtx, f3->composeWith(fPrime),
+                          c, false);
+                // }
               }
             }
           }
