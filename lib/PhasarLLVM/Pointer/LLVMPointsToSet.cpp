@@ -105,7 +105,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
   Owner.reserve(Sets.size());
   for (const auto &PtsJson : Sets) {
     assert(PtsJson.is_array());
-    auto *PTS = Owner.acquire();
+    auto PTS = Owner.acquire();
     for (auto Alias : PtsJson) {
       const auto *Inst = fromMetaDataId(IRDB, Alias.get<std::string>());
       if (!Inst) {
@@ -696,7 +696,8 @@ nlohmann::json LLVMPointsToSet::getAsJson() const {
 
   /// Serialize the PointsToSets
   auto &Sets = J["PointsToSets"];
-  Owner.forEachPointsToSet([&Sets](const PointsToSetTy *PTS) {
+
+  for (const PointsToSetTy *PTS : Owner.getAllPointsToSets()) {
     auto PtsJson = nlohmann::json::array();
     for (const auto *Alias : *PTS) {
       auto Id = getMetaDataID(Alias);
@@ -707,7 +708,7 @@ nlohmann::json LLVMPointsToSet::getAsJson() const {
     if (!PtsJson.empty()) {
       Sets.push_back(std::move(PtsJson));
     }
-  });
+  }
 
   /// Serialize the AnalyzedFunctions
   auto &Fns = J["AnalyzedFunctions"];

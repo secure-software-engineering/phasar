@@ -473,26 +473,28 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("persisted-summaries")) {
     SolverConfig.setComputePersistedSummaries(
         PhasarConfig::VariablesMap()["persisted-summaries"].as<bool>());
-    nlohmann::json PrecomputedPointsToSet;
-    if (auto PTAFile = PhasarConfig::VariablesMap().find("load-pta-from-json");
-        PTAFile != PhasarConfig::VariablesMap().end()) {
-      PrecomputedPointsToSet =
-          readJsonFile(llvm::StringRef(PTAFile->second.as<std::string>()));
-    }
-    // setup output directory
-    std::string OutDirectory;
-    if (PhasarConfig::VariablesMap().count("out")) {
-      OutDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
-    }
-    // setup phasar project id
-    std::string ProjectID;
-    if (PhasarConfig::VariablesMap().count("project-id")) {
-      ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
-    }
-    AnalysisController Controller(
-        IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy, CGTy, SoundnessLevel,
-        PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-        Strategy, EmitterOptions, ProjectID, OutDirectory,
-        PrecomputedPointsToSet);
-    return 0;
   }
+  nlohmann::json PrecomputedPointsToSet;
+  if (auto PTAFile = PhasarConfig::VariablesMap().find("load-pta-from-json");
+      PTAFile != PhasarConfig::VariablesMap().end()) {
+    PrecomputedPointsToSet =
+        readJsonFile(llvm::StringRef(PTAFile->second.as<std::string>()));
+  }
+  // setup output directory
+  std::string OutDirectory;
+  if (PhasarConfig::VariablesMap().count("out")) {
+    OutDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
+  }
+  // setup phasar project id
+  std::string ProjectID;
+  if (PhasarConfig::VariablesMap().count("project-id")) {
+    ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
+  }
+  AnalysisController Controller(
+      IRDB, std::move(DataFlowAnalyses), std::move(AnalysisConfigs), PTATy,
+      CGTy, SoundnessLevel,
+      PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
+      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory,
+      PrecomputedPointsToSet);
+  return 0;
+}

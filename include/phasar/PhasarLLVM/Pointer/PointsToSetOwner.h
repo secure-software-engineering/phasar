@@ -16,6 +16,8 @@
 #include <type_traits>
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/iterator_range.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
@@ -51,6 +53,7 @@ public:
     OwnedPTS.insert(Ptr);
     return &AllPTS.emplace_back(Ptr);
   }
+
   void release(PointsToSetTy *PTS) noexcept {
     if (LLVM_UNLIKELY(!OwnedPTS.erase(PTS))) {
       llvm::report_fatal_error(
@@ -64,23 +67,8 @@ public:
 
   void reserve(size_t Capacity) { OwnedPTS.reserve(Capacity); }
 
-  template <typename CallBackTy,
-            typename = std::enable_if_t<
-                std::is_invocable_v<CallBackTy, PointsToSetTy *>>>
-  void forEachPointsToSet(CallBackTy &&CallBack) {
-    for (auto &[PTS, Unused] : OwnedPTS) {
-      std::invoke(std::forward<CallBackTy>(CallBack), PTS);
-    }
-  }
-
-  template <typename CallBackTy,
-            typename = std::enable_if_t<
-                std::is_invocable_v<CallBackTy, const PointsToSetTy *>>>
-  void forEachPointsToSet(CallBackTy &&CallBack) const {
-    for (auto &[PTS, Unused] : OwnedPTS) {
-      std::invoke(std::forward<CallBackTy>(CallBack),
-                  static_cast<const PointsToSetTy *>(PTS));
-    }
+  [[nodiscard]] auto getAllPointsToSets() const noexcept {
+    return llvm::make_range(OwnedPTS.begin(), OwnedPTS.end());
   }
 
 private:
