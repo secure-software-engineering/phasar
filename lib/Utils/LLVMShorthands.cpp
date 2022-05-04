@@ -15,9 +15,13 @@
  */
 
 #include <cctype>
+#include <charconv>
 #include <cstdlib>
+#include <optional>
+#include <system_error>
 
 #include "boost/algorithm/string/trim.hpp"
+#include "boost/log/sources/severity_feature.hpp"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -37,6 +41,7 @@
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
 using namespace std;
@@ -244,6 +249,46 @@ std::string getMetaDataID(const llvm::Value *V) {
     return string(FName + "." + ArgNr);
   }
   return "-1";
+}
+
+const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id) {
+  if (Id.empty() || Id[0] == '-') {
+    return nullptr;
+  }
+
+  auto ParseInt = [](llvm::StringRef Str) -> std::optional<unsigned> {
+    unsigned Num;
+    auto [Ptr, EC] = std::from_chars(Str.data(), Str.data() + Str.size(), Num);
+
+    if (EC == std::errc{}) {
+      return Num;
+    }
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                  << "Invalid metadata id '" << Str.str()
+                  << "': " << std::make_error_code(EC).message());
+    return std::nullopt;
+  };
+
+  if (auto Dot = Id.find('.'); Dot != llvm::StringRef::npos) {
+    auto FName = Id.slice(0, Dot);
+
+    auto ArgNr = ParseInt(Id.drop_front(Dot + 1));
+
+    if (!ArgNr) {
+      return nullptr;
+    }
+
+    const auto *F = IRDB.getFunction(FName);
+    if (F) {
+      return getNthFunctionArgument(F, *ArgNr);
+    }
+
+    return nullptr;
+  }
+
+  auto IdNr = ParseInt(Id);
+  return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
 }
 
 bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,

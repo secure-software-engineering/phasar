@@ -126,7 +126,8 @@ public:
                      AnalysisControllerEmitterOptions EmitterOptions,
                      IFDSIDESolverConfig SolverConfig,
                      const std::string &ProjectID = "default-phasar-project",
-                     const std::string &OutDirectory = "");
+                     const std::string &OutDirectory = "",
+                     const nlohmann::json &PrecomputedPointsToInfo = {});
 
   ~AnalysisController() = default;
 

@@ -82,8 +82,12 @@ AnalysisController::AnalysisController(
     bool AutoGlobalSupport, const std::set<std::string> &EntryPoints,
     AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
     IFDSIDESolverConfig SolverConfig, const std::string &ProjectID,
-    const std::string &OutDirectory)
-    : IRDB(IRDB), TH(IRDB), PT(IRDB, !needsToEmitPTA(EmitterOptions), PTATy),
+    const std::string &OutDirectory,
+    const nlohmann::json &PrecomputedPointsToInfo)
+    : IRDB(IRDB), TH(IRDB),
+      PT(PrecomputedPointsToInfo.empty()
+             ? LLVMPointsToSet(IRDB, !needsToEmitPTA(EmitterOptions), PTATy)
+             : LLVMPointsToSet(IRDB, PrecomputedPointsToInfo)),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel, AutoGlobalSupport),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
       AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),

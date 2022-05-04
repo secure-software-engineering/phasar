@@ -41,134 +41,48 @@
 using namespace std;
 using namespace psr;
 
-static const std::string PathToLLFiles =
-    unittest::PathToLLTestFiles + "globals/";
+class LLVMBasedICFGGlobCtorDtorTest : public ::testing::Test {
+protected:
+  const std::string PathToLLFiles = unittest::PathToLLTestFiles + "globals/";
 
-// static void EnsureFunctionOrdering(
-//     LLVMBasedICFG &ICFG,
-//     llvm::SmallDenseSet<const llvm::Function *, 4> Functions,
-//     std::vector<std::array<const llvm::Function *, 2>> FixedOrdering = {}) {
-//   if (Functions.size() < 2)
-//     return;
-
-//   llvm::SmallDenseMap<const llvm::Function *, const llvm::Function *, 8>
-//   next,
-//       prev;
-
-//   auto getLast = [](const llvm::Function *F) {
-//     const auto &LastBB = F->back();
-//     const auto &LastInst = LastBB.back();
-//     if (LastInst.getPrevNode()) {
-//       return LastInst.getPrevNode();
-//     } else {
-//       std::cerr << "WARNING: No prev of: " << llvmIRToString(&LastInst) <<
-//       "\n"; return &LastInst;
-//     }
-//   };
-
-//   // Construct ordering between the functions...
-//   for (const auto *Fun : Functions) {
-//     auto succ = ICFG.getSuccsOf(getLast(Fun));
-//     auto pred = ICFG.getPredsOf(&Fun->front().front());
-
-//     EXPECT_TRUE(succ.size() < 2);
-//     EXPECT_TRUE(pred.size() < 2);
-
-//     if (succ.empty()) {
-//       ASSERT_EQ(1, pred.size()) << "Invalid number of Preds for "
-//                                 << Fun->getName().str() << " with no succs";
-//     } else if (pred.empty()) {
-//       ASSERT_EQ(1, succ.size()) << "Invalid number of succs for "
-//                                 << Fun->getName().str() << " with no preds";
-//     }
-
-//     auto succFn = succ.empty() ? nullptr : succ.front()->getFunction();
-//     auto predFn = pred.empty() ? nullptr : pred.front()->getFunction();
-
-//     if (Fun != succFn)
-//       EXPECT_TRUE(next.insert({Fun, succFn}).second);
-//     if (Fun != predFn)
-//       EXPECT_TRUE(prev.insert({Fun, predFn}).second);
-
-//     llvm::outs() << (predFn ? predFn->getName() : "null") << " < "
-//                  << Fun->getName() << " < "
-//                  << (succFn ? succFn->getName() : "null") << "\n";
-
-//     if (!predFn) {
-//       EXPECT_TRUE(next.insert({nullptr, Fun}).second);
-//     } else if (!succFn) {
-//       EXPECT_TRUE(prev.insert({nullptr, Fun}).second);
-//     }
-//   }
-
-//   // Check that the ordering is indeed total
-
-//   llvm::SmallDenseSet<const llvm::Function *, 8> visited;
-//   llvm::SmallDenseMap<const llvm::Function *, size_t, 8> FunIdx;
-
-//   auto Curr = next[nullptr];
-//   bool finished = false;
-//   size_t idx = 0;
-
-//   do {
-//     FunIdx[Curr] = idx++;
-
-//     finished = !visited.insert(Curr).second;
-//     Curr = next[Curr];
-//   } while (Curr && !finished);
-
-//   EXPECT_EQ(Functions.size(), visited.size());
-
-//   visited.clear();
-
-//   Curr = prev[nullptr];
-//   do {
-//     finished = !visited.insert(Curr).second;
-//     Curr = prev[Curr];
-//   } while (Curr && !finished);
-
-//   EXPECT_EQ(Functions.size(), visited.size());
-
-//   // Ensure the fixed ordering
-
-//   for (auto &[From, To] : FixedOrdering) {
-//     EXPECT_LT(FunIdx[From], FunIdx[To]);
-//   }
-// }
-
-static void ensureFunctionOrdering(
-    llvm::Function *F, LLVMBasedICFG &ICFG,
-    std::initializer_list<std::pair<llvm::StringRef, llvm::StringRef>>
-        FixedOrdering) {
-
-  auto CallSites = ICFG.getCallsFromWithin(F);
-
-  llvm::StringMap<const llvm::CallBase *> CSByCalleeName;
-
-  for (const auto *CS : CallSites) {
-    const auto *Call = llvm::cast<llvm::CallBase>(CS);
-
-    if (const auto *Callee = Call->getCalledFunction()) {
-      // Assume, we have no duplicates
-      CSByCalleeName[Callee->getName()] = Call;
-    }
+  void SetUp() override {
+    boost::log::core::get()->set_logging_enabled(false);
+    ValueAnnotationPass::resetValueID();
   }
 
-  llvm::DominatorTree Dom(*F);
+  void ensureFunctionOrdering(
+      llvm::Function *F, LLVMBasedICFG &ICFG,
+      std::initializer_list<std::pair<llvm::StringRef, llvm::StringRef>>
+          FixedOrdering) {
 
-  for (auto [First, Second] : FixedOrdering) {
-    EXPECT_TRUE(CSByCalleeName.count(First));
-    EXPECT_TRUE(CSByCalleeName.count(Second));
+    auto CallSites = ICFG.getCallsFromWithin(F);
 
-    if (CSByCalleeName.count(First) && CSByCalleeName.count(Second)) {
-      EXPECT_TRUE(Dom.dominates(CSByCalleeName[First], CSByCalleeName[Second]));
+    llvm::StringMap<const llvm::CallBase *> CSByCalleeName;
+
+    for (const auto *CS : CallSites) {
+      const auto *Call = llvm::cast<llvm::CallBase>(CS);
+
+      if (const auto *Callee = Call->getCalledFunction()) {
+        // Assume, we have no duplicates
+        CSByCalleeName[Callee->getName()] = Call;
+      }
+    }
+
+    llvm::DominatorTree Dom(*F);
+
+    for (auto [First, Second] : FixedOrdering) {
+      EXPECT_TRUE(CSByCalleeName.count(First));
+      EXPECT_TRUE(CSByCalleeName.count(Second));
+
+      if (CSByCalleeName.count(First) && CSByCalleeName.count(Second)) {
+        EXPECT_TRUE(
+            Dom.dominates(CSByCalleeName[First], CSByCalleeName[Second]));
+      }
     }
   }
-}
+};
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
@@ -186,9 +100,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
                           {"main", "__psrCRuntimeGlobalDtorsModel"}});
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_2_1_cpp.ll",
                     PathToLLFiles + "globals_ctor_2_2_cpp.ll"},
@@ -208,9 +120,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
                           {"_GLOBAL__sub_I_globals_ctor_2_2.cpp", "main"}});
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_dtor_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
@@ -243,9 +153,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
                              }));
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
@@ -260,7 +168,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
   Solver.solve();
 
-  Solver.dumpResults();
+  // Solver.dumpResults();
 
   auto *FooInit = IRDB.getInstruction(6);
   auto *LoadX = IRDB.getInstruction(11);
@@ -281,9 +189,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
       << "Value of x at " << llvmIRToString(End) << " is not 43";
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_2_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
@@ -324,9 +230,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
   EXPECT_EQ(45, BarValueAtEnd);
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_3_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
@@ -341,7 +245,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
   Solver.solve();
 
-  Solver.dumpResults();
+  // Solver.dumpResults();
 
   auto *FooInit = IRDB.getInstruction(7);
   // FIXME Why is 10 missing in the results set?
@@ -370,9 +274,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 }
 
 // Fails due to exception handling
-TEST(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
@@ -405,9 +307,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
   EXPECT_EQ(43, XValueAtEnd) << "Invalid value of " << llvmIRToString(LoadX);
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
@@ -440,9 +340,7 @@ TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
   EXPECT_EQ(43, XValueAtEnd) << "Invalid value of " << llvmIRToString(LoadX);
 }
 
-TEST(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
-  boost::log::core::get()->set_logging_enabled(false);
-  ValueAnnotationPass::resetValueID();
+TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_5_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);

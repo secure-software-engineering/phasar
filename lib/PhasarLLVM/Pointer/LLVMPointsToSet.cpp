@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -33,6 +34,10 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
+
+#include "boost/log/sources/severity_feature.hpp"
+
+#include "nlohmann/json.hpp"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
@@ -80,6 +85,61 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
   }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "LLVMPointsToSet completed\n");
+}
+
+LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
+                                 const nlohmann::json &SerializedPTS)
+    : PTA(IRDB) {
+  // Assume, we already have validated the json schema
+
+  llvm::outs() << "Load precomputed points-to info from JSON\n";
+
+  const auto &Sets = SerializedPTS.at("PointsToSets");
+  assert(Sets.is_array());
+  const auto &Fns = SerializedPTS.at("AnalyzedFunctions");
+  assert(Fns.is_array());
+
+  /// Deserialize the PointsToSets - an array of arrays (both are to be
+  /// interpreted as sets of metadata-ids)
+
+  Owner.reserve(Sets.size());
+  for (const auto &PtsJson : Sets) {
+    assert(PtsJson.is_array());
+    auto *PTS = Owner.acquire();
+    for (auto Alias : PtsJson) {
+      const auto *Inst = fromMetaDataId(IRDB, Alias.get<std::string>());
+      if (!Inst) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                      << "Invalid Value-Id: " << Alias);
+        continue;
+      }
+
+      PointsToSets[Inst] = PTS;
+      PTS->insert(Inst);
+    }
+  }
+
+  /// Deserialize the AnalyzedFunctions - an array of function-names (to be
+  /// interpreted as set)
+
+  AnalyzedFunctions.reserve(Fns.size());
+  for (const auto &F : Fns) {
+    if (!F.is_string()) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                    << "Invalid Function Name: " << F);
+      continue;
+    }
+
+    const auto *IRFn = IRDB.getFunction(F.get<std::string>());
+
+    if (!IRFn) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
+                    << "Function: " << F << " not in the IRDB");
+      continue;
+    }
+
+    AnalyzedFunctions.insert(IRFn);
+  }
 }
 
 void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
@@ -631,9 +691,35 @@ void LLVMPointsToSet::introduceAlias(
   mergePointsToSets(V1, V2);
 }
 
-nlohmann::json LLVMPointsToSet::getAsJson() const { return ""_json; }
+nlohmann::json LLVMPointsToSet::getAsJson() const {
+  nlohmann::json J;
 
-void LLVMPointsToSet::printAsJson(std::ostream &OS) const {}
+  /// Serialize the PointsToSets
+  auto &Sets = J["PointsToSets"];
+  Owner.forEachPointsToSet([&Sets](const PointsToSetTy *PTS) {
+    auto PtsJson = nlohmann::json::array();
+    for (const auto *Alias : *PTS) {
+      auto Id = getMetaDataID(Alias);
+      if (Id != "-1") {
+        PtsJson.push_back(std::move(Id));
+      }
+    }
+    if (!PtsJson.empty()) {
+      Sets.push_back(std::move(PtsJson));
+    }
+  });
+
+  /// Serialize the AnalyzedFunctions
+  auto &Fns = J["AnalyzedFunctions"];
+  for (const auto *F : AnalyzedFunctions) {
+    Fns.push_back(F->getName().str());
+  }
+  return J;
+}
+
+void LLVMPointsToSet::printAsJson(std::ostream &OS) const {
+  OS << std::setw(4) << getAsJson() << std::setw(0);
+}
 
 void LLVMPointsToSet::print(std::ostream &OS) const {
   for (const auto &[V, PTS] : PointsToSets) {

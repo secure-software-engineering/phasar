@@ -10,7 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 
+#include <functional>
+#include <memory>
 #include <memory_resource>
+#include <type_traits>
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -60,6 +63,25 @@ public:
   }
 
   void reserve(size_t Capacity) { OwnedPTS.reserve(Capacity); }
+
+  template <typename CallBackTy,
+            typename = std::enable_if_t<
+                std::is_invocable_v<CallBackTy, PointsToSetTy *>>>
+  void forEachPointsToSet(CallBackTy &&CallBack) {
+    for (auto &[PTS, Unused] : OwnedPTS) {
+      std::invoke(std::forward<CallBackTy>(CallBack), PTS);
+    }
+  }
+
+  template <typename CallBackTy,
+            typename = std::enable_if_t<
+                std::is_invocable_v<CallBackTy, const PointsToSetTy *>>>
+  void forEachPointsToSet(CallBackTy &&CallBack) const {
+    for (auto &[PTS, Unused] : OwnedPTS) {
+      std::invoke(std::forward<CallBackTy>(CallBack),
+                  static_cast<const PointsToSetTy *>(PTS));
+    }
+  }
 
 private:
   std::pmr::polymorphic_allocator<PointsToSetTy> Alloc;

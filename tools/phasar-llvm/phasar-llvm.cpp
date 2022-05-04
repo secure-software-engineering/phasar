@@ -18,11 +18,16 @@
 #include "boost/program_options.hpp"
 #include "boost/program_options/value_semantic.hpp"
 
+#include "llvm/ADT/StringRef.h"
+
+#include "nlohmann/json.hpp"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/Plugins/AnalysisPluginController.h"
 #include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -171,6 +176,14 @@ void validateParamAnalysisConfig(const std::vector<std::string> &Configs) {
   }
 }
 
+void validatePTAJsonFile(const std::string &Config) {
+  if (!(boost::filesystem::exists(Config) &&
+        !boost::filesystem::is_directory(Config))) {
+    throw boost::program_options::error_with_option_name(
+        "Points-to info file '" + Config + "' does not exist!");
+  }
+}
+
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
@@ -230,6 +243,7 @@ int main(int Argc, const char **Argv) {
       ("compute-values", boost::program_options::value<bool>()->default_value(true), "Let the IDE Solver compute the values attached to each edge in the ESG")
       ("record-edges", boost::program_options::value<bool>()->default_value(true), "Let the IFDS/IDE Solver record all ESG edges whole solving the dataflow problem. This can have massive performance impact")
       ("persisted-summaries", boost::program_options::value<bool>()->default_value(false), "Let the IFDS/IDE Solver compute presisted procedure summaries (Currently not supported)")
+      ("load-pta-from-json", boost::program_options::value<std::string>()->notifier(&validatePTAJsonFile),"Load the points-to info previously exported via emit-pta-as-json from the given file")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
@@ -440,7 +454,6 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
-
   if (PhasarConfig::VariablesMap().count("follow-return-past-seeds")) {
     SolverConfig.setFollowReturnsPastSeeds(
         PhasarConfig::VariablesMap()["follow-return-past-seeds"].as<bool>());
@@ -460,20 +473,26 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("persisted-summaries")) {
     SolverConfig.setComputePersistedSummaries(
         PhasarConfig::VariablesMap()["persisted-summaries"].as<bool>());
+    nlohmann::json PrecomputedPointsToSet;
+    if (auto PTAFile = PhasarConfig::VariablesMap().find("load-pta-from-json");
+        PTAFile != PhasarConfig::VariablesMap().end()) {
+      PrecomputedPointsToSet =
+          readJsonFile(llvm::StringRef(PTAFile->second.as<std::string>()));
+    }
+    // setup output directory
+    std::string OutDirectory;
+    if (PhasarConfig::VariablesMap().count("out")) {
+      OutDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
+    }
+    // setup phasar project id
+    std::string ProjectID;
+    if (PhasarConfig::VariablesMap().count("project-id")) {
+      ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
+    }
+    AnalysisController Controller(
+        IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy, CGTy, SoundnessLevel,
+        PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
+        Strategy, EmitterOptions, ProjectID, OutDirectory,
+        PrecomputedPointsToSet);
+    return 0;
   }
-  // setup output directory
-  std::string OutDirectory;
-  if (PhasarConfig::VariablesMap().count("out")) {
-    OutDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
-  }
-  // setup phasar project id
-  std::string ProjectID;
-  if (PhasarConfig::VariablesMap().count("project-id")) {
-    ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
-  }
-  AnalysisController Controller(
-      IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy, CGTy, SoundnessLevel,
-      PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory);
-  return 0;
-}

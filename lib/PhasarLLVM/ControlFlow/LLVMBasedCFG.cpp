@@ -78,7 +78,6 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
 
 std::vector<const llvm::Instruction *>
 LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
-
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
     if (const auto *NextInst = I->getNextNode()) {
@@ -88,7 +87,6 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
                  false /*Only debug instructions*/)) {
     return {NextNonDbgInst};
   }
-
   if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(I);
       Branch && isStaticVariableLazyInitializationBranch(Branch)) {
     // Skip the "already initialized" case, such that the analysis is always
@@ -99,7 +97,6 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
     }
     return {NextInst};
   }
-
   std::vector<const llvm::Instruction *> Successors;
   Successors.reserve(I->getNumSuccessors() + Successors.size());
   std::transform(

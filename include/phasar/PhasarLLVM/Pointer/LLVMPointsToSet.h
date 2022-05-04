@@ -15,8 +15,10 @@
 
 #include "nlohmann/json.hpp"
 
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
 
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -80,8 +82,12 @@ public:
    * UseLazyEvaluation is true, computes points-to-sets for functions that do
    * not use global variables on the fly
    */
-  LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-                  PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+  explicit LLVMPointsToSet(
+      ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+      PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+
+  explicit LLVMPointsToSet(ProjectIRDB &IRDB,
+                           const nlohmann::json &SerializedPTS);
 
   ~LLVMPointsToSet() override = default;
 

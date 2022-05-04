@@ -562,8 +562,8 @@ std::ostream &operator<<(std::ostream &OS, const TaintConfig &TC) {
 }
 
 nlohmann::json parseTaintConfig(const std::filesystem::path &Path) {
-  std::string RawText = readTextFile(Path);
-  nlohmann::json TaintConfig(nlohmann::json::parse(RawText));
+
+  nlohmann::json TaintConfig = readJsonFile(Path);
   nlohmann::json_schema::json_validator Validator;
   try {
     Validator.set_root_schema(TaintConfigSchema); // insert root-schema

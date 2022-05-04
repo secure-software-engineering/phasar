@@ -7,7 +7,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <nlohmann/json.hpp>
 #include <tuple>
 #include <type_traits>
 #include <utility>
