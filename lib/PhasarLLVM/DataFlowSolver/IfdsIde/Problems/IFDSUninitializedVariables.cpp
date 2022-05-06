@@ -231,9 +231,6 @@ IFDSUninitializedVariables::getNormalFlowFunction(
     }
   };
   return make_shared<UVFF>(Curr, UndefValueUses);
-
-  // otherwise we do not care and nothing changes
-  return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
