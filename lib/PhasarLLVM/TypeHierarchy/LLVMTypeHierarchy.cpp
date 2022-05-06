@@ -203,29 +203,7 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
       }
       if (const auto *I =
               llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        for (const auto &Op : I->operands()) {
-          if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
-            for (auto &COp : CA->operands()) {
-              if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-                std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-                    CE->getAsInstruction(), &deleteValue);
-                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
-                  // if the entry is a GlobalAlias, get its Aliasee
-                  auto *ENTRY = BC->getOperand(0);
-                  while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(ENTRY)) {
-                    ENTRY = GA->getAliasee();
-                  }
-
-                  if (ENTRY->hasName()) {
-                    if (auto *F = M.getFunction(ENTRY->getName())) {
-                      VFS.push_back(F);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        VFS = LLVMVFTable::getVFVectorFromIRVTable(I);
       }
     }
   }

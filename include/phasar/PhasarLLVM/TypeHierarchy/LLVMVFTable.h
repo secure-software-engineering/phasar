@@ -19,6 +19,7 @@
 
 namespace llvm {
 class Function;
+class ConstantStruct;
 } // namespace llvm
 
 namespace psr {
@@ -84,6 +85,9 @@ public:
   end() const {
     return VFT.end();
   };
+
+  [[nodiscard]] static std::vector<const llvm::Function *>
+  getVFVectorFromIRVTable(const llvm::ConstantStruct *);
 };
 
 } // namespace psr
