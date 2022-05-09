@@ -13,6 +13,7 @@
 #include <iostream>
 #include <set>
 #include <utility>
+#include <filesystem>
 
 #include "llvm/Support/ErrorHandling.h"
 
@@ -97,7 +98,7 @@ AnalysisController::AnalysisController(
   if (!OutDirectory.empty()) {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
-    boost::filesystem::create_directory(ResultDirectory);
+    std::filesystem::create_directory(ResultDirectory);
   }
   emitRequestedHelperAnalysisResults();
   executeAs(Strategy);

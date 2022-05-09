@@ -1,7 +1,5 @@
 set(PHASAR_phasarllvm_utils_COMPONENT_FOUND 1)
 
-find_package(Boost COMPONENTS filesystem REQUIRED)
-
 list(APPEND
   PHASAR_LLVM_DEPS
   Support

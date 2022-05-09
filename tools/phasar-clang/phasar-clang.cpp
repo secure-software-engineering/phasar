@@ -7,20 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <filesystem>
 #include <iostream>
 
 // #include "phasar/Controller/AnalysisExecutor.h"
-#include "boost/filesystem/operations.hpp"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Utils/Logger.h"
 
-namespace bfs = boost::filesystem;
-
-using namespace std;
 using namespace psr;
 
 int main(int Argc, const char **Argv) {
-  if (Argc < 2 || !bfs::exists(Argv[1]) || bfs::is_directory(Argv[1])) {
+  if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
+      std::filesystem::is_directory(Argv[1])) {
     std::cerr << "usage: <prog> <ir file>\n";
     return 1;
   }

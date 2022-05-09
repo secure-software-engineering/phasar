@@ -22,9 +22,6 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "boost/filesystem/operations.hpp"
-
-using namespace std;
 using namespace psr;
 
 // int main(int argc, char **argv) {

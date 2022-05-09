@@ -15,11 +15,10 @@
  */
 
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-
-#include "boost/filesystem.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -329,7 +328,7 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
     JsonData["Info"] = JInfo;
   }
 
-  boost::filesystem::path Cfp(OutputPath);
+  std::filesystem::path Cfp(OutputPath);
   if (Cfp.string().find(".json") == std::string::npos) {
     OutputPath.append(".json");
   }
