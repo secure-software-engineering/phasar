@@ -51,21 +51,23 @@ nlohmann::json LLVMVFTable::getAsJson() const {
 }
 
 std::vector<const llvm::Function *>
-LLVMVFTable::getVFVectorFromIRVTable(const llvm::ConstantStruct *VT) {
+LLVMVFTable::getVFVectorFromIRVTable(const llvm::ConstantStruct &VT) {
   std::vector<const llvm::Function *> VFS;
-  for (const auto &Op : VT->operands()) {
-    if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
-      for (auto It = CA->operands().begin() + 2; It != CA->operands().end();
-           ++It) {
-        auto &COp = *It;
-        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
+  for (const auto &Op : VT.operands()) {
+    if (const auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
+      // Start iterating at offset 2, because offset 0 is vbase offset, offset 1
+      // is RTTI
+      for (auto It = std::next(CA->operands().begin(), 2);
+           It != CA->operands().end(); ++It) {
+        const auto &COp = *It;
+        if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
+          if (const auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
             // if the entry is a GlobalAlias, get its Aliasee
-            auto *ENTRY = BC->getOperand(0);
-            while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(ENTRY)) {
-              ENTRY = GA->getAliasee();
+            auto *Entry = BC->getOperand(0);
+            while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(Entry)) {
+              Entry = GA->getAliasee();
             }
-            auto *F = llvm::dyn_cast<llvm::Function>(ENTRY);
+            auto *F = llvm::dyn_cast<llvm::Function>(Entry);
             VFS.push_back(F);
           } else {
             VFS.push_back(nullptr);

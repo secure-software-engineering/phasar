@@ -203,7 +203,7 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
       }
       if (const auto *I =
               llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        VFS = LLVMVFTable::getVFVectorFromIRVTable(I);
+        VFS = LLVMVFTable::getVFVectorFromIRVTable(*I);
       }
     }
   }

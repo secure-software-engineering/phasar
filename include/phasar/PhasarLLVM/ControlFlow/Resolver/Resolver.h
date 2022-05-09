@@ -29,11 +29,15 @@ class Function;
 class StructType;
 } // namespace llvm
 
+namespace std {
+template <class T> class optional;
+}
+
 namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 
-int getVFTIndex(const llvm::CallBase *CallSite);
+std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite);
 
 const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite);
 
