@@ -17,8 +17,8 @@
 #ifndef PHASAR_CONFIG_CONFIGURATION_H_
 #define PHASAR_CONFIG_CONFIGURATION_H_
 
-#include <string>
 #include <filesystem>
+#include <string>
 
 #include "boost/program_options.hpp"
 

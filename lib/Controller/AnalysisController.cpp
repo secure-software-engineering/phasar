@@ -8,12 +8,12 @@
  *****************************************************************************/
 
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iostream>
 #include <set>
 #include <utility>
-#include <filesystem>
 
 #include "llvm/Support/ErrorHandling.h"
 
