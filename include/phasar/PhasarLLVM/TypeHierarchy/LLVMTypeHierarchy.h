@@ -100,6 +100,8 @@ public:
 
   static const std::string TypeInfoPrefixDemang;
 
+  static const std::string PureVirtualCallName;
+
 private:
   bidigraph_t TypeGraph;
   std::unordered_map<const llvm::StructType *, vertex_t> TypeVertexMap;

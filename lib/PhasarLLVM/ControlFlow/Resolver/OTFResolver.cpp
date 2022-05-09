@@ -126,7 +126,7 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
               }
               auto *Callee = VFs[VtableIndex];
               if (Callee == nullptr || !Callee->hasName() ||
-                  Callee->getName() == "__cxa_pure_virtual") {
+                  Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName) {
                 continue;
               }
               PossibleCallTargets.insert(Callee);
