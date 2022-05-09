@@ -97,7 +97,8 @@ AnalysisController::AnalysisController(
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {
   if (!OutDirectory.empty()) {
     // create directory for results
-    ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
+    ResultDirectory = OutDirectory;
+    ResultDirectory /= ProjectID + "-" + createTimeStamp();
     std::filesystem::create_directory(ResultDirectory);
   }
   emitRequestedHelperAnalysisResults();
