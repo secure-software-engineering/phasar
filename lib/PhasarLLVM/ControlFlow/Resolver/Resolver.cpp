@@ -14,8 +14,8 @@
  *      Author: nicolas bellec
  */
 
-#include <set>
 #include <optional>
+#include <set>
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
