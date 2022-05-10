@@ -49,20 +49,6 @@ using namespace std;
 
 namespace psr {
 
-const std::string LLVMTypeHierarchy::StructPrefix = "struct.";
-
-const std::string LLVMTypeHierarchy::ClassPrefix = "class.";
-
-const std::string LLVMTypeHierarchy::VTablePrefix = "_ZTV";
-
-const std::string LLVMTypeHierarchy::VTablePrefixDemang = "vtable for ";
-
-const std::string LLVMTypeHierarchy::TypeInfoPrefix = "_ZTI";
-
-const std::string LLVMTypeHierarchy::TypeInfoPrefixDemang = "typeinfo for ";
-
-const std::string LLVMTypeHierarchy::PureVirtualCallName = "__cxa_pure_virtual";
-
 LLVMTypeHierarchy::VertexProperties::VertexProperties(
     const llvm::StructType *Type)
     : Type(Type), ReachableTypes({Type}) {}

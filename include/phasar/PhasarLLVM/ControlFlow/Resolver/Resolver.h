@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
+#include <optional>
 #include <set>
 #include <string>
 
@@ -28,10 +29,6 @@ class CallBase;
 class Function;
 class StructType;
 } // namespace llvm
-
-namespace std {
-template <class T> class optional;
-}
 
 namespace psr {
 class ProjectIRDB;
