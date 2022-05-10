@@ -17,10 +17,11 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <fstream>
+#include <iostream>
 
 #include "boost/algorithm/string.hpp"
 #include "boost/core/null_deleter.hpp"
-#include "boost/filesystem.hpp"
 #include "boost/log/attributes.hpp"
 #include "boost/log/attributes/named_scope.hpp"
 #include "boost/log/attributes/timer.hpp"

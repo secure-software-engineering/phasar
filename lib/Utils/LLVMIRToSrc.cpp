@@ -7,14 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <string>
 
 #include "boost/algorithm/string/trim.hpp"
-#include "boost/filesystem.hpp"
-#include "boost/filesystem/path.hpp"
 
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"
@@ -157,8 +156,8 @@ std::string getFunctionNameFromIR(const llvm::Value *V) {
 
 std::string getFilePathFromIR(const llvm::Value *V) {
   if (auto *DIF = getDIFile(V)) {
-    boost::filesystem::path File(DIF->getFilename().str());
-    boost::filesystem::path Dir(DIF->getDirectory().str());
+    std::filesystem::path File(DIF->getFilename().str());
+    std::filesystem::path Dir(DIF->getDirectory().str());
     if (!File.empty()) {
       // try to concatenate file path and dir to get absolut path
       if (!File.has_root_directory() && !Dir.empty()) {
@@ -222,9 +221,8 @@ unsigned int getColumnFromIR(const llvm::Value *V) {
 std::string getSrcCodeFromIR(const llvm::Value *V) {
   unsigned int LineNr = getLineFromIR(V);
   if (LineNr > 0) {
-    boost::filesystem::path Path(getFilePathFromIR(V));
-    if (boost::filesystem::exists(Path) &&
-        !boost::filesystem::is_directory(Path)) {
+    std::filesystem::path Path(getFilePathFromIR(V));
+    if (std::filesystem::exists(Path) && !std::filesystem::is_directory(Path)) {
       std::ifstream Ifs(Path.string(), std::ios::binary);
       if (Ifs.is_open()) {
         Ifs.seekg(std::ios::beg);
@@ -273,8 +271,8 @@ bool SourceCodeInfo::equivalentWith(const SourceCodeInfo &Other) const {
     return false;
   }
 
-  auto Pos =
-      SourceCodeFilename.find_last_of(boost::filesystem::path::separator);
+  auto Pos = SourceCodeFilename.find_last_of(
+      std::filesystem::path::preferred_separator);
   if (Pos == std::string::npos) {
     Pos = 0;
   }

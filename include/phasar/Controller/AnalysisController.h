@@ -15,8 +15,6 @@
 #include <string>
 #include <vector>
 
-#include "boost/filesystem.hpp"
-
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -62,7 +60,7 @@ private:
       AnalysisControllerEmitterOptions::None;
   std::string ProjectID;
   std::string OutDirectory;
-  boost::filesystem::path ResultDirectory;
+  std::filesystem::path ResultDirectory;
   IFDSIDESolverConfig SolverConfig;
   [[maybe_unused]] Soundness SoundnessLevel;
   [[maybe_unused]] bool AutoGlobalSupport;

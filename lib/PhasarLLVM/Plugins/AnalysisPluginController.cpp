@@ -10,7 +10,6 @@
 #include <iostream>
 
 #include "boost/dll.hpp"
-#include "boost/filesystem.hpp"
 
 #include "llvm/Support/ErrorHandling.h"
 
@@ -37,9 +36,9 @@ AnalysisPluginController::AnalysisPluginController(
     const LLVMBasedICFG * /*ICF*/, const LLVMPointsToInfo * /*PT*/,
     const std::set<std::string> & /*EntryPoints*/) {
   for (const auto &AnalysisPlugin : AnalysisPlygins) {
-    boost::filesystem::path LibPath(AnalysisPlugin);
+    std::filesystem::path LibPath(AnalysisPlugin);
     boost::system::error_code Err;
-    boost::dll::shared_library SharedLib(LibPath,
+    boost::dll::shared_library SharedLib(LibPath.string(),
                                          boost::dll::load_mode::rtld_lazy, Err);
     if (Err) {
       llvm::report_fatal_error(Err.message());

@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <filesystem>
 #include <iostream>
 
 #include "phasar/DB/ProjectIRDB.h"
@@ -18,15 +19,12 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "boost/filesystem/operations.hpp"
-
-using namespace std;
 using namespace psr;
-namespace bfs = boost::filesystem;
 
 int main(int Argc, char **Argv) {
   initializeLogger(false);
-  if (Argc < 2 || !bfs::exists(Argv[1]) || bfs::is_directory(Argv[1])) {
+  if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
+      std::filesystem::is_directory(Argv[1])) {
     std::cerr << "usage: <prog> <ir file>\n";
     std::cerr << "use programs in build/test/llvm_test_code/pointers/\n";
     return 1;

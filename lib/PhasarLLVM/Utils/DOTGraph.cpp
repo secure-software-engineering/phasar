@@ -15,11 +15,11 @@
  */
 
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <iterator>
 #include <ostream>
 #include <utility>
-
-#include "boost/filesystem.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -245,10 +245,10 @@ DOTConfig &DOTConfig::getDOTConfig() {
 }
 
 void DOTConfig::importDOTConfig(std::string ConfigPath) {
-  boost::filesystem::path FilePath(ConfigPath);
-  FilePath /= boost::filesystem::path("config/DOTGraphConfig.json");
-  if (boost::filesystem::exists(FilePath) &&
-      !boost::filesystem::is_directory(FilePath)) {
+  std::filesystem::path FilePath(ConfigPath);
+  FilePath /= std::filesystem::path("config/DOTGraphConfig.json");
+  if (std::filesystem::exists(FilePath) &&
+      !std::filesystem::is_directory(FilePath)) {
     std::ifstream Ifs(FilePath.string());
     if (Ifs.is_open()) {
       std::stringstream Iss;
