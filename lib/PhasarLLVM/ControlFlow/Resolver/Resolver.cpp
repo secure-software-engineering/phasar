@@ -14,6 +14,7 @@
  *      Author: nicolas bellec
  */
 
+#include <optional>
 #include <set>
 
 #include "llvm/IR/Constants.h"
@@ -30,23 +31,23 @@ using namespace psr;
 
 namespace psr {
 
-int getVFTIndex(const llvm::CallBase *CallSite) {
+std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
   const auto *Load =
       llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
   if (Load == nullptr) {
-    return -1;
+    return std::nullopt;
   }
   const auto *GEP =
       llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
   if (GEP == nullptr) {
-    return -2;
+    return std::nullopt;
   }
   if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
     return CI->getZExtValue();
   }
-  return -3;
+  return std::nullopt;
 }
 
 const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {

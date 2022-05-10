@@ -88,6 +88,17 @@ public:
   using out_edge_iterator = boost::graph_traits<bidigraph_t>::out_edge_iterator;
   using in_edge_iterator = boost::graph_traits<bidigraph_t>::in_edge_iterator;
 
+  static inline constexpr llvm::StringLiteral StructPrefix = "struct.";
+  static inline constexpr llvm::StringLiteral ClassPrefix = "class.";
+  static inline constexpr llvm::StringLiteral VTablePrefix = "_ZTV";
+  static inline constexpr llvm::StringLiteral VTablePrefixDemang =
+      "vtable for ";
+  static inline constexpr llvm::StringLiteral TypeInfoPrefix = "_ZTI";
+  static inline constexpr llvm::StringLiteral TypeInfoPrefixDemang =
+      "typeinfo for ";
+  static inline constexpr llvm::StringLiteral PureVirtualCallName =
+      "__cxa_pure_virtual";
+
 private:
   bidigraph_t TypeGraph;
   std::unordered_map<const llvm::StructType *, vertex_t> TypeVertexMap;
@@ -101,18 +112,6 @@ private:
   std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTIMap;
   // map from clearname to vtable variable
   std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTVMap;
-
-  static const std::string StructPrefix;
-
-  static const std::string ClassPrefix;
-
-  static const std::string VTablePrefix;
-
-  static const std::string VTablePrefixDemang;
-
-  static const std::string TypeInfoPrefix;
-
-  static const std::string TypeInfoPrefixDemang;
 
   static std::string removeStructOrClassPrefix(const llvm::StructType &T);
 
