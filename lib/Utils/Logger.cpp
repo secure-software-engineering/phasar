@@ -28,6 +28,7 @@
 #include "boost/shared_ptr.hpp"
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/FileSystem.h"
 
 #include "phasar/Utils/Logger.h"
 
@@ -37,7 +38,7 @@ namespace attrs = boost::log::attributes;
 
 namespace psr {
 
-SeverityLevel LogFilterLevel = DEBUG; // NOLINT
+// SeverityLevel LogFilterLevel = DEBUG; // NOLINT
 
 std::string toString(const SeverityLevel &Level) {
   switch (Level) {
@@ -50,23 +51,165 @@ std::string toString(const SeverityLevel &Level) {
   }
 }
 
-SeverityLevel toSeverityLevel(const std::string &S) {
-  SeverityLevel Type = llvm::StringSwitch<SeverityLevel>(S)
-#define SEVERITY_LEVEL(NAME, TYPE) .Case(NAME, SeverityLevel::TYPE)
-#include "phasar/Utils/SeverityLevel.def"
-                           .Default(SeverityLevel::INVALID);
-  return Type;
+void Logger::setLoggerFilterLevel(SeverityLevel Level) {
+  LogFilterLevel = Level;
 }
 
-std::ostream &operator<<(std::ostream &OS, const SeverityLevel &Level) {
-  return OS << toString(Level);
+SeverityLevel Logger::getLoggerFilterLevel() { return LogFilterLevel; }
+
+bool Logger::isLoggingEnabled() {
+  return boost::log::core::get()->get_logging_enabled();
 }
 
-void setLoggerFilterLevel(SeverityLevel Level) { LogFilterLevel = Level; }
+void Logger::initializeStdoutLogger(
+    const std::optional<SeverityLevel> &Level,
+    const std::optional<std::string> &Category) {
+  if (Category.has_value()) {
+    CategoriesToStreamVariant[Category.value()][Level] = StdStream::STDOUT;
+  } else {
+    LevelsToStreamVariant[Level] = StdStream::STDOUT;
+  }
+}
+
+void Logger::initializeStderrLogger(
+    const std::optional<SeverityLevel> &Level,
+    const std::optional<std::string> &Category) {
+  std::map<std::optional<SeverityLevel>, std::string> foo;
+  foo[Level] = "foo";
+  if (Category.has_value()) {
+    CategoriesToStreamVariant[Category.value()][Level] = StdStream::STDERR;
+  } else {
+    LevelsToStreamVariant[Level] = StdStream::STDERR;
+  }
+}
+
+[[nodiscard]] bool Logger::initializeFileLogger(
+    const llvm::StringRef &Filename, const std::optional<SeverityLevel> &Level,
+    const std::optional<std::string> &Category, bool Append) {
+  if (Category.has_value()) {
+    CategoriesToStreamVariant[Category.value()][Level] = Filename.str();
+  } else {
+    LevelsToStreamVariant[Level] = Filename.str();
+  }
+  if (LogfileStreams[Filename] == nullptr) {
+    std::error_code EC;
+    if (Append) {
+      LogfileStreams[Filename] = std::make_unique<llvm::raw_fd_ostream>(
+          Filename, EC,
+          llvm::sys::fs::OpenFlags::OF_Append |
+              llvm::sys::fs::OpenFlags::OF_ChildInherit);
+    } else {
+      LogfileStreams[Filename] = std::make_unique<llvm::raw_fd_ostream>(
+          Filename, EC, llvm::sys::fs::OpenFlags::OF_ChildInherit);
+    }
+    // Following
+    // https://stackoverflow.com/questions/41699343/how-do-i-test-that-an-stderror-code-is-not-an-error
+    if (static_cast<bool>(EC)) {
+      LogfileStreams[Filename] = nullptr;
+      return false;
+    }
+  }
+  return true;
+}
+
+llvm::raw_ostream &
+Logger::getLogStream(const std::optional<SeverityLevel> &Level,
+                     const std::optional<llvm::StringRef> &Category) {
+  if (Category.has_value()) {
+    auto CategoryLookupIt = CategoriesToStreamVariant.find(Category.value());
+    if (CategoryLookupIt == CategoriesToStreamVariant.end()) {
+      return llvm::nulls();
+    }
+    return getLogStream(Level, CategoryLookupIt->second);
+  }
+  return getLogStream(Level, LevelsToStreamVariant);
+}
+
+llvm::raw_ostream &
+Logger::getLogStream(const std::optional<SeverityLevel> &Level,
+                     const std::map<std::optional<SeverityLevel>,
+                                    std::variant<StdStream, std::string>>
+                         &PassedLevelsToStreamVariant) {
+  if (Level.has_value()) {
+    std::optional<SeverityLevel> ClosestLevel = std::nullopt;
+    for (const auto &[LevelThreshold, _] : PassedLevelsToStreamVariant) {
+      if (LevelThreshold <= Level.value()) {
+        if (ClosestLevel == std::nullopt ||
+            ClosestLevel.value() < LevelThreshold) {
+          ClosestLevel = LevelThreshold;
+        }
+      }
+    }
+    auto StreamVariantIt = PassedLevelsToStreamVariant.find(ClosestLevel);
+    if (StreamVariantIt != PassedLevelsToStreamVariant.end()) {
+      return getLogStreamFromStreamVariant(StreamVariantIt->second);
+    }
+    return llvm::nulls();
+  }
+  auto StreamVariantIt = PassedLevelsToStreamVariant.find(Level);
+  if (StreamVariantIt != PassedLevelsToStreamVariant.end()) {
+    return getLogStreamFromStreamVariant(StreamVariantIt->second);
+  }
+  return llvm::nulls();
+}
+
+llvm::raw_ostream &Logger::getLogStreamFromStreamVariant(
+    const std::variant<StdStream, std::string> &StreamVariant) {
+  if (std::holds_alternative<StdStream>(StreamVariant)) {
+    auto StdStreamKind = std::get<StdStream>(StreamVariant);
+    if (StdStreamKind == StdStream::STDOUT) {
+      return llvm::outs();
+    }
+    if (StdStreamKind == StdStream::STDERR) {
+      return llvm::errs();
+    }
+    return llvm::nulls();
+  }
+  return *LogfileStreams[std::get<std::string>(StreamVariant)];
+}
+
+bool Logger::logCategory(const llvm::StringRef &Category,
+                         const std::optional<SeverityLevel> &Level) {
+  auto CategoryLookupIt = CategoriesToStreamVariant.find(Category);
+  if (CategoryLookupIt == CategoriesToStreamVariant.end()) {
+    return false;
+  }
+  if (Level.has_value()) {
+    for (const auto &[LevelThreshold, Stream] : CategoryLookupIt->second) {
+      if (LevelThreshold <= Level.value()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return CategoryLookupIt->second.count(Level) > 0;
+}
+
+void Logger::addLinePrefix(llvm::raw_ostream &OS,
+                           const std::optional<SeverityLevel> &Level,
+                           const std::optional<std::string> &Category) {
+  // const auto NowTime = std::chrono::steady_clock::now();
+  // const auto MillisecondsDuration =
+  //     chrono::duration_cast<chrono::milliseconds>(NowTime -
+  //     StartTime).count();
+  // OS << MillisecondsDuration;
+  if (Level.has_value()) {
+    OS << '[' << toString(Level.value()) << ']';
+  } // else {
+    // OS << ' ';
+    // }
+  if (Category.has_value()) {
+    OS << '[' << Category.value() << ']';
+  } // else {
+  //   OS << ' ';
+  // }
+  OS << ' ';
+}
 
 bool logFilter(const boost::log::attribute_value_set &Set) {
 #ifdef DYNAMIC_LOG
-  return Set["Severity"].extract<SeverityLevel>() >= LogFilterLevel;
+  return Set["Severity"].extract<SeverityLevel>() >=
+         Logger::getLoggerFilterLevel();
 #else
   return false;
 #endif
@@ -117,7 +260,7 @@ void initializeLogger(bool UseLogger, const string &LogFile) {
 }
 
 void LoggerExceptionHandler::operator()(const std::exception &Ex) const {
-  std::cerr << "std::exception: " << Ex.what() << '\n';
+  llvm::errs() << "std::exception: " << Ex.what() << '\n';
 }
 
 } // namespace psr
