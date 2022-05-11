@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -96,8 +97,9 @@ AnalysisController::AnalysisController(
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {
   if (!OutDirectory.empty()) {
     // create directory for results
-    ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
-    boost::filesystem::create_directory(ResultDirectory);
+    ResultDirectory = OutDirectory;
+    ResultDirectory /= ProjectID + "-" + createTimeStamp();
+    std::filesystem::create_directory(ResultDirectory);
   }
   emitRequestedHelperAnalysisResults();
   executeAs(Strategy);

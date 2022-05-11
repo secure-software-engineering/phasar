@@ -161,8 +161,8 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: " << llvmIRToString(CallSite));
 
-  auto VtableIndex = getVFTIndex(CallSite);
-  if (VtableIndex < 0) {
+  auto RetrievedVtableIndex = getVFTIndex(CallSite);
+  if (!RetrievedVtableIndex.has_value()) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
@@ -170,6 +170,8 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
                   << llvmIRToString(CallSite) << "\n");
     return {};
   }
+
+  auto VtableIndex = RetrievedVtableIndex.value();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);

@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
+#include <optional>
 #include <set>
 #include <string>
 
@@ -33,7 +34,7 @@ namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 
-int getVFTIndex(const llvm::CallBase *CallSite);
+std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite);
 
 const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite);
 

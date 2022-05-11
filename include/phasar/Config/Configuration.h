@@ -17,9 +17,9 @@
 #ifndef PHASAR_CONFIG_CONFIGURATION_H_
 #define PHASAR_CONFIG_CONFIGURATION_H_
 
+#include <filesystem>
 #include <string>
 
-#include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 
 #include "llvm/ADT/iterator_range.h"
@@ -129,8 +129,8 @@ private:
     std::string ConfigFolder = "config/";
     if (EnvHome) { // Check if HOME was defined in the environment
       std::string PhasarConfDir = std::string(EnvHome) + "/.config/phasar/";
-      if (boost::filesystem::exists(PhasarConfDir) &&
-          boost::filesystem::is_directory(PhasarConfDir)) {
+      if (std::filesystem::exists(PhasarConfDir) &&
+          std::filesystem::is_directory(PhasarConfDir)) {
         ConfigFolder = PhasarConfDir;
       }
     }

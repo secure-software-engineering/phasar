@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <filesystem>
 #include <iostream>
 #include <ostream>
 #include <string>
@@ -25,8 +26,6 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Transforms/Utils.h"
-
-#include "boost/filesystem.hpp"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
@@ -66,7 +65,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
 
     if ((File.find(".ll") != std::string::npos ||
          File.find(".bc") != std::string::npos) &&
-        boost::filesystem::exists(File)) {
+        std::filesystem::exists(File)) {
       llvm::SMDiagnostic Diag;
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(File, Diag, *C);

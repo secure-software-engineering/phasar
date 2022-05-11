@@ -26,7 +26,7 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS log filesystem graph REQUIRED)
+find_package(Boost COMPONENTS log graph REQUIRED)
 target_link_libraries(phasar_pointer
   LINK_PUBLIC
   ${Boost_LIBRARIES}

@@ -7,10 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-
-#include "boost/filesystem/operations.hpp"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -30,8 +29,8 @@ using namespace psr;
 
 int main(int Argc, const char **Argv) {
   initializeLogger(false);
-  if (Argc < 2 || !boost::filesystem::exists(Argv[1]) ||
-      boost::filesystem::is_directory(Argv[1])) {
+  if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
+      std::filesystem::is_directory(Argv[1])) {
     std::cerr << "myphasartool\n"
                  "A small PhASAR-based example program\n\n"
                  "Usage: myphasartool <LLVM IR file>\n";

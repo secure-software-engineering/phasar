@@ -9,12 +9,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <set>
 #include <string>
 #include <vector>
 
 #include "boost/dll.hpp"
-#include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 #include "boost/program_options/value_semantic.hpp"
 
@@ -60,8 +60,8 @@ template <typename T> static std::set<T> vectorToSet(const std::vector<T> &V) {
 }
 
 void validateParamConfigFile(const std::string &Config) {
-  if (!(boost::filesystem::exists(Config) &&
-        !boost::filesystem::is_directory(Config))) {
+  if (!(std::filesystem::exists(Config) &&
+        !std::filesystem::is_directory(Config))) {
     throw boost::program_options::error_with_option_name(
         "PhASAR configuration '" + Config + "' does not exist!");
   }
@@ -73,9 +73,9 @@ void validateParamModule(const std::vector<std::string> &Modules) {
         "At least one LLVM target module is required!");
   }
   for (const auto &Module : Modules) {
-    boost::filesystem::path ModulePath(Module);
-    if (!(boost::filesystem::exists(ModulePath) &&
-          !boost::filesystem::is_directory(ModulePath) &&
+    std::filesystem::path ModulePath(Module);
+    if (!(std::filesystem::exists(ModulePath) &&
+          !std::filesystem::is_directory(ModulePath) &&
           (ModulePath.extension() == ".ll" ||
            ModulePath.extension() == ".bc"))) {
       throw boost::program_options::error_with_option_name(
@@ -90,7 +90,7 @@ void validateParamExport(const std::string & /*Export*/) {
 }
 
 void validateParamOutput(const std::string &Output) {
-  if (!Output.empty() && !boost::filesystem::is_directory(Output)) {
+  if (!Output.empty() && !std::filesystem::is_directory(Output)) {
     throw boost::program_options::error_with_option_name(
         "'" + Output +
         "' does not exist, a valid output directory is required!");
@@ -146,9 +146,9 @@ void validateSoundnessFlag(const std::string &Flag) {
 
 void validateParamAnalysisPlugin(const std::vector<std::string> &Plugins) {
   for (const auto &Plugin : Plugins) {
-    boost::filesystem::path PluginPath(Plugin);
-    if (!(boost::filesystem::exists(PluginPath) &&
-          !boost::filesystem::is_directory(PluginPath) &&
+    std::filesystem::path PluginPath(Plugin);
+    if (!(std::filesystem::exists(PluginPath) &&
+          !std::filesystem::is_directory(PluginPath) &&
           PluginPath.extension() == ".so")) {
       throw boost::program_options::error_with_option_name(
           "'" + Plugin + "' is not a valid data-flow analysis plugin!");
@@ -157,9 +157,9 @@ void validateParamAnalysisPlugin(const std::vector<std::string> &Plugins) {
 }
 
 void validateParamICFGPlugin(const std::string &Plugin) {
-  boost::filesystem::path PluginPath(Plugin);
-  if (!(boost::filesystem::exists(PluginPath) &&
-        !boost::filesystem::is_directory(PluginPath) &&
+  std::filesystem::path PluginPath(Plugin);
+  if (!(std::filesystem::exists(PluginPath) &&
+        !std::filesystem::is_directory(PluginPath) &&
         PluginPath.extension() == ".so")) {
     throw boost::program_options::error_with_option_name(
         "ICFG plugin '" + Plugin + "' does not exist!");
@@ -168,8 +168,8 @@ void validateParamICFGPlugin(const std::string &Plugin) {
 
 void validateParamAnalysisConfig(const std::vector<std::string> &Configs) {
   for (const auto &Config : Configs) {
-    if (!(boost::filesystem::exists(Config) &&
-          !boost::filesystem::is_directory(Config))) {
+    if (!(std::filesystem::exists(Config) &&
+          !std::filesystem::is_directory(Config))) {
       throw boost::program_options::error_with_option_name(
           "Analysis configuration '" + Config + "' does not exist!");
     }
@@ -177,8 +177,8 @@ void validateParamAnalysisConfig(const std::vector<std::string> &Configs) {
 }
 
 void validatePTAJsonFile(const std::string &Config) {
-  if (!(boost::filesystem::exists(Config) &&
-        !boost::filesystem::is_directory(Config))) {
+  if (!(std::filesystem::exists(Config) &&
+        !std::filesystem::is_directory(Config))) {
     throw boost::program_options::error_with_option_name(
         "Points-to info file '" + Config + "' does not exist!");
   }
@@ -355,9 +355,10 @@ int main(int Argc, const char **Argv) {
     auto Plugins = PhasarConfig::VariablesMap()["analysis-plugin"]
                        .as<std::vector<std::string>>();
     for (auto &Plugin : Plugins) {
-      boost::filesystem::path LibPath(Plugin);
+      std::filesystem::path LibPath(Plugin);
       boost::system::error_code Err;
-      PluginLibs.emplace_back(LibPath, boost::dll::load_mode::rtld_lazy, Err);
+      PluginLibs.emplace_back(LibPath.string(),
+                              boost::dll::load_mode::rtld_lazy, Err);
       if (Err) {
         llvm::report_fatal_error(Err.message());
       }
