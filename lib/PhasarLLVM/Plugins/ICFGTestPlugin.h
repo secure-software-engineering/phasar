@@ -83,7 +83,7 @@ public:
 
   std::string getDemangledFunctionName(f_t Fun) const override;
 
-  void print(f_t F, std::ostream &OS = std::cout) const override;
+  void print(f_t F, llvm::raw_ostream &OS = llvm::outs()) const override;
 
   nlohmann::json getAsJson(f_t F) const override;
 
@@ -107,7 +107,7 @@ public:
 
   [[nodiscard]] std::set<n_t> getReturnSitesOfCallAt(n_t Inst) const override;
 
-  void print(std::ostream &OS = std::cout) const override;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 

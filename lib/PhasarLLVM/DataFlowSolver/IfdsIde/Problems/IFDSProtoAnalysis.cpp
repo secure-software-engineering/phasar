@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <utility>
 
 #include "llvm/IR/Function.h"
@@ -95,17 +94,17 @@ bool IFDSProtoAnalysis::isZeroValue(IFDSProtoAnalysis::d_t Fact) const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
-void IFDSProtoAnalysis::printNode(ostream &OS,
+void IFDSProtoAnalysis::printNode(llvm::raw_ostream &OS,
                                   IFDSProtoAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IFDSProtoAnalysis::printDataFlowFact(ostream &OS,
+void IFDSProtoAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
                                           IFDSProtoAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IFDSProtoAnalysis::printFunction(ostream &OS,
+void IFDSProtoAnalysis::printFunction(llvm::raw_ostream &OS,
                                       IFDSProtoAnalysis::f_t Func) const {
   OS << Func->getName().str();
 }

@@ -149,11 +149,11 @@ void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &Other) {
   ForwardICFG.mergeWith(Other.ForwardICFG);
 }
 
-void LLVMBasedBackwardsICFG::print(std::ostream &OS) const {
+void LLVMBasedBackwardsICFG::print(llvm::raw_ostream &OS) const {
   ForwardICFG.print(OS);
 }
 
-void LLVMBasedBackwardsICFG::printAsDot(std::ostream &OS) const {
+void LLVMBasedBackwardsICFG::printAsDot(llvm::raw_ostream &OS) const {
   ForwardICFG.printAsDot(OS);
 }
 

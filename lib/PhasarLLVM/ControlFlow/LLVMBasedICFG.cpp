@@ -56,6 +56,7 @@
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -1032,7 +1033,7 @@ CallGraphAnalysisType LLVMBasedICFG::getCallGraphAnalysisType() const {
   return CGType;
 }
 
-void LLVMBasedICFG::print(ostream &OS) const {
+void LLVMBasedICFG::print(llvm::raw_ostream &OS) const {
   OS << "Call Graph:\n";
   vertex_iterator UI;
 
@@ -1050,13 +1051,16 @@ void LLVMBasedICFG::print(ostream &OS) const {
   }
 }
 
-void LLVMBasedICFG::printAsDot(std::ostream &OS, bool PrintEdgeLabels) const {
+void LLVMBasedICFG::printAsDot(llvm::raw_ostream &OS,
+                               bool PrintEdgeLabels) const {
+  std::stringstream S;
   if (PrintEdgeLabels) {
-    boost::write_graphviz(OS, CallGraph, VertexWriter<bidigraph_t>(CallGraph),
+    boost::write_graphviz(S, CallGraph, VertexWriter<bidigraph_t>(CallGraph),
                           EdgeLabelWriter<bidigraph_t>(CallGraph));
   } else {
-    boost::write_graphviz(OS, CallGraph, VertexWriter<bidigraph_t>(CallGraph));
+    boost::write_graphviz(S, CallGraph, VertexWriter<bidigraph_t>(CallGraph));
   }
+  OS << S.str();
 }
 
 nlohmann::json LLVMBasedICFG::getAsJson() const {
@@ -1081,7 +1085,9 @@ nlohmann::json LLVMBasedICFG::getAsJson() const {
   return J;
 }
 
-void LLVMBasedICFG::printAsJson(std::ostream &OS) const { OS << getAsJson(); }
+void LLVMBasedICFG::printAsJson(llvm::raw_ostream &OS) const {
+  OS << getAsJson();
+}
 
 nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
   nlohmann::json J;

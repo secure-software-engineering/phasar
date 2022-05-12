@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_SOLVER_WPDSSOLVER_H
 
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>

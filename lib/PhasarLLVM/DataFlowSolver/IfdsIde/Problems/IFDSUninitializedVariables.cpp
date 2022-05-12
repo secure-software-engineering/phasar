@@ -423,24 +423,24 @@ bool IFDSUninitializedVariables::isZeroValue(
 }
 
 void IFDSUninitializedVariables::printNode(
-    ostream &OS, IFDSUninitializedVariables::n_t Stmt) const {
+    llvm::raw_ostream &OS, IFDSUninitializedVariables::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
 void IFDSUninitializedVariables::printDataFlowFact(
-    ostream &OS, IFDSUninitializedVariables::d_t Fact) const {
+    llvm::raw_ostream &OS, IFDSUninitializedVariables::d_t Fact) const {
   OS << llvmIRToShortString(Fact);
 }
 
 void IFDSUninitializedVariables::printFunction(
-    ostream &OS, IFDSUninitializedVariables::f_t Func) const {
+    llvm::raw_ostream &OS, IFDSUninitializedVariables::f_t Func) const {
   OS << Func->getName().str();
 }
 
 void IFDSUninitializedVariables::emitTextReport(
     const SolverResults<IFDSUninitializedVariables::n_t,
                         IFDSUninitializedVariables::d_t, l_t> & /*Result*/,
-    ostream &OS) {
+    llvm::raw_ostream &OS) {
   OS << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
   if (UndefValueUses.empty()) {
@@ -523,7 +523,7 @@ bool IFDSUninitializedVariables::UninitResult::empty() const {
   return Line == 0;
 }
 
-void IFDSUninitializedVariables::UninitResult::print(std::ostream &OS) {
+void IFDSUninitializedVariables::UninitResult::print(llvm::raw_ostream &OS) {
   OS << "Variable(s): ";
   if (!VarNames.empty()) {
     for (size_t I = 0; I < VarNames.size(); ++I) {

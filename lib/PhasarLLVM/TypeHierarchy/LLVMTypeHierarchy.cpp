@@ -16,8 +16,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 #include <memory>
+#include <ostream>
 
 #include "boost/core/demangle.hpp"
 #include "boost/log/sources/record_ostream.hpp"
@@ -41,6 +41,7 @@
 #include "phasar/Utils/GraphExtensions.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -48,6 +49,20 @@ using namespace psr;
 using namespace std;
 
 namespace psr {
+
+// provide a VertexPropertyWrite to tell boost how to write a vertex
+class TypeHierarchyVertexWriter {
+public:
+  TypeHierarchyVertexWriter(const LLVMTypeHierarchy::bidigraph_t &TyGraph)
+      : TyGraph(TyGraph) {}
+  template <class VertexOrEdge>
+  void operator()(std::ostream &Out, const VertexOrEdge &V) const {
+    Out << "[label=\"" << TyGraph[V].getTypeName() << "\"]";
+  }
+
+private:
+  const LLVMTypeHierarchy::bidigraph_t &TyGraph;
+};
 
 LLVMTypeHierarchy::VertexProperties::VertexProperties(
     const llvm::StructType *Type)
@@ -291,7 +306,7 @@ LLVMTypeHierarchy::getVFTable(const llvm::StructType *Type) const {
   return nullptr;
 }
 
-void LLVMTypeHierarchy::print(std::ostream &OS) const {
+void LLVMTypeHierarchy::print(llvm::raw_ostream &OS) const {
   OS << "Type Hierarchy:\n";
   vertex_iterator UI;
 
@@ -384,12 +399,13 @@ nlohmann::json LLVMTypeHierarchy::getAsJson() const {
 //   }
 // }
 
-void LLVMTypeHierarchy::printAsDot(std::ostream &OS) const {
-  boost::write_graphviz(OS, TypeGraph,
-                        makeTypeHierarchyVertexWriter(TypeGraph));
+void LLVMTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
+  std::stringstream S;
+  boost::write_graphviz(S, TypeGraph, TypeHierarchyVertexWriter(TypeGraph));
+  OS << S.str();
 }
 
-void LLVMTypeHierarchy::printAsJson(std::ostream &OS) const {
+void LLVMTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
   OS << getAsJson();
 }
 

@@ -10,7 +10,6 @@
 #ifndef PHASAR_DB_PROJECTIRDB_H_
 #define PHASAR_DB_PROJECTIRDB_H_
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -180,7 +179,7 @@ public:
 
   void print() const;
 
-  void emitPreprocessedIR(std::ostream &OS = std::cout,
+  void emitPreprocessedIR(llvm::raw_ostream &OS = llvm::outs(),
                           bool ShortenIR = false) const;
 
   /**

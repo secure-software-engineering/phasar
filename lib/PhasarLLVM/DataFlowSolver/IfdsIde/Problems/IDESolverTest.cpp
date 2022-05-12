@@ -28,8 +28,6 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
-using namespace std;
-using namespace psr;
 namespace psr {
 
 IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
@@ -60,10 +58,9 @@ IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-IDESolverTest::FlowFunctionPtrType
-IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t /*CallSite*/,
-                                        IDESolverTest::n_t /*RetSite*/,
-                                        set<IDESolverTest::f_t> /*Callees*/) {
+IDESolverTest::FlowFunctionPtrType IDESolverTest::getCallToRetFlowFunction(
+    IDESolverTest::n_t /*CallSite*/, IDESolverTest::n_t /*RetSite*/,
+    std::set<IDESolverTest::f_t> /*Callees*/) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
@@ -97,7 +94,7 @@ bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
+std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t /*Curr*/,
                                      IDESolverTest::d_t /*CurrNode*/,
                                      IDESolverTest::n_t /*Succ*/,
@@ -105,7 +102,7 @@ IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t /*Curr*/,
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
+std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getCallEdgeFunction(IDESolverTest::n_t /*CallSite*/,
                                    IDESolverTest::d_t /*SrcNode*/,
                                    IDESolverTest::f_t /*DestinationFunction*/,
@@ -113,7 +110,7 @@ IDESolverTest::getCallEdgeFunction(IDESolverTest::n_t /*CallSite*/,
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
+std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t /*CallSite*/,
                                      IDESolverTest::f_t /*CalleeFunction*/,
                                      IDESolverTest::n_t /*ExitStmt*/,
@@ -123,16 +120,15 @@ IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t /*CallSite*/,
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t /*CallSite*/,
-                                        IDESolverTest::d_t /*CallNode*/,
-                                        IDESolverTest::n_t /*RetSite*/,
-                                        IDESolverTest::d_t /*RetSiteNode*/,
-                                        set<IDESolverTest::f_t> /*Callees*/) {
+std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
+IDESolverTest::getCallToRetEdgeFunction(
+    IDESolverTest::n_t /*CallSite*/, IDESolverTest::d_t /*CallNode*/,
+    IDESolverTest::n_t /*RetSite*/, IDESolverTest::d_t /*RetSiteNode*/,
+    std::set<IDESolverTest::f_t> /*Callees*/) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::l_t>>
+std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getSummaryEdgeFunction(IDESolverTest::n_t /*CallSite*/,
                                       IDESolverTest::d_t /*CallNode*/,
                                       IDESolverTest::n_t /*RetSite*/,

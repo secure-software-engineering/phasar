@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -46,7 +45,7 @@ private:
              std::set<IFDSUninitializedVariables::d_t>>
         IRTrace;
     [[nodiscard]] bool empty() const;
-    void print(std::ostream &OS);
+    void print(llvm::raw_ostream &OS);
   };
   std::map<n_t, std::set<d_t>> UndefValueUses;
 
@@ -77,14 +76,14 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
-  void printNode(std::ostream &OS, n_t Stmt) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &OS, f_t Func) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
-                      std::ostream &OS = std::cout) override;
+                      llvm::raw_ostream &OS = llvm::outs()) override;
 
   [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
 

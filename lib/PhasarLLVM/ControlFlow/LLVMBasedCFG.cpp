@@ -342,7 +342,7 @@ LLVMBasedCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
   return llvm::demangle(getFunctionName(Fun));
 }
 
-void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {
+void LLVMBasedCFG::print(const llvm::Function *F, llvm::raw_ostream &OS) const {
   OS << llvmIRToString(F);
 }
 

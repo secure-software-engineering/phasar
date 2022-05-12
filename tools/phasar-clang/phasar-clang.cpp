@@ -8,7 +8,6 @@
  *****************************************************************************/
 
 #include <filesystem>
-#include <iostream>
 
 // #include "phasar/Controller/AnalysisExecutor.h"
 #include "phasar/DB/ProjectIRDB.h"
@@ -19,14 +18,14 @@ using namespace psr;
 int main(int Argc, const char **Argv) {
   if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
       std::filesystem::is_directory(Argv[1])) {
-    std::cerr << "usage: <prog> <ir file>\n";
+    llvm::errs() << "usage: <prog> <ir file>\n";
     return 1;
   }
   initializeLogger(false);
   ProjectIRDB DB({Argv[1]}, IRDBOptions::WPA);
   if (DB.getFunction("main")) {
   } else {
-    std::cerr << "error: file does not contain a 'main' function!\n";
+    llvm::errs() << "error: file does not contain a 'main' function!\n";
   }
   return 0;
 }

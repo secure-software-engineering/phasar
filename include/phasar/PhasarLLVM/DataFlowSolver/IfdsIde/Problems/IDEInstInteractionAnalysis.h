@@ -12,7 +12,6 @@
 
 #include <functional>
 #include <initializer_list>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -1195,7 +1194,8 @@ public:
       return this == Other.get();
     }
 
-    void print(std::ostream &OS, bool /* IsForDebug */ = false) const override {
+    void print(llvm::raw_ostream &OS,
+               bool /* IsForDebug */ = false) const override {
       OS << "EF: (IIAAKillOrReplaceEF)<->";
       if (isKillAll()) {
         OS << "(KillAll";
@@ -1293,7 +1293,8 @@ public:
       return this == Other.get();
     }
 
-    void print(std::ostream &OS, bool /* IsForDebug */ = false) const override {
+    void print(llvm::raw_ostream &OS,
+               bool /* IsForDebug */ = false) const override {
       OS << "EF: (IIAAAddLabelsEF: ";
       IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, Data);
       OS << ")";
@@ -1302,19 +1303,20 @@ public:
 
   // Provide functionalities for printing things and emitting text reports.
 
-  void printNode(std::ostream &OS, n_t n) const override {
+  void printNode(llvm::raw_ostream &OS, n_t n) const override {
     OS << llvmIRToString(n);
   }
 
-  void printDataFlowFact(std::ostream &OS, d_t FlowFact) const override {
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override {
     OS << llvmIRToString(FlowFact);
   }
 
-  void printFunction(std::ostream &OS, f_t Fun) const override {
+  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {
     OS << Fun->getName().str();
   }
 
-  inline void printEdgeFact(std::ostream &OS, l_t EdgeFact) const override {
+  inline void printEdgeFact(llvm::raw_ostream &OS,
+                            l_t EdgeFact) const override {
     printEdgeFactImpl(OS, EdgeFact);
   }
 
@@ -1329,7 +1331,7 @@ public:
   }
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &OS = std::cout) override {
+                      llvm::raw_ostream &OS = llvm::outs()) override {
     OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
           "======================\n";
     // if (!IRDB->debugInfoAvailable()) {
@@ -1405,7 +1407,7 @@ protected:
     return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
   }
 
-  static void printEdgeFactImpl(std::ostream &OS, l_t EdgeFact) {
+  static void printEdgeFactImpl(llvm::raw_ostream &OS, l_t EdgeFact) {
     if (std::holds_alternative<Top>(EdgeFact)) {
       OS << std::get<Top>(EdgeFact);
     } else if (std::holds_alternative<Bottom>(EdgeFact)) {

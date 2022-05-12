@@ -10,7 +10,6 @@
 #ifndef PHASAR_UTILS_SOUNDNESS_H_
 #define PHASAR_UTILS_SOUNDNESS_H_
 
-#include <iosfwd>
 #include <string>
 
 namespace psr {
@@ -25,7 +24,7 @@ std::string toString(const Soundness &S);
 
 Soundness toSoundness(const std::string &S);
 
-std::ostream &operator<<(std::ostream &OS, const Soundness &S);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Soundness &S);
 
 } // namespace psr
 

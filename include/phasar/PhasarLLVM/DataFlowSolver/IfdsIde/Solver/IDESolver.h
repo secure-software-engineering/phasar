@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -280,15 +279,15 @@ public:
     return Result;
   }
 
-  virtual void emitTextReport(std::ostream &OS = std::cout) {
+  virtual void emitTextReport(llvm::raw_ostream &OS = llvm::outs()) {
     IDEProblem.emitTextReport(getSolverResults(), OS);
   }
 
-  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {
+  virtual void emitGraphicalReport(llvm::raw_ostream &OS = llvm::outs()) {
     IDEProblem.emitGraphicalReport(getSolverResults(), OS);
   }
 
-  virtual void dumpResults(std::ostream &OS = std::cout) {
+  virtual void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
     PAMM_GET_INSTANCE;
     START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
     OS << "\n***************************************************************\n"
@@ -296,7 +295,7 @@ public:
        << "***************************************************************\n";
     auto Cells = this->ValTab.cellVec();
     if (Cells.empty()) {
-      OS << "No results computed!" << std::endl;
+      OS << "No results computed!" << '\n';
     } else {
       LLVMValueIDLess LLVMIDLess;
       std::sort(
@@ -336,40 +335,40 @@ public:
   }
 
   void dumpAllInterPathEdges() {
-    std::cout << "COMPUTED INTER PATH EDGES" << std::endl;
+    llvm::outs() << "COMPUTED INTER PATH EDGES" << '\n';
     auto Interpe = this->computedInterPathEdges.cellSet();
     for (const auto &Cell : Interpe) {
-      std::cout << "FROM" << std::endl;
-      IDEProblem.printNode(std::cout, Cell.getRowKey());
-      std::cout << "TO" << std::endl;
-      IDEProblem.printNode(std::cout, Cell.getColumnKey());
-      std::cout << "FACTS" << std::endl;
+      llvm::outs() << "FROM" << '\n';
+      IDEProblem.printNode(llvm::outs(), Cell.getRowKey());
+      llvm::outs() << "TO" << '\n';
+      IDEProblem.printNode(llvm::outs(), Cell.getColumnKey());
+      llvm::outs() << "FACTS" << '\n';
       for (const auto &Fact : Cell.getValue()) {
-        std::cout << "fact" << std::endl;
-        IDEProblem.printDataFlowFact(std::cout, Fact.first);
-        std::cout << "produces" << std::endl;
+        llvm::outs() << "fact" << '\n';
+        IDEProblem.printDataFlowFact(llvm::outs(), Fact.first);
+        llvm::outs() << "produces" << '\n';
         for (const auto &Out : Fact.second) {
-          IDEProblem.printDataFlowFact(std::cout, Out);
+          IDEProblem.printDataFlowFact(llvm::outs(), Out);
         }
       }
     }
   }
 
   void dumpAllIntraPathEdges() {
-    std::cout << "COMPUTED INTRA PATH EDGES" << std::endl;
+    llvm::outs() << "COMPUTED INTRA PATH EDGES" << '\n';
     auto Intrape = this->computedIntraPathEdges.cellSet();
     for (auto &Cell : Intrape) {
-      std::cout << "FROM" << std::endl;
-      IDEProblem.printNode(std::cout, Cell.getRowKey());
-      std::cout << "TO" << std::endl;
-      IDEProblem.printNode(std::cout, Cell.getColumnKey());
-      std::cout << "FACTS" << std::endl;
+      llvm::outs() << "FROM" << '\n';
+      IDEProblem.printNode(llvm::outs(), Cell.getRowKey());
+      llvm::outs() << "TO" << '\n';
+      IDEProblem.printNode(llvm::outs(), Cell.getColumnKey());
+      llvm::outs() << "FACTS" << '\n';
       for (auto &Fact : Cell.getValue()) {
-        std::cout << "fact" << std::endl;
-        IDEProblem.printDataFlowFact(std::cout, Fact.first);
-        std::cout << "produces" << std::endl;
+        llvm::outs() << "fact" << '\n';
+        IDEProblem.printDataFlowFact(llvm::outs(), Fact.first);
+        llvm::outs() << "produces" << '\n';
         for (auto &Out : Fact.second) {
-          IDEProblem.printDataFlowFact(std::cout, Out);
+          IDEProblem.printDataFlowFact(llvm::outs(), Out);
         }
       }
     }
@@ -543,11 +542,11 @@ protected:
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
             // const std::set<TableCell> endSumm(endSummary(sP, d3));
-            // std::cout << "ENDSUMM" << std::endl;
-            // std::cout << "Size: " << endSumm.size() << std::endl;
-            // std::cout << "sP: " << IDEProblem.NtoString(sP)
+            // llvm::outs() << "ENDSUMM" << '\n';
+            // llvm::outs() << "Size: " << endSumm.size() << '\n';
+            // llvm::outs() << "sP: " << IDEProblem.NtoString(sP)
             //           << "\nd3: " << IDEProblem.DtoString(d3)
-            //           << std::endl;
+            //           << '\n';
             // printEndSummaryTab();
             // still line 15.2 of Naeem/Lhotak/Rodriguez
             // for each already-queried exit value <eP,d4> reachable from
@@ -1392,22 +1391,24 @@ protected:
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       std::string N2Label = IDEProblem.NtoString(Edge.second);
-      std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
-                << "N2: " << N2Label << "\n----"
-                << std::string(N2Label.size(), '-') << '\n';
+      llvm::outs() << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
+                   << "N2: " << N2Label << "\n----"
+                   << std::string(N2Label.size(), '-') << '\n';
       for (auto D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
+        llvm::outs() << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
-          std::cout << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
+          llvm::outs() << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
         }
-        std::cout << '\n';
+        llvm::outs() << '\n';
       }
     }
 
-    std::cout << "\n**********************************************************";
-    std::cout << "\n*          Computed inter-procedural path edges          *";
-    std::cout
+    llvm::outs()
+        << "\n**********************************************************";
+    llvm::outs()
+        << "\n*          Computed inter-procedural path edges          *";
+    llvm::outs()
         << "\n**********************************************************\n";
 
     // Sort intra-procedural path edges
@@ -1418,16 +1419,16 @@ protected:
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
       std::string N2Label = IDEProblem.NtoString(Edge.second);
-      std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
-                << "N2: " << N2Label << "\n----"
-                << std::string(N2Label.size(), '-') << '\n';
+      llvm::outs() << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
+                   << "N2: " << N2Label << "\n----"
+                   << std::string(N2Label.size(), '-') << '\n';
       for (auto D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
+        llvm::outs() << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
-          std::cout << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
+          llvm::outs() << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
         }
-        std::cout << '\n';
+        llvm::outs() << '\n';
       }
     }
   }
@@ -1629,7 +1630,7 @@ public:
   void enableESGAsDot() { SolverConfig.setEmitESG(); }
 
   void
-  emitESGAsDot(std::ostream &OS = std::cout,
+  emitESGAsDot(llvm::raw_ostream &OS = llvm::outs(),
                std::string DotConfigDir = PhasarConfig::PhasarDirectory()) {
     PHASAR_LOG_LEVEL(DEBUG, "Emit Exploded super-graph (ESG) as DOT graph");
     PHASAR_LOG_LEVEL(DEBUG, "Process intra-procedural path egdes");
@@ -1855,8 +1856,9 @@ public:
 };
 
 template <typename AnalysisDomainTy, typename Container>
-std::ostream &operator<<(std::ostream &OS,
-                         const IDESolver<AnalysisDomainTy, Container> &Solver) {
+llvm::raw_ostream &
+operator<<(llvm::raw_ostream &OS,
+           const IDESolver<AnalysisDomainTy, Container> &Solver) {
   Solver.dumpResults(OS);
   return OS;
 }

@@ -8,12 +8,12 @@ namespace psr {
 struct IntEdgeFactWrapper : public EdgeFactWrapper<int> {
   using EdgeFactWrapper::EdgeFactWrapper;
 
-  inline void print(std::ostream &OS) const override { OS << get(); }
+  inline void print(llvm::raw_ostream &OS) const override { OS << get(); }
 };
 struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
   using FlowFactWrapper::FlowFactWrapper;
 
-  inline void print(std::ostream &OS,
+  inline void print(llvm::raw_ostream &OS,
                     const llvm::Value *const &NonzeroFact) const override {
     OS << llvmIRToShortString(NonzeroFact) << '\n';
   }

@@ -17,7 +17,6 @@
 #ifndef PHASAR_UTILS_MULTIKEYTABLE_H_
 #define PHASAR_UTILS_MULTIKEYTABLE_H_
 
-#include <ostream>
 #include <set>
 #include <tuple>
 #include <unordered_map>
@@ -37,7 +36,7 @@ public:
     R getRowKey() { return r; }
     C getColumnKey() { return c; }
     V getValue() { return v; }
-    friend std::ostream &operator<<(std::ostream &os, const Cell &c) {
+    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const Cell &c) {
       return os << "Cell: " << c.r << ", " << c.c << ", " << c.v;
     }
     friend bool operator<(const Cell &lhs, const Cell &rhs) {
@@ -205,8 +204,8 @@ public:
     return lhs.multi_key_table < rhs.multi_key_table;
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const MultiKeyTable<R, C, V> &t) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
+                                       const MultiKeyTable<R, C, V> &t) {
     for (auto &m1 : t.multi_key_table)
       for (auto &m2 : m1.second)
         os << "< " << m1.first << " , " << m2.first << " , " << m2.second

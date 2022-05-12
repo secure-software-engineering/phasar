@@ -10,7 +10,6 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -83,33 +82,57 @@ private:
   void emitRequestedHelperAnalysisResults();
 
   template <typename T> void emitRequestedDataFlowResults(T &WPA) {
+    std::error_code EC;
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-report.txt");
-        WPA.emitTextReport(OFS);
+        llvm::raw_fd_ostream OFS(ResultDirectory.string() + "/psr-report.txt",
+                                 EC);
+        if (EC) {
+          llvm::errs() << "Failed to open file: "
+                       << ResultDirectory.string() + "/psr-report.txt" << '\n';
+          llvm::errs() << EC.message() << '\n';
+        } else {
+          WPA.emitTextReport(OFS);
+        }
       } else {
-        WPA.emitTextReport(std::cout);
+        WPA.emitTextReport(llvm::outs());
       }
     }
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-report.html");
-        WPA.emitGraphicalReport(OFS);
+        llvm::raw_fd_ostream OFS(ResultDirectory.string() + "/psr-report.html",
+                                 EC);
+        if (EC) {
+          llvm::errs() << "Failed to open file: "
+                       << ResultDirectory.string() + "/psr-report.txt" << '\n';
+          llvm::errs() << EC.message() << '\n';
+        } else {
+          WPA.emitGraphicalReport(OFS);
+        }
       } else {
-        WPA.emitGraphicalReport(std::cout);
+        WPA.emitGraphicalReport(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-raw-results.txt");
-        WPA.dumpResults(OFS);
+        llvm::raw_fd_ostream OFS(
+            ResultDirectory.string() + "/psr-raw-results.txt", EC);
+        if (EC) {
+          llvm::errs() << "Failed to open file: "
+                       << ResultDirectory.string() + "/psr-raw-results.txt"
+                       << '\n';
+          llvm::errs() << EC.message() << '\n';
+        } else {
+          WPA.dumpResults(OFS);
+        }
       } else {
-        WPA.dumpResults(std::cout);
+        WPA.dumpResults(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
-      std::cout << "Front-end support for 'EmitESGAsDot' to be implemented\n";
+      llvm::outs()
+          << "Front-end support for 'EmitESGAsDot' to be implemented\n";
     }
   }
 

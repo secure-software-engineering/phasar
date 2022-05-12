@@ -106,7 +106,8 @@ public:
               return SourceVal == Entry.first;
             });
         Find != SourceValToFunc.end()) {
-      // it is important that existing values in JumpFunctions are overwritten
+      // it is important that existing values in JumpFunctions
+      // are overwritten
       Find->second = EdgeFunc;
     } else {
       SourceValToFunc.emplace_back(SourceVal, EdgeFunc);
@@ -119,13 +120,15 @@ public:
               return TargetVal == Entry.first;
             });
         Find != TargetValToFunc.end()) {
-      // it is important that existing values in JumpFunctions are overwritten
+      // it is important that existing values in JumpFunctions
+      // are overwritten
       Find->second = EdgeFunc;
     } else {
       TargetValToFunc.emplace_back(TargetVal, EdgeFunc);
     }
 
-    // V Table::insert(R r, C c, V v) always overrides (see comments above)
+    // V Table::insert(R r, C c, V v) always overrides (see
+    // comments above)
     NonEmptyLookupByTargetNode[Target].insert(SourceVal, TargetVal, EdgeFunc);
     PHASAR_LOG_LEVEL(DEBUG, "End adding new jump function");
   }
@@ -205,7 +208,7 @@ public:
     NonEmptyLookupByTargetNode.clear();
   }
 
-  void printJumpFunctions(std::ostream &OS) {
+  void printJumpFunctions(llvm::raw_ostream &OS) {
     OS << "\n******************************************************";
     OS << "\n*              Print all Jump Functions              *";
     OS << "\n******************************************************\n";
@@ -221,7 +224,7 @@ public:
     }
   }
 
-  void printNonEmptyReverseLookup(std::ostream &OS) {
+  void printNonEmptyReverseLookup(llvm::raw_ostream &OS) {
     OS << "DUMP nonEmptyReverseLookup\nTable<N, D, std::unordered_map<D, "
           "EdgeFunctionPtrType>>\n";
     auto CellVec = NonEmptyReverseLookup.cellVec();
@@ -236,7 +239,7 @@ public:
     }
   }
 
-  void printNonEmptyForwardLookup(std::ostream &OS) {
+  void printNonEmptyForwardLookup(llvm::raw_ostream &OS) {
     OS << "DUMP nonEmptyForwardLookup\nTable<D, N, std::unordered_map<D, "
           "EdgeFunctionPtrType>>\n";
     auto CellVec = NonEmptyForwardLookup.cellVec();
@@ -251,7 +254,7 @@ public:
     }
   }
 
-  void printNonEmptyLookupByTargetNode(std::ostream &OS) {
+  void printNonEmptyLookupByTargetNode(llvm::raw_ostream &OS) {
     OS << "DUMP nonEmptyLookupByTargetNode\nstd::unordered_map<N, Table<D, D, "
           "EdgeFunctionPtrType>>\n";
     for (auto Node : NonEmptyLookupByTargetNode) {

@@ -136,7 +136,7 @@ ICFGTestPlugin::getDemangledFunctionName(ICFGTestPlugin::f_t /*Fun*/) const {
 }
 
 void ICFGTestPlugin::print(ICFGTestPlugin::f_t /*F*/,
-                           std::ostream & /*OS*/) const {}
+                           llvm::raw_ostream & /*OS*/) const {}
 
 nlohmann::json ICFGTestPlugin::getAsJson(ICFGTestPlugin::f_t /*F*/) const {
   return "";
@@ -190,7 +190,7 @@ ICFGTestPlugin::getReturnSitesOfCallAt(ICFGTestPlugin::n_t /*Inst*/) const {
   return {};
 }
 
-void ICFGTestPlugin::print(std::ostream & /*OS*/) const {}
+void ICFGTestPlugin::print(llvm::raw_ostream & /*OS*/) const {}
 
 nlohmann::json ICFGTestPlugin::getAsJson() const { return ""_json; }
 

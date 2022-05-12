@@ -10,15 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_SCOPES_H_
 #define PHASAR_PHASARLLVM_UTILS_SCOPES_H_
 
-#include <iosfwd>
 #include <map>
 #include <string>
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
 enum class Scope { function, module, project };
 
-std::ostream &operator<<(std::ostream &OS, const Scope &S);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Scope &S);
 
 extern const std::map<std::string, Scope> StringToScope;
 

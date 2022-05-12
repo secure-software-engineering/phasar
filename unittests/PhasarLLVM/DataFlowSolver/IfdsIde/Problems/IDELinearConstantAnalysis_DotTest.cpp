@@ -28,7 +28,7 @@ protected:
                                         IDELinearConstantAnalysisDomain::l_t>;
   std::unique_ptr<ProjectIRDB> IRDB;
 
-  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
+  void SetUp() override {}
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false,
@@ -47,8 +47,8 @@ protected:
     if (EmitESG) {
       boost::log::core::get()->set_logging_enabled(true);
       const std::string PhasarRootPath = "./";
-      LCASolver.emitESGAsDot(std::cout, PhasarRootPath);
       boost::log::core::get()->set_logging_enabled(false);
+      LCASolver.emitESGAsDot(llvm::outs(), PhasarRootPath);
     }
     if (PrintDump) {
       LCASolver.dumpResults();

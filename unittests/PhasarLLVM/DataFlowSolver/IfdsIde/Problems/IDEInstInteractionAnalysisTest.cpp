@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -48,7 +47,7 @@ protected:
 
   std::unique_ptr<ProjectIRDB> IRDB;
 
-  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
+  void SetUp() override {}
 
   //   IDEInstInteractionAnalysis::lca_restults_t
   void
@@ -58,7 +57,7 @@ protected:
     auto IRFiles = {PathToLlFiles + LlvmFilePath};
     IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(std::cout, false);
+      IRDB->emitPreprocessedIR(llvm::outs(), false);
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
@@ -109,7 +108,7 @@ protected:
     IIAProblem.registerEdgeFactGenerator(Generator);
     IDESolver_P<IDEInstInteractionAnalysisT<std::string, true>> IIASolver(
         IIAProblem);
-    std::cout << "Start solving the problem.\n";
+    llvm::outs() << "Start solving the problem.\n";
     IIASolver.solve();
     if (PrintDump) {
       IIASolver.dumpResults();
@@ -148,7 +147,7 @@ protected:
 //        "build/test/llvm_test_code/inst_interaction/basic_01_cpp.ll"},
 //       IRDBOptions::WPA);
 //   if (printDump) {
-//     IRDB.emitPreprocessedIR(std::cout, false);
+//     IRDB.emitPreprocessedIR(llvm::outs(), false);
 //   }
 //   ValueAnnotationPass::resetValueID();
 //   LLVMTypeHierarchy TH(IRDB);
@@ -202,7 +201,7 @@ protected:
 //       std::string FactStr = llvmIRToString(Fact);
 //       llvm::StringRef FactRef(FactStr);
 //       if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-//         std::cout << "Checking variable: " << FactStr << std::endl;
+//         llvm::outs() << "Checking variable: " << FactStr << std::endl;
 //         EXPECT_EQ(std::get<3>(Truth), Value);
 //       }
 //     }

@@ -137,7 +137,7 @@ LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(ProjectIRDB &IRDB,
   }
 }
 
-void LLVMBasedPointsToAnalysis::print(std::ostream &OS) const {
+void LLVMBasedPointsToAnalysis::print(llvm::raw_ostream &OS) const {
   OS << "Points-to Info:\n";
   for (auto &[Fn, AA] : AAInfos) {
     bool PrintAll = true;

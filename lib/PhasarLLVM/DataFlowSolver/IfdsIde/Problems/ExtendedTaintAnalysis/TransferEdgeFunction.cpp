@@ -7,8 +7,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <iostream>
-
 #include "llvm/IR/Instruction.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
@@ -47,7 +45,7 @@ bool TransferEdgeFunction::equal_to(EdgeFunctionPtrType Other) const {
   return false;
 }
 
-void TransferEdgeFunction::print(std::ostream &OS,
+void TransferEdgeFunction::print(llvm::raw_ostream &OS,
                                  [[maybe_unused]] bool IsForDebug) const {
   OS << "Transfer[To: " << llvmIRToShortString(To) << "]";
 }

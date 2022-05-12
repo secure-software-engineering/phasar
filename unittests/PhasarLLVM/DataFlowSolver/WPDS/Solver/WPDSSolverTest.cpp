@@ -8,8 +8,6 @@
  *****************************************************************************/
 #include "gtest/gtest.h"
 
-#include <iostream>
-
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h"
@@ -64,7 +62,7 @@ using namespace psr;
 //         cout << '\n';
 //       }
 //     } else if (DFA == "LCA") {
-//       std::cout << "LCA" << std::endl;
+//       llvm::outs() << "LCA" << std::endl;
 //       // WPDSLinearConstantAnalysis L(&DB, &H, &I, &PT, {"main"});
 //       // WPDSSolver<
 //       //     WPDSLinearConstantAnalysis::n_t,
@@ -83,13 +81,13 @@ using namespace psr;
 //       //     Result.first->print(llvm::outs());
 //       //     cout << " - with value: ";
 //       //     L.printEdgeFact(cout, Result.second);
-//       //     std::cout << '\n';
+//       //     llvm::outs() << '\n';
 //       //   }
 //       // } else {
 //       //   cout << "Results are empty!\n";
 //       // }
 //     }
-//     std::cout << "DONE!\n";
+//     llvm::outs() << "DONE!\n";
 //   } else {
 //     std::cerr << "error: file does not contain a 'main' function!\n";
 //   }

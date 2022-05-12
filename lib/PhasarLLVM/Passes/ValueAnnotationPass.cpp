@@ -14,7 +14,6 @@
  *      Author: pdschbrt
  */
 
-#include <iostream>
 #include <string>
 
 #include "llvm/Analysis/LoopInfo.h"
@@ -73,7 +72,7 @@ ValueAnnotationPass::run(llvm::Module &M,
 }
 
 void ValueAnnotationPass::resetValueID() {
-  cout << "Reset ID" << endl;
+  llvm::outs() << "Reset ID" << '\n';
   UniqueValueId = 0;
 }
 

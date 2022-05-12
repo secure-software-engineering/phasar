@@ -11,7 +11,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <iomanip>
-#include <iostream>
 #include <iterator>
 #include <memory>
 #include <type_traits>
@@ -46,6 +45,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 using namespace std;
 
@@ -106,7 +106,8 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
     assert(PtsJson.is_array());
     auto PTS = Owner.acquire();
     for (auto Alias : PtsJson) {
-      const auto *Inst = fromMetaDataId(IRDB, Alias.get<std::string>());
+      const auto AliasStr = Alias.get<std::string>();
+      const auto *Inst = fromMetaDataId(IRDB, AliasStr);
       if (!Inst) {
         PHASAR_LOG_LEVEL(WARNING, "Invalid Value-Id: " << AliasStr);
         continue;
@@ -713,11 +714,11 @@ nlohmann::json LLVMPointsToSet::getAsJson() const {
   return J;
 }
 
-void LLVMPointsToSet::printAsJson(std::ostream &OS) const {
-  OS << std::setw(4) << getAsJson() << std::setw(0);
+void LLVMPointsToSet::printAsJson(llvm::raw_ostream &OS) const {
+  OS << getAsJson();
 }
 
-void LLVMPointsToSet::print(std::ostream &OS) const {
+void LLVMPointsToSet::print(llvm::raw_ostream &OS) const {
   for (const auto &[V, PTS] : PointsToSets) {
     OS << "V: " << llvmIRToString(V) << '\n';
     for (const auto &Ptr : *PTS) {

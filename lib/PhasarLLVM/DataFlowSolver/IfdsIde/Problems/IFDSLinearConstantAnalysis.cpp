@@ -120,18 +120,18 @@ bool IFDSLinearConstantAnalysis::isZeroValue(
 }
 
 void IFDSLinearConstantAnalysis::printNode(
-    ostream &OS, IFDSLinearConstantAnalysis::n_t Stmt) const {
+    llvm::raw_ostream &OS, IFDSLinearConstantAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
 void IFDSLinearConstantAnalysis::printDataFlowFact(
-    ostream &OS, IFDSLinearConstantAnalysis::d_t Fact) const {
+    llvm::raw_ostream &OS, IFDSLinearConstantAnalysis::d_t Fact) const {
   OS << '<' + llvmIRToString(Fact.First) + ", " + std::to_string(Fact.Second) +
             '>';
 }
 
 void IFDSLinearConstantAnalysis::printFunction(
-    ostream &OS, IFDSLinearConstantAnalysis::f_t Func) const {
+    llvm::raw_ostream &OS, IFDSLinearConstantAnalysis::f_t Func) const {
   OS << Func->getName().str();
 }
 

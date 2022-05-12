@@ -1,7 +1,8 @@
 #include "phasar/Utils/PAMM.h"
 #include "gtest/gtest.h"
-#include <iostream>
 #include <thread>
+
+#include "llvm/Support/raw_ostream.h"
 
 using namespace psr;
 
@@ -16,7 +17,7 @@ protected:
 
   void TearDown() override {
     PAMM &Pamm = PAMM::getInstance();
-    Pamm.printMeasuredData(std::cout);
+    Pamm.printMeasuredData(llvm::outs());
     Pamm.reset();
   }
 };
@@ -150,49 +151,49 @@ TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
   time_point End15 = std::chrono::high_resolution_clock::now();
   auto Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End1 - Start1);
-  std::cout << "timer_1 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_1 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End2 - Start2);
-  std::cout << "timer_2 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_2 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End3 - Start3);
-  std::cout << "timer_3 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_3 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End4 - Start4);
-  std::cout << "timer_4 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_4 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End5 - Start5);
-  std::cout << "timer_5 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_5 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End6 - Start6);
-  std::cout << "timer_6 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_6 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End7 - Start7);
-  std::cout << "timer_7 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_7 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End8 - Start8);
-  std::cout << "timer_8 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_8 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End9 - Start9);
-  std::cout << "timer_9 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_9 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End10 - Start10);
-  std::cout << "timer_10 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_10 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End11 - Start11);
-  std::cout << "timer_11 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_11 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End12 - Start12);
-  std::cout << "timer_12 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_12 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End13 - Start13);
-  std::cout << "timer_13 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_13 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End14 - Start14);
-  std::cout << "timer_14 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_14 : " << Duration.count() << '\n';
   Duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(End15 - Start15);
-  std::cout << "timer_15 : " << Duration.count() << std::endl;
+  llvm::outs() << "timer_15 : " << Duration.count() << '\n';
 }
 
 // main function for the test case

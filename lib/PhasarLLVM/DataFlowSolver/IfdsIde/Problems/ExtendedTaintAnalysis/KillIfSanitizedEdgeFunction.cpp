@@ -53,7 +53,7 @@ llvm::hash_code KillIfSanitizedEdgeFunction::getHashCode() const {
 }
 
 void KillIfSanitizedEdgeFunction::print(
-    std::ostream &OS, [[maybe_unused]] bool IsForDebug) const {
+    llvm::raw_ostream &OS, [[maybe_unused]] bool IsForDebug) const {
   OS << "KillIfSani[" << this << "]";
 }
 

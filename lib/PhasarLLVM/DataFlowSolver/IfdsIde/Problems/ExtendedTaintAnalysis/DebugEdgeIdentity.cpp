@@ -52,7 +52,7 @@ bool DebugEdgeIdentity::equal_to(EdgeFunctionPtrType Other) const {
   return false;
 }
 
-void DebugEdgeIdentity::print(std::ostream &OS,
+void DebugEdgeIdentity::print(llvm::raw_ostream &OS,
                               [[maybe_unused]] bool IsForDebug) const {
   OS << "EdgeId[" << llvmIRToShortString(Inst) << "]";
 }

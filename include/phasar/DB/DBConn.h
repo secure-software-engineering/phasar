@@ -18,7 +18,6 @@
 #define PHASAR_DB_DBCONN_H_
 
 #include <initializer_list>
-#include <iostream> // Because of SQL_STD_ERROR_HANDLING
 #include <memory>
 #include <set>
 #include <string>

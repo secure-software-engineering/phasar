@@ -14,7 +14,6 @@
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -97,14 +96,14 @@ public:
 
   bool isZeroValue(d_t FlowFact) const override;
 
-  void printNode(std::ostream &OS, n_t Inst) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t FlowFact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override;
 
-  void printFunction(std::ostream &OS, f_t Fun) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
-                      std::ostream &OS = std::cout) override;
+                      llvm::raw_ostream &OS = llvm::outs()) override;
 };
 } // namespace psr
 

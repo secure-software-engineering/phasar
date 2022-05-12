@@ -73,7 +73,7 @@ llvm::hash_code JoinConstEdgeFunction::getHashCode() const {
   return llvm::hash_combine(OtherConst, XTaint::getHashCode(OtherFn));
 }
 
-void JoinConstEdgeFunction::print(std::ostream &OS,
+void JoinConstEdgeFunction::print(llvm::raw_ostream &OS,
                                   [[maybe_unused]] bool IsForDebug) const {
   OS << "JOINC[" << this << "| " << *OtherFn << " with const "
      << llvmIRToShortString(OtherConst) << " ]";

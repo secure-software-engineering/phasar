@@ -7,7 +7,6 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <iostream>
 #include <set>
 #include <string>
 
@@ -18,17 +17,15 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
-using namespace std;
-using namespace psr;
-
 namespace psr {
 
 // Return value is modeled as -1
-const map<string, set<int>> OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFFuncs = {
-    {"EVP_KDF_CTX_new", {-1}},
-    {"EVP_KDF_CTX_set_params", {0}},
-    {"EVP_KDF_derive", {0}},
-    {"EVP_KDF_CTX_free", {0}}
+const std::map<std::string, std::set<int>>
+    OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFFuncs = {
+        {"EVP_KDF_CTX_new", {-1}},
+        {"EVP_KDF_CTX_set_params", {0}},
+        {"EVP_KDF_derive", {0}},
+        {"EVP_KDF_CTX_free", {0}}
 
 };
 
@@ -135,7 +132,7 @@ std::string OpenSSLEVPKDFCTXDescription::getTypeNameOfInterest() const {
   return "struct.evp_kdf_ctx_st";
 }
 
-set<int>
+std::set<int>
 OpenSSLEVPKDFCTXDescription::getConsumerParamIdx(const std::string &F) const {
   if (isConsumingFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F);
@@ -143,7 +140,7 @@ OpenSSLEVPKDFCTXDescription::getConsumerParamIdx(const std::string &F) const {
   return {};
 }
 
-set<int>
+std::set<int>
 OpenSSLEVPKDFCTXDescription::getFactoryParamIdx(const std::string &F) const {
   if (isFactoryFunction(F)) {
     // Trivial here, since we only generate via return value

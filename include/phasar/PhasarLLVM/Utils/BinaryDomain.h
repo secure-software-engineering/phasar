@@ -17,8 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 #define PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 
-#include <iosfwd>
 #include <map>
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
@@ -28,7 +31,7 @@ extern const std::map<std::string, BinaryDomain> StringToBinaryDomain;
 
 extern const std::map<BinaryDomain, std::string> BinaryDomainToString;
 
-std::ostream &operator<<(std::ostream &OS, const BinaryDomain &B);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const BinaryDomain &B);
 
 } // namespace psr
 

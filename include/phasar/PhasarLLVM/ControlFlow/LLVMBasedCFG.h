@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -99,7 +98,7 @@ public:
   getDemangledFunctionName(const llvm::Function *Fun) const override;
 
   void print(const llvm::Function *Fun,
-             std::ostream &OS = std::cout) const override;
+             llvm::raw_ostream &OS = llvm::outs()) const override;
 
   [[nodiscard]] nlohmann::json
   getAsJson(const llvm::Function *Fun) const override;

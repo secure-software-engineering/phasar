@@ -19,6 +19,7 @@
 
 #include "llvm/ADT/BitVector.h"
 #include "llvm/Support/Compiler.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 namespace internal {
@@ -300,7 +301,8 @@ public:
     return internal::isLess(Lhs.Bits, Rhs.Bits);
   }
 
-  friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const BitVectorSet &B) {
     OS << '<';
     size_t Idx = 0;
     for (auto &Position : B.Position.left) {

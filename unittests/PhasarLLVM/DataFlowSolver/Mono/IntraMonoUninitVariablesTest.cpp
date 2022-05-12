@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <utility>
@@ -43,7 +42,7 @@ protected:
 
   ProjectIRDB *IRDB = nullptr;
 
-  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
+  void SetUp() override {}
 
   void TearDown() override { delete IRDB; }
 

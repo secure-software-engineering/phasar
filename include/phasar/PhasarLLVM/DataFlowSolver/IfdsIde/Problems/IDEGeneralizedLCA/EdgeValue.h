@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
 
-#include <iostream>
 #include <memory>
 #include <unordered_set>
 #include <variant>
@@ -80,7 +79,8 @@ public:
   // unary operators
   EdgeValue operator-() const;
   EdgeValue operator~() const;
-  friend std::ostream &operator<<(std::ostream &Os, const EdgeValue &EV);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &Os,
+                                       const EdgeValue &EV);
   static std::string typeToString(Type Ty);
 };
 class EdgeValueSet;
@@ -94,7 +94,7 @@ ev_t join(const ev_t &Lhs, const ev_t &Rhs, size_t MaxSize);
 /// \brief implements square subset equal
 bool operator<(const ev_t &Lhs, const ev_t &Rhs);
 bool isTopValue(const ev_t &Val);
-std::ostream &operator<<(std::ostream &Os, const ev_t &Val);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &Val);
 
 } // namespace psr
 

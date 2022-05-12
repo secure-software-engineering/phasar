@@ -105,7 +105,8 @@ public:
 
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
-  virtual void printContainer(std::ostream &OS, mono_container_t C) const {}
+  virtual void printContainer(llvm::raw_ostream &OS, mono_container_t C) const {
+  }
 };
 
 } // namespace psr

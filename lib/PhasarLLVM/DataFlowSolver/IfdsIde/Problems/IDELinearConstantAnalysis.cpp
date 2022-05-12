@@ -521,7 +521,7 @@ bool IDELinearConstantAnalysis::GenConstant::equal_to(
   return this == Other.get();
 }
 
-void IDELinearConstantAnalysis::GenConstant::print(std::ostream &OS,
+void IDELinearConstantAnalysis::GenConstant::print(llvm::raw_ostream &OS,
                                                    bool /*IsForDebug*/) const {
   OS << IntConst << " (EF:" << GenConstantId << ')';
 }
@@ -558,7 +558,7 @@ bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
   return this == Other.get();
 }
 
-void IDELinearConstantAnalysis::LCAIdentity::print(std::ostream &OS,
+void IDELinearConstantAnalysis::LCAIdentity::print(llvm::raw_ostream &OS,
                                                    bool /*IsForDebug*/) const {
   OS << "Id (EF:" << LCAIDId << ')';
 }
@@ -638,7 +638,7 @@ bool IDELinearConstantAnalysis::BinOp::equal_to(
   return this == Other.get();
 }
 
-void IDELinearConstantAnalysis::BinOp::print(std::ostream &OS,
+void IDELinearConstantAnalysis::BinOp::print(llvm::raw_ostream &OS,
                                              bool /*IsForDebug*/) const {
   if (const auto *LIC = llvm::dyn_cast<llvm::ConstantInt>(Lop)) {
     OS << LIC->getSExtValue();
@@ -827,18 +827,18 @@ void IDELinearConstantAnalysis::stripBottomResults(
 IDELinearConstantAnalysis::lca_results_t
 IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
-  std::cout << "\n==== Computing LCA Results ====\n";
+  llvm::outs() << "\n==== Computing LCA Results ====\n";
   for (const auto *F : ICF->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
-    std::cout << "\n-- Function: " << FName << " --\n";
+    llvm::outs() << "\n-- Function: " << FName << " --\n";
     std::map<unsigned, LCAResult> FResults;
     std::set<std::string> AllocatedVars;
     for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
-      std::cout << "\nIR : " << NtoString(Stmt) << "\nLNR: " << Lnr << '\n';
+      llvm::outs() << "\nIR : " << NtoString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping
       if (Lnr == 0) {
-        std::cout << "Skipping this stmt!\n";
+        llvm::outs() << "Skipping this stmt!\n";
         continue;
       }
       LCAResult *LcaRes = &FResults[Lnr];
@@ -856,7 +856,7 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
       }
       LcaRes->IRTrace.push_back(Stmt);
       if (Stmt->isTerminator() && !ICF->isExitInst(Stmt)) {
-        std::cout << "Delete result since stmt is Terminator or Exit!\n";
+        llvm::outs() << "Delete result since stmt is Terminator or Exit!\n";
         FResults.erase(Lnr);
       } else {
         // check results of succ(stmt)
@@ -866,16 +866,16 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
         } else {
           // It's not a terminator inst, hence it has only a single successor
           const auto *Succ = ICF->getSuccsOf(Stmt)[0];
-          std::cout << "Succ stmt: " << NtoString(Succ) << '\n';
+          llvm::outs() << "Succ stmt: " << NtoString(Succ) << '\n';
           Results = SR.resultsAt(Succ, true);
         }
         stripBottomResults(Results);
         std::set<std::string> ValidVarsAtStmt;
         for (auto Res : Results) {
           auto VarName = getVarNameFromIR(Res.first);
-          std::cout << "  D: " << DtoString(Res.first)
-                    << " | V: " << LtoString(Res.second)
-                    << " | Var: " << VarName << '\n';
+          llvm::outs() << "  D: " << DtoString(Res.first)
+                       << " | V: " << LtoString(Res.second)
+                       << " | Var: " << VarName << '\n';
           if (!VarName.empty()) {
             // Only store/overwrite values of variables from allocas or globals
             // unless there is no value stored for a variable
@@ -896,7 +896,7 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
         for (auto It = LcaRes->VariableToValue.begin();
              It != LcaRes->VariableToValue.end();) {
           if (ValidVarsAtStmt.find(It->first) == ValidVarsAtStmt.end()) {
-            std::cout << "Erase var: " << It->first << '\n';
+            llvm::outs() << "Erase var: " << It->first << '\n';
             It = LcaRes->VariableToValue.erase(It);
           } else {
             ++It;
@@ -917,7 +917,7 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
   return AggResults;
 }
 
-void IDELinearConstantAnalysis::LCAResult::print(std::ostream &OS) {
+void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) {
   OS << this;
 }
 

@@ -24,7 +24,7 @@ struct ValueFlowFactWrapper : public FlowFactWrapper<const llvm::Value *> {
 
   using FlowFactWrapper::FlowFactWrapper;
 
-  void print(std::ostream &OS,
+  void print(llvm::raw_ostream &OS,
              const llvm::Value *const &NonZeroFact) const override {
     OS << llvmIRToShortString(NonZeroFact) << '\n';
   }

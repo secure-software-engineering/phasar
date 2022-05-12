@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <sstream>
+
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/Constants.h"
@@ -28,6 +30,7 @@
 #include "phasar/Utils/GraphExtensions.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -405,7 +408,7 @@ auto LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
   return ResultSet;
 }
 
-void LLVMPointsToGraph::print(std::ostream &OS) const {
+void LLVMPointsToGraph::print(llvm::raw_ostream &OS) const {
   for (const auto &Fn : AnalyzedFunctions) {
     cout << "LLVMPointsToGraph for " << Fn->getName().str() << ":\n";
     vertex_iterator UI;
@@ -425,9 +428,11 @@ void LLVMPointsToGraph::print(std::ostream &OS) const {
   }
 }
 
-void LLVMPointsToGraph::printAsDot(std::ostream &OS) const {
-  boost::write_graphviz(OS, PAG, makePointerVertexOrEdgePrinter(PAG),
+void LLVMPointsToGraph::printAsDot(llvm::raw_ostream &OS) const {
+  std::stringstream S;
+  boost::write_graphviz(S, PAG, makePointerVertexOrEdgePrinter(PAG),
                         makePointerVertexOrEdgePrinter(PAG));
+  OS << S.str();
 }
 
 nlohmann::json LLVMPointsToGraph::getAsJson() const {
@@ -467,7 +472,7 @@ size_t LLVMPointsToGraph::getNumVertices() const {
 
 size_t LLVMPointsToGraph::getNumEdges() const { return boost::num_edges(PAG); }
 
-void LLVMPointsToGraph::printAsJson(std::ostream &OS) const {
+void LLVMPointsToGraph::printAsJson(llvm::raw_ostream &OS) const {
   nlohmann::json J = getAsJson();
   OS << J;
 }

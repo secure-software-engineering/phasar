@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <cassert>
 #include <filesystem>
-#include <iostream>
 #include <ostream>
 #include <string>
 
@@ -39,7 +38,6 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
-using namespace psr;
 using namespace std;
 
 namespace psr {
@@ -79,7 +77,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
         throw std::runtime_error(File + " could not be parsed correctly");
       }
       if (BrokenDebugInfo) {
-        std::cout << "caution: debug info is broken\n";
+        llvm::outs() << "caution: debug info is broken\n";
       }
       Modules.insert(std::make_pair(File, std::move(M)));
       Contexts.push_back(std::move(C));
@@ -262,13 +260,14 @@ std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
 
 void ProjectIRDB::print() const {
   for (const auto &[File, Module] : Modules) {
-    std::cout << "Module: " << File << std::endl;
+    llvm::outs() << "Module: " << File << '\n';
     llvm::outs() << *Module;
     llvm::outs().flush();
   }
 }
 
-void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
+void ProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS,
+                                     bool ShortenIR) const {
   for (const auto &[File, Module] : Modules) {
     OS << "IR module: " << File << '\n';
     // print globals
@@ -397,11 +396,11 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
            std::to_string(A->getArgNo());
   }
   if (const auto *G = llvm::dyn_cast<llvm::GlobalValue>(V)) {
-    std::cout << "special case: WE ARE AN GLOBAL VARIABLE\n";
-    std::cout << "all user:\n";
+    llvm::outs() << "special case: WE ARE AN GLOBAL VARIABLE\n";
+    llvm::outs() << "all user:\n";
     for (const auto *User : V->users()) {
       if (const auto *I = llvm::dyn_cast<llvm::Instruction>(User)) {
-        std::cout << I->getFunction()->getName().str() << "\n";
+        llvm::outs() << I->getFunction()->getName().str() << "\n";
       }
     }
     return G->getName().str();
@@ -409,7 +408,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
   if (llvm::isa<llvm::Value>(V)) {
     // In this case we should have an operand of an instruction which can be
     // identified by the instruction id and the operand index.
-    std::cout << "special case: WE ARE AN OPERAND\n";
+    llvm::outs() << "special case: WE ARE AN OPERAND\n";
     // We should only have one user in this special case
     for (const auto *User : V->users()) {
       if (const auto *I = llvm::dyn_cast<llvm::Instruction>(User)) {
@@ -445,9 +444,9 @@ ProjectIRDB::persistedStringToValue(const std::string &S) const {
     unsigned I = S.find('.');
     unsigned J = S.find(".o.");
     unsigned InstID = stoi(S.substr(I + 1, J));
-    // std::cout << "FOUND instID: " << instID << "\n";
+    // llvm::outs() << "FOUND instID: " << instID << "\n";
     unsigned OpIdx = stoi(S.substr(J + 3, S.size()));
-    // std::cout << "FOUND opIdx: " << to_string(opIdx) << "\n";
+    // llvm::outs() << "FOUND opIdx: " << to_string(opIdx) << "\n";
     const llvm::Function *F = getFunctionDefinition(S.substr(0, S.find('.')));
     for (const auto &BB : *F) {
       for (const auto &Inst : BB) {

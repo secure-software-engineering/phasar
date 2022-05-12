@@ -11,7 +11,6 @@
 #include <cassert>
 #include <cctype>
 #include <filesystem>
-#include <iostream>
 #include <map>
 #include <string>
 
@@ -38,6 +37,7 @@
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 namespace {
 const nlohmann::json TaintConfigSchema =
@@ -106,13 +106,13 @@ findAllFunctionDefs(const ProjectIRDB &IRDB, llvm::StringRef Name) {
       FnDefs.push_back(F);
     }
   } else if (FnDefs.size() > 1) {
-    std::cerr << "The function name '" << Name.str()
-              << "' is ambiguous. Possible candidates are:\n";
+    llvm::errs() << "The function name '" << Name.str()
+                 << "' is ambiguous. Possible candidates are:\n";
     for (const auto *F : FnDefs) {
-      std::cerr << "> " << F->getName().str() << "\n";
+      llvm::errs() << "> " << F->getName().str() << "\n";
     }
-    std::cerr << "Please further specify the function's name, such that it "
-                 "becomes unambiguous\n";
+    llvm::errs() << "Please further specify the function's name, such that it "
+                    "becomes unambiguous\n";
   }
 
   return FnDefs;
@@ -127,7 +127,7 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
     auto FnDefs = findAllFunctionDefs(IRDB, Name);
 
     if (FnDefs.empty()) {
-      std::cerr << "WARNING: Cannot retrieve function " << Name << "\n";
+      llvm::errs() << "WARNING: Cannot retrieve function " << Name << "\n";
       continue;
     }
 
@@ -139,9 +139,10 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
       if (Params.contains("source")) {
         for (unsigned Idx : Params["source"]) {
           if (Idx >= Fun->arg_size()) {
-            std::cerr << "ERROR: The source-function parameter index is out of "
-                         "bounds: "
-                      << Idx << "\n";
+            llvm::errs()
+                << "ERROR: The source-function parameter index is out of "
+                   "bounds: "
+                << Idx << "\n";
             // Use 'continue' instead of 'break' to get error messages for the
             // remaining parameters as well
             continue;
@@ -153,7 +154,7 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
         for (const auto &Idx : Params["sink"]) {
           if (Idx.is_number()) {
             if (Idx >= Fun->arg_size()) {
-              std::cerr
+              llvm::errs()
                   << "ERROR: The source-function parameter index is out of "
                      "bounds: "
                   << Idx << "\n";
@@ -173,9 +174,10 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
       if (Params.contains("sanitizer")) {
         for (unsigned Idx : Params["sanitizer"]) {
           if (Idx >= Fun->arg_size()) {
-            std::cerr << "ERROR: The source-function parameter index is out of "
-                         "bounds: "
-                      << Idx << "\n";
+            llvm::errs()
+                << "ERROR: The source-function parameter index is out of "
+                   "bounds: "
+                << Idx << "\n";
             continue;
           }
           addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);
@@ -535,17 +537,15 @@ TaintConfig::makeInitialSeeds() const {
   return InitialSeeds;
 }
 
-std::ostream &operator<<(std::ostream &OS, const TaintConfig &TC) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const TaintConfig &TC) {
   OS << "TaintConfiguration: ";
   if (TC.SourceValues.empty() && TC.SinkValues.empty() &&
       TC.SanitizerValues.empty() && !TC.getRegisteredSourceCallBack() &&
       !TC.getRegisteredSinkCallBack()) {
     return OS << "empty";
   }
-  OS << "\n\tSourceCallBack registered: " << std::boolalpha
-     << (bool)TC.SourceCallBack << std::noboolalpha << '\n';
-  OS << "\tSinkCallBack registered: " << std::boolalpha << (bool)TC.SinkCallBack
-     << std::noboolalpha << '\n';
+  OS << "\n\tSourceCallBack registered: " << (bool)TC.SourceCallBack << '\n';
+  OS << "\tSinkCallBack registered: " << (bool)TC.SinkCallBack << '\n';
   OS << "\tSources (" << TC.SourceValues.size() << "):\n";
   for (const auto *SourceValue : TC.SourceValues) {
     OS << "\t\t" << psr::llvmIRToString(SourceValue) << '\n';
@@ -568,8 +568,8 @@ nlohmann::json parseTaintConfig(const std::filesystem::path &Path) {
   try {
     Validator.set_root_schema(TaintConfigSchema); // insert root-schema
   } catch (const std::exception &E) {
-    std::cerr << "Validation of schema failed, here is why: " << E.what()
-              << "\n";
+    llvm::errs() << "Validation of schema failed, here is why: " << E.what()
+                 << "\n";
     return 1;
   }
   // a custom error handler
@@ -580,14 +580,14 @@ nlohmann::json parseTaintConfig(const std::filesystem::path &Path) {
                const std::string &Message) override {
       nlohmann::json_schema::basic_error_handler::error(Pointer, Instance,
                                                         Message);
-      std::cerr << "ERROR: '" << Pointer << "' - '" << Instance
-                << "': " << Message << "\n";
+      llvm::errs() << "ERROR: '" << Pointer.to_string() << "' - '" << Instance
+                   << "': " << Message << "\n";
     }
   };
   CustomJsonErrorHandler Err;
   Validator.validate(TaintConfig, Err);
   if (Err) {
-    std::cerr << "Validation failed\n";
+    llvm::errs() << "Validation failed\n";
   }
   return TaintConfig;
 }

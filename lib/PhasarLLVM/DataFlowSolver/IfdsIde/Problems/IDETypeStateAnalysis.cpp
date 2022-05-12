@@ -346,7 +346,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
                      const llvm::AllocaInst *Alloca)
               : TSConstant(Tsd, Tsd.uninit()), Alloca(Alloca) {}
 
-          void print(std::ostream &OS,
+          void print(llvm::raw_ostream &OS,
                      bool /*IsForDebug = false*/) const override {
             OS << "Alloca(" << llvmIRToShortString(Alloca) << ")";
           }
@@ -455,20 +455,21 @@ IDETypeStateAnalysis::allTopFunction() {
   return make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TOP);
 }
 
-void IDETypeStateAnalysis::printNode(std::ostream &OS, n_t Stmt) const {
+void IDETypeStateAnalysis::printNode(llvm::raw_ostream &OS, n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IDETypeStateAnalysis::printDataFlowFact(std::ostream &OS, d_t Fact) const {
+void IDETypeStateAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
+                                             d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IDETypeStateAnalysis::printFunction(ostream &OS,
+void IDETypeStateAnalysis::printFunction(llvm::raw_ostream &OS,
                                          IDETypeStateAnalysis::f_t Func) const {
   OS << Func->getName().str();
 }
 
-void IDETypeStateAnalysis::printEdgeFact(ostream &OS,
+void IDETypeStateAnalysis::printEdgeFact(llvm::raw_ostream &OS,
                                          IDETypeStateAnalysis::l_t L) const {
   OS << TSD.stateToString(L);
 }
@@ -543,7 +544,7 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
   return this == Other.get();
 }
 
-void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
+void IDETypeStateAnalysis::TSEdgeFunction::print(llvm::raw_ostream &OS,
                                                  bool /*IsForDebug*/) const {
   OS << "TSEF(" << Token << " at " << llvmIRToShortString(CallSite) << ")";
 }
@@ -606,7 +607,7 @@ bool IDETypeStateAnalysis::TSConstant::equal_to(
   return false;
 }
 
-void IDETypeStateAnalysis::TSConstant::print(std::ostream &OS,
+void IDETypeStateAnalysis::TSConstant::print(llvm::raw_ostream &OS,
                                              bool /*IsForDebug*/) const {
   OS << "TSConstant[" << TSD.stateToString(State) << "]";
 }
@@ -758,7 +759,7 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
 void IDETypeStateAnalysis::emitTextReport(
     const SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
                         IDETypeStateAnalysis::l_t> &SR,
-    std::ostream &OS) {
+    llvm::raw_ostream &OS) {
   OS << "\n======= TYPE STATE RESULTS =======\n";
   for (const auto &F : ICF->getAllFunctions()) {
     OS << '\n' << getFunctionNameFromIR(F) << '\n';
@@ -788,9 +789,9 @@ void IDETypeStateAnalysis::emitTextReport(
                    << "\nState  : " << LtoString(Res.second) << '\n';
               }
             } else {
-              OS << "\nInst: " << NtoString(&I) << endl
-                 << "Fact: " << DtoString(Res.first) << endl
-                 << "State: " << LtoString(Res.second) << endl;
+              OS << "\nInst: " << NtoString(&I) << '\n'
+                 << "Fact: " << DtoString(Res.first) << '\n'
+                 << "State: " << LtoString(Res.second) << '\n';
             }
           }
         } else {
@@ -813,9 +814,9 @@ void IDETypeStateAnalysis::emitTextReport(
                 OS << "============================\n";
               }
             } else {
-              OS << "\nInst: " << NtoString(&I) << endl
-                 << "Fact: " << DtoString(Res.first) << endl
-                 << "State: " << LtoString(Res.second) << endl;
+              OS << "\nInst: " << NtoString(&I) << '\n'
+                 << "Fact: " << DtoString(Res.first) << '\n'
+                 << "State: " << LtoString(Res.second) << '\n';
             }
           }
         }

@@ -10,8 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_EDGEDOMAIN_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_EDGEDOMAIN_H
 
-#include <iosfwd>
-
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/IR/Instruction.h" // Need a complete type llvm::Instruction for llvm::PointerIntPair
 #include "llvm/Support/raw_ostream.h"
@@ -86,8 +84,6 @@ public:
   }
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const EdgeDomain &ED);
-  friend std::ostream &operator<<(std::ostream &OS, const EdgeDomain &ED);
-
   EdgeDomain join(const EdgeDomain &Other,
                   BasicBlockOrdering *BBO = nullptr) const;
 

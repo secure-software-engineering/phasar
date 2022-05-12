@@ -764,25 +764,28 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 
 // Printing functions:
 
-void IDEExtendedTaintAnalysis::printNode(std::ostream &OS, n_t Inst) const {
+void IDEExtendedTaintAnalysis::printNode(llvm::raw_ostream &OS,
+                                         n_t Inst) const {
   OS << llvmIRToString(Inst);
 }
 
-void IDEExtendedTaintAnalysis::printDataFlowFact(std::ostream &OS,
+void IDEExtendedTaintAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
                                                  d_t Fact) const {
   OS << Fact;
 }
 
-void IDEExtendedTaintAnalysis::printEdgeFact(std::ostream &OS, l_t Fact) const {
+void IDEExtendedTaintAnalysis::printEdgeFact(llvm::raw_ostream &OS,
+                                             l_t Fact) const {
   OS << Fact;
 }
 
-void IDEExtendedTaintAnalysis::printFunction(std::ostream &OS, f_t Fun) const {
+void IDEExtendedTaintAnalysis::printFunction(llvm::raw_ostream &OS,
+                                             f_t Fun) const {
   OS << (Fun && Fun->hasName() ? Fun->getName().str() : "<anon>");
 }
 
 void IDEExtendedTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, std::ostream &OS) {
+    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
   OS << "===== IDEExtendedTaintAnalysis-Results =====\n";
 
   if (!PostProcessed) {
@@ -797,7 +800,7 @@ void IDEExtendedTaintAnalysis::emitTextReport(
       OS << "\t" << llvmIRToShortString(Leak) << "\n";
     }
   }
-  OS << std::endl;
+  OS << '\n';
 }
 
 // JoinLattice
@@ -887,7 +890,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
   llvm::SmallVector<const llvm::Instruction *> RemInst;
   for (auto &[Inst, PotentialLeaks] : Leaks) {
     llvm::SmallVector<const llvm::Value *, 2> Rem;
-    // std::cerr << "At " << llvmIRToString(Inst) << ":" << std::endl;
+    // std::cerr << "At " << llvmIRToString(Inst) << ":" << std::'\n';
 
     auto Results = SR.resultsAt(Inst);
 
@@ -895,7 +898,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
       auto Found = Results.find(makeFlowFact(L));
       if (Found == Results.end()) {
         // The sanitizer has been killed, so we must assume the fact as tainted
-        // std::cerr << "No results for " << makeFlowFact(L) << std::endl;
+        // std::cerr << "No results for " << makeFlowFact(L) << std::'\n';
         continue;
       }
 
@@ -907,7 +910,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
       case EdgeDomain::Sanitized:
         Rem.push_back(L);
         // std::cerr << "Sanitize " << llvmIRToShortString(L) << " from parent "
-        //          << std::endl;
+        //          << std::'\n';
         break;
       case EdgeDomain::WithSanitizer:
         if (!Sani.getSanitizer()) {
@@ -916,18 +919,18 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
         if (!Load || BBO.mustComeBefore(Sani.getSanitizer(), Load)) {
           Rem.push_back(L);
           // std::cerr << "Sanitize " << llvmIRToShortString(L) << " with "
-          //          << llvmIRToString(Sani.getSanitizer()) << std::endl;
+          //          << llvmIRToString(Sani.getSanitizer()) << std::'\n';
           break;
         }
         [[fallthrough]];
       default:
         // std::cerr << " Sani: " << Sani
         //           << "; Load: " << (Load ? llvmIRToString(Load) : "null")
-        //           << " for FlowFact: " << makeFlowFact(L) << std::endl;
+        //           << " for FlowFact: " << makeFlowFact(L) << std::'\n';
         break;
       }
     }
-    // std::cerr << "----------------------------" << std::endl;
+    // std::cerr << "----------------------------" << '\n';
 
     for (const auto *R : Rem) {
       PotentialLeaks.erase(R);

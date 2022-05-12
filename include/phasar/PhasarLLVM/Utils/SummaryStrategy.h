@@ -10,9 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_SUMMARYSTRATEGY_H_
 #define PHASAR_PHASARLLVM_UTILS_SUMMARYSTRATEGY_H_
 
-#include <iosfwd>
 #include <map>
 #include <string>
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
@@ -30,7 +33,8 @@ extern const std::map<SummaryGenerationStrategy, std::string>
 extern const std::map<std::string, SummaryGenerationStrategy>
     StringToSummaryGenerationStrategy;
 
-std::ostream &operator<<(std::ostream &Os, const SummaryGenerationStrategy &S);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &Os,
+                              const SummaryGenerationStrategy &S);
 
 } // namespace psr
 

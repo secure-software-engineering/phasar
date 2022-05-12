@@ -38,7 +38,6 @@ protected:
   const std::string &PathToJSONFiles = unittest::PathToJSONTestFiles;
 
   void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
     ValueAnnotationPass::resetValueID();
   }
 

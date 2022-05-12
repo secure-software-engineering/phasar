@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <unordered_map>
 #include <utility>
 
@@ -27,9 +26,6 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
-
-using namespace std;
-using namespace psr;
 
 namespace psr {
 
@@ -128,7 +124,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
     InterMonoTaintAnalysis::n_t CallSite,
     InterMonoTaintAnalysis::n_t /*RetSite*/,
-    set<const llvm::Function *> Callees,
+    std::set<const llvm::Function *> Callees,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   PHASAR_LOG_LEVEL(DEBUG, "InterMonoTaintAnalysis::callToRetFlow()");
   InterMonoTaintAnalysis::mono_container_t Out(In);
@@ -169,33 +165,33 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   return Out;
 }
 
-unordered_map<InterMonoTaintAnalysis::n_t,
-              InterMonoTaintAnalysis::mono_container_t>
+std::unordered_map<InterMonoTaintAnalysis::n_t,
+                   InterMonoTaintAnalysis::mono_container_t>
 InterMonoTaintAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "InterMonoTaintAnalysis::initialSeeds()");
   const llvm::Function *Main = ICF->getFunction("main");
-  unordered_map<InterMonoTaintAnalysis::n_t,
+  std::unordered_map<InterMonoTaintAnalysis::n_t,
                 InterMonoTaintAnalysis::mono_container_t>
       Seeds;
   InterMonoTaintAnalysis::mono_container_t Facts;
   for (unsigned Idx = 0; Idx < Main->arg_size(); ++Idx) {
     Facts.insert(getNthFunctionArgument(Main, Idx));
   }
-  Seeds.insert(make_pair(&Main->front().front(), Facts));
+  Seeds.insert({&Main->front().front(), Facts});
   return Seeds;
 }
 
-void InterMonoTaintAnalysis::printNode(ostream &OS,
+void InterMonoTaintAnalysis::printNode(llvm::raw_ostream &OS,
                                        InterMonoTaintAnalysis::n_t Inst) const {
   OS << llvmIRToString(Inst);
 }
 
 void InterMonoTaintAnalysis::printDataFlowFact(
-    ostream &OS, InterMonoTaintAnalysis::d_t Fact) const {
+    llvm::raw_ostream &OS, InterMonoTaintAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact) << '\n';
 }
 
-void InterMonoTaintAnalysis::printFunction(ostream &OS,
+void InterMonoTaintAnalysis::printFunction(llvm::raw_ostream &OS,
                                            const llvm::Function *Fun) const {
   OS << Fun->getName().str();
 }

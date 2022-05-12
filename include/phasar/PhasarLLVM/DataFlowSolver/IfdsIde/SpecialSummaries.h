@@ -113,8 +113,8 @@ public:
     return SpecialEdgeFunctions[Name];
   }
 
-  friend std::ostream &operator<<(std::ostream &OS,
-                                  const SpecialSummaries<D> &SpecialSumms) {
+  friend llvm::raw_ostream &
+  operator<<(llvm::raw_ostream &OS, const SpecialSummaries<D> &SpecialSumms) {
     OS << "SpecialSummaries:\n";
     for (auto &Entry : SpecialSumms.SpecialFunctionNames) {
       OS << Entry.first << " ";

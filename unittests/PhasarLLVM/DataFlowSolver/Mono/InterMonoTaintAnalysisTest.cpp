@@ -28,10 +28,7 @@ protected:
 
   std::unique_ptr<ProjectIRDB> IRDB;
 
-  void SetUp() override {
-    std::cout << "setup\n";
-    boost::log::core::get()->set_logging_enabled(false);
-  }
+  void SetUp() override {}
   void TearDown() override {}
 
   std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
@@ -67,9 +64,9 @@ protected:
     }
     auto Leaks = TaintProblem.getAllLeaks();
     // for (auto &[Inst, Values] : Leaks) {
-    //   // std::cout << "I: " << llvmIRToShortString(Inst) << '\n';
+    //   // llvm::outs() << "I: " << llvmIRToShortString(Inst) << '\n';
     //   for (const auto *Value : Values) {
-    //     // std::cout << "V: " << llvmIRToShortString(Value) << '\n';
+    //     // llvm::outs() << "V: " << llvmIRToShortString(Value) << '\n';
     //   }
     // }
     return Leaks;

@@ -20,9 +20,10 @@
 #include <algorithm>
 #include <deque>
 #include <initializer_list>
-#include <iosfwd>
 #include <iterator>
 #include <stdexcept>
+
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 
@@ -67,7 +68,8 @@ public:
   friend bool operator<(const CallString &Lhs, const CallString &Rhs) {
     return Lhs.cs < Rhs.cs;
   }
-  friend std::ostream &operator<<(std::ostream &OS, const CallString &C) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const CallString &C) {
     std::copy(C.CS.begin(), --C.CS.end(), std::ostream_iterator<T>(OS, " * "));
     OS << C.CS.back();
     return OS;

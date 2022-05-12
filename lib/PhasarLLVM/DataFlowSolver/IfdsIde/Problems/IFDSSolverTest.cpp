@@ -88,16 +88,17 @@ bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t Fact) const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
-void IFDSSolverTest::printNode(ostream &OS, IFDSSolverTest::n_t Stmt) const {
+void IFDSSolverTest::printNode(llvm::raw_ostream &OS,
+                               IFDSSolverTest::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IFDSSolverTest::printDataFlowFact(ostream &OS,
+void IFDSSolverTest::printDataFlowFact(llvm::raw_ostream &OS,
                                        IFDSSolverTest::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IFDSSolverTest::printFunction(ostream &OS,
+void IFDSSolverTest::printFunction(llvm::raw_ostream &OS,
                                    IFDSSolverTest::f_t Func) const {
   OS << Func->getName().str();
 }

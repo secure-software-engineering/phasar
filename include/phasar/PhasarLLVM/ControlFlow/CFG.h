@@ -17,13 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "nlohmann/json.hpp"
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
@@ -36,8 +39,8 @@ std::string toString(const SpecialMemberFunctionType &SMFT);
 
 SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT);
 
-std::ostream &operator<<(std::ostream &OS,
-                         const SpecialMemberFunctionType &SMFT);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const SpecialMemberFunctionType &SMFT);
 
 template <typename N, typename F> class CFG {
 public:
@@ -84,7 +87,7 @@ public:
 
   virtual std::string getDemangledFunctionName(F Fun) const = 0;
 
-  virtual void print(F Fun, std::ostream &OS) const = 0;
+  virtual void print(F Fun, llvm::raw_ostream &OS) const = 0;
 
   virtual nlohmann::json getAsJson(F Fun) const = 0;
 };

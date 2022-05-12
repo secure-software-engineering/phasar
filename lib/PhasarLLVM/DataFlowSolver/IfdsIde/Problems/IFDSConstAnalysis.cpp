@@ -198,17 +198,17 @@ bool IFDSConstAnalysis::isZeroValue(IFDSConstAnalysis::d_t Fact) const {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
-void IFDSConstAnalysis::printNode(ostream &OS,
+void IFDSConstAnalysis::printNode(llvm::raw_ostream &OS,
                                   IFDSConstAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IFDSConstAnalysis::printDataFlowFact(ostream &OS,
+void IFDSConstAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
                                           IFDSConstAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IFDSConstAnalysis::printFunction(ostream &OS,
+void IFDSConstAnalysis::printFunction(llvm::raw_ostream &OS,
                                       IFDSConstAnalysis::f_t Func) const {
   OS << Func->getName().str();
 }
@@ -280,7 +280,7 @@ size_t IFDSConstAnalysis::initMemoryLocationCount() {
 void IFDSConstAnalysis::emitTextReport(
     const SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
                         BinaryDomain> &SR,
-    ostream &OS) {
+    llvm::raw_ostream &OS) {
   // 1) Remove all mutable memory locations
   for (const auto *F : ICF->getAllFunctions()) {
     for (const auto *Exit : ICF->getExitPointsOf(F)) {

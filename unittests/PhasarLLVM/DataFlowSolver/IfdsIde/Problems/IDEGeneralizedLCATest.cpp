@@ -7,7 +7,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <iostream>
 #include <unordered_set>
 #include <vector>
 
@@ -65,10 +64,7 @@ protected:
     LCASolver->solve();
   }
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 
@@ -82,7 +78,8 @@ protected:
       ASSERT_NE(nullptr, Vr);
       ASSERT_NE(nullptr, Inst);
       auto Result = LCASolver->resultAt(Inst, Vr);
-      std::ostringstream SStr;
+      std::string Buffer;
+      llvm::raw_string_ostream SStr(Buffer);
       LCASolver->dumpResults(SStr);
       EXPECT_EQ(EVal, Result)
           << "vr:" << VrId << " inst:" << InstId << " LCASolver:" << SStr.str();
@@ -175,8 +172,9 @@ TEST_F(IDEGeneralizedLCATest, Imprecision) {
   //   auto yInst = IRDB->getInstruction(1); // foo.y
   //  auto barInst = IRDB->getInstruction(7);
 
-  // std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) <<
-  // std::endl; std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst)
+  // llvm::outs() << "foo.x = " << LCASolver->resultAt(barInst, xInst) <<
+  // std::endl; llvm::outs() << "foo.y = " << LCASolver->resultAt(barInst,
+  // yInst)
   // << std::endl;
 
   std::vector<groundTruth_t> GroundTruth;

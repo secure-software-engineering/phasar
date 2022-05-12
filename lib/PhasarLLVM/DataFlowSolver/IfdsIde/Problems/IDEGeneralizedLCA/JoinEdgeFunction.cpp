@@ -102,7 +102,7 @@ bool JoinEdgeFunction::equal_to(
   }
   return false;
 }
-void JoinEdgeFunction::print(std::ostream &OS, bool /*IsForDebug*/) const {
+void JoinEdgeFunction::print(llvm::raw_ostream &OS, bool /*IsForDebug*/) const {
   OS << "JoinEdgeFn[";
   First->print(OS);
   OS << ", ";

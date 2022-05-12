@@ -9,7 +9,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -31,9 +30,9 @@ int main(int Argc, const char **Argv) {
   initializeLogger(false);
   if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
       std::filesystem::is_directory(Argv[1])) {
-    std::cerr << "myphasartool\n"
-                 "A small PhASAR-based example program\n\n"
-                 "Usage: myphasartool <LLVM IR file>\n";
+    llvm::errs() << "myphasartool\n"
+                    "A small PhASAR-based example program\n\n"
+                    "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
   ProjectIRDB DB({Argv[1]});
@@ -48,19 +47,19 @@ int main(int Argc, const char **Argv) {
     // print inter-procedural control-flow graph
     I.print();
     // IFDS template parametrization test
-    std::cout << "Testing IFDS:\n";
+    llvm::outs() << "Testing IFDS:\n";
     IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
     IFDSSolver S(L);
     S.solve();
     S.dumpResults();
     // IDE template parametrization test
-    std::cout << "Testing IDE:\n";
+    llvm::outs() << "Testing IDE:\n";
     IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
     IDESolver T(M);
     T.solve();
     T.dumpResults();
   } else {
-    std::cerr << "error: file does not contain a 'main' function!\n";
+    llvm::errs() << "error: file does not contain a 'main' function!\n";
   }
   return 0;
 }

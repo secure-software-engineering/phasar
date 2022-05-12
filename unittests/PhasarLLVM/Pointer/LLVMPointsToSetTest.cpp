@@ -23,8 +23,8 @@ TEST(LLVMPointsToSet, Intra_01) {
       auto S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
-  PTS.print(std::cout);
-  std::cout << '\n';
+  PTS.print(llvm::outs());
+  llvm::outs() << '\n';
 }
 
 TEST(LLVMPointsToSet, Inter_01) {
@@ -39,8 +39,8 @@ TEST(LLVMPointsToSet, Inter_01) {
       auto S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
-  PTS.print(std::cout);
-  std::cout << '\n';
+  PTS.print(llvm::outs());
+  llvm::outs() << '\n';
 }
 
 TEST(LLVMPointsToSet, Global_01) {
@@ -58,8 +58,8 @@ TEST(LLVMPointsToSet, Global_01) {
       auto S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
-  PTS.print(std::cout);
-  std::cout << '\n';
+  PTS.print(llvm::outs());
+  llvm::outs() << '\n';
 }
 
 int main(int Argc, char **Argv) {

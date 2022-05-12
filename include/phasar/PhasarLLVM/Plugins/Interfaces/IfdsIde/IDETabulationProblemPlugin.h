@@ -61,22 +61,22 @@ public:
 
   bool isZeroValue(d_t Fact) const override { return Fact == getZeroValue(); }
 
-  void printNode(std::ostream &OS,
+  void printNode(llvm::raw_ostream &OS,
                  const llvm::Instruction *Stmt) const override {
     OS << llvmIRToString(Stmt);
   }
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override {
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override {
     // os << llvmIRToString(d);
     Fact->print(OS);
   }
 
-  void printFunction(std::ostream &OS,
+  void printFunction(llvm::raw_ostream &OS,
                      const llvm::Function *Func) const override {
     OS << Func->getName().str();
   }
 
-  void printEdgeFact(std::ostream &OS, l_t L) const override {
+  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override {
     // os << llvmIRToString(l);
     L->print(OS);
   }

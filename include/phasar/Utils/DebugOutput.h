@@ -9,7 +9,6 @@
 #ifndef PHASAR_UTILS_DEBUGOUTPUT_H
 #define PHASAR_UTILS_DEBUGOUTPUT_H
 
-#include <iostream>
 #include <ostream>
 #include <tuple>
 #include <type_traits>
@@ -47,9 +46,6 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data) {
   } else if constexpr (std::is_base_of_v<llvm::Type, BaseElemTy>) {
     if constexpr (std::is_base_of_v<llvm::raw_ostream, std::decay_t<OSTy>>) {
       Data->print(OS);
-    } else if constexpr (std::is_base_of_v<std::ostream, OSTy>) {
-      llvm::raw_os_ostream ROS(OS);
-      Data->print(ROS);
     } else {
       std::string Str;
       llvm::raw_string_ostream SOS(Str);
@@ -102,9 +98,9 @@ template <typename T> struct PrettyPrinter {
 };
 
 template <typename T>
-std::ostream &operator<<(std::ostream &OS, const PrettyPrinter<T> &P) {
-  llvm::raw_os_ostream ROS(OS);
-  ROS << P;
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const PrettyPrinter<T> &P) {
+  OS << P;
   return OS;
 }
 
