@@ -21,7 +21,7 @@ int main(int Argc, const char **Argv) {
     llvm::errs() << "usage: <prog> <ir file>\n";
     return 1;
   }
-  initializeLogger(false);
+  Logger::initializeStderrLogger(DEBUG);
   ProjectIRDB DB({Argv[1]}, IRDBOptions::WPA);
   if (DB.getFunction("main")) {
   } else {

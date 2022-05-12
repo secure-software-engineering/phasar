@@ -45,10 +45,10 @@ protected:
     IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
     LCASolver.solve();
     if (EmitESG) {
-      boost::log::core::get()->set_logging_enabled(true);
+      Logger::enable();
       const std::string PhasarRootPath = "./";
-      boost::log::core::get()->set_logging_enabled(false);
       LCASolver.emitESGAsDot(llvm::outs(), PhasarRootPath);
+      Logger::disable();
     }
     if (PrintDump) {
       LCASolver.dumpResults();

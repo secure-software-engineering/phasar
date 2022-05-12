@@ -181,7 +181,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
 
 bool PhasarPass::doInitialization(llvm::Module & /*M*/) {
   llvm::outs() << "PhasarPass::doInitialization()\n";
-  initializeLogger(InitLogger);
+  InitLogger ? Logger::enable() : Logger::disable();
   // check the user's parameters
   if (EntryPoints.empty()) {
     llvm::report_fatal_error("psr error: no entry points provided");

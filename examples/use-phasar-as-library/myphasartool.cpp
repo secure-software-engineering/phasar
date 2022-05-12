@@ -35,7 +35,6 @@ int main(int argc, const char **argv) {
                     "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
-  initializeLogger(false);
   ProjectIRDB DB({argv[1]});
   if (auto F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);

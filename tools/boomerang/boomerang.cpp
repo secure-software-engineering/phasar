@@ -21,7 +21,6 @@
 using namespace psr;
 
 int main(int Argc, char **Argv) {
-  initializeLogger(false);
   if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
       std::filesystem::is_directory(Argv[1])) {
     llvm::errs() << "usage: <prog> <ir file>\n";

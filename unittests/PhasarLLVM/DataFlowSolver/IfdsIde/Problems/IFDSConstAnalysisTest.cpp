@@ -43,7 +43,6 @@ protected:
   }
 
   void SetUp() override {
-    initializeLogger(false);
     ValueAnnotationPass::resetValueID();
   }
 

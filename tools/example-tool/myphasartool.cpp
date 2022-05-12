@@ -27,7 +27,6 @@ class Value;
 using namespace psr;
 
 int main(int Argc, const char **Argv) {
-  initializeLogger(false);
   if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
       std::filesystem::is_directory(Argv[1])) {
     llvm::errs() << "myphasartool\n"

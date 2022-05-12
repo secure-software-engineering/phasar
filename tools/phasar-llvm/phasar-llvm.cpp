@@ -285,7 +285,9 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 #ifdef DYNAMIC_LOG
-  initializeLogger(PhasarConfig::VariablesMap().count("log"));
+  if (PhasarConfig::VariablesMap().count("log")) {
+    Logger::initializeStderrLogger(DEBUG);
+  }
 #endif
   // print PhASAR version
   if (PhasarConfig::VariablesMap().count("version")) {
