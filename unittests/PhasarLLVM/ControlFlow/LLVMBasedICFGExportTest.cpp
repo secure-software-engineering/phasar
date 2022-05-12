@@ -37,9 +37,7 @@ protected:
   const std::string &PathToLLFiles = unittest::PathToLLTestFiles;
   const std::string &PathToJSONFiles = unittest::PathToJSONTestFiles;
 
-  void SetUp() override {
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   nlohmann::json exportICFG(const std::string &TestFile,
                             bool AsSrcCode = false) {

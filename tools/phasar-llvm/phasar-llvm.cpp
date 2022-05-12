@@ -109,9 +109,8 @@ void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
         !IntraMonoProblemPluginFactory.count(Analysis)) {
       // throw boost::program_options::error_with_option_name(
       //    "'" + Analysis + "' is not a valid data-flow analysis!");
-      llvm::errs() << "Error: "
-                   << '\'' << Analysis << "' is not a valid data-flow analysis!"
-                   << '\n';
+      llvm::errs() << "Error: " << '\'' << Analysis
+                   << "' is not a valid data-flow analysis!" << '\n';
       exit(1);
     }
   }
