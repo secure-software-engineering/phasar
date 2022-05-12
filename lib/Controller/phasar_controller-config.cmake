@@ -11,7 +11,6 @@ list(APPEND
   CONTROLLER_DEPS
   ifdside
   mono
-  plugins
   db
   pointer
   typehierarchy

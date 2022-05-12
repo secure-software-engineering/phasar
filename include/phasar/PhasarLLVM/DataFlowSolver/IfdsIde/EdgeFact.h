@@ -15,7 +15,6 @@
 namespace psr {
 
 /// A common superclass of edge-facts used by non-template IDETabulationProblems
-/// (for example in plugins)
 class EdgeFact {
 public:
   virtual ~EdgeFact() = default;

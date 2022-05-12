@@ -16,7 +16,7 @@
 namespace psr {
 
 /// A common superclass of dataflow-facts used by non-template tabulation
-/// problems (for example in plugins)
+/// problems
 class FlowFact {
 public:
   virtual ~FlowFact() = default;

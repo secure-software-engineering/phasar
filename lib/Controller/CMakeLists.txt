@@ -3,7 +3,6 @@ file(GLOB_RECURSE CONTROLLER_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
   phasar_ifdside
   phasar_mono
-  phasar_plugins
   phasar_db
   phasar_pointer
   phasar_typehierarchy

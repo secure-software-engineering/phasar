@@ -77,7 +77,7 @@ bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
 }
 
 AnalysisController::AnalysisController(
-    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
+    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
     CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
     bool AutoGlobalSupport, const std::set<std::string> &EntryPoints,

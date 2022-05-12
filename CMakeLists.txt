@@ -125,8 +125,8 @@ endif()
 find_package(Threads)
 
 # Boost
-find_package(Boost 1.65.1 COMPONENTS graph system program_options log ${BOOST_THREAD} REQUIRED)
-#find_package(Boost 1.72.0 COMPONENTS graph system program_options log ${BOOST_THREAD} REQUIRED)
+find_package(Boost 1.65.1 COMPONENTS graph program_options log ${BOOST_THREAD} REQUIRED)
+#find_package(Boost 1.72.0 COMPONENTS graph program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # Disable clang-tidy for the external projects
@@ -290,8 +290,6 @@ llvm_map_components_to_libnames(llvm_libs
 # phasar-based binaries
 add_subdirectory(tools)
 
-set(PHASAR_PLUGINS_LIB phasar_plugins)
-
 # Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
@@ -409,7 +407,6 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MIN
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 # set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost_program_options (>= 1.66.0),
 #                                   libboost_graph (>= 1.66.0),
-#                                   libboost_system (>= 1.66.0),
 #                                   libboost_log (>= 1.66.0),
 #                                   libboost_thread (>= 1.66.0),
 #                                   libsqlite3 (>= 4.5.0),
