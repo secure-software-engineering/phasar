@@ -138,7 +138,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   const auto *LastMainInstruction =
       getLastInstructionOf(IRDB->getFunction("main"));
   GroundTruth.push_back({{EdgeValue("Hello, World")},
-                         2,
+                         3,
                          std::stoi(getMetaDataID(LastMainInstruction))});
   compareResults(GroundTruth);
 }
