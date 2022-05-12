@@ -100,7 +100,7 @@ else
             # install missing packages if necessary
             boostlibnames=("libboost-system" "libboost-filesystem"
                     "libboost-graph" "libboost-program-options"
-                    "libboost-log" "libboost-thread")
+                    "libboost-thread")
             additional_boost_libs=()
             for boost_lib in ${boostlibnames[@]}; do
                 dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||

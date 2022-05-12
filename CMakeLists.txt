@@ -410,7 +410,6 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 # set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost_program_options (>= 1.66.0),
 #                                   libboost_graph (>= 1.66.0),
 #                                   libboost_system (>= 1.66.0),
-#                                   libboost_log (>= 1.66.0),
 #                                   libboost_thread (>= 1.66.0),
 #                                   libsqlite3 (>= 4.5.0),
 #                                   libpthread (>= 4.5.0),
