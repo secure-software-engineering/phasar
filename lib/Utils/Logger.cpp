@@ -99,8 +99,10 @@ void Logger::initializeStderrLogger(
     }
     // Following
     // https://stackoverflow.com/questions/41699343/how-do-i-test-that-an-stderror-code-is-not-an-error
-    if (static_cast<bool>(EC)) {
+    if (EC) {
       LogfileStreams[Filename] = nullptr;
+      llvm::errs() << "Failed to open logfile: " << Filename << '\n';
+      llvm::errs() << EC.message() << '\n';
       return false;
     }
   }
