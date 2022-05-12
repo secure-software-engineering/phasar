@@ -20,6 +20,8 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
@@ -51,15 +53,29 @@ std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite) {
 }
 
 const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
-  if (!CallSite->arg_empty()) {
-    const auto *Receiver = CallSite->getArgOperand(0);
-    if (Receiver->getType()->isPointerTy()) {
-      if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-              Receiver->getType()->getPointerElementType())) {
-        return ReceiverTy;
-      }
-    }
+  if (CallSite->arg_empty() ||
+      (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
+    return nullptr;
   }
+
+  const auto *Receiver =
+      CallSite->getArgOperand(unsigned(CallSite->hasStructRetAttr()));
+
+  if (!Receiver->getType()->isPointerTy()) {
+    return nullptr;
+  }
+
+  if (Receiver->getType()->isOpaquePointerTy()) {
+    llvm::errs() << "WARNING: The IR under analysis uses opaque pointers, "
+                    "which are not supported by phasar yet!\n";
+    return nullptr;
+  }
+
+  if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+          Receiver->getType()->getPointerElementType())) {
+    return ReceiverTy;
+  }
+
   return nullptr;
 }
 
