@@ -18,7 +18,6 @@
 #include <array>
 #include <exception>
 #include <fstream>
-#include <iostream>
 
 #include "boost/algorithm/string.hpp"
 #include "boost/core/null_deleter.hpp"
@@ -32,10 +31,6 @@
 #include "llvm/Support/FileSystem.h"
 
 #include "phasar/Utils/Logger.h"
-
-using namespace std;
-using namespace psr;
-namespace attrs = boost::log::attributes;
 
 namespace psr {
 
@@ -58,13 +53,12 @@ void Logger::setLoggerFilterLevel(SeverityLevel Level) {
 
 SeverityLevel Logger::getLoggerFilterLevel() { return LogFilterLevel; }
 
-bool Logger::isLoggingEnabled() {
-  return boost::log::core::get()->get_logging_enabled();
-}
+bool Logger::isLoggingEnabled() { return LoggingEnabled; }
 
 void Logger::initializeStdoutLogger(
     const std::optional<SeverityLevel> &Level,
     const std::optional<std::string> &Category) {
+  LoggingEnabled = true;
   if (Category.has_value()) {
     CategoriesToStreamVariant[Category.value()][Level] = StdStream::STDOUT;
   } else {
@@ -75,8 +69,7 @@ void Logger::initializeStdoutLogger(
 void Logger::initializeStderrLogger(
     const std::optional<SeverityLevel> &Level,
     const std::optional<std::string> &Category) {
-  std::map<std::optional<SeverityLevel>, std::string> foo;
-  foo[Level] = "foo";
+  LoggingEnabled = true;
   if (Category.has_value()) {
     CategoriesToStreamVariant[Category.value()][Level] = StdStream::STDERR;
   } else {
@@ -87,6 +80,7 @@ void Logger::initializeStderrLogger(
 [[nodiscard]] bool Logger::initializeFileLogger(
     const llvm::StringRef &Filename, const std::optional<SeverityLevel> &Level,
     const std::optional<std::string> &Category, bool Append) {
+  LoggingEnabled = true;
   if (Category.has_value()) {
     CategoriesToStreamVariant[Category.value()][Level] = Filename.str();
   } else {
@@ -207,61 +201,10 @@ void Logger::addLinePrefix(llvm::raw_ostream &OS,
   OS << ' ';
 }
 
-bool logFilter(const boost::log::attribute_value_set &Set) {
-#ifdef DYNAMIC_LOG
-  return Set["Severity"].extract<SeverityLevel>() >=
-         Logger::getLoggerFilterLevel();
-#else
-  return false;
-#endif
-}
+void initializeLogger(bool UseLogger, const std::string &LogFile) {}
 
-void logFormatter(const boost::log::record_view &View,
-                  boost::log::formatting_ostream &OS) {
-#ifdef DYNAMIC_LOG
-  // OS << View.attribute_values()["LineCounter"].extract<int>() << " "
-  OS << View.attribute_values()["Duration"]
-            .extract<boost::posix_time::ptime::time_duration_type>()
-     //<< " "
-     // View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
-     << " - [" << View.attribute_values()["Severity"].extract<SeverityLevel>()
-     << "] " << View.attribute_values()["Message"].extract<std::string>();
-#endif
-}
+void Logger::enable() { LoggingEnabled = true; }
 
-void initializeLogger(bool UseLogger, const string &LogFile) {
-#ifdef DYNAMIC_LOG
-  // Using this call, logging can be enabled or disabled
-  boost::log::core::get()->set_logging_enabled(UseLogger);
-  using text_sink = boost::log::sinks::synchronous_sink<
-      boost::log::sinks::text_ostream_backend>;
-  boost::shared_ptr<text_sink> Sink = boost::make_shared<text_sink>();
-  boost::shared_ptr<std::ostream> Stream =
-      [](const string &LogFile) -> boost::shared_ptr<std::ostream> {
-    if (LogFile.empty()) {
-      // the easiest way is to write the logs to std::clog
-      return boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter{});
-    }
-    return boost::make_shared<std::ofstream>(LogFile);
-  }(LogFile);
-  Sink->locked_backend()->add_stream(Stream);
-  Sink->set_filter(&logFilter);
-  Sink->set_formatter(&logFormatter);
-  Sink->locked_backend()->auto_flush(true);
-  boost::log::core::get()->add_sink(Sink);
-  boost::log::core::get()->add_global_attribute(
-      "LineCounter", boost::log::attributes::counter<int>{});
-  boost::log::core::get()->add_global_attribute(
-      "Timestamp", boost::log::attributes::local_clock{});
-  boost::log::core::get()->set_exception_handler(
-      boost::log::make_exception_handler<std::exception>(
-          LoggerExceptionHandler()));
-  boost::log::core::get()->add_global_attribute("Duration", attrs::timer());
-#endif
-}
-
-void LoggerExceptionHandler::operator()(const std::exception &Ex) const {
-  llvm::errs() << "std::exception: " << Ex.what() << '\n';
-}
+void Logger::disable() { LoggingEnabled = true; }
 
 } // namespace psr

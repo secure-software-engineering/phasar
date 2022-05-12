@@ -19,15 +19,10 @@
 
 #include <chrono>
 #include <iosfwd>
+#include <optional>
 #include <string>
 #include <type_traits>
-
-#include "boost/log/sinks.hpp"
-#include "boost/log/sources/global_logger_storage.hpp"
-#include "boost/log/sources/severity_logger.hpp"
-#include "boost/log/support/date_time.hpp"
-// Not useful here but enable all logging macros in files that include Logger.h
-#include "boost/log/sources/record_ostream.hpp"
+#include <variant>
 
 #include "llvm/ADT/StringMap.h"
 #include "llvm/IR/Value.h"
@@ -59,6 +54,10 @@ public:
 
   static bool isLoggingEnabled();
 
+  static void enable();
+
+  static void disable();
+
   static llvm::raw_ostream &
   getLogStream(const std::optional<SeverityLevel> &Level,
                const std::optional<llvm::StringRef> &Category);
@@ -86,6 +85,7 @@ public:
 
 private:
   enum class StdStream : uint8_t { STDOUT = 0, STDERR };
+  static inline bool LoggingEnabled = false;
   static inline llvm::StringMap<std::map<std::optional<SeverityLevel>,
                                          std::variant<StdStream, std::string>>>
       CategoriesToStreamVariant;
@@ -112,7 +112,7 @@ std::string toString(const SeverityLevel &Level);
 #define PHASAR_LOG(message) PHASAR_LOG_LEVEL(DEBUG, message)
 
 #define PHASAR_LOG_LEVEL(level, message)                                       \
-  LOG_IF_ENABLE_BOOL(                                                          \
+  IF_LOG_ENABLED_BOOL(                                                         \
       Logger::isLoggingEnabled() && level >= Logger::getLoggerFilterLevel(),   \
       do {                                                                     \
         auto &S = Logger::getLogStream(level, std::nullopt);                   \
@@ -121,7 +121,7 @@ std::string toString(const SeverityLevel &Level);
       } while (false);)
 
 #define PHASAR_LOG_LEVEL_CAT(level, cat, message)                              \
-  LOG_IF_ENABLE_BOOL(                                                          \
+  IF_LOG_ENABLED_BOOL(                                                         \
       Logger::isLoggingEnabled() && level >= Logger::getLoggerFilterLevel() && \
           Logger::logCategory(cat, level),                                     \
       do {                                                                     \
@@ -131,7 +131,7 @@ std::string toString(const SeverityLevel &Level);
       } while (false);)
 
 #define PHASAR_LOG_CAT(cat, message)                                           \
-  LOG_IF_ENABLE_BOOL(                                                          \
+  IF_LOG_ENABLED_BOOL(                                                         \
       Logger::isLoggingEnabled() && Logger::logCategory(cat, std::nullopt),    \
       do {                                                                     \
         auto &S = Logger::getLogStream(std::nullopt, cat);                     \
@@ -139,19 +139,20 @@ std::string toString(const SeverityLevel &Level);
         S << message << '\n';                                                  \
       } while (false);)
 
-BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
-    lg, boost::log::sources::severity_logger<SeverityLevel>)
 // For performance reason, we want to disable any
 // formatting computation that would go straight into
 // logs if logs are deactivated This macro does just
 // that
-#define LOG_IF_ENABLE_BOOL(condition, computation)                             \
+#define IF_LOG_ENABLED_BOOL(condition, computation)                            \
   if (LLVM_UNLIKELY(condition)) {                                              \
     computation;                                                               \
   }
 
-#define LOG_IF_ENABLE(computation)                                             \
-  LOG_IF_ENABLE_BOOL(Logger::isLoggingEnabled(), computation)
+// #define LOG_IF_ENABLE(computation)                                             \
+//   IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
+
+#define IF_LOG_ENABLED(computation)                                            \
+  IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
 
 #define IS_LOG_ENABLED Logger::isLoggingEnabled()
 // Register the logger and use it a singleton then, get the logger with:
@@ -161,14 +162,12 @@ BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
 // In such a case a global variable would be created like in the following
 // boost::log::sources::severity_logger<int> lg;
 
-// A few attributes that we want to use in our logger
-BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", SeverityLevel)
-BOOST_LOG_ATTRIBUTE_KEYWORD(counter, "LineCounter", int)
-BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "Timestamp", boost::posix_time::ptime)
-
 #else
-#define LOG_IF_ENABLE_BOOL(condition, computation) ((void)0)
-#define LOG_IF_ENABLE(computation) ((void)0)
+#define IF_LOG_ENABLED_BOOL(condition, computation) ((void)0)
+#define PHASAR_LOG(computation) ((void)0)
+#define PHASAR_LOG_CAT(cat, message) ((void)0)
+#define PHASAR_LOG_LEVEL_CAT(level, cat, message) ((void)0)
+#define PHASAR_LOG_LEVEL(level, message) ((void)0)
 #define IS_LOG_ENABLED false
 // Have a mechanism to prevent logger usage if the code is not compiled using
 // the DYNAMIC_LOG option:
@@ -191,27 +190,10 @@ template <typename T> struct __lg__ {
 #endif
 
 /**
- * A filter function.
- */
-bool logFilter(const boost::log::attribute_value_set &AVSet);
-
-/**
- * A formatter function.
- */
-void logFormatter(const boost::log::record_view &View,
-                  boost::log::formatting_ostream &OS);
-
-/**
- * An exception handler for the logger.
- */
-struct LoggerExceptionHandler {
-  void operator()(const std::exception &Ex) const;
-};
-
-/**
  * Initializes the logger.
  */
-void initializeLogger(bool UseLogger, const std::string &LogFile = "");
+[[deprecated("Please use the new initialize*Logger() family instead")]] void
+initializeLogger(bool UseLogger, const std::string &LogFile = "");
 
 } // namespace psr
 
