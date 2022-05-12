@@ -37,9 +37,9 @@ JoinEdgeFunction::JoinEdgeFunction(
     auto Ins = Seen.insert(Top);
     if (Top != nullptr && !Ins.second &&
         !dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(Top)) {
-      std::cerr << "WARNING: cyclic dependency! @" << Ctr << "#";
-      Top->print(std::cerr);
-      std::cerr << std::endl;
+      PHASAR_LOG_LEVEL(WARNING, "cyclic dependency! @" << Ctr << "#");
+      Top->print(llvm::errs());
+      llvm::errs() << '\n';
       this->First = this->Second = AllBot::getInstance();
       break;
     }

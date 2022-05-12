@@ -55,8 +55,7 @@ void OTFResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
   // information to simulate inter-procedural points-to information
   if (!PT.isInterProcedural()) {
     for (const auto *CalleeTarget : CalleeTargets) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Target name: " << CalleeTarget->getName().str());
+      PHASAR_LOG_LEVEL(DEBUG, "Target name: " << CalleeTarget->getName().str());
       // do the merge of the points-to information for all possible targets, but
       // only if they are available
       if (CalleeTarget->isDeclaration()) {
@@ -87,23 +86,22 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
   FunctionSetTy PossibleCallTargets;
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: " << llvmIRToString(CallSite));
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "Call virtual function: " << llvmIRToString(CallSite));
 
   auto RetrievedVtableIndex = getVFTIndex(CallSite);
   if (!RetrievedVtableIndex.has_value()) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Error with resolveVirtualCall : impossible to retrieve "
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CallSite) << "\n");
+                         << llvmIRToString(CallSite) << "\n");
     return {};
   }
 
   auto VtableIndex = RetrievedVtableIndex.value();
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Virtual function table entry is: " << VtableIndex);
+  PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
   const llvm::Value *Receiver = CallSite->getArgOperand(0);
 

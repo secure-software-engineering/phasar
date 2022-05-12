@@ -83,8 +83,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "LLVMPointsToSet completed\n");
+  PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed\n");
 }
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
@@ -109,8 +108,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
     for (auto Alias : PtsJson) {
       const auto *Inst = fromMetaDataId(IRDB, Alias.get<std::string>());
       if (!Inst) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                      << "Invalid Value-Id: " << Alias);
+        PHASAR_LOG_LEVEL(WARNING, "Invalid Value-Id: " << AliasStr);
         continue;
       }
 
@@ -125,16 +123,14 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
   AnalyzedFunctions.reserve(Fns.size());
   for (const auto &F : Fns) {
     if (!F.is_string()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                    << "Invalid Function Name: " << F);
+      PHASAR_LOG_LEVEL(WARNING, "Invalid Function Name: " << F);
       continue;
     }
 
     const auto *IRFn = IRDB.getFunction(F.get<std::string>());
 
     if (!IRFn) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                    << "Function: " << F << " not in the IRDB");
+      PHASAR_LOG_LEVEL(WARNING, "Function: " << F << " not in the IRDB");
       continue;
     }
 
@@ -438,8 +434,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       !Inserted || F->isDeclaration()) {
     return;
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Analyzing function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName().str());
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;

@@ -69,8 +69,7 @@ IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t /*CallSite*/,
 
 InitialSeeds<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::l_t>
 IFDSSolverTest::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSSolverTest::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSSolverTest::initialSeeds()");
   InitialSeeds<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {

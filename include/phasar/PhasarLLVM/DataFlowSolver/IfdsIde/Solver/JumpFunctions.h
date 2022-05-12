@@ -87,16 +87,13 @@ public:
    */
   void addFunction(d_t SourceVal, n_t Target, d_t TargetVal,
                    EdgeFunctionPtrType EdgeFunc) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Start adding new jump function";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Fact at source : " << Problem.DtoString(SourceVal);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Fact at target : " << Problem.DtoString(TargetVal);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Destination    : " << Problem.NtoString(Target);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Edge Function  : " << EdgeFunc->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Start adding new jump function");
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Fact at source : " << Problem.DtoString(SourceVal));
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Fact at target : " << Problem.DtoString(TargetVal));
+    PHASAR_LOG_LEVEL(DEBUG, "Destination    : " << Problem.NtoString(Target));
+    PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EdgeFunc->str());
     // we do not store the default function (all-top)
     if (EdgeFunc->equal_to(Alltop)) {
       return;
@@ -130,9 +127,7 @@ public:
 
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
     NonEmptyLookupByTargetNode[Target].insert(SourceVal, TargetVal, EdgeFunc);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "End adding new jump function";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    PHASAR_LOG_LEVEL(DEBUG, "End adding new jump function");
   }
 
   /**

@@ -28,9 +28,8 @@ bool isTouchVTableInst(const llvm::StoreInst *Store) {
         if (VTable->hasName() &&
             llvm::demangle(VTable->getName().str()).find("vtable") !=
                 std::string::npos) {
-          LOG_IF_ENABLE(
-              BOOST_LOG_SEV(lg::get(), DEBUG)
-              << "Store Instruction sets up or updates vtable - ignored!");
+          PHASAR_LOG_LEVEL(
+              DEBUG, "Store Instruction sets up or updates vtable - ignored!");
           CEInst->deleteValue();
           CFInst->deleteValue();
           return true;

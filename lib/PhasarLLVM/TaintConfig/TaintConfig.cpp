@@ -59,8 +59,8 @@ void TaintConfig::addTaintCategory(const llvm::Value *Val,
                                    llvm::StringRef AnnotationStr) {
   auto TC = toTaintCategory(AnnotationStr);
   if (TC == TaintCategory::None) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), ERROR)
-                  << "ERROR: Unknown taint category: " << AnnotationStr.str());
+    PHASAR_LOG_LEVEL(ERROR,
+                     "ERROR: Unknown taint category: " << AnnotationStr.str());
   } else {
     addTaintCategory(Val, TC);
   }

@@ -90,8 +90,7 @@ IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
                                                 [[maybe_unused]] n_t Succ) {
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##Normal-FF at: " << psr::llvmIRToString(Curr));
+  PHASAR_LOG_LEVEL(DEBUG, "##Normal-FF at: " << psr::llvmIRToString(Curr));
 
   // The only instruction we need to handle in the Normal-FF is the StoreInst.
   // All other instructions are handled by the recursive Create function from
@@ -106,8 +105,7 @@ IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
 
   auto [SrcConfig, SinkConfig] = getConfigurationAt(Curr);
   if (!SrcConfig.empty() || !SinkConfig.empty()) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "handle config in normal-ff");
+    PHASAR_LOG_LEVEL(DEBUG, "handle config in normal-ff");
     return handleConfig(Curr, std::move(SrcConfig), std::move(SinkConfig));
   }
 
@@ -203,8 +201,7 @@ auto IDEExtendedTaintAnalysis::propagateAtStore(
                  Store);
       });
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Store generate: " << PrettyPrinter{Ret});
+  PHASAR_LOG_LEVEL(DEBUG, "Store generate: " << PrettyPrinter{Ret});
 
   // For the sink-variables, the pointer-arithmetics in the last offset
   // are relevant (in contrast to the Store-FF). This is, where the
@@ -297,8 +294,7 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
     } else {
       for (const auto *Snk : SinkConfig) {
         if (equivalent(Source, makeFlowFact(Snk))) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Leaking: " << llvmIRToString(Snk));
+          PHASAR_LOG_LEVEL(DEBUG, "Leaking: " << llvmIRToString(Snk));
           Leaks[Inst].insert(Snk);
         }
       }
@@ -338,16 +334,14 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
     ParamIterator FIt = DestFun->arg_begin();
     ParamIterator FEnd = DestFun->arg_end();
 
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "##Call-FF at: " << psr::llvmIRToString(Call)
-                  << " to: " << FtoString(DestFun));
+    PHASAR_LOG_LEVEL(DEBUG, "##Call-FF at: " << psr::llvmIRToString(Call)
+                                             << " to: " << FtoString(DestFun));
     for (; FIt != FEnd && It != End; ++FIt, ++It) {
       auto From = makeFlowFact(It->get());
       /// Pointer-Arithetics in the last indirection are irrelevant for
       /// equality comparison. Argumentation similar to StoreFF
       if (equivalentExceptPointerArithmetics(From, Source)) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << ">\tmatch: " << From << " vs " << Source);
+        PHASAR_LOG_LEVEL(DEBUG, ">\tmatch: " << From << " vs " << Source);
         Ret.insert(transferFlowFact(Source, From, &*FIt));
       }
     }
@@ -405,8 +399,7 @@ IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                              n_t ExitStmt,
                                              [[maybe_unused]] n_t RetSite) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##Return-FF at: " << psr::llvmIRToString(CallSite));
+  PHASAR_LOG_LEVEL(DEBUG, "##Return-FF at: " << psr::llvmIRToString(CallSite));
 
   if (!CallSite) {
     /// In case of unbalanced return, we may reach the artificial Global Ctor
@@ -500,8 +493,8 @@ IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
     [[maybe_unused]] n_t CallSite, [[maybe_unused]] n_t RetSite,
     [[maybe_unused]] std::set<f_t> Callees) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##CallToReturn-FF at: " << psr::llvmIRToString(CallSite));
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "##CallToReturn-FF at: " << psr::llvmIRToString(CallSite));
 
   // const bool HasNonIntrinsicDecl =
   //     std::any_of(Callees.begin(), Callees.end(), [](const auto *Callee) {
@@ -564,8 +557,7 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getSummaryFlowFunction(n_t CallStmt, f_t DestFun) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "##Summary-FF at: " << psr::llvmIRToString(CallStmt));
+  PHASAR_LOG_LEVEL(DEBUG, "##Summary-FF at: " << psr::llvmIRToString(CallStmt));
   // Handle all the functions that have a special semantics inside the analysis:
   // - Calls to the DevAPI
   // - Calls to sources, sinks and sanitizers
@@ -573,12 +565,11 @@ IDEExtendedTaintAnalysis::getSummaryFlowFunction(n_t CallStmt, f_t DestFun) {
   // since they were already considered when constructing the seeds
 
   auto [SrcConfig, SinkConfig] = getConfigurationAt(CallStmt, DestFun);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "SrcIndices.any(): " << !SrcConfig.empty()
-                << " - SinkIndices.any(): " << !SinkConfig.empty());
+  PHASAR_LOG_LEVEL(DEBUG, "SrcIndices.any(): " << !SrcConfig.empty()
+                                               << " - SinkIndices.any(): "
+                                               << !SinkConfig.empty());
   if (!SrcConfig.empty() || !SinkConfig.empty()) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "handle config in summary-ff");
+    PHASAR_LOG_LEVEL(DEBUG, "handle config in summary-ff");
     return handleConfig(CallStmt, std::move(SrcConfig), std::move(SinkConfig));
   }
 

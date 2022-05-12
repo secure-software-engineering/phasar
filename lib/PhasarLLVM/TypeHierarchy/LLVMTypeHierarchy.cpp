@@ -58,14 +58,14 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
+  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
   for (auto *M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
+  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
 }
 
@@ -148,8 +148,7 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
   std::string ClearName = removeStructOrClassPrefix(Type);
   if (const auto *TI = ClearNameTIMap[ClearName]) {
     if (!TI->hasInitializer()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << ClearName << " does not have initializer");
+      PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
       return SubTypes;
     }
     if (const auto *I =
@@ -185,8 +184,7 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
       if (!TI->hasInitializer()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << ClearName << " does not have initializer");
+        PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
         return VFS;
       }
       if (const auto *I =
@@ -199,8 +197,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
 }
 
 void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Analyze types in module: " << M.getModuleIdentifier());
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "Analyze types in module: " << M.getModuleIdentifier());
   // store analyzed module
   VisitedModules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();

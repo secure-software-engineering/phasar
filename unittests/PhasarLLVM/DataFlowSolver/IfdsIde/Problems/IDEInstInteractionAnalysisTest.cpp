@@ -124,8 +124,7 @@ protected:
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                        << "Checking variable: " << FactStr);
+          PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
           EXPECT_EQ(std::get<3>(Truth), Value);
         }
       }

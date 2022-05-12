@@ -59,8 +59,8 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
     if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(G[U].V)) {
       // If the call stack is empty, we completely ignore the calling context
       if (matchesStack(G) || CallStack.empty()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Found stack allocation: " << llvmIRToString(Alloc));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "Found stack allocation: " << llvmIRToString(Alloc));
         AllocationSites.insert(G[U].V);
       }
     }
@@ -74,9 +74,8 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matchesStack(G) || CallStack.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Found heap allocation: "
-                        << llvmIRToString(CallSite));
+          PHASAR_LOG_LEVEL(
+              DEBUG, "Found heap allocation: " << llvmIRToString(CallSite));
           AllocationSites.insert(G[U].V);
         }
       }
@@ -154,8 +153,7 @@ void LLVMPointsToGraph::computePointsToGraph(llvm::Function *F) {
     return;
   }
   PAMM_GET_INSTANCE;
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Analyzing function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName().str());
   AnalyzedFunctions.insert(F);
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;

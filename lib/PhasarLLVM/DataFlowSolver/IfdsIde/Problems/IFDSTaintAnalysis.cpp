@@ -291,8 +291,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
 InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
              IFDSTaintAnalysis::l_t>
 IFDSTaintAnalysis::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSTaintAnalysis::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
   InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
@@ -312,8 +311,7 @@ IFDSTaintAnalysis::initialSeeds() {
 }
 
 IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSTaintAnalysis::createZeroValue()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }

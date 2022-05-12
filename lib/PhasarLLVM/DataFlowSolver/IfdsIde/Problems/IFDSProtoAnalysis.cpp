@@ -75,7 +75,7 @@ IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t /*CallSite*/,
 InitialSeeds<IFDSProtoAnalysis::n_t, IFDSProtoAnalysis::d_t,
              IFDSProtoAnalysis::l_t>
 IFDSProtoAnalysis::initialSeeds() {
-  cout << "IFDSProtoAnalysis::initialSeeds()\n";
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSProtoAnalysis::initialSeeds()");
   InitialSeeds<IFDSProtoAnalysis::n_t, IFDSProtoAnalysis::d_t,
                IFDSProtoAnalysis::l_t>
       Seeds;

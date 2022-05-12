@@ -399,8 +399,7 @@ IFDSUninitializedVariables::getSummaryFlowFunction(
 InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
              IFDSUninitializedVariables::l_t>
 IFDSUninitializedVariables::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSUninitializedVariables::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSUninitializedVariables::initialSeeds()");
   InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
                IFDSUninitializedVariables::l_t>
       Seeds;
@@ -413,8 +412,7 @@ IFDSUninitializedVariables::initialSeeds() {
 
 IFDSUninitializedVariables::d_t
 IFDSUninitializedVariables::createZeroValue() const {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSUninitializedVariables::createZeroValue()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSUninitializedVariables::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
