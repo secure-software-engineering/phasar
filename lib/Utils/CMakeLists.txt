@@ -30,7 +30,6 @@ else()
 endif()
 
 target_include_directories(phasar_utils PUBLIC ${LLVM_INCLUDE_DIRS})
-target_compile_definitions(phasar_utils PUBLIC -DBOOST_LOG_DYN_LINK)
 
 target_link_libraries(phasar_utils
   LINK_PUBLIC
