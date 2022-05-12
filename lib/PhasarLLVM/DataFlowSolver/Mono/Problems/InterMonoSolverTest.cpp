@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <set>
 #include <utility>
 
@@ -22,9 +21,6 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
-using namespace std;
-using namespace psr;
-
 namespace psr {
 
 InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
@@ -38,21 +34,21 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
 InterMonoSolverTest::mono_container_t
 InterMonoSolverTest::merge(const InterMonoSolverTest::mono_container_t &Lhs,
                            const InterMonoSolverTest::mono_container_t &Rhs) {
-  cout << "InterMonoSolverTest::join()\n";
+  llvm::outs() << "InterMonoSolverTest::join()\n";
   return Lhs.setUnion(Rhs);
 }
 
 bool InterMonoSolverTest::equal_to(
     const InterMonoSolverTest::mono_container_t &Lhs,
     const InterMonoSolverTest::mono_container_t &Rhs) {
-  cout << "InterMonoSolverTest::equal_to()\n";
+  llvm::outs() << "InterMonoSolverTest::equal_to()\n";
   return Lhs == Rhs;
 }
 
 InterMonoSolverTest::mono_container_t InterMonoSolverTest::normalFlow(
     InterMonoSolverTest::n_t Inst,
     const InterMonoSolverTest::mono_container_t &In) {
-  cout << "InterMonoSolverTest::normalFlow()\n";
+  llvm::outs() << "InterMonoSolverTest::normalFlow()\n";
   InterMonoSolverTest::mono_container_t Result;
   Result = Result.setUnion(In);
   if (const auto *const Alloc = llvm::dyn_cast<llvm::AllocaInst>(Inst)) {
@@ -65,7 +61,7 @@ InterMonoSolverTest::mono_container_t
 InterMonoSolverTest::callFlow(InterMonoSolverTest::n_t CallSite,
                               InterMonoSolverTest::f_t /*Callee*/,
                               const InterMonoSolverTest::mono_container_t &In) {
-  cout << "InterMonoSolverTest::callFlow()\n";
+  llvm::outs() << "InterMonoSolverTest::callFlow()\n";
   InterMonoSolverTest::mono_container_t Result;
   Result = Result.setUnion(In);
   if (const auto *const Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
@@ -78,43 +74,45 @@ InterMonoSolverTest::mono_container_t InterMonoSolverTest::returnFlow(
     InterMonoSolverTest::n_t /*CallSite*/, InterMonoSolverTest::f_t /*Callee*/,
     InterMonoSolverTest::n_t /*ExitStmt*/, InterMonoSolverTest::n_t /*RetSite*/,
     const InterMonoSolverTest::mono_container_t &In) {
-  cout << "InterMonoSolverTest::returnFlow()\n";
+  llvm::outs() << "InterMonoSolverTest::returnFlow()\n";
   return In;
 }
 
 InterMonoSolverTest::mono_container_t InterMonoSolverTest::callToRetFlow(
     InterMonoSolverTest::n_t /*CallSite*/, InterMonoSolverTest::n_t /*RetSite*/,
-    set<InterMonoSolverTest::f_t> /*Callees*/,
+    std::set<InterMonoSolverTest::f_t> /*Callees*/,
     const InterMonoSolverTest::mono_container_t &In) {
-  cout << "InterMonoSolverTest::callToRetFlow()\n";
+  llvm::outs() << "InterMonoSolverTest::callToRetFlow()\n";
   return In;
 }
 
-unordered_map<InterMonoSolverTest::n_t, InterMonoSolverTest::mono_container_t>
+std::unordered_map<InterMonoSolverTest::n_t,
+                   InterMonoSolverTest::mono_container_t>
 InterMonoSolverTest::initialSeeds() {
-  cout << "InterMonoSolverTest::initialSeeds()\n";
-  unordered_map<InterMonoSolverTest::n_t, InterMonoSolverTest::mono_container_t>
+  llvm::outs() << "InterMonoSolverTest::initialSeeds()\n";
+  std::unordered_map<InterMonoSolverTest::n_t,
+                     InterMonoSolverTest::mono_container_t>
       Seeds;
   InterMonoSolverTest::f_t Main = ICF->getFunction("main");
   for (const auto *StartPoint : ICF->getStartPointsOf(Main)) {
-    Seeds.insert(make_pair(StartPoint, allTop()));
+    Seeds.insert({StartPoint, allTop()});
   }
   return Seeds;
 }
 
-void InterMonoSolverTest::printNode(ostream &OS,
+void InterMonoSolverTest::printNode(llvm::raw_ostream &OS,
                                     InterMonoSolverTest::n_t Inst) const {
   OS << llvmIRToString(Inst);
 }
 
 void InterMonoSolverTest::printDataFlowFact(
-    ostream &OS, InterMonoSolverTest::d_t Fact) const {
+    llvm::raw_ostream &OS, InterMonoSolverTest::d_t Fact) const {
   OS << llvmIRToString(Fact) << '\n';
 }
 
-void InterMonoSolverTest::printFunction(ostream &OS,
+void InterMonoSolverTest::printFunction(llvm::raw_ostream &OS,
                                         InterMonoSolverTest::f_t Fun) const {
-  OS << Fun->getName().str();
+  OS << Fun->getName();
 }
 
 } // namespace psr

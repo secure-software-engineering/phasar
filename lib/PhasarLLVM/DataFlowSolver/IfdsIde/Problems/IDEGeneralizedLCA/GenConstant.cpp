@@ -7,11 +7,9 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <iostream>
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 
 namespace psr {
@@ -83,7 +81,7 @@ bool GenConstant::equal_to(
   }
   return false;
 }
-void GenConstant::print(std::ostream &OS, bool /*IsForDebug*/) const {
+void GenConstant::print(llvm::raw_ostream &OS, bool /*IsForDebug*/) const {
   OS << "GenConstantEdgeFn(" << Val << ")";
 }
 

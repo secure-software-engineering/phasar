@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
 
 #include <cstdint>
-#include <iosfwd>
 #include <memory>
 #include <optional>
 #include <string>
@@ -185,7 +184,6 @@ public:
     return !(*this == AML);
   }
 
-  friend std::ostream &operator<<(std::ostream &OS, AbstractMemoryLocation TV);
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        AbstractMemoryLocation TV);
 

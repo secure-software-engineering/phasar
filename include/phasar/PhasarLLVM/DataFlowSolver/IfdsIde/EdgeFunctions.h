@@ -18,10 +18,10 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 
 #include "llvm/Support/Compiler.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <atomic>
 #include <iosfwd>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -83,13 +83,14 @@ public:
       equal_to // NOLINT - would break too many client analyses
       (EdgeFunctionPtrType OtherFunction) const = 0;
 
-  virtual void print(std::ostream &OS,
+  virtual void print(llvm::raw_ostream &OS,
                      [[maybe_unused]] bool IsForDebug = false) const {
     OS << "EdgeFunction";
   }
 
   [[nodiscard]] std::string str() {
-    std::ostringstream OSS;
+    std::string Buffer;
+    llvm::raw_string_ostream OSS(Buffer);
     print(OSS);
     return OSS.str();
   }
@@ -102,8 +103,8 @@ static inline bool operator==(const EdgeFunction<L> &F,
 }
 
 template <typename L>
-static inline std::ostream &operator<<(std::ostream &OS,
-                                       const EdgeFunction<L> &F) {
+static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                            const EdgeFunction<L> &F) {
   F.print(OS);
   return OS;
 }
@@ -141,7 +142,7 @@ public:
     return false;
   }
 
-  void print(std::ostream &OS,
+  void print(llvm::raw_ostream &OS,
              [[maybe_unused]] bool IsForDebug = false) const override {
     OS << "AllTop";
   }
@@ -197,7 +198,8 @@ public:
     return false;
   }
 
-  void print(std::ostream &OS, bool /*IsForDebug = false*/) const override {
+  void print(llvm::raw_ostream &OS,
+             bool /*IsForDebug = false*/) const override {
     OS << "AllBottom";
   }
 };
@@ -250,7 +252,8 @@ public:
     return Instance;
   }
 
-  void print(std::ostream &OS, bool /*IsForDebug = false*/) const override {
+  void print(llvm::raw_ostream &OS,
+             bool /*IsForDebug = false*/) const override {
     OS << "EdgeIdentity";
   }
 };
@@ -551,16 +554,16 @@ public:
   static void dump(bool PrintElements = false) {
     std::lock_guard<std::mutex> DataLock(getCacheData().DataMutex);
 
-    std::cout << "Elements in cache: " << getCacheData().Storage.size();
+    llvm::outs() << "Elements in cache: " << getCacheData().Storage.size();
 
     if (PrintElements) {
-      std::cout << "\n";
+      llvm::outs() << "\n";
       for (auto &KVPair : getCacheData().Storage) {
-        std::cout << "(" << KVPair.first << ") -> " << std::boolalpha
-                  << KVPair.second.expired() << std::endl;
+        llvm::outs() << "(" << KVPair.first << ") -> "
+                     << KVPair.second.expired() << '\n';
       }
     }
-    std::cout << std::endl;
+    llvm::outs() << '\n';
   }
 
 private:

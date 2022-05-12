@@ -60,10 +60,10 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
     const auto *PointerOp = Store->getPointerOperand();
     const auto *ValueOp = Store->getValueOperand();
     if (isConstant(ValueOp)) {
-      // std::cout << "==> constant store" << std::endl;
+      // llvm::outs() << "==> constant store" << std::endl;
       return flow([=](IDEGeneralizedLCA::d_t Source)
                       -> std::set<IDEGeneralizedLCA::d_t> {
-        // std::cout << "##> normal flow for: " << llvmIRToString(curr)
+        // llvm::outs() << "##> normal flow for: " << llvmIRToString(curr)
         //          << " with " << llvmIRToString(source) << std::endl;
         if (Source == PointerOp) {
           return {};
@@ -88,13 +88,13 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     return flow(
         [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
-          // std::cout << "LOAD " << llvmIRToString(curr) << std::endl;
-          // std::cout << "\twith " << llvmIRToString(source) << " ==> ";
+          // llvm::outs() << "LOAD " << llvmIRToString(curr) << std::endl;
+          // llvm::outs() << "\twith " << llvmIRToString(source) << " ==> ";
           if (Source == Load->getPointerOperand()) {
-            // std::cout << "GEN" << std::endl;
+            // llvm::outs() << "GEN" << std::endl;
             return {Source, Load};
           }
-          // std::cout << "ID" << std::endl;
+          // llvm::outs() << "ID" << std::endl;
           return {Source};
         });
   }
@@ -169,7 +169,7 @@ IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                       IDEGeneralizedLCA::n_t ExitStmt,
                                       IDEGeneralizedLCA::n_t /*RetSite*/) {
   assert(llvm::isa<llvm::CallBase>(CallSite));
-  // std::cout << "Ret flow: " << llvmIRToString(ExitStmt) << std::endl;
+  // llvm::outs() << "Ret flow: " << llvmIRToString(ExitStmt) << std::endl;
   /*return std::make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
       [](const llvm::Value *v) -> bool {
@@ -183,7 +183,7 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t /*RetSite*/,
                                             std::set<f_t> /*Callees*/) {
-  // std::cout << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
+  // llvm::outs() << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
     // std::basic_string
@@ -194,8 +194,8 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
     }
     // return flow([Call](IDEGeneralizedLCA::d_t Source)
     //                 -> std::set<IDEGeneralizedLCA::d_t> {
-    //   // std::cout << "In getCallToRetFlowFunction\n";
-    //   // std::cout << llvmIRToString(Source) << '\n';
+    //   // llvm::outs() << "In getCallToRetFlowFunction\n";
+    //   // llvm::outs() << llvmIRToString(Source) << '\n';
     //   if (Source->getType()->isPointerTy()) {
     //     for (auto &Arg : Call->arg_operands()) {
     //       if (Arg.get() == Source) {
@@ -212,7 +212,7 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getSummaryFlowFunction(IDEGeneralizedLCA::n_t /*CallStmt*/,
                                           IDEGeneralizedLCA::f_t /*DestMthd*/) {
-  // std::cout << "Summary flow: " << llvmIRToString(callStmt) <<
+  // llvm::outs() << "Summary flow: " << llvmIRToString(callStmt) <<
   // std::endl;
   return nullptr;
 }
@@ -259,25 +259,21 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
                                          IDEGeneralizedLCA::d_t CurrNode,
                                          IDEGeneralizedLCA::n_t Succ,
                                          IDEGeneralizedLCA::d_t SuccNode) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IDEGeneralizedLCA::getNormalEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(Curr));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "(D) Curr Node :   "
-                << IDEGeneralizedLCA::DtoString(CurrNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "(N) Succ Inst : " << IDEGeneralizedLCA::NtoString(Succ));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "(D) Succ Node :   "
-                << IDEGeneralizedLCA::DtoString(SuccNode));
+  PHASAR_LOG_LEVEL(DEBUG, "IDEGeneralizedLCA::getNormalEdgeFunction()");
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(Curr));
+  PHASAR_LOG_LEVEL(
+      DEBUG, "(D) Curr Node :   " << IDEGeneralizedLCA::DtoString(CurrNode));
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "(N) Succ Inst : " << IDEGeneralizedLCA::NtoString(Succ));
+  PHASAR_LOG_LEVEL(
+      DEBUG, "(D) Succ Node :   " << IDEGeneralizedLCA::DtoString(SuccNode));
   // Initialize global variables at entry point
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
       isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
       llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Case: Intialize global variable at entry point.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    PHASAR_LOG_LEVEL(DEBUG, "Case: Intialize global variable at entry point.");
+    PHASAR_LOG_LEVEL(DEBUG, ' ');
     const auto *GV = llvm::cast<llvm::GlobalVariable>(CurrNode);
     if (GV->getLinkage() != llvm::GlobalValue::LinkageTypes::
                                 CommonLinkage) { // clang uses common linkage
@@ -338,7 +334,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
   // Check load instruction
   /*if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     if (Load == succNode) {
-      // std::cout << "LOAD " << llvmIRToString(curr) << " TO "
+      // llvm::outs() << "LOAD " << llvmIRToString(curr) << " TO "
       //           << llvmIRToString(succ) << std::endl;
       // return EdgeIdentity<l_t>::getInstance();
       // return std::make_shared<DebugIdentityEdgeFunction>(curr, succ,
@@ -387,7 +383,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
           Bits, EdgeValue::FloatingPoint, MaxSetSize);
     }
   }
-  // std::cout << "FallThrough: identity edge fn" << std::endl;
+  // llvm::outs() << "FallThrough: identity edge fn" << std::endl;
   return EdgeIdentity<l_t>::getInstance();
 }
 
@@ -422,14 +418,14 @@ IDEGeneralizedLCA::getReturnEdgeFunction(
   if (isZeroValue(ExitNode)) {
     if (const auto *RetStmt = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
       if (RetStmt->getReturnValue() && isConstant(RetStmt->getReturnValue())) {
-        // std::cout << "Constant return value: "
+        // llvm::outs() << "Constant return value: "
         //          << llvmIRToShortString(exitStmt) << std::endl;
         return std::make_shared<GenConstant>(
             l_t({EdgeValue(RetStmt->getReturnValue())}), MaxSetSize);
       }
     }
   }
-  // std::cout << "Return identity: " << llvmIRToShortString(exitStmt)
+  // llvm::outs() << "Return identity: " << llvmIRToShortString(exitStmt)
   //          << std::endl;
   // return edge-identity
   return EdgeIdentity<l_t>::getInstance();
@@ -501,29 +497,29 @@ IDEGeneralizedLCA::allTopFunction() {
   return AlltopFn;
 }
 
-void IDEGeneralizedLCA::printNode(std::ostream &Os,
+void IDEGeneralizedLCA::printNode(llvm::raw_ostream &Os,
                                   IDEGeneralizedLCA::n_t Stmt) const {
   Os << llvmIRToString(Stmt);
 }
 
-void IDEGeneralizedLCA::printDataFlowFact(std::ostream &Os,
+void IDEGeneralizedLCA::printDataFlowFact(llvm::raw_ostream &Os,
                                           IDEGeneralizedLCA::d_t Fact) const {
   assert(Fact && "Invalid dataflow fact");
   Os << llvmIRToString(Fact);
 }
 
-void IDEGeneralizedLCA::printFunction(std::ostream &Os,
+void IDEGeneralizedLCA::printFunction(llvm::raw_ostream &Os,
                                       IDEGeneralizedLCA::f_t Func) const {
-  Os << Func->getName().str();
+  Os << Func->getName();
 }
 
-void IDEGeneralizedLCA::printEdgeFact(std::ostream &Os,
+void IDEGeneralizedLCA::printEdgeFact(llvm::raw_ostream &Os,
                                       IDEGeneralizedLCA::l_t L) const {
   Os << L;
 }
 
 /*void IDEGeneralizedLCA::printIDEReport(
-    std::ostream &os,
+    llvm::raw_ostream &os,
     SolverResults<IDEGeneralizedLCA::n_t,
                        IDEGeneralizedLCA::d_t,
                        IDEGeneralizedLCA::l_t> &SR) {
@@ -552,7 +548,7 @@ void IDEGeneralizedLCA::printEdgeFact(std::ostream &Os,
 void IDEGeneralizedLCA::emitTextReport(
     const SolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
                         IDEGeneralizedLCA::l_t> &SR,
-    std::ostream &Os) {
+    llvm::raw_ostream &Os) {
 
   Os << "\n====================== IDE-Linear-Constant-Analysis Report "
         "======================\n";
@@ -610,18 +606,18 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
                   IDEGeneralizedLCA::l_t>
         SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
-  std::cout << "\n==== Computing LCA Results ====\n";
+  llvm::outs() << "\n==== Computing LCA Results ====\n";
   for (const auto *F : ICF->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
-    std::cout << "\n-- Function: " << FName << " --\n";
+    llvm::outs() << "\n-- Function: " << FName << " --\n";
     std::map<unsigned, LCAResult> FResults;
     std::set<std::string> AllocatedVars;
     for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
-      std::cout << "\nIR : " << NtoString(Stmt) << "\nLNR: " << Lnr << '\n';
+      llvm::outs() << "\nIR : " << NtoString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping
       if (Lnr == 0) {
-        std::cout << "Skipping this stmt!\n";
+        llvm::outs() << "Skipping this stmt!\n";
         continue;
       }
       LCAResult *LcaRes = &FResults[Lnr];
@@ -639,7 +635,7 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
       }
       LcaRes->IRTrace.push_back(Stmt);
       if (Stmt->isTerminator() && !ICF->isExitInst(Stmt)) {
-        std::cout << "Delete result since stmt is Terminator or Exit!\n";
+        llvm::outs() << "Delete result since stmt is Terminator or Exit!\n";
         FResults.erase(Lnr);
       } else {
         // check results of succ(stmt)
@@ -649,16 +645,16 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
         } else {
           // It's not a terminator inst, hence it has only a single successor
           const auto *Succ = ICF->getSuccsOf(Stmt)[0];
-          std::cout << "Succ stmt: " << NtoString(Succ) << '\n';
+          llvm::outs() << "Succ stmt: " << NtoString(Succ) << '\n';
           Results = SR.resultsAt(Succ, true);
         }
         // stripBottomResults(results);
         std::set<std::string> ValidVarsAtStmt;
         for (const auto &Res : Results) {
           auto VarName = getVarNameFromIR(Res.first);
-          std::cout << "  D: " << DtoString(Res.first)
-                    << " | V: " << VtoString(Res.second)
-                    << " | Var: " << VarName << '\n';
+          llvm::outs() << "  D: " << DtoString(Res.first)
+                       << " | V: " << VtoString(Res.second)
+                       << " | Var: " << VarName << '\n';
           if (!VarName.empty()) {
             // Only store/overwrite values of variables from allocas or
             // globals unless there is no value stored for a variable
@@ -679,7 +675,7 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
         for (auto It = LcaRes->VariableToValue.begin();
              It != LcaRes->VariableToValue.end();) {
           if (ValidVarsAtStmt.find(It->first) == ValidVarsAtStmt.end()) {
-            std::cout << "Erase var: " << It->first << '\n';
+            llvm::outs() << "Erase var: " << It->first << '\n';
             It = LcaRes->VariableToValue.erase(It);
           } else {
             ++It;
@@ -700,7 +696,7 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
   return AggResults;
 }
 
-void IDEGeneralizedLCA::LCAResult::print(std::ostream &Os) {
+void IDEGeneralizedLCA::LCAResult::print(llvm::raw_ostream &Os) {
   Os << "Line " << LineNo << ": " << SrcNode << '\n';
   Os << "Var(s): ";
   for (auto It = VariableToValue.begin(); It != VariableToValue.end(); ++It) {
@@ -721,7 +717,8 @@ bool IDEGeneralizedLCA::isEntryPoint(const std::string &Name) const {
 }
 
 template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
-  std::stringstream Ss;
+  std::string Buffer;
+  llvm::raw_string_ostream Ss(Buffer);
   Ss << Val;
   return Ss.str();
 }

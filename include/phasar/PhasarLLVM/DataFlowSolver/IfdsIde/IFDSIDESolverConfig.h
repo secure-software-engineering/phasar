@@ -17,11 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
 
-#include <iosfwd>
-
 #include "phasar/Config/Configuration.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Logger.h"
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
@@ -63,8 +65,8 @@ struct IFDSIDESolverConfig {
 
   void setConfig(SolverConfigOptions Opt);
 
-  friend std::ostream &operator<<(std::ostream &OS,
-                                  const IFDSIDESolverConfig &SC);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IFDSIDESolverConfig &SC);
 
 private:
   SolverConfigOptions Options = SolverConfigOptions::AutoAddZero |

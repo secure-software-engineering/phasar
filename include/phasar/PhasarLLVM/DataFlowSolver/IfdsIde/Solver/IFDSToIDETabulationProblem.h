@@ -169,29 +169,29 @@ public:
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  void printNode(std::ostream &OS, n_t Stmt) const override {
+  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override {
     Problem.printNode(OS, Stmt);
   }
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override {
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override {
     Problem.printDataFlowFact(OS, Fact);
   }
 
-  void printFunction(std::ostream &OS, f_t Func) const override {
+  void printFunction(llvm::raw_ostream &OS, f_t Func) const override {
     Problem.printFunction(OS, Func);
   }
 
-  void printEdgeFact(std::ostream &OS, BinaryDomain Val) const override {
+  void printEdgeFact(llvm::raw_ostream &OS, BinaryDomain Val) const override {
     OS << Val;
   }
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
-                      std::ostream &OS = std::cout) override {
+                      llvm::raw_ostream &OS = llvm::outs()) override {
     Problem.emitTextReport(Results, OS);
   }
 
   void emitGraphicalReport(const SolverResults<n_t, d_t, l_t> &Results,
-                           std::ostream &OS = std::cout) override {
+                           llvm::raw_ostream &OS = llvm::outs()) override {
     Problem.emitGraphicalReport(Results, OS);
   }
 };

@@ -12,7 +12,6 @@
 
 #include <functional>
 #include <initializer_list>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -154,7 +153,7 @@ public:
     //                0  x
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "AllocaInst");
+      PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
     }
 
@@ -366,14 +365,15 @@ public:
             } else {
               Facts.insert(Src);
             }
-            LOG_IF_ENABLE([&]() {
+            IF_LOG_ENABLED({
               for (const auto s : Facts) {
-                BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                    << "Create edge: " << llvmIRToShortString(Src) << " --"
-                    << llvmIRToShortString(Store) << "--> "
-                    << llvmIRToShortString(s);
+                PHASAR_LOG_LEVEL(DFADEBUG,
+                                 "Create edge: "
+                                     << llvmIRToShortString(Src) << " --"
+                                     << llvmIRToShortString(Store) << "--> "
+                                     << llvmIRToShortString(s));
               }
-            }());
+            });
             return Facts;
           }
         };
@@ -403,14 +403,15 @@ public:
               IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
             Facts.insert(Store->getPointerOperand());
           }
-          LOG_IF_ENABLE([&]() {
+          IF_LOG_ENABLED({
             for (const auto s : Facts) {
-              BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                  << "Create edge: " << llvmIRToShortString(Src) << " --"
-                  << llvmIRToShortString(Store) << "--> "
-                  << llvmIRToShortString(s);
+              PHASAR_LOG_LEVEL(
+                  DFADEBUG, "Create edge: " << llvmIRToShortString(Src) << " --"
+                                            << llvmIRToShortString(Store)
+                                            << "--> "
+                                            << llvmIRToShortString(s));
             }
-          }());
+          });
           return Facts;
         }
       };
@@ -458,14 +459,14 @@ public:
         }
         // pass everything that already holds as identity
         Facts.insert(Src);
-        LOG_IF_ENABLE([&]() {
+        IF_LOG_ENABLED({
           for (const auto s : Facts) {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                << "Create edge: " << llvmIRToShortString(Src) << " --"
-                << llvmIRToShortString(Inst) << "--> "
-                << llvmIRToShortString(s);
+            PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
+                                           << llvmIRToShortString(Src) << " --"
+                                           << llvmIRToShortString(Inst)
+                                           << "--> " << llvmIRToShortString(s));
           }
-        }());
+        });
         return Facts;
       }
     };
@@ -658,10 +659,10 @@ public:
   inline std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t /* Succ */,
                         d_t SuccNode) override {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                  << "Process edge: " << llvmIRToShortString(CurrNode) << " --"
-                  << llvmIRToString(Curr) << "--> "
-                  << llvmIRToShortString(SuccNode));
+    PHASAR_LOG_LEVEL(DFADEBUG,
+                     "Process edge: " << llvmIRToShortString(CurrNode) << " --"
+                                      << llvmIRToString(Curr) << "--> "
+                                      << llvmIRToShortString(SuccNode));
     //
     // Zero --> Zero edges
     //
@@ -770,15 +771,15 @@ public:
         if ((CurrNode == SuccNode) && CurrNode == Store->getPointerOperand()) {
           // y obtains its value(s) from its original allocation and the store
           // instruction under analysis.
-          LOG_IF_ENABLE([&]() {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                << "Const-Replace at '" << llvmIRToString(Curr) << "'\n";
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Replacement label(s): ";
+          IF_LOG_ENABLED({
+            PHASAR_LOG_LEVEL(DFADEBUG,
+                             "Const-Replace at '" << llvmIRToString(Curr));
+            PHASAR_LOG_LEVEL(DFADEBUG, "Replacement label(s): ");
             for (const auto &Item : EdgeFacts) {
-              BOOST_LOG_SEV(lg::get(), DFADEBUG) << Item << ", ";
+              PHASAR_LOG_LEVEL(DFADEBUG, Item << ", ");
             }
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
-          }());
+            PHASAR_LOG_LEVEL(DFADEBUG, '\n');
+          });
           // obtain label from the original allocation
           const llvm::AllocaInst *OrigAlloca = nullptr;
           if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(
@@ -810,14 +811,13 @@ public:
         //
         if (CurrNode == Store->getValueOperand() &&
             SuccNode == Store->getPointerOperand()) {
-          LOG_IF_ENABLE([&]() {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Var-Override: ";
+          IF_LOG_ENABLED({
+            PHASAR_LOG_LEVEL(DFADEBUG, "Var-Override: ");
             for (const auto &EF : EdgeFacts) {
-              BOOST_LOG_SEV(lg::get(), DFADEBUG) << EF << ", ";
+              PHASAR_LOG_LEVEL(DFADEBUG, EF << ", ");
             }
-            BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                << "at '" << llvmIRToString(Curr) << "'\n";
-          }());
+            PHASAR_LOG_LEVEL(DFADEBUG, "at '" << llvmIRToString(Curr) << "'\n");
+          });
           return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
       } else {
@@ -919,13 +919,13 @@ public:
       //                        o_i
       //
       if (Op == CurrNode && CurrNode == SuccNode) {
-        LOG_IF_ENABLE([&]() {
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is 'i'\n";
+        IF_LOG_ENABLED({
+          PHASAR_LOG_LEVEL(DFADEBUG, "this is 'i'\n");
           for (auto &EdgeFact : EdgeFacts) {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
+            PHASAR_LOG_LEVEL(DFADEBUG, EdgeFact << ", ");
           }
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
-        }());
+          PHASAR_LOG_LEVEL(DFADEBUG, '\n');
+        });
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
       //
@@ -940,13 +940,13 @@ public:
       //                           i
       //
       if (Op == CurrNode && Curr == SuccNode) {
-        LOG_IF_ENABLE([&]() {
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << "this is '0'\n";
+        IF_LOG_ENABLED({
+          PHASAR_LOG_LEVEL(DFADEBUG, "this is '0'\n");
           for (auto &EdgeFact : EdgeFacts) {
-            BOOST_LOG_SEV(lg::get(), DFADEBUG) << EdgeFact << ", ";
+            PHASAR_LOG_LEVEL(DFADEBUG, EdgeFact << ", ");
           }
-          BOOST_LOG_SEV(lg::get(), DFADEBUG) << '\n';
-        }());
+          PHASAR_LOG_LEVEL(DFADEBUG, '\n');
+        });
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
     }
@@ -1109,12 +1109,12 @@ public:
     l_t Replacement;
 
     explicit IIAAKillOrReplaceEF() : Replacement(BitVectorSet<e_t>()) {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF");
     }
 
     explicit IIAAKillOrReplaceEF(l_t Replacement) : Replacement(Replacement) {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF");
     }
 
@@ -1124,7 +1124,7 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
       //               << " * " << SecondFunction->str());
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
@@ -1162,7 +1162,7 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) <<
+      // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAKillOrReplaceEF::joinWith");
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
         return this->shared_from_this();
@@ -1194,7 +1194,8 @@ public:
       return this == Other.get();
     }
 
-    void print(std::ostream &OS, bool /* IsForDebug */ = false) const override {
+    void print(llvm::raw_ostream &OS,
+               bool /* IsForDebug */ = false) const override {
       OS << "EF: (IIAAKillOrReplaceEF)<->";
       if (isKillAll()) {
         OS << "(KillAll";
@@ -1222,7 +1223,7 @@ public:
     const l_t Data;
 
     explicit IIAAAddLabelsEF(l_t Data) : Data(Data) {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "IIAAAddLabelsEF");
+      // PHASAR_LOG_LEVEL(DFADEBUG,  << "IIAAAddLabelsEF");
     }
 
     ~IIAAAddLabelsEF() override = default;
@@ -1233,7 +1234,7 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+      // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAAddLabelEF::composeWith(): " << this->str() << "
       //               * "
       //               << SecondFunction->str());
@@ -1260,7 +1261,7 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
-      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) <<
+      // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAAddLabelsEF::joinWith");
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
         return this->shared_from_this();
@@ -1292,7 +1293,8 @@ public:
       return this == Other.get();
     }
 
-    void print(std::ostream &OS, bool /* IsForDebug */ = false) const override {
+    void print(llvm::raw_ostream &OS,
+               bool /* IsForDebug */ = false) const override {
       OS << "EF: (IIAAAddLabelsEF: ";
       IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, Data);
       OS << ")";
@@ -1301,19 +1303,20 @@ public:
 
   // Provide functionalities for printing things and emitting text reports.
 
-  void printNode(std::ostream &OS, n_t n) const override {
+  void printNode(llvm::raw_ostream &OS, n_t n) const override {
     OS << llvmIRToString(n);
   }
 
-  void printDataFlowFact(std::ostream &OS, d_t FlowFact) const override {
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override {
     OS << llvmIRToString(FlowFact);
   }
 
-  void printFunction(std::ostream &OS, f_t Fun) const override {
-    OS << Fun->getName().str();
+  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {
+    OS << Fun->getName();
   }
 
-  inline void printEdgeFact(std::ostream &OS, l_t EdgeFact) const override {
+  inline void printEdgeFact(llvm::raw_ostream &OS,
+                            l_t EdgeFact) const override {
     printEdgeFactImpl(OS, EdgeFact);
   }
 
@@ -1328,7 +1331,7 @@ public:
   }
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &OS = std::cout) override {
+                      llvm::raw_ostream &OS = llvm::outs()) override {
     OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
           "======================\n";
     // if (!IRDB->debugInfoAvailable()) {
@@ -1404,7 +1407,7 @@ protected:
     return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
   }
 
-  static void printEdgeFactImpl(std::ostream &OS, l_t EdgeFact) {
+  static void printEdgeFactImpl(llvm::raw_ostream &OS, l_t EdgeFact) {
     if (std::holds_alternative<Top>(EdgeFact)) {
       OS << std::get<Top>(EdgeFact);
     } else if (std::holds_alternative<Bottom>(EdgeFact)) {

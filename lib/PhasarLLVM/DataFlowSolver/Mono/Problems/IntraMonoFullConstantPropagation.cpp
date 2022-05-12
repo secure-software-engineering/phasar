@@ -222,12 +222,12 @@ IntraMonoFullConstantPropagation::executeBinOperation(
 }
 
 void IntraMonoFullConstantPropagation::printNode(
-    std::ostream &OS, IntraMonoFullConstantPropagation::n_t Inst) const {
+    llvm::raw_ostream &OS, IntraMonoFullConstantPropagation::n_t Inst) const {
   OS << llvmIRToString(Inst);
 }
 
 void IntraMonoFullConstantPropagation::printDataFlowFact(
-    std::ostream &OS, IntraMonoFullConstantPropagation::d_t Fact) const {
+    llvm::raw_ostream &OS, IntraMonoFullConstantPropagation::d_t Fact) const {
   OS << "< " + llvmIRToString(Fact.first) << ", ";
   if (std::holds_alternative<Top>(Fact.second)) {
     OS << std::get<Top>(Fact.second);
@@ -243,8 +243,8 @@ void IntraMonoFullConstantPropagation::printDataFlowFact(
 }
 
 void IntraMonoFullConstantPropagation::printFunction(
-    std::ostream &OS, IntraMonoFullConstantPropagation::f_t Fun) const {
-  OS << Fun->getName().str();
+    llvm::raw_ostream &OS, IntraMonoFullConstantPropagation::f_t Fun) const {
+  OS << Fun->getName();
 }
 
 } // namespace psr

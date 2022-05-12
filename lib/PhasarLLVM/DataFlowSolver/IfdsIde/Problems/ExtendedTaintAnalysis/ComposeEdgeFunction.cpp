@@ -40,7 +40,7 @@ llvm::hash_code ComposeEdgeFunction::getHashCode() const {
   return llvm::hash_combine(XTaint::getHashCode(G));
 }
 
-void ComposeEdgeFunction::print(std::ostream &OS,
+void ComposeEdgeFunction::print(llvm::raw_ostream &OS,
                                 [[maybe_unused]] bool IsForDebug) const {
   OS << "COMP[" << this << "| " << F->str() << " , " << G->str() << " ]";
 }

@@ -62,10 +62,7 @@ protected:
                                                   *CSTDFILEIODesc, EntryPoints);
   }
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 

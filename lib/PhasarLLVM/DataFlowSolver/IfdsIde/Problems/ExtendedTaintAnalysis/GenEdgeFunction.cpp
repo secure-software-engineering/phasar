@@ -80,7 +80,6 @@ GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
       auto JoinSani = EdgeDomain(Sani).join(OtherGen->Sani, &BBO);
       switch (JoinSani.getKind()) {
       case EdgeDomain::Bot:
-        std::cerr << "Generate Bot by join" << std::endl;
         return getAllBot();
       case EdgeDomain::Top:
         return getAllTop();
@@ -125,7 +124,7 @@ bool GenEdgeFunction::equal_to(EdgeFunctionPtrType OtherFunction) const {
   return false;
 }
 
-void GenEdgeFunction::print(std::ostream &OS,
+void GenEdgeFunction::print(llvm::raw_ostream &OS,
                             [[maybe_unused]] bool IsForDebug) const {
   OS << "GenEF[" << (Sani ? llvmIRToString(Sani) : "null") << "]";
 }

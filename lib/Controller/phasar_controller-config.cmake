@@ -1,7 +1,5 @@
 set(PHASAR_controller_COMPONENT_FOUND 1)
 
-find_package(Boost COMPONENTS log REQUIRED)
-
 list(APPEND
   LLVM_DEPS
   Support

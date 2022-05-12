@@ -14,15 +14,14 @@
  *      Author: pdschbrt
  */
 
-#include <ostream>
 #include <string>
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 
 using namespace psr;
-using namespace std;
 
 namespace psr {
 
@@ -53,7 +52,8 @@ CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &OS, const CallGraphAnalysisType &CGA) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const CallGraphAnalysisType &CGA) {
   return OS << toString(CGA);
 }
 

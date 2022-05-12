@@ -87,7 +87,7 @@ public:
   }
 
   bool containsSpecialSummary(const llvm::Function *Func) {
-    return containsSpecialSummary(Func->getName().str());
+    return containsSpecialSummary(Func->getName());
   }
 
   bool containsSpecialSummary(const std::string &Name) {
@@ -96,7 +96,7 @@ public:
 
   FlowFunctionPtrType
   getSpecialFlowFunctionSummary(const llvm::Function *Func) {
-    return getSpecialFlowFunctionSummary(Func->getName().str());
+    return getSpecialFlowFunctionSummary(Func->getName());
   }
 
   FlowFunctionPtrType getSpecialFlowFunctionSummary(const std::string &Name) {
@@ -105,7 +105,7 @@ public:
 
   std::shared_ptr<EdgeFunction<V>>
   getSpecialEdgeFunctionSummary(const llvm::Function *Func) {
-    return getSpecialEdgeFunctionSummary(Func->getName().str());
+    return getSpecialEdgeFunctionSummary(Func->getName());
   }
 
   std::shared_ptr<EdgeFunction<V>>
@@ -113,8 +113,8 @@ public:
     return SpecialEdgeFunctions[Name];
   }
 
-  friend std::ostream &operator<<(std::ostream &OS,
-                                  const SpecialSummaries<D> &SpecialSumms) {
+  friend llvm::raw_ostream &
+  operator<<(llvm::raw_ostream &OS, const SpecialSummaries<D> &SpecialSumms) {
     OS << "SpecialSummaries:\n";
     for (auto &Entry : SpecialSumms.SpecialFunctionNames) {
       OS << Entry.first << " ";

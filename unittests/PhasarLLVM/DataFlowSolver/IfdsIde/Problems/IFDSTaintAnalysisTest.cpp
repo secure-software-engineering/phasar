@@ -64,10 +64,7 @@ protected:
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), *TSF, EntryPoints);
   }
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 

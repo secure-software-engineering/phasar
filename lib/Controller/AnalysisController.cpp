@@ -9,12 +9,11 @@
 
 #include <cassert>
 #include <filesystem>
-#include <fstream>
 #include <functional>
-#include <iostream>
 #include <set>
 #include <utility>
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/Controller/AnalysisController.h"
@@ -133,8 +132,8 @@ void AnalysisController::executeWholeProgram() {
       // WPA.solve();
       // emitRequestedDataFlowResults(WPA);
       // WPA.releaseAllHelperAnalyses();
-      std::cerr << "The IDETaintAnalysis is currently not available! Please "
-                   "use one of the other taint analyses.\n";
+      llvm::errs() << "The IDETaintAnalysis is currently not available! Please "
+                      "use one of the other taint analyses.\n";
     } break;
     case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
       executeIDEOpenSSLTS();
@@ -184,72 +183,81 @@ void AnalysisController::executeWholeProgram() {
 void AnalysisController::emitRequestedHelperAnalysisResults() {
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-preprocess-ir.ll");
-      IRDB.emitPreprocessedIR(OFS);
+      if (auto OFS = openFileStream("/psr-preprocess-ir.ll")) {
+        IRDB.emitPreprocessedIR(*OFS);
+      }
     } else {
       IRDB.emitPreprocessedIR();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-th.txt");
-      TH.print(OFS);
+      if (auto OFS = openFileStream("/psr-th.txt")) {
+        TH.print(*OFS);
+      }
     } else {
       TH.print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsDot) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-th.dot");
-      TH.printAsDot(OFS);
+      if (auto OFS = openFileStream("/psr-th.dot")) {
+        TH.printAsDot(*OFS);
+      }
     } else {
       TH.printAsDot();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsJson) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-th.json");
-      TH.printAsJson(OFS);
+      if (auto OFS = openFileStream("/psr-th.json")) {
+        TH.printAsJson(*OFS);
+      }
     } else {
       TH.printAsJson();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-pta.txt");
-      PT.print(OFS);
+      if (auto OFS = openFileStream("/psr-pta.txt")) {
+        PT.print(*OFS);
+      }
     } else {
       PT.print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-pta.dot");
-      PT.print(OFS);
+      if (auto OFS = openFileStream("/psr-pta.dot")) {
+        PT.print(*OFS);
+      }
     } else {
       PT.print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-pta.json");
-      PT.printAsJson(OFS);
+      if (auto OFS = openFileStream("/psr-pta.json")) {
+        PT.printAsJson(*OFS);
+      }
     } else {
       PT.printAsJson();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.txt");
-      ICF.print(OFS);
+      if (auto OFS = openFileStream("/psr-cg.txt")) {
+        ICF.print(*OFS);
+      }
     } else {
       ICF.print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.dot");
-      ICF.printAsDot(OFS);
+      if (auto OFS = openFileStream("/psr-cg.dot")) {
+        ICF.printAsDot(*OFS);
+      }
     } else {
       ICF.printAsDot();
     }
@@ -257,12 +265,27 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
     if (!ResultDirectory.empty()) {
-      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.json");
-      ICF.printAsJson(OFS);
+      if (auto OFS = openFileStream("/psr-cg.json")) {
+        ICF.printAsJson(*OFS);
+      }
     } else {
       ICF.printAsJson();
     }
   }
+}
+
+std::unique_ptr<llvm::raw_fd_ostream>
+AnalysisController::openFileStream(llvm::StringRef FilePathSuffix) {
+  std::error_code EC;
+  auto OFS = std::make_unique<llvm::raw_fd_ostream>(
+      ResultDirectory.string() + FilePathSuffix.str(), EC);
+  if (EC) {
+    OFS = nullptr;
+    llvm::errs() << "Failed to open file: "
+                 << ResultDirectory.string() + FilePathSuffix << '\n';
+    llvm::errs() << EC.message() << '\n';
+  }
+  return OFS;
 }
 
 } // namespace psr

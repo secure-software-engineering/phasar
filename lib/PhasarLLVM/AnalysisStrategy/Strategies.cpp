@@ -7,14 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ostream>
 #include <string>
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
-
-using namespace psr;
 
 namespace psr {
 
@@ -45,7 +43,8 @@ AnalysisStrategy toAnalysisStrategy(const std::string &S) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &OS, const AnalysisStrategy &S) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const AnalysisStrategy &S) {
   return OS << toString(S);
 }
 

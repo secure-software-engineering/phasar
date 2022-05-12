@@ -35,7 +35,7 @@ public:
 
   bool equal_to(EdgeFunctionPtrType Other) const override;
 
-  void print(std::ostream &OS, bool IsForDebug = false) const override;
+  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
 };
 } // namespace psr::XTaint
 

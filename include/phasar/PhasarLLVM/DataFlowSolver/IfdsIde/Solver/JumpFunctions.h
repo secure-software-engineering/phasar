@@ -87,16 +87,13 @@ public:
    */
   void addFunction(d_t SourceVal, n_t Target, d_t TargetVal,
                    EdgeFunctionPtrType EdgeFunc) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Start adding new jump function";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Fact at source : " << Problem.DtoString(SourceVal);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Fact at target : " << Problem.DtoString(TargetVal);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Destination    : " << Problem.NtoString(Target);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Edge Function  : " << EdgeFunc->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Start adding new jump function");
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Fact at source : " << Problem.DtoString(SourceVal));
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Fact at target : " << Problem.DtoString(TargetVal));
+    PHASAR_LOG_LEVEL(DEBUG, "Destination    : " << Problem.NtoString(Target));
+    PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EdgeFunc->str());
     // we do not store the default function (all-top)
     if (EdgeFunc->equal_to(Alltop)) {
       return;
@@ -109,7 +106,8 @@ public:
               return SourceVal == Entry.first;
             });
         Find != SourceValToFunc.end()) {
-      // it is important that existing values in JumpFunctions are overwritten
+      // it is important that existing values in JumpFunctions
+      // are overwritten
       Find->second = EdgeFunc;
     } else {
       SourceValToFunc.emplace_back(SourceVal, EdgeFunc);
@@ -122,17 +120,17 @@ public:
               return TargetVal == Entry.first;
             });
         Find != TargetValToFunc.end()) {
-      // it is important that existing values in JumpFunctions are overwritten
+      // it is important that existing values in JumpFunctions
+      // are overwritten
       Find->second = EdgeFunc;
     } else {
       TargetValToFunc.emplace_back(TargetVal, EdgeFunc);
     }
 
-    // V Table::insert(R r, C c, V v) always overrides (see comments above)
+    // V Table::insert(R r, C c, V v) always overrides (see
+    // comments above)
     NonEmptyLookupByTargetNode[Target].insert(SourceVal, TargetVal, EdgeFunc);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "End adding new jump function";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    PHASAR_LOG_LEVEL(DEBUG, "End adding new jump function");
   }
 
   /**
@@ -210,7 +208,7 @@ public:
     NonEmptyLookupByTargetNode.clear();
   }
 
-  void printJumpFunctions(std::ostream &OS) {
+  void printJumpFunctions(llvm::raw_ostream &OS) {
     OS << "\n******************************************************";
     OS << "\n*              Print all Jump Functions              *";
     OS << "\n******************************************************\n";
@@ -226,7 +224,7 @@ public:
     }
   }
 
-  void printNonEmptyReverseLookup(std::ostream &OS) {
+  void printNonEmptyReverseLookup(llvm::raw_ostream &OS) {
     OS << "DUMP nonEmptyReverseLookup\nTable<N, D, std::unordered_map<D, "
           "EdgeFunctionPtrType>>\n";
     auto CellVec = NonEmptyReverseLookup.cellVec();
@@ -241,7 +239,7 @@ public:
     }
   }
 
-  void printNonEmptyForwardLookup(std::ostream &OS) {
+  void printNonEmptyForwardLookup(llvm::raw_ostream &OS) {
     OS << "DUMP nonEmptyForwardLookup\nTable<D, N, std::unordered_map<D, "
           "EdgeFunctionPtrType>>\n";
     auto CellVec = NonEmptyForwardLookup.cellVec();
@@ -256,7 +254,7 @@ public:
     }
   }
 
-  void printNonEmptyLookupByTargetNode(std::ostream &OS) {
+  void printNonEmptyLookupByTargetNode(llvm::raw_ostream &OS) {
     OS << "DUMP nonEmptyLookupByTargetNode\nstd::unordered_map<N, Table<D, D, "
           "EdgeFunctionPtrType>>\n";
     for (auto Node : NonEmptyLookupByTargetNode) {

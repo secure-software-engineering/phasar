@@ -60,7 +60,7 @@ protected:
     ProjectIRDB IRDB(IRFiles, IRDBOptions::WPA);
 
     LLVMTypeHierarchy TH(IRDB);
-    // std::cerr << "TH: " << TH << std::endl;
+    // llvm::errs() << "TH: " << TH << '\n';
     LLVMPointsToSet PT(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
     auto TC =
@@ -68,7 +68,7 @@ protected:
                               [&](json *JS) {
                                 auto Ret = TaintConfig(IRDB, *JS);
                                 if (DumpResults) {
-                                  std::cerr << Ret << "\n";
+                                  llvm::errs() << Ret << "\n";
                                 }
                                 return Ret;
                               },
@@ -92,10 +92,7 @@ protected:
     compareResults(TaintProblem, Solver, GroundTruth);
   }
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 
@@ -105,7 +102,7 @@ protected:
 
     map<int, set<string>> FoundLeaks;
     for (const auto &Leak : TaintProblem.getAllLeaks(Solver)) {
-      std::cerr << "Leak: " << PrettyPrinter{Leak} << std::endl;
+      llvm::errs() << "Leak: " << PrettyPrinter{Leak} << '\n';
       int SinkId = stoi(getMetaDataID(Leak.first));
       set<string> LeakedValueIds;
       for (const auto &LV : Leak.second) {

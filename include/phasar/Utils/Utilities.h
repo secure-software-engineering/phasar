@@ -10,7 +10,6 @@
 #ifndef PHASAR_UTILS_UTILITIES_H_
 #define PHASAR_UTILS_UTILITIES_H_
 
-#include <iosfwd>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -152,7 +151,8 @@ void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
   Dest.setIntersectWith(Src);
 }
 
-std::ostream &operator<<(std::ostream &OS, const std::vector<bool> &Bits);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const std::vector<bool> &Bits);
 
 struct StringIDLess {
   bool operator()(const std::string &LHS, const std::string &RHS) const;

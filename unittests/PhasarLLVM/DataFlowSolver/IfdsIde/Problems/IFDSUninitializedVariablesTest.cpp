@@ -43,10 +43,7 @@ protected:
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
   }
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 
@@ -184,7 +181,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   initialize({PathToLlFiles + "return_uninit_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
-  UninitProblem->emitTextReport(Solver.getSolverResults(), std::cout);
+  UninitProblem->emitTextReport(Solver.getSolverResults(), llvm::outs());
   map<int, set<string>> GroundTruth;
   //%2 = load i32, i32 %1
   GroundTruth[2] = {"0"};

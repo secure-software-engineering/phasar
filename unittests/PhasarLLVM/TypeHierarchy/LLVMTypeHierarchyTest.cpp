@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 #include "boost/graph/isomorphism.hpp"
@@ -632,12 +630,12 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 //   ProjectIRDB IRDB(
 //       {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
 //   LLVMTypeHierarchy TH(IRDB);
-//   TH.print(std::cout);
+//   TH.print(llvm::outs());
 //   //   std::ostringstream oss;
 //   //   // Write empty LTH graph as dot to string
 //   //   TH.printGraphAsDot(oss);
 //   //   oss.flush();
-//   //   std::cout << oss.str() << std::endl;
+//   //   llvm::outs() << oss.str() << std::endl;
 //   //   std::string dot = oss.str();
 //   //   // Reconstruct a LTH graph from the created dot file
 //   //   std::istringstream iss(dot);
@@ -647,7 +645,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 //   //   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name,
 //   //   G)); std::ostringstream oss2; boost::write_graphviz_dp(oss2, G, dp);
 //   //   oss2.flush();
-//   //   std::cout << oss2.str() << std::endl;
+//   //   llvm::outs() << oss2.str() << std::endl;
 //   //   ASSERT_TRUE(boost::isomorphism(G, TH.TypeGraph));
 // }
 
@@ -737,7 +735,7 @@ PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_13_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  EXPECT_EQ(TH.getAllTypes().size(), 4U);
+  EXPECT_EQ(TH.getAllTypes().size(), 7U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
   EXPECT_TRUE(TH.hasType(
       TH.getType("struct.std::__cxx11::basic_string<char>::_Alloc_hider")));

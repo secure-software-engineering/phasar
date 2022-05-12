@@ -11,6 +11,7 @@
 #include <chrono>
 #include <filesystem>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -101,9 +102,8 @@ void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
     if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
       // throw boost::program_options::error_with_option_name(
       //    "'" + Analysis + "' is not a valid data-flow analysis!");
-      std::cerr << "Error: "
-                << "'" + Analysis + "' is not a valid data-flow analysis!"
-                << std::endl;
+      llvm::errs() << "Error: " << '\'' << Analysis
+                   << "' is not a valid data-flow analysis!" << '\n';
       exit(1);
     }
   }
@@ -232,8 +232,8 @@ int main(int Argc, const char **Argv) {
         PhasarConfig::VariablesMap());
     boost::program_options::notify(PhasarConfig::VariablesMap());
   } catch (boost::program_options::error &Err) {
-    std::cerr << "Could not parse command-line arguments!\n"
-              << "Error: " << Err.what() << '\n';
+    llvm::errs() << "Could not parse command-line arguments!\n"
+                 << "Error: " << Err.what() << '\n';
     return 1;
   }
   try {
@@ -248,37 +248,43 @@ int main(int Argc, const char **Argv) {
       }
     }
   } catch (boost::program_options::error &Err) {
-    std::cerr << "Could not parse configuration file!\n"
-              << "Error: " << Err.what() << '\n';
+    llvm::errs() << "Could not parse configuration file!\n"
+                 << "Error: " << Err.what() << '\n';
     return 1;
   }
 #ifdef DYNAMIC_LOG
-  initializeLogger(PhasarConfig::VariablesMap().count("log"));
+  if (PhasarConfig::VariablesMap().count("log")) {
+    Logger::initializeStderrLogger(DEBUG);
+  }
 #endif
   // print PhASAR version
   if (PhasarConfig::VariablesMap().count("version")) {
-    std::cout << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
+    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
     return 0;
   }
   // Vanity header
   if (!PhasarConfig::VariablesMap().count("silent")) {
-    std::cout << "PhASAR " << PhasarConfig::PhasarVersion()
-              << "\nA LLVM-based static analysis framework\n\n";
+    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion()
+                 << "\nA LLVM-based static analysis framework\n\n";
   }
   // check if we have anything at all or a call for help
   if (PhasarConfig::VariablesMap().count("help") &&
       !PhasarConfig::VariablesMap().count("silent")) {
-    std::cout << Visible << '\n';
+    std::stringstream S;
+    S << Visible << '\n';
     if (PhasarConfig::VariablesMap().count("more-help")) {
-      std::cout << MoreHelp << "\n";
+      S << MoreHelp << "\n";
     }
+    llvm::outs() << S.str();
     return 0;
   }
   if (!PhasarConfig::VariablesMap().count("silent")) {
     // Print current configuration
     if (PhasarConfig::VariablesMap().count("more-help")) {
-      std::cout << Visible << '\n';
-      std::cout << MoreHelp << '\n';
+      std::stringstream S;
+      S << Visible << '\n';
+      S << MoreHelp << '\n';
+      llvm::outs() << S.str();
       return 0;
     }
   }
@@ -288,15 +294,15 @@ int main(int Argc, const char **Argv) {
     Strategy = toAnalysisStrategy(
         PhasarConfig::VariablesMap()["analysis-strategy"].as<std::string>());
     if (Strategy == AnalysisStrategy::None) {
-      std::cout << "Invalid analysis strategy!\n";
+      llvm::outs() << "Invalid analysis strategy!\n";
       return 0;
     }
   } else {
     Strategy = AnalysisStrategy::WholeProgram;
   }
   if (!PhasarConfig::VariablesMap().count("module")) {
-    std::cout << "At least on LLVM target module is required!\n"
-                 "Specify a LLVM target module or re-run with '--help'\n";
+    llvm::outs() << "At least on LLVM target module is required!\n"
+                    "Specify a LLVM target module or re-run with '--help'\n";
     return 0;
   }
 
@@ -307,12 +313,12 @@ int main(int Argc, const char **Argv) {
       PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
 
   if (EmitStats) {
-    std::cout << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
-    std::cout << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-              << "\n";
-    std::cout << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
-    std::cout << "> global variables:\t" << IRDB.getWPAModule()->global_size()
-              << "\n";
+    llvm::outs() << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
+    llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
+                 << "\n";
+    llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
+    llvm::outs() << "> global variables:\t"
+                 << IRDB.getWPAModule()->global_size() << "\n";
   }
 
   // store enabled data-flow analyses

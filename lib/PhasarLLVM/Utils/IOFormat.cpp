@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ostream>
 #include <string>
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/Utils/IOFormat.h"
 
@@ -44,7 +44,7 @@ IOFormat toIOFormat(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &OS, const IOFormat &D) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const IOFormat &D) {
   return OS << toString(D);
 }
 } // namespace psr

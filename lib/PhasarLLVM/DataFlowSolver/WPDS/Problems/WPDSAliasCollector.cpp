@@ -132,22 +132,22 @@ WPDSAliasCollector::allTopFunction() {
   return make_shared<AllTop<WPDSAliasCollector::l_t>>(BinaryDomain::TOP);
 }
 
-void WPDSAliasCollector::printNode(std::ostream &OS,
+void WPDSAliasCollector::printNode(llvm::raw_ostream &OS,
                                    WPDSAliasCollector::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void WPDSAliasCollector::printDataFlowFact(std::ostream &OS,
+void WPDSAliasCollector::printDataFlowFact(llvm::raw_ostream &OS,
                                            WPDSAliasCollector::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void WPDSAliasCollector::printFunction(std::ostream &OS,
+void WPDSAliasCollector::printFunction(llvm::raw_ostream &OS,
                                        WPDSAliasCollector::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
-void WPDSAliasCollector::printEdgeFact(std::ostream &OS,
+void WPDSAliasCollector::printEdgeFact(llvm::raw_ostream &OS,
                                        WPDSAliasCollector::l_t L) const {
   if (L == BinaryDomain::TOP) {
     OS << "TOP";

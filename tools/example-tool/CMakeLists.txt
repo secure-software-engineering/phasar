@@ -11,7 +11,7 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS log program_options graph ${BOOST_THREAD} REQUIRED)
+find_package(Boost COMPONENTS program_options graph ${BOOST_THREAD} REQUIRED)
 target_link_libraries(myphasartool
   LINK_PUBLIC
   phasar_config

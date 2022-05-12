@@ -90,7 +90,8 @@ public:
     return false;
   }
 
-  void print(std::ostream &OS, bool /*IsForDebug = false*/) const override {
+  void print(llvm::raw_ostream &OS,
+             bool /*IsForDebug = false*/) const override {
     OS << "COMP[ " << F.get()->str() << " , " << G.get()->str()
        << " ] (EF:" << EFComposerId << ')';
   }

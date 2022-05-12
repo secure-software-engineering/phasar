@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 
-#include <iostream>
+#include <ostream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -163,11 +163,11 @@ public:
                       const llvm::Instruction *I = nullptr,
                       AliasResult Kind = AliasResult::MustAlias) override;
 
-  void print(std::ostream &OS = std::cout) const override;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   nlohmann::json getAsJson() const override;
 
-  void printAsJson(std::ostream &OS = std::cout) const override;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   /**
    * @brief Returns true if graph contains 0 nodes.
@@ -241,7 +241,7 @@ public:
    * stream.
    * @param outputstream.
    */
-  void printAsDot(std::ostream &OS = std::cout) const;
+  void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
   size_t getNumVertices() const;
 

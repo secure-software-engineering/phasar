@@ -3,7 +3,6 @@
 
 #include "gtest/gtest.h"
 
-#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -42,7 +41,8 @@ public:
   bool equal_to(std::shared_ptr<EdgeFunction<int>> Other) const override {
     return this == Other.get();
   }
-  void print(std::ostream &Os, bool /*IsForDebug = false*/) const override {
+  void print(llvm::raw_ostream &Os,
+             bool /*IsForDebug = false*/) const override {
     Os << "MulTwoEF_" << MulTwoEfId;
   }
 };
@@ -65,7 +65,8 @@ public:
   bool equal_to(std::shared_ptr<EdgeFunction<int>> Other) const override {
     return this == Other.get();
   }
-  void print(std::ostream &Os, bool /*IsForDebug = false*/) const override {
+  void print(llvm::raw_ostream &Os,
+             bool /*IsForDebug = false*/) const override {
     Os << "AddTwoEF_" << AddTwoEfId;
   }
 };
@@ -73,12 +74,12 @@ public:
 TEST(EdgeFunctionComposerTest, HandleEFIDs) {
   auto EF1 = std::make_shared<AddTwoEF>(++CurrAddTwoEfId);
   auto EF2 = std::make_shared<AddTwoEF>(++CurrAddTwoEfId);
-  std::cout << "My EF : " << EF1->str() << " " << EF2->str() << '\n';
+  llvm::outs() << "My EF : " << EF1->str() << " " << EF2->str() << '\n';
   EXPECT_EQ("AddTwoEF_1", EF1->str());
   EXPECT_EQ("AddTwoEF_2", EF2->str());
   auto EFC1 = std::make_shared<MyEFC>(EF1, EF2);
   auto EFC2 = std::make_shared<MyEFC>(EF2, EdgeIdentity<int>::getInstance());
-  std::cout << "My EFC: " << EFC1->str() << " " << EFC2->str() << '\n';
+  llvm::outs() << "My EFC: " << EFC1->str() << " " << EFC2->str() << '\n';
   EXPECT_EQ("COMP[ AddTwoEF_1 , AddTwoEF_2 ] (EF:1)", EFC1->str());
   EXPECT_EQ("COMP[ AddTwoEF_2 , EdgeIdentity ] (EF:2)", EFC2->str());
   // Reset ID's for next test
@@ -92,9 +93,9 @@ TEST(EdgeFunctionComposerTest, HandleEFComposition) {
   auto AddEF2 = std::make_shared<AddTwoEF>(++CurrAddTwoEfId);
   auto MulEF = std::make_shared<MulTwoEF>(++CurrMulTwoEfId);
   auto ComposedEF = (AddEF1->composeWith(MulEF))->composeWith(AddEF2);
-  std::cout << "Compose: " << ComposedEF->str() << '\n';
+  llvm::outs() << "Compose: " << ComposedEF->str() << '\n';
   int Result = ComposedEF->computeTarget(InitialValue);
-  std::cout << "Result: " << Result << '\n';
+  llvm::outs() << "Result: " << Result << '\n';
   EXPECT_EQ(12, Result);
   EXPECT_FALSE(AddEF1->equal_to(AddEF2));
 }

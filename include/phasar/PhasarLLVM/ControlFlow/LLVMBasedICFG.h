@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
 #include <iosfwd>
-#include <iostream>
 #include <memory>
 #include <set>
 #include <stack>
@@ -287,18 +286,18 @@ public:
   [[nodiscard]] CallGraphAnalysisType getCallGraphAnalysisType() const;
 
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
-  void print(std::ostream &OS = std::cout) const override;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
-  void printAsDot(std::ostream &OS = std::cout,
+  void printAsDot(llvm::raw_ostream &OS = llvm::outs(),
                   bool PrintEdgeLabels = true) const;
 
-  void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
+  void printInternalPTGAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
   using LLVMBasedCFG::getAsJson; // tell the compiler we wish to have both
                                  // prints
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
-  void printAsJson(std::ostream &OS = std::cout) const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
   /// Create an IR based JSON export of the whole ICFG.
   ///

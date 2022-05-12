@@ -10,7 +10,6 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -149,34 +148,41 @@ private:
     }
   }
 
+  std::unique_ptr<llvm::raw_fd_ostream>
+  openFileStream(llvm::StringRef Filename);
+
   template <typename T> void emitRequestedDataFlowResults(T &WPA) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-report.txt");
-        WPA.emitTextReport(OFS);
+        if (auto OFS = openFileStream("/psr-report.txt")) {
+          WPA.emitTextReport(*OFS);
+        }
       } else {
-        WPA.emitTextReport(std::cout);
+        WPA.emitTextReport(llvm::outs());
       }
     }
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-report.html");
-        WPA.emitGraphicalReport(OFS);
+        if (auto OFS = openFileStream("/psr-report.html")) {
+          WPA.emitGraphicalReport(*OFS);
+        }
       } else {
-        WPA.emitGraphicalReport(std::cout);
+        WPA.emitGraphicalReport(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-raw-results.txt");
-        WPA.dumpResults(OFS);
+        if (auto OFS = openFileStream("/psr-raw-results.txt")) {
+          WPA.dumpResults(*OFS);
+        }
       } else {
-        WPA.dumpResults(std::cout);
+        WPA.dumpResults(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
-      std::cout << "Front-end support for 'EmitESGAsDot' to be implemented\n";
+      llvm::outs()
+          << "Front-end support for 'EmitESGAsDot' to be implemented\n";
     }
   }
 

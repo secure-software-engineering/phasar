@@ -8,7 +8,6 @@
  *****************************************************************************/
 
 #include <filesystem>
-#include <iostream>
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -22,11 +21,10 @@
 using namespace psr;
 
 int main(int Argc, char **Argv) {
-  initializeLogger(false);
   if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
       std::filesystem::is_directory(Argv[1])) {
-    std::cerr << "usage: <prog> <ir file>\n";
-    std::cerr << "use programs in build/test/llvm_test_code/pointers/\n";
+    llvm::errs() << "usage: <prog> <ir file>\n";
+    llvm::errs() << "use programs in build/test/llvm_test_code/pointers/\n";
     return 1;
   }
   ProjectIRDB DB({Argv[1]}, IRDBOptions::WPA);

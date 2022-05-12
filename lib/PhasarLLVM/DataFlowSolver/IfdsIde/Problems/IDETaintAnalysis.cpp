@@ -177,22 +177,22 @@ bool IDETaintAnalysis::IDETainAnalysisAllTop::equal_to(
   return false;
 }
 
-void IDETaintAnalysis::printNode(ostream &OS,
+void IDETaintAnalysis::printNode(llvm::raw_ostream &OS,
                                  IDETaintAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IDETaintAnalysis::printDataFlowFact(ostream &OS,
+void IDETaintAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
                                          IDETaintAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IDETaintAnalysis::printFunction(ostream &OS,
+void IDETaintAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IDETaintAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
-void IDETaintAnalysis::printEdgeFact(ostream &OS,
+void IDETaintAnalysis::printEdgeFact(llvm::raw_ostream &OS,
                                      IDETaintAnalysis::l_t L) const {
   OS << llvmIRToString(L);
 }

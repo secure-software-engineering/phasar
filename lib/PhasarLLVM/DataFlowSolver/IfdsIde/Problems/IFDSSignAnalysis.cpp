@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <utility>
 
 #include "llvm/IR/Function.h"
@@ -21,9 +20,6 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
-
-using namespace std;
-using namespace psr;
 
 namespace psr {
 
@@ -57,7 +53,7 @@ IFDSSignAnalysis::FlowFunctionPtrType IFDSSignAnalysis::getRetFlowFunction(
 IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getCallToRetFlowFunction(
     IFDSSignAnalysis::n_t /*CallSite*/, IFDSSignAnalysis::n_t /*RetSite*/,
-    set<IFDSSignAnalysis::f_t> /*Callees*/) {
+    std::set<IFDSSignAnalysis::f_t> /*Callees*/) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
@@ -70,7 +66,7 @@ IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t /*CallSite*/,
 InitialSeeds<IFDSSignAnalysis::n_t, IFDSSignAnalysis::d_t,
              IFDSSignAnalysis::l_t>
 IFDSSignAnalysis::initialSeeds() {
-  cout << "IFDSSignAnalysis::initialSeeds()\n";
+  llvm::outs() << "IFDSSignAnalysis::initialSeeds()\n";
   InitialSeeds<IFDSSignAnalysis::n_t, IFDSSignAnalysis::d_t,
                IFDSSignAnalysis::l_t>
       Seeds;
@@ -90,19 +86,19 @@ bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t Fact) const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
-void IFDSSignAnalysis::printNode(ostream &OS,
+void IFDSSignAnalysis::printNode(llvm::raw_ostream &OS,
                                  IFDSSignAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IFDSSignAnalysis::printDataFlowFact(ostream &OS,
+void IFDSSignAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
                                          IFDSSignAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IFDSSignAnalysis::printFunction(ostream &OS,
+void IFDSSignAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IFDSSignAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

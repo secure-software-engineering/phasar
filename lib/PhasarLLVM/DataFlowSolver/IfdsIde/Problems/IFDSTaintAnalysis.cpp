@@ -291,8 +291,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
 InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
              IFDSTaintAnalysis::l_t>
 IFDSTaintAnalysis::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSTaintAnalysis::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
   InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
@@ -312,8 +311,7 @@ IFDSTaintAnalysis::initialSeeds() {
 }
 
 IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSTaintAnalysis::createZeroValue()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
@@ -322,23 +320,24 @@ bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t FlowFact) const {
   return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
-void IFDSTaintAnalysis::printNode(ostream &Os,
+void IFDSTaintAnalysis::printNode(llvm::raw_ostream &Os,
                                   IFDSTaintAnalysis::n_t Inst) const {
   Os << llvmIRToString(Inst);
 }
 
 void IFDSTaintAnalysis::printDataFlowFact(
-    ostream &Os, IFDSTaintAnalysis::d_t FlowFact) const {
+    llvm::raw_ostream &Os, IFDSTaintAnalysis::d_t FlowFact) const {
   Os << llvmIRToString(FlowFact);
 }
 
-void IFDSTaintAnalysis::printFunction(ostream &Os,
+void IFDSTaintAnalysis::printFunction(llvm::raw_ostream &Os,
                                       IFDSTaintAnalysis::f_t Fun) const {
-  Os << Fun->getName().str();
+  Os << Fun->getName();
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/, std::ostream &OS) {
+    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
+    llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
   if (Leaks.empty()) {
     OS << "No leaks found!\n";

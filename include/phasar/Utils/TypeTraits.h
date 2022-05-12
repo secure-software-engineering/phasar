@@ -10,7 +10,6 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
-#include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <variant>

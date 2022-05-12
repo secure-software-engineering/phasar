@@ -107,10 +107,11 @@ bool AbstractMemoryLocationImpl::equivalentExceptPointerArithmetics(
 bool AbstractMemoryLocationImpl::mustAlias(
     const AbstractMemoryLocationImpl &TV,
     PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "MustAlias(" << llvmIRToShortString(base()) << ", "
-                << llvmIRToShortString(TV.base()) << ") = " << std::boolalpha
-                << (PT.alias(base(), TV.base()) == AliasResult::MustAlias));
+  PHASAR_LOG_LEVEL(DEBUG, "MustAlias(" << llvmIRToShortString(base()) << ", "
+                                       << llvmIRToShortString(TV.base())
+                                       << ") = "
+                                       << (PT.alias(base(), TV.base()) ==
+                                           AliasResult::MustAlias));
 
   // NOLINTNEXTLINE(readability-identifier-naming)
   auto getFunctionOrNull = [](const llvm::Value *V) -> const llvm::Function * {

@@ -7,15 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ostream>
 #include <string>
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-
-using namespace psr;
-using namespace std;
 
 namespace psr {
 
@@ -46,7 +43,8 @@ DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const DataFlowAnalysisType &D) {
   return OS << toString(D);
 }
 

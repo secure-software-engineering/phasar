@@ -64,10 +64,7 @@ protected:
     Llvmtssolver->solve();
   }
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 
@@ -128,7 +125,6 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory2) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory3) {
-  // boost::log::core::get()->set_logging_enabled(true);
   initialize({PathToLlFiles + "memory3_c.ll"});
   // llvmtssolver->printReport();
   std::map<size_t, std::map<std::string, int>> Gt;

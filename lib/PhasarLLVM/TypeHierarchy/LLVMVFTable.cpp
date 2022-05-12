@@ -8,7 +8,6 @@
  *****************************************************************************/
 
 #include <algorithm>
-#include <iostream>
 #include <utility>
 
 #include "llvm/IR/Function.h"
@@ -36,9 +35,9 @@ int LLVMVFTable::getIndex(const llvm::Function *F) const {
   return -1;
 }
 
-void LLVMVFTable::print(std::ostream &OS) const {
+void LLVMVFTable::print(llvm::raw_ostream &OS) const {
   for (const auto *F : VFT) {
-    OS << F->getName().str();
+    OS << F->getName();
     if (F != VFT.back()) {
       OS << '\n';
     }

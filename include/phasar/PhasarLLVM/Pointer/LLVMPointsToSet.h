@@ -22,7 +22,6 @@
 
 #include "nlohmann/json.hpp"
 
-#include <iostream>
 #include <memory_resource>
 
 namespace llvm {
@@ -127,11 +126,11 @@ public:
 
   [[nodiscard]] inline bool empty() const { return AnalyzedFunctions.empty(); }
 
-  void print(std::ostream &OS = std::cout) const override;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
-  void printAsJson(std::ostream &OS = std::cout) const override;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   /**
    * Shows a parts of an alias set. Good for debugging when one wants to peak

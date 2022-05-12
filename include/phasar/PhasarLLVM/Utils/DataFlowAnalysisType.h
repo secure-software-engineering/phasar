@@ -10,9 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 #define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
-#include <iosfwd>
 #include <set>
 #include <string>
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
@@ -30,7 +33,8 @@ std::string toString(const DataFlowAnalysisType &D);
 
 DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &OS, const DataFlowAnalysisType &D);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const DataFlowAnalysisType &D);
 
 } // namespace psr
 

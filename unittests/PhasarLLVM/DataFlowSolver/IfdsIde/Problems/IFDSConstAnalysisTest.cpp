@@ -42,10 +42,7 @@ protected:
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
   }
 
-  void SetUp() override {
-    initializeLogger(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void compareResults(const std::set<unsigned long> &GroundTruth,
                       IFDSSolver_P<IFDSConstAnalysis> &Solver) {
@@ -324,7 +321,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
   initialize({PathToLlFiles + "array/array_06_cpp_m2r_dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
-  PT->print(std::cerr);
+  PT->print(llvm::errs());
   compareResults({1}, Llvmconstsolver);
 }
 

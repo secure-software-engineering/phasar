@@ -9,7 +9,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
@@ -31,12 +30,11 @@ using namespace psr;
 int main(int argc, const char **argv) {
   if (argc < 2 || !std::filesystem::exists(argv[1]) ||
       std::filesystem::is_directory(argv[1])) {
-    std::cerr << "myphasartool\n"
-                 "A small PhASAR-based example program\n\n"
-                 "Usage: myphasartool <LLVM IR file>\n";
+    llvm::errs() << "myphasartool\n"
+                    "A small PhASAR-based example program\n\n"
+                    "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
-  initializeLogger(false);
   ProjectIRDB DB({argv[1]});
   if (auto F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
@@ -49,13 +47,13 @@ int main(int argc, const char **argv) {
     // print inter-procedural control-flow graph
     I.print();
     // IFDS template parametrization test
-    std::cout << "Testing IFDS:\n";
+    llvm::outs() << "Testing IFDS:\n";
     IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
     IFDSSolver_P<IFDSLinearConstantAnalysis> S(L);
     S.solve();
     S.dumpResults();
     // use PhASAR's strategy concept that allows for even easier analysis set-up
-    std::cout << "Testing IDE:\n";
+    llvm::outs() << "Testing IDE:\n";
     WholeProgramAnalysis<IDESolver_P<IDELinearConstantAnalysis>,
                          IDELinearConstantAnalysis>
         WPA(DB, {"main"}, &P, &I, &H);
@@ -63,7 +61,7 @@ int main(int argc, const char **argv) {
     WPA.dumpResults();
     WPA.releaseAllHelperAnalyses();
   } else {
-    std::cerr << "error: file does not contain a 'main' function!\n";
+    llvm::errs() << "error: file does not contain a 'main' function!\n";
   }
   return 0;
 }

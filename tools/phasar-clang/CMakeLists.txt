@@ -9,7 +9,7 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS log program_options graph ${BOOST_THREAD} REQUIRED)
+find_package(Boost COMPONENTS program_options graph ${BOOST_THREAD} REQUIRED)
 if(USE_LLVM_FAT_LIB)
   llvm_config(phasar-clang USE_SHARED ${LLVM_LINK_COMPONENTS})
 else()

@@ -164,9 +164,9 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
     }
     return {EntryInst};
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Could not get starting points of '" << Fun->getName().str()
-                << "' because it is a declaration");
+  PHASAR_LOG_LEVEL(DEBUG, "Could not get starting points of '"
+                              << Fun->getName()
+                              << "' because it is a declaration");
   return {};
 }
 
@@ -187,9 +187,8 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
 
     return ExitPoints;
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Could not get exit points of '" << Fun->getName().str()
-                << "' which is declaration!");
+  PHASAR_LOG_LEVEL(DEBUG, "Could not get exit points of '"
+                              << Fun->getName() << "' which is declaration!");
   return {};
 }
 
@@ -342,7 +341,7 @@ LLVMBasedCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
   return llvm::demangle(getFunctionName(Fun));
 }
 
-void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {
+void LLVMBasedCFG::print(const llvm::Function *F, llvm::raw_ostream &OS) const {
   OS << llvmIRToString(F);
 }
 

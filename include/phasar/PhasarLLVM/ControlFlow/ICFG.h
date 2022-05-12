@@ -17,13 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 
-#include <iostream>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
@@ -41,7 +41,8 @@ std::string toString(const CallGraphAnalysisType &CGA);
 
 CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &OS, const CallGraphAnalysisType &CGA);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const CallGraphAnalysisType &CGA);
 
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
 
@@ -82,7 +83,7 @@ public:
   }
 
   using CFG<N, F>::print; // tell the compiler we wish to have both prints
-  virtual void print(std::ostream &OS = std::cout) const = 0;
+  virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
 
   using CFG<N, F>::getAsJson; // tell the compiler we wish to have both prints
   [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;

@@ -18,11 +18,14 @@
 #define PHASAR_UTILS_PAMM_H_
 
 #include <chrono>        // high_resolution_clock::time_point, milliseconds
-#include <iosfwd>        // ostream
 #include <set>           // set
 #include <string>        // string
 #include <unordered_map> // unordered_map
 #include <vector>        // vector
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
@@ -172,15 +175,15 @@ public:
                       const std::string &DataPointId,
                       unsigned long DataPointValue = 1);
 
-  void printTimers(std::ostream &OS);
+  void printTimers(llvm::raw_ostream &OS);
 
-  void printCounters(std::ostream &OS);
+  void printCounters(llvm::raw_ostream &OS);
 
-  void printHistograms(std::ostream &OS);
+  void printHistograms(llvm::raw_ostream &OS);
 
   /// \brief Prints the measured data to the commandline - associated macro:
   /// PRINT_MEASURED_DATA
-  void printMeasuredData(std::ostream &OS);
+  void printMeasuredData(llvm::raw_ostream &OS);
 
   /// \brief Exports the measured data to JSON - associated macro:
   /// EXPORT_MEASURED_DATA(PATH).

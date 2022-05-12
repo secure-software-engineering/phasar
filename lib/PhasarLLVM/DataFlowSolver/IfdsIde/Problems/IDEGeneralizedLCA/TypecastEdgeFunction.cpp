@@ -46,7 +46,8 @@ bool TypecastEdgeFunction::equal_to(
   return false;
 }
 
-void TypecastEdgeFunction::print(std::ostream &OS, bool /*IsForDebug*/) const {
+void TypecastEdgeFunction::print(llvm::raw_ostream &OS,
+                                 bool /*IsForDebug*/) const {
   OS << "TypecastEdgeFn[to=" << EdgeValue::typeToString(Dest)
      << "; bits=" << Bits << "]";
 }

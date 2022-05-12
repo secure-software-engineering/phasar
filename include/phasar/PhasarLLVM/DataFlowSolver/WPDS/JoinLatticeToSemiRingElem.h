@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_JOINLATTICETOSEMIRINGELEM_H
 
-#include <iosfwd>
 #include <memory>
 
 #include "wali/SemElem.hpp"
@@ -82,8 +81,8 @@ public:
 };
 
 template <typename V>
-std::ostream &operator<<(std::ostream &OS,
-                         const JoinLatticeToSemiRingElem<V> &ETS) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const JoinLatticeToSemiRingElem<V> &ETS) {
   ETS.print(OS);
   return OS;
 }

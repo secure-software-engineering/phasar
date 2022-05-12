@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
 
-#include <iostream>
 #include <map>
 #include <set>
 #include <type_traits>
@@ -73,7 +72,7 @@ public:
   [[nodiscard]] const GeneralizedSeeds &getSeeds() const & { return Seeds; }
   [[nodiscard]] GeneralizedSeeds getSeeds() && { return std::move(Seeds); }
 
-  void dump(std::ostream &OS = std::cerr) {
+  void dump(llvm::raw_ostream &OS = llvm::errs()) {
 
     auto printNode = [&](auto &&Node) { // NOLINT
       if constexpr (std::is_same_v<const llvm::Instruction *, N>) {

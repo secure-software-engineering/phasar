@@ -28,9 +28,8 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
   if (LLVM_UNLIKELY(NumPointerEntries >
                     std::numeric_limits<size_t>::max() / sizeof(size_t) - 1)) {
 
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), CRITICAL)
-                  << "Cannot allocate " << NumPointerEntries
-                  << " pointer entries");
+    PHASAR_LOG_LEVEL(CRITICAL, "Cannot allocate " << NumPointerEntries
+                                                  << " pointer entries");
 
     std::terminate();
   }

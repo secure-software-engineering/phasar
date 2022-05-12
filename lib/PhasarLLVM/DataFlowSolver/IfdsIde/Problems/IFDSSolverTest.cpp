@@ -69,8 +69,7 @@ IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t /*CallSite*/,
 
 InitialSeeds<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::l_t>
 IFDSSolverTest::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSSolverTest::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSSolverTest::initialSeeds()");
   InitialSeeds<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
@@ -89,18 +88,19 @@ bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t Fact) const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
-void IFDSSolverTest::printNode(ostream &OS, IFDSSolverTest::n_t Stmt) const {
+void IFDSSolverTest::printNode(llvm::raw_ostream &OS,
+                               IFDSSolverTest::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IFDSSolverTest::printDataFlowFact(ostream &OS,
+void IFDSSolverTest::printDataFlowFact(llvm::raw_ostream &OS,
                                        IFDSSolverTest::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IFDSSolverTest::printFunction(ostream &OS,
+void IFDSSolverTest::printFunction(llvm::raw_ostream &OS,
                                    IFDSSolverTest::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

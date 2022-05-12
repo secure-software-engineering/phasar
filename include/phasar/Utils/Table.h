@@ -18,7 +18,6 @@
 #define PHASAR_UTILS_TABLE_H_
 
 #include <algorithm>
-#include <ostream>
 #include <set>
 #include <tuple>
 #include <unordered_map>
@@ -47,7 +46,8 @@ public:
     [[nodiscard]] C getColumnKey() const { return Column; }
     [[nodiscard]] V getValue() const { return Val; }
 
-    friend std::ostream &operator<<(std::ostream &OS, const Cell &Cell) {
+    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                         const Cell &Cell) {
       return OS << "Cell: " << Cell.r << ", " << Cell.c << ", " << Cell.v;
     }
     friend bool operator<(const Cell &Lhs, const Cell &Rhs) {
@@ -232,7 +232,8 @@ public:
     return Lhs.table < Rhs.table;
   }
 
-  friend std::ostream &operator<<(std::ostream &OS, const Table<R, C, V> &Tab) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const Table<R, C, V> &Tab) {
     for (const auto &M1 : Tab.table) {
       for (const auto &M2 : M1.second) {
         OS << "< " << M1.first << " , " << M2.first << " , " << M2.second

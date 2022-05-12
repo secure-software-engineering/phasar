@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
 #define PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
 
-#include <iosfwd>
 #include <map>
 #include <set>
 #include <string>
@@ -108,7 +107,7 @@ struct DOTNode {
 
 bool operator<(const DOTNode &Lhs, const DOTNode &Rhs);
 bool operator==(const DOTNode &Lhs, const DOTNode &Rhs);
-std::ostream &operator<<(std::ostream &OS, const DOTNode &Node);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTNode &Node);
 
 struct DOTEdge {
   DOTNode Source;
@@ -123,7 +122,7 @@ struct DOTEdge {
 };
 
 bool operator<(const DOTEdge &Lhs, const DOTEdge &Rhs);
-std::ostream &operator<<(std::ostream &OS, const DOTEdge &Edge);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTEdge &Edge);
 
 struct DOTFactSubGraph {
   // fact subgraph id = <func-name>_<fact-id>
@@ -137,7 +136,8 @@ struct DOTFactSubGraph {
   [[nodiscard]] std::string str(const std::string &Indent = "") const;
 };
 
-std::ostream &operator<<(std::ostream &OS, const DOTFactSubGraph &FactSG);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const DOTFactSubGraph &FactSG);
 
 struct DOTFunctionSubGraph {
   // function subgraph id = <func-name>
@@ -159,8 +159,8 @@ struct DOTFunctionSubGraph {
   void createLayoutFactEdges();
 };
 
-std::ostream &operator<<(std::ostream &OS,
-                         const DOTFunctionSubGraph &FunctionSG);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const DOTFunctionSubGraph &FunctionSG);
 
 template <typename D> struct DOTGraph {
   std::string Label;
@@ -226,7 +226,8 @@ template <typename D> struct DOTGraph {
     return Str + '}';
   }
 
-  friend std::ostream &operator<<(std::ostream &OS, const DOTGraph<D> &Graph) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const DOTGraph<D> &Graph) {
     return OS << Graph.str();
   }
 

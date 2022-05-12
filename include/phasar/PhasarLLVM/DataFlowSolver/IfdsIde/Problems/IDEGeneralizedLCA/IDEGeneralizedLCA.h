@@ -54,7 +54,7 @@ public:
     std::string SrcNode;
     std::map<std::string, l_t> VariableToValue;
     std::vector<n_t> IRTrace;
-    void print(std::ostream &OS);
+    void print(llvm::raw_ostream &OS);
   };
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
@@ -121,18 +121,18 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printNode(std::ostream &OS, n_t Stmt) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &OS, f_t Func) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
 
-  void printEdgeFact(std::ostream &OS, l_t L) const override;
+  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 
-  // void printIDEReport(std::ostream &OS,
+  // void printIDEReport(llvm::raw_ostream &OS,
   // SolverResults<n_t, d_t, l_t> &SR) override;
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &OS) override;
+                      llvm::raw_ostream &OS) override;
 
   lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 

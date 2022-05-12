@@ -77,11 +77,11 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
-  void printNode(std::ostream &OS, n_t Stmt) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &OS, f_t Func) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
 
   // in addition provide specifications for the IDE parts
 
@@ -114,10 +114,10 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printEdgeFact(std::ostream &OS, l_t L) const override;
+  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &OS) override;
+                      llvm::raw_ostream &OS) override;
 
   struct SHPEdgeFn : public EdgeFunction<l_t>,
                      public std::enable_shared_from_this<SHPEdgeFn> {
@@ -143,7 +143,7 @@ public:
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
     static std::shared_ptr<SHPGenEdgeFn> getInstance(l_t Val);
 
   private:
@@ -158,7 +158,7 @@ public:
     composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
 
     static std::shared_ptr<IdentityEdgeFunction> getInstance();
   };

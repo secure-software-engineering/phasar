@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -168,16 +167,16 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printNode(std::ostream &OS, n_t Stmt) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &OS, f_t Func) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
 
-  void printEdgeFact(std::ostream &OS, l_t L) const override;
+  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &OS = std::cout) override;
+                      llvm::raw_ostream &OS = llvm::outs()) override;
 
   // customize the edge function composer
   class TSEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
@@ -217,7 +216,7 @@ public:
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
   };
   class TSConstant : public EdgeFunction<l_t>,
                      public std::enable_shared_from_this<TSConstant> {
@@ -237,7 +236,7 @@ public:
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
   };
 };
 

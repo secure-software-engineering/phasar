@@ -19,29 +19,29 @@
 
 namespace psr {
 
-std::ostream &printSemantics(const llvm::APFloat &Fl) {
+llvm::raw_ostream &printSemantics(const llvm::APFloat &Fl) {
   if (&Fl.getSemantics() == &llvm::APFloat::IEEEdouble()) {
-    return std::cout << "IEEEdouble";
+    return llvm::outs() << "IEEEdouble";
   }
   if (&Fl.getSemantics() == &llvm::APFloat::IEEEhalf()) {
-    return std::cout << "IEEEhalf";
+    return llvm::outs() << "IEEEhalf";
   }
   if (&Fl.getSemantics() == &llvm::APFloat::IEEEquad()) {
-    return std::cout << "IEEEquad";
+    return llvm::outs() << "IEEEquad";
   }
   if (&Fl.getSemantics() == &llvm::APFloat::IEEEsingle()) {
-    return std::cout << "IEEEsingle";
+    return llvm::outs() << "IEEEsingle";
   }
   if (&Fl.getSemantics() == &llvm::APFloat::PPCDoubleDouble()) {
-    return std::cout << "PPCDoubleDouble";
+    return llvm::outs() << "PPCDoubleDouble";
   }
   if (&Fl.getSemantics() == &llvm::APFloat::x87DoubleExtended()) {
-    return std::cout << "x87DoubleExtended";
+    return llvm::outs() << "x87DoubleExtended";
   }
   if (&Fl.getSemantics() == &llvm::APFloat::Bogus()) {
-    return std::cout << "Bogus";
+    return llvm::outs() << "Bogus";
   }
-  return std::cout << "Sth else";
+  return llvm::outs() << "Sth else";
 }
 
 const EdgeValue EdgeValue::TopValue = EdgeValue(nullptr);
@@ -202,9 +202,9 @@ EdgeValue::operator bool() {
 }
 
 bool operator==(const EdgeValue &Lhs, const EdgeValue &Rhs) {
-  // std::cout << "Compare edge values" << std::endl;
+  // llvm::outs() << "Compare edge values" << std::endl;
   if (Lhs.VariantType != Rhs.VariantType) {
-    // std::cout << "Comparing incompatible types" << std::endl;
+    // llvm::outs() << "Comparing incompatible types" << std::endl;
     return false;
   }
   switch (Lhs.VariantType) {
@@ -212,31 +212,31 @@ bool operator==(const EdgeValue &Lhs, const EdgeValue &Rhs) {
     return true;
   case EdgeValue::Integer:
     // if (v1.value.asInt != v2.value.asInt)
-    //  std::cout << "integer unequal" << std::endl;
+    //  llvm::outs() << "integer unequal" << std::endl;
     return std::get<llvm::APInt>(Lhs.ValVariant) ==
            std::get<llvm::APInt>(Rhs.ValVariant);
   case EdgeValue::FloatingPoint: {
-    // std::cout << "compare floating points" << std::endl;
+    // llvm::outs() << "compare floating points" << std::endl;
     auto Cp = std::get<llvm::APFloat>(Lhs.ValVariant)
                   .compare(std::get<llvm::APFloat>(Rhs.ValVariant));
     if (Cp == llvm::APFloat::cmpResult::cmpEqual) {
-      // std::cout << "FP equal" << std::endl;
+      // llvm::outs() << "FP equal" << std::endl;
       return true;
     }
     auto D1 = std::get<llvm::APFloat>(Lhs.ValVariant).convertToDouble();
     auto D2 = std::get<llvm::APFloat>(Rhs.ValVariant).convertToDouble();
 
     const double Epsilon = 0.000001;
-    // std::cout << "Compare " << d1 << " against " << d2 << std::endl;
+    // llvm::outs() << "Compare " << d1 << " against " << d2 << std::endl;
     return D1 == D2 || D1 - D2 < Epsilon || D2 - D1 < Epsilon;
   }
   case EdgeValue::String:
     // if (v1.value.asString != v2.value.asString)
-    //  std::cout << "String unequal" << std::endl;
+    //  llvm::outs() << "String unequal" << std::endl;
     return std::get<std::string>(Lhs.ValVariant) ==
            std::get<std::string>(Rhs.ValVariant);
   default: // will not happen
-    std::cerr << "FATAL ERROR" << std::endl;
+    llvm::errs() << "FATAL ERROR\n";
     return false;
   }
 }
@@ -455,7 +455,7 @@ int EdgeValue::compare(const EdgeValue &Lhs, const EdgeValue &Rhs) {
   return 0;
 }
 
-std::ostream &operator<<(std::ostream &Os, const EdgeValue &Ev) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const EdgeValue &Ev) {
   switch (Ev.VariantType) {
   case EdgeValue::Integer: {
     std::string S;
@@ -582,10 +582,10 @@ EdgeValue EdgeValue::performBinOp(llvm::BinaryOperator::BinaryOps Op,
 
 ev_t performBinOp(llvm::BinaryOperator::BinaryOps Op, const ev_t &Lhs,
                   const ev_t &Rhs, size_t MaxSize) {
-  // std::cout << "Perform Binop on " << v1 << " and " << v2 << std::endl;
+  // llvm::outs() << "Perform Binop on " << v1 << " and " << v2 << std::endl;
 
   if (Lhs.empty() || isTopValue(Lhs) || Rhs.empty() || isTopValue(Rhs)) {
-    // std::cout << "\t=> <TOP>" << std::endl;
+    // llvm::outs() << "\t=> <TOP>" << std::endl;
     return {{nullptr}};
   }
   ev_t Ret({});
@@ -594,18 +594,18 @@ ev_t performBinOp(llvm::BinaryOperator::BinaryOps Op, const ev_t &Lhs,
 
       Ret.insert(Ev1.performBinOp(Op, Ev2));
       if (Ret.size() > MaxSize) {
-        // std::cout << "\t=> <TOP>" << std::endl;
+        // llvm::outs() << "\t=> <TOP>" << std::endl;
         return ev_t({{nullptr}});
       }
     }
   }
-  // std::cout << "\t=> " << ret << std::endl;
+  // llvm::outs() << "\t=> " << ret << std::endl;
   return Ret;
 }
 
 ev_t performTypecast(const ev_t &Ev, EdgeValue::Type Dest, unsigned Bits) {
   if (Ev.empty() || isTopValue(Ev)) {
-    // std::cout << "\t=> <TOP>" << std::endl;
+    // llvm::outs() << "\t=> <TOP>" << std::endl;
     return {{nullptr}};
   }
   ev_t Ret({});
@@ -634,9 +634,9 @@ Ordering compare(const ev_t &Lhs, const ev_t &Rhs) {
 }
 
 ev_t join(const ev_t &Lhs, const ev_t &Rhs, size_t MaxSize) {
-  // std::cout << "Join " << v1 << " and " << v2 << std::endl;
+  // llvm::outs() << "Join " << v1 << " and " << v2 << std::endl;
   if (isTopValue(Lhs) || isTopValue(Rhs)) {
-    // std::cout << "\t=> <TOP>" << std::endl;
+    // llvm::outs() << "\t=> <TOP>" << std::endl;
     return {{nullptr}};
   }
   ev_t Ret(Lhs.begin(), Lhs.end());
@@ -644,17 +644,17 @@ ev_t join(const ev_t &Lhs, const ev_t &Rhs, size_t MaxSize) {
   for (const auto &Elem : Rhs) {
     Ret.insert(Elem);
     if (Ret.size() > MaxSize) {
-      // std::cout << "\t=> <TOP>" << std::endl;
+      // llvm::outs() << "\t=> <TOP>" << std::endl;
       return {{nullptr}};
     }
   }
-  // std::cout << "\t=> " << ret << std::endl;
+  // llvm::outs() << "\t=> " << ret << std::endl;
 
   return Ret;
 }
 
 bool isTopValue(const ev_t &V) { return V.size() == 1 && V.begin()->isTop(); }
-std::ostream &operator<<(std::ostream &Os, const ev_t &V) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &V) {
   Os << "{";
   bool First = true;
   for (const auto &Elem : V) {

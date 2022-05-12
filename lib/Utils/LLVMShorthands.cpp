@@ -21,7 +21,6 @@
 #include <system_error>
 
 #include "boost/algorithm/string/trim.hpp"
-#include "boost/log/sources/severity_feature.hpp"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -264,9 +263,9 @@ const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id) {
       return Num;
     }
 
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                  << "Invalid metadata id '" << Str.str()
-                  << "': " << std::make_error_code(EC).message());
+    PHASAR_LOG_LEVEL(WARNING, "Invalid metadata id '"
+                                  << Str.str() << "': "
+                                  << std::make_error_code(EC).message());
     return std::nullopt;
   };
 

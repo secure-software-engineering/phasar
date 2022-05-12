@@ -14,12 +14,12 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "boost/graph/copy.hpp"
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
-#include "boost/log/sources/record_ostream.hpp"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
@@ -28,6 +28,7 @@
 #include "phasar/Utils/GraphExtensions.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -59,8 +60,8 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
     if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(G[U].V)) {
       // If the call stack is empty, we completely ignore the calling context
       if (matchesStack(G) || CallStack.empty()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Found stack allocation: " << llvmIRToString(Alloc));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "Found stack allocation: " << llvmIRToString(Alloc));
         AllocationSites.insert(G[U].V);
       }
     }
@@ -74,9 +75,8 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matchesStack(G) || CallStack.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Found heap allocation: "
-                        << llvmIRToString(CallSite));
+          PHASAR_LOG_LEVEL(
+              DEBUG, "Found heap allocation: " << llvmIRToString(CallSite));
           AllocationSites.insert(G[U].V);
         }
       }
@@ -154,8 +154,7 @@ void LLVMPointsToGraph::computePointsToGraph(llvm::Function *F) {
     return;
   }
   PAMM_GET_INSTANCE;
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Analyzing function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
   AnalyzedFunctions.insert(F);
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
@@ -407,9 +406,9 @@ auto LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
   return ResultSet;
 }
 
-void LLVMPointsToGraph::print(std::ostream &OS) const {
+void LLVMPointsToGraph::print(llvm::raw_ostream &OS) const {
   for (const auto &Fn : AnalyzedFunctions) {
-    cout << "LLVMPointsToGraph for " << Fn->getName().str() << ":\n";
+    llvm::outs() << "LLVMPointsToGraph for " << Fn->getName() << ":\n";
     vertex_iterator UI;
 
     vertex_iterator UIEnd;
@@ -427,9 +426,11 @@ void LLVMPointsToGraph::print(std::ostream &OS) const {
   }
 }
 
-void LLVMPointsToGraph::printAsDot(std::ostream &OS) const {
-  boost::write_graphviz(OS, PAG, makePointerVertexOrEdgePrinter(PAG),
+void LLVMPointsToGraph::printAsDot(llvm::raw_ostream &OS) const {
+  std::stringstream S;
+  boost::write_graphviz(S, PAG, makePointerVertexOrEdgePrinter(PAG),
                         makePointerVertexOrEdgePrinter(PAG));
+  OS << S.str();
 }
 
 nlohmann::json LLVMPointsToGraph::getAsJson() const {
@@ -455,7 +456,7 @@ nlohmann::json LLVMPointsToGraph::getAsJson() const {
 
 void LLVMPointsToGraph::printValueVertexMap() {
   for (const auto &Entry : ValueVertexMap) {
-    cout << Entry.first << " <---> " << Entry.second << endl;
+    llvm::outs() << Entry.first << " <---> " << Entry.second << '\n';
   }
 }
 
@@ -469,7 +470,7 @@ size_t LLVMPointsToGraph::getNumVertices() const {
 
 size_t LLVMPointsToGraph::getNumEdges() const { return boost::num_edges(PAG); }
 
-void LLVMPointsToGraph::printAsJson(std::ostream &OS) const {
+void LLVMPointsToGraph::printAsJson(llvm::raw_ostream &OS) const {
   nlohmann::json J = getAsJson();
   OS << J;
 }

@@ -8,7 +8,6 @@
  *****************************************************************************/
 
 #include <algorithm>
-#include <ostream>
 #include <unordered_map>
 #include <utility>
 
@@ -101,7 +100,7 @@ InterMonoFullConstantPropagation::callFlow(
       // check for integer literals
       if (const auto *ConstInt =
               llvm::dyn_cast<llvm::ConstantInt>(Actuals[Idx])) {
-        std::cout << "Found literal!\n";
+        llvm::outs() << "Found literal!\n";
         Out.insert({Formals[Idx], ConstInt->getSExtValue()});
       }
     }
@@ -133,7 +132,7 @@ InterMonoFullConstantPropagation::returnFlow(
         // handle return of integer variable
         auto Search = In.find(Return->getReturnValue());
         if (Search != In.end()) {
-          std::cout << "Found const return variable\n";
+          llvm::outs() << "Found const return variable\n";
           Out.insert({CallSite, Search->second});
         }
       }
@@ -154,22 +153,22 @@ InterMonoFullConstantPropagation::callToRetFlow(
 }
 
 void InterMonoFullConstantPropagation::printNode(
-    std::ostream &OS, InterMonoFullConstantPropagation::n_t Inst) const {
+    llvm::raw_ostream &OS, InterMonoFullConstantPropagation::n_t Inst) const {
   IntraMonoFullConstantPropagation::printNode(OS, Inst);
 }
 
 void InterMonoFullConstantPropagation::printDataFlowFact(
-    std::ostream &OS, InterMonoFullConstantPropagation::d_t Fact) const {
+    llvm::raw_ostream &OS, InterMonoFullConstantPropagation::d_t Fact) const {
   IntraMonoFullConstantPropagation::printDataFlowFact(OS, Fact);
 }
 
 void InterMonoFullConstantPropagation::printFunction(
-    std::ostream &OS, InterMonoFullConstantPropagation::f_t Fun) const {
+    llvm::raw_ostream &OS, InterMonoFullConstantPropagation::f_t Fun) const {
   IntraMonoFullConstantPropagation::printFunction(OS, Fun);
 }
 
 void InterMonoFullConstantPropagation::printContainer(
-    std::ostream &OS,
+    llvm::raw_ostream &OS,
     InterMonoFullConstantPropagation::mono_container_t Con) const {
   for (const auto &[Var, Val] : Con) {
     OS << "<" << llvmIRToString(Var) << ", " << Val << ">, ";

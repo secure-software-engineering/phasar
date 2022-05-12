@@ -17,7 +17,6 @@
 #ifndef PHASAR_UTILS_MULTIINTEXTABLE_H_
 #define PHASAR_UTILS_MULTIINTEXTABLE_H_
 
-#include <ostream>
 #include <string>
 
 #include "boost/multi_index/composite_key.hpp"
@@ -71,7 +70,8 @@ template <typename R, typename C, typename V> struct MultiIndexTable {
   // the indexed table containing instances of TableData
   InternTable IndexedTable;
 
-  friend std::ostream &operator<<(std::ostream &os, const InternTable &itab) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
+                                       const InternTable &itab) {
     return os << "error: unsupported operation!";
   }
 };

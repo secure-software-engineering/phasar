@@ -76,7 +76,7 @@ static void checkDeser(const llvm::Module &Mod, LLVMPointsToSet &PTS,
 
 static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
                     llvm::StringRef EntryPoint = "main") {
-  psr::initializeLogger(false);
+  Logger::disable();
   ValueAnnotationPass::resetValueID();
   ProjectIRDB IRDB({unittest::PathToLLTestFiles + File.str()});
 

@@ -11,7 +11,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <iomanip>
-#include <iostream>
 #include <iterator>
 #include <memory>
 #include <type_traits>
@@ -35,8 +34,6 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
 
-#include "boost/log/sources/severity_feature.hpp"
-
 #include "nlohmann/json.hpp"
 
 #include "phasar/DB/ProjectIRDB.h"
@@ -46,6 +43,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 using namespace std;
 
@@ -83,8 +81,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "LLVMPointsToSet completed\n");
+  PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed");
 }
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
@@ -107,10 +104,10 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
     assert(PtsJson.is_array());
     auto PTS = Owner.acquire();
     for (auto Alias : PtsJson) {
-      const auto *Inst = fromMetaDataId(IRDB, Alias.get<std::string>());
+      const auto AliasStr = Alias.get<std::string>();
+      const auto *Inst = fromMetaDataId(IRDB, AliasStr);
       if (!Inst) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                      << "Invalid Value-Id: " << Alias);
+        PHASAR_LOG_LEVEL(WARNING, "Invalid Value-Id: " << AliasStr);
         continue;
       }
 
@@ -125,16 +122,14 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
   AnalyzedFunctions.reserve(Fns.size());
   for (const auto &F : Fns) {
     if (!F.is_string()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                    << "Invalid Function Name: " << F);
+      PHASAR_LOG_LEVEL(WARNING, "Invalid Function Name: " << F);
       continue;
     }
 
     const auto *IRFn = IRDB.getFunction(F.get<std::string>());
 
     if (!IRFn) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), WARNING)
-                    << "Function: " << F << " not in the IRDB");
+      PHASAR_LOG_LEVEL(WARNING, "Function: " << F << " not in the IRDB");
       continue;
     }
 
@@ -438,8 +433,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       !Inserted || F->isDeclaration()) {
     return;
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Analyzing function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
@@ -713,16 +707,16 @@ nlohmann::json LLVMPointsToSet::getAsJson() const {
   /// Serialize the AnalyzedFunctions
   auto &Fns = J["AnalyzedFunctions"];
   for (const auto *F : AnalyzedFunctions) {
-    Fns.push_back(F->getName().str());
+    Fns.push_back(F->getName());
   }
   return J;
 }
 
-void LLVMPointsToSet::printAsJson(std::ostream &OS) const {
-  OS << std::setw(4) << getAsJson() << std::setw(0);
+void LLVMPointsToSet::printAsJson(llvm::raw_ostream &OS) const {
+  OS << getAsJson();
 }
 
-void LLVMPointsToSet::print(std::ostream &OS) const {
+void LLVMPointsToSet::print(llvm::raw_ostream &OS) const {
   for (const auto &[V, PTS] : PointsToSets) {
     OS << "V: " << llvmIRToString(V) << '\n';
     for (const auto &Ptr : *PTS) {

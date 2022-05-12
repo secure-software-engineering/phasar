@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
 
-#include <iostream>
 #include <unordered_map>
 
 #include "llvm/Analysis/AliasAnalysis.h"
@@ -49,7 +48,7 @@ public:
 
   ~LLVMBasedPointsToAnalysis() = default;
 
-  void print(std::ostream &OS = std::cout) const;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
   [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
     if (!hasPointsToInfo(*F)) {

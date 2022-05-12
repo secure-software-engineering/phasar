@@ -108,9 +108,9 @@ public:
 
   using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
                                      // prints
-  void print(std::ostream &OS) const override;
+  void print(llvm::raw_ostream &OS) const override;
 
-  void printAsDot(std::ostream &OS) const;
+  void printAsDot(llvm::raw_ostream &OS) const;
 
   using LLVMBasedBackwardCFG::getAsJson; // tell the compiler we wish to have
                                          // both prints

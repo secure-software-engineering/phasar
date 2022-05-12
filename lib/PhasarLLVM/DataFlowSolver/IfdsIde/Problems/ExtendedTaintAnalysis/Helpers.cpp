@@ -113,7 +113,7 @@ EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllSanitized() {
       return &*OtherFunction == this;
     }
 
-    void print(std::ostream &OS,
+    void print(llvm::raw_ostream &OS,
                [[maybe_unused]] bool IsForDebug = false) const override {
       OS << "SanitizedEF";
     }

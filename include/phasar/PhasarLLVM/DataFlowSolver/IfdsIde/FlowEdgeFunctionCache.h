@@ -183,18 +183,14 @@ public:
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Normal flow function factory call";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Curr Inst : " << Problem.NtoString(Curr);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Succ Inst : " << Problem.NtoString(Succ));
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Normal flow function factory call");
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Curr Inst : " << Problem.NtoString(Curr));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << Problem.NtoString(Succ)));
     auto Key = createEdgeFunctionInstKey(Curr, Succ);
     auto SearchNormalFlowFunction = NormalFunctionCache.find(Key);
     if (SearchNormalFlowFunction != NormalFunctionCache.end()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Flow function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("Normal-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       if (SearchNormalFlowFunction->second.FlowFuncPtr != nullptr) {
         return SearchNormalFlowFunction->second.FlowFuncPtr;
@@ -212,26 +208,22 @@ public:
                         Problem.getNormalFlowFunction(Curr, Succ), ZV)
                   : Problem.getNormalFlowFunction(Curr, Succ);
     NormalFunctionCache.insert(std::make_pair(Key, NormalEdgeFlowData(FF)));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Flow function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
+
     return FF;
   }
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Call flow function factory call";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Stmt : " << Problem.NtoString(CallSite);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Dest Fun : " << Problem.FtoString(DestFun));
+    IF_LOG_ENABLED(PHASAR_LOG_LEVEL(DEBUG, "Call flow function factory call");
+                   PHASAR_LOG_LEVEL(DEBUG, "(N) Call Stmt : "
+                                               << Problem.NtoString(CallSite));
+                   PHASAR_LOG_LEVEL(
+                       DEBUG, "(F) Dest Fun : " << Problem.FtoString(DestFun)));
     auto Key = std::tie(CallSite, DestFun);
     auto SearchCallFlowFunction = CallFlowFunctionCache.find(Key);
     if (SearchCallFlowFunction != CallFlowFunctionCache.end()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Flow function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("Call-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return SearchCallFlowFunction->second;
     }
@@ -241,31 +233,27 @@ public:
                         Problem.getCallFlowFunction(CallSite, DestFun), ZV)
                   : Problem.getCallFlowFunction(CallSite, DestFun);
     CallFlowFunctionCache.insert(std::make_pair(Key, FF));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Flow function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
     return FF;
   }
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitInst, n_t RetSite) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Return flow function factory call";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << Problem.NtoString(CallSite);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Callee    : " << Problem.FtoString(CalleeFun);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Exit Stmt : " << Problem.NtoString(ExitInst);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Ret Site  : " << Problem.NtoString(RetSite));
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Return flow function factory call");
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Call Site : " << Problem.NtoString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(F) Callee    : " << Problem.FtoString(CalleeFun));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Exit Stmt : " << Problem.NtoString(ExitInst));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Ret Site  : " << Problem.NtoString(RetSite)));
     auto Key = std::tie(CallSite, CalleeFun, ExitInst, RetSite);
     auto SearchReturnFlowFunction = ReturnFlowFunctionCache.find(Key);
     if (SearchReturnFlowFunction != ReturnFlowFunctionCache.end()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Flow function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("Return-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return SearchReturnFlowFunction->second;
     }
@@ -278,32 +266,28 @@ public:
                   : Problem.getRetFlowFunction(CallSite, CalleeFun, ExitInst,
                                                RetSite);
     ReturnFlowFunctionCache.insert(std::make_pair(Key, FF));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Flow function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
     return FF;
   }
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                const std::set<f_t> Callees) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "Call-to-Return flow function factory call";
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(N) Call Site : " << Problem.NtoString(CallSite);
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(N) Ret Site  : " << Problem.NtoString(RetSite);
-        BOOST_LOG_SEV(lg::get(), DEBUG) << "(F) Callee's  : "; for (auto callee
-                                                                    : Callees) {
-          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << Problem.FtoString(callee);
-        });
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return flow function factory call");
+
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Call Site : " << Problem.NtoString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
+                                                          : Callees) {
+          PHASAR_LOG_LEVEL(DEBUG, "  " << Problem.FtoString(callee));
+        };)
     auto Key = std::tie(CallSite, RetSite, Callees);
     auto SearchCallToRetFlowFunction = CallToRetFlowFunctionCache.find(Key);
     if (SearchCallToRetFlowFunction != CallToRetFlowFunctionCache.end()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Flow function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+      PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("CallToRet-FF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return SearchCallToRetFlowFunction->second;
     }
@@ -315,22 +299,20 @@ public:
                   ZV)
             : Problem.getCallToRetFlowFunction(CallSite, RetSite, Callees);
     CallToRetFlowFunctionCache.insert(std::make_pair(Key, FF));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Flow function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
     return FF;
   }
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Summary flow function factory call";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Stmt : " << Problem.NtoString(CallSite);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Dest Mthd : " << Problem.FtoString(DestFun);
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Summary flow function factory call");
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Call Stmt : " << Problem.NtoString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(F) Dest Mthd : " << Problem.FtoString(DestFun));
+        PHASAR_LOG_LEVEL(DEBUG, ' '));
     auto FF = Problem.getSummaryFlowFunction(CallSite, DestFun);
     return FF;
   }
@@ -338,16 +320,14 @@ public:
   EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                             d_t SuccNode) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Normal edge function factory call";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Curr Inst : " << Problem.NtoString(Curr);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Curr Node : " << Problem.DtoString(CurrNode);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Succ Inst : " << Problem.NtoString(Succ);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Succ Node : " << Problem.DtoString(SuccNode));
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Normal edge function factory call");
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Curr Inst : " << Problem.NtoString(Curr));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Curr Node : " << Problem.DtoString(CurrNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << Problem.NtoString(Succ));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Succ Node : " << Problem.DtoString(SuccNode)));
 
     EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(Curr, Succ);
     auto SearchInnerMap = NormalFunctionCache.find(OuterMapKey);
@@ -356,12 +336,9 @@ public:
           createEdgeFunctionNodeKey(CurrNode, SuccNode));
       if (SearchEdgeFunc != SearchInnerMap->second.EdgeFunctionMap.end()) {
         INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Edge function fetched from cache";
-                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Provide Edge Function: "
-                      << SearchEdgeFunc->second->str());
+        PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
+        PHASAR_LOG_LEVEL(
+            DEBUG, "Provide Edge Function: " << SearchEdgeFunc->second->str());
         return SearchEdgeFunc->second;
       }
       INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -370,11 +347,8 @@ public:
       SearchInnerMap->second.EdgeFunctionMap.insert(
           createEdgeFunctionNodeKey(CurrNode, SuccNode), EF);
 
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Edge function constructed";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Provide Edge Function: " << EF->str());
+      PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
       return EF;
     }
     INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -384,11 +358,8 @@ public:
         OuterMapKey, NormalEdgeFlowData(InnerEdgeFunctionMapType{std::make_pair(
                          createEdgeFunctionNodeKey(CurrNode, SuccNode), EF)}));
 
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Edge function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
     return EF;
   }
 
@@ -396,37 +367,32 @@ public:
                                           f_t DestinationFunction,
                                           d_t DestNode) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(
-        BOOST_LOG_SEV(lg::get(), DEBUG) << "Call edge function factory call";
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(N) Call Stmt : " << Problem.NtoString(CallSite);
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(D) Src Node  : " << Problem.DtoString(SrcNode);
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(F) Dest Fun : " << Problem.FtoString(DestinationFunction);
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(D) Dest Node : " << Problem.DtoString(DestNode));
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Call edge function factory call");
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Call Stmt : " << Problem.NtoString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Src Node  : " << Problem.DtoString(SrcNode));
+
+        PHASAR_LOG_LEVEL(
+            DEBUG, "(F) Dest Fun : " << Problem.FtoString(DestinationFunction));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Dest Node : " << Problem.DtoString(DestNode)));
     auto Key = std::tie(CallSite, SrcNode, DestinationFunction, DestNode);
     auto SearchCallEdgeFunction = CallEdgeFunctionCache.find(Key);
     if (SearchCallEdgeFunction != CallEdgeFunctionCache.end()) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Edge function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Provide Edge Function: "
-                    << SearchCallEdgeFunction->second->str());
+      PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
+      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: "
+                                  << SearchCallEdgeFunction->second->str());
       return SearchCallEdgeFunction->second;
     }
     INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     auto EF = Problem.getCallEdgeFunction(CallSite, SrcNode,
                                           DestinationFunction, DestNode);
     CallEdgeFunctionCache.insert(std::make_pair(Key, EF));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Edge function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
     return EF;
   }
 
@@ -434,42 +400,36 @@ public:
                                             n_t ExitInst, d_t ExitNode,
                                             n_t RetSite, d_t RetNode) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Return edge function factory call";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << Problem.NtoString(CallSite);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(F) Callee    : " << Problem.FtoString(CalleeFunction);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Exit Stmt : " << Problem.NtoString(ExitInst);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Exit Node : " << Problem.DtoString(ExitNode);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Ret Site  : " << Problem.NtoString(RetSite);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Ret Node  : " << Problem.DtoString(RetNode));
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Return edge function factory call");
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Call Site : " << Problem.NtoString(CallSite));
+        PHASAR_LOG_LEVEL(
+            DEBUG, "(F) Callee    : " << Problem.FtoString(CalleeFunction));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Exit Stmt : " << Problem.NtoString(ExitInst));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Exit Node : " << Problem.DtoString(ExitNode));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Ret Node  : " << Problem.DtoString(RetNode)));
     auto Key = std::tie(CallSite, CalleeFunction, ExitInst, ExitNode, RetSite,
                         RetNode);
     auto SearchReturnEdgeFunction = ReturnEdgeFunctionCache.find(Key);
     if (SearchReturnEdgeFunction != ReturnEdgeFunctionCache.end()) {
       INC_COUNTER("Return-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Edge function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Provide Edge Function: "
-                    << SearchReturnEdgeFunction->second->str());
+      PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
+      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: "
+                                  << SearchReturnEdgeFunction->second->str());
       return SearchReturnEdgeFunction->second;
     }
     INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     auto EF = Problem.getReturnEdgeFunction(CallSite, CalleeFunction, ExitInst,
                                             ExitNode, RetSite, RetNode);
     ReturnEdgeFunctionCache.insert(std::make_pair(Key, EF));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Edge function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
     return EF;
   }
 
@@ -477,20 +437,21 @@ public:
                                                n_t RetSite, d_t RetSiteNode,
                                                const std::set<f_t> &Callees) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "Call-to-Return edge function factory call";
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(N) Call Site : " << Problem.NtoString(CallSite);
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(D) Call Node : " << Problem.DtoString(CallNode);
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(N) Ret Site  : " << Problem.NtoString(RetSite);
-        BOOST_LOG_SEV(lg::get(), DEBUG)
-        << "(D) Ret Node  : " << Problem.DtoString(RetSiteNode);
-        BOOST_LOG_SEV(lg::get(), DEBUG) << "(F) Callee's  : "; for (auto callee
-                                                                    : Callees) {
-          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << Problem.FtoString(callee);
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return edge function factory call");
+
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Call Site : " << Problem.NtoString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Call Node : " << Problem.DtoString(CallNode));
+
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Ret Node  : " << Problem.DtoString(RetSiteNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
+                                                          : Callees) {
+          PHASAR_LOG_LEVEL(DEBUG, "  " << Problem.FtoString(callee));
         });
 
     EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(CallSite, RetSite);
@@ -500,12 +461,9 @@ public:
           createEdgeFunctionNodeKey(CallNode, RetSiteNode));
       if (SearchEdgeFunc != SearchInnerMap->second.end()) {
         INC_COUNTER("CallToRet-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Edge function fetched from cache";
-                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Provide Edge Function: "
-                      << SearchEdgeFunc->second->str());
+        PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
+        PHASAR_LOG_LEVEL(
+            DEBUG, "Provide Edge Function: " << SearchEdgeFunc->second->str());
         return SearchEdgeFunc->second;
       }
       INC_COUNTER("CallToRet-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -515,11 +473,8 @@ public:
       SearchInnerMap->second.insert(
           createEdgeFunctionNodeKey(CallNode, RetSiteNode), EF);
 
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Edge function constructed";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Provide Edge Function: " << EF->str());
+      PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
       return EF;
     }
 
@@ -531,150 +486,112 @@ public:
         OuterMapKey,
         InnerEdgeFunctionMapType{std::make_pair(
             createEdgeFunctionNodeKey(CallNode, RetSiteNode), EF)});
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Edge function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
     return EF;
   }
 
   EdgeFunctionPtrType getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
                                              n_t RetSite, d_t RetSiteNode) {
     PAMM_GET_INSTANCE;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Summary edge function factory call";
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Call Site : " << Problem.NtoString(CallSite);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Call Node : " << Problem.DtoString(CallNode);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(N) Ret Site  : " << Problem.NtoString(RetSite);
-                  BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "(D) Ret Node  : " << Problem.DtoString(RetSiteNode);
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Summary edge function factory call");
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Call Site : " << Problem.NtoString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Call Node : " << Problem.DtoString(CallNode));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "(D) Ret Node  : " << Problem.DtoString(RetSiteNode));
+        PHASAR_LOG_LEVEL(DEBUG, ' '));
     auto Key = std::tie(CallSite, CallNode, RetSite, RetSiteNode);
     auto SearchSummaryEdgeFunction = SummaryEdgeFunctionCache.find(Key);
     if (SearchSummaryEdgeFunction != SummaryEdgeFunctionCache.end()) {
       INC_COUNTER("Summary-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Edge function fetched from cache";
-                    BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "Provide Edge Function: "
-                    << SearchSummaryEdgeFunction->second->str());
+      PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
+      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: "
+                                  << SearchSummaryEdgeFunction->second->str());
       return SearchSummaryEdgeFunction->second;
     }
     INC_COUNTER("Summary-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     auto EF = Problem.getSummaryEdgeFunction(CallSite, CallNode, RetSite,
                                              RetSiteNode);
     SummaryEdgeFunctionCache.insert(std::make_pair(Key, EF));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Edge function constructed";
-                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
     return EF;
   }
 
   void print() {
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Full) {
       PAMM_GET_INSTANCE;
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "=== Flow-Edge-Function Cache Statistics ===");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Normal-flow function cache hits: "
-                    << GET_COUNTER("Normal-FF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Normal-flow function constructions: "
-                    << GET_COUNTER("Normal-FF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call-flow function cache hits: "
-                    << GET_COUNTER("Call-FF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call-flow function constructions: "
-                    << GET_COUNTER("Call-FF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Return-flow function cache hits: "
-                    << GET_COUNTER("Return-FF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Return-flow function constructions: "
-                    << GET_COUNTER("Return-FF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call-to-Return-flow function cache hits: "
-                    << GET_COUNTER("CallToRet-FF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call-to-Return-flow function constructions: "
-                    << GET_COUNTER("CallToRet-FF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Summary-flow function cache hits: "
-                    << GET_COUNTER("Summary-FF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Summary-flow function constructions: "
-                    << GET_COUNTER("Summary-FF Construction"));
-      LOG_IF_ENABLE(
-          BOOST_LOG_SEV(lg::get(), INFO)
-          << "Total flow function cache hits: "
-          << GET_SUM_COUNT({"Normal-FF Cache Hit", "Call-FF Cache Hit",
+      PHASAR_LOG_LEVEL(INFO, "=== Flow-Edge-Function Cache Statistics ===");
+      PHASAR_LOG_LEVEL(INFO, "Normal-flow function cache hits: "
+                                 << GET_COUNTER("Normal-FF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Normal-flow function constructions: "
+                                 << GET_COUNTER("Normal-FF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Call-flow function cache hits: "
+                                 << GET_COUNTER("Call-FF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Call-flow function constructions: "
+                                 << GET_COUNTER("Call-FF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Return-flow function cache hits: "
+                                 << GET_COUNTER("Return-FF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Return-flow function constructions: "
+                                 << GET_COUNTER("Return-FF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Call-to-Return-flow function cache hits: "
+                                 << GET_COUNTER("CallToRet-FF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Call-to-Return-flow function constructions: "
+                                 << GET_COUNTER("CallToRet-FF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Summary-flow function cache hits: "
+                                 << GET_COUNTER("Summary-FF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Summary-flow function constructions: "
+                                 << GET_COUNTER("Summary-FF Construction"));
+      PHASAR_LOG_LEVEL(INFO,
+                       "Total flow function cache hits: " << GET_SUM_COUNT(
+                           {"Normal-FF Cache Hit", "Call-FF Cache Hit",
                             "Return-FF Cache Hit", "CallToRet-FF Cache Hit"}));
       //"Summary-FF Cache Hit"});
-      LOG_IF_ENABLE(
-          BOOST_LOG_SEV(lg::get(), INFO)
-          << "Total flow function constructions: "
+      PHASAR_LOG_LEVEL(INFO, "Total flow function constructions: "
           << GET_SUM_COUNT({"Normal-FF Construction", "Call-FF Construction",
                             "Return-FF Construction",
                             "CallToRet-FF Construction" /*,
                 "Summary-FF Construction"*/}));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << ' ');
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Normal edge function cache hits: "
-                    << GET_COUNTER("Normal-EF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Normal edge function constructions: "
-                    << GET_COUNTER("Normal-EF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call edge function cache hits: "
-                    << GET_COUNTER("Call-EF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call edge function constructions: "
-                    << GET_COUNTER("Call-EF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Return edge function cache hits: "
-                    << GET_COUNTER("Return-EF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Return edge function constructions: "
-                    << GET_COUNTER("Return-EF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call-to-Return edge function cache hits: "
-                    << GET_COUNTER("CallToRet-EF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Call-to-Return edge function constructions: "
-                    << GET_COUNTER("CallToRet-EF Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Summary edge function cache hits: "
-                    << GET_COUNTER("Summary-EF Cache Hit"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "Summary edge function constructions: "
-                    << GET_COUNTER("Summary-EF Construction"));
-      LOG_IF_ENABLE(
-          BOOST_LOG_SEV(lg::get(), INFO)
-          << "Total edge function cache hits: "
-          << GET_SUM_COUNT({"Normal-EF Cache Hit", "Call-EF Cache Hit",
+      PHASAR_LOG_LEVEL(INFO, ' ');
+      PHASAR_LOG_LEVEL(INFO, "Normal edge function cache hits: "
+                                 << GET_COUNTER("Normal-EF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Normal edge function constructions: "
+                                 << GET_COUNTER("Normal-EF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Call edge function cache hits: "
+                                 << GET_COUNTER("Call-EF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Call edge function constructions: "
+                                 << GET_COUNTER("Call-EF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Return edge function cache hits: "
+                                 << GET_COUNTER("Return-EF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Return edge function constructions: "
+                                 << GET_COUNTER("Return-EF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Call-to-Return edge function cache hits: "
+                                 << GET_COUNTER("CallToRet-EF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Call-to-Return edge function constructions: "
+                                 << GET_COUNTER("CallToRet-EF Construction"));
+      PHASAR_LOG_LEVEL(INFO, "Summary edge function cache hits: "
+                                 << GET_COUNTER("Summary-EF Cache Hit"));
+      PHASAR_LOG_LEVEL(INFO, "Summary edge function constructions: "
+                                 << GET_COUNTER("Summary-EF Construction"));
+      PHASAR_LOG_LEVEL(INFO,
+                       "Total edge function cache hits: " << GET_SUM_COUNT(
+                           {"Normal-EF Cache Hit", "Call-EF Cache Hit",
                             "Return-EF Cache Hit", "CallToRet-EF Cache Hit",
                             "Summary-EF Cache Hit"}));
-      LOG_IF_ENABLE(
-          BOOST_LOG_SEV(lg::get(), INFO)
-          << "Total edge function constructions: "
-          << GET_SUM_COUNT({"Normal-EF Construction", "Call-EF Construction",
-                            "Return-EF Construction",
-                            "CallToRet-EF Construction",
-                            "Summary-EF Construction"}));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                    << "----------------------------------------------");
+      PHASAR_LOG_LEVEL(
+          INFO, "Total edge function constructions: " << GET_SUM_COUNT(
+                    {"Normal-EF Construction", "Call-EF Construction",
+                     "Return-EF Construction", "CallToRet-EF Construction",
+                     "Summary-EF Construction"}));
+      PHASAR_LOG_LEVEL(INFO, "----------------------------------------------");
     } else {
-      LOG_IF_ENABLE(
-          BOOST_LOG_SEV(lg::get(), INFO)
-          << "Cache statistics only recorded on PAMM severity level: Full.");
+      PHASAR_LOG_LEVEL(
+          INFO, "Cache statistics only recorded on PAMM severity level: Full.");
     }
   }
 
