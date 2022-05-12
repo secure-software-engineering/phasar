@@ -64,9 +64,7 @@ protected:
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), *TSF, EntryPoints);
   }
 
-  void SetUp() override {
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 

@@ -45,9 +45,7 @@ class LLVMBasedICFGGlobCtorDtorTest : public ::testing::Test {
 protected:
   const std::string PathToLLFiles = unittest::PathToLLTestFiles + "globals/";
 
-  void SetUp() override {
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void ensureFunctionOrdering(
       llvm::Function *F, LLVMBasedICFG &ICFG,

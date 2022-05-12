@@ -171,7 +171,7 @@ InterMonoTaintAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "InterMonoTaintAnalysis::initialSeeds()");
   const llvm::Function *Main = ICF->getFunction("main");
   std::unordered_map<InterMonoTaintAnalysis::n_t,
-                InterMonoTaintAnalysis::mono_container_t>
+                     InterMonoTaintAnalysis::mono_container_t>
       Seeds;
   InterMonoTaintAnalysis::mono_container_t Facts;
   for (unsigned Idx = 0; Idx < Main->arg_size(); ++Idx) {

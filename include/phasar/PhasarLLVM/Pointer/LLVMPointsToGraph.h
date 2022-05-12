@@ -10,9 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 
+#include <ostream>
 #include <unordered_map>
 #include <unordered_set>
-#include <ostream>
 #include <vector>
 
 #include "boost/graph/adjacency_list.hpp"

@@ -62,9 +62,7 @@ protected:
                                                   *CSTDFILEIODesc, EntryPoints);
   }
 
-  void SetUp() override {
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 
