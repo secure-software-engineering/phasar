@@ -76,25 +76,30 @@ void Logger::initializeStderrLogger(
   } else {
     LevelsToStreamVariant[Level] = Filename.str();
   }
-  if (LogfileStreams[Filename] == nullptr) {
-    std::error_code EC;
+
+  std::error_code EC;
+  auto [It, Inserted] = [&] {
     if (Append) {
-      LogfileStreams[Filename] = std::make_unique<llvm::raw_fd_ostream>(
-          Filename, EC,
+      return LogfileStreams.try_emplace(
+          Filename, Filename, EC,
           llvm::sys::fs::OpenFlags::OF_Append |
               llvm::sys::fs::OpenFlags::OF_ChildInherit);
-    } else {
-      LogfileStreams[Filename] = std::make_unique<llvm::raw_fd_ostream>(
-          Filename, EC, llvm::sys::fs::OpenFlags::OF_ChildInherit);
     }
-    // Following
-    // https://stackoverflow.com/questions/41699343/how-do-i-test-that-an-stderror-code-is-not-an-error
-    if (EC) {
-      LogfileStreams[Filename] = nullptr;
-      llvm::errs() << "Failed to open logfile: " << Filename << '\n';
-      llvm::errs() << EC.message() << '\n';
-      return false;
-    }
+
+    return LogfileStreams.try_emplace(
+        Filename, Filename, EC, llvm::sys::fs::OpenFlags::OF_ChildInherit);
+  }();
+
+  if (!Inserted) {
+    return true;
+  }
+
+  if (EC) {
+    LogfileStreams.erase(Filename);
+    llvm::errs() << "Failed to open logfile: " << Filename << '\n';
+    llvm::errs() << EC.message() << '\n';
+    return false;
+  }
   }
   return true;
 }
