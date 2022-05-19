@@ -51,7 +51,7 @@ private:
 } // namespace nlohmann::detail
 
 namespace psr {
-llvm::raw_ostream &operator<<(llvm::raw_ostream &o, const nlohmann::json &J);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const nlohmann::json &J);
 };
 
 #endif /* PHASAR_UTILS_NLOHMANNLOGGING_H */
