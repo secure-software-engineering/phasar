@@ -156,7 +156,9 @@ llvm::raw_ostream &Logger::getLogStreamFromStreamVariant(
     }
     return llvm::nulls();
   }
-  return *LogfileStreams[std::get<std::string>(StreamVariant)];
+  auto It = LogfileStreams.find(std::get<std::string>(StreamVariant));
+  assert(It != LogfileStreams.end());
+  return It->second;
 }
 
 bool Logger::logCategory(const llvm::StringRef &Category,
