@@ -121,8 +121,7 @@ Logger::getLogStream(std::optional<SeverityLevel> Level,
     std::optional<SeverityLevel> ClosestLevel = std::nullopt;
     for (const auto &[LevelThreshold, _] : PassedLevelsToStreamVariant) {
       if (LevelThreshold <= Level.value()) {
-        if (ClosestLevel == std::nullopt ||
-            ClosestLevel.value() < LevelThreshold) {
+        if (!ClosestLevel || ClosestLevel.value() < LevelThreshold) {
           ClosestLevel = LevelThreshold;
         }
       }
@@ -193,7 +192,18 @@ void Logger::addLinePrefix(llvm::raw_ostream &OS,
   OS << ' ';
 }
 
-void initializeLogger(bool UseLogger, const std::string &LogFile) {}
+void initializeLogger(bool UseLogger, const std::string &LogFile) {
+  if (!UseLogger) {
+    Logger::disable();
+    return;
+  }
+  if (LogFile == "") {
+    Logger::initializeStderrLogger(Logger::getLoggerFilterLevel());
+  } else {
+    std::ignore =
+        Logger::initializeFileLogger(LogFile, Logger::getLoggerFilterLevel());
+  }
+}
 
 void Logger::enable() { LoggingEnabled = true; }
 
