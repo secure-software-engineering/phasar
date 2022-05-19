@@ -12,8 +12,9 @@
 
 #include <map>
 #include <memory>
-#include <ostream>
 #include <type_traits>
+
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
 

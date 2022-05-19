@@ -17,18 +17,15 @@
 #ifndef PHASAR_UTILS_LOGGER_H_
 #define PHASAR_UTILS_LOGGER_H_
 
-#include <chrono>
-#include <iosfwd>
+#include <map>
 #include <optional>
 #include <string>
 #include <type_traits>
 #include <variant>
 
 #include "llvm/ADT/StringMap.h"
-#include "llvm/IR/Value.h"
 #include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace psr {
@@ -59,27 +56,27 @@ public:
   static void disable();
 
   static llvm::raw_ostream &
-  getLogStream(const std::optional<SeverityLevel> &Level,
+  getLogStream(std::optional<SeverityLevel> Level,
                const std::optional<llvm::StringRef> &Category);
 
   static bool logCategory(const llvm::StringRef &Category,
-                          const std::optional<SeverityLevel> &Level);
+                          std::optional<SeverityLevel> Level);
 
   static void addLinePrefix(llvm::raw_ostream &,
-                            const std::optional<SeverityLevel> &Level,
+                            std::optional<SeverityLevel> Level,
                             const std::optional<std::string> &Category);
 
   static void initializeStdoutLogger(
-      const std::optional<SeverityLevel> &Level = std::nullopt,
+      std::optional<SeverityLevel> Level = std::nullopt,
       const std::optional<std::string> &Category = std::nullopt);
 
   static void initializeStderrLogger(
-      const std::optional<SeverityLevel> &Level = std::nullopt,
+      std::optional<SeverityLevel> Level = std::nullopt,
       const std::optional<std::string> &Category = std::nullopt);
 
   [[nodiscard]] static bool initializeFileLogger(
       const llvm::StringRef &Filename,
-      const std::optional<SeverityLevel> &Level = std::nullopt,
+      std::optional<SeverityLevel> Level = std::nullopt,
       const std::optional<std::string> &Category = std::nullopt,
       bool Append = false);
 
@@ -93,19 +90,18 @@ private:
                          std::variant<StdStream, std::string>>
       LevelsToStreamVariant;
   static inline SeverityLevel LogFilterLevel = DEBUG;
+  static std::string toString(SeverityLevel Level);
   static inline llvm::StringMap<std::unique_ptr<llvm::raw_fd_ostream>>
       LogfileStreams;
   // static inline auto StartTime = std::chrono::steady_clock::now();
   [[nodiscard]] static llvm::raw_ostream &
-  getLogStream(const std::optional<SeverityLevel> &Level,
+  getLogStream(std::optional<SeverityLevel> Level,
                const std::map<std::optional<SeverityLevel>,
                               std::variant<StdStream, std::string>>
                    &PassedLevelsToStreamVariant);
   [[nodiscard]] static llvm::raw_ostream &getLogStreamFromStreamVariant(
       const std::variant<StdStream, std::string> &StreamVariant);
 };
-
-std::string toString(const SeverityLevel &Level);
 
 #ifdef DYNAMIC_LOG
 

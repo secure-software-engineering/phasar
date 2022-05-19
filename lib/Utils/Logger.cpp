@@ -19,14 +19,6 @@
 #include <exception>
 #include <fstream>
 
-#include "boost/algorithm/string.hpp"
-#include "boost/core/null_deleter.hpp"
-#include "boost/log/attributes.hpp"
-#include "boost/log/attributes/named_scope.hpp"
-#include "boost/log/attributes/timer.hpp"
-#include "boost/log/utility/exception_handler.hpp"
-#include "boost/shared_ptr.hpp"
-
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/FileSystem.h"
 
@@ -34,9 +26,7 @@
 
 namespace psr {
 
-// SeverityLevel LogFilterLevel = DEBUG; // NOLINT
-
-std::string toString(const SeverityLevel &Level) {
+std::string Logger::toString(SeverityLevel Level) {
   switch (Level) {
   default:
 #define SEVERITY_LEVEL(NAME, TYPE)                                             \
@@ -56,7 +46,7 @@ SeverityLevel Logger::getLoggerFilterLevel() { return LogFilterLevel; }
 bool Logger::isLoggingEnabled() { return LoggingEnabled; }
 
 void Logger::initializeStdoutLogger(
-    const std::optional<SeverityLevel> &Level,
+    std::optional<SeverityLevel> Level,
     const std::optional<std::string> &Category) {
   LoggingEnabled = true;
   if (Category.has_value()) {
@@ -67,7 +57,7 @@ void Logger::initializeStdoutLogger(
 }
 
 void Logger::initializeStderrLogger(
-    const std::optional<SeverityLevel> &Level,
+    std::optional<SeverityLevel> Level,
     const std::optional<std::string> &Category) {
   LoggingEnabled = true;
   if (Category.has_value()) {
@@ -78,7 +68,7 @@ void Logger::initializeStderrLogger(
 }
 
 [[nodiscard]] bool Logger::initializeFileLogger(
-    const llvm::StringRef &Filename, const std::optional<SeverityLevel> &Level,
+    const llvm::StringRef &Filename, std::optional<SeverityLevel> Level,
     const std::optional<std::string> &Category, bool Append) {
   LoggingEnabled = true;
   if (Category.has_value()) {
@@ -110,7 +100,7 @@ void Logger::initializeStderrLogger(
 }
 
 llvm::raw_ostream &
-Logger::getLogStream(const std::optional<SeverityLevel> &Level,
+Logger::getLogStream(std::optional<SeverityLevel> Level,
                      const std::optional<llvm::StringRef> &Category) {
   if (Category.has_value()) {
     auto CategoryLookupIt = CategoriesToStreamVariant.find(Category.value());
@@ -123,7 +113,7 @@ Logger::getLogStream(const std::optional<SeverityLevel> &Level,
 }
 
 llvm::raw_ostream &
-Logger::getLogStream(const std::optional<SeverityLevel> &Level,
+Logger::getLogStream(std::optional<SeverityLevel> Level,
                      const std::map<std::optional<SeverityLevel>,
                                     std::variant<StdStream, std::string>>
                          &PassedLevelsToStreamVariant) {
@@ -166,7 +156,7 @@ llvm::raw_ostream &Logger::getLogStreamFromStreamVariant(
 }
 
 bool Logger::logCategory(const llvm::StringRef &Category,
-                         const std::optional<SeverityLevel> &Level) {
+                         std::optional<SeverityLevel> Level) {
   auto CategoryLookupIt = CategoriesToStreamVariant.find(Category);
   if (CategoryLookupIt == CategoriesToStreamVariant.end()) {
     return false;
@@ -183,7 +173,7 @@ bool Logger::logCategory(const llvm::StringRef &Category,
 }
 
 void Logger::addLinePrefix(llvm::raw_ostream &OS,
-                           const std::optional<SeverityLevel> &Level,
+                           std::optional<SeverityLevel> Level,
                            const std::optional<std::string> &Category) {
   // const auto NowTime = std::chrono::steady_clock::now();
   // const auto MillisecondsDuration =
