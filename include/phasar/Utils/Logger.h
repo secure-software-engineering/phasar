@@ -55,7 +55,7 @@ public:
   getLogStream(std::optional<SeverityLevel> Level,
                const std::optional<llvm::StringRef> &Category);
 
-  static bool logCategory(const llvm::StringRef &Category,
+  static bool logCategory(llvm::StringRef Category,
                           std::optional<SeverityLevel> Level);
 
   static void addLinePrefix(llvm::raw_ostream &,
@@ -71,7 +71,7 @@ public:
       const std::optional<std::string> &Category = std::nullopt);
 
   [[nodiscard]] static bool initializeFileLogger(
-      const llvm::StringRef &Filename,
+      llvm::StringRef Filename,
       std::optional<SeverityLevel> Level = std::nullopt,
       const std::optional<std::string> &Category = std::nullopt,
       bool Append = false);

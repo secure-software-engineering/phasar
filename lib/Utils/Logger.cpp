@@ -68,7 +68,7 @@ void Logger::initializeStderrLogger(
 }
 
 [[nodiscard]] bool Logger::initializeFileLogger(
-    const llvm::StringRef &Filename, std::optional<SeverityLevel> Level,
+    llvm::StringRef Filename, std::optional<SeverityLevel> Level,
     const std::optional<std::string> &Category, bool Append) {
   LoggingEnabled = true;
   if (Category.has_value()) {
@@ -99,7 +99,6 @@ void Logger::initializeStderrLogger(
     llvm::errs() << "Failed to open logfile: " << Filename << '\n';
     llvm::errs() << EC.message() << '\n';
     return false;
-  }
   }
   return true;
 }
@@ -161,7 +160,7 @@ llvm::raw_ostream &Logger::getLogStreamFromStreamVariant(
   return It->second;
 }
 
-bool Logger::logCategory(const llvm::StringRef &Category,
+bool Logger::logCategory(llvm::StringRef Category,
                          std::optional<SeverityLevel> Level) {
   auto CategoryLookupIt = CategoriesToStreamVariant.find(Category);
   if (CategoryLookupIt == CategoriesToStreamVariant.end()) {
