@@ -79,9 +79,7 @@ protected:
     Llvmtssolver->solve();
   }
 
-  void SetUp() override {
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void TearDown() override {}
 
