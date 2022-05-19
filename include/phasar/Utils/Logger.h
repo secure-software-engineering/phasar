@@ -87,8 +87,7 @@ private:
       LevelsToStreamVariant;
   static inline SeverityLevel LogFilterLevel = DEBUG;
   static std::string toString(SeverityLevel Level);
-  static inline llvm::StringMap<std::unique_ptr<llvm::raw_fd_ostream>>
-      LogfileStreams;
+  static inline llvm::StringMap<llvm::raw_fd_ostream> LogfileStreams;
   // static inline auto StartTime = std::chrono::steady_clock::now();
   [[nodiscard]] static llvm::raw_ostream &
   getLogStream(std::optional<SeverityLevel> Level,
