@@ -10,6 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFACT_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFACT_H_
 
+
+namespace llvm {
+  class raw_ostream;
+} // namespace llvm
+
 namespace psr {
 
 /// A common superclass of edge-facts used by non-template IDETabulationProblems
