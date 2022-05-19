@@ -42,7 +42,7 @@ public:
     OS << llvmIRToString(Fact);
   }
   void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {
-    OS << Fun->getName().str();
+    OS << Fun->getName();
   }
 };
 

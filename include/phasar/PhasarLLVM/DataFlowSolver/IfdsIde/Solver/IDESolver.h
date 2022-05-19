@@ -472,7 +472,7 @@ protected:
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Possible callees:"); for (auto Callee
                                                            : Callees) {
-          PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName().str());
+          PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName());
         } PHASAR_LOG_LEVEL(DEBUG, "Possible return sites:");
         for (auto ret
              : ReturnSiteNs) {
@@ -755,8 +755,8 @@ protected:
 
   void setVal(n_t NHashN, d_t NHashD, l_t L) {
     IF_LOG_ENABLED([&]() {
-      PHASAR_LOG_LEVEL(
-          DEBUG, "Function : " << ICF->getFunctionOf(NHashN)->getName().str());
+      PHASAR_LOG_LEVEL(DEBUG,
+                       "Function : " << ICF->getFunctionOf(NHashN)->getName());
       PHASAR_LOG_LEVEL(DEBUG, "Inst.    : " << IDEProblem.NtoString(NHashN));
       PHASAR_LOG_LEVEL(DEBUG, "Fact     : " << IDEProblem.DtoString(NHashD));
       PHASAR_LOG_LEVEL(DEBUG, "Value    : " << IDEProblem.LtoString(L));
@@ -1289,9 +1289,8 @@ protected:
 
       IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
         PHASAR_LOG_LEVEL(
-            DEBUG, "EDGE: <F: " << Target->getFunction()->getName().str()
-                                << ", D: " << IDEProblem.DtoString(SourceVal)
-                                << '>');
+            DEBUG, "EDGE: <F: " << Target->getFunction()->getName() << ", D: "
+                                << IDEProblem.DtoString(SourceVal) << '>');
         PHASAR_LOG_LEVEL(DEBUG,
                          " ---> <N: " << IDEProblem.NtoString(Target) << ',');
         PHASAR_LOG_LEVEL(DEBUG, "       D: " << IDEProblem.DtoString(TargetVal)

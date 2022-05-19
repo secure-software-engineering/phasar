@@ -110,7 +110,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
       llvm::isa<llvm::InvokeInst>(CallSite)) {
     // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
     PHASAR_LOG_LEVEL(DEBUG, "Call statement: " << llvmIRToString(CallSite));
-    PHASAR_LOG_LEVEL(DEBUG, "Destination method: " << DestFun->getName().str());
+    PHASAR_LOG_LEVEL(DEBUG, "Destination method: " << DestFun->getName());
     return make_shared<MapFactsToCallee<>>(
         llvm::cast<llvm::CallBase>(CallSite), DestFun,
         [](IFDSConstAnalysis::d_t Actual) {
@@ -210,7 +210,7 @@ void IFDSConstAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IFDSConstAnalysis::printFunction(llvm::raw_ostream &OS,
                                       IFDSConstAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void IFDSConstAnalysis::printInitMemoryLocations() {

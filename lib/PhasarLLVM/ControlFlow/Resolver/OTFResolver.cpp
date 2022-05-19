@@ -55,7 +55,7 @@ void OTFResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
   // information to simulate inter-procedural points-to information
   if (!PT.isInterProcedural()) {
     for (const auto *CalleeTarget : CalleeTargets) {
-      PHASAR_LOG_LEVEL(DEBUG, "Target name: " << CalleeTarget->getName().str());
+      PHASAR_LOG_LEVEL(DEBUG, "Target name: " << CalleeTarget->getName());
       // do the merge of the points-to information for all possible targets, but
       // only if they are available
       if (CalleeTarget->isDeclaration()) {

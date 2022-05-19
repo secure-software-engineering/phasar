@@ -100,7 +100,7 @@ void IFDSSolverTest::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IFDSSolverTest::printFunction(llvm::raw_ostream &OS,
                                    IFDSSolverTest::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

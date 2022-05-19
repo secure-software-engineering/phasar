@@ -151,7 +151,7 @@ void WPDSSolverTest::printDataFlowFact(llvm::raw_ostream &OS,
 
 void WPDSSolverTest::printFunction(llvm::raw_ostream &OS,
                                    WPDSSolverTest::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void WPDSSolverTest::printEdgeFact(llvm::raw_ostream &OS,

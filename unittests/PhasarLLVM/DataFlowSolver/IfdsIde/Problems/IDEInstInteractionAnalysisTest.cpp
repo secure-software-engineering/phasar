@@ -141,7 +141,6 @@ protected:
 // // IDEInstInteractionAnalysisT<int>
 // TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
 //   bool printDump = false;
-//   boost::log::core::get()->set_logging_enabled(false);
 //   ProjectIRDB IRDB(
 //       {PhasarConfig::getPhasarConfig().PhasarDirectory() +
 //        "build/test/llvm_test_code/inst_interaction/basic_01_cpp.ll"},

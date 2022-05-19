@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_NLOHMANNLOGGING_H
 
 #include "llvm/Support/FormatVariadic.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
@@ -18,8 +19,7 @@ namespace llvm {
 class raw_ostream;
 }
 
-namespace nlohmann {
-namespace detail {
+namespace nlohmann::detail {
 template <typename CharType>
 class llvm_output_stream_adapter : public output_adapter_protocol<CharType> {
 public:
@@ -49,8 +49,7 @@ public:
 private:
   output_adapter_t<CharType> oa = nullptr;
 };
-} // namespace detail
-} // namespace nlohmann
+} // namespace nlohmann::detail
 
 namespace psr {
 llvm::raw_ostream &operator<<(llvm::raw_ostream &o, const nlohmann::json &J);

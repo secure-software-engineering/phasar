@@ -510,7 +510,7 @@ void IDEGeneralizedLCA::printDataFlowFact(llvm::raw_ostream &Os,
 
 void IDEGeneralizedLCA::printFunction(llvm::raw_ostream &Os,
                                       IDEGeneralizedLCA::f_t Func) const {
-  Os << Func->getName().str();
+  Os << Func->getName();
 }
 
 void IDEGeneralizedLCA::printEdgeFact(llvm::raw_ostream &Os,

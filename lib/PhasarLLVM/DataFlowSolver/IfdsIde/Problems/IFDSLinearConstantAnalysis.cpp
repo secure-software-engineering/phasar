@@ -132,7 +132,7 @@ void IFDSLinearConstantAnalysis::printDataFlowFact(
 
 void IFDSLinearConstantAnalysis::printFunction(
     llvm::raw_ostream &OS, IFDSLinearConstantAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

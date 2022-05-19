@@ -31,7 +31,7 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
 
     if (IsConditionTainted) {
       const auto *const StartBasicBlock = CurrentInst->getParent();
-      const auto StartBasicBlockLabel = StartBasicBlock->getName().str();
+      const auto StartBasicBlockLabel = StartBasicBlock->getName();
 
       LOG_DEBUG("Searching end of block label for: " << StartBasicBlockLabel);
 

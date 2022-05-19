@@ -106,7 +106,7 @@ void IFDSProtoAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IFDSProtoAnalysis::printFunction(llvm::raw_ostream &OS,
                                       IFDSProtoAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

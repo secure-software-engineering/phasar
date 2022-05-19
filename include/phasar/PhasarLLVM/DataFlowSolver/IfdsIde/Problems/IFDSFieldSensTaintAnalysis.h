@@ -117,7 +117,7 @@ public:
 
   void printFunction(llvm::raw_ostream &OS,
                      const llvm::Function *Func) const override {
-    OS << Func->getName().str();
+    OS << Func->getName();
   }
 
 private:

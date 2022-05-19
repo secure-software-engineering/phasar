@@ -19,15 +19,13 @@
 #include <memory>
 #include <ostream>
 
-#include "boost/core/demangle.hpp"
-#include "boost/log/sources/record_ostream.hpp"
-
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 #include "boost/graph/transitive_closure.hpp"
 #include "boost/property_map/dynamic_property_map.hpp"
 
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -124,12 +122,12 @@ std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
 }
 
 bool LLVMTypeHierarchy::isTypeInfo(const std::string &VarName) {
-  auto Demang = boost::core::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName.c_str());
   return llvm::StringRef(Demang).startswith(TypeInfoPrefixDemang);
 }
 
 bool LLVMTypeHierarchy::isVTable(const std::string &VarName) {
-  auto Demang = boost::core::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName.c_str());
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
 
@@ -176,8 +174,8 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
-                auto ClearName = removeTypeInfoPrefix(
-                    boost::core::demangle(Name.str().c_str()));
+                auto ClearName =
+                    removeTypeInfoPrefix(llvm::demangle(Name.str().c_str()));
                 if (const auto *Type = ClearNameTypeMap[ClearName]) {
                   SubTypes.push_back(Type);
                 }
@@ -224,12 +222,12 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
   for (const auto &Global : M.globals()) {
     if (Global.hasName()) {
       if (isTypeInfo(Global.getName().str())) {
-        auto Demang = boost::core::demangle(Global.getName().str().c_str());
+        auto Demang = llvm::demangle(Global.getName().str());
         auto ClearName = removeTypeInfoPrefix(Demang);
         ClearNameTIMap[ClearName] = &Global;
       }
       if (isVTable(Global.getName().str())) {
-        auto Demang = boost::core::demangle(Global.getName().str().c_str());
+        auto Demang = llvm::demangle(Global.getName().str());
         auto ClearName = removeVTablePrefix(Demang);
         ClearNameTVMap[ClearName] = &Global;
       }
@@ -324,9 +322,9 @@ void LLVMTypeHierarchy::print(llvm::raw_ostream &OS) const {
   }
   OS << "VFTables:\n";
   for (const auto &[Ty, VFT] : TypeVFTMap) {
-    OS << "Virtual function table for: " << Ty->getName().str() << '\n';
+    OS << "Virtual function table for: " << Ty->getName() << '\n';
     for (const auto *F : VFT) {
-      OS << "\t-" << F->getName().str() << '\n';
+      OS << "\t-" << F->getName() << '\n';
     }
   }
 }

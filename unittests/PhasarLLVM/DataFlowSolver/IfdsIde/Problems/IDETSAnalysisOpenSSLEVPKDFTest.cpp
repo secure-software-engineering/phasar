@@ -80,7 +80,6 @@ protected:
   }
 
   void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
     ValueAnnotationPass::resetValueID();
   }
 

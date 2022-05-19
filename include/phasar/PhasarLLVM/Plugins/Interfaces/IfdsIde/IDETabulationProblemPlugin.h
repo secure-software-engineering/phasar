@@ -73,7 +73,7 @@ public:
 
   void printFunction(llvm::raw_ostream &OS,
                      const llvm::Function *Func) const override {
-    OS << Func->getName().str();
+    OS << Func->getName();
   }
 
   void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override {

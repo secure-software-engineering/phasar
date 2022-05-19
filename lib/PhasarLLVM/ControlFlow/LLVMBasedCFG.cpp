@@ -165,7 +165,7 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
     return {EntryInst};
   }
   PHASAR_LOG_LEVEL(DEBUG, "Could not get starting points of '"
-                              << Fun->getName().str()
+                              << Fun->getName()
                               << "' because it is a declaration");
   return {};
 }
@@ -188,7 +188,7 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
     return ExitPoints;
   }
   PHASAR_LOG_LEVEL(DEBUG, "Could not get exit points of '"
-                              << Fun->getName().str()
+                              << Fun->getName()
                               << "' which is declaration!");
   return {};
 }

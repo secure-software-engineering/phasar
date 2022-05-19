@@ -156,7 +156,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   // manually
   IF_LOG_ENABLED(
       PHASAR_LOG_LEVEL(INFO, "GeneralStatisticsAnalysis summary for module: '"
-                                 << M.getName().str() << "'");
+                                 << M.getName() << "'");
       PHASAR_LOG_LEVEL(INFO, "Instructions       : " << Stats.Instructions);
       PHASAR_LOG_LEVEL(INFO,
                        "Allocated Types    : " << Stats.AllocatedTypes.size());

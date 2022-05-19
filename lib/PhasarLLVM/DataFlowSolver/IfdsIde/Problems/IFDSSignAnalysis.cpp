@@ -98,7 +98,7 @@ void IFDSSignAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IFDSSignAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IFDSSignAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

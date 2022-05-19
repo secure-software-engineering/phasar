@@ -282,7 +282,7 @@ void ProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS,
     OS << '\n';
     for (const auto *F : getAllFunctions()) {
       if (!F->isDeclaration() && Module->getFunction(F->getName())) {
-        OS << F->getName().str() << " {\n";
+        OS << F->getName() << " {\n";
         for (const auto &BB : *F) {
           // do not print the label of the first BB
           if (BB.getPrevNode()) {

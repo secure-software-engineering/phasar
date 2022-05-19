@@ -781,7 +781,7 @@ void IDEExtendedTaintAnalysis::printEdgeFact(llvm::raw_ostream &OS,
 
 void IDEExtendedTaintAnalysis::printFunction(llvm::raw_ostream &OS,
                                              f_t Fun) const {
-  OS << (Fun && Fun->hasName() ? Fun->getName().str() : "<anon>");
+  OS << (Fun && Fun->hasName() ? Fun->getName() : "<anon>");
 }
 
 void IDEExtendedTaintAnalysis::emitTextReport(

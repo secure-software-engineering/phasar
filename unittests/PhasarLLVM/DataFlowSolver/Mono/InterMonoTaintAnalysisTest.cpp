@@ -327,7 +327,6 @@ TEST(InterMonoTaintAnalysisTestNF, TaintTest_05) {
 //  * segmentation fault
 //  **********************************************************
 // TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
-//   // boost::log::core::get()->set_logging_enabled(true);
 //   auto Leaks = doAnalysis("virtual_calls_cpp.ll");
 //   // 20 => {19};
 //   std::map<int, std::set<std::string>> GroundTruth;

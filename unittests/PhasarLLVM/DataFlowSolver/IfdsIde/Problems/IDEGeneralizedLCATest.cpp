@@ -166,7 +166,6 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
-  // bl::core::get()->set_logging_enabled(true);
   initialize("Imprecision_c.ll", 2);
   //   auto xInst = IRDB->getInstruction(0); // foo.x
   //   auto yInst = IRDB->getInstruction(1); // foo.y

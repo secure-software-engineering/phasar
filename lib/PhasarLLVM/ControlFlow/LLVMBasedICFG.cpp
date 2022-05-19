@@ -222,10 +222,10 @@ LLVMBasedICFG::~LLVMBasedICFG() {
 
 void LLVMBasedICFG::processFunction(const llvm::Function *F, Resolver &Resolver,
                                     bool &FixpointReached) {
-  PHASAR_LOG_LEVEL(DEBUG, "Walking in function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Walking in function: " << F->getName());
   if (F->isDeclaration() || !VisitedFunctions.insert(F).second) {
     PHASAR_LOG_LEVEL(DEBUG, "Function already visited or only declaration: "
-                                << F->getName().str());
+                                << F->getName());
     return;
   }
 
@@ -318,7 +318,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
   } else {
     PHASAR_LOG_LEVEL(
         ERROR, "constructDynamicCall: Did not find vertex of calling function "
-                   << I->getFunction()->getName().str() << " at callsite "
+                   << I->getFunction()->getName() << " at callsite "
                    << llvmIRToString(I));
     std::terminate();
   }
@@ -923,8 +923,8 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
 void LLVMBasedICFG::collectRegisteredDtors() {
 
   for (auto *Mod : IRDB.getAllModules()) {
-    PHASAR_LOG_LEVEL(DEBUG, "Collect Registered Dtors for Module "
-                                << Mod->getName().str());
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Collect Registered Dtors for Module " << Mod->getName());
 
     auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
 

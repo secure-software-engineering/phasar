@@ -88,11 +88,11 @@ IFDSSimpleTaintAnalysis::FlowFunctionPtrType
 IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallSite,
                                              const llvm::Function *DestFun) {
   if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
-    if (DestFun->getName().str() == "taint") {
+    if (DestFun->getName() == "taint") {
       return make_shared<Gen<const FlowFact *>>(
           FFManager.getOrCreateFlowFact(Call), getZeroValue());
     }
-    if (DestFun->getName().str() == "leak") {
+    if (DestFun->getName() == "leak") {
     } else {
     }
   }

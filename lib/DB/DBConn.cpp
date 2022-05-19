@@ -390,7 +390,7 @@ bool DBConn::insertGlobalVariable(const llvm::GlobalVariable &G,
           "INSERT INTO global_variable "
           "(global_variable_id,identifier,declaration) VALUES (?,?,?)"));
       gpstmt->setInt(1, newGlobalID);
-      gpstmt->setString(2, G.getName().str());
+      gpstmt->setString(2, G.getName());
       gpstmt->setBoolean(3, G.isDeclaration());
       gpstmt->executeUpdate();
       newGlobVar = true;
@@ -427,7 +427,7 @@ bool DBConn::insertGlobalVariable(const llvm::GlobalVariable &G,
 
 bool DBConn::insertFunction(const llvm::Function &F, const unsigned moduleID) {
   try {
-    set<int> functionIDs = getFunctionID(F.getName().str());
+    set<int> functionIDs = getFunctionID(F.getName());
     int newFunctionID = getNextAvailableID("function");
     int matchingFID = -1;
     bool newFunc = true;
@@ -448,7 +448,7 @@ bool DBConn::insertFunction(const llvm::Function &F, const unsigned moduleID) {
           "INSERT INTO function (function_id,identifier,declaration,hash) "
           "VALUES (?,?,?,?)"));
       fpstmt->setInt(1, newFunctionID);
-      fpstmt->setString(2, F.getName().str());
+      fpstmt->setString(2, F.getName());
       fpstmt->setBoolean(3, F.isDeclaration());
       fpstmt->setString(4, to_string(hash_value));
       fpstmt->executeUpdate();
@@ -473,14 +473,14 @@ bool DBConn::insertFunction(const llvm::Function &F, const unsigned moduleID) {
 bool DBConn::insertType(const llvm::StructType &ST, const unsigned moduleID) {
   try {
     int newTypeID = getNextAvailableID("type");
-    int typeID = getTypeID(ST.getName().str());
+    int typeID = getTypeID(ST.getName());
     bool newType = false;
     // Do not write duplicate types
     if (typeID == -1) {
       unique_ptr<sql::PreparedStatement> stpstmt(conn->prepareStatement(
           "INSERT INTO type (type_id, identifier) VALUES (?,?)"));
       stpstmt->setInt(1, newTypeID);
-      stpstmt->setString(2, ST.getName().str());
+      stpstmt->setString(2, ST.getName());
       stpstmt->executeUpdate();
       newType = true;
     }
@@ -786,7 +786,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //         for (auto User: GV->users()) {
   //           if (const llvm::Instruction *I =
   //           llvm::dyn_cast<llvm::Instruction>(User)) {
-  //             string user_full_fname = I->getFunction()->getName().str();
+  //             string user_full_fname = I->getFunction()->getName();
   //             string user_fname = user_full_fname.substr(0,
   //             user_full_fname.find("."));
   //             cout << "GV user: " << user_fname << '\n';

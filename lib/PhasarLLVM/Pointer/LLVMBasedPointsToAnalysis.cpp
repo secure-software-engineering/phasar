@@ -210,7 +210,7 @@ void LLVMBasedPointsToAnalysis::print(llvm::raw_ostream &OS) const {
     if (PrintAll || PrintNoAlias || PrintMayAlias || PrintPartialAlias ||
         PrintMustAlias || PrintNoModRef || PrintMod || PrintRef ||
         PrintModRef) {
-      OS << "Function: " << Fn->getName().str() << ": " << Pointers.size()
+      OS << "Function: " << Fn->getName() << ": " << Pointers.size()
          << " pointers, " << Calls.size() << " call sites\n";
     }
 

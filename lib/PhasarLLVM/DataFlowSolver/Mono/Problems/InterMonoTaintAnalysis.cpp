@@ -137,7 +137,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   //-----------------------------------------------------------------------------
   for (const auto *Callee : Callees) {
     PHASAR_LOG_LEVEL(DEBUG, "InterMonoTaintAnalysis::callToRetFlow()::"
-                                << Callee->getName().str());
+                                << Callee->getName());
 
     collectGeneratedFacts(Gen, Config, CS, Callee);
     collectLeakedFacts(Leaks[CS], Config, CS, Callee,
@@ -193,7 +193,7 @@ void InterMonoTaintAnalysis::printDataFlowFact(
 
 void InterMonoTaintAnalysis::printFunction(llvm::raw_ostream &OS,
                                            const llvm::Function *Fun) const {
-  OS << Fun->getName().str();
+  OS << Fun->getName();
 }
 const std::map<InterMonoTaintAnalysis::n_t,
                std::set<InterMonoTaintAnalysis::d_t>> &

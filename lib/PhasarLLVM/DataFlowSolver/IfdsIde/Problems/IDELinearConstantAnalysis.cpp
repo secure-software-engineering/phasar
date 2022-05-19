@@ -763,7 +763,7 @@ void IDELinearConstantAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IDELinearConstantAnalysis::printFunction(llvm::raw_ostream &OS,
                                               f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void IDELinearConstantAnalysis::printEdgeFact(llvm::raw_ostream &OS,

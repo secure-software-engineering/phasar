@@ -332,7 +332,7 @@ void IFDSTaintAnalysis::printDataFlowFact(
 
 void IFDSTaintAnalysis::printFunction(llvm::raw_ostream &Os,
                                       IFDSTaintAnalysis::f_t Fun) const {
-  Os << Fun->getName().str();
+  Os << Fun->getName();
 }
 
 void IFDSTaintAnalysis::emitTextReport(

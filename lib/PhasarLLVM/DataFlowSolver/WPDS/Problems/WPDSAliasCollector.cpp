@@ -144,7 +144,7 @@ void WPDSAliasCollector::printDataFlowFact(llvm::raw_ostream &OS,
 
 void WPDSAliasCollector::printFunction(llvm::raw_ostream &OS,
                                        WPDSAliasCollector::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void WPDSAliasCollector::printEdgeFact(llvm::raw_ostream &OS,

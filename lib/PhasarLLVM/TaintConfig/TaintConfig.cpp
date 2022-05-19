@@ -59,8 +59,7 @@ void TaintConfig::addTaintCategory(const llvm::Value *Val,
                                    llvm::StringRef AnnotationStr) {
   auto TC = toTaintCategory(AnnotationStr);
   if (TC == TaintCategory::None) {
-    PHASAR_LOG_LEVEL(ERROR,
-                     "ERROR: Unknown taint category: " << AnnotationStr.str());
+    PHASAR_LOG_LEVEL(ERROR, "ERROR: Unknown taint category: " << AnnotationStr);
   } else {
     addTaintCategory(Val, TC);
   }
@@ -106,10 +105,10 @@ findAllFunctionDefs(const ProjectIRDB &IRDB, llvm::StringRef Name) {
       FnDefs.push_back(F);
     }
   } else if (FnDefs.size() > 1) {
-    llvm::errs() << "The function name '" << Name.str()
+    llvm::errs() << "The function name '" << Name
                  << "' is ambiguous. Possible candidates are:\n";
     for (const auto *F : FnDefs) {
-      llvm::errs() << "> " << F->getName().str() << "\n";
+      llvm::errs() << "> " << F->getName() << "\n";
     }
     llvm::errs() << "Please further specify the function's name, such that it "
                     "becomes unambiguous\n";

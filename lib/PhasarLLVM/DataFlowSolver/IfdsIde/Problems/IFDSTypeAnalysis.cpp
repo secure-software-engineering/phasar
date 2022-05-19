@@ -121,7 +121,7 @@ void IFDSTypeAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IFDSTypeAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IFDSTypeAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

@@ -197,7 +197,7 @@ void IDESolverTest::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IDESolverTest::printFunction(llvm::raw_ostream &OS,
                                   IDESolverTest::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void IDESolverTest::printEdgeFact(llvm::raw_ostream &OS,

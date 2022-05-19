@@ -102,7 +102,7 @@ void IntraMonoUninitVariables::printDataFlowFact(
 
 void IntraMonoUninitVariables::printFunction(
     llvm::raw_ostream &OS, IntraMonoUninitVariables::f_t Fun) const {
-  OS << Fun->getName().str();
+  OS << Fun->getName();
 }
 
 } // namespace psr

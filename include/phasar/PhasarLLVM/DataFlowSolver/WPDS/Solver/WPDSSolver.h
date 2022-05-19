@@ -268,7 +268,7 @@ public:
         IDESolver<AnalysisDomainTy>::ICF->getCalleesOfCallAt(n);
     PHASAR_LOG_LEVEL(DEBUG, "Possible callees:");
     for (auto Callee : Callees) {
-      PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName().str());
+      PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName());
     }
     PHASAR_LOG_LEVEL(DEBUG, "Possible return sites:");
     for (auto Ret : ReturnSiteNs) {

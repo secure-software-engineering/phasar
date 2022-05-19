@@ -204,7 +204,7 @@ void IDEProtoAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IDEProtoAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IDEProtoAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void IDEProtoAnalysis::printEdgeFact(llvm::raw_ostream &OS,

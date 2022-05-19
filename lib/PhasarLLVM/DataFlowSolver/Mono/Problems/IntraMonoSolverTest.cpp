@@ -83,7 +83,7 @@ void IntraMonoSolverTest::printDataFlowFact(
 
 void IntraMonoSolverTest::printFunction(llvm::raw_ostream &OS,
                                         IntraMonoSolverTest::f_t Fun) const {
-  OS << Fun->getName().str();
+  OS << Fun->getName();
 }
 
 } // namespace psr

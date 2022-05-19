@@ -189,7 +189,7 @@ void IDETaintAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IDETaintAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IDETaintAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void IDETaintAnalysis::printEdgeFact(llvm::raw_ostream &OS,

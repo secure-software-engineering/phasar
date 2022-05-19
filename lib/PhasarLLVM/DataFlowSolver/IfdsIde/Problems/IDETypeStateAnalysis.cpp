@@ -466,7 +466,7 @@ void IDETypeStateAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
 
 void IDETypeStateAnalysis::printFunction(llvm::raw_ostream &OS,
                                          IDETypeStateAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void IDETypeStateAnalysis::printEdgeFact(llvm::raw_ostream &OS,

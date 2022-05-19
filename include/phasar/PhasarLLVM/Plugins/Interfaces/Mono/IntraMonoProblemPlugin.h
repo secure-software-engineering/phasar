@@ -41,7 +41,7 @@ public:
     OS << llvmIRToString(Fact);
   }
   void printFunction(llvm::raw_ostream &OS, f_t Func) const override {
-    OS << Func->getName().str();
+    OS << Func->getName();
   }
 };
 

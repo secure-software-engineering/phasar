@@ -54,7 +54,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
 
   // initially mark every local as uninitialized (except entry point args)
   /* if (icfg.isStartPoint(curr) &&
-            curr->getFunction()->getName().str() == "main") {
+            curr->getFunction()->getName() == "main") {
     const llvm::Function *func = icfg.getMethodOf(curr);
     // set all locals as uninitialized flow function
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
@@ -434,7 +434,7 @@ void IFDSUninitializedVariables::printDataFlowFact(
 
 void IFDSUninitializedVariables::printFunction(
     llvm::raw_ostream &OS, IFDSUninitializedVariables::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 void IFDSUninitializedVariables::emitTextReport(

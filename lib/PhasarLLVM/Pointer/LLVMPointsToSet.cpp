@@ -435,7 +435,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       !Inserted || F->isDeclaration()) {
     return;
   }
-  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
@@ -709,7 +709,7 @@ nlohmann::json LLVMPointsToSet::getAsJson() const {
   /// Serialize the AnalyzedFunctions
   auto &Fns = J["AnalyzedFunctions"];
   for (const auto *F : AnalyzedFunctions) {
-    Fns.push_back(F->getName().str());
+    Fns.push_back(F->getName());
   }
   return J;
 }

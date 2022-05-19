@@ -7,8 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <sstream>
-
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/Constants.h"
@@ -16,6 +14,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "boost/graph/copy.hpp"
 #include "boost/graph/depth_first_search.hpp"
@@ -156,7 +155,7 @@ void LLVMPointsToGraph::computePointsToGraph(llvm::Function *F) {
     return;
   }
   PAMM_GET_INSTANCE;
-  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
   AnalyzedFunctions.insert(F);
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
@@ -410,7 +409,7 @@ auto LLVMPointsToGraph::getPointsToSet(const llvm::Value *V,
 
 void LLVMPointsToGraph::print(llvm::raw_ostream &OS) const {
   for (const auto &Fn : AnalyzedFunctions) {
-    cout << "LLVMPointsToGraph for " << Fn->getName().str() << ":\n";
+    llvm::outs() << "LLVMPointsToGraph for " << Fn->getName() << ":\n";
     vertex_iterator UI;
 
     vertex_iterator UIEnd;
@@ -458,7 +457,7 @@ nlohmann::json LLVMPointsToGraph::getAsJson() const {
 
 void LLVMPointsToGraph::printValueVertexMap() {
   for (const auto &Entry : ValueVertexMap) {
-    cout << Entry.first << " <---> " << Entry.second << endl;
+    llvm::outs() << Entry.first << " <---> " << Entry.second << '\n';
   }
 }
 
