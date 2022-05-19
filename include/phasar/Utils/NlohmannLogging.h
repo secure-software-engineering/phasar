@@ -20,15 +20,14 @@ class raw_ostream;
 }
 
 namespace nlohmann::detail {
-template <typename CharType>
-class llvm_output_stream_adapter : public output_adapter_protocol<CharType> {
+class llvm_output_stream_adapter : public output_adapter_protocol<char> {
 public:
   explicit llvm_output_stream_adapter(llvm::raw_ostream &s) noexcept
       : stream(s) {}
 
-  void write_character(CharType c) override { stream.write(c); }
+  void write_character(char c) override { stream.write(c); }
 
-  void write_characters(const CharType *s, std::size_t length) override {
+  void write_characters(const char *s, std::size_t length) override {
     stream.write(s, static_cast<std::streamsize>(length));
   }
 
@@ -36,18 +35,18 @@ private:
   llvm::raw_ostream &stream;
 };
 
-template <typename CharType, typename StringType = std::basic_string<CharType>>
+template <typename StringType = std::basic_string<char>>
 class llvm_output_adapter {
 public:
-  template <typename AllocatorType = std::allocator<CharType>>
+  template <typename AllocatorType = std::allocator<char>>
 
   llvm_output_adapter(llvm::raw_ostream &s)
-      : oa(std::make_shared<llvm_output_stream_adapter<CharType>>(s)) {}
+      : oa(std::make_shared<llvm_output_stream_adapter>(s)) {}
 
-  operator output_adapter_t<CharType>() { return oa; }
+  operator output_adapter_t<char>() { return oa; }
 
 private:
-  output_adapter_t<CharType> oa = nullptr;
+  output_adapter_t<char> oa = nullptr;
 };
 } // namespace nlohmann::detail
 
