@@ -14,11 +14,6 @@
  *      Author: philipp
  */
 
-#include <algorithm>
-#include <array>
-#include <exception>
-#include <fstream>
-
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/FileSystem.h"
 
