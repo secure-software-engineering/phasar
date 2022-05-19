@@ -21,7 +21,6 @@
 #include <system_error>
 
 #include "boost/algorithm/string/trim.hpp"
-#include "boost/log/sources/severity_feature.hpp"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"

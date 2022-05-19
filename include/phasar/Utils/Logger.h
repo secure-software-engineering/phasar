@@ -30,10 +30,6 @@
 
 namespace psr {
 
-// Additionally consult:
-//  - https://theboostcpplibraries.com/boost.log
-//  - http://www.boost.org/doc/libs/1_64_0/libs/log/doc/html/log/tutorial.html
-
 enum SeverityLevel {
 #define SEVERITY_LEVEL(NAME, TYPE) TYPE,
 #include "phasar/Utils/SeverityLevel.def"
@@ -151,12 +147,6 @@ private:
   IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
 
 #define IS_LOG_ENABLED Logger::isLoggingEnabled()
-// Register the logger and use it a singleton then, get the logger with:
-// boost::log::sources::severity_logger<SeverityLevel>& lg = lg::get();
-
-// The logger can also be used as a global variable, which is not recommended.
-// In such a case a global variable would be created like in the following
-// boost::log::sources::severity_logger<int> lg;
 
 #else
 #define IF_LOG_ENABLED_BOOL(condition, computation) ((void)0)
@@ -165,24 +155,6 @@ private:
 #define PHASAR_LOG_LEVEL_CAT(level, cat, message) ((void)0)
 #define PHASAR_LOG_LEVEL(level, message) ((void)0)
 #define IS_LOG_ENABLED false
-// Have a mechanism to prevent logger usage if the code is not compiled using
-// the DYNAMIC_LOG option:
-template <typename T> struct __lg__ {
-  // Make the static assert dependent on a template-parameter to prevent the
-  // compiler raising an error on declaration rather than on
-  // template-instantiation.
-  static_assert(!std::is_same_v<void, T>,
-                "The dynamic log is disabled. Please move this call "
-                "to lg::get() into LOG_IF_ENABLE, or use the "
-                "cmake option '-DPHASAR_ENABLE_DYNAMIC_LOG=ON'.");
-  static inline boost::log::sources::severity_logger<SeverityLevel> &get() {
-    llvm::report_fatal_error(
-        "The dynamic log is disabled. Please move this call "
-        "to lg::get() into LOG_IF_ENABLE, or use the "
-        "cmake option '-DPHASAR_ENABLE_DYNAMIC_LOG=ON'.");
-  }
-};
-#define lg __lg__<void>
 #endif
 
 /**

@@ -34,8 +34,6 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
 
-#include "boost/log/sources/severity_feature.hpp"
-
 #include "nlohmann/json.hpp"
 
 #include "phasar/DB/ProjectIRDB.h"
