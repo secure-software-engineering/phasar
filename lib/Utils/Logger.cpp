@@ -205,8 +205,4 @@ void initializeLogger(bool UseLogger, const std::string &LogFile) {
   }
 }
 
-void Logger::enable() { LoggingEnabled = true; }
-
-void Logger::disable() { LoggingEnabled = false; }
-
 } // namespace psr

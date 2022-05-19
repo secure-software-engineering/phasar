@@ -47,9 +47,9 @@ public:
 
   static bool isLoggingEnabled();
 
-  static void enable();
+  static void enable() { LoggingEnabled = true; };
 
-  static void disable();
+  static void disable() { LoggingEnabled = false; };
 
   static llvm::raw_ostream &
   getLogStream(std::optional<SeverityLevel> Level,
