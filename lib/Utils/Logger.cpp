@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <ostream>
 
 #include "boost/algorithm/string.hpp"
 #include "boost/core/null_deleter.hpp"
