@@ -81,18 +81,14 @@ private:
 
   void emitRequestedHelperAnalysisResults();
 
+  std::unique_ptr<llvm::raw_fd_ostream>
+  openFileStream(llvm::StringRef Filename);
+
   template <typename T> void emitRequestedDataFlowResults(T &WPA) {
-    std::error_code EC;
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
       if (!ResultDirectory.empty()) {
-        llvm::raw_fd_ostream OFS(ResultDirectory.string() + "/psr-report.txt",
-                                 EC);
-        if (EC) {
-          llvm::errs() << "Failed to open file: "
-                       << ResultDirectory.string() + "/psr-report.txt" << '\n';
-          llvm::errs() << EC.message() << '\n';
-        } else {
-          WPA.emitTextReport(OFS);
+        if (auto OFS = openFileStream("/psr-report.txt")) {
+          WPA.emitTextReport(*OFS);
         }
       } else {
         WPA.emitTextReport(llvm::outs());
@@ -101,14 +97,8 @@ private:
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
       if (!ResultDirectory.empty()) {
-        llvm::raw_fd_ostream OFS(ResultDirectory.string() + "/psr-report.html",
-                                 EC);
-        if (EC) {
-          llvm::errs() << "Failed to open file: "
-                       << ResultDirectory.string() + "/psr-report.txt" << '\n';
-          llvm::errs() << EC.message() << '\n';
-        } else {
-          WPA.emitGraphicalReport(OFS);
+        if (auto OFS = openFileStream("/psr-report.html")) {
+          WPA.emitGraphicalReport(*OFS);
         }
       } else {
         WPA.emitGraphicalReport(llvm::outs());
@@ -116,15 +106,8 @@ private:
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
       if (!ResultDirectory.empty()) {
-        llvm::raw_fd_ostream OFS(
-            ResultDirectory.string() + "/psr-raw-results.txt", EC);
-        if (EC) {
-          llvm::errs() << "Failed to open file: "
-                       << ResultDirectory.string() + "/psr-raw-results.txt"
-                       << '\n';
-          llvm::errs() << EC.message() << '\n';
-        } else {
-          WPA.dumpResults(OFS);
+        if (auto OFS = openFileStream("/psr-raw-results.txt")) {
+          WPA.dumpResults(*OFS);
         }
       } else {
         WPA.dumpResults(llvm::outs());
