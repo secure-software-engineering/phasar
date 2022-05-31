@@ -110,8 +110,7 @@ llvm::StringRef GlobalAnnotation::retrieveString(unsigned Idx) const {
   const auto *AnnotationGepOp = AnnotationStruct->getOperand(Idx);
   if (const auto *ConstExpr =
           llvm::dyn_cast<llvm::ConstantExpr>(AnnotationGepOp)) {
-    if (true // ConstExpr->isGEPWithNoNotionalOverIndexing()
-    ) {
+    if (llvm::isa<llvm::GEPOperator>(ConstExpr)) {
       if (const auto *GlobalVar =
               llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
         if (GlobalVar->hasInitializer()) {
