@@ -81,7 +81,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
-  PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed\n");
+  PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed");
 }
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,

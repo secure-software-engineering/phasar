@@ -773,7 +773,7 @@ protected:
 
   EdgeFunctionPtrType jumpFunction(const PathEdge<n_t, d_t> Edge) {
     IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(DEBUG, "\nJumpFunctions Forward-Lookup:");
+        PHASAR_LOG_LEVEL(DEBUG, "JumpFunctions Forward-Lookup:");
         PHASAR_LOG_LEVEL(DEBUG, "   Source D: " << IDEProblem.DtoString(
                                     Edge.factAtSource()));
         PHASAR_LOG_LEVEL(
