@@ -14,12 +14,12 @@
  *      Author: philipp
  */
 
-#include <iostream>
 #include <utility>
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -42,13 +42,13 @@ makeIFDSSimpleTaintAnalysis(const ProjectIRDB *IRDB,
 }
 
 __attribute__((constructor)) void init() {
-  cout << "init - IFDSSimpleTaintAnalysis\n";
+  llvm::outs() << "init - IFDSSimpleTaintAnalysis\n";
   IFDSTabulationProblemPluginFactory["ifds_testplugin"] =
       &makeIFDSSimpleTaintAnalysis;
 }
 
 __attribute__((destructor)) void fini() {
-  cout << "fini - IFDSSimpleTaintAnalysis\n";
+  llvm::outs() << "fini - IFDSSimpleTaintAnalysis\n";
 }
 
 IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(
@@ -125,7 +125,7 @@ IFDSSimpleTaintAnalysis::getSummaryFlowFunction(
 
 InitialSeeds<const llvm::Instruction *, const FlowFact *, BinaryDomain>
 IFDSSimpleTaintAnalysis::initialSeeds() {
-  cout << "IFDSSimpleTaintAnalysis::initialSeeds()\n";
+  llvm::outs() << "IFDSSimpleTaintAnalysis::initialSeeds()\n";
   InitialSeeds<const llvm::Instruction *, const FlowFact *, BinaryDomain> Seeds;
   for (const auto &EntryPoint : EntryPoints) {
     Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),

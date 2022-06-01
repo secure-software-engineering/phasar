@@ -754,14 +754,14 @@ protected:
   }
 
   void setVal(n_t NHashN, d_t NHashD, l_t L) {
-    IF_LOG_ENABLED([&]() {
+    IF_LOG_ENABLED({
       PHASAR_LOG_LEVEL(DEBUG,
                        "Function : " << ICF->getFunctionOf(NHashN)->getName());
       PHASAR_LOG_LEVEL(DEBUG, "Inst.    : " << IDEProblem.NtoString(NHashN));
       PHASAR_LOG_LEVEL(DEBUG, "Fact     : " << IDEProblem.DtoString(NHashD));
       PHASAR_LOG_LEVEL(DEBUG, "Value    : " << IDEProblem.LtoString(L));
       PHASAR_LOG_LEVEL(DEBUG, ' ');
-    }());
+    });
     // TOP is the implicit default value which we do not need to store.
     // if (l == IDEProblem.topElement()) {
     // do not store top values

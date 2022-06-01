@@ -7,11 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
-
 #include "boost/dll.hpp"
 
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"

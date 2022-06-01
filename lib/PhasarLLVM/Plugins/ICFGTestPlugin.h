@@ -7,18 +7,19 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ICFGTESTPLUGIN_H_
-#define ICFGTESTPLUGIN_H_
+#ifndef ICFGTESTPLUGIN_H
+#define ICFGTESTPLUGIN_H
 
-#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
 
-#include <nlohmann/json.hpp>
+#include "llvm/Support/raw_ostream.h"
 
-#include <phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h>
+#include "nlohmann/json.hpp"
+
+#include "phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h"
 
 namespace llvm {
 class Instruction;

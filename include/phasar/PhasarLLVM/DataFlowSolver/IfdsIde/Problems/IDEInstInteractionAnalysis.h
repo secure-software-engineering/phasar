@@ -365,7 +365,7 @@ public:
             } else {
               Facts.insert(Src);
             }
-            IF_LOG_ENABLED([&]() {
+            IF_LOG_ENABLED({
               for (const auto s : Facts) {
                 PHASAR_LOG_LEVEL(DFADEBUG,
                                  "Create edge: "
@@ -373,7 +373,7 @@ public:
                                      << llvmIRToShortString(Store) << "--> "
                                      << llvmIRToShortString(s));
               }
-            }());
+            });
             return Facts;
           }
         };
@@ -403,7 +403,7 @@ public:
               IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
             Facts.insert(Store->getPointerOperand());
           }
-          IF_LOG_ENABLED([&]() {
+          IF_LOG_ENABLED({
             for (const auto s : Facts) {
               PHASAR_LOG_LEVEL(
                   DFADEBUG, "Create edge: " << llvmIRToShortString(Src) << " --"
@@ -411,7 +411,7 @@ public:
                                             << "--> "
                                             << llvmIRToShortString(s));
             }
-          }());
+          });
           return Facts;
         }
       };
@@ -459,14 +459,14 @@ public:
         }
         // pass everything that already holds as identity
         Facts.insert(Src);
-        IF_LOG_ENABLED([&]() {
+        IF_LOG_ENABLED({
           for (const auto s : Facts) {
             PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
                                            << llvmIRToShortString(Src) << " --"
                                            << llvmIRToShortString(Inst)
                                            << "--> " << llvmIRToShortString(s));
           }
-        }());
+        });
         return Facts;
       }
     };
@@ -771,7 +771,7 @@ public:
         if ((CurrNode == SuccNode) && CurrNode == Store->getPointerOperand()) {
           // y obtains its value(s) from its original allocation and the store
           // instruction under analysis.
-          IF_LOG_ENABLED([&]() {
+          IF_LOG_ENABLED({
             PHASAR_LOG_LEVEL(DFADEBUG,
                              "Const-Replace at '" << llvmIRToString(Curr));
             PHASAR_LOG_LEVEL(DFADEBUG, "Replacement label(s): ");
@@ -779,7 +779,7 @@ public:
               PHASAR_LOG_LEVEL(DFADEBUG, Item << ", ");
             }
             PHASAR_LOG_LEVEL(DFADEBUG, '\n');
-          }());
+          });
           // obtain label from the original allocation
           const llvm::AllocaInst *OrigAlloca = nullptr;
           if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(
@@ -811,13 +811,13 @@ public:
         //
         if (CurrNode == Store->getValueOperand() &&
             SuccNode == Store->getPointerOperand()) {
-          IF_LOG_ENABLED([&]() {
+          IF_LOG_ENABLED({
             PHASAR_LOG_LEVEL(DFADEBUG, "Var-Override: ");
             for (const auto &EF : EdgeFacts) {
               PHASAR_LOG_LEVEL(DFADEBUG, EF << ", ");
             }
             PHASAR_LOG_LEVEL(DFADEBUG, "at '" << llvmIRToString(Curr) << "'\n");
-          }());
+          });
           return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
       } else {
@@ -919,13 +919,13 @@ public:
       //                        o_i
       //
       if (Op == CurrNode && CurrNode == SuccNode) {
-        IF_LOG_ENABLED([&]() {
+        IF_LOG_ENABLED({
           PHASAR_LOG_LEVEL(DFADEBUG, "this is 'i'\n");
           for (auto &EdgeFact : EdgeFacts) {
             PHASAR_LOG_LEVEL(DFADEBUG, EdgeFact << ", ");
           }
           PHASAR_LOG_LEVEL(DFADEBUG, '\n');
-        }());
+        });
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
       //
@@ -940,13 +940,13 @@ public:
       //                           i
       //
       if (Op == CurrNode && Curr == SuccNode) {
-        IF_LOG_ENABLED([&]() {
+        IF_LOG_ENABLED({
           PHASAR_LOG_LEVEL(DFADEBUG, "this is '0'\n");
           for (auto &EdgeFact : EdgeFacts) {
             PHASAR_LOG_LEVEL(DFADEBUG, EdgeFact << ", ");
           }
           PHASAR_LOG_LEVEL(DFADEBUG, '\n');
-        }());
+        });
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
     }

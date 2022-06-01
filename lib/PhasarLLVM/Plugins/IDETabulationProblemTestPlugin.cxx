@@ -1,5 +1,6 @@
-#include <iostream>
 #include <utility>
+
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -22,13 +23,13 @@ unique_ptr<IDETabulationProblemPlugin> makeIDETabulationProblemTestPlugin(
 }
 
 __attribute__((constructor)) void init() {
-  cout << "init - IDETabulationProblemTestPlugin\n";
+  llvm::outs() << "init - IDETabulationProblemTestPlugin\n";
   IDETabulationProblemPluginFactory["ide_testplugin"] =
       &makeIDETabulationProblemTestPlugin;
 }
 
 __attribute__((destructor)) void fini() {
-  cout << "fini - IDETabulationProblemTestPlugin\n";
+  llvm::outs() << "fini - IDETabulationProblemTestPlugin\n";
 }
 
 IDETabulationProblemTestPlugin::IDETabulationProblemTestPlugin(
@@ -85,7 +86,7 @@ InitialSeeds<IDETabulationProblemTestPlugin::n_t,
              IDETabulationProblemTestPlugin::d_t,
              IDETabulationProblemTestPlugin::l_t>
 IDETabulationProblemTestPlugin::initialSeeds() {
-  cout << "IDETabulationProblemTestPlugin::initialSeeds()\n";
+  llvm::outs() << "IDETabulationProblemTestPlugin::initialSeeds()\n";
   InitialSeeds<IDETabulationProblemTestPlugin::n_t,
                IDETabulationProblemTestPlugin::d_t,
                IDETabulationProblemTestPlugin::l_t>

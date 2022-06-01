@@ -1,21 +1,14 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Martin Mory, Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * Logger.h
- *
- *  Created on: 27.07.2017
- *      Author: philipp
- */
-
-#ifndef PHASAR_UTILS_LOGGER_H_
-#define PHASAR_UTILS_LOGGER_H_
+#ifndef PHASAR_UTILS_LOGGER_H
+#define PHASAR_UTILS_LOGGER_H
 
 #include <map>
 #include <optional>
@@ -104,20 +97,23 @@ private:
 
 #define PHASAR_LOG_LEVEL(level, message)                                       \
   IF_LOG_ENABLED_BOOL(                                                         \
-      Logger::isLoggingEnabled() && level >= Logger::getLoggerFilterLevel(),   \
+      Logger::isLoggingEnabled() && (level) >= Logger::getLoggerFilterLevel(), \
       do {                                                                     \
         auto &S = Logger::getLogStream(level, std::nullopt);                   \
         Logger::addLinePrefix(S, level, std::nullopt);                         \
+        /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
         S << message << '\n';                                                  \
       } while (false);)
 
 #define PHASAR_LOG_LEVEL_CAT(level, cat, message)                              \
   IF_LOG_ENABLED_BOOL(                                                         \
-      Logger::isLoggingEnabled() && level >= Logger::getLoggerFilterLevel() && \
+      Logger::isLoggingEnabled() &&                                            \
+          (level) >= Logger::getLoggerFilterLevel() &&                         \
           Logger::logCategory(cat, level),                                     \
       do {                                                                     \
         auto &S = Logger::getLogStream(level, cat);                            \
         Logger::addLinePrefix(S, level, cat);                                  \
+        /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
         S << message << '\n';                                                  \
       } while (false);)
 
@@ -127,6 +123,7 @@ private:
       do {                                                                     \
         auto &S = Logger::getLogStream(std::nullopt, cat);                     \
         Logger::addLinePrefix(S, std::nullopt, cat);                           \
+        /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
         S << message << '\n';                                                  \
       } while (false);)
 
@@ -139,7 +136,7 @@ private:
     computation;                                                               \
   }
 
-// #define LOG_IF_ENABLE(computation)                                             \
+// #define LOG_IF_ENABLE(computation)                                          \
 //   IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
 
 #define IF_LOG_ENABLED(computation)                                            \

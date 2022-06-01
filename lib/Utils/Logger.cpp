@@ -198,7 +198,7 @@ void initializeLogger(bool UseLogger, const std::string &LogFile) {
     Logger::disable();
     return;
   }
-  if (LogFile == "") {
+  if (LogFile.empty()) {
     Logger::initializeStderrLogger(Logger::getLoggerFilterLevel());
   } else {
     std::ignore =

@@ -14,8 +14,9 @@
  *      Author: philipp
  */
 
-#include <iostream>
 #include <utility>
+
+#include "llvm/Support/raw_ostream.h"
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
@@ -37,13 +38,13 @@ makeIFDSSFB901TaintAnalysis(const ProjectIRDB *IRDB,
 }
 
 __attribute__((constructor)) void init() {
-  cout << "init - IFDSSFB901TaintAnalysis\n";
+  llvm::outs() << "init - IFDSSFB901TaintAnalysis\n";
   IFDSTabulationProblemPluginFactory["ifds_testplugin"] =
       &makeIFDSSFB901TaintAnalysis;
 }
 
 __attribute__((destructor)) void fini() {
-  cout << "fini - IFDSSFB901TaintAnalysis\n";
+  llvm::outs() << "fini - IFDSSFB901TaintAnalysis\n";
 }
 
 IFDSSFB901TaintAnalysis::IFDSSFB901TaintAnalysis(
@@ -102,7 +103,7 @@ IFDSSFB901TaintAnalysis::getSummaryFlowFunction(
 InitialSeeds<IFDSSFB901TaintAnalysis::n_t, IFDSSFB901TaintAnalysis::d_t,
              IFDSSFB901TaintAnalysis::l_t>
 IFDSSFB901TaintAnalysis::initialSeeds() {
-  cout << "IFDSSFB901TaintAnalysis::initialSeeds()\n";
+  llvm::outs() << "IFDSSFB901TaintAnalysis::initialSeeds()\n";
   InitialSeeds<IFDSSFB901TaintAnalysis::n_t, IFDSSFB901TaintAnalysis::d_t,
                IFDSSFB901TaintAnalysis::l_t>
       Seeds;

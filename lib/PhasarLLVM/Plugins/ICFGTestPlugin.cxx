@@ -7,11 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <utility>
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 
@@ -23,11 +23,13 @@ using namespace psr;
 namespace psr {
 
 __attribute__((constructor)) void init() {
-  cout << "init - ICFGTestPlugin\n";
+  llvm::outs() << "init - ICFGTestPlugin\n";
   ICFGPluginFactory["icfg_testplugin"] = &makeICFGTestPlugin;
 }
 
-__attribute__((destructor)) void fini() { cout << "fini - ICFGTestPlugin\n"; }
+__attribute__((destructor)) void fini() {
+  llvm::outs() << "fini - ICFGTestPlugin\n";
+}
 
 unique_ptr<ICFGPlugin> makeICFGTestPlugin(ProjectIRDB &IRDB,
                                           const vector<string> &EntryPoints) {
