@@ -257,9 +257,20 @@ IDELinearConstantAnalysis::initialSeeds() {
   // The analysis' entry points
   std::set<const llvm::Function *> EntryPointFuns;
 
-  // Otherwise, consider the user-defined entry point(s)
-  for (const auto &EntryPoint : EntryPoints) {
-    EntryPointFuns.insert(IRDB->getFunctionDefinition(EntryPoint));
+  // Consider the user-defined entry point(s)
+  if (EntryPoints.size() == 1U &&
+      EntryPoints.find("__ALL__") != EntryPoints.end()) {
+    // Consider all available function definitions as entry points
+    for (const auto *Fun : IRDB->getAllFunctions()) {
+      if (!Fun->isDeclaration()) {
+        EntryPointFuns.insert(Fun);
+      }
+    }
+  } else {
+    // Consider the user specified entry points
+    for (const auto &EntryPoint : EntryPoints) {
+      EntryPointFuns.insert(IRDB->getFunctionDefinition(EntryPoint));
+    }
   }
 
   // std::set initial seeds at the required entry points and generate global

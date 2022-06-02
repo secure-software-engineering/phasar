@@ -14,6 +14,7 @@
 #include <set>
 #include <utility>
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/Controller/AnalysisController.h"
