@@ -65,16 +65,10 @@ public:
   /// Holds all leaks found during the analysis
   std::map<n_t, std::set<d_t>> Leaks;
 
-  /**
-   *
-   * @param icfg
-   * @param TSF
-   * @param EntryPoints
-   */
   IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     const TaintConfig &Config,
-                    std::set<std::string> EntryPoints = {"main"});
+                    std::set<std::string> EntryPoints);
 
   ~IFDSTaintAnalysis() override = default;
 

@@ -298,14 +298,16 @@ IFDSTaintAnalysis::initialSeeds() {
   InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
                IFDSTaintAnalysis::l_t>
       Seeds;
+  auto AutoSeeds = Config.makeInitialSeeds();
+  for (auto &[Inst, Facts] : AutoSeeds) {
+    for (const auto *Fact : Facts) {
+      Seeds.addSeed(Inst, Fact);
+    }
+  }
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-    if (EntryPoint == "main") {
-      set<IFDSTaintAnalysis::d_t> CmdArgs;
-      for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
-        Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg);
-      }
+    const auto *EntryPointFun = ICF->getFunction(EntryPoint);
+    for (const auto *StartPoint : ICF->getStartPointsOf(EntryPointFun)) {
+      Seeds.addSeed(StartPoint, getZeroValue());
     }
   }
   return Seeds;
