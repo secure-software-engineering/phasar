@@ -9,6 +9,7 @@
 TEST(IO, ReadTextFile) {
   std::string File("test.txt");
   std::string Path = psr::unittest::PathToTxtTestFiles + File;
+
   std::string Contents = psr::readTextFile(Path);
   std::string Expected =
       R"(This is a test file that contains very interesting content.
