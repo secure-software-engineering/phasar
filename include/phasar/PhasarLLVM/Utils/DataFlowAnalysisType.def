@@ -29,7 +29,6 @@ DATA_FLOW_ANALYSIS_TYPES("IntraMonoFullConstantPropagation", "intra-mono-fca", I
 DATA_FLOW_ANALYSIS_TYPES("IntraMonoSolverTest", "intra-mono-solvertest", IntraMonoSolverTest)
 DATA_FLOW_ANALYSIS_TYPES("InterMonoSolverTest", "inter-mono-solvertest", InterMonoSolverTest)
 DATA_FLOW_ANALYSIS_TYPES("InterMonoTaintAnalysis", "inter-mono-taint", InterMonoTaintAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("Plugin", "plugin", Plugin)
 DATA_FLOW_ANALYSIS_TYPES("None", "none", None)
 
 #undef DATA_FLOW_ANALYSIS_TYPES

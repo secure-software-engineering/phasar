@@ -15,7 +15,6 @@
 #include <string>
 #include <vector>
 
-#include "boost/dll.hpp"
 #include "boost/program_options.hpp"
 #include "boost/program_options/value_semantic.hpp"
 
@@ -25,8 +24,6 @@
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/Plugins/AnalysisPluginController.h"
-#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
@@ -102,11 +99,7 @@ void validateParamPammOutputFile(const std::string &Output) {}
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
   for (const auto &Analysis : Analyses) {
-    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None &&
-        !IDETabulationProblemPluginFactory.count(Analysis) &&
-        !IFDSTabulationProblemPluginFactory.count(Analysis) &&
-        !InterMonoProblemPluginFactory.count(Analysis) &&
-        !IntraMonoProblemPluginFactory.count(Analysis)) {
+    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
       // throw boost::program_options::error_with_option_name(
       //    "'" + Analysis + "' is not a valid data-flow analysis!");
       llvm::errs() << "Error: " << '\'' << Analysis
@@ -141,28 +134,6 @@ void validateSoundnessFlag(const std::string &Flag) {
   if (toSoundness(Flag) == Soundness::Invalid) {
     throw boost::program_options::error_with_option_name(
         "'" + Flag + "' is not a valid soundness level!");
-  }
-}
-
-void validateParamAnalysisPlugin(const std::vector<std::string> &Plugins) {
-  for (const auto &Plugin : Plugins) {
-    std::filesystem::path PluginPath(Plugin);
-    if (!(std::filesystem::exists(PluginPath) &&
-          !std::filesystem::is_directory(PluginPath) &&
-          PluginPath.extension() == ".so")) {
-      throw boost::program_options::error_with_option_name(
-          "'" + Plugin + "' is not a valid data-flow analysis plugin!");
-    }
-  }
-}
-
-void validateParamICFGPlugin(const std::string &Plugin) {
-  std::filesystem::path PluginPath(Plugin);
-  if (!(std::filesystem::exists(PluginPath) &&
-        !std::filesystem::is_directory(PluginPath) &&
-        PluginPath.extension() == ".so")) {
-    throw boost::program_options::error_with_option_name(
-        "ICFG plugin '" + Plugin + "' does not exist!");
   }
 }
 
@@ -245,8 +216,6 @@ int main(int Argc, const char **Argv) {
       ("persisted-summaries", boost::program_options::value<bool>()->default_value(false), "Let the IFDS/IDE Solver compute presisted procedure summaries (Currently not supported)")
       ("load-pta-from-json", boost::program_options::value<std::string>()->notifier(&validatePTAJsonFile),"Load the points-to info previously exported via emit-pta-as-json from the given file")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
-			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
-      ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible (Currently not available)");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
@@ -353,37 +322,8 @@ int main(int Argc, const char **Argv) {
   }
 
   // store enabled data-flow analyses
-  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
+  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
 
-  // setup plugins
-  std::vector<boost::dll::shared_library> PluginLibs;
-  if (PhasarConfig::VariablesMap().count("analysis-plugin")) {
-    auto Plugins = PhasarConfig::VariablesMap()["analysis-plugin"]
-                       .as<std::vector<std::string>>();
-    for (auto &Plugin : Plugins) {
-      std::filesystem::path LibPath(Plugin);
-      boost::system::error_code Err;
-      PluginLibs.emplace_back(LibPath.string(),
-                              boost::dll::load_mode::rtld_lazy, Err);
-      if (Err) {
-        llvm::report_fatal_error(Err.message());
-      }
-    }
-    // check what plugins have registed themselves and add those to the vector
-    // of data-flow analyses
-    for (auto &[Name, IFDSFactory] : IFDSTabulationProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(IFDSFactory);
-    }
-    for (auto &[Name, IDEFactory] : IDETabulationProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(IDEFactory);
-    }
-    for (auto &[Name, IntraMonoFactory] : IntraMonoProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(IntraMonoFactory);
-    }
-    for (auto &[Name, InterMonoFactory] : InterMonoProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(InterMonoFactory);
-    }
-  }
   // setup data-flow analyses
   if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
     auto Analyses = PhasarConfig::VariablesMap()["data-flow-analysis"]

@@ -12,9 +12,6 @@
 
 #include <set>
 #include <string>
-#include <variant>
-
-#include "phasar/PhasarLLVM/Plugins/PluginCtors.h"
 
 namespace llvm {
 class raw_ostream;
@@ -31,10 +28,6 @@ class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMPointsToInfo;
-using DataFlowAnalysisKind =
-    std::variant<DataFlowAnalysisType, IDEPluginConstructor,
-                 IFDSPluginConstructor, IntraMonoPluginConstructor,
-                 InterMonoPluginConstructor>;
 
 std::string toString(const DataFlowAnalysisType &D);
 

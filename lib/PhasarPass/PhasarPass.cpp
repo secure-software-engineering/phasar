@@ -171,8 +171,6 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     // todo
   } else if (DataFlowAnalysis == "inter-mono-taint") {
     // todo
-  } else if (DataFlowAnalysis == "plugin") {
-    // todo
   } else if (DataFlowAnalysis == "none") {
     // do nothing
   }
