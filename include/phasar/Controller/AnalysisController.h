@@ -16,10 +16,16 @@
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -51,7 +57,7 @@ private:
   LLVMTypeHierarchy TH;
   LLVMPointsToSet PT;
   LLVMBasedICFG ICF;
-  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
+  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] AnalysisStrategy Strategy;
@@ -80,6 +86,67 @@ private:
   void executeWholeProgram();
 
   void emitRequestedHelperAnalysisResults();
+
+  void executeIFDSUninitVar();
+  void executeIFDSConst();
+  void executeIFDSTaint();
+  void executeIFDSType();
+  void executeIFDSSolverTest();
+  void executeIFDSLinearConst();
+  void executeIFDSFieldSensTaint();
+  void executeIDEXTaint();
+  void executeIDEOpenSSLTS();
+  void executeIDECSTDIOTS();
+  void executeIDELinearConst();
+  void executeIDESolverTest();
+  void executeIDEIIA();
+  void executeIntraMonoFullConstant();
+  void executeIntraMonoSolverTest();
+  void executeInterMonoSolverTest();
+  void executeInterMonoTaint();
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeIntraMonoAnalysis() {
+    executeAnalysis<IntraMonoSolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  }
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeInterMonoAnalysis() {
+    executeAnalysis<InterMonoSolver_P<AnalysisTy, 3>, AnalysisTy, WithConfig>();
+  }
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeIFDSAnalysis() {
+    executeAnalysis<IFDSSolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  }
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeIDEAnalysis() {
+    executeAnalysis<IDESolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  }
+
+  template <class Solver_P, typename AnalysisTy, bool WithConfig>
+  void executeAnalysis() {
+    if constexpr (WithConfig) {
+      std::string AnalysisConfigPath =
+          (0 < AnalysisConfigs.size()) ? AnalysisConfigs[0] : "";
+      auto Config =
+          !AnalysisConfigPath.empty()
+              ? TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath))
+              : TaintConfig(IRDB);
+      WholeProgramAnalysis<Solver_P, AnalysisTy> WPA(
+          SolverConfig, IRDB, &Config, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedDataFlowResults(WPA);
+      WPA.releaseAllHelperAnalyses();
+    } else {
+      WholeProgramAnalysis<Solver_P, AnalysisTy> WPA(
+          SolverConfig, IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedDataFlowResults(WPA);
+      WPA.releaseAllHelperAnalyses();
+    }
+  }
 
   std::unique_ptr<llvm::raw_fd_ostream>
   openFileStream(llvm::StringRef Filename);
@@ -121,7 +188,7 @@ private:
 
 public:
   AnalysisController(ProjectIRDB &IRDB,
-                     std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
+                     std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
                      Soundness SoundnessLevel, bool AutoGlobalSupport,
