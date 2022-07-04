@@ -132,7 +132,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
                              Soundness S, bool IncludeGlobals)
-    : IRDB(IRDB), CGType(CGType), S(S), TH(TH), PT(PT) {
+    : IRDB(IRDB), CGType(CGType), S(S), TH(TH), PT(PT) {WPAModule
   PAMM_GET_INSTANCE;
   // check for faults in the logic
   if (!TH && (CGType != CallGraphAnalysisType::NORESOLVE)) {
@@ -170,8 +170,11 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     }
   }
   if (IncludeGlobals) {
-    assert(IRDB.getNumberOfModules() == 1 &&
-           "IncludeGlobals is currently only supported for WPA");
+
+    // ============== Assert not needed anymore ============== //
+
+    // assert(IRDB.getNumberOfModules() == 1 &&
+    //        "IncludeGlobals is currently only supported for WPA");
     const auto *GlobCtor =
         buildCRuntimeGlobalCtorsDtorsModel(*IRDB.getWPAModule());
     FunctionWL.push_back(GlobCtor);
@@ -862,17 +865,33 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
       IRB.CreateCall(UEntry);
       break;
     case 2:
-      if (UEntry->getName() != "main") {
-        std::cerr << "ERROR: The only entrypoint, where parameters are "
-                     "supported, is main\n";
+      if (UEntry->getName() == "main") {
+
+        // =============== Old Code ================ //
+
+        // std::cerr << "ERROR: The only entrypoint, where parameters are "
+        //              "supported, is main\n";
+        // break;
+
+        IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
         break;
+      } else {
+        for(auto const &arg : UEntry->args()){
+          // Create Globals...
+        }
+
+        // ... insert function
       }
 
-      IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
-      break;
+
     default:
-      std::cerr << "ERROR: Entrypoints with parameters are not supported, "
-                   "except for argc and argv in main\n";
+      
+      // ================= Old Code ================= //
+      
+      // std::cerr << "ERROR: Entrypoints with parameters are not supported, "
+      //             "except for argc and argv in main\n";
+      
+
       break;
     }
 
@@ -882,10 +901,31 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
     }
   };
 
+  // ================== Library Functions ================= //
+
+    // TargetLibraryInfo Object to check if function is a library function
+    const llvm::TargetLibraryInfo *TLI;
+
+    // enum type needed for library function check
+    llvm::LibFunc lib;
+
+    // set to hold the library functions
+    std::set<llvm::StringRef> libs;
+
+    // check all functions of module if they are library function and add to set if so
+    auto Funs = IRDB.getAllFunctions();
+    for (const auto *Fun : Funs) {
+      if (TLI->getLibFunc(Fun->getName(), lib)) {
+        libs.insert(Fun->getName());
+      }
+    }
+
+  // ======================== End ======================== //
+
   if (UserEntryPoints.size() == 1) {
     auto *MainFn = *UserEntryPoints.begin();
     callUEntry(MainFn);
-    IRB.CreateRetVoid();
+    IRB.CreateRetVoid();                                                /// Mamut: Warum void und nicht int?
   } else {
 
     auto *UEntrySelectorFn = llvm::cast<llvm::Function>(
