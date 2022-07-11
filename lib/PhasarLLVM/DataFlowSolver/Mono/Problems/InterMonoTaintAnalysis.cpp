@@ -155,7 +155,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
   Out.insert(Gen);
   if (Gen.empty() && Kill.empty()) {
     // erase pointer arguments, since they are now propagated in the retFF
-    for (unsigned Idx = 0; Idx < CS->getNumArgOperands(); ++Idx) {
+    for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
       if (CS->getArgOperand(Idx)->getType()->isPointerTy()) {
         Out.erase(CS->getArgOperand(Idx));
       }

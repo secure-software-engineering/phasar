@@ -176,7 +176,7 @@ IDETypeStateAnalysis::getRetFlowFunction(
           ExitSite(llvm::dyn_cast<llvm::ReturnInst>(ExitSite)),
           Analysis(Analysis) {
       // Set up the actual parameters
-      for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+      for (unsigned Idx = 0; Idx < CallSite->arg_size(); ++Idx) {
         Actuals.push_back(CallSite->getArgOperand(Idx));
       }
       // Set up the formal parameters

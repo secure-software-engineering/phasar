@@ -126,7 +126,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun) {
       const llvm::Function *DestFun;
       LCAFF(const llvm::CallBase *CallSite, f_t DestFun) : DestFun(DestFun) {
         // std::set up the actual parameters
-        for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+        for (unsigned Idx = 0; Idx < CallSite->arg_size(); ++Idx) {
           Actuals.push_back(CallSite->getArgOperand(Idx));
         }
         // std::set up the formal parameters

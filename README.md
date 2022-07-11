@@ -20,7 +20,7 @@ PhASAR requires C++-17.
 
 Currently supported version of LLVM
 -----------------------------------
-PhASAR is currently set up to support LLVM-13.0.
+PhASAR is currently set up to support LLVM-14.0.
 
 What is PhASAR?
 ---------------

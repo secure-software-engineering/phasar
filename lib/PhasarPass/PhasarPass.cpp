@@ -59,8 +59,8 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   // check if the requested entry points exist
   for (const std::string &EP : EntryPoints) {
     if (!DB.getFunctionDefinition(EP)) {
-      llvm::report_fatal_error("psr error: entry point does not exist '" + EP +
-                               "'");
+      llvm::report_fatal_error(
+          ("psr error: entry point does not exist '" + EP + "'").c_str());
     }
     EntryPointsSet.insert(EP);
   }

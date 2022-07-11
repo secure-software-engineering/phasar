@@ -758,7 +758,7 @@ DataFlowUtils::getSanitizedArgList(const llvm::CallInst *CallInst,
                  const llvm::Value *>>
       SanitizedArgList;
 
-  for (unsigned I = 0; I < CallInst->getNumArgOperands(); ++I) {
+  for (unsigned I = 0; I < CallInst->arg_size(); ++I) {
     auto *const Arg = CallInst->getOperand(I);
     const auto *const Param = getNthFunctionArgument(DestFun, I);
 

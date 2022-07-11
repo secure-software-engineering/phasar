@@ -15,11 +15,11 @@ jobs:
           - tool: clang-format
             install: |
               sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
-              sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main'
+              sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main'
               sudo apt-get update
-              sudo apt-get -y install --no-install-recommends clang-format-13
+              sudo apt-get -y install --no-install-recommends clang-format-14
             regex: \.(h|c|hpp|cpp)$
-            command: clang-format-13 --style=file -i
+            command: clang-format-14 --style=file -i
 
     continue-on-error: false
     steps:
