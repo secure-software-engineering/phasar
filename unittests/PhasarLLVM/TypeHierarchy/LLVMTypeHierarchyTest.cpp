@@ -13,6 +13,7 @@
 #include "TestConfig.h"
 
 #include "llvm/Demangle/Demangle.h"
+#include "llvm/Support/ManagedStatic.h"
 
 using namespace std;
 using namespace psr;

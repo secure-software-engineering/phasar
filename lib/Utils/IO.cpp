@@ -21,6 +21,7 @@
 #include <string>
 #include <system_error>
 
+#include "llvm/ADT/SmallString.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -31,14 +32,9 @@
 
 namespace psr {
 
-std::string readTextFile(const std::filesystem::path &Path) {
+std::string readTextFile(const llvm::Twine &Path) {
   auto Buffer = readFile(Path);
   return Buffer->getBuffer().str();
-}
-
-std::unique_ptr<llvm::MemoryBuffer>
-readFile(const std::filesystem::path &Path) {
-  return readFile(llvm::StringRef(Path.string()));
 }
 
 std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
@@ -57,13 +53,10 @@ nlohmann::json readJsonFile(const llvm::Twine &Path) {
   return nlohmann::json::parse(Buf->getBufferStart(), Buf->getBufferEnd());
 }
 
-nlohmann::json readJsonFile(const std::filesystem::path &Path) {
-  return readJsonFile(llvm::StringRef(Path.string()));
-}
-
-void writeTextFile(const std::filesystem::path &Path, llvm::StringRef Content) {
+void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content) {
   std::error_code EC;
-  llvm::raw_fd_ostream ROS(Path.string(), EC);
+  llvm::SmallString<256> Buf;
+  llvm::raw_fd_ostream ROS(Path.toNullTerminatedStringRef(Buf), EC);
 
   if (EC) {
     throw std::system_error(EC);

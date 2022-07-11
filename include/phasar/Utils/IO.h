@@ -27,15 +27,13 @@
 
 namespace psr {
 
-std::string readTextFile(const std::filesystem::path &Path);
+std::string readTextFile(const llvm::Twine &Path);
 
-std::unique_ptr<llvm::MemoryBuffer> readFile(const std::filesystem::path &Path);
 std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path);
 
 nlohmann::json readJsonFile(const llvm::Twine &Path);
-nlohmann::json readJsonFile(const std::filesystem::path &Path);
 
-void writeTextFile(const std::filesystem::path &Path, llvm::StringRef Content);
+void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content);
 
 } // namespace psr
 
