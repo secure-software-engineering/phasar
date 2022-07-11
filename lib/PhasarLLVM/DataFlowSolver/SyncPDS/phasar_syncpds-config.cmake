@@ -20,4 +20,3 @@ list(APPEND
   PHASAR_NEEDED_LIBS
   phasar::phasar_syncpds
 )
-

@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -265,16 +264,16 @@ public:
 
   // Printing functions
 
-  void printNode(std::ostream &OS, n_t Inst) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
 
-  void printEdgeFact(std::ostream &OS, l_t Fact) const override;
+  void printEdgeFact(llvm::raw_ostream &OS, l_t Fact) const override;
 
-  void printFunction(std::ostream &OS, f_t Fun) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &OS = std::cout) override;
+                      llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:
   /// Save all leaks here that were found using the IFDS part if the analysis.

@@ -14,11 +14,14 @@
  *      Author: nicolas bellec
  */
 
+#include <optional>
 #include <set>
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
@@ -30,35 +33,49 @@ using namespace psr;
 
 namespace psr {
 
-int getVFTIndex(const llvm::CallBase *CallSite) {
+std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
   const auto *Load =
       llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
   if (Load == nullptr) {
-    return -1;
+    return std::nullopt;
   }
   const auto *GEP =
       llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
   if (GEP == nullptr) {
-    return -2;
+    return std::nullopt;
   }
   if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
     return CI->getZExtValue();
   }
-  return -3;
+  return std::nullopt;
 }
 
 const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
-  if (!CallSite->arg_empty()) {
-    const auto *Receiver = CallSite->getArgOperand(0);
-    if (Receiver->getType()->isPointerTy()) {
-      if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-              Receiver->getType()->getPointerElementType())) {
-        return ReceiverTy;
-      }
-    }
+  if (CallSite->arg_empty() ||
+      (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
+    return nullptr;
   }
+
+  const auto *Receiver =
+      CallSite->getArgOperand(unsigned(CallSite->hasStructRetAttr()));
+
+  if (!Receiver->getType()->isPointerTy()) {
+    return nullptr;
+  }
+
+  if (Receiver->getType()->isOpaquePointerTy()) {
+    llvm::errs() << "WARNING: The IR under analysis uses opaque pointers, "
+                    "which are not supported by phasar yet!\n";
+    return nullptr;
+  }
+
+  if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+          Receiver->getType()->getPointerElementType())) {
+    return ReceiverTy;
+  }
+
   return nullptr;
 }
 
@@ -99,8 +116,8 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call function pointer: " << llvmIRToString(CallSite));
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "Call function pointer: " << llvmIRToString(CallSite));
   FunctionSetTy CalleeTargets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)

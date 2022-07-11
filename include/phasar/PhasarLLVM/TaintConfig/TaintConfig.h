@@ -12,7 +12,6 @@
 
 #include <filesystem>
 #include <functional>
-#include <iostream>
 #include <set>
 #include <string>
 #include <unordered_set>
@@ -124,7 +123,8 @@ public:
                          std::set<const llvm::Value *>>
   makeInitialSeeds() const;
 
-  friend std::ostream &operator<<(std::ostream &OS, const TaintConfig &TC);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const TaintConfig &TC);
 
 private:
   std::unordered_set<const llvm::Value *> SourceValues;

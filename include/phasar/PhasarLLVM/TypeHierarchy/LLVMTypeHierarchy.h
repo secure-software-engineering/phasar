@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
-#include <iostream>
 #include <optional>
 #include <set>
 #include <string>
@@ -88,6 +87,17 @@ public:
   using out_edge_iterator = boost::graph_traits<bidigraph_t>::out_edge_iterator;
   using in_edge_iterator = boost::graph_traits<bidigraph_t>::in_edge_iterator;
 
+  static inline constexpr llvm::StringLiteral StructPrefix = "struct.";
+  static inline constexpr llvm::StringLiteral ClassPrefix = "class.";
+  static inline constexpr llvm::StringLiteral VTablePrefix = "_ZTV";
+  static inline constexpr llvm::StringLiteral VTablePrefixDemang =
+      "vtable for ";
+  static inline constexpr llvm::StringLiteral TypeInfoPrefix = "_ZTI";
+  static inline constexpr llvm::StringLiteral TypeInfoPrefixDemang =
+      "typeinfo for ";
+  static inline constexpr llvm::StringLiteral PureVirtualCallName =
+      "__cxa_pure_virtual";
+
 private:
   bidigraph_t TypeGraph;
   std::unordered_map<const llvm::StructType *, vertex_t> TypeVertexMap;
@@ -101,18 +111,6 @@ private:
   std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTIMap;
   // map from clearname to vtable variable
   std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTVMap;
-
-  static const std::string StructPrefix;
-
-  static const std::string ClassPrefix;
-
-  static const std::string VTablePrefix;
-
-  static const std::string VTablePrefixDemang;
-
-  static const std::string TypeInfoPrefix;
-
-  static const std::string TypeInfoPrefixDemang;
 
   static std::string removeStructOrClassPrefix(const llvm::StructType &T);
 
@@ -212,7 +210,7 @@ public:
 
   [[nodiscard]] inline bool empty() const override { return size() == 0; };
 
-  void print(std::ostream &OS = std::cout) const override;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
@@ -221,40 +219,21 @@ public:
   /**
    * 	@brief Prints the transitive closure of the class hierarchy graph.
    */
-  void printTransitiveClosure(std::ostream &OS = std::cout) const;
-
-  // provide a VertexPropertyWrite to tell boost how to write a vertex
-  class TypeHierarchyVertexWriter {
-  public:
-    TypeHierarchyVertexWriter(const bidigraph_t &TyGraph) : TyGraph(TyGraph) {}
-    template <class VertexOrEdge>
-    void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-      Out << "[label=\"" << TyGraph[V].getTypeName() << "\"]";
-    }
-
-  private:
-    const bidigraph_t &TyGraph;
-  };
-
-  // a function to conveniently create this writer
-  [[nodiscard]] TypeHierarchyVertexWriter
-  makeTypeHierarchyVertexWriter(const bidigraph_t &TyGraph) const {
-    return {TyGraph};
-  }
+  void printTransitiveClosure(llvm::raw_ostream &OS = llvm::outs()) const;
 
   /**
    * 	@brief Prints the class hierarchy to an ostream in dot format.
    * 	@param an outputstream
    */
-  void printAsDot(std::ostream &OS = std::cout) const;
+  void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
   /**
    * @brief Prints the class hierarchy to an ostream in json format.
    * @param an outputstream
    */
-  void printAsJson(std::ostream &OS = std::cout) const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  // void printGraphAsDot(std::ostream &out);
+  // void printGraphAsDot(llvm::raw_ostream &out);
 
   // static bidigraph_t loadGraphFormDot(std::istream &in);
 };

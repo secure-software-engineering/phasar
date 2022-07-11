@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
 
 #include <deque>
-#include <iostream>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -76,7 +75,7 @@ public:
     initialize();
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
-      // std::cout << "worklist size: " << Worklist.size() << "\n";
+      // llvm::outs() << "worklist size: " << Worklist.size() << "\n";
       std::pair<n_t, n_t> Edge = Worklist.front();
       Worklist.pop_front();
       n_t Src = Edge.first;
@@ -112,7 +111,7 @@ public:
 
   mono_container_t getResultsAt(n_t Stmt) { return Analysis[Stmt]; }
 
-  virtual void dumpResults(std::ostream &OS = std::cout) {
+  virtual void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
     OS << "Intra-Monotone solver results:\n"
           "------------------------------\n";
     for (auto &[Node, FlowFacts] : this->Analysis) {
@@ -129,9 +128,9 @@ public:
     }
   }
 
-  virtual void emitTextReport(std::ostream &OS = std::cout) {}
+  virtual void emitTextReport(llvm::raw_ostream &OS = llvm::outs()) {}
 
-  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
+  virtual void emitGraphicalReport(llvm::raw_ostream &OS = llvm::outs()) {}
 };
 
 template <typename Problem>

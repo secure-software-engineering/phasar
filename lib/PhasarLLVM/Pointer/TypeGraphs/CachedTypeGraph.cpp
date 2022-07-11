@@ -66,7 +66,7 @@ CachedTypeGraph::vertex_t
 CachedTypeGraph::addType(const llvm::StructType *NewType) {
   std::string Name;
   if (!NewType->isLiteral()) {
-    Name = NewType->getName().str();
+    Name = NewType->getName();
   } else {
     std::stringstream StrS;
     StrS << "literal_" << NewType;

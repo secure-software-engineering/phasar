@@ -160,7 +160,7 @@ bool JoinEdgeFunction::equal_to(EdgeFunctionPtrType OtherFunction) const {
   return false;
 }
 
-void JoinEdgeFunction::print(std::ostream &OS, bool IsForDebug) const {
+void JoinEdgeFunction::print(llvm::raw_ostream &OS, bool IsForDebug) const {
   assert(!SubEF.empty());
   auto It = SubEF.begin();
   auto Frst = *It;

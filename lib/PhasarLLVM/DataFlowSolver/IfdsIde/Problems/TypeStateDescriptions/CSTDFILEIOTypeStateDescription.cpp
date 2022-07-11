@@ -10,10 +10,6 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
-#include <iostream>
-
-using namespace std;
-using namespace psr;
 
 namespace psr {
 
@@ -90,7 +86,7 @@ std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
   return "struct._IO_FILE";
 }
 
-set<int> CSTDFILEIOTypeStateDescription::getConsumerParamIdx(
+std::set<int> CSTDFILEIOTypeStateDescription::getConsumerParamIdx(
     const std::string &F) const {
   if (isConsumingFunction(F)) {
     return StdFileIOFuncs.at(F);
@@ -98,7 +94,7 @@ set<int> CSTDFILEIOTypeStateDescription::getConsumerParamIdx(
   return {};
 }
 
-set<int>
+std::set<int>
 CSTDFILEIOTypeStateDescription::getFactoryParamIdx(const std::string &F) const {
   if (isFactoryFunction(F)) {
     // Trivial here, since we only generate via return value

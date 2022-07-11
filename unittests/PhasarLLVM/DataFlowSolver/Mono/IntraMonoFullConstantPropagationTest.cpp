@@ -41,10 +41,7 @@ protected:
                  LatticeDomain<IntraMonoFullConstantPropagation::plain_d_t>>;
   ProjectIRDB *IRDB = nullptr;
 
-  void SetUp() override {
-    std::cout << "setup\n";
-    boost::log::core::get()->set_logging_enabled(false);
-  }
+  void SetUp() override {}
   void TearDown() override { delete IRDB; }
 
   void
@@ -53,7 +50,7 @@ protected:
                               bool PrintDump = false) {
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(std::cout, false);
+      IRDB->emitPreprocessedIR(llvm::outs(), false);
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
@@ -66,7 +63,7 @@ protected:
     if (PrintDump) {
       IMSolver.dumpResults();
     }
-    std::cout << "Done analysis!\n";
+    llvm::outs() << "Done analysis!\n";
     // do the comparison
     bool ResultNotEmpty = false;
     for (const auto &Truth : GroundTruth) {
@@ -77,7 +74,7 @@ protected:
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-          std::cout << "Checking variable: " << FactStr << std::endl;
+          llvm::outs() << "Checking variable: " << FactStr << '\n';
           ResultNotEmpty = true;
           EXPECT_EQ(std::get<3>(Truth), Value);
         }

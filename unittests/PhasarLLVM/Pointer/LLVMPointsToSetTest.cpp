@@ -20,11 +20,11 @@ TEST(LLVMPointsToSet, Intra_01) {
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      const auto *S = PTS.getPointsToSet(&I); // NOLINT
+      auto S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
-  PTS.print(std::cout);
-  std::cout << '\n';
+  PTS.print(llvm::outs());
+  llvm::outs() << '\n';
 }
 
 TEST(LLVMPointsToSet, Inter_01) {
@@ -36,11 +36,11 @@ TEST(LLVMPointsToSet, Inter_01) {
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      const auto *S = PTS.getPointsToSet(&I); // NOLINT
+      auto S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
-  PTS.print(std::cout);
-  std::cout << '\n';
+  PTS.print(llvm::outs());
+  llvm::outs() << '\n';
 }
 
 TEST(LLVMPointsToSet, Global_01) {
@@ -51,15 +51,15 @@ TEST(LLVMPointsToSet, Global_01) {
   LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &G : Main->getParent()->globals()) {
-    const auto *S = PTS.getPointsToSet(&G); // NOLINT
+    auto S = PTS.getPointsToSet(&G); // NOLINT
   }
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      const auto *S = PTS.getPointsToSet(&I); // NOLINT
+      auto S = PTS.getPointsToSet(&I); // NOLINT
     }
   }
-  PTS.print(std::cout);
-  std::cout << '\n';
+  PTS.print(llvm::outs());
+  llvm::outs() << '\n';
 }
 
 int main(int Argc, char **Argv) {

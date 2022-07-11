@@ -10,7 +10,6 @@
 #ifndef PHASAR_DB_PROJECTIRDB_H_
 #define PHASAR_DB_PROJECTIRDB_H_
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -174,13 +173,13 @@ public:
 
   [[nodiscard]] std::size_t getNumGlobals() const;
 
-  [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id);
+  [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
 
   void print() const;
 
-  void emitPreprocessedIR(std::ostream &OS = std::cout,
+  void emitPreprocessedIR(llvm::raw_ostream &OS = llvm::outs(),
                           bool ShortenIR = false) const;
 
   /**

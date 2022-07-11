@@ -12,8 +12,9 @@
 
 #include <map>
 #include <memory>
-#include <ostream>
 #include <type_traits>
+
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
 
@@ -35,7 +36,7 @@ public:
   EdgeFactWrapper(T &&F) : Fact(std::move(F)) {}
   ~EdgeFactWrapper() override = default;
   [[nodiscard]] const T &get() const { return Fact; }
-  void print(std::ostream &OS) const override { OS << Fact << '\n'; }
+  void print(llvm::raw_ostream &OS) const override { OS << Fact << '\n'; }
 };
 
 /// A simple memory manager for EdgeFactWrappers. You may use them in your

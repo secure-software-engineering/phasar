@@ -93,11 +93,12 @@ bool IDESecureHeapPropagation::isZeroValue(d_t Fact) const {
   return Fact == SecureHeapFact::ZERO;
 }
 
-void IDESecureHeapPropagation::printNode(std::ostream &Os, n_t Stmt) const {
+void IDESecureHeapPropagation::printNode(llvm::raw_ostream &Os,
+                                         n_t Stmt) const {
   Os << llvmIRToString(Stmt);
 }
 
-void IDESecureHeapPropagation::printDataFlowFact(std::ostream &Os,
+void IDESecureHeapPropagation::printDataFlowFact(llvm::raw_ostream &Os,
                                                  d_t Fact) const {
   switch (Fact) {
   case SecureHeapFact::ZERO:
@@ -112,7 +113,8 @@ void IDESecureHeapPropagation::printDataFlowFact(std::ostream &Os,
   }
 }
 
-void IDESecureHeapPropagation::printFunction(std::ostream &Os, f_t F) const {
+void IDESecureHeapPropagation::printFunction(llvm::raw_ostream &Os,
+                                             f_t F) const {
   Os << llvm::demangle(F->getName().str());
 }
 
@@ -193,7 +195,8 @@ IDESecureHeapPropagation::allTopFunction() {
   return AT;
 }
 
-void IDESecureHeapPropagation::printEdgeFact(std::ostream &Os, l_t L) const {
+void IDESecureHeapPropagation::printEdgeFact(llvm::raw_ostream &Os,
+                                             l_t L) const {
   switch (L) {
   case l_t::BOT:
     Os << "BOT";
@@ -211,7 +214,7 @@ void IDESecureHeapPropagation::printEdgeFact(std::ostream &Os, l_t L) const {
 }
 
 void IDESecureHeapPropagation::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, std::ostream &Os) {
+    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &Os) {
   for (const auto *F : ICF->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
     Os << "\nFunction: " << FName << "\n----------"
@@ -245,7 +248,7 @@ bool IDESecureHeapPropagation::IdentityEdgeFunction::equal_to(
 }
 
 void IDESecureHeapPropagation::IdentityEdgeFunction::print(
-    std::ostream &OS, bool /*IsForDebug*/) const {
+    llvm::raw_ostream &OS, bool /*IsForDebug*/) const {
   OS << "IdentityEdgeFn";
 }
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
@@ -290,7 +293,7 @@ bool IDESecureHeapPropagation::SHPGenEdgeFn::equal_to(
   return Other.get() == this; // reference-equality
 }
 
-void IDESecureHeapPropagation::SHPGenEdgeFn::print(std::ostream &OS,
+void IDESecureHeapPropagation::SHPGenEdgeFn::print(llvm::raw_ostream &OS,
                                                    bool /*IsForDebug*/) const {
   OS << "GenEdgeFn[";
   switch (Value) {

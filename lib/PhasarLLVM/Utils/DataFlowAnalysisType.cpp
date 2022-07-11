@@ -7,15 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ostream>
 #include <string>
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-
-using namespace psr;
-using namespace std;
 
 namespace psr {
 
@@ -28,25 +25,6 @@ std::string toString(const DataFlowAnalysisType &D) {
     break;
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
   }
-}
-
-std::string toString(const DataFlowAnalysisKind &D) {
-  if (std::holds_alternative<DataFlowAnalysisType>(D)) {
-    return toString(std::get<DataFlowAnalysisType>(D));
-  }
-  if (std::holds_alternative<IFDSPluginConstructor>(D)) {
-    return "IFDS Plugin";
-  }
-  if (std::holds_alternative<IDEPluginConstructor>(D)) {
-    return "IDE Plugin";
-  }
-  if (std::holds_alternative<IntraMonoPluginConstructor>(D)) {
-    return "IntraMono Plugin";
-  }
-  if (std::holds_alternative<InterMonoPluginConstructor>(D)) {
-    return "InterMono Plugin";
-  }
-  return "None";
 }
 
 DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
@@ -65,7 +43,8 @@ DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const DataFlowAnalysisType &D) {
   return OS << toString(D);
 }
 

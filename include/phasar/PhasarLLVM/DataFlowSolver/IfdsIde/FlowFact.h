@@ -16,11 +16,11 @@
 namespace psr {
 
 /// A common superclass of dataflow-facts used by non-template tabulation
-/// problems (for example in plugins)
+/// problems
 class FlowFact {
 public:
   virtual ~FlowFact() = default;
-  virtual void print(std::ostream &OS) const = 0;
+  virtual void print(llvm::raw_ostream &OS) const = 0;
 
   /// An abbreviation of an unsafe cast to T. Please use this only, if you know
   /// by 100% that this FlowFact is of type T
@@ -36,7 +36,8 @@ public:
   }
 };
 
-static inline std::ostream &operator<<(std::ostream &OS, const FlowFact &F) {
+static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                            const FlowFact &F) {
   F.print(OS);
   return OS;
 }

@@ -10,13 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
-#include <iostream>
-#include <memory>
-#include <unordered_set>
-
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
+
+#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 
 namespace psr {
 
@@ -26,7 +25,7 @@ std::string toString(AliasResult AR);
 
 AliasResult toAliasResult(const std::string &S);
 
-std::ostream &operator<<(std::ostream &OS, const AliasResult &AR);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const AliasResult &AR);
 
 enum class PointerAnalysisType {
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
@@ -38,12 +37,13 @@ std::string toString(const PointerAnalysisType &PA);
 
 PointerAnalysisType toPointerAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const PointerAnalysisType &PA);
 
 template <typename V, typename N> class PointsToInfo {
 public:
   using PointsToSetTy = llvm::DenseSet<V>;
-  using PointsToSetPtrTy = const PointsToSetTy *;
+  using PointsToSetPtrTy = DynamicPointsToSetConstPtr<PointsToSetTy>;
   using AllocationSiteSetPtrTy = std::unique_ptr<PointsToSetTy>;
 
   virtual ~PointsToInfo() = default;
@@ -64,11 +64,11 @@ public:
   isInReachableAllocationSites(V V1, V V2, bool IntraProcOnly = false,
                                N I = N{}) = 0;
 
-  virtual void print(std::ostream &OS = std::cout) const = 0;
+  virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
 
   [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 
-  virtual void printAsJson(std::ostream &OS) const = 0;
+  virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
 
   // The following functions are relevent when combining points-to with other
   // pieces of information. For instance, during a call-graph construction (or
@@ -81,8 +81,8 @@ public:
 };
 
 template <typename V, typename N>
-static inline std::ostream &operator<<(std::ostream &OS,
-                                       const PointsToInfo<V, N> &PTI) {
+static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                            const PointsToInfo<V, N> &PTI) {
   PTI.print(OS);
   return OS;
 }

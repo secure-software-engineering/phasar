@@ -91,18 +91,18 @@ IntraMonoUninitVariables::initialSeeds() {
 }
 
 void IntraMonoUninitVariables::printNode(
-    ostream &OS, IntraMonoUninitVariables::n_t Inst) const {
+    llvm::raw_ostream &OS, IntraMonoUninitVariables::n_t Inst) const {
   OS << llvmIRToString(Inst);
 }
 
 void IntraMonoUninitVariables::printDataFlowFact(
-    ostream &OS, IntraMonoUninitVariables::d_t Fact) const {
+    llvm::raw_ostream &OS, IntraMonoUninitVariables::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
 void IntraMonoUninitVariables::printFunction(
-    ostream &OS, IntraMonoUninitVariables::f_t Fun) const {
-  OS << Fun->getName().str();
+    llvm::raw_ostream &OS, IntraMonoUninitVariables::f_t Fun) const {
+  OS << Fun->getName();
 }
 
 } // namespace psr

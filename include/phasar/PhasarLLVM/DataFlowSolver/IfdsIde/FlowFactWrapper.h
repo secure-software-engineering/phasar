@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACTWRAPPER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACTWRAPPER_H
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <optional>
@@ -43,7 +42,7 @@ public:
   [[nodiscard]] const std::optional<T> &get() const { return Fact; }
   [[nodiscard]] bool isZero() const { return !Fact; }
 
-  void print(std::ostream &OS) const final {
+  void print(llvm::raw_ostream &OS) const final {
     if (isZero()) {
       OS << "Λ";
     } else {
@@ -52,7 +51,7 @@ public:
     OS << '\n';
   }
 
-  virtual void print(std::ostream &OS, const T &NonZeroFact) const {
+  virtual void print(llvm::raw_ostream &OS, const T &NonZeroFact) const {
     OS << NonZeroFact;
   }
 };

@@ -47,7 +47,8 @@ public:
 
   [[nodiscard]] D factAtTarget() const { return DTarget; }
 
-  friend std::ostream &operator<<(std::ostream &OS, const PathEdge &Edge) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const PathEdge &Edge) {
     return OS << "<" << Edge.DSource << "> -> <" << Edge.Target << ","
               << Edge.DTarget << ">";
   }

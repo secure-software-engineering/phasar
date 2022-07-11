@@ -22,7 +22,7 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS filesystem program_options REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
 target_link_libraries(phasar_wpds
   LINK_PUBLIC
   ${Boost_LIBRARIES}

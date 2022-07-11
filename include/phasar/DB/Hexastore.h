@@ -11,9 +11,10 @@
 #define PHASAR_DB_HEXASTORE_H_
 
 #include <array>
-#include <iosfwd>
 #include <string>
 #include <vector>
+
+#include "llvm/Support/raw_ostream.h"
 
 #include "boost/format.hpp"
 
@@ -39,7 +40,8 @@ struct HSResult {
       : Subject(Subject), Predicate(std::move(Predicate)),
         Object(std::move(Object)) {}
   /// Prints an entry of the results to the command-line
-  friend std::ostream &operator<<(std::ostream &OS, const HSResult &Result) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const HSResult &Result) {
     return OS << "[ subject: " << Result.Subject
               << " | predicate: " << Result.Predicate
               << " | object: " << Result.Object << " ]";

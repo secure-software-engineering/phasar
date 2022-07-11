@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <iostream>
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_utility.hpp"
@@ -142,7 +141,7 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
   boost::add_edge(V6, V5, G);
   boost::add_edge(V4, V2, G);
 
-  // std::cout << "Graph G:" << std::endl;
+  // llvm::outs() << "Graph G:" << std::endl;
   // boost::print_graph(G, boost::get(&Vertex::name, G));
 
   Hexastore HS("StoreGraphNoEdgeLabels.sqlite");
@@ -223,7 +222,7 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   boost::add_edge(W6, W5, Edge("five"), I);
   boost::add_edge(W4, W2, Edge("six"), I);
 
-  // std::cout << "Graph I:" << std::endl;
+  // llvm::outs() << "Graph I:" << std::endl;
   // boost::print_graph(I, boost::get(&Vertex::name, I));
   // for (tie(ei_start, e_end) = boost::edges(I); ei_start != e_end; ++ei_start)
   // {

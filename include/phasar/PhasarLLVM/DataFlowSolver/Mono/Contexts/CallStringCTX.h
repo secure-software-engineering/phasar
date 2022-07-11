@@ -65,7 +65,7 @@ public:
     return Lhs.cs < Rhs.cs;
   }
 
-  void print(std::ostream &OS) const {
+  void print(llvm::raw_ostream &OS) const {
     OS << "Call string: [ ";
     for (auto C : CallString) {
       OS << llvmIRToString(C);
@@ -76,8 +76,8 @@ public:
     OS << " ]";
   }
 
-  friend std::ostream &operator<<(std::ostream &OS,
-                                  const CallStringCTX<N, K> &C) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const CallStringCTX<N, K> &C) {
     C.print(OS);
     return OS;
   }

@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_SOLVER_WPDSSOLVER_H
 
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -126,7 +125,7 @@ public:
     // Solve the PDS
     wali::sem_elem_t Ret = nullptr;
     if (WPDSSearchDirection::FORWARD == SolverConf.Direction) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "FORWARD");
+      PHASAR_LOG_LEVEL(DEBUG, "FORWARD");
       doForwardSearch(Answer);
       Answer.path_summary();
       // another way not using path summary
@@ -146,7 +145,7 @@ public:
           wali::getKey(&IDESolver<AnalysisDomainTy>::ICF->getFunction("main")
                             ->back()
                             .back());
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "BACKWARD");
+      PHASAR_LOG_LEVEL(DEBUG, "BACKWARD");
       doBackwardSearch(RetNode, Answer);
       Answer.path_summary();
 
@@ -193,12 +192,12 @@ public:
   }
 
   void processNormalFlow(PathEdge<n_t, d_t> Edge) override {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processNormal");
+    PHASAR_LOG_LEVEL(DEBUG, "WPDS::processNormal");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Process normal at target: "
-                  << this->ideTabulationProblem.NtoString(Edge.getTarget()));
+    PHASAR_LOG_LEVEL(
+        DEBUG, "Process normal at target: "
+                   << this->ideTabulationProblem.NtoString(Edge.getTarget()));
     d_t d1 = Edge.factAtSource(); // NOLINT
     n_t n = Edge.getTarget();     // NOLINT
     d_t d2 = Edge.factAtTarget(); // NOLINT
@@ -230,20 +229,20 @@ public:
         wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> Wptr;
         Wptr = new JoinLatticeToSemiRingElem<l_t>(
             g, static_cast<JoinLattice<l_t> &>(Problem));
-        LOG_IF_ENABLE(
-            BOOST_LOG_SEV(lg::get(), DEBUG)
-            << "ADD NORMAL RULE: " << Problem.DtoString(d2) << " | "
-            << Problem.NtoString(n) << " --> " << Problem.DtoString(d3) << " | "
-            << Problem.DtoString(SuccessorInst) << ", " << *Wptr << ")");
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "ADD NORMAL RULE: " << Problem.DtoString(d2) << " | "
+                                             << Problem.NtoString(n) << " --> "
+                                             << Problem.DtoString(d3) << " | "
+                                             << Problem.DtoString(SuccessorInst)
+                                             << ", " << *Wptr << ")");
         PDS->add_rule(d2_k, n_k, d3_k, f_k, Wptr);
         if (!SRElem.is_valid()) {
           SRElem = Wptr;
         }
         EdgeFunctionPtrType fprime = SuccessorInst->composeWith(g); // NOLINT
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Compose: " << g->str() << " * "
-                      << SuccessorInst->str());
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+        PHASAR_LOG_LEVEL(DEBUG, "Compose: " << g->str() << " * "
+                                            << SuccessorInst->str());
+        PHASAR_LOG_LEVEL(DEBUG, ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         IDESolver<AnalysisDomainTy>::propagate(d1, SuccessorInst, d3, fprime,
                                                nullptr, false);
@@ -252,12 +251,12 @@ public:
   }
 
   void processCall(PathEdge<n_t, d_t> Edge) override {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processCall");
+    PHASAR_LOG_LEVEL(DEBUG, "WPDS::processCall");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Process call at target: "
-                  << this->ideTabulationProblem.NtoString(Edge.getTarget()));
+    PHASAR_LOG_LEVEL(
+        DEBUG, "Process call at target: "
+                   << this->ideTabulationProblem.NtoString(Edge.getTarget()));
     d_t d1 = Edge.factAtSource(); // NOLINT
     n_t n = Edge.getTarget();     // NOLINT a call node; line 14...
     d_t d2 = Edge.factAtTarget(); // NOLINT
@@ -267,15 +266,14 @@ public:
         IDESolver<AnalysisDomainTy>::ICF->getReturnSitesOfCallAt(n);
     std::set<f_t> Callees =
         IDESolver<AnalysisDomainTy>::ICF->getCalleesOfCallAt(n);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible callees:");
+    PHASAR_LOG_LEVEL(DEBUG, "Possible callees:");
     for (auto Callee : Callees) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "  " << Callee->getName().str());
+      PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName());
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible return sites:");
+    PHASAR_LOG_LEVEL(DEBUG, "Possible return sites:");
     for (auto Ret : ReturnSiteNs) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                    << "  " << this->ideTabulationProblem.NtoString(Ret));
+      PHASAR_LOG_LEVEL(DEBUG,
+                       "  " << this->ideTabulationProblem.NtoString(Ret));
     }
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
@@ -286,8 +284,7 @@ public:
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
       if (SpecialSum) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                      << "Found and process special summary");
+        PHASAR_LOG_LEVEL(DEBUG, "Found and process special summary");
         for (n_t ReturnSiteN : ReturnSiteNs) {
           std::set<d_t> Res =
               IDESolver<AnalysisDomainTy>::computeSummaryFlowFunction(
@@ -304,10 +301,9 @@ public:
                     .getSummaryEdgeFunction(n, d2, ReturnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Compose: " << SumEdgFnE->str() << " * "
-                          << f->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+            PHASAR_LOG_LEVEL(DEBUG, "Compose: " << SumEdgFnE->str() << " * "
+                                                << f->str());
+            PHASAR_LOG_LEVEL(DEBUG, ' ');
             IDESolver<AnalysisDomainTy>::propagate(
                 d1, ReturnSiteN, d3, f->composeWith(SumEdgFnE), n, false);
           }
@@ -327,10 +323,9 @@ public:
         std::set<n_t> StartPointsOf =
             IDESolver<AnalysisDomainTy>::ICF->getStartPointsOf(SCalledProcN);
         if (StartPointsOf.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Start points of '" +
-                               this->ICF->getFunctionName(SCalledProcN) +
-                               "' currently not available!");
+          PHASAR_LOG_LEVEL(DEBUG, "Start points of '" +
+                                      this->ICF->getFunctionName(SCalledProcN) +
+                                      "' currently not available!");
         }
         // if startPointsOf is empty, the called function is a declaration
         for (n_t SP : StartPointsOf) {
@@ -397,11 +392,12 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> WptrCall(
                       new JoinLatticeToSemiRingElem<l_t>(
                           f4, static_cast<JoinLattice<l_t> &>(Problem)));
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                << "ADD CALL RULE: " << Problem.DtoString(d2)
-                                << ", " << Problem.NtoString(n) << ", "
-                                << Problem.DtoString(d3) << ", "
-                                << Problem.NtoString(SP) << ", " << *WptrCall);
+                  PHASAR_LOG_LEVEL(DEBUG, "ADD CALL RULE: "
+                                              << Problem.DtoString(d2) << ", "
+                                              << Problem.NtoString(n) << ", "
+                                              << Problem.DtoString(d3) << ", "
+                                              << Problem.NtoString(SP) << ", "
+                                              << *WptrCall);
                   auto RetSiteNK = wali::getKey(RetSiteN);
                   PDS->add_rule(d2_k, n_k, d3_k, sP_k, RetSiteNK, WptrCall);
                   if (!SRElem.is_valid()) {
@@ -420,11 +416,11 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> WptrRet(
                       new JoinLatticeToSemiRingElem<l_t>(
                           f5, static_cast<JoinLattice<l_t> &>(Problem)));
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                << "ADD RET RULE (CALL): "
-                                << Problem.DtoString(d4) << ", "
-                                << Problem.NtoString(RetSiteN) << ", "
-                                << Problem.DtoString(d5) << ", " << *WptrRet);
+                  PHASAR_LOG_LEVEL(DEBUG, "ADD RET RULE (CALL): "
+                                              << Problem.DtoString(d4) << ", "
+                                              << Problem.NtoString(RetSiteN)
+                                              << ", " << Problem.DtoString(d5)
+                                              << ", " << *WptrRet);
                   std::set<n_t> ExitPointsN =
                       IDESolver<AnalysisDomainTy>::ICF->getExitPointsOf(
                           IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(SP));
@@ -437,24 +433,22 @@ public:
                   }
                   INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                << "Compose: " << f5->str() << " * "
-                                << FCalleeSummary->str() << " * " << f4->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                << "         (return * calleeSummary * call)");
+                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5->str() << " * "
+                                                      << FCalleeSummary->str()
+                                                      << " * " << f4->str());
+                  PHASAR_LOG_LEVEL(DEBUG,
+                                   "         (return * calleeSummary * call)");
                   EdgeFunctionPtrType fPrime = // NOLINT
                       f4->composeWith(FCalleeSummary)->composeWith(f5);
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                << "       = " << fPrime->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                  PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime->str());
+                  PHASAR_LOG_LEVEL(DEBUG, ' ');
                   d_t d5_restoredCtx = // NOLINT
                       IDESolver<AnalysisDomainTy>::restoreContextOnReturnedFact(
                           n, d2, d5);
                   // propagte the effects of the entire call
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                << "Compose: " << fPrime->str() << " * "
-                                << f->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime->str() << " * "
+                                                      << f->str());
+                  PHASAR_LOG_LEVEL(DEBUG, ' ');
                   IDESolver<AnalysisDomainTy>::propagate(
                       d1, RetSiteN, d5_restoredCtx, f->composeWith(fPrime), n,
                       false);
@@ -492,19 +486,20 @@ public:
           wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> Wptr(
               new JoinLatticeToSemiRingElem<l_t>(
                   EdgeFnE, static_cast<JoinLattice<l_t> &>(Problem)));
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "ADD CALLTORET RULE: " << Problem.DtoString(d2)
-                        << " | " << Problem.NtoString(n) << " --> "
-                        << Problem.DtoString(d3) << ", "
-                        << Problem.NtoString(ReturnSiteN) << ", " << *Wptr);
+          PHASAR_LOG_LEVEL(DEBUG, "ADD CALLTORET RULE: "
+                                      << Problem.DtoString(d2) << " | "
+                                      << Problem.NtoString(n) << " --> "
+                                      << Problem.DtoString(d3) << ", "
+                                      << Problem.NtoString(ReturnSiteN) << ", "
+                                      << *Wptr);
           PDS->add_rule(d2_k, n_k, d3_k, ReturnSiteNK, Wptr);
           if (!SRElem.is_valid()) {
             SRElem = Wptr;
           }
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                        << "Compose: " << EdgeFnE->str() << " * " << f->str());
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+          PHASAR_LOG_LEVEL(DEBUG,
+                           "Compose: " << EdgeFnE->str() << " * " << f->str());
+          PHASAR_LOG_LEVEL(DEBUG, ' ');
           IDESolver<AnalysisDomainTy>::propagate(
               d1, ReturnSiteN, d3, f->composeWith(EdgeFnE), n, false);
         }
@@ -513,12 +508,12 @@ public:
   }
 
   void processExit(PathEdge<n_t, d_t> Edge) override {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processExit");
+    PHASAR_LOG_LEVEL(DEBUG, "WPDS::processExit");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Process exit at target: "
-                  << this->ideTabulationProblem.NtoString(Edge.getTarget()));
+    PHASAR_LOG_LEVEL(
+        DEBUG, "Process exit at target: "
+                   << this->ideTabulationProblem.NtoString(Edge.getTarget()));
     n_t n = Edge.getTarget(); // NOLINT an exit node; line 21...
     EdgeFunctionPtrType f     // NOLINT
         = IDESolver<AnalysisDomainTy>::jumpFunction(Edge);
@@ -591,26 +586,25 @@ public:
             wali::ref_ptr<JoinLatticeToSemiRingElem<l_t>> Wptr(
                 new JoinLatticeToSemiRingElem<l_t>(
                     f5, static_cast<JoinLattice<l_t> &>(Problem)));
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "ADD RET RULE: " << Problem.DtoString(d2) << ", "
-                          << Problem.NtoString(n) << ", "
-                          << Problem.DtoString(d5) << ", " << *Wptr);
+            PHASAR_LOG_LEVEL(DEBUG,
+                             "ADD RET RULE: " << Problem.DtoString(d2) << ", "
+                                              << Problem.NtoString(n) << ", "
+                                              << Problem.DtoString(d5) << ", "
+                                              << *Wptr);
             PDS->add_rule(d2_k, n_k, d5_k, Wptr);
             if (!SRElem.is_valid()) {
               SRElem = Wptr;
             }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Compose: " << f5->str() << " * " << f->str()
-                          << " * " << f4->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "         (return * function * call)");
+            PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5->str() << " * "
+                                                << f->str() << " * "
+                                                << f4->str());
+            PHASAR_LOG_LEVEL(DEBUG, "         (return * function * call)");
             EdgeFunctionPtrType fPrime // NOLINT
                 = f4->composeWith(f)->composeWith(f5);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "       = " << fPrime->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+            PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime->str());
+            PHASAR_LOG_LEVEL(DEBUG, ' ');
             // for each jump function coming into the call, propagate to return
             // site using the composed function
             for (auto ValAndFunc :
@@ -621,10 +615,9 @@ public:
                 d_t d5_restoredCtx =       // NOLINT
                     IDESolver<AnalysisDomainTy>::restoreContextOnReturnedFact(
                         c, d4, d5);
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                              << "Compose: " << fPrime->str() << " * "
-                              << f3->str());
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime->str() << " * "
+                                                    << f3->str());
+                PHASAR_LOG_LEVEL(DEBUG, ' ');
                 IDESolver<AnalysisDomainTy>::propagate(
                     d3, RetSiteC, d5_restoredCtx, f3->composeWith(fPrime), c,
                     false);
@@ -666,9 +659,9 @@ public:
                         C, IDESolver<AnalysisDomainTy>::ICF->getFunctionOf(n),
                         n, d2, RetSiteC, d5);
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Compose: " << f5->str() << " * " << f->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+            PHASAR_LOG_LEVEL(DEBUG,
+                             "Compose: " << f5->str() << " * " << f->str());
+            PHASAR_LOG_LEVEL(DEBUG, ' ');
             IDESolver<AnalysisDomainTy>::propagteUnbalancedReturnFlow(
                 RetSiteC, d5, f->composeWith(f5), C);
             // register for value processing (2nd IDE phase)

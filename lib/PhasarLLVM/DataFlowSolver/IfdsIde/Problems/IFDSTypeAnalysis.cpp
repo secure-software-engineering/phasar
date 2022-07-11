@@ -109,19 +109,19 @@ bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t Fact) const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
 }
 
-void IFDSTypeAnalysis::printNode(ostream &OS,
+void IFDSTypeAnalysis::printNode(llvm::raw_ostream &OS,
                                  IFDSTypeAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IFDSTypeAnalysis::printDataFlowFact(ostream &OS,
+void IFDSTypeAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
                                          IFDSTypeAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IFDSTypeAnalysis::printFunction(ostream &OS,
+void IFDSTypeAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IFDSTypeAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
 } // namespace psr

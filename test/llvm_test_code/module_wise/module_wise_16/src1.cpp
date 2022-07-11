@@ -1,5 +1,3 @@
 #include "src1.h"
 
-int id(int i) {
-	return i;
-}
+int id(int i) { return i; }

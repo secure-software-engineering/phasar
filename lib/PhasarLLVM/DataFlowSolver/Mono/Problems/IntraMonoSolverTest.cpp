@@ -15,7 +15,6 @@
  */
 
 #include <algorithm>
-#include <iostream>
 #include <utility>
 
 #include "llvm/IR/Instruction.h"
@@ -28,7 +27,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-using namespace std;
 using namespace psr;
 
 namespace psr {
@@ -44,21 +42,21 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
 IntraMonoSolverTest::mono_container_t
 IntraMonoSolverTest::merge(const IntraMonoSolverTest::mono_container_t &Lhs,
                            const IntraMonoSolverTest::mono_container_t &Rhs) {
-  cout << "IntraMonoSolverTest::merge()\n";
+  llvm::outs() << "IntraMonoSolverTest::merge()\n";
   return Lhs.setUnion(Rhs);
 }
 
 bool IntraMonoSolverTest::equal_to(
     const IntraMonoSolverTest::mono_container_t &Lhs,
     const IntraMonoSolverTest::mono_container_t &Rhs) {
-  cout << "IntraMonoSolverTest::equal_to()\n";
+  llvm::outs() << "IntraMonoSolverTest::equal_to()\n";
   return Lhs == Rhs;
 }
 
 IntraMonoSolverTest::mono_container_t IntraMonoSolverTest::normalFlow(
     IntraMonoSolverTest::n_t Inst,
     const IntraMonoSolverTest::mono_container_t &In) {
-  cout << "IntraMonoSolverTest::normalFlow()\n";
+  llvm::outs() << "IntraMonoSolverTest::normalFlow()\n";
   IntraMonoSolverTest::mono_container_t Result = In;
   if (const auto *const Store = llvm::dyn_cast<llvm::StoreInst>(Inst)) {
     Result.insert(Store);
@@ -66,25 +64,26 @@ IntraMonoSolverTest::mono_container_t IntraMonoSolverTest::normalFlow(
   return Result;
 }
 
-unordered_map<IntraMonoSolverTest::n_t, IntraMonoSolverTest::mono_container_t>
+std::unordered_map<IntraMonoSolverTest::n_t,
+                   IntraMonoSolverTest::mono_container_t>
 IntraMonoSolverTest::initialSeeds() {
-  cout << "IntraMonoSolverTest::initialSeeds()\n";
+  llvm::outs() << "IntraMonoSolverTest::initialSeeds()\n";
   return {};
 }
 
-void IntraMonoSolverTest::printNode(ostream &OS,
+void IntraMonoSolverTest::printNode(llvm::raw_ostream &OS,
                                     IntraMonoSolverTest::n_t Inst) const {
   OS << llvmIRToString(Inst);
 }
 
 void IntraMonoSolverTest::printDataFlowFact(
-    ostream &OS, IntraMonoSolverTest::d_t Fact) const {
+    llvm::raw_ostream &OS, IntraMonoSolverTest::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IntraMonoSolverTest::printFunction(ostream &OS,
+void IntraMonoSolverTest::printFunction(llvm::raw_ostream &OS,
                                         IntraMonoSolverTest::f_t Fun) const {
-  OS << Fun->getName().str();
+  OS << Fun->getName();
 }
 
 } // namespace psr

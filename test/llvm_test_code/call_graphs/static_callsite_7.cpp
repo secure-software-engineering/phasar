@@ -1,6 +1,9 @@
 // Handle call function from inside and ouside of a class
 
-class Foo{public : void f(){}};
+class Foo {
+public:
+  void f() {}
+};
 
 void f() {}
 

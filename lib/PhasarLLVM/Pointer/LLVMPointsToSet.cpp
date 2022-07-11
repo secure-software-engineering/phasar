@@ -10,21 +10,17 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
-#include <iostream>
+#include <iomanip>
 #include <iterator>
 #include <memory>
-#include <numeric>
 #include <type_traits>
-#include <unordered_set>
 #include <utility>
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalValue.h"
@@ -36,17 +32,26 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/FormatVariadic.h"
+
+#include "nlohmann/json.hpp"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 using namespace std;
 
 namespace psr {
+
+template class DynamicPointsToSetPtr<>;
+template class DynamicPointsToSetConstPtr<>;
+template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
@@ -76,8 +81,60 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "LLVMPointsToSet completed\n");
+  PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed");
+}
+
+LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
+                                 const nlohmann::json &SerializedPTS)
+    : PTA(IRDB) {
+  // Assume, we already have validated the json schema
+
+  llvm::outs() << "Load precomputed points-to info from JSON\n";
+
+  const auto &Sets = SerializedPTS.at("PointsToSets");
+  assert(Sets.is_array());
+  const auto &Fns = SerializedPTS.at("AnalyzedFunctions");
+  assert(Fns.is_array());
+
+  /// Deserialize the PointsToSets - an array of arrays (both are to be
+  /// interpreted as sets of metadata-ids)
+
+  Owner.reserve(Sets.size());
+  for (const auto &PtsJson : Sets) {
+    assert(PtsJson.is_array());
+    auto PTS = Owner.acquire();
+    for (auto Alias : PtsJson) {
+      const auto AliasStr = Alias.get<std::string>();
+      const auto *Inst = fromMetaDataId(IRDB, AliasStr);
+      if (!Inst) {
+        PHASAR_LOG_LEVEL(WARNING, "Invalid Value-Id: " << AliasStr);
+        continue;
+      }
+
+      PointsToSets[Inst] = PTS;
+      PTS->insert(Inst);
+    }
+  }
+
+  /// Deserialize the AnalyzedFunctions - an array of function-names (to be
+  /// interpreted as set)
+
+  AnalyzedFunctions.reserve(Fns.size());
+  for (const auto &F : Fns) {
+    if (!F.is_string()) {
+      PHASAR_LOG_LEVEL(WARNING, "Invalid Function Name: " << F);
+      continue;
+    }
+
+    const auto *IRFn = IRDB.getFunction(F.get<std::string>());
+
+    if (!IRFn) {
+      PHASAR_LOG_LEVEL(WARNING, "Function: " << F << " not in the IRDB");
+      continue;
+    }
+
+    AnalyzedFunctions.insert(IRFn);
+  }
 }
 
 void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
@@ -125,18 +182,17 @@ void LLVMPointsToSet::computeValuesPointsToSet(const llvm::Value *V) {
   }
 }
 
-auto LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V)
-    -> PointsToSetPtrTy {
+void LLVMPointsToSet::addSingletonPointsToSet(const llvm::Value *V) {
+  auto [It, Inserted] = PointsToSets.try_emplace(V, nullptr);
 
-  auto &PTS = PointsToSets[V];
-
-  if (!PTS) {
-    PTS = Owner.acquire();
-    PTS->insert(V);
+  if (!Inserted) {
+    assert(It->second->count(V));
+    return;
   }
 
-  assert(PTS->count(V));
-  return PTS;
+  auto PTS = Owner.acquire();
+  PTS->insert(V);
+  It->second = PTS;
 }
 
 void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
@@ -154,15 +210,15 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   mergePointsToSets(SearchV1->second, SearchV2->second);
 }
 
-auto LLVMPointsToSet::mergePointsToSets(PointsToSetTy *PTS1,
-                                        PointsToSetTy *PTS2)
-    -> PointsToSetTy * {
-  if (PTS1 == PTS2) {
-    return PTS1;
+void LLVMPointsToSet::mergePointsToSets(
+    DynamicPointsToSetPtr<PointsToSetTy> PTS1,
+    DynamicPointsToSetPtr<PointsToSetTy> PTS2) {
+  if (PTS1 == PTS2 || PTS1.get() == PTS2.get()) {
+    return;
   }
 
-  assert(PTS1);
-  assert(PTS2);
+  assert(PTS1 && PTS1.get());
+  assert(PTS2 && PTS2.get());
 
   auto [SmallerSet, LargerSet] = [&]() {
     if (PTS1->size() > PTS2->size()) {
@@ -172,18 +228,25 @@ auto LLVMPointsToSet::mergePointsToSets(PointsToSetTy *PTS1,
   }();
 
   // reindex the contents of the smaller set
-  for (const auto *Ptr : *SmallerSet) {
-    PointsToSets[Ptr] = LargerSet;
-  }
+  // for (const auto *Ptr : *SmallerSet) {
+  //   PointsToSets[Ptr] = LargerSet;
+  // }
 
   // add smaller set to larger one and get rid of the smaller set
   LargerSet->reserve(LargerSet->size() + SmallerSet->size());
   LargerSet->insert(SmallerSet->begin(), SmallerSet->end());
 
-  SmallerSet->clear();
-  Owner.release(SmallerSet);
+  // *SmallerSet.value() = LargerSet.get();
+  auto *ToDelete = SmallerSet.get();
+  for (const auto *Vals : *SmallerSet) {
+    auto PTS = PointsToSets[Vals];
+    if (PTS.get() == ToDelete) {
 
-  return LargerSet;
+      *PTS.value() = LargerSet.get();
+    }
+  }
+
+  Owner.release(ToDelete);
 }
 
 bool LLVMPointsToSet::interIsReachableAllocationSiteTy(
@@ -284,7 +347,7 @@ void LLVMPointsToSet::addPointer(llvm::AAResults &AA,
     Reps.push_back(V);
     addSingletonPointsToSet(V);
   } else if (ToMerge.size() == 1) {
-    auto *PTS = PointsToSets[Reps[ToMerge[0]]];
+    auto PTS = PointsToSets[Reps[ToMerge[0]]];
     assert(PTS && "Only added to Reps together with a "
                   "\"addSingletonPointsToSet\" call");
 
@@ -300,13 +363,13 @@ void LLVMPointsToSet::addPointer(llvm::AAResults &AA,
     }
 
   } else {
-    auto *PTS = PointsToSets[Reps[ToMerge[0]]];
+    auto PTS = PointsToSets[Reps[ToMerge[0]]];
     llvm::SmallPtrSet<const llvm::Type *, 6> OccurringTypes{
         Reps[ToMerge[0]]->getType()};
     llvm::SmallVector<unsigned> ToRemove;
 
     for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
-      PTS = mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
+      mergePointsToSets(PTS, PointsToSets[Reps[Idx]]);
       if (auto [Unused, Inserted] = OccurringTypes.insert(Reps[Idx]->getType());
           !Inserted) {
         ToRemove.push_back(Idx);
@@ -370,8 +433,7 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       !Inserted || F->isDeclaration()) {
     return;
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Analyzing function: " << F->getName().str());
+  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;
@@ -482,9 +544,11 @@ LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
                                      : AliasResult::NoAlias;
 }
 
-auto LLVMPointsToSet::getEmptyPointsToSet() -> PointsToSetPtrTy {
+auto LLVMPointsToSet::getEmptyPointsToSet()
+    -> DynamicPointsToSetPtr<PointsToSetTy> {
   static PointsToSetTy EmptySet{};
-  return &EmptySet;
+  static PointsToSetTy *EmptySetPtr = &EmptySet;
+  return &EmptySetPtr;
 }
 
 auto LLVMPointsToSet::getPointsToSet(
@@ -516,7 +580,7 @@ auto LLVMPointsToSet::getReachableAllocationSites(
   }
   computeValuesPointsToSet(V);
 
-  const auto *PTS = PointsToSets[V];
+  const auto PTS = PointsToSets[V];
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
     for (const auto *P : *PTS) {
@@ -562,7 +626,7 @@ bool LLVMPointsToSet::isInReachableAllocationSites(
   }
 
   if (PVIsReachableAllocationSiteType) {
-    const auto *PTS = PointsToSets[V];
+    const auto PTS = PointsToSets[V];
     return PTS->count(PotentialValue);
   }
 
@@ -599,7 +663,7 @@ void LLVMPointsToSet::mergeWith(const PointsToInfo &PTI) {
     // if none of the pointers of a set of other is known in this, we need to
     // perform a copy
     if (!FoundElemPtr) {
-      auto *PTS = Owner.acquire();
+      auto PTS = Owner.acquire();
       *PTS = *Set;
       PointsToSets.try_emplace(KeyPtr, PTS);
     }
@@ -621,11 +685,38 @@ void LLVMPointsToSet::introduceAlias(
   mergePointsToSets(V1, V2);
 }
 
-nlohmann::json LLVMPointsToSet::getAsJson() const { return ""_json; }
+nlohmann::json LLVMPointsToSet::getAsJson() const {
+  nlohmann::json J;
 
-void LLVMPointsToSet::printAsJson(std::ostream &OS) const {}
+  /// Serialize the PointsToSets
+  auto &Sets = J["PointsToSets"];
 
-void LLVMPointsToSet::print(std::ostream &OS) const {
+  for (const PointsToSetTy *PTS : Owner.getAllPointsToSets()) {
+    auto PtsJson = nlohmann::json::array();
+    for (const auto *Alias : *PTS) {
+      auto Id = getMetaDataID(Alias);
+      if (Id != "-1") {
+        PtsJson.push_back(std::move(Id));
+      }
+    }
+    if (!PtsJson.empty()) {
+      Sets.push_back(std::move(PtsJson));
+    }
+  }
+
+  /// Serialize the AnalyzedFunctions
+  auto &Fns = J["AnalyzedFunctions"];
+  for (const auto *F : AnalyzedFunctions) {
+    Fns.push_back(F->getName());
+  }
+  return J;
+}
+
+void LLVMPointsToSet::printAsJson(llvm::raw_ostream &OS) const {
+  OS << getAsJson();
+}
+
+void LLVMPointsToSet::print(llvm::raw_ostream &OS) const {
   for (const auto &[V, PTS] : PointsToSets) {
     OS << "V: " << llvmIRToString(V) << '\n';
     for (const auto &Ptr : *PTS) {

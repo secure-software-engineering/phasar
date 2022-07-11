@@ -1,7 +1,5 @@
 set(PHASAR_controller_COMPONENT_FOUND 1)
 
-find_package(Boost COMPONENTS log REQUIRED)
-
 list(APPEND
   LLVM_DEPS
   Support
@@ -11,7 +9,6 @@ list(APPEND
   CONTROLLER_DEPS
   ifdside
   mono
-  plugins
   db
   pointer
   typehierarchy
@@ -35,4 +32,3 @@ list(APPEND
   PHASAR_NEEDED_LIBS
   phasar::phasar_controller
 )
-

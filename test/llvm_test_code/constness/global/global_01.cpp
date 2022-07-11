@@ -3,6 +3,6 @@ int g1 = 10;
 int g2 = 10;
 
 int main() {
-	g1 = 42;
-	return 0;
+  g1 = 42;
+  return 0;
 }

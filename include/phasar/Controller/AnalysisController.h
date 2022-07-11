@@ -10,19 +10,22 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
 
-#include "boost/filesystem.hpp"
-
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -54,7 +57,7 @@ private:
   LLVMTypeHierarchy TH;
   LLVMPointsToSet PT;
   LLVMBasedICFG ICF;
-  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
+  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] AnalysisStrategy Strategy;
@@ -62,7 +65,7 @@ private:
       AnalysisControllerEmitterOptions::None;
   std::string ProjectID;
   std::string OutDirectory;
-  boost::filesystem::path ResultDirectory;
+  std::filesystem::path ResultDirectory;
   IFDSIDESolverConfig SolverConfig;
   [[maybe_unused]] Soundness SoundnessLevel;
   [[maybe_unused]] bool AutoGlobalSupport;
@@ -84,40 +87,108 @@ private:
 
   void emitRequestedHelperAnalysisResults();
 
+  void executeIFDSUninitVar();
+  void executeIFDSConst();
+  void executeIFDSTaint();
+  void executeIFDSType();
+  void executeIFDSSolverTest();
+  void executeIFDSLinearConst();
+  void executeIFDSFieldSensTaint();
+  void executeIDEXTaint();
+  void executeIDEOpenSSLTS();
+  void executeIDECSTDIOTS();
+  void executeIDELinearConst();
+  void executeIDESolverTest();
+  void executeIDEIIA();
+  void executeIntraMonoFullConstant();
+  void executeIntraMonoSolverTest();
+  void executeInterMonoSolverTest();
+  void executeInterMonoTaint();
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeIntraMonoAnalysis() {
+    executeAnalysis<IntraMonoSolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  }
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeInterMonoAnalysis() {
+    executeAnalysis<InterMonoSolver_P<AnalysisTy, 3>, AnalysisTy, WithConfig>();
+  }
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeIFDSAnalysis() {
+    executeAnalysis<IFDSSolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  }
+
+  template <typename AnalysisTy, bool WithConfig = false>
+  void executeIDEAnalysis() {
+    executeAnalysis<IDESolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  }
+
+  template <class Solver_P, typename AnalysisTy, bool WithConfig>
+  void executeAnalysis() {
+    if constexpr (WithConfig) {
+      std::string AnalysisConfigPath =
+          (0 < AnalysisConfigs.size()) ? AnalysisConfigs[0] : "";
+      auto Config =
+          !AnalysisConfigPath.empty()
+              ? TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath))
+              : TaintConfig(IRDB);
+      WholeProgramAnalysis<Solver_P, AnalysisTy> WPA(
+          SolverConfig, IRDB, &Config, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedDataFlowResults(WPA);
+      WPA.releaseAllHelperAnalyses();
+    } else {
+      WholeProgramAnalysis<Solver_P, AnalysisTy> WPA(
+          SolverConfig, IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedDataFlowResults(WPA);
+      WPA.releaseAllHelperAnalyses();
+    }
+  }
+
+  std::unique_ptr<llvm::raw_fd_ostream>
+  openFileStream(llvm::StringRef Filename);
+
   template <typename T> void emitRequestedDataFlowResults(T &WPA) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-report.txt");
-        WPA.emitTextReport(OFS);
+        if (auto OFS = openFileStream("/psr-report.txt")) {
+          WPA.emitTextReport(*OFS);
+        }
       } else {
-        WPA.emitTextReport(std::cout);
+        WPA.emitTextReport(llvm::outs());
       }
     }
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-report.html");
-        WPA.emitGraphicalReport(OFS);
+        if (auto OFS = openFileStream("/psr-report.html")) {
+          WPA.emitGraphicalReport(*OFS);
+        }
       } else {
-        WPA.emitGraphicalReport(std::cout);
+        WPA.emitGraphicalReport(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
       if (!ResultDirectory.empty()) {
-        std::ofstream OFS(ResultDirectory.string() + "/psr-raw-results.txt");
-        WPA.dumpResults(OFS);
+        if (auto OFS = openFileStream("/psr-raw-results.txt")) {
+          WPA.dumpResults(*OFS);
+        }
       } else {
-        WPA.dumpResults(std::cout);
+        WPA.dumpResults(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
-      std::cout << "Front-end support for 'EmitESGAsDot' to be implemented\n";
+      llvm::outs()
+          << "Front-end support for 'EmitESGAsDot' to be implemented\n";
     }
   }
 
 public:
   AnalysisController(ProjectIRDB &IRDB,
-                     std::vector<DataFlowAnalysisKind> DataFlowAnalyses,
+                     std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
                      Soundness SoundnessLevel, bool AutoGlobalSupport,
@@ -126,7 +197,8 @@ public:
                      AnalysisControllerEmitterOptions EmitterOptions,
                      IFDSIDESolverConfig SolverConfig,
                      const std::string &ProjectID = "default-phasar-project",
-                     const std::string &OutDirectory = "");
+                     const std::string &OutDirectory = "",
+                     const nlohmann::json &PrecomputedPointsToInfo = {});
 
   ~AnalysisController() = default;
 

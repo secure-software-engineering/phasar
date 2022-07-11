@@ -77,7 +77,7 @@ IDEProtoAnalysis::getSummaryFlowFunction(IDEProtoAnalysis::n_t /*CallSite*/,
 InitialSeeds<IDEProtoAnalysis::n_t, IDEProtoAnalysis::d_t,
              IDEProtoAnalysis::l_t>
 IDEProtoAnalysis::initialSeeds() {
-  cout << "IDEProtoAnalysis::initialSeeds()\n";
+  PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::initialSeeds()");
   InitialSeeds<IDEProtoAnalysis::n_t, IDEProtoAnalysis::d_t,
                IDEProtoAnalysis::l_t>
       Seeds;
@@ -89,7 +89,7 @@ IDEProtoAnalysis::initialSeeds() {
 }
 
 IDEProtoAnalysis::d_t IDEProtoAnalysis::createZeroValue() const {
-  cout << "IDEProtoAnalysis::createZeroValue()\n";
+  PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
@@ -141,69 +141,73 @@ IDEProtoAnalysis::getSummaryEdgeFunction(
 }
 
 IDEProtoAnalysis::l_t IDEProtoAnalysis::topElement() {
-  cout << "IDEProtoAnalysis::topElement()\n";
+  PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::topElement()");
   return nullptr;
 }
 
 IDEProtoAnalysis::l_t IDEProtoAnalysis::bottomElement() {
-  cout << "IDEProtoAnalysis::bottomElement()\n";
+  PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::bottomElement()");
   return nullptr;
 }
 
 IDEProtoAnalysis::l_t IDEProtoAnalysis::join(IDEProtoAnalysis::l_t /*Lhs*/,
                                              IDEProtoAnalysis::l_t /*Rhs*/) {
-  cout << "IDEProtoAnalysis::join()\n";
+  PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::join()");
   return nullptr;
 }
 
 shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::allTopFunction() {
-  cout << "IDEProtoAnalysis::allTopFunction()\n";
+  PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::allTopFunction()");
   return make_shared<IDEProtoAnalysisAllTop>();
 }
 
 IDEProtoAnalysis::l_t IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget(
     IDEProtoAnalysis::l_t /*Source*/) {
-  cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget()\n";
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget()");
   return nullptr;
 }
 
 shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith(
     shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*SecondFunction*/) {
-  cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith()\n";
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith()");
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith(
     shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*OtherFunction*/) {
-  cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith()\n";
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith()");
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
 bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equal_to(
     shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*Other*/) const {
-  cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo()\n";
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo()");
   return false;
 }
 
-void IDEProtoAnalysis::printNode(ostream &OS,
+void IDEProtoAnalysis::printNode(llvm::raw_ostream &OS,
                                  IDEProtoAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void IDEProtoAnalysis::printDataFlowFact(ostream &OS,
+void IDEProtoAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
                                          IDEProtoAnalysis::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void IDEProtoAnalysis::printFunction(ostream &OS,
+void IDEProtoAnalysis::printFunction(llvm::raw_ostream &OS,
                                      IDEProtoAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
-void IDEProtoAnalysis::printEdgeFact(ostream &OS,
+void IDEProtoAnalysis::printEdgeFact(llvm::raw_ostream &OS,
                                      IDEProtoAnalysis::l_t L) const {
   OS << llvmIRToString(L);
 }

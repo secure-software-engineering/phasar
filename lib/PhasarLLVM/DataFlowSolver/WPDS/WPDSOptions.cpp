@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ostream>
 #include <string>
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h"
 
@@ -35,7 +35,7 @@ std::string toString(const WPDSType &T) {
   }
 }
 
-std::ostream &operator<<(std::ostream &OS, const WPDSType &T) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const WPDSType &T) {
   return OS << toString(T);
 }
 
@@ -58,7 +58,8 @@ std::string toString(const WPDSSearchDirection &S) {
   }
 }
 
-std::ostream &operator<<(std::ostream &OS, const WPDSSearchDirection &S) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const WPDSSearchDirection &S) {
   return OS << toString(S);
 }
 

@@ -5,6 +5,7 @@ set(UtilsSources
   LLVMIRToSrcTest.cpp
   LLVMShorthandsTest.cpp
   PAMMTest.cpp
+  StableVectorTest.cpp
 )
 
 foreach(TEST_SRC ${UtilsSources})

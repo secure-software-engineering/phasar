@@ -78,7 +78,6 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
 
 std::vector<const llvm::Instruction *>
 LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
-
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
     if (const auto *NextInst = I->getNextNode()) {
@@ -88,7 +87,6 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
                  false /*Only debug instructions*/)) {
     return {NextNonDbgInst};
   }
-
   if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(I);
       Branch && isStaticVariableLazyInitializationBranch(Branch)) {
     // Skip the "already initialized" case, such that the analysis is always
@@ -99,7 +97,6 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
     }
     return {NextInst};
   }
-
   std::vector<const llvm::Instruction *> Successors;
   Successors.reserve(I->getNumSuccessors() + Successors.size());
   std::transform(
@@ -167,9 +164,9 @@ LLVMBasedCFG::getStartPointsOf(const llvm::Function *Fun) const {
     }
     return {EntryInst};
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Could not get starting points of '" << Fun->getName().str()
-                << "' because it is a declaration");
+  PHASAR_LOG_LEVEL(DEBUG, "Could not get starting points of '"
+                              << Fun->getName()
+                              << "' because it is a declaration");
   return {};
 }
 
@@ -190,9 +187,8 @@ LLVMBasedCFG::getExitPointsOf(const llvm::Function *Fun) const {
 
     return ExitPoints;
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Could not get exit points of '" << Fun->getName().str()
-                << "' which is declaration!");
+  PHASAR_LOG_LEVEL(DEBUG, "Could not get exit points of '"
+                              << Fun->getName() << "' which is declaration!");
   return {};
 }
 
@@ -345,7 +341,7 @@ LLVMBasedCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
   return llvm::demangle(getFunctionName(Fun));
 }
 
-void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {
+void LLVMBasedCFG::print(const llvm::Function *F, llvm::raw_ostream &OS) const {
   OS << llvmIRToString(F);
 }
 

@@ -5,10 +5,10 @@ source ./utils/safeCommandsSet.sh
 
 readonly PHASAR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 readonly PHASAR_INSTALL_DIR="/usr/local/phasar"
-readonly LLVM_INSTALL_DIR="/usr/local/llvm-13"
+readonly LLVM_INSTALL_DIR="/usr/local/llvm-14"
 
 NUM_THREADS=$(nproc)
-LLVM_RELEASE=llvmorg-13.0.0
+LLVM_RELEASE=llvmorg-14.0.0
 DO_UNIT_TEST=true
 
 
@@ -100,7 +100,7 @@ else
             # install missing packages if necessary
             boostlibnames=("libboost-system" "libboost-filesystem"
                     "libboost-graph" "libboost-program-options"
-                    "libboost-log" "libboost-thread")
+                    "libboost-thread")
             additional_boost_libs=()
             for boost_lib in ${boostlibnames[@]}; do
                 dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||

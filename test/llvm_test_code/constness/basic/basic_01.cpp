@@ -1,5 +1,5 @@
 /* - | - */
 int main() {
-	int i = 13;
-	return 0;
+  int i = 13;
+  return 0;
 }

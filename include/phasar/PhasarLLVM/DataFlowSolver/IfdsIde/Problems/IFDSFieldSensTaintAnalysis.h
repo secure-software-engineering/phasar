@@ -5,7 +5,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -81,7 +80,7 @@ public:
   void
   emitTextReport(const SolverResults<const llvm::Instruction *, ExtendedValue,
                                      BinaryDomain> &SolverResults,
-                 std::ostream &OS = std::cout) override;
+                 llvm::raw_ostream &OS = llvm::outs()) override;
 
   [[nodiscard]] ExtendedValue createZeroValue() const override {
     // create a special value to represent the zero value!
@@ -92,12 +91,13 @@ public:
     return LLVMZeroValue::getInstance()->isLLVMZeroValue(EV.getValue());
   }
 
-  void printNode(std::ostream &OS,
+  void printNode(llvm::raw_ostream &OS,
                  const llvm::Instruction *Stmt) const override {
     OS << llvmIRToString(Stmt);
   }
 
-  void printDataFlowFact(std::ostream &OS, ExtendedValue EV) const override {
+  void printDataFlowFact(llvm::raw_ostream &OS,
+                         ExtendedValue EV) const override {
     OS << llvmIRToString(EV.getValue()) << "\n";
     for (const auto *MemLocationPart : EV.getMemLocationSeq()) {
       OS << "A:\t" << llvmIRToString(MemLocationPart) << "\n";
@@ -115,9 +115,9 @@ public:
     }
   }
 
-  void printFunction(std::ostream &OS,
+  void printFunction(llvm::raw_ostream &OS,
                      const llvm::Function *Func) const override {
-    OS << Func->getName().str();
+    OS << Func->getName();
   }
 
 private:

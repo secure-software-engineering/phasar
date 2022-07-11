@@ -10,7 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_IOFORMAT_H_
 #define PHASAR_PHASARLLVM_UTILS_IOFORMAT_H_
 
-#include <iosfwd>
+namespace llvm {
+class raw_ostream;
+}
+
 #include <string>
 
 namespace psr {
@@ -24,7 +27,7 @@ std::string toString(const IOFormat &D);
 
 IOFormat toIOFormat(const std::string &S);
 
-std::ostream &operator<<(std::ostream &Os, const IOFormat &D);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const IOFormat &D);
 
 } // namespace psr
 

@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include <ostream>
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 using namespace psr;
@@ -28,7 +28,7 @@ const map<string, BinaryDomain> StringToBinaryDomain = {
 const map<BinaryDomain, string> BinaryDomainToString = {
     {BinaryDomain::BOTTOM, "BOTTOM"}, {BinaryDomain::TOP, "TOP"}};
 
-ostream &operator<<(ostream &OS, const BinaryDomain &B) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const BinaryDomain &B) {
   return OS << BinaryDomainToString.at(B);
 }
 } // namespace psr

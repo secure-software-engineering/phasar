@@ -9,7 +9,7 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
+find_package(Boost COMPONENTS program_options graph ${BOOST_THREAD} REQUIRED)
 if(USE_LLVM_FAT_LIB)
   llvm_config(phasar-clang USE_SHARED ${LLVM_LINK_COMPONENTS})
 else()
@@ -29,9 +29,6 @@ target_link_libraries(phasar-clang
   phasar_experimental
   # phasar_clang
   phasar_passes
-  # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
-  phasar_plugins
-  # ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   phasar_typehierarchy
   ${SQLITE3_LIBRARY}

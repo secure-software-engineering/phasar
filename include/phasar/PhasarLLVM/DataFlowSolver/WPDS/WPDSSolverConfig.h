@@ -10,9 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSSOLVERCONFIG_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_WPDSSOLVERCONFIG_H
 
-#include <iosfwd>
-
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h"
+
+namespace llvm {
+class raw_ostream;
+}
 
 namespace psr {
 
@@ -28,7 +30,8 @@ struct WPDSSolverConfig {
   bool RecordWitnesses = false;
   WPDSSearchDirection Direction = WPDSSearchDirection::FORWARD;
   WPDSType WPDSType = WPDSType::FWPDS;
-  friend std::ostream &operator<<(std::ostream &OS, const WPDSSolverConfig &SC);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const WPDSSolverConfig &SC);
 };
 
 } // namespace psr

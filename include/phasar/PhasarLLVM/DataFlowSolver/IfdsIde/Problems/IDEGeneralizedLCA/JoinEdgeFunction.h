@@ -38,7 +38,7 @@ public:
 
   bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other)
       const override;
-  void print(std::ostream &OS, bool IsForDebug = false) const override;
+  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
   const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &getFirst() const;
   const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
   getSecond() const;

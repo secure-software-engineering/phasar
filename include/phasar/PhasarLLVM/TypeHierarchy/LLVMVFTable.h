@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLE_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLE_H_
 
-#include <iosfwd>
 #include <vector>
 
 #include "nlohmann/json.hpp"
@@ -19,6 +18,7 @@
 
 namespace llvm {
 class Function;
+class ConstantStruct;
 } // namespace llvm
 
 namespace psr {
@@ -63,7 +63,7 @@ public:
 
   [[nodiscard]] size_t size() const override { return VFT.size(); };
 
-  void print(std::ostream &OS) const override;
+  void print(llvm::raw_ostream &OS) const override;
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
@@ -84,6 +84,9 @@ public:
   end() const {
     return VFT.end();
   };
+
+  [[nodiscard]] static std::vector<const llvm::Function *>
+  getVFVectorFromIRVTable(const llvm::ConstantStruct &);
 };
 
 } // namespace psr

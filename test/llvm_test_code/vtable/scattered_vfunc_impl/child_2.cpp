@@ -1,6 +1,3 @@
 #include "child.h"
 
-int child::bar()
-{
-	return 200;
-}
+int child::bar() { return 200; }

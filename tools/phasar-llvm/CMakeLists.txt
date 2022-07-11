@@ -1,3 +1,14 @@
+set(LLVM_LINK_COMPONENTS
+  Analysis
+  BitWriter
+  Core
+  Demangle
+  IRReader
+  Linker
+  Passes
+  Support
+)
+
 # Build a stand-alone executable
 if(PHASAR_IN_TREE)
   add_phasar_executable(phasar-llvm
@@ -9,7 +20,7 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
+find_package(Boost COMPONENTS program_options graph ${BOOST_THREAD} REQUIRED)
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar-llvm
@@ -25,9 +36,6 @@ target_link_libraries(phasar-llvm
   phasar_db
   phasar_experimental
   phasar_passes
-  # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
-  phasar_plugins
-  # ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   phasar_typehierarchy
   ${SQLITE3_LIBRARY}
@@ -38,17 +46,16 @@ target_link_libraries(phasar-llvm
   ${PHASAR_STD_FILESYSTEM}
 )
 
-if(USE_LLVM_FAT_LIB)
-  llvm_config(phasar-llvm USE_SHARED ${LLVM_LINK_COMPONENTS})
-else()
-  llvm_config(phasar-llvm ${LLVM_LINK_COMPONENTS})
+if (NOT PHASAR_IN_TREE)
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(phasar-llvm USE_SHARED ${LLVM_LINK_COMPONENTS})
+  else()
+    llvm_config(phasar-llvm ${LLVM_LINK_COMPONENTS})
+  endif()
+
+  install(TARGETS phasar-llvm
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+  )
 endif()
-
-set(LLVM_LINK_COMPONENTS
-)
-
-install(TARGETS phasar-llvm
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-)

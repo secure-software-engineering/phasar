@@ -23,7 +23,7 @@ int (*F)(int, int) = &add;
 
 Adder *A = makeAdder();
 
-int (R::* M)(int, int) = &R::mult;
+int (R::*M)(int, int) = &R::mult;
 
 int main() {
   int a = add(4, 5);

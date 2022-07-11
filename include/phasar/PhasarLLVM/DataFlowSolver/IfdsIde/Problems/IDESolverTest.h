@@ -121,13 +121,13 @@ public:
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
   };
 
-  void printNode(std::ostream &OS, n_t Stmt) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &OS, f_t Func) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
 
-  void printEdgeFact(std::ostream &OS, l_t L) const override;
+  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 };
 
 } // namespace psr

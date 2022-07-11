@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTERMONOSOLVER_H
 
 #include <deque>
-#include <iostream>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -85,12 +84,12 @@ protected:
   }
 
   void printWorkList() {
-    std::cout << "CURRENT WORKLIST:\n";
+    llvm::outs() << "CURRENT WORKLIST:\n";
     for (auto &[Src, Dst] : Worklist) {
-      std::cout << llvmIRToString(Src) << " --> " << llvmIRToString(Dst)
-                << '\n';
+      llvm::outs() << llvmIRToString(Src) << " --> " << llvmIRToString(Dst)
+                   << '\n';
     }
-    std::cout << "-----------------\n";
+    llvm::outs() << "-----------------\n";
   }
 
   void addCalleesToWorklist(std::pair<n_t, n_t> Edge) {
@@ -177,17 +176,17 @@ public:
   }
 
   void processNormal(std::pair<n_t, n_t> Edge) {
-    std::cout << "Handle normal flow\n";
+    llvm::outs() << "Handle normal flow\n";
     auto Src = Edge.first;
     auto Dst = Edge.second;
-    std::cout << "Src: " << llvmIRToString(Src) << '\n';
-    std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+    llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
+    llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
     for (auto &[Ctx, Facts] : Analysis[Src]) {
       Out[Ctx] = IMProblem.normalFlow(Src, Analysis[Src][Ctx]);
       // need to merge if Dst is a branch target
       if (ICF->isBranchTarget(Src, Dst)) {
-        std::cout << "Num preds: " << ICF->getPredsOf(Dst).size() << '\n';
+        llvm::outs() << "Num preds: " << ICF->getPredsOf(Dst).size() << '\n';
         for (auto Pred : ICF->getPredsOf(Dst)) {
           if (Pred != Src) {
             // we need to compute the out set of Pred and merge it with the
@@ -201,18 +200,19 @@ public:
       }
       // Check if data-flow facts have changed and if so, add Edge(s) to
       // worklist again.
-      std::cout << "\nNormal Out[Ctx]:\n";
-      IMProblem.printContainer(std::cout, Out[Ctx]);
-      std::cout << "\nAnalysis[Dst][Ctx]:\n";
-      IMProblem.printContainer(std::cout, Analysis[Dst][Ctx]);
+      llvm::outs() << "\nNormal Out[Ctx]:\n";
+      IMProblem.printContainer(llvm::outs(), Out[Ctx]);
+      llvm::outs() << "\nAnalysis[Dst][Ctx]:\n";
+      IMProblem.printContainer(llvm::outs(), Analysis[Dst][Ctx]);
       bool FlowFactStabilized =
           IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
       if (!FlowFactStabilized) {
-        std::cout << "\nNormal stabilized? --> " << FlowFactStabilized << '\n';
+        llvm::outs() << "\nNormal stabilized? --> " << FlowFactStabilized
+                     << '\n';
         auto Merged = Out[Ctx];
-        std::cout << "Normal merged:\n";
-        IMProblem.printContainer(std::cout, Merged);
-        std::cout << '\n';
+        llvm::outs() << "Normal merged:\n";
+        IMProblem.printContainer(llvm::outs(), Merged);
+        llvm::outs() << '\n';
         Analysis[Dst][Ctx] = Merged;
         addToWorklist({Src, Dst});
       }
@@ -224,9 +224,9 @@ public:
     auto Dst = Edge.second;
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
     if (!isIntraEdge(Edge)) {
-      std::cout << "Handle call flow\n";
-      std::cout << "Src: " << llvmIRToString(Src) << '\n';
-      std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+      llvm::outs() << "Handle call flow\n";
+      llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
+      llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
       for (auto &[Ctx, Facts] : Analysis[Src]) {
         auto CTXAdd(Ctx);
         CTXAdd.push_back(Src);
@@ -234,47 +234,47 @@ public:
                                          Analysis[Src][Ctx]);
         bool FlowFactStabilized =
             IMProblem.equal_to(Out[CTXAdd], Analysis[Dst][CTXAdd]);
-        std::cout << "Call Out[CTXAdd]:\n";
-        IMProblem.printContainer(std::cout, Out[CTXAdd]);
-        std::cout << '\n';
-        std::cout << "Call Analysis[Dst][CTXAdd]:\n";
-        IMProblem.printContainer(std::cout, Analysis[Dst][CTXAdd]);
-        std::cout << '\n';
-        std::cout << "Call stabilized? --> " << FlowFactStabilized << '\n';
+        llvm::outs() << "Call Out[CTXAdd]:\n";
+        IMProblem.printContainer(llvm::outs(), Out[CTXAdd]);
+        llvm::outs() << '\n';
+        llvm::outs() << "Call Analysis[Dst][CTXAdd]:\n";
+        IMProblem.printContainer(llvm::outs(), Analysis[Dst][CTXAdd]);
+        llvm::outs() << '\n';
+        llvm::outs() << "Call stabilized? --> " << FlowFactStabilized << '\n';
         if (!FlowFactStabilized) {
           // auto merge = IMProblem.merge(Analysis[Dst][CTXAdd], Out[CTXAdd]);
           auto Merge = Out[CTXAdd];
-          std::cout << "Call merge:\n";
-          IMProblem.printContainer(std::cout, Merge);
-          std::cout << '\n';
+          llvm::outs() << "Call merge:\n";
+          IMProblem.printContainer(llvm::outs(), Merge);
+          llvm::outs() << '\n';
           Analysis[Dst][CTXAdd] = Merge;
           addToWorklist({Src, Dst});
         }
       }
     } else {
       // Handle call-to-ret flow
-      std::cout << "Handle call to ret flow\n";
-      std::cout << "Src: " << llvmIRToString(Src) << '\n';
-      std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+      llvm::outs() << "Handle call to ret flow\n";
+      llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
+      llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
       for (auto &[Ctx, Facts] : Analysis[Src]) {
         // call-to-ret flow does not modify contexts
         Out[Ctx] = IMProblem.callToRetFlow(
             Src, Dst, ICF->getCalleesOfCallAt(Src), Analysis[Src][Ctx]);
         bool FlowFactStabilized =
             IMProblem.equal_to(Out[Ctx], Analysis[Dst][Ctx]);
-        std::cout << "Call to ret stabilized? --> " << FlowFactStabilized
-                  << '\n';
-        std::cout << "Call Out[Ctx]:\n";
-        IMProblem.printContainer(std::cout, Out[Ctx]);
-        std::cout << '\n';
-        std::cout << "Call Analysis[Dst][CTX]:\n";
-        IMProblem.printContainer(std::cout, Analysis[Dst][Ctx]);
-        std::cout << '\n';
+        llvm::outs() << "Call to ret stabilized? --> " << FlowFactStabilized
+                     << '\n';
+        llvm::outs() << "Call Out[Ctx]:\n";
+        IMProblem.printContainer(llvm::outs(), Out[Ctx]);
+        llvm::outs() << '\n';
+        llvm::outs() << "Call Analysis[Dst][CTX]:\n";
+        IMProblem.printContainer(llvm::outs(), Analysis[Dst][Ctx]);
+        llvm::outs() << '\n';
         if (!FlowFactStabilized) {
           auto Merge = Out[Ctx];
-          std::cout << "Call to ret merge:\n";
-          IMProblem.printContainer(std::cout, Merge);
-          std::cout << '\n';
+          llvm::outs() << "Call to ret merge:\n";
+          IMProblem.printContainer(llvm::outs(), Merge);
+          llvm::outs() << '\n';
           Analysis[Dst][Ctx] =
               Merge; // IMProblem.merge(Analysis[Dst][Ctx], Out[Ctx]);
           addToWorklist({Src, Dst});
@@ -287,13 +287,13 @@ public:
     auto Src = Edge.first;
     auto Dst = Edge.second;
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
-    std::cout << "\nHandle ret flow in: "
-              << ICF->getFunctionName(ICF->getFunctionOf(Src)) << '\n';
-    std::cout << "Src: " << llvmIRToString(Src) << '\n';
-    std::cout << "Dst: " << llvmIRToString(Dst) << '\n';
+    llvm::outs() << "\nHandle ret flow in: "
+                 << ICF->getFunctionName(ICF->getFunctionOf(Src)) << '\n';
+    llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
+    llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
     for (auto &[Ctx, Facts] : Analysis[Src]) {
       auto CTXRm(Ctx);
-      std::cout << "CTXRm: " << CTXRm << '\n';
+      llvm::outs() << "CTXRm: " << CTXRm << '\n';
       // we need to use several call- and retsites if the context is empty
       std::set<n_t> CallSites;
       std::set<n_t> RetSites;
@@ -315,18 +315,18 @@ public:
         Out[CTXRm].insert(RetFactsPerCall.begin(), RetFactsPerCall.end());
       }
       // TODO!
-      std::cout << "ResSites.size(): " << RetSites.size() << '\n';
+      llvm::outs() << "ResSites.size(): " << RetSites.size() << '\n';
       for (auto RetSite : RetSites) {
-        std::cout << "RetSite: " << llvmIRToString(RetSite) << '\n';
-        std::cout << "Return facts: ";
-        IMProblem.printContainer(std::cout, Out[CTXRm]);
-        std::cout << '\n';
-        std::cout << "RetSite facts: ";
-        IMProblem.printContainer(std::cout, Analysis[RetSite][CTXRm]);
-        std::cout << '\n';
+        llvm::outs() << "RetSite: " << llvmIRToString(RetSite) << '\n';
+        llvm::outs() << "Return facts: ";
+        IMProblem.printContainer(llvm::outs(), Out[CTXRm]);
+        llvm::outs() << '\n';
+        llvm::outs() << "RetSite facts: ";
+        IMProblem.printContainer(llvm::outs(), Analysis[RetSite][CTXRm]);
+        llvm::outs() << '\n';
         bool FlowFactStabilized =
             IMProblem.equal_to(Out[CTXRm], Analysis[RetSite][CTXRm]);
-        std::cout << "Ret stabilized? --> " << FlowFactStabilized << '\n';
+        llvm::outs() << "Ret stabilized? --> " << FlowFactStabilized << '\n';
         if (!FlowFactStabilized) {
           mono_container_t Merge;
           Merge.insert(Analysis[RetSite][CTXRm].begin(),
@@ -335,9 +335,9 @@ public:
           Analysis[RetSite][CTXRm] = Merge;
           Analysis[Dst][CTXRm] = Merge;
           // IMProblem.merge(Analysis[RetSite][CTXRm], Out[CTXRm]);
-          std::cout << "Merged to: ";
-          IMProblem.printContainer(std::cout, Merge);
-          std::cout << '\n';
+          llvm::outs() << "Merged to: ";
+          IMProblem.printContainer(llvm::outs(), Merge);
+          llvm::outs() << '\n';
           // addToWorklist({Src, RetSite});
         }
       }
@@ -396,7 +396,7 @@ public:
     return Result;
   }
 
-  virtual void dumpResults(std::ostream &OS = std::cout) {
+  virtual void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
     OS << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
     for (auto &[Node, ContextMap] : this->Analysis) {
       OS << "Instruction:\n" << this->IMProblem.NtoString(Node);
@@ -419,9 +419,9 @@ public:
     }
   }
 
-  virtual void emitTextReport(std::ostream &OS = std::cout) {}
+  virtual void emitTextReport(llvm::raw_ostream &OS = llvm::outs()) {}
 
-  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
+  virtual void emitGraphicalReport(llvm::raw_ostream &OS = llvm::outs()) {}
 };
 
 template <typename Problem, unsigned K>

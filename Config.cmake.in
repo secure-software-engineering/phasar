@@ -9,7 +9,7 @@ foreach(component ${phasar_FIND_COMPONENTS})
 endforeach()
 
 function(phasar_config executable)
-  find_package(LLVM 13 REQUIRED CONFIG)
+  find_package(LLVM 14 REQUIRED CONFIG)
   include_directories(${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
   find_library(LLVM_LIBRARY NAMES LLVM HINTS ${LLVM_LIBRARY_DIRS})

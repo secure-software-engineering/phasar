@@ -39,8 +39,7 @@ llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
 GeneralStatistics
 GeneralStatisticsAnalysis::run(llvm::Module &M,
                                llvm::ModuleAnalysisManager & /*AM*/) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                << "Running GeneralStatisticsAnalysis");
+  PHASAR_LOG_LEVEL(INFO, "Running GeneralStatisticsAnalysis");
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
@@ -155,40 +154,30 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
               PAMM_SEVERITY_LEVEL::Full);
   // Using the logging guard explicitly since we are printing allocated types
   // manually
-  if (boost::log::core::get()->get_logging_enabled()) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "GeneralStatisticsAnalysis summary for module: '"
-                  << M.getName().str() << "'");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Instructions       : " << Stats.Instructions);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Allocated Types    : " << Stats.AllocatedTypes.size());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Allocation Sites   : " << Stats.AllocationSites);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Basic Blocks       : " << Stats.BasicBlocks);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Calls Sites        : " << Stats.CallSites);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Functions          : " << Stats.Functions);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Globals            : " << Stats.Globals);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Global Pointer     : " << Stats.GlobalPointers);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Memory Intrinsics  : " << Stats.MemIntrinsics);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Store Instructions : " << Stats.StoreInstructions);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << ' ');
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Allocated Types << " << Stats.AllocatedTypes.size());
-    for (const auto *Type : Stats.AllocatedTypes) {
-      std::string TypeStr;
-      llvm::raw_string_ostream Rso(TypeStr);
-      Type->print(Rso);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "  " << Rso.str());
-    }
-  }
+  IF_LOG_ENABLED(
+      PHASAR_LOG_LEVEL(INFO, "GeneralStatisticsAnalysis summary for module: '"
+                                 << M.getName() << "'");
+      PHASAR_LOG_LEVEL(INFO, "Instructions       : " << Stats.Instructions);
+      PHASAR_LOG_LEVEL(INFO,
+                       "Allocated Types    : " << Stats.AllocatedTypes.size());
+      PHASAR_LOG_LEVEL(INFO, "Allocation Sites   : " << Stats.AllocationSites);
+      PHASAR_LOG_LEVEL(INFO, "Basic Blocks       : " << Stats.BasicBlocks);
+      PHASAR_LOG_LEVEL(INFO, "Calls Sites        : " << Stats.CallSites);
+      PHASAR_LOG_LEVEL(INFO, "Functions          : " << Stats.Functions);
+      PHASAR_LOG_LEVEL(INFO, "Globals            : " << Stats.Globals);
+      PHASAR_LOG_LEVEL(INFO, "Global Pointer     : " << Stats.GlobalPointers);
+      PHASAR_LOG_LEVEL(INFO, "Memory Intrinsics  : " << Stats.MemIntrinsics);
+      PHASAR_LOG_LEVEL(INFO,
+                       "Store Instructions : " << Stats.StoreInstructions);
+      PHASAR_LOG_LEVEL(INFO, ' '); PHASAR_LOG_LEVEL(
+          INFO, "Allocated Types << " << Stats.AllocatedTypes.size());
+      for (const auto *Type
+           : Stats.AllocatedTypes) {
+        std::string TypeStr;
+        llvm::raw_string_ostream Rso(TypeStr);
+        Type->print(Rso);
+        PHASAR_LOG_LEVEL(INFO, "  " << Rso.str());
+      })
   // now we are done and can return the results
   return Stats;
 }

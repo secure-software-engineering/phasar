@@ -7,7 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -48,7 +47,7 @@ protected:
 
   std::unique_ptr<ProjectIRDB> IRDB;
 
-  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
+  void SetUp() override {}
 
   //   IDEInstInteractionAnalysis::lca_restults_t
   void
@@ -58,7 +57,7 @@ protected:
     auto IRFiles = {PathToLlFiles + LlvmFilePath};
     IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(std::cout, false);
+      IRDB->emitPreprocessedIR(llvm::outs(), false);
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
@@ -109,7 +108,7 @@ protected:
     IIAProblem.registerEdgeFactGenerator(Generator);
     IDESolver_P<IDEInstInteractionAnalysisT<std::string, true>> IIASolver(
         IIAProblem);
-    std::cout << "Start solving the problem.\n";
+    llvm::outs() << "Start solving the problem.\n";
     IIASolver.solve();
     if (PrintDump) {
       IIASolver.dumpResults();
@@ -124,8 +123,7 @@ protected:
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
-                        << "Checking variable: " << FactStr);
+          PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
           EXPECT_EQ(std::get<3>(Truth), Value);
         }
       }
@@ -143,13 +141,12 @@ protected:
 // // IDEInstInteractionAnalysisT<int>
 // TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
 //   bool printDump = false;
-//   boost::log::core::get()->set_logging_enabled(false);
 //   ProjectIRDB IRDB(
 //       {PhasarConfig::getPhasarConfig().PhasarDirectory() +
 //        "build/test/llvm_test_code/inst_interaction/basic_01_cpp.ll"},
 //       IRDBOptions::WPA);
 //   if (printDump) {
-//     IRDB.emitPreprocessedIR(std::cout, false);
+//     IRDB.emitPreprocessedIR(llvm::outs(), false);
 //   }
 //   ValueAnnotationPass::resetValueID();
 //   LLVMTypeHierarchy TH(IRDB);
@@ -203,7 +200,7 @@ protected:
 //       std::string FactStr = llvmIRToString(Fact);
 //       llvm::StringRef FactRef(FactStr);
 //       if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-//         std::cout << "Checking variable: " << FactStr << std::endl;
+//         llvm::outs() << "Checking variable: " << FactStr << std::endl;
 //         EXPECT_EQ(std::get<3>(Truth), Value);
 //       }
 //     }
@@ -232,10 +229,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
           "main", 24, "retval", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argc.addr", {"1", "7", "13"}));
+          "main", 24, "argc.addr", {"7", "13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argv.addr", {"2", "8"}));
+          "main", 24, "argv.addr", {"8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "i", {"16", "18", "20"}));
@@ -272,7 +269,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
           "main", 23, "retval", {"13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "argc.addr", {"8", "14", "21"}));
+          "main", 23, "argc.addr", {"14", "21"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "argv.addr", {"9", "15"}));
@@ -326,10 +323,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
           "main", 15, "retval", {"5"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "argc.addr", {"1", "6"}));
+          "main", 15, "argc.addr", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "argv.addr", {"2", "7"}));
+          "main", 15, "argv.addr", {"7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 15, "i", {"12", "13"}));
@@ -375,10 +372,16 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
   doAnalysisAndCompareResults("basic_10_cpp.ll", GroundTruth, false);
 }
 
-// TEST_F(IDEInstInteractionAnalysisTest, RetFail) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   doAnalysisAndCompareResults("dump_trace_ld-te.ll", GroundTruth, false);
-// }
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 20, "FeatureSelector", {"5", "7", "8", "9"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 20, "retval", {"11", "16", "18"}));
+  doAnalysisAndCompareResults("basic_11_cpp.ll", GroundTruth, false);
+}
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
@@ -637,25 +640,26 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
           "main", 16, "retval", {"23", "35", "37"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "str", {"24", "29", "31", "33", "36"}));
+          "main", 16, "str", {"70", "65", "72", "74", "77"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "ref.tmp", {"25", "5", "8", "31", "32", "30"}));
+          "main", 16, "ref.tmp", {"66", "9", "6", "29", "72", "73", "71"}));
   doAnalysisAndCompareResults("rvo_01_cpp.ll", GroundTruth, false);
 })
 
-// // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
-// //   std::set<IIACompactResult_t> GroundTruth;
-// //   GroundTruth.emplace(
-// //       std::tuple<std::string, size_t, std::string,
-// //       BitVectorSet<std::string>>(
-// //           "main", 3, "retval", {"0"}));
-// //   doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, false);
-// // }
-
-// // TEST_F(IDEInstInteractionAnalysisTest, HandleRealWorldProgram_GZipTest) {
-// //   doAnalysisAndCompareResults("gzip-gzip-81c9fe4d09.ll", {}, false);
-// // }
+TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 10, "retval", {"3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 10, "a", {"1", "4", "5", "6", "7", "8", "13"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 10, "x", {"1", "4", "5", "13"}));
+  doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, false);
+}
 
 // main function for the test case/*  */
 int main(int Argc, char **Argv) {

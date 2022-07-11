@@ -61,7 +61,8 @@ bool BinaryEdgeFunction::equal_to(
   return this == Other.get();
 }
 
-void BinaryEdgeFunction::print(std::ostream &OS, bool /*IsForDebug*/) const {
+void BinaryEdgeFunction::print(llvm::raw_ostream &OS,
+                               bool /*IsForDebug*/) const {
   OS << "Binary_" << Op;
 }
 

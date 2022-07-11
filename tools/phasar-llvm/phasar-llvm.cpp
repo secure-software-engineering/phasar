@@ -9,21 +9,23 @@
 
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
-#include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 #include "boost/program_options/value_semantic.hpp"
 
-#include "boost/dll.hpp"
-#include "boost/filesystem.hpp"
+#include "llvm/ADT/StringRef.h"
+
+#include "nlohmann/json.hpp"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/Plugins/AnalysisPluginController.h"
-#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -56,8 +58,8 @@ template <typename T> static std::set<T> vectorToSet(const std::vector<T> &V) {
 }
 
 void validateParamConfigFile(const std::string &Config) {
-  if (!(boost::filesystem::exists(Config) &&
-        !boost::filesystem::is_directory(Config))) {
+  if (!(std::filesystem::exists(Config) &&
+        !std::filesystem::is_directory(Config))) {
     throw boost::program_options::error_with_option_name(
         "PhASAR configuration '" + Config + "' does not exist!");
   }
@@ -69,9 +71,9 @@ void validateParamModule(const std::vector<std::string> &Modules) {
         "At least one LLVM target module is required!");
   }
   for (const auto &Module : Modules) {
-    boost::filesystem::path ModulePath(Module);
-    if (!(boost::filesystem::exists(ModulePath) &&
-          !boost::filesystem::is_directory(ModulePath) &&
+    std::filesystem::path ModulePath(Module);
+    if (!(std::filesystem::exists(ModulePath) &&
+          !std::filesystem::is_directory(ModulePath) &&
           (ModulePath.extension() == ".ll" ||
            ModulePath.extension() == ".bc"))) {
       throw boost::program_options::error_with_option_name(
@@ -86,7 +88,7 @@ void validateParamExport(const std::string & /*Export*/) {
 }
 
 void validateParamOutput(const std::string &Output) {
-  if (!Output.empty() && !boost::filesystem::is_directory(Output)) {
+  if (!Output.empty() && !std::filesystem::is_directory(Output)) {
     throw boost::program_options::error_with_option_name(
         "'" + Output +
         "' does not exist, a valid output directory is required!");
@@ -97,16 +99,11 @@ void validateParamPammOutputFile(const std::string &Output) {}
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
   for (const auto &Analysis : Analyses) {
-    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None &&
-        !IDETabulationProblemPluginFactory.count(Analysis) &&
-        !IFDSTabulationProblemPluginFactory.count(Analysis) &&
-        !InterMonoProblemPluginFactory.count(Analysis) &&
-        !IntraMonoProblemPluginFactory.count(Analysis)) {
+    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
       // throw boost::program_options::error_with_option_name(
       //    "'" + Analysis + "' is not a valid data-flow analysis!");
-      std::cerr << "Error: "
-                << "'" + Analysis + "' is not a valid data-flow analysis!"
-                << std::endl;
+      llvm::errs() << "Error: " << '\'' << Analysis
+                   << "' is not a valid data-flow analysis!" << '\n';
       exit(1);
     }
   }
@@ -140,35 +137,21 @@ void validateSoundnessFlag(const std::string &Flag) {
   }
 }
 
-void validateParamAnalysisPlugin(const std::vector<std::string> &Plugins) {
-  for (const auto &Plugin : Plugins) {
-    boost::filesystem::path PluginPath(Plugin);
-    if (!(boost::filesystem::exists(PluginPath) &&
-          !boost::filesystem::is_directory(PluginPath) &&
-          PluginPath.extension() == ".so")) {
-      throw boost::program_options::error_with_option_name(
-          "'" + Plugin + "' is not a valid data-flow analysis plugin!");
-    }
-  }
-}
-
-void validateParamICFGPlugin(const std::string &Plugin) {
-  boost::filesystem::path PluginPath(Plugin);
-  if (!(boost::filesystem::exists(PluginPath) &&
-        !boost::filesystem::is_directory(PluginPath) &&
-        PluginPath.extension() == ".so")) {
-    throw boost::program_options::error_with_option_name(
-        "ICFG plugin '" + Plugin + "' does not exist!");
-  }
-}
-
 void validateParamAnalysisConfig(const std::vector<std::string> &Configs) {
   for (const auto &Config : Configs) {
-    if (!(boost::filesystem::exists(Config) &&
-          !boost::filesystem::is_directory(Config))) {
+    if (!(std::filesystem::exists(Config) &&
+          !std::filesystem::is_directory(Config))) {
       throw boost::program_options::error_with_option_name(
           "Analysis configuration '" + Config + "' does not exist!");
     }
+  }
+}
+
+void validatePTAJsonFile(const std::string &Config) {
+  if (!(std::filesystem::exists(Config) &&
+        !std::filesystem::is_directory(Config))) {
+    throw boost::program_options::error_with_option_name(
+        "Points-to info file '" + Config + "' does not exist!");
   }
 }
 
@@ -231,9 +214,8 @@ int main(int Argc, const char **Argv) {
       ("compute-values", boost::program_options::value<bool>()->default_value(true), "Let the IDE Solver compute the values attached to each edge in the ESG")
       ("record-edges", boost::program_options::value<bool>()->default_value(true), "Let the IFDS/IDE Solver record all ESG edges whole solving the dataflow problem. This can have massive performance impact")
       ("persisted-summaries", boost::program_options::value<bool>()->default_value(false), "Let the IFDS/IDE Solver compute presisted procedure summaries (Currently not supported)")
+      ("load-pta-from-json", boost::program_options::value<std::string>()->notifier(&validatePTAJsonFile),"Load the points-to info previously exported via emit-pta-as-json from the given file")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
-			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
-      ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible (Currently not available)");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
@@ -250,8 +232,8 @@ int main(int Argc, const char **Argv) {
         PhasarConfig::VariablesMap());
     boost::program_options::notify(PhasarConfig::VariablesMap());
   } catch (boost::program_options::error &Err) {
-    std::cerr << "Could not parse command-line arguments!\n"
-              << "Error: " << Err.what() << '\n';
+    llvm::errs() << "Could not parse command-line arguments!\n"
+                 << "Error: " << Err.what() << '\n';
     return 1;
   }
   try {
@@ -266,37 +248,43 @@ int main(int Argc, const char **Argv) {
       }
     }
   } catch (boost::program_options::error &Err) {
-    std::cerr << "Could not parse configuration file!\n"
-              << "Error: " << Err.what() << '\n';
+    llvm::errs() << "Could not parse configuration file!\n"
+                 << "Error: " << Err.what() << '\n';
     return 1;
   }
 #ifdef DYNAMIC_LOG
-  initializeLogger(PhasarConfig::VariablesMap().count("log"));
+  if (PhasarConfig::VariablesMap().count("log")) {
+    Logger::initializeStderrLogger(DEBUG);
+  }
 #endif
   // print PhASAR version
   if (PhasarConfig::VariablesMap().count("version")) {
-    std::cout << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
+    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
     return 0;
   }
   // Vanity header
   if (!PhasarConfig::VariablesMap().count("silent")) {
-    std::cout << "PhASAR " << PhasarConfig::PhasarVersion()
-              << "\nA LLVM-based static analysis framework\n\n";
+    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion()
+                 << "\nA LLVM-based static analysis framework\n\n";
   }
   // check if we have anything at all or a call for help
   if (PhasarConfig::VariablesMap().count("help") &&
       !PhasarConfig::VariablesMap().count("silent")) {
-    std::cout << Visible << '\n';
+    std::stringstream S;
+    S << Visible << '\n';
     if (PhasarConfig::VariablesMap().count("more-help")) {
-      std::cout << MoreHelp << "\n";
+      S << MoreHelp << "\n";
     }
+    llvm::outs() << S.str();
     return 0;
   }
   if (!PhasarConfig::VariablesMap().count("silent")) {
     // Print current configuration
     if (PhasarConfig::VariablesMap().count("more-help")) {
-      std::cout << Visible << '\n';
-      std::cout << MoreHelp << '\n';
+      std::stringstream S;
+      S << Visible << '\n';
+      S << MoreHelp << '\n';
+      llvm::outs() << S.str();
       return 0;
     }
   }
@@ -306,15 +294,15 @@ int main(int Argc, const char **Argv) {
     Strategy = toAnalysisStrategy(
         PhasarConfig::VariablesMap()["analysis-strategy"].as<std::string>());
     if (Strategy == AnalysisStrategy::None) {
-      std::cout << "Invalid analysis strategy!\n";
+      llvm::outs() << "Invalid analysis strategy!\n";
       return 0;
     }
   } else {
     Strategy = AnalysisStrategy::WholeProgram;
   }
   if (!PhasarConfig::VariablesMap().count("module")) {
-    std::cout << "At least on LLVM target module is required!\n"
-                 "Specify a LLVM target module or re-run with '--help'\n";
+    llvm::outs() << "At least on LLVM target module is required!\n"
+                    "Specify a LLVM target module or re-run with '--help'\n";
     return 0;
   }
 
@@ -325,45 +313,17 @@ int main(int Argc, const char **Argv) {
       PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
 
   if (EmitStats) {
-    std::cout << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
-    std::cout << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-              << "\n";
-    std::cout << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
-    std::cout << "> global variables:\t" << IRDB.getWPAModule()->global_size()
-              << "\n";
+    llvm::outs() << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
+    llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
+                 << "\n";
+    llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
+    llvm::outs() << "> global variables:\t"
+                 << IRDB.getWPAModule()->global_size() << "\n";
   }
 
   // store enabled data-flow analyses
-  std::vector<DataFlowAnalysisKind> DataFlowAnalyses;
+  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
 
-  // setup plugins
-  std::vector<boost::dll::shared_library> PluginLibs;
-  if (PhasarConfig::VariablesMap().count("analysis-plugin")) {
-    auto Plugins = PhasarConfig::VariablesMap()["analysis-plugin"]
-                       .as<std::vector<std::string>>();
-    for (auto &Plugin : Plugins) {
-      boost::filesystem::path LibPath(Plugin);
-      boost::system::error_code Err;
-      PluginLibs.emplace_back(LibPath, boost::dll::load_mode::rtld_lazy, Err);
-      if (Err) {
-        llvm::report_fatal_error(Err.message());
-      }
-    }
-    // check what plugins have registed themselves and add those to the vector
-    // of data-flow analyses
-    for (auto &[Name, IFDSFactory] : IFDSTabulationProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(IFDSFactory);
-    }
-    for (auto &[Name, IDEFactory] : IDETabulationProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(IDEFactory);
-    }
-    for (auto &[Name, IntraMonoFactory] : IntraMonoProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(IntraMonoFactory);
-    }
-    for (auto &[Name, InterMonoFactory] : InterMonoProblemPluginFactory) {
-      DataFlowAnalyses.emplace_back(InterMonoFactory);
-    }
-  }
   // setup data-flow analyses
   if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
     auto Analyses = PhasarConfig::VariablesMap()["data-flow-analysis"]
@@ -441,7 +401,6 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
-
   if (PhasarConfig::VariablesMap().count("follow-return-past-seeds")) {
     SolverConfig.setFollowReturnsPastSeeds(
         PhasarConfig::VariablesMap()["follow-return-past-seeds"].as<bool>());
@@ -462,6 +421,12 @@ int main(int Argc, const char **Argv) {
     SolverConfig.setComputePersistedSummaries(
         PhasarConfig::VariablesMap()["persisted-summaries"].as<bool>());
   }
+  nlohmann::json PrecomputedPointsToSet;
+  if (auto PTAFile = PhasarConfig::VariablesMap().find("load-pta-from-json");
+      PTAFile != PhasarConfig::VariablesMap().end()) {
+    PrecomputedPointsToSet =
+        readJsonFile(llvm::StringRef(PTAFile->second.as<std::string>()));
+  }
   // setup output directory
   std::string OutDirectory;
   if (PhasarConfig::VariablesMap().count("out")) {
@@ -473,8 +438,10 @@ int main(int Argc, const char **Argv) {
     ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
   AnalysisController Controller(
-      IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy, CGTy, SoundnessLevel,
+      IRDB, std::move(DataFlowAnalyses), std::move(AnalysisConfigs), PTATy,
+      CGTy, SoundnessLevel,
       PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory);
+      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory,
+      PrecomputedPointsToSet);
   return 0;
 }

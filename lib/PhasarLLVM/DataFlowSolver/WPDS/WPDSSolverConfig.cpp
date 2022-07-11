@@ -7,12 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ostream>
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSSolverConfig.h"
-
-using namespace std;
-using namespace psr;
 
 namespace psr {
 
@@ -22,7 +19,8 @@ WPDSSolverConfig::WPDSSolverConfig(bool RecordWitnesses,
     : RecordWitnesses(RecordWitnesses), Direction(SearchDirection),
       WPDSType(Wpdsty) {}
 
-ostream &operator<<(ostream &OS, const WPDSSolverConfig &SC) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const WPDSSolverConfig &SC) {
   return OS << "WPDSSolverConfig:\n"
             << "\trecordWitnesses: " << SC.RecordWitnesses << "\n"
             << "\tsearchDirection: " << SC.Direction << "\n"

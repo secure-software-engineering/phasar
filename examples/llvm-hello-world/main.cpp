@@ -1,4 +1,3 @@
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -20,7 +19,7 @@
 
 int main(int argc, char **argv) {
   if (argc != 2) {
-    std::cout << "usage: <prog> <IR file>\n";
+    llvm::errs() << "usage: <prog> <IR file>\n";
     return 1;
   }
   // parse an IR file into an LLVM module

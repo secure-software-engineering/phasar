@@ -155,19 +155,19 @@ public:
 
   void operator()() { solve(); }
 
-  void dumpResults(std::ostream &OS = std::cout) {
+  void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
     DataFlowSolver.dumpResults(OS);
   }
 
-  void emitTextReport(std::ostream &OS = std::cout) {
+  void emitTextReport(llvm::raw_ostream &OS = llvm::outs()) {
     DataFlowSolver.emitTextReport(OS);
   }
 
-  void emitGraphicalReport(std::ostream &OS = std::cout) {
+  void emitGraphicalReport(llvm::raw_ostream &OS = llvm::outs()) {
     DataFlowSolver.emitGraphicalReport(OS);
   }
 
-  void emitESG(std::ostream &OS = std::cout) {
+  void emitESG(llvm::raw_ostream &OS = llvm::outs()) {
     // if (std::is_base_of_v<typename Solver::ProblemTy, ProblemDescription>) {
     //   DataFlowSolver.emitESGAsDot(OS);
     // }

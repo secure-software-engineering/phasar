@@ -96,8 +96,7 @@ IFDSLinearConstantAnalysis::getSummaryFlowFunction(
 InitialSeeds<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
              IFDSLinearConstantAnalysis::l_t>
 IFDSLinearConstantAnalysis::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSLinearConstantAnalysis::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSLinearConstantAnalysis::initialSeeds()");
   InitialSeeds<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
                IFDSLinearConstantAnalysis::l_t>
       Seeds;
@@ -110,8 +109,7 @@ IFDSLinearConstantAnalysis::initialSeeds() {
 
 IFDSLinearConstantAnalysis::d_t
 IFDSLinearConstantAnalysis::createZeroValue() const {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSLinearConstantAnalysis::createZeroValue()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSLinearConstantAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return {LLVMZeroValue::getInstance(), 0};
 }
@@ -122,19 +120,19 @@ bool IFDSLinearConstantAnalysis::isZeroValue(
 }
 
 void IFDSLinearConstantAnalysis::printNode(
-    ostream &OS, IFDSLinearConstantAnalysis::n_t Stmt) const {
+    llvm::raw_ostream &OS, IFDSLinearConstantAnalysis::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
 void IFDSLinearConstantAnalysis::printDataFlowFact(
-    ostream &OS, IFDSLinearConstantAnalysis::d_t Fact) const {
+    llvm::raw_ostream &OS, IFDSLinearConstantAnalysis::d_t Fact) const {
   OS << '<' + llvmIRToString(Fact.First) + ", " + std::to_string(Fact.Second) +
             '>';
 }
 
 void IFDSLinearConstantAnalysis::printFunction(
-    ostream &OS, IFDSLinearConstantAnalysis::f_t Func) const {
-  OS << Func->getName().str();
+    llvm::raw_ostream &OS, IFDSLinearConstantAnalysis::f_t Func) const {
+  OS << Func->getName();
 }
 
 } // namespace psr

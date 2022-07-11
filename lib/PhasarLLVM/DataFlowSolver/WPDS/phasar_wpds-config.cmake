@@ -1,6 +1,6 @@
 set(PHASAR_wpds_COMPONENT_FOUND 1)
 
-find_package(Boost COMPONENTS filesystem program_options REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
 
 list(APPEND
   PHASAR_LLVM_DEPS
@@ -27,4 +27,3 @@ list(APPEND
   PHASAR_NEEDED_LIBS
   phasar::phasar_wpds
 )
-

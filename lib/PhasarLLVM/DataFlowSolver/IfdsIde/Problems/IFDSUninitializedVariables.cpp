@@ -54,7 +54,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
 
   // initially mark every local as uninitialized (except entry point args)
   /* if (icfg.isStartPoint(curr) &&
-            curr->getFunction()->getName().str() == "main") {
+            curr->getFunction()->getName() == "main") {
     const llvm::Function *func = icfg.getMethodOf(curr);
     // set all locals as uninitialized flow function
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
@@ -231,9 +231,6 @@ IFDSUninitializedVariables::getNormalFlowFunction(
     }
   };
   return make_shared<UVFF>(Curr, UndefValueUses);
-
-  // otherwise we do not care and nothing changes
-  return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -253,7 +250,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
            const llvm::Value *ZV)
           : DestFun(DM), CallSite(CallSite), Zerovalue(ZV) {
         // set up the actual parameters
-        for (unsigned Idx = 0; Idx < CallSite->getNumArgOperands(); ++Idx) {
+        for (unsigned Idx = 0; Idx < CallSite->arg_size(); ++Idx) {
           Actuals.push_back(CallSite->getArgOperand(Idx));
         }
         // set up the formal parameters
@@ -402,8 +399,7 @@ IFDSUninitializedVariables::getSummaryFlowFunction(
 InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
              IFDSUninitializedVariables::l_t>
 IFDSUninitializedVariables::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSUninitializedVariables::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSUninitializedVariables::initialSeeds()");
   InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
                IFDSUninitializedVariables::l_t>
       Seeds;
@@ -416,8 +412,7 @@ IFDSUninitializedVariables::initialSeeds() {
 
 IFDSUninitializedVariables::d_t
 IFDSUninitializedVariables::createZeroValue() const {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSUninitializedVariables::createZeroValue()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSUninitializedVariables::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
@@ -428,24 +423,24 @@ bool IFDSUninitializedVariables::isZeroValue(
 }
 
 void IFDSUninitializedVariables::printNode(
-    ostream &OS, IFDSUninitializedVariables::n_t Stmt) const {
+    llvm::raw_ostream &OS, IFDSUninitializedVariables::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
 void IFDSUninitializedVariables::printDataFlowFact(
-    ostream &OS, IFDSUninitializedVariables::d_t Fact) const {
+    llvm::raw_ostream &OS, IFDSUninitializedVariables::d_t Fact) const {
   OS << llvmIRToShortString(Fact);
 }
 
 void IFDSUninitializedVariables::printFunction(
-    ostream &OS, IFDSUninitializedVariables::f_t Func) const {
-  OS << Func->getName().str();
+    llvm::raw_ostream &OS, IFDSUninitializedVariables::f_t Func) const {
+  OS << Func->getName();
 }
 
 void IFDSUninitializedVariables::emitTextReport(
     const SolverResults<IFDSUninitializedVariables::n_t,
                         IFDSUninitializedVariables::d_t, l_t> & /*Result*/,
-    ostream &OS) {
+    llvm::raw_ostream &OS) {
   OS << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
   if (UndefValueUses.empty()) {
@@ -528,7 +523,7 @@ bool IFDSUninitializedVariables::UninitResult::empty() const {
   return Line == 0;
 }
 
-void IFDSUninitializedVariables::UninitResult::print(std::ostream &OS) {
+void IFDSUninitializedVariables::UninitResult::print(llvm::raw_ostream &OS) {
   OS << "Variable(s): ";
   if (!VarNames.empty()) {
     for (size_t I = 0; I < VarNames.size(); ++I) {

@@ -26,9 +26,6 @@ function(add_phasar_unittest test_name)
     phasar_experimental
     # phasar_clang
     phasar_passes
-    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins
-    phasar_plugins
-    # ${PHASAR_PLUGINS_LIB}
     phasar_pointer
     phasar_typehierarchy
     phasar_taintconfig
@@ -79,7 +76,7 @@ function(generate_ll_file)
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
   # define compilation flags
-  set(GEN_CXX_FLAGS -std=c++14 -fno-discard-value-names -emit-llvm -S)
+  set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S)
   set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S)
   set(GEN_CMD_COMMENT "[LL]")
   if(GEN_LL_MEM2REG)

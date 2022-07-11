@@ -24,10 +24,8 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_clang
   LINK_PUBLIC
-  ${Boost_LIBRARIES}
   ${CLANG_LIBRARY}
 )
 

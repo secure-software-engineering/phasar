@@ -110,7 +110,7 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
 void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
   std::set<d_t> Tmp = Facts;
   for (const auto *Fact : Facts) {
-    const auto *Aliases = PT->getPointsToSet(Fact);
+    auto Aliases = PT->getPointsToSet(Fact);
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
@@ -216,7 +216,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   if (HasBody && Gen.empty() && Leak.empty() && Kill.empty()) {
     // We have a normal function-call and the ret-FF is responsible for handling
     // pointer parameters. So we need to kill them here
-    for (const auto &Arg : CS->arg_operands()) {
+    for (const auto &Arg : CS->args()) {
       if (Arg->getType()->isPointerTy()) {
         Kill.insert(Arg.get());
       }
@@ -247,7 +247,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   if (Kill.empty()) {
     return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
                                 this, CallSite](d_t Source) -> std::set<d_t> {
-      if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+      if (LLVMZeroValue::isLLVMZeroValue(Source)) {
         return Gen;
       }
 
@@ -261,7 +261,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
                               Kill{std::move(Kill)}, this,
                               CallSite](d_t Source) -> std::set<d_t> {
-    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+    if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return Gen;
     }
 
@@ -291,8 +291,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
 InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
              IFDSTaintAnalysis::l_t>
 IFDSTaintAnalysis::initialSeeds() {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSTaintAnalysis::initialSeeds()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
   InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
@@ -312,33 +311,33 @@ IFDSTaintAnalysis::initialSeeds() {
 }
 
 IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "IFDSTaintAnalysis::createZeroValue()");
+  PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
 
 bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t FlowFact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(FlowFact);
+  return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
-void IFDSTaintAnalysis::printNode(ostream &Os,
+void IFDSTaintAnalysis::printNode(llvm::raw_ostream &Os,
                                   IFDSTaintAnalysis::n_t Inst) const {
   Os << llvmIRToString(Inst);
 }
 
 void IFDSTaintAnalysis::printDataFlowFact(
-    ostream &Os, IFDSTaintAnalysis::d_t FlowFact) const {
+    llvm::raw_ostream &Os, IFDSTaintAnalysis::d_t FlowFact) const {
   Os << llvmIRToString(FlowFact);
 }
 
-void IFDSTaintAnalysis::printFunction(ostream &Os,
+void IFDSTaintAnalysis::printFunction(llvm::raw_ostream &Os,
                                       IFDSTaintAnalysis::f_t Fun) const {
-  Os << Fun->getName().str();
+  Os << Fun->getName();
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/, std::ostream &OS) {
+    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
+    llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
   if (Leaks.empty()) {
     OS << "No leaks found!\n";

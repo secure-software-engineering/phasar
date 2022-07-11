@@ -8,11 +8,10 @@ struct A {
   int j = 10;
 };
 
-
 int main() {
   A x;
   // x.j = 10;
   // A *x = new A();
   // x->j = 20;
-	return 0;
+  return 0;
 }

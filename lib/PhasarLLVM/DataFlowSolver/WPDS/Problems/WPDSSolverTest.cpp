@@ -139,22 +139,22 @@ WPDSSolverTest::allTopFunction() {
   return make_shared<AllTop<WPDSSolverTest::l_t>>(BinaryDomain::TOP);
 }
 
-void WPDSSolverTest::printNode(std::ostream &OS,
+void WPDSSolverTest::printNode(llvm::raw_ostream &OS,
                                WPDSSolverTest::n_t Stmt) const {
   OS << llvmIRToString(Stmt);
 }
 
-void WPDSSolverTest::printDataFlowFact(std::ostream &OS,
+void WPDSSolverTest::printDataFlowFact(llvm::raw_ostream &OS,
                                        WPDSSolverTest::d_t Fact) const {
   OS << llvmIRToString(Fact);
 }
 
-void WPDSSolverTest::printFunction(std::ostream &OS,
+void WPDSSolverTest::printFunction(llvm::raw_ostream &OS,
                                    WPDSSolverTest::f_t Func) const {
-  OS << Func->getName().str();
+  OS << Func->getName();
 }
 
-void WPDSSolverTest::printEdgeFact(std::ostream &OS,
+void WPDSSolverTest::printEdgeFact(llvm::raw_ostream &OS,
                                    WPDSSolverTest::l_t L) const {
   if (L == BinaryDomain::TOP) {
     OS << "TOP";

@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -78,14 +77,15 @@ public:
     std::string SrcNode;
     std::map<std::string, l_t> VariableToValue;
     std::vector<n_t> IRTrace;
-    void print(std::ostream &OS);
+    void print(llvm::raw_ostream &OS);
     inline bool operator==(const LCAResult &Rhs) const {
       return SrcNode == Rhs.SrcNode && VariableToValue == Rhs.VariableToValue &&
              IRTrace == Rhs.IRTrace;
     }
 
     operator std::string() const {
-      std::stringstream OS;
+      std::string Buffer;
+      llvm::raw_string_ostream OS(Buffer);
       OS << "Line " << LineNr << ": " << SrcNode << '\n';
       OS << "Var(s): ";
       for (auto It = VariableToValue.begin(); It != VariableToValue.end();
@@ -192,7 +192,7 @@ public:
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
   };
 
   class LCAIdentity : public EdgeFunction<l_t>,
@@ -213,7 +213,7 @@ public:
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
   };
 
   class BinOp : public EdgeFunction<l_t>,
@@ -235,7 +235,7 @@ public:
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
 
-    void print(std::ostream &OS, bool IsForDebug = false) const override;
+    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
   };
 
   // Helper functions
@@ -260,18 +260,18 @@ public:
 
   [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
 
-  void printNode(std::ostream &OS, n_t Stmt) const override;
+  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
-  void printDataFlowFact(std::ostream &OS, d_t Fact) const override;
+  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
 
-  void printFunction(std::ostream &OS, f_t Func) const override;
+  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
 
-  void printEdgeFact(std::ostream &OS, l_t L) const override;
+  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 
   [[nodiscard]] lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
-                      std::ostream &OS = std::cout) override;
+                      llvm::raw_ostream &OS = llvm::outs()) override;
 };
 
 } // namespace psr

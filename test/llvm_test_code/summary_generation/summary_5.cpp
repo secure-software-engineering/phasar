@@ -1,3 +1,1 @@
-void baz(int* p) {
-	*p = 13;
-}
+void baz(int *p) { *p = 13; }

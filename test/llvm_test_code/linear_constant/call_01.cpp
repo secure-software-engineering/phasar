@@ -1,6 +1,6 @@
-void foo(int a) {
+void foo(int a) { // clang-format off
   int b = a;
-}
+} // clang-format on
 
 int main() {
   int i = 42;

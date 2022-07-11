@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 
-#include <iostream>
 #include <set>
 #include <string>
 
@@ -48,14 +47,14 @@ public:
 
   [[nodiscard]] virtual bool empty() const = 0;
 
-  virtual void print(std::ostream &OS = std::cout) const = 0;
+  virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
 
   [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 };
 
 template <typename T, typename F>
-static inline std::ostream &operator<<(std::ostream &OS,
-                                       const TypeHierarchy<T, F> &TH) {
+static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                            const TypeHierarchy<T, F> &TH) {
   TH.print(OS);
   return OS;
 }

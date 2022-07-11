@@ -10,19 +10,21 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFACT_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFACT_H_
 
-#include <iosfwd>
+namespace llvm {
+class raw_ostream;
+} // namespace llvm
 
 namespace psr {
 
 /// A common superclass of edge-facts used by non-template IDETabulationProblems
-/// (for example in plugins)
 class EdgeFact {
 public:
   virtual ~EdgeFact() = default;
-  virtual void print(std::ostream &OS) const = 0;
+  virtual void print(llvm::raw_ostream &OS) const = 0;
 };
 
-static inline std::ostream &operator<<(std::ostream &OS, const EdgeFact &E) {
+static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                            const EdgeFact &E) {
   E.print(OS);
   return OS;
 }

@@ -7,15 +7,11 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <iostream>
 #include <map>
 
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
-
-using namespace std;
-using namespace psr;
 
 namespace psr {
 
@@ -81,7 +77,7 @@ std::string OpenSSLEVPKDFDescription::getTypeNameOfInterest() const {
   return "struct.evp_kdf_st";
 }
 
-set<int>
+std::set<int>
 OpenSSLEVPKDFDescription::getConsumerParamIdx(const std::string &F) const {
   if (isConsumingFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F);
@@ -89,7 +85,7 @@ OpenSSLEVPKDFDescription::getConsumerParamIdx(const std::string &F) const {
   return {};
 }
 
-set<int>
+std::set<int>
 OpenSSLEVPKDFDescription::getFactoryParamIdx(const std::string &F) const {
   if (isFactoryFunction(F)) {
     // Trivial here, since we only generate via return value

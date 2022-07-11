@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 
-#include <iostream>
+#include <ostream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -107,8 +107,11 @@ private:
   /// Keep track of what has already been merged into this points-to graph.
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
   LLVMBasedPointsToAnalysis PTA;
-  PointsToSetOwner<PointsToSetTy> Owner;
-  std::unordered_map<const llvm::Value *, PointsToSetTy *> Cache;
+
+  PointsToSetOwner<PointsToSetTy>::memory_resource_type MRes;
+  PointsToSetOwner<PointsToSetTy> Owner{&MRes};
+  std::unordered_map<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>
+      Cache;
 
   // void mergeGraph(const LLVMPointsToGraph &Other);
 
@@ -160,11 +163,11 @@ public:
                       const llvm::Instruction *I = nullptr,
                       AliasResult Kind = AliasResult::MustAlias) override;
 
-  void print(std::ostream &OS = std::cout) const override;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   nlohmann::json getAsJson() const override;
 
-  void printAsJson(std::ostream &OS = std::cout) const override;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   /**
    * @brief Returns true if graph contains 0 nodes.
@@ -238,7 +241,7 @@ public:
    * stream.
    * @param outputstream.
    */
-  void printAsDot(std::ostream &OS = std::cout) const;
+  void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
   size_t getNumVertices() const;
 

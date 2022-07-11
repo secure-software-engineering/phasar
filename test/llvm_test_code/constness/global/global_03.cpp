@@ -5,13 +5,11 @@
 // with null.
 int *g = new int(17);
 
-void foo(int *p) {
-  *p = 42;
-}
+void foo(int *p) { *p = 42; }
 
 int main() {
-	// moved to register
+  // moved to register
   int *i = g;
   foo(i);
-	return 0;
+  return 0;
 }

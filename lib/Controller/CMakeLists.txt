@@ -3,7 +3,6 @@ file(GLOB_RECURSE CONTROLLER_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
   phasar_ifdside
   phasar_mono
-  phasar_plugins
   phasar_db
   phasar_pointer
   phasar_typehierarchy
@@ -30,11 +29,9 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_controller
   LINK_PUBLIC
   curl
-  ${Boost_LIBRARIES}
   ${PHASAR_STD_FILESYSTEM}
 )
 
