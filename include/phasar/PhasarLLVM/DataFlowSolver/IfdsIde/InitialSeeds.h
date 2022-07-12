@@ -47,6 +47,14 @@ public:
     Seeds[Node][Fact] = std::move(Value);
   }
 
+  void addSeeds(const InitialSeeds &FurtherSeeds) {
+    for (auto &[Node, FactAndValue] : FurtherSeeds.getSeeds()) {
+      for (auto &[Fact, Value] : FactAndValue) {
+        addSeed(Node, Fact, Value);
+      }
+    }
+  }
+
   [[nodiscard]] size_t countInitialSeeds() const {
     size_t NumSeeds = 0;
     for (const auto &[Node, Facts] : Seeds) {

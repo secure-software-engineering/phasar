@@ -191,6 +191,20 @@ public:
     }
   }
 
+  /// Allows one to submit further seeds to the analysis and re-solve the
+  /// analysis as necessary. This may be helpful if the initial analysis run is
+  /// used to compute interesting data flows, which are then processed and
+  /// information on new data flows become relevant.
+  ///
+  /// @param FurtherSeeds additional seeds that shall be propagated through the
+  /// program once the original analysis has already been solved
+  ///
+  void
+  submitFurtherSeedsAndSolve(const InitialSeeds<n_t, d_t, l_t> &FurtherSeeds) {
+    Seeds.addSeeds(FurtherSeeds);
+    solve();
+  }
+
   /// Returns the L-type result for the given value at the given statement.
   [[nodiscard]] virtual l_t resultAt(n_t Stmt, d_t Value) {
     return ValTab.get(Stmt, Value);

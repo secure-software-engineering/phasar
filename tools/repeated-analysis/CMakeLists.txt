@@ -1,0 +1,50 @@
+# Build a stand-alone executable
+if(PHASAR_IN_TREE)
+  # Build a small test tool to show how phasar may be used
+  add_phasar_executable(repeated-analysis
+    repeated-analysis.cpp
+  )
+else()
+  # Build a small test tool to show how phasar may be used
+  add_executable(repeated-analysis
+    repeated-analysis.cpp
+  )
+endif()
+
+find_package(Boost COMPONENTS program_options graph ${BOOST_THREAD} REQUIRED)
+target_link_libraries(repeated-analysis
+  LINK_PUBLIC
+  phasar_config
+  phasar_controller
+  phasar_db
+  phasar_experimental
+  phasar_controlflow
+  phasar_ifdside
+  phasar_mono
+  phasar_passes
+  ${PHASAR_PLUGINS_LIB}
+  phasar_pointer
+  phasar_typehierarchy
+  phasar_phasarllvm_utils
+  phasar_utils
+  ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
+  LINK_PRIVATE
+  ${PHASAR_STD_FILESYSTEM}
+)
+
+if(USE_LLVM_FAT_LIB)
+  llvm_config(repeated-analysis USE_SHARED ${LLVM_LINK_COMPONENTS})
+else()
+  llvm_config(repeated-analysis ${LLVM_LINK_COMPONENTS})
+endif()
+
+set(LLVM_LINK_COMPONENTS
+)
+
+install(TARGETS repeated-analysis
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
