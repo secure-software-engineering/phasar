@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <memory>
 #include <utility>
 
 #include "llvm/Demangle/Demangle.h"
@@ -159,8 +160,22 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
           return Source == GEP->getPointerOperand();
         });
   }
-  // Otherwise we do not care and leave everything as it is
-  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
+  // If a tainted value is used by an instruction, treat the whole instruction
+  // as tainted. Everything else is treated as identity.
+  struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
+    const llvm::Instruction *Inst;
+    TAFF(const llvm::Instruction *Inst) : Inst(Inst) {}
+    std::set<IFDSTaintAnalysis::d_t>
+    computeTargets(IFDSTaintAnalysis::d_t Source) override {
+      for (const auto &Op : Inst->operands()) {
+        if (Op == Source) {
+          return {Inst, Source};
+        }
+      }
+      return {Source};
+    }
+  };
+  return std::make_shared<TAFF>(Curr);
 }
 
 IFDSTaintAnalysis::FlowFunctionPtrType
@@ -199,6 +214,34 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite,
     set<IFDSTaintAnalysis::f_t> Callees) {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+
+  // TODO clean-up code
+  static const std::set<llvm::StringRef> GetOptFamilyNames{
+      "getopt", "getopt_long", "getopt_long_only"};
+  if (Callees.size() == 1) {
+    const auto *Callee = *Callees.begin();
+    if (GetOptFamilyNames.count(Callee->getName())) {
+      struct TAFF : FlowFunction<d_t> {
+        n_t CallSite;
+        std::set<d_t> Actuals;
+
+        TAFF(const llvm::CallBase *CallSite) : CallSite(CallSite) {
+          for (const auto &Arg : CallSite->args()) {
+            Actuals.insert(Arg);
+          }
+        }
+
+        std::set<d_t> computeTargets(d_t Source) override {
+          if (Actuals.count(Source)) {
+            return {Source, CallSite};
+          }
+          return {Source};
+        }
+      };
+      return std::make_shared<TAFF>(CS);
+    }
+  }
+
   std::set<d_t> Gen;
   std::set<d_t> Leak;
   std::set<d_t> Kill;
