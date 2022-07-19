@@ -28,7 +28,7 @@ public:
 private:
   const llvm::CallInst *CallInst;
   const llvm::ReturnInst *RetInst;
-  TraceStats &TraceStats;
+  ::psr::TraceStats &TraceStats;
   ExtendedValue ZV;
 };
 

@@ -27,7 +27,7 @@ struct WPDSSolverConfig {
   WPDSSolverConfig &operator=(WPDSSolverConfig &&) = default;
   bool RecordWitnesses = false;
   WPDSSearchDirection Direction = WPDSSearchDirection::FORWARD;
-  WPDSType WPDSType = WPDSType::FWPDS;
+  ::psr::WPDSType WPDSType = WPDSType::FWPDS;
   friend std::ostream &operator<<(std::ostream &OS, const WPDSSolverConfig &SC);
 };
 
