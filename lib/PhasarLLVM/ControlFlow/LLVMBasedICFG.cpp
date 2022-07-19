@@ -875,14 +875,7 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
 
         IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
         break;
-      } else {
-        for(auto const &arg : UEntry->args()){
-          // Create Globals...
-        }
-
-        // ... insert function
       }
-
 
     default:
       
@@ -890,7 +883,16 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
       
       // std::cerr << "ERROR: Entrypoints with parameters are not supported, "
       //             "except for argc and argv in main\n";
-      
+
+      std::vector<llvm::Value *> Fpar;
+
+        for (const auto &Arg : UEntry->args()) {
+          auto *Global = M.getOrInsertGlobal(
+            std::string("__psr_") + UEntry->getName().str() + Arg.getName().str(),
+            Arg.getType());
+            Fpar.push_back(Global);
+        }
+        IRB.CreateCall(UEntry, Fpar);
 
       break;
     }
@@ -901,67 +903,86 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
     }
   };
 
-  // ================== Library Functions ================= //
+  if(M.getFunction("main")){
 
-    // TargetLibraryInfo Object to check if function is a library function
-    const llvm::TargetLibraryInfo *TLI;
+    if (UserEntryPoints.size() == 1) {
+      auto *MainFn = *UserEntryPoints.begin();
+      callUEntry(MainFn);
+      IRB.CreateRetVoid();
+    } else {
 
-    // enum type needed for library function check
-    llvm::LibFunc lib;
+      auto *UEntrySelectorFn = llvm::cast<llvm::Function>(
+          M.getOrInsertFunction("__psrCRuntimeUserEntrySelector",
+                                llvm::Type::getInt32Ty(CTX))
+              .getCallee());
 
-    // set to hold the library functions
-    std::set<llvm::StringRef> libs;
+      auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn, {});
 
-    // check all functions of module if they are library function and add to set if so
-    auto Funs = IRDB.getAllFunctions();
-    for (const auto *Fun : Funs) {
-      if (TLI->getLibFunc(Fun->getName(), lib)) {
-        libs.insert(Fun->getName());
+      auto *DefaultBB = llvm::BasicBlock::Create(CTX, "invalid", GlobModel);
+      auto *SwitchEnd = llvm::BasicBlock::Create(CTX, "switchEnd", GlobModel);
+
+      auto *UEntrySwitch =
+          IRB.CreateSwitch(UEntrySelector, DefaultBB, UserEntryPoints.size());
+
+      IRB.SetInsertPoint(DefaultBB);
+      IRB.CreateUnreachable();
+
+      unsigned Idx = 0;
+
+      for (auto *UEntry : UserEntryPoints) {
+        auto *BB =
+            llvm::BasicBlock::Create(CTX, "call" + UEntry->getName(), GlobModel);
+        IRB.SetInsertPoint(BB);
+        callUEntry(UEntry);
+        IRB.CreateBr(SwitchEnd);
+
+        UEntrySwitch->addCase(IRB.getInt32(Idx), BB);
+
+        ++Idx;
       }
+
+      /// After all user-entries have been called, we are done
+
+      IRB.SetInsertPoint(SwitchEnd);
+      IRB.CreateRetVoid();
     }
 
-  // ======================== End ======================== //
-
-  if (UserEntryPoints.size() == 1) {
-    auto *MainFn = *UserEntryPoints.begin();
-    callUEntry(MainFn);
-    IRB.CreateRetVoid();                                                /// Mamut: Warum void und nicht int?
   } else {
 
-    auto *UEntrySelectorFn = llvm::cast<llvm::Function>(
-        M.getOrInsertFunction("__psrCRuntimeUserEntrySelector",
-                              llvm::Type::getInt32Ty(CTX))
-            .getCallee());
+    auto *LibrarySelectorFn = llvm::cast<llvm::Function>(
+          M.getOrInsertFunction("__psrCRuntimeLibrarySelector",
+                                llvm::Type::getInt32Ty(CTX))
+              .getCallee());
 
-    auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn, {});
+      auto *LibrarySelector = IRB.CreateCall(LibrarySelectorFn, {});
 
-    auto *DefaultBB = llvm::BasicBlock::Create(CTX, "invalid", GlobModel);
-    auto *SwitchEnd = llvm::BasicBlock::Create(CTX, "switchEnd", GlobModel);
+      auto *DefaultBB = llvm::BasicBlock::Create(CTX, "invalid", GlobModel);
+      auto *SwitchEnd = llvm::BasicBlock::Create(CTX, "switchEnd", GlobModel);
 
-    auto *UEntrySwitch =
-        IRB.CreateSwitch(UEntrySelector, DefaultBB, UserEntryPoints.size());
+      auto *LibrarySwitch =
+          IRB.CreateSwitch(LibrarySelector, DefaultBB, M.size());
 
-    IRB.SetInsertPoint(DefaultBB);
-    IRB.CreateUnreachable();
+      IRB.SetInsertPoint(DefaultBB);
+      IRB.CreateUnreachable();
 
-    unsigned Idx = 0;
+      unsigned Idx = 0;
 
-    for (auto *UEntry : UserEntryPoints) {
-      auto *BB =
-          llvm::BasicBlock::Create(CTX, "call" + UEntry->getName(), GlobModel);
-      IRB.SetInsertPoint(BB);
-      callUEntry(UEntry);
-      IRB.CreateBr(SwitchEnd);
+      for (auto &LibraryFn : M) {
+        auto *BB =
+            llvm::BasicBlock::Create(CTX, "call" + LibraryFn.getName(), GlobModel);
+        IRB.SetInsertPoint(BB);
+        callUEntry(&LibraryFn);
+        IRB.CreateBr(SwitchEnd);
 
-      UEntrySwitch->addCase(IRB.getInt32(Idx), BB);
+        LibrarySwitch->addCase(IRB.getInt32(Idx), BB);
 
-      ++Idx;
-    }
+        ++Idx;
+      }
 
-    /// After all user-entries have been called, we are done
+      /// After all user-entries have been called, we are done
 
-    IRB.SetInsertPoint(SwitchEnd);
-    IRB.CreateRetVoid();
+      IRB.SetInsertPoint(SwitchEnd);
+      IRB.CreateRetVoid();
   }
 
   ModulesToSlotTracker::updateMSTForModule(&M);
