@@ -235,7 +235,7 @@ class ModulesToSlotTracker {
 private:
   static inline llvm::SmallDenseMap<const llvm::Module *,
                                     std::unique_ptr<llvm::ModuleSlotTracker>, 2>
-      MToST; // NOLINT
+      MToST{};
 
   static void updateMSTForModule(const llvm::Module *Module);
   static void deleteMSTForModule(const llvm::Module *Module);
