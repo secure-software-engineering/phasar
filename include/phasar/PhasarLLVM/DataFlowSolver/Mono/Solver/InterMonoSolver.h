@@ -352,6 +352,7 @@ public:
   bool isSensibleToSummarize() {
     // use a heuristic to check whether we should compute a summary
     // make use of the call-graph information
+    return false;
   }
 
   virtual void solve() {
