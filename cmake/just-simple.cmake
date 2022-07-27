@@ -156,6 +156,31 @@ function(just_copy_resource TARGET)
     endforeach()
 endfunction()
 
+function(_just_check_library_order)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs LINK)
+    cmake_parse_arguments(PARSE_ARGV "0" "just_check" "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    set(index -1)
+    set(wrong_order OFF)
+    set(correct_order)
+    foreach(available_lib ${CONAN_LIBS})
+        list(FIND just_check_LINK ${available_lib} found)
+        if (found GREATER -1)
+            list(APPEND correct_order "${available_lib}")
+            if (found LESS index)
+                set(wrong_order ON)
+            endif()
+            set(index "${found}")
+        endif()
+    endforeach()
+
+    if (${wrong_order})
+        message(FATAL_ERROR "${just_check_TARGET} has wrong link order, expecting: ${correct_order}")
+    endif()
+endfunction()
+
 function(just_add_library)
     # Argument parsing
     set(options SKIP_SUBDIRECTORIES)
@@ -170,6 +195,10 @@ function(just_add_library)
         message(FATAL_ERROR "target \"${TARGET}\" has unparsed arguments \"${just_add_UNPARSED_ARGUMENTS}\" maybe LINK in front of it?")
     endif()
     _just_add_check("${TARGET}")
+
+    if (just_add_LINK)
+        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
+    endif()
 
     # create filelist
     file(GLOB_RECURSE files include/* src/*)
@@ -217,6 +246,10 @@ function(just_add_executable)
         message(FATAL_ERROR "target \"${TARGET}\" has unparsed arguments \"${just_add_UNPARSED_ARGUMENTS}\" maybe LINK in front of it?")
     endif()
     _just_add_check("${TARGET}")
+
+    if (just_add_LINK)
+        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
+    endif()
 
 
     # create filelist
@@ -277,6 +310,10 @@ function(just_add_tests)
         message(FATAL_ERROR "target \"${TARGET}\" has unparsed arguments \"${just_add_UNPARSED_ARGUMENTS}\" maybe LINK in front of it?")
     endif()
     _just_add_check("${TARGET}")
+
+    if (just_add_LINK)
+        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
+    endif()
 
     # create filelist
     file(GLOB_RECURSE files include/* src/*)
