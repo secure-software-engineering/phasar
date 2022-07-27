@@ -15,7 +15,11 @@ util tests
 
 DB uses phasarLLVM include but phasarLLVM links to DB
 - mkdir -p phasar/llvm/include/phasar/DB/ && git mv phasar/db/include/phasar/DB/ProjectIRDB.h phasar/llvm/include/phasar/DB/
-- mkdir -p phasar/llvm/src/phasar/DB/ && git mv phasar/db/src/ProjectIRDB.cpp phasar/llvm/src/phasar/DB/
+- mkdir -p phasar/llvm/src/DB/ && git mv phasar/db/src/ProjectIRDB.cpp phasar/llvm/src/DB/
+
+pass <-> llvm
+git mv phasar/pass/include/phasar/PhasarPass phasar/llvm/include/phasar
+- mkdir -p phasar/llvm/src/phasar/PhasarPass/ && git mv phasar/pass/src/* phasar/llvm/src/PhasarPass/
 
 - test/clang phasar-clang-test
 - test/json phasar-llvm-test -> taint
