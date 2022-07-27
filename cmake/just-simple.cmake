@@ -319,7 +319,7 @@ function(just_add_tests)
 
     # if target under tests has resources, the tests need them as well
     get_target_property(target_under_test_source_dir "${TARGET_UNDER_TEST}" "SOURCE_DIR")
-    _just_add_resources("${target_under_test_source_dir}")
+    _just_add_resource("${target_under_test_source_dir}")
     # but also allow them to overwrite & have other dependencies too
-    _just_add_resources("${CMAKE_CURRENT_SOURCE_DIR}")
+    _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
 endfunction()
