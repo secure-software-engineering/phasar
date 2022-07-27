@@ -1,0 +1,35 @@
+cmake_minimum_required (VERSION 3.21)
+project(phasar 
+    VERSION 1.0.0
+    HOMEPAGE_URL "https://github.com/secure-software-engineering/phasar")
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'Debug')" FORCE)
+endif ()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
+    message(STATUS "Selected Debug Build with sanitizers")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fno-omit-frame-pointer -fsanitize=address,undefined")
+    set(CMAKE_BUILD_TYPE "Debug")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Selected Debug Build")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+else()
+    set(CMAKE_BUILD_TYPE "Release")
+    message(STATUS "Selected Release Build")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(cmake/just-simple.cmake)
+
+#add_subdirectory(phasar/clang)
+add_subdirectory(phasar/config)
+#add_subdirectory(phasar/controller)
+#add_subdirectory(phasar/db)
+#add_subdirectory(phasar/experimental)
+#add_subdirectory(phasar/llvm)
+#add_subdirectory(phasar/pass)
+#add_subdirectory(phasar/utils)

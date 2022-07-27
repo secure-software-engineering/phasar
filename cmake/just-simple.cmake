@@ -3,6 +3,11 @@ if (${CMAKE_MINIMUM_REQUIRED_VERSION} VERSION_LESS "3.21") # for --output-junit
     message(FATAL_ERROR "just-simple.cmake requires min cmake version 3.21")
 endif()
 
+include(GNUInstallDirs)
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug")
+endif ()
+
 # download cmake dependencies if not present
 set(JUST_SIMPLE_conan "${CMAKE_SOURCE_DIR}/cmake/conan.cmake")
 set(JUST_SIMPLE_coverage "${CMAKE_SOURCE_DIR}/cmake/code-coverage.cmake")
