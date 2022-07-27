@@ -31,7 +31,7 @@ class StructType;
 } // namespace llvm
 
 namespace psr {
-class ProjectIRDB;
+class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 
 std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite);
@@ -42,10 +42,10 @@ std::string getReceiverTypeName(const llvm::CallBase &CallSite);
 
 class Resolver {
 protected:
-  ProjectIRDB &IRDB;
+  LLVMProjectIRDB &IRDB;
   LLVMTypeHierarchy *TH;
 
-  Resolver(ProjectIRDB &IRDB);
+  Resolver(LLVMProjectIRDB &IRDB);
 
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
@@ -54,7 +54,7 @@ protected:
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
 
-  Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  Resolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
 
   virtual ~Resolver() = default;
 

@@ -18,6 +18,8 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 namespace psr {
 
 /// A Wrapper over your dataflow-fact. It already contains a special treatment

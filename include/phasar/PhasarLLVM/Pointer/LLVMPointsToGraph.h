@@ -130,7 +130,7 @@ public:
    * considered. False, if May and Must Aliases should be
    * considered.
    */
-  LLVMPointsToGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+  LLVMPointsToGraph(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
                     PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
 
   ~LLVMPointsToGraph() override = default;

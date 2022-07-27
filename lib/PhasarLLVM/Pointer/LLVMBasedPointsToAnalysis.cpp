@@ -24,6 +24,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
@@ -105,7 +106,7 @@ void LLVMBasedPointsToAnalysis::clear() {
   FAM.clear();
 }
 
-LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(ProjectIRDB &IRDB,
+LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(LLVMProjectIRDB &IRDB,
                                                      bool UseLazyEvaluation,
                                                      PointerAnalysisType PATy)
     : PATy(PATy) {
@@ -127,11 +128,10 @@ LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(ProjectIRDB &IRDB,
   // Always verify the input.
   FPM.addPass(llvm::VerifierPass());
   if (!UseLazyEvaluation) {
-    for (llvm::Module *M : IRDB.getAllModules()) {
-      for (auto &F : *M) {
-        if (!F.isDeclaration()) {
-          computePointsToInfo(F);
-        }
+
+    for (auto &F : *IRDB.getModule()) {
+      if (!F.isDeclaration()) {
+        computePointsToInfo(F);
       }
     }
   }

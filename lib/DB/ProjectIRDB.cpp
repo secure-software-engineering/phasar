@@ -6,6 +6,7 @@
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
+#if 0
 
 #include <algorithm>
 #include <cassert>
@@ -545,3 +546,4 @@ bool ProjectIRDB::debugInfoAvailable() const {
 }
 
 } // namespace psr
+#endif

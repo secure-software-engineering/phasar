@@ -22,13 +22,7 @@ using namespace std;
 
 namespace psr {
 
-const map<string, BinaryDomain> StringToBinaryDomain = {
-    {"BOTTOM", BinaryDomain::BOTTOM}, {"TOP", BinaryDomain::TOP}};
-
-const map<BinaryDomain, string> BinaryDomainToString = {
-    {BinaryDomain::BOTTOM, "BOTTOM"}, {BinaryDomain::TOP, "TOP"}};
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const BinaryDomain &B) {
-  return OS << BinaryDomainToString.at(B);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, BinaryDomain B) {
+  return OS << (B == BinaryDomain::BOTTOM ? "BOTTOM" : "TOP");
 }
 } // namespace psr

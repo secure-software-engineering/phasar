@@ -10,16 +10,19 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+namespace llvm {
+class Value;
+class Instruction;
+class StructType;
+class Function;
+} // namespace llvm
 
 namespace psr {
+
+class LLVMProjectIRDB;
+class LLVMBasedCFG;
+class LLVMBasedICFG;
+enum class BinaryDomain;
 
 // AnalysisDomain - This class should be specialized by different static
 // analyses types... which is why the default version declares all analysis
@@ -57,6 +60,9 @@ struct AnalysisDomain {
   // Inter-procedural control flow --- Specifies the type of the
   // inter-procedural control-flow graph to be used.
   using i_t = void;
+  // The ProjectIRDB type to use. Must inherit from the ProjectIRDBBase CRTP
+  // template
+  using db_t = void;
   // Lattice element --- Specifies the type of the underlying lattice; the value
   // computation domain IDE's edge functions or WPDS's weights operate on.
   using l_t = void;
@@ -72,6 +78,7 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using v_t = const llvm::Value *;
   using c_t = LLVMBasedCFG;
   using i_t = LLVMBasedICFG;
+  using db_t = LLVMProjectIRDB;
 };
 
 struct LLVMIFDSAnalysisDomainDefault : LLVMAnalysisDomainDefault {

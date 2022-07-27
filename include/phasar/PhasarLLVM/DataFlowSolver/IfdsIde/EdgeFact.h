@@ -23,8 +23,7 @@ public:
   virtual void print(llvm::raw_ostream &OS) const = 0;
 };
 
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const EdgeFact &E) {
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const EdgeFact &E) {
   E.print(OS);
   return OS;
 }

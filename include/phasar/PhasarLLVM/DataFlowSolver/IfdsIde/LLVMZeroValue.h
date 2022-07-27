@@ -32,29 +32,13 @@ class Value;
 
 namespace psr {
 
-// do not touch, its only purpose is to make ZeroValue working
-inline const std::unique_ptr<llvm::LLVMContext>
-    LLVMZeroValueCTX(new llvm::LLVMContext);
-inline const std::unique_ptr<llvm::Module>
-    LLVMZeroValueMod(new llvm::Module("zero_module", *LLVMZeroValueCTX));
-
 /**
  * This class may be used to represent the special zero value for IFDS
  * and IDE problems. The LLVMZeroValue is implemented as a singleton.
  */
 class LLVMZeroValue : public llvm::GlobalVariable {
 private:
-  LLVMZeroValue()
-      : llvm::GlobalVariable(
-            *LLVMZeroValueMod, llvm::Type::getIntNTy(*LLVMZeroValueCTX, 2),
-            true, llvm::GlobalValue::LinkageTypes::ExternalLinkage,
-            llvm::ConstantInt::get(*LLVMZeroValueCTX,
-                                   llvm::APInt(/*nbits*/ 2,
-                                               /*value*/ 0,
-                                               /*signed*/ true)),
-            LLVMZeroValueInternalName) {
-    setAlignment(llvm::MaybeAlign(4));
-  }
+  LLVMZeroValue(llvm::Module &Mod); // NOLINT(modernize-use-equals-delete)
   ~LLVMZeroValue() = default;
   static constexpr auto LLVMZeroValueInternalName = "zero_value";
 
@@ -74,8 +58,13 @@ public:
 
   // Do not specify a destructor (at all)!
   static const LLVMZeroValue *getInstance() {
-    static const auto *ZV = new LLVMZeroValue;
-    return ZV;
+    auto GetZeroMod = [] {
+      static llvm::LLVMContext Ctx;
+      static llvm::Module Mod("zero_module", Ctx);
+      return &Mod;
+    };
+    static std::unique_ptr<LLVMZeroValue> ZV(new LLVMZeroValue(*GetZeroMod()));
+    return ZV.get();
   }
 };
 } // namespace psr

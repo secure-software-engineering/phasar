@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"

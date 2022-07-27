@@ -43,7 +43,7 @@
 using namespace std;
 using namespace psr;
 
-OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
+OTFResolver::OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
                          LLVMBasedICFG &ICF, LLVMPointsToInfo &PT)
     : CHAResolver(IRDB, TH), ICF(ICF), PT(PT) {}
 

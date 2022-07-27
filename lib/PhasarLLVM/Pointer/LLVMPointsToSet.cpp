@@ -36,6 +36,7 @@
 
 #include "nlohmann/json.hpp"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -53,7 +54,7 @@ template class DynamicPointsToSetPtr<>;
 template class DynamicPointsToSetConstPtr<>;
 template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 
-LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
+LLVMPointsToSet::LLVMPointsToSet(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy) {
 
@@ -61,30 +62,30 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
   PointsToSets.reserve(NumGlobals);
   Owner.reserve(NumGlobals);
 
-  for (llvm::Module *M : IRDB.getAllModules()) {
-    // compute points-to information for all globals
+  auto *M = IRDB.getModule();
 
-    for (const auto &G : M->globals()) {
-      computeValuesPointsToSet(&G);
-    }
+  // compute points-to information for all globals
 
-    for (const auto &F : M->functions()) {
-      computeValuesPointsToSet(&F);
-    }
+  for (const auto &G : M->globals()) {
+    computeValuesPointsToSet(&G);
+  }
 
-    if (!UseLazyEvaluation) {
-      // compute points-to information for all functions
-      for (auto &F : *M) {
-        if (!F.isDeclaration()) {
-          computeFunctionsPointsToSet(&F);
-        }
+  for (const auto &F : M->functions()) {
+    computeValuesPointsToSet(&F);
+  }
+
+  if (!UseLazyEvaluation) {
+    // compute points-to information for all functions
+    for (auto &F : *M) {
+      if (!F.isDeclaration()) {
+        computeFunctionsPointsToSet(&F);
       }
     }
   }
   PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed");
 }
 
-LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
+LLVMPointsToSet::LLVMPointsToSet(LLVMProjectIRDB &IRDB,
                                  const nlohmann::json &SerializedPTS)
     : PTA(IRDB) {
   // Assume, we already have validated the json schema
@@ -103,7 +104,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
   for (const auto &PtsJson : Sets) {
     assert(PtsJson.is_array());
     auto PTS = Owner.acquire();
-    for (auto Alias : PtsJson) {
+    for (const auto &Alias : PtsJson) {
       const auto AliasStr = Alias.get<std::string>();
       const auto *Inst = fromMetaDataId(IRDB, AliasStr);
       if (!Inst) {

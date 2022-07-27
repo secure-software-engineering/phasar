@@ -6,7 +6,7 @@
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
-
+#if 0
 #ifndef PHASAR_DB_PROJECTIRDB_H_
 #define PHASAR_DB_PROJECTIRDB_H_
 
@@ -222,4 +222,5 @@ public:
 
 } // namespace psr
 
+#endif
 #endif

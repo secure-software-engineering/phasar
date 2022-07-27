@@ -32,7 +32,7 @@
 using namespace std;
 using namespace psr;
 
-DTAResolver::DTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+DTAResolver::DTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : CHAResolver(IRDB, TH) {}
 
 bool DTAResolver::heuristicAntiConstructorThisType(

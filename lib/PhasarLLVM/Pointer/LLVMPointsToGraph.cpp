@@ -138,7 +138,8 @@ std::string LLVMPointsToGraph::EdgeProperties::getValueAsString() const {
 
 // points-to graph stuff
 
-LLVMPointsToGraph::LLVMPointsToGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation,
+LLVMPointsToGraph::LLVMPointsToGraph(LLVMProjectIRDB &IRDB,
+                                     bool UseLazyEvaluation,
                                      PointerAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy) {}
 

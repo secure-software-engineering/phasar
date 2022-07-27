@@ -17,20 +17,28 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/DenseMap.h"
+
 #include <string>
 #include <vector>
 
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/ModuleSlotTracker.h"
-#include "llvm/IR/Value.h"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/Utils/Utilities.h"
+namespace llvm {
+class Value;
+class Function;
+class FunctionType;
+class ModuleSlotTracker;
+class Argument;
+class Instruction;
+class StoreInst;
+class BranchInst;
+class Module;
+class CallInst;
+} // namespace llvm
 
 namespace psr {
-
-static inline void deleteValue(llvm::Value *V) { V->deleteValue(); }
+class LLVMProjectIRDB;
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -98,7 +106,8 @@ std::string getMetaDataID(const llvm::Value *V);
 /**
  * Revserses the getMetaDataID function
  */
-const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id);
+const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
+                                  llvm::StringRef Id);
 
 /**
  * @brief Does less-than comparison based on the annotated ID.

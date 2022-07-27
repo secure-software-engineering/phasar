@@ -24,12 +24,14 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Value.h"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
@@ -84,20 +86,20 @@ void TaintConfig::addTaintCategory(const llvm::Value *Val,
 }
 
 static llvm::SmallVector<const llvm::Function *>
-findAllFunctionDefs(const ProjectIRDB &IRDB, llvm::StringRef Name) {
+findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
   llvm::SmallVector<const llvm::Function *> FnDefs;
   llvm::DebugInfoFinder DIF;
-  for (const auto *M : IRDB.getAllModules()) {
-    DIF.processModule(*M);
-    for (const auto &SubProgram : DIF.subprograms()) {
-      if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
-          (SubProgram->getName() == Name ||
-           SubProgram->getLinkageName() == Name)) {
-        FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
-      }
+  const auto *M = IRDB.getModule();
+
+  DIF.processModule(*M);
+  for (const auto &SubProgram : DIF.subprograms()) {
+    if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
+        (SubProgram->getName() == Name ||
+         SubProgram->getLinkageName() == Name)) {
+      FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
     }
-    DIF.reset();
   }
+  DIF.reset();
 
   if (FnDefs.empty()) {
     const auto *F = IRDB.getFunction(Name);
@@ -117,7 +119,7 @@ findAllFunctionDefs(const ProjectIRDB &IRDB, llvm::StringRef Name) {
   return FnDefs;
 }
 
-void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
+void TaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
                                   const nlohmann::json &Config) {
 
   for (const auto &FunDesc : Config["functions"]) {
@@ -192,7 +194,7 @@ void TaintConfig::addAllFunctions(const ProjectIRDB &IRDB,
   }
 }
 
-TaintConfig::TaintConfig(const psr::ProjectIRDB &Code, // NOLINT
+TaintConfig::TaintConfig(const psr::LLVMProjectIRDB &Code, // NOLINT
                          const nlohmann::json &Config) {
 
   // handle functions
@@ -209,20 +211,20 @@ TaintConfig::TaintConfig(const psr::ProjectIRDB &Code, // NOLINT
     // read all struct types from config
     for (const auto &VarDesc : Config["variables"]) {
       llvm::DebugInfoFinder DIF;
-      for (const auto &M : Code.getAllModules()) {
-        DIF.processModule(*M);
-        for (const auto &Ty : DIF.types()) {
-          if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
-              Ty->getName().equals(VarDesc["scope"].get<std::string>())) {
-            for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
-              StructConfigMap.insert(
-                  std::pair<const llvm::Type *, const nlohmann::json>(
-                      LlvmStructTy, VarDesc));
-            }
+      const auto *M = Code.getModule();
+
+      DIF.processModule(*M);
+      for (const auto &Ty : DIF.types()) {
+        if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
+            Ty->getName().equals(VarDesc["scope"].get<std::string>())) {
+          for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
+            StructConfigMap.insert(
+                std::pair<const llvm::Type *, const nlohmann::json>(
+                    LlvmStructTy, VarDesc));
           }
         }
-        DIF.reset();
       }
+      DIF.reset();
     }
 
     // add corresponding Allocas or getElementPtr instructions to the taint
@@ -263,7 +265,7 @@ TaintConfig::TaintConfig(const psr::ProjectIRDB &Code, // NOLINT
   }
 }
 
-TaintConfig::TaintConfig(const psr::ProjectIRDB &AnnotatedCode) { // NOLINT
+TaintConfig::TaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) { // NOLINT
   // handle "local" annotation declarations
   const auto *Annotation = AnnotatedCode.getFunction("llvm.var.annotation");
   if (Annotation) {
@@ -304,7 +306,7 @@ TaintConfig::TaintConfig(const psr::ProjectIRDB &AnnotatedCode) { // NOLINT
   }
 
   std::vector<const llvm::Function *> PtrAnnotations{};
-  PtrAnnotations.reserve(AnnotatedCode.getAllFunctions().size());
+  PtrAnnotations.reserve(AnnotatedCode.getNumFunctions());
   for (const auto *F : AnnotatedCode.getAllFunctions()) {
     if (F->getName().startswith("llvm.ptr.annotation")) {
       PtrAnnotations.push_back(F);

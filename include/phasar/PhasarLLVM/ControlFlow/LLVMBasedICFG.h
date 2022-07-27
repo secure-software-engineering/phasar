@@ -38,7 +38,6 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/Utils/Soundness.h"
 
 namespace llvm {
@@ -52,8 +51,9 @@ class BitCastInst;
 namespace psr {
 
 class Resolver;
-class ProjectIRDB;
 class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
+class LLVMProjectIRDB;
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
@@ -64,7 +64,7 @@ class LLVMBasedICFG
   using GlobalDtorTy = std::multimap<size_t, llvm::Function *, std::greater<>>;
 
 private:
-  ProjectIRDB &IRDB;
+  LLVMProjectIRDB &IRDB;
   CallGraphAnalysisType CGType;
   Soundness S;
   bool UserTHInfos = true;
@@ -129,8 +129,9 @@ private:
 
   bool constructDynamicCall(const llvm::Instruction *I, Resolver &Resolver);
 
-  std::unique_ptr<Resolver>
-  makeResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo &PT);
+  std::unique_ptr<Resolver> makeResolver(LLVMProjectIRDB &IRDB,
+                                         LLVMTypeHierarchy &TH,
+                                         LLVMPointsToInfo &PT);
 
   template <typename MapTy>
   static void insertGlobalCtorsDtorsImpl(MapTy &Into, const llvm::Module *M,
@@ -176,7 +177,7 @@ public:
   using OutEdgesAndTargets = std::unordered_multimap<const llvm::Instruction *,
                                                      const llvm::Function *>;
 
-  LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+  LLVMBasedICFG(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
                 LLVMTypeHierarchy *TH = nullptr, LLVMPointsToInfo *PT = nullptr,
                 Soundness S = Soundness::Soundy, bool IncludeGlobals = true);

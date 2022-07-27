@@ -10,6 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACT_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACT_H
 
+#include "llvm/Support/raw_ostream.h"
+
 #include <iosfwd>
 #include <type_traits>
 
@@ -36,8 +38,7 @@ public:
   }
 };
 
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const FlowFact &F) {
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const FlowFact &F) {
   F.print(OS);
   return OS;
 }

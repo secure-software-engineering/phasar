@@ -39,6 +39,7 @@
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
@@ -129,7 +130,8 @@ LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
       Res(nullptr), VisitedFunctions(ICF.VisitedFunctions),
       CallGraph(ICF.CallGraph), FunctionVertexMap(ICF.FunctionVertexMap) {}
 
-LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB &IRDB,
+                             CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
                              Soundness S, bool IncludeGlobals)
@@ -171,10 +173,9 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     }
   }
   if (IncludeGlobals) {
-    assert(IRDB.getNumberOfModules() == 1 &&
-           "IncludeGlobals is currently only supported for WPA");
-    const auto *GlobCtor =
-        buildCRuntimeGlobalCtorsDtorsModel(*IRDB.getWPAModule());
+    /// TODO: Get rid of the const_cast!
+    const auto *GlobCtor = buildCRuntimeGlobalCtorsDtorsModel(
+        const_cast<llvm::Module &>(*IRDB.getModule()));
     FunctionWL.push_back(GlobCtor);
   } else {
     FunctionWL.insert(FunctionWL.end(), UserEntryPoints.begin(),
@@ -183,7 +184,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   // instantiate the respective resolver type
   Res = makeResolver(IRDB, *this->TH, *this->PT);
   PHASAR_LOG_LEVEL(INFO, "Starting CallGraphAnalysisType: " << CGType);
-  VisitedFunctions.reserve(IRDB.getAllFunctions().size());
+  VisitedFunctions.reserve(IRDB.getNumFunctions());
   bool FixpointReached;
   do {
     FixpointReached = true;
@@ -383,7 +384,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
   return NewTargetsFound;
 }
 
-std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
+std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(LLVMProjectIRDB &IRDB,
                                                       LLVMTypeHierarchy &TH,
                                                       LLVMPointsToInfo &PT) {
   switch (CGType) {
@@ -452,7 +453,8 @@ const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
 }
 
 set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
-  return IRDB.getAllFunctions();
+  auto AllFuns = IRDB.getAllFunctions();
+  return set<const llvm::Function *>{AllFuns.begin(), AllFuns.end()};
 }
 
 boost::container::flat_set<const llvm::Function *>
@@ -656,11 +658,11 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
 }
 
 void LLVMBasedICFG::collectGlobalCtors() {
-  for (const auto *Module : IRDB.getAllModules()) {
-    insertGlobalCtorsDtorsImpl(GlobalCtors, Module, "llvm.global_ctors");
-    // auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_ctors");
-    // GlobalCtors.insert(GlobalCtors.begin(), Part.begin(), Part.end());
-  }
+
+  insertGlobalCtorsDtorsImpl(GlobalCtors, IRDB.getModule(),
+                             "llvm.global_ctors");
+  // auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_ctors");
+  // GlobalCtors.insert(GlobalCtors.begin(), Part.begin(), Part.end());
 
   // for (auto it = GlobalCtors.cbegin(), end = GlobalCtors.cend(); it != end;
   //      ++it) {
@@ -669,11 +671,11 @@ void LLVMBasedICFG::collectGlobalCtors() {
 }
 
 void LLVMBasedICFG::collectGlobalDtors() {
-  for (const auto *Module : IRDB.getAllModules()) {
-    insertGlobalCtorsDtorsImpl(GlobalDtors, Module, "llvm.global_dtors");
-    // auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_dtors");
-    // GlobalDtors.insert(GlobalDtors.begin(), Part.begin(), Part.end());
-  }
+
+  insertGlobalCtorsDtorsImpl(GlobalDtors, IRDB.getModule(),
+                             "llvm.global_dtors");
+  // auto Part = getGlobalCtorsDtorsImpl(Module, "llvm.global_dtors");
+  // GlobalDtors.insert(GlobalDtors.begin(), Part.begin(), Part.end());
 
   // for (auto it = GlobalDtors.cbegin(), end = GlobalDtors.cend(); it != end;
   //      ++it) {
@@ -926,26 +928,26 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
 
 void LLVMBasedICFG::collectRegisteredDtors() {
 
-  for (auto *Mod : IRDB.getAllModules()) {
-    PHASAR_LOG_LEVEL(DEBUG,
-                     "Collect Registered Dtors for Module " << Mod->getName());
+  auto Mod = IRDB.getModule();
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "Collect Registered Dtors for Module " << Mod->getName());
 
-    auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
+  auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
 
-    if (RegisteredDtors.empty()) {
-      continue;
-    }
-
-    PHASAR_LOG_LEVEL(DEBUG, "> Found " << RegisteredDtors.size()
-                                       << " Registered Dtors");
-
-    auto *RegisteredDtorCaller =
-        createDtorCallerForModule(Mod, RegisteredDtors);
-    // auto It =
-    GlobalDtors.emplace(0, RegisteredDtorCaller);
-    // GlobalDtorFn.try_emplace(RegisteredDtorCaller, it);
-    GlobalRegisteredDtorsCaller.try_emplace(Mod, RegisteredDtorCaller);
+  if (RegisteredDtors.empty()) {
+    return;
   }
+
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "> Found " << RegisteredDtors.size() << " Registered Dtors");
+
+  /// TODO: Get rid of the const_cast!
+  auto *RegisteredDtorCaller = createDtorCallerForModule(
+      const_cast<llvm::Module *>(Mod), RegisteredDtors);
+  // auto It =
+  GlobalDtors.emplace(0, RegisteredDtorCaller);
+  // GlobalDtorFn.try_emplace(RegisteredDtorCaller, it);
+  GlobalRegisteredDtorsCaller.try_emplace(Mod, RegisteredDtorCaller);
 }
 
 /**
@@ -953,14 +955,11 @@ void LLVMBasedICFG::collectRegisteredDtors() {
  */
 set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
   set<const llvm::Instruction *> NonCallStartNodes;
-  for (auto *M : IRDB.getAllModules()) {
-    for (auto &F : *M) {
-      for (auto &BB : F) {
-        for (auto &I : BB) {
-          if (!llvm::isa<llvm::CallBase>(&I) && !isStartPoint(&I)) {
-            NonCallStartNodes.insert(&I);
-          }
-        }
+
+  for (const auto &F : *IRDB.getModule()) {
+    for (const auto &I : llvm::instructions(F)) {
+      if (!llvm::isa<llvm::CallBase>(&I) && !isStartPoint(&I)) {
+        NonCallStartNodes.insert(&I);
       }
     }
   }

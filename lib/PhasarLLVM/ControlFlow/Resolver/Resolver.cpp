@@ -23,7 +23,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -87,9 +87,9 @@ std::string getReceiverTypeName(const llvm::CallBase *CallSite) {
   return "";
 }
 
-Resolver::Resolver(ProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
+Resolver::Resolver(LLVMProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
 
-Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+Resolver::Resolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : IRDB(IRDB), TH(&TH) {}
 
 const llvm::Function *

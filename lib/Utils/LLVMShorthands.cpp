@@ -39,6 +39,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -250,7 +251,8 @@ std::string getMetaDataID(const llvm::Value *V) {
   return "-1";
 }
 
-const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id) {
+const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
+                                  llvm::StringRef Id) {
   if (Id.empty() || Id[0] == '-') {
     return nullptr;
   }

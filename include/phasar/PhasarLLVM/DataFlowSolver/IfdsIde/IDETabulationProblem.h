@@ -47,15 +47,17 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
+  using db_t = typename AnalysisDomainTy::db_t;
 
   static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
                 "Type parameter i_t must implement the ICFG interface!");
+  static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                "db_t must implement the ProjectIRDBBase interface!");
 
   using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
 
-  IDETabulationProblem(const ProjectIRDB *IRDB,
-                       const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                       PointsToInfo<v_t, n_t> *PT,
+  IDETabulationProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+                       const i_t *ICF, PointsToInfo<v_t, n_t> *PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<AnalysisDomainTy, Container>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
