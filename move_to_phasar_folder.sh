@@ -10,7 +10,7 @@ createStructure() {
 }
 
 moveInclude() {
-    mapfile -t headers < <(cd "include/phasar/$1/" && find . -iname "*.h*" -or -iname "*.def*")
+    mapfile -t headers < <(cd "include/" && find . -wholename "*phasar/$1/*.h*" -or -wholename "*phasar/$1/*.def*")
     for header in "${headers[@]}"; do
         mkdir -p "$(dirname "phasar/$2/include/$header")"
         git mv "include/phasar/$1/$header" "phasar/$2/include/$header"
