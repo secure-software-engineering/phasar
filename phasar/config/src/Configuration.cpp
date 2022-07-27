@@ -18,10 +18,10 @@
 
 #include "boost/algorithm/string/classification.hpp"
 #include "boost/algorithm/string/split.hpp"
+#include "llvm/Support/MemoryBuffer.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/Config/Version.h"
-#include "phasar/Utils/IO.h"
 
 using namespace psr;
 
@@ -61,6 +61,15 @@ const std::string &PhasarConfig::PhasarDirectory() {
   }();
 
   return PhasarDir;
+}
+
+// copied from utils to prevent circular dependency
+std::string readTextFile(const llvm::Twine &Path) {
+  auto Ret = llvm::MemoryBuffer::getFile(Path);
+  if (!Ret) {
+    throw std::system_error(Ret.getError());
+  }
+  return Ret.get()->getBuffer().str();
 }
 
 void PhasarConfig::loadGlibcSpecialFunctionNames() {
