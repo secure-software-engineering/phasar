@@ -25,7 +25,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(cmake/just-simple.cmake)
 
-#add_subdirectory(phasar/clang)
+add_subdirectory(phasar/clang)
 add_subdirectory(phasar/config)
 #add_subdirectory(phasar/controller)
 add_subdirectory(phasar/db)

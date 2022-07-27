@@ -1,8 +1,9 @@
 just_add_library(
     LINK 
-        LLVMCore
-        LLVMSupport
         LLVMBitWriter
+        LLVMCore
         LLVMDemangle
+        LLVMSupport
+        
         phasar-config
   )
