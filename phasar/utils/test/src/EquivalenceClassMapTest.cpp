@@ -179,8 +179,3 @@ TEST(EquivalenceClassMap, threeMixedValues) {
 
   EXPECT_EQ(M.numEquivalenceClasses(), 2U);
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

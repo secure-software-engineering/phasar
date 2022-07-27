@@ -195,9 +195,3 @@ TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
       std::chrono::duration_cast<std::chrono::milliseconds>(End15 - Start15);
   llvm::outs() << "timer_15 : " << Duration.count() << '\n';
 }
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

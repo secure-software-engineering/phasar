@@ -286,8 +286,3 @@ INSTANTIATE_TEST_SUITE_P(StableVector, Copy,
                          ::testing::Values<int>(100, 200, 300, 511, 512));
 INSTANTIATE_TEST_SUITE_P(StableVector, Clear,
                          ::testing::Values<int>(100, 200, 300, 511, 512));
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

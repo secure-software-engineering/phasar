@@ -64,7 +64,7 @@ const std::string &PhasarConfig::PhasarDirectory() {
 }
 
 // copied from utils to prevent circular dependency
-std::string readTextFile(const llvm::Twine &Path) {
+static std::string readTextFile(const llvm::Twine &Path) {
   auto Ret = llvm::MemoryBuffer::getFile(Path);
   if (!Ret) {
     throw std::system_error(Ret.getError());
