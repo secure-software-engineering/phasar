@@ -7,6 +7,7 @@ json-schema-validator/2.1.0
 nlohmann_json/3.9.1
 libcurl/7.80.0
 zlib/1.2.12 # fix boost / clash zlib
+openssl/3.0.5 # includes needed for some test files
 
 [generators]
 cmake
