@@ -19,7 +19,7 @@
 // Unit tests for the code annotation taint configuration
 
 const std::string PathToAttrTaintConfigTestCode =
-    psr::unittest::PathToLLTestFiles + "TaintConfig/AttrConfig/";
+    "llvm_test_code/TaintConfig/AttrConfig/";
 
 namespace {
 class TaintConfigTest : public ::testing::Test {
@@ -38,7 +38,7 @@ public:
 } // anonymous namespace
 
 TEST_F(TaintConfigTest, Array_01) {
-  const std::string File = "array_01_c_dbg.ll";
+  const std::string File = "array_01.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -47,7 +47,7 @@ TEST_F(TaintConfigTest, Array_01) {
 }
 
 TEST_F(TaintConfigTest, Array_02) {
-  const std::string File = "array_02_c_dbg.ll";
+  const std::string File = "array_02.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -56,7 +56,7 @@ TEST_F(TaintConfigTest, Array_02) {
 }
 
 TEST_F(TaintConfigTest, Basic_01) {
-  const std::string File = "basic_01_c_dbg.ll";
+  const std::string File = "basic_01.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -76,7 +76,7 @@ TEST_F(TaintConfigTest, Basic_01) {
 }
 
 TEST_F(TaintConfigTest, Basic_02) {
-  const std::string File = "basic_02_c_dbg.ll";
+  const std::string File = "basic_02.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -87,7 +87,7 @@ TEST_F(TaintConfigTest, Basic_02) {
 }
 
 TEST_F(TaintConfigTest, Basic_03) {
-  const std::string File = "basic_03_c_dbg.ll";
+  const std::string File = "basic_03.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -101,7 +101,7 @@ TEST_F(TaintConfigTest, Basic_03) {
 }
 
 TEST_F(TaintConfigTest, Basic_04) {
-  const std::string File = "basic_04_c_dbg.ll";
+  const std::string File = "basic_04.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -110,7 +110,7 @@ TEST_F(TaintConfigTest, Basic_04) {
 }
 
 TEST_F(TaintConfigTest, DataMember_01) {
-  const std::string File = "data_member_01_cpp_dbg.ll";
+  const std::string File = "data_member_01.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -119,7 +119,7 @@ TEST_F(TaintConfigTest, DataMember_01) {
 }
 
 TEST_F(TaintConfigTest, FunMember_01) {
-  const std::string File = "fun_member_01_cpp_dbg.ll";
+  const std::string File = "fun_member_01.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig TConfig(IR);
   //   IR.emitPreprocessedIR(llvm::outs(), false);
@@ -140,7 +140,7 @@ TEST_F(TaintConfigTest, FunMember_01) {
 }
 
 TEST_F(TaintConfigTest, FunMember_02) {
-  const std::string File = "fun_member_02_cpp_dbg.ll";
+  const std::string File = "fun_member_02.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig TConfig(IR);
   // IR.emitPreprocessedIR(llvm::outs(), false);
@@ -164,7 +164,7 @@ TEST_F(TaintConfigTest, FunMember_02) {
 }
 
 TEST_F(TaintConfigTest, NameMangling_01) {
-  const std::string File = "name_mangling_01_cpp_dbg.ll";
+  const std::string File = "name_mangling_01.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -182,7 +182,7 @@ TEST_F(TaintConfigTest, NameMangling_01) {
 }
 
 TEST_F(TaintConfigTest, StaticFun_01) {
-  const std::string File = "static_fun_01_cpp_dbg.ll";
+  const std::string File = "static_fun_01.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -201,7 +201,7 @@ TEST_F(TaintConfigTest, StaticFun_01) {
 }
 
 TEST_F(TaintConfigTest, StaticFun_02) {
-  const std::string File = "static_fun_02_cpp_dbg.ll";
+  const std::string File = "static_fun_02.dbg.ll";
   psr::ProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::TaintConfig Config(IR);
   llvm::outs() << Config << '\n';
@@ -225,10 +225,10 @@ TEST_F(TaintConfigTest, StaticFun_02) {
 // Unit tests for the json taint configuration
 
 const std::string PathToJsonTaintConfigTestCode =
-    psr::unittest::PathToLLTestFiles + "TaintConfig/JsonConfig/";
+    "llvm_test_code/TaintConfig/JsonConfig/";
 
 TEST_F(TaintConfigTest, Array_01_Json) {
-  const std::string File = "array_01_c_dbg.ll";
+  const std::string File = "array_01.dbg.ll";
   const std::string Config = "array_01_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -241,7 +241,7 @@ TEST_F(TaintConfigTest, Array_01_Json) {
 }
 
 TEST_F(TaintConfigTest, Array_02_Json) {
-  const std::string File = "array_02_c_dbg.ll";
+  const std::string File = "array_02.dbg.ll";
   const std::string Config = "array_02_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -254,7 +254,7 @@ TEST_F(TaintConfigTest, Array_02_Json) {
 }
 
 TEST_F(TaintConfigTest, Basic_01_Json) {
-  const std::string File = "basic_01_c_dbg.ll";
+  const std::string File = "basic_01.dbg.ll";
   const std::string Config = "basic_01_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -277,7 +277,7 @@ TEST_F(TaintConfigTest, Basic_01_Json) {
 }
 
 TEST_F(TaintConfigTest, Basic_02_Json) {
-  const std::string File = "basic_02_c_dbg.ll";
+  const std::string File = "basic_02.dbg.ll";
   const std::string Config = "basic_02_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -292,7 +292,7 @@ TEST_F(TaintConfigTest, Basic_02_Json) {
 }
 
 TEST_F(TaintConfigTest, Basic_03_Json) {
-  const std::string File = "basic_03_c_dbg.ll";
+  const std::string File = "basic_03.dbg.ll";
   const std::string Config = "basic_03_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -309,7 +309,7 @@ TEST_F(TaintConfigTest, Basic_03_Json) {
 }
 
 TEST_F(TaintConfigTest, Basic_04_Json) {
-  const std::string File = "basic_04_c_dbg.ll";
+  const std::string File = "basic_04.dbg.ll";
   const std::string Config = "basic_04_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -323,7 +323,7 @@ TEST_F(TaintConfigTest, Basic_04_Json) {
 }
 
 TEST_F(TaintConfigTest, DataMember_01_Json) {
-  const std::string File = "data_member_01_cpp_dbg.ll";
+  const std::string File = "data_member_01.dbg.ll";
   const std::string Config = "data_member_01_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -337,7 +337,7 @@ TEST_F(TaintConfigTest, DataMember_01_Json) {
 }
 
 TEST_F(TaintConfigTest, FunMember_01_Json) {
-  const std::string File = "fun_member_01_cpp_dbg.ll";
+  const std::string File = "fun_member_01.dbg.ll";
   const std::string Config = "fun_member_01_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -361,7 +361,7 @@ TEST_F(TaintConfigTest, FunMember_01_Json) {
 }
 
 TEST_F(TaintConfigTest, FunMember_02_Json) {
-  const std::string File = "fun_member_02_cpp_dbg.ll";
+  const std::string File = "fun_member_02.dbg.ll";
   const std::string Config = "fun_member_02_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -394,7 +394,7 @@ TEST_F(TaintConfigTest, FunMember_02_Json) {
 }
 
 TEST_F(TaintConfigTest, NameMangling_01_Json) {
-  const std::string File = "name_mangling_01_cpp_dbg.ll";
+  const std::string File = "name_mangling_01.dbg.ll";
   const std::string Config = "name_mangling_01_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -416,7 +416,7 @@ TEST_F(TaintConfigTest, NameMangling_01_Json) {
 }
 
 TEST_F(TaintConfigTest, StaticFun_01_Json) {
-  const std::string File = "static_fun_01_cpp_dbg.ll";
+  const std::string File = "static_fun_01.dbg.ll";
   const std::string Config = "static_fun_01_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
@@ -438,7 +438,7 @@ TEST_F(TaintConfigTest, StaticFun_01_Json) {
 }
 
 TEST_F(TaintConfigTest, StaticFun_02_Json) {
-  const std::string File = "static_fun_02_cpp_dbg.ll";
+  const std::string File = "static_fun_02.dbg.ll";
   const std::string Config = "static_fun_02_config.json";
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);

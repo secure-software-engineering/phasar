@@ -34,8 +34,7 @@ using groundTruth_t =
 class IDEGeneralizedLCATest : public ::testing::Test {
 
 protected:
-  const std::string PathToLLFiles =
-      unittest::PathToLLTestFiles + "general_linear_constant/";
+  const std::string PathToLLFiles = "llvm_test_code/general_linear_constant/";
 
   std::unique_ptr<ProjectIRDB> IRDB;
   std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
@@ -89,7 +88,7 @@ protected:
 }; // class Fixture
 
 TEST_F(IDEGeneralizedLCATest, SimpleTest) {
-  initialize("SimpleTest_c.ll");
+  initialize("SimpleTest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(10)}, 3, 20});
   GroundTruth.push_back({{EdgeValue(15)}, 4, 20});
@@ -97,7 +96,7 @@ TEST_F(IDEGeneralizedLCATest, SimpleTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, BranchTest) {
-  initialize("BranchTest_c.ll");
+  initialize("BranchTest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(25), EdgeValue(43)}, 3, 22});
   GroundTruth.push_back({{EdgeValue(24)}, 4, 22});
@@ -105,15 +104,15 @@ TEST_F(IDEGeneralizedLCATest, BranchTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, FPtest) {
-  initialize("FPtest_c.ll");
+  initialize("FPtest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(4.5)}, 1, 16});
   GroundTruth.push_back({{EdgeValue(2.0)}, 2, 16});
   compareResults(GroundTruth);
 }
 
-TEST_F(IDEGeneralizedLCATest, StringTest) {
-  initialize("StringTest_c.ll");
+TEST_F(IDEGeneralizedLCATest, StringTestC) {
+  initialize("StringTestC.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue("Hello, World")}, 2, 8});
   GroundTruth.push_back({{EdgeValue("Hello, World")}, 3, 8});
@@ -121,7 +120,7 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
-  initialize("StringBranchTest_c.ll");
+  initialize("StringBranchTest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back(
       {{EdgeValue("Hello, World"), EdgeValue("Hello Hello")}, 3, 15});
@@ -130,7 +129,7 @@ TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
-  initialize("StringTest_cpp.ll");
+  initialize("StringTestCpp.ll");
   std::vector<groundTruth_t> GroundTruth;
   const auto *LastMainInstruction =
       getLastInstructionOf(IRDB->getFunction("main"));
@@ -141,7 +140,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
 }
 
 TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {
-  initialize("FloatDivision_c.ll");
+  initialize("FloatDivision.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(nullptr)}, 1, 24}); // i
   GroundTruth.push_back({{EdgeValue(1.0)}, 2, 24});     // j
@@ -150,7 +149,7 @@ TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
-  initialize("SimpleFunctionTest_c.ll");
+  initialize("SimpleFunctionTest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(48)}, 10, 31});      // i
   GroundTruth.push_back({{EdgeValue(nullptr)}, 11, 31}); // j
@@ -158,7 +157,7 @@ TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
-  initialize("GlobalVariableTest_c.ll");
+  initialize("GlobalVariableTest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(50)}, 7, 13}); // i
   GroundTruth.push_back({{EdgeValue(8)}, 10, 13}); // j
@@ -166,7 +165,7 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
-  initialize("Imprecision_c.ll", 2);
+  initialize("Imprecision.ll", 2);
   //   auto xInst = IRDB->getInstruction(0); // foo.x
   //   auto yInst = IRDB->getInstruction(1); // foo.y
   //  auto barInst = IRDB->getInstruction(7);
@@ -183,14 +182,14 @@ TEST_F(IDEGeneralizedLCATest, Imprecision) {
 }
 
 TEST_F(IDEGeneralizedLCATest, ReturnConstTest) {
-  initialize("ReturnConstTest_c.ll");
+  initialize("ReturnConstTest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(43)}, 7, 8}); // i
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, NullTest) {
-  initialize("NullTest_c.ll");
+  initialize("NullTest.ll");
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue("")}, 4, 5}); // foo(null)
   compareResults(GroundTruth);

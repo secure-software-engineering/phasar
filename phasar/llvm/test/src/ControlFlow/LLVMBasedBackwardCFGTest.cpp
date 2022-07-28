@@ -16,8 +16,7 @@ using namespace psr;
 
 TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Term = getNthTermInstruction(F, 1);
   const auto *A = getNthInstruction(F, 10);
@@ -31,8 +30,7 @@ TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -58,8 +56,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/control_flow/function_call.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE PREDECCESSOR
@@ -81,8 +78,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
@@ -99,8 +95,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE SUCCESSOR

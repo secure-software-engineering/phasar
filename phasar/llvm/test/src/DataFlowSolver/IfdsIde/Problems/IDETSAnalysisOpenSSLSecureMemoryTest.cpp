@@ -26,9 +26,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureMemoryTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/openssl/secure_memory/";
+  const std::string PathToLlFiles = "llvm_test_code/openssl/secure_memory/";
   const std::set<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
@@ -97,7 +95,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory1) {
-  initialize({PathToLlFiles + "memory1_c.ll"});
+  initialize({PathToLlFiles + "memory1.ll"});
   // llvmtssolver->printReport();
   std::map<std::size_t, std::map<std::string, int>> Gt;
   // TODO add GT values
@@ -109,7 +107,7 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory1) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory2) {
-  initialize({PathToLlFiles + "memory2_c.ll"});
+  initialize({PathToLlFiles + "memory2.ll"});
   std::map<size_t, std::map<std::string, int>> Gt;
   Gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
             {"3", OpenSSLSecureMemoryState::ALLOCATED}};
@@ -125,7 +123,7 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory2) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory3) {
-  initialize({PathToLlFiles + "memory3_c.ll"});
+  initialize({PathToLlFiles + "memory3.ll"});
   // llvmtssolver->printReport();
   std::map<size_t, std::map<std::string, int>> Gt;
   Gt[15] = {{"13", OpenSSLSecureMemoryState::ZEROED},
@@ -143,7 +141,7 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory3) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory4) {
-  initialize({PathToLlFiles + "memory4_c.ll"});
+  initialize({PathToLlFiles + "memory4.ll"});
   std::map<size_t, std::map<std::string, int>> Gt;
   Gt[15] = {{"13", OpenSSLSecureMemoryState::ZEROED},
             {"6", OpenSSLSecureMemoryState::ZEROED}};
@@ -160,7 +158,7 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory4) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory5) {
-  initialize({PathToLlFiles + "memory5_c.ll"});
+  initialize({PathToLlFiles + "memory5.ll"});
   std::map<size_t, std::map<std::string, int>> Gt;
   Gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
             {"3", OpenSSLSecureMemoryState::ALLOCATED}};

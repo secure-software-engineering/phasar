@@ -18,9 +18,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class WPDSLinearConstantAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::PhasarDirectory() +
-      "build/test/llvm_test_code/linear_constant/";
+  const std::string PathToLlFiles = "llvm_test_code/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
@@ -75,7 +73,7 @@ protected:
 
 // /* ============== BASIC TESTS ============== */
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBasicTest_01) {
-//   Initialize({pathToLLFiles + "basic_01_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "basic_01.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -84,7 +82,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBasicTest_02) {
-//   Initialize({pathToLLFiles + "basic_02_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "basic_02.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -93,7 +91,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBasicTest_03) {
-//   Initialize({pathToLLFiles + "basic_03_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "basic_03.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -103,7 +101,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBasicTest_04) {
-//   Initialize({pathToLLFiles + "basic_04_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "basic_04.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -113,7 +111,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBasicTest_05) {
-//   Initialize({pathToLLFiles + "basic_05_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "basic_05.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -123,7 +121,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBasicTest_06) {
-//   Initialize({pathToLLFiles + "basic_06_cpp_m2r_dbg.ll"});
+//   Initialize({pathToLLFiles + "basic_06.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -133,7 +131,7 @@ protected:
 
 // /* ============== BRANCH TESTS ============== */
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBranchTest_01) {
-//   Initialize({pathToLLFiles + "branch_01_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "branch_01.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -144,7 +142,7 @@ protected:
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBranchTest_02) {
 //   // Probably a bad example/style, since variable i is possibly unitialized
-//   Initialize({pathToLLFiles + "branch_02_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "branch_02.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -153,7 +151,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBranchTest_03) {
-//   Initialize({pathToLLFiles + "branch_03_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "branch_03.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -162,7 +160,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBranchTest_04) {
-//   Initialize({pathToLLFiles + "branch_04_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "branch_04.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -176,7 +174,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBranchTest_05) {
-//   Initialize({pathToLLFiles + "branch_05_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "branch_05.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -187,7 +185,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBranchTest_06) {
-//   Initialize({pathToLLFiles + "branch_06_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "branch_06.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -201,7 +199,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBranchTest_07) {
-//   Initialize({pathToLLFiles + "branch_07_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "branch_07.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -214,7 +212,7 @@ protected:
 
 // /* ============== CALL TESTS ============== */
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleCallTest_01) {
-//   Initialize({pathToLLFiles + "call_01_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "call_01.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -225,7 +223,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleCallTest_02) {
-//   Initialize({pathToLLFiles + "call_02_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "call_02.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -236,7 +234,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleCallTest_03) {
-//   Initialize({pathToLLFiles + "call_03_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "call_03.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -245,7 +243,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleCallTest_04) {
-//   Initialize({pathToLLFiles + "call_04_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "call_04.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();
@@ -254,7 +252,7 @@ protected:
 // }
 
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleCallTest_05) {
-//   Initialize({pathToLLFiles + "call_05_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "call_05.dbg.ll"});
 //   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
 //       *LCAProblem);
 //   llvmlcasolver.solve();

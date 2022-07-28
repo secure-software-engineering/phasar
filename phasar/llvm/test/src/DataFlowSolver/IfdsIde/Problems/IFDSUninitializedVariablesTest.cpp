@@ -19,8 +19,7 @@ using namespace psr;
 
 class IFDSUninitializedVariablesTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "uninitialized_variables/";
+  const std::string PathToLlFiles = "llvm_test_code/uninitialized_variables/";
   const std::set<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
@@ -64,7 +63,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
-  initialize({PathToLlFiles + "all_uninit_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "all_uninit.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   // all_uninit.cpp does not contain undef-uses
@@ -73,7 +72,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
 }
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
-  initialize({PathToLlFiles + "binop_uninit_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "binop_uninit.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
 
@@ -87,7 +86,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   compareResults(GroundTruth);
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
-  initialize({PathToLlFiles + "callnoret_c_dbg.ll"});
+  initialize({PathToLlFiles + "callnoret.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
 
@@ -109,7 +108,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
 }
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
-  initialize({PathToLlFiles + "ctor_default_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "ctor_default.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   // ctor.cpp does not contain undef-uses
@@ -118,7 +117,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
 }
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
-  initialize({PathToLlFiles + "struct_member_init_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "struct_member_init.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   // struct_member_init.cpp does not contain undef-uses
@@ -126,7 +125,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
   compareResults(GroundTruth);
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
-  initialize({PathToLlFiles + "struct_member_uninit_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "struct_member_uninit.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   // struct_member_uninit.cpp does not contain undef-uses
@@ -138,7 +137,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
  *
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
-  Initialize({pathToLLFiles + "struct_member_uninit2_cpp_dbg.ll"});
+  Initialize({pathToLLFiles + "struct_member_uninit2.dbg.ll"});
   IFDSSolver<IFDSUninitializedVariables::n_t,
 IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::f_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
 Solver(*UninitProblem, false); Solver.solve();
@@ -153,7 +152,7 @@ Solver(*UninitProblem, false); Solver.solve();
 }
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
-  initialize({PathToLlFiles + "global_variable_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "global_variable.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   // global_variable.cpp does not contain undef-uses
@@ -166,7 +165,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
  *
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_09_SHOULD_LEAK) {
-  Initialize({pathToLLFiles + "global_variable_cpp_dbg.ll"});
+  Initialize({pathToLLFiles + "global_variable.dbg.ll"});
   IFDSSolver<IFDSUninitializedVariables::n_t,
 IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::f_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
 Solver(*UninitProblem, false); Solver.solve();
@@ -178,7 +177,7 @@ Solver(*UninitProblem, false); Solver.solve();
 }
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
-  initialize({PathToLlFiles + "return_uninit_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "return_uninit.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   UninitProblem->emitTextReport(Solver.getSolverResults(), llvm::outs());
@@ -193,7 +192,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
 
-  initialize({PathToLlFiles + "sanitizer_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "sanitizer.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   map<int, set<string>> GroundTruth;
@@ -210,7 +209,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
 //---------------------------------------------------------------------
 /* TEST_F(IFDSUninitializedVariablesTest, UninitTest_12_SHOULD_LEAK) {
 
-  Initialize({pathToLLFiles + "sanitizer_uninit_cpp_dbg.ll"});
+  Initialize({pathToLLFiles + "sanitizer_uninit.dbg.ll"});
   IFDSSolver<IFDSUninitializedVariables::n_t,
 IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::f_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
 Solver(*UninitProblem, true); Solver.solve();
@@ -223,7 +222,7 @@ Solver(*UninitProblem, true); Solver.solve();
 */
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 
-  initialize({PathToLlFiles + "sanitizer2_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "sanitizer2.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   // The undef-uses do not affect the program behaviour, but are of course still
@@ -234,7 +233,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
 
-  initialize({PathToLlFiles + "uninit_c_dbg.ll"});
+  initialize({PathToLlFiles + "uninit.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
   map<int, set<string>> GroundTruth;
@@ -248,7 +247,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
  *
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_15_SHOULD_LEAK) {
-  Initialize({pathToLLFiles + "dyn_mem_cpp_dbg.ll"});
+  Initialize({pathToLLFiles + "dyn_mem.dbg.ll"});
   IFDSSolver<IFDSUninitializedVariables::n_t,
 IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::f_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
 Solver(*UninitProblem, false); Solver.solve(); map<int, set<string>>
@@ -278,7 +277,7 @@ GroundTruth;
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
-  initialize({PathToLlFiles + "growing_example_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "growing_example.dbg.ll"});
   IFDSSolver Solver(*UninitProblem);
   Solver.solve();
 
@@ -301,7 +300,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_17_SHOULD_LEAK) {
 
-  Initialize({pathToLLFiles + "struct_test_cpp.ll"});
+  Initialize({pathToLLFiles + "struct_test.ll"});
   IFDSSolver<IFDSUninitializedVariables::n_t,
 IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::f_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
 Solver(*UninitProblem, false); Solver.solve();
@@ -319,7 +318,7 @@ Solver(*UninitProblem, false); Solver.solve();
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
 
-  Initialize({pathToLLFiles + "array_init_cpp.ll"});
+  Initialize({pathToLLFiles + "array_init.ll"});
   IFDSSolver<IFDSUninitializedVariables::n_t,
 IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::f_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
 Solver(*UninitProblem, false); Solver.solve();
@@ -337,7 +336,7 @@ Solver(*UninitProblem, false); Solver.solve();
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
 
-  Initialize({pathToLLFiles + "array_init_simple_cpp.ll"});
+  Initialize({pathToLLFiles + "array_init_simple.ll"});
   IFDSSolver<IFDSUninitializedVariables::n_t,
 IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::f_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
 Solver(*UninitProblem, false); Solver.solve();
@@ -348,7 +347,7 @@ Solver(*UninitProblem, false); Solver.solve();
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
-  initialize({PathToLlFiles + "recursion_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "recursion.dbg.ll"});
   IFDSSolver_P<IFDSUninitializedVariables> Solver(*UninitProblem);
   Solver.solve();
 
@@ -369,7 +368,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
 
-  initialize({PathToLlFiles + "virtual_call_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "virtual_call.dbg.ll"});
   IFDSSolver_P<IFDSUninitializedVariables> Solver(*UninitProblem);
   Solver.solve();
 

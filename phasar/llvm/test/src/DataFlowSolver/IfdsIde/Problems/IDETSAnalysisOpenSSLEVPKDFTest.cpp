@@ -27,9 +27,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLEVPKDFTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/openssl/key_derivation/";
+  const std::string PathToLlFiles = "llvm_test_code/openssl/key_derivation/";
   const std::set<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
@@ -109,7 +107,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation1) {
-  initialize({PathToLlFiles + "key-derivation1_c.ll"});
+  initialize({PathToLlFiles + "key-derivation1.ll"});
 
   // llvmtssolver->printReport();
 
@@ -136,7 +134,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation1) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation2) {
-  initialize({PathToLlFiles + "key-derivation2_c.ll"});
+  initialize({PathToLlFiles + "key-derivation2.ll"});
 
   std::map<std::size_t, std::map<std::string, int>> Gt;
   // gt[40] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT}}; // killed by
@@ -177,7 +175,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation2) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation3) {
-  initialize({PathToLlFiles + "key-derivation3_c.ll"});
+  initialize({PathToLlFiles + "key-derivation3.ll"});
   std::map<std::size_t, std::map<std::string, int>> Gt;
 
   // gt[56] = {{"21", OpenSSLEVPKeyDerivationState::UNINIT}}; //
@@ -212,7 +210,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation3) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation4) {
-  initialize({PathToLlFiles + "key-derivation4_c.ll"});
+  initialize({PathToLlFiles + "key-derivation4.ll"});
 
   std::map<std::size_t, std::map<std::string, int>> Gt;
 
@@ -242,7 +240,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation4) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation5) {
-  initialize({PathToLlFiles + "key-derivation5_c.ll"});
+  initialize({PathToLlFiles + "key-derivation5.ll"});
 
   std::map<std::size_t, std::map<std::string, int>> Gt;
 
@@ -269,7 +267,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation5) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_KeyDerivation6) {
-  initialize({PathToLlFiles + "key-derivation6_c.ll"});
+  initialize({PathToLlFiles + "key-derivation6.ll"});
   // llvmtssolver->printReport();
   std::map<std::size_t, std::map<std::string, int>> Gt;
   Gt[102] = {{"100", OpenSSLEVPKeyDerivationState::BOT},
@@ -283,7 +281,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_KeyDerivation6) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation7) {
-  initialize({PathToLlFiles + "key-derivation7_c.ll"});
+  initialize({PathToLlFiles + "key-derivation7.ll"});
   // llvmtssolver->printReport();
   std::map<std::size_t, std::map<std::string, int>> Gt;
 
@@ -305,7 +303,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation7) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation8) {
-  initialize({PathToLlFiles + "key-derivation8_c.ll"});
+  initialize({PathToLlFiles + "key-derivation8.ll"});
   // llvmtssolver->printReport();
   std::map<std::size_t, std::map<std::string, int>> Gt;
 

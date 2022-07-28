@@ -35,8 +35,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class InterMonoFullConstantPropagationTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "full_constant/";
+  const std::string PathToLlFiles = "llvm_test_code/full_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
   using IMFCPCompactResult_t =
@@ -97,7 +96,7 @@ protected:
 //       std::tuple<std::string, size_t, std::string,
 //                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
 //           "main", 5, "i", 13));
-//   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("basic_01.ll", GroundTruth, true);
 // }
 
 // // Test for Case II of Store and Load Inst
@@ -107,7 +106,7 @@ protected:
 //       std::tuple<std::string, size_t, std::string,
 //                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
 //           "main", 8, "i", 13));
-//   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("basic_02.ll", GroundTruth, true);
 // }
 
 // // Test for Operators
@@ -117,7 +116,7 @@ protected:
 //       std::tuple<std::string, size_t, std::string,
 //                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
 //           "main", 9, "i", 13));
-//   doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("basic_03.ll", GroundTruth, true);
 // }
 
 // // Test for return Flow
@@ -127,7 +126,7 @@ protected:
 //       std::tuple<std::string, size_t, std::string,
 //                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
 //           "main", 6, "i", 13));
-//   doAnalysisAndCompareResults("advanced_01_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("advanced_01.ll", GroundTruth, true);
 // }
 
 // // Test for Call Flow
@@ -137,7 +136,7 @@ protected:
 //       std::tuple<std::string, size_t, std::string,
 //                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
 //           "main", 6, "i", 13));
-//   doAnalysisAndCompareResults("advanced_02_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("advanced_02.ll", GroundTruth, true);
 // }
 
 // // Test for Call Flow
@@ -147,5 +146,5 @@ protected:
 //       std::tuple<std::string, size_t, std::string,
 //                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
 //           "main", 9, "i", 5));
-//   doAnalysisAndCompareResults("advanced_03_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("advanced_03.ll", GroundTruth, true);
 // }

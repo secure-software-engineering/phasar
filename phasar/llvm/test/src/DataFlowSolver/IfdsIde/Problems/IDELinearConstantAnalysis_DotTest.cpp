@@ -18,8 +18,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDELinearConstantAnalysisDotTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "linear_constant/";
+  const std::string PathToLlFiles = "llvm_test_code/linear_constant/";
 
   const std::set<std::string> EntryPoints = {"main"};
 
@@ -85,7 +84,7 @@ protected:
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_01) {
-  auto Results = doAnalysis("basic_01_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_01.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 13);
   GroundTruth.emplace("main", 3, "i", 13);
@@ -93,7 +92,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_01) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_02) {
-  auto Results = doAnalysis("basic_02_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_02.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 13);
   GroundTruth.emplace("main", 3, "i", 17);
@@ -102,7 +101,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_02) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_03) {
-  auto Results = doAnalysis("basic_03_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_03.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 10);
   GroundTruth.emplace("main", 3, "i", 10);
@@ -113,7 +112,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_03) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_04) {
-  auto Results = doAnalysis("basic_04_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_04.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "i", 14);
   GroundTruth.emplace("main", 4, "i", 14);
@@ -126,7 +125,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_04) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_05) {
-  auto Results = doAnalysis("basic_05_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_05.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 3);
   GroundTruth.emplace("main", 3, "i", 3);
@@ -135,7 +134,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_05) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_06) {
-  auto Results = doAnalysis("basic_06_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_06.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 4);
   GroundTruth.emplace("main", 3, "i", 16);
@@ -144,7 +143,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_06) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_07) {
-  auto Results = doAnalysis("basic_07_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_07.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 4);
   GroundTruth.emplace("main", 3, "i", 4);
@@ -155,7 +154,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_07) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_08) {
-  auto Results = doAnalysis("basic_08_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_08.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
   GroundTruth.emplace("main", 3, "i", 42);
@@ -166,7 +165,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_08) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_09) {
-  auto Results = doAnalysis("basic_09_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_09.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
   GroundTruth.emplace("main", 3, "i", 42);
@@ -177,7 +176,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_09) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_10) {
-  auto Results = doAnalysis("basic_10_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_10.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
   GroundTruth.emplace("main", 3, "i", 42);
@@ -188,7 +187,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_10) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_11) {
-  auto Results = doAnalysis("basic_11_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_11.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
   GroundTruth.emplace("main", 3, "i", 42);
@@ -200,7 +199,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBasicTest_11) {
 
 /* ============== BRANCH TESTS ============== */
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_01) {
-  auto Results = doAnalysis("branch_01_cpp_dbg.ll");
+  auto Results = doAnalysis("branch_01.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "i", 10);
   GroundTruth.emplace("main", 5, "i", 2);
@@ -211,7 +210,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_01) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_02) {
-  auto Results = doAnalysis("branch_02_cpp_dbg.ll");
+  auto Results = doAnalysis("branch_02.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "i", 10);
   compareResults(Results, GroundTruth);
@@ -221,7 +220,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_02) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_03) {
-  auto Results = doAnalysis("branch_03_cpp_dbg.ll");
+  auto Results = doAnalysis("branch_03.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "i", 42);
   GroundTruth.emplace("main", 5, "i", 10);
@@ -231,7 +230,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_03) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_04) {
-  auto Results = doAnalysis("branch_04_cpp_dbg.ll");
+  auto Results = doAnalysis("branch_04.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "j", 10);
   GroundTruth.emplace("main", 4, "j", 10);
@@ -243,7 +242,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_04) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_05) {
-  auto Results = doAnalysis("branch_05_cpp_dbg.ll");
+  auto Results = doAnalysis("branch_05.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "j", 10);
   GroundTruth.emplace("main", 4, "j", 10);
@@ -256,7 +255,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_05) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_06) {
-  auto Results = doAnalysis("branch_06_cpp_dbg.ll");
+  auto Results = doAnalysis("branch_06.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "i", 10);
   GroundTruth.emplace("main", 5, "i", 10);
@@ -265,7 +264,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_06) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_07) {
-  auto Results = doAnalysis("branch_07_cpp_dbg.ll");
+  auto Results = doAnalysis("branch_07.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 3, "j", 10);
   GroundTruth.emplace("main", 4, "j", 10);
@@ -279,7 +278,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleBranchTest_07) {
 
 /* ============== LOOP TESTS ============== */
 TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_01) {
-  auto Results = doAnalysis("while_01_cpp_dbg.ll");
+  auto Results = doAnalysis("while_01.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
   compareResults(Results, GroundTruth);
@@ -288,7 +287,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_01) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_02) {
-  auto Results = doAnalysis("while_02_cpp_dbg.ll");
+  auto Results = doAnalysis("while_02.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   compareResults(Results, GroundTruth);
   EXPECT_TRUE(Results["main"].find(2) == Results["main"].end());
@@ -297,7 +296,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_02) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_03) {
-  auto Results = doAnalysis("while_03_cpp_dbg.ll");
+  auto Results = doAnalysis("while_03.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
   GroundTruth.emplace("main", 7, "a", 13);
@@ -308,7 +307,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_03) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_04) {
-  auto Results = doAnalysis("while_04_cpp_dbg.ll");
+  auto Results = doAnalysis("while_04.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 42);
   GroundTruth.emplace("main", 4, "a", 0);
@@ -318,7 +317,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_04) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_05) {
-  auto Results = doAnalysis("for_01_cpp_dbg.ll");
+  auto Results = doAnalysis("for_01.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "a", 0);
   compareResults(Results, GroundTruth);
@@ -328,7 +327,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleLoopTest_05) {
 
 /* ============== CALL TESTS ============== */
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_01) {
-  auto Results = doAnalysis("call_01_cpp_dbg.ll");
+  auto Results = doAnalysis("call_01.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3fooi", 1, "a", 42);
   GroundTruth.emplace("_Z3fooi", 2, "a", 42);
@@ -342,7 +341,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_01) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_02) {
-  auto Results = doAnalysis("call_02_cpp_dbg.ll");
+  auto Results = doAnalysis("call_02.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3fooi", 1, "a", 2);
   GroundTruth.emplace("_Z3fooi", 2, "a", 2);
@@ -354,7 +353,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_02) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_03) {
-  auto Results = doAnalysis("call_03_cpp_dbg.ll");
+  auto Results = doAnalysis("call_03.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "i", 42);
   GroundTruth.emplace("main", 7, "i", 42);
@@ -362,7 +361,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_03) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_04) {
-  auto Results = doAnalysis("call_04_cpp_dbg.ll");
+  auto Results = doAnalysis("call_04.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "i", 10);
   GroundTruth.emplace("main", 7, "i", 10);
@@ -371,13 +370,13 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_04) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_05) {
-  auto Results = doAnalysis("call_05_cpp_dbg.ll");
+  auto Results = doAnalysis("call_05.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   EXPECT_TRUE(Results["main"].empty());
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_06) {
-  auto Results = doAnalysis("call_06_cpp_dbg.ll");
+  auto Results = doAnalysis("call_06.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z9incrementi", 1, "a", 42);
   GroundTruth.emplace("_Z9incrementi", 2, "a", 43);
@@ -389,7 +388,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_06) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_07) {
-  auto Results = doAnalysis("call_07_cpp_dbg.ll");
+  auto Results = doAnalysis("call_07.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "i", 42);
   GroundTruth.emplace("main", 7, "i", 42);
@@ -408,7 +407,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_07) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_08) {
-  auto Results = doAnalysis("call_08_cpp_dbg.ll");
+  auto Results = doAnalysis("call_08.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3fooii", 1, "a", 10);
   GroundTruth.emplace("_Z3fooii", 1, "b", 1);
@@ -428,7 +427,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_08) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_09) {
-  auto Results = doAnalysis("call_09_cpp_dbg.ll");
+  auto Results = doAnalysis("call_09.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z9incrementi", 1, "a", 42);
   GroundTruth.emplace("_Z9incrementi", 2, "a", 43);
@@ -442,7 +441,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_09) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_10) {
-  auto Results = doAnalysis("call_10_cpp_dbg.ll");
+  auto Results = doAnalysis("call_10.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3bari", 1, "b", 2);
   GroundTruth.emplace("_Z3fooi", 3, "a", 2);
@@ -453,7 +452,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_10) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_11) {
-  auto Results = doAnalysis("call_11_cpp_dbg.ll");
+  auto Results = doAnalysis("call_11.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3bari", 1, "b", 2);
   GroundTruth.emplace("_Z3bari", 2, "b", 2);
@@ -469,7 +468,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleCallTest_11) {
 /* ============== RECURSION TESTS ============== */
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleRecursionTest_01) {
-  auto Results = doAnalysis("recursion_01_cpp_dbg.ll");
+  auto Results = doAnalysis("recursion_01.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 10, "j", -1);
   GroundTruth.emplace("main", 11, "j", -1);
@@ -481,13 +480,13 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleRecursionTest_01) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleRecursionTest_02) {
-  auto Results = doAnalysis("recursion_02_cpp_dbg.ll");
+  auto Results = doAnalysis("recursion_02.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleRecursionTest_03) {
-  auto Results = doAnalysis("recursion_03_cpp_dbg.ll");
+  auto Results = doAnalysis("recursion_03.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 9, "a", 1);
   GroundTruth.emplace("main", 10, "a", 1);
@@ -500,7 +499,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleRecursionTest_03) {
 /* ============== GLOBAL VARIABLE TESTS ============== */
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_01) {
-  auto Results = doAnalysis("global_01_cpp_dbg.ll");
+  auto Results = doAnalysis("global_01.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "g1", 10);
   GroundTruth.emplace("main", 6, "g2", 1);
@@ -515,7 +514,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_01) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_02) {
-  auto Results = doAnalysis("global_02_cpp_dbg.ll");
+  auto Results = doAnalysis("global_02.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 4, "g", 10);
   GroundTruth.emplace("main", 4, "i", 10);
@@ -529,7 +528,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_02) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_03) {
-  auto Results = doAnalysis("global_03_cpp_dbg.ll");
+  auto Results = doAnalysis("global_03.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3foov", 4, "g", 2);
   GroundTruth.emplace("main", 8, "g", 0);
@@ -544,7 +543,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_03) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_04) {
-  auto Results = doAnalysis("global_04_cpp_dbg.ll");
+  auto Results = doAnalysis("global_04.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3fooi", 3, "g", 1);
   GroundTruth.emplace("_Z3fooi", 3, "a", 1);
@@ -560,7 +559,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_04) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_05) {
-  auto Results = doAnalysis("global_05_cpp_dbg.ll");
+  auto Results = doAnalysis("global_05.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3fooi", 3, "g", 2);
   GroundTruth.emplace("_Z3fooi", 3, "a", 2);
@@ -576,7 +575,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_05) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_06) {
-  auto Results = doAnalysis("global_06_cpp_dbg.ll");
+  auto Results = doAnalysis("global_06.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3foov", 4, "g", 2);
   GroundTruth.emplace("main", 8, "g", 1);
@@ -588,7 +587,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_06) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_07) {
-  auto Results = doAnalysis("global_07_cpp_dbg.ll");
+  auto Results = doAnalysis("global_07.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3fooi", 3, "g", 1);
   GroundTruth.emplace("_Z3fooi", 3, "a", 10);
@@ -614,7 +613,7 @@ TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_07) {
 }
 
 TEST_F(IDELinearConstantAnalysisDotTest, HandleGlobalsTest_08) {
-  auto Results = doAnalysis("global_08_cpp_dbg.ll");
+  auto Results = doAnalysis("global_08.dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z3bari", 7, "b", 2);
   GroundTruth.emplace("_Z3bari", 7, "g", 2);

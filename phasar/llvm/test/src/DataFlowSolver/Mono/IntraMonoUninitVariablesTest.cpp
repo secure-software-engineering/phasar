@@ -33,8 +33,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IntraMonoUninitVariablesTest : public ::testing::Test {
 protected:
-  const std::string PathToLLFiles =
-      unittest::PathToLLTestFiles + "/uninitialized_variables/";
+  const std::string PathToLLFiles = "llvm_test_code//uninitialized_variables/";
 
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
@@ -74,7 +73,7 @@ protected:
 
 // TEST_F(IntraMonoUninitVariablesTest, Basic_01) {
 //   CompactResults_t GroundTruth;
-//   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("basic_01.ll", GroundTruth, true);
 // }
 
 TEST_F(IntraMonoUninitVariablesTest, Basic_02) {
@@ -82,5 +81,5 @@ TEST_F(IntraMonoUninitVariablesTest, Basic_02) {
   GroundTruth.insert({13, {"%b"}});
   GroundTruth.insert({15, {"%a"}});
   GroundTruth.insert({17, {"%a", "%b"}});
-  doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
+  doAnalysisAndCompareResults("basic_02.ll", GroundTruth, true);
 }

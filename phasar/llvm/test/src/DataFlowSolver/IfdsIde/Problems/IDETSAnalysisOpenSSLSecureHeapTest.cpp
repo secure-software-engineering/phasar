@@ -27,9 +27,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureHeapTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/openssl/secure_heap/";
+  const std::string PathToLlFiles = "llvm_test_code/openssl/secure_heap/";
   const std::set<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
@@ -111,7 +109,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory6) {
-  initialize({PathToLlFiles + "memory6_c.ll"});
+  initialize({PathToLlFiles + "memory6.ll"});
 
   // secureHeapPropagationResults->printReport();
 
@@ -127,7 +125,7 @@ TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory6) {
 }
 
 TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory7) {
-  initialize({PathToLlFiles + "memory7_c.ll"});
+  initialize({PathToLlFiles + "memory7.ll"});
 
   // secureHeapPropagationResults->printReport();
 

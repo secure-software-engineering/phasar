@@ -13,9 +13,8 @@ using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_9_cpp.ll"},
-      IRDBOptions::WPA);
+  ProjectIRDB IRDB({"llvm_test_code/call_graphs/virtual_call_9.ll"},
+                   IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
@@ -40,9 +39,8 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
 }
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_3_cpp.ll"},
-      IRDBOptions::WPA);
+  ProjectIRDB IRDB({"llvm_test_code/call_graphs/virtual_call_3.ll"},
+                   IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
@@ -61,9 +59,8 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
 }
 
 TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_13_cpp.ll"},
-      IRDBOptions::WPA);
+  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_13.ll"},
+                   IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);

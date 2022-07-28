@@ -13,9 +13,8 @@ using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_5_cpp.ll"},
-      IRDBOptions::WPA);
+  ProjectIRDB IRDB({"llvm_test_code/call_graphs/virtual_call_5.ll"},
+                   IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
@@ -42,9 +41,8 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 }
 
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_6_cpp.ll"},
-      IRDBOptions::WPA);
+  ProjectIRDB IRDB({"llvm_test_code/call_graphs/virtual_call_6.ll"},
+                   IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);

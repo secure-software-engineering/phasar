@@ -78,7 +78,7 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
                     llvm::StringRef EntryPoint = "main") {
   Logger::disable();
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + File.str()});
+  ProjectIRDB IRDB({"llvm_test_code/" + File.str()});
 
   // llvm::outs() << *IRDB.getWPAModule() << '\n';
 
@@ -95,17 +95,17 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
 }
 
 TEST(LLVMPointsToSetSerializationTest, Ser_Intra01) {
-  analyze("pointers/basic_01_cpp.ll", {{{"1"}, {"0", "3"}}, {"main"}});
+  analyze("pointers/basic_01.ll", {{{"1"}, {"0", "3"}}, {"main"}});
 }
 
 TEST(LLVMPointsToSetSerializationTest, Ser_Inter01) {
-  analyze("pointers/call_01_cpp.ll",
+  analyze("pointers/call_01.ll",
           {{{"0"}, {"10", "12", "2", "6", "_Z10setIntegerPi.0"}, {"5"}, {"7"}},
            {"main", "_Z10setIntegerPi"}});
 }
 
 TEST(LLVMPointsToSetSerializationTest, Ser_Global01) {
-  analyze("pointers/global_01_cpp.ll",
+  analyze("pointers/global_01.ll",
           {{{"0", "15", "17", "2", "3", "9", "_Z3fooPi.0"},
             {"1"},
             {"12"},

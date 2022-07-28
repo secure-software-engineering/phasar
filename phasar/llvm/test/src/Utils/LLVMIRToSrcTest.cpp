@@ -22,8 +22,7 @@ using namespace psr;
 
 class LLVMIRToSrcTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = PhasarConfig::PhasarDirectory() +
-                                    "build/test/llvm_test_code/llvmIRtoSrc/";
+  const std::string PathToLlFiles = "llvm_test_code/llvmIRtoSrc/";
 
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
@@ -48,7 +47,7 @@ protected:
 }; // Test Fixture
 
 // TEST_F(LLVMIRToSrcTest, HandleInstructions) {
-//   Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "function_call.dbg.ll"});
 //   auto Fmain = ICFG->getMethod("main");
 //   for (auto &BB : *Fmain) {
 //     for (auto &I : BB) {
@@ -66,7 +65,7 @@ protected:
 // }
 
 // TEST_F(LLVMIRToSrcTest, HandleFunctions) {
-//   Initialize({pathToLLFiles + "multi_calls_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "multi_calls.dbg.ll"});
 //   for (auto F : IRDB->getAllFunctions()) {
 //     // F->print(llvm::outs());
 //     // llvm::outs() << '\n';
@@ -75,15 +74,15 @@ protected:
 // }
 
 // TEST_F(LLVMIRToSrcTest, HandleGlobalVariable) {
-//   Initialize({pathToLLFiles + "global_01_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "global_01.dbg.ll"});
 //   for (auto &GV :
-//        IRDB->getModule(pathToLLFiles + "global_01_cpp_dbg.ll")->globals()) {
+//        IRDB->getModule(pathToLLFiles + "global_01.dbg.ll")->globals()) {
 //     llvm::outs() << '\n' << llvmGlobalValueToSrc(&GV) << std::endl;
 //   }
 // }
 
 // TEST_F(LLVMIRToSrcTest, HandleAlloca) {
-//   Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
+//   Initialize({pathToLLFiles + "function_call.dbg.ll"});
 //   for (auto A : IRDB->getAllocaInstructions()) {
 //     llvm::outs() << '\n'
 //               << llvmIRToString(A) << "\n  --> " << llvmValueToSrc(A)

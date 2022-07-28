@@ -47,7 +47,7 @@ using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
 
 class IDETaintAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLLFiles = unittest::PathToLLTestFiles + "xtaint/";
+  const std::string PathToLLFiles = "llvm_test_code/xtaint/";
   const std::set<std::string> EntryPoints = {"main"};
 
   IDETaintAnalysisTest() = default;
@@ -144,7 +144,7 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
     ]
     })!"_json;
 
-  doAnalysis({PathToLLFiles + "xtaint01_json_cpp_dbg.ll"}, Gt, &Config);
+  doAnalysis({PathToLLFiles + "xtaint01_json.dbg.ll"}, Gt, &Config);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint01) {
@@ -152,7 +152,7 @@ TEST_F(IDETaintAnalysisTest, XTaint01) {
 
   Gt[15] = {"14"};
 
-  doAnalysis({PathToLLFiles + "xtaint01_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint01.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint02) {
@@ -160,14 +160,14 @@ TEST_F(IDETaintAnalysisTest, XTaint02) {
 
   Gt[20] = {"19"};
 
-  doAnalysis({PathToLLFiles + "xtaint02_cpp.ll"}, Gt, std::monostate{}, true);
+  doAnalysis({PathToLLFiles + "xtaint02.ll"}, Gt, std::monostate{}, true);
 }
 TEST_F(IDETaintAnalysisTest, XTaint03) {
   map<int, set<string>> Gt;
 
   Gt[23] = {"22"};
 
-  doAnalysis({PathToLLFiles + "xtaint03_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint03.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint04) {
@@ -175,7 +175,7 @@ TEST_F(IDETaintAnalysisTest, XTaint04) {
 
   Gt[17] = {"16"};
 
-  doAnalysis({PathToLLFiles + "xtaint04_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint04.ll"}, Gt, std::monostate{});
 }
 
 // XTaint05 is similar to 06, but even harder
@@ -185,7 +185,7 @@ TEST_F(IDETaintAnalysisTest, XTaint06) {
 
   // no leaks expected
 
-  doAnalysis({PathToLLFiles + "xtaint06_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint06.ll"}, Gt, std::monostate{});
 }
 
 /// In the new TaintConfig specifying source/sink/sanitizer properties for extra
@@ -196,7 +196,7 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint07) {
 
   Gt[21] = {"20"};
 
-  doAnalysis({PathToLLFiles + "xtaint07_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint07.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
@@ -204,7 +204,7 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
 
   Gt[24] = {"23"};
 
-  doAnalysis({PathToLLFiles + "xtaint08_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint08.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09_1) {
@@ -212,7 +212,7 @@ TEST_F(IDETaintAnalysisTest, XTaint09_1) {
 
   Gt[27] = {"26"};
 
-  doAnalysis({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint09_1.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09) {
@@ -220,7 +220,7 @@ TEST_F(IDETaintAnalysisTest, XTaint09) {
 
   Gt[34] = {"33"};
 
-  doAnalysis({PathToLLFiles + "xtaint09_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint09.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint10) {
@@ -235,7 +235,7 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint10) {
   // TODO: Also update the Gt
   Gt[33] = {"32"};
 
-  doAnalysis({PathToLLFiles + "xtaint10_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint10.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint11) {
@@ -243,7 +243,7 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint11) {
 
   // no leaks expected; actually finds "27" at 28
 
-  doAnalysis({PathToLLFiles + "xtaint11_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint11.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint12) {
@@ -253,7 +253,7 @@ TEST_F(IDETaintAnalysisTest, XTaint12) {
   // kill aliases at all
   Gt[30] = {"29"};
 
-  doAnalysis({PathToLLFiles + "xtaint12_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint12.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint13) {
@@ -261,7 +261,7 @@ TEST_F(IDETaintAnalysisTest, XTaint13) {
 
   Gt[32] = {"31"};
 
-  doAnalysis({PathToLLFiles + "xtaint13_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint13.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint14) {
@@ -269,7 +269,7 @@ TEST_F(IDETaintAnalysisTest, XTaint14) {
 
   Gt[35] = {"34"};
 
-  doAnalysis({PathToLLFiles + "xtaint14_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint14.ll"}, Gt, std::monostate{});
 }
 
 /// The TaintConfig fails to get all call-sites of Source::get, because it has
@@ -279,7 +279,7 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint15) {
 
   Gt[47] = {"46"};
 
-  doAnalysis({PathToLLFiles + "xtaint15_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint15.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint16) {
@@ -287,7 +287,7 @@ TEST_F(IDETaintAnalysisTest, XTaint16) {
 
   Gt[26] = {"25"};
 
-  doAnalysis({PathToLLFiles + "xtaint16_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint16.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint17) {
@@ -295,7 +295,7 @@ TEST_F(IDETaintAnalysisTest, XTaint17) {
 
   Gt[29] = {"28"};
 
-  doAnalysis({PathToLLFiles + "xtaint17_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint17.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint18) {
@@ -303,7 +303,7 @@ TEST_F(IDETaintAnalysisTest, XTaint18) {
 
   // Gt[26] = {"25"};
 
-  doAnalysis({PathToLLFiles + "xtaint18_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint18.ll"}, Gt, std::monostate{});
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
@@ -313,7 +313,7 @@ PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
 
   Gt[22] = {"21"};
 
-  doAnalysis({PathToLLFiles + "xtaint19_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint19.ll"}, Gt, std::monostate{});
 })
 
 TEST_F(IDETaintAnalysisTest, XTaint20) {
@@ -322,7 +322,7 @@ TEST_F(IDETaintAnalysisTest, XTaint20) {
   Gt[25] = {"17"};
   Gt[27] = {"26"};
 
-  doAnalysis({PathToLLFiles + "xtaint20_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint20.ll"}, Gt, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint21) {
@@ -353,6 +353,6 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
         return Ret;
       };
 
-  doAnalysis({PathToLLFiles + "xtaint21_cpp.ll"}, Gt,
+  doAnalysis({PathToLLFiles + "xtaint21.ll"}, Gt,
              CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
 }

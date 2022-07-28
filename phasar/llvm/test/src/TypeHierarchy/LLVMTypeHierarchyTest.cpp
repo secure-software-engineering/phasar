@@ -24,8 +24,7 @@ namespace psr {
 
 // Check basic type hierarchy construction
 TEST(LTHTest, BasicTHReconstruction_1) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_1_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -60,14 +59,12 @@ TEST(LTHTest, BasicTHReconstruction_1) {
 }
 
 TEST(LTHTest, THConstructionException) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_15_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_15.ll"});
   LLVMTypeHierarchy LTH(IRDB);
 }
 
 TEST(LTHTest, BasicTHReconstruction_2) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_2_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_2.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -102,8 +99,7 @@ TEST(LTHTest, BasicTHReconstruction_2) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_3) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_3_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_3.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -148,8 +144,7 @@ TEST(LTHTest, BasicTHReconstruction_3) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_4) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_4_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_4.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -199,8 +194,7 @@ TEST(LTHTest, BasicTHReconstruction_4) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_5) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_5_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_5.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -278,8 +272,7 @@ TEST(LTHTest, BasicTHReconstruction_5) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_6) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_12_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_12.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("class.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -314,8 +307,7 @@ TEST(LTHTest, BasicTHReconstruction_6) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_7) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_11_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_11.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -352,18 +344,12 @@ TEST(LTHTest, BasicTHReconstruction_7) {
 
 // check if the vtables are constructed correctly in more complex scenarios
 TEST(LTHTest, VTableConstruction) {
-  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_1_cpp.ll"});
-  ProjectIRDB IRDB2({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_7_cpp.ll"});
-  ProjectIRDB IRDB3({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_8_cpp.ll"});
-  ProjectIRDB IRDB4({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_9_cpp.ll"});
-  ProjectIRDB IRDB5({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_10_cpp.ll"});
-  ProjectIRDB IRDB6({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_14_cpp.ll"});
+  ProjectIRDB IRDB1({"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
+  ProjectIRDB IRDB2({"llvm_test_code/type_hierarchies/type_hierarchy_7.ll"});
+  ProjectIRDB IRDB3({"llvm_test_code/type_hierarchies/type_hierarchy_8.ll"});
+  ProjectIRDB IRDB4({"llvm_test_code/type_hierarchies/type_hierarchy_9.ll"});
+  ProjectIRDB IRDB5({"llvm_test_code/type_hierarchies/type_hierarchy_10.ll"});
+  ProjectIRDB IRDB6({"llvm_test_code/type_hierarchies/type_hierarchy_14.ll"});
 
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
@@ -525,16 +511,11 @@ TEST(LTHTest, VTableConstruction) {
 }
 
 TEST(LTHTest, TransitivelyReachableTypes) {
-  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_1_cpp.ll"});
-  ProjectIRDB IRDB2({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_7_cpp.ll"});
-  ProjectIRDB IRDB3({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_8_cpp.ll"});
-  ProjectIRDB IRDB4({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_9_cpp.ll"});
-  ProjectIRDB IRDB5({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_10_cpp.ll"});
+  ProjectIRDB IRDB1({"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
+  ProjectIRDB IRDB2({"llvm_test_code/type_hierarchies/type_hierarchy_7.ll"});
+  ProjectIRDB IRDB3({"llvm_test_code/type_hierarchies/type_hierarchy_8.ll"});
+  ProjectIRDB IRDB4({"llvm_test_code/type_hierarchies/type_hierarchy_9.ll"});
+  ProjectIRDB IRDB5({"llvm_test_code/type_hierarchies/type_hierarchy_10.ll"});
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
   LLVMTypeHierarchy TH2(IRDB2);
@@ -629,7 +610,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 
 // TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
 //   ProjectIRDB IRDB(
-//       {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
+//       {pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll"});
 //   LLVMTypeHierarchy TH(IRDB);
 //   TH.print(llvm::outs());
 //   //   std::ostringstream oss;
@@ -652,7 +633,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 
 // // TEST(LTHTest, HandleLoadAndPrintOfEmptyGraph) {
 // //   ProjectIRDB IRDB({pathToLLFiles +
-// //   "taint_analysis/growing_example_cpp.ll"}); LLVMTypeHierarchy TH(IRDB);
+// //   "taint_analysis/growing_example.ll"}); LLVMTypeHierarchy TH(IRDB);
 // //   std::ostringstream oss;
 // //   // Write empty LTH graph as dot to string
 // //   TH.printGraphAsDot(oss);
@@ -672,12 +653,12 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 
 // // TEST(LTHTest, HandleMerge_1) {
 // //   ProjectIRDB IRDB(
-// //       {pathToLLFiles + "type_hierarchies/type_hierarchy_12_cpp.ll",
-// //        pathToLLFiles + "type_hierarchies/type_hierarchy_12_b_cpp.ll"});
+// //       {pathToLLFiles + "type_hierarchies/type_hierarchy_12.ll",
+// //        pathToLLFiles + "type_hierarchies/type_hierarchy_12_b.ll"});
 // //   LLVMTypeHierarchy TH1(*IRDB.getModule(
-// //       pathToLLFiles + "type_hierarchies/type_hierarchy_12_cpp.ll"));
+// //       pathToLLFiles + "type_hierarchies/type_hierarchy_12.ll"));
 // //   LLVMTypeHierarchy TH2(*IRDB.getModule(
-// //       pathToLLFiles + "type_hierarchies/type_hierarchy_12_b_cpp.ll"));
+// //       pathToLLFiles + "type_hierarchies/type_hierarchy_12_b.ll"));
 // //   TH1.mergeWith(TH2);
 // //   TH1.print();
 // //   EXPECT_TRUE(TH1.hasType(LTH.getType("class.Base")));
@@ -733,8 +714,7 @@ PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
   // If we use libcxx this won't work since internal implementation is different
   LIBCPP_GTEST_SKIP;
 
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_13_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_13.ll"});
   LLVMTypeHierarchy TH(IRDB);
   EXPECT_EQ(TH.getAllTypes().size(), 7U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));

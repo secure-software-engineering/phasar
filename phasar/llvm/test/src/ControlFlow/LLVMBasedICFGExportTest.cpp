@@ -34,7 +34,7 @@ using MapTy = llvm::DenseMap<const llvm::Function *,
 
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
-  const std::string &PathToLLFiles = unittest::PathToLLTestFiles;
+  const std::string PathToLLFiles = "llvm_test_code/";
   const std::string &PathToJSONFiles = unittest::PathToJSONTestFiles;
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
@@ -188,103 +188,103 @@ protected:
 };
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR01) {
-  verifyExportICFG("call_graphs/static_callsite_1_c.ll");
+  verifyExportICFG("call_graphs/static_callsite_1.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR02) {
-  verifyExportICFG("call_graphs/static_callsite_2_c.ll");
+  verifyExportICFG("call_graphs/static_callsite_2.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR03) {
-  verifyExportICFG("call_graphs/static_callsite_3_c.ll");
+  verifyExportICFG("call_graphs/static_callsite_3.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR04) {
-  verifyExportICFG("call_graphs/static_callsite_4_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_4.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR05) {
-  verifyExportICFG("call_graphs/static_callsite_5_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_5.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR06) {
-  verifyExportICFG("call_graphs/static_callsite_6_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_6.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR07) {
-  verifyExportICFG("call_graphs/static_callsite_7_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_7.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR08) {
-  verifyExportICFG("call_graphs/static_callsite_8_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_8.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR09) {
-  verifyExportICFG("call_graphs/static_callsite_9_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_9.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR10) {
-  verifyExportICFG("call_graphs/static_callsite_10_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_10.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR11) {
-  verifyExportICFG("call_graphs/static_callsite_11_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_11.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR12) {
-  verifyExportICFG("call_graphs/static_callsite_12_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_12.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR13) {
-  verifyExportICFG("call_graphs/static_callsite_13_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_13.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV1) {
-  verifyExportICFG("call_graphs/virtual_call_1_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_1.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV2) {
-  verifyExportICFG("call_graphs/virtual_call_2_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_2.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV3) {
-  verifyExportICFG("call_graphs/virtual_call_3_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_3.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV4) {
-  verifyExportICFG("call_graphs/virtual_call_4_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_4.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV5) {
-  verifyExportICFG("call_graphs/virtual_call_5_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_5.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV6) {
-  verifyExportICFG("call_graphs/virtual_call_6_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_6.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV7) {
-  verifyExportICFG("call_graphs/virtual_call_7_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_7.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV8) {
-  verifyExportICFG("call_graphs/virtual_call_8_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_8.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIRV9) {
-  verifyExportICFG("call_graphs/virtual_call_9_cpp.ll");
+  verifyExportICFG("call_graphs/virtual_call_9.ll");
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource01) {
   auto Results =
-      exportICFG("linear_constant/call_01_cpp_dbg.ll", /*asSrcCode*/ true);
+      exportICFG("linear_constant/call_01.dbg.ll", /*asSrcCode*/ true);
   verifySourceCodeJSON(Results,
                        readJson("linear_constant/call_01_cpp_icfg.json"));
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource02) {
   auto Results =
-      exportICFG("linear_constant/call_07_cpp_dbg.ll", /*asSrcCode*/ true);
+      exportICFG("linear_constant/call_07.dbg.ll", /*asSrcCode*/ true);
   // std::cerr << Results.dump(4) << std::endl;
   verifySourceCodeJSON(Results,
                        readJson("linear_constant/call_07_cpp_icfg.json"));
@@ -292,14 +292,14 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGSource02) {
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource03) {
   auto Results =
-      exportICFG("exceptions/exceptions_01_cpp_dbg.ll", /*asSrcCode*/ true);
+      exportICFG("exceptions/exceptions_01.dbg.ll", /*asSrcCode*/ true);
   // std::cerr << Results.dump(4) << std::endl;
   verifySourceCodeJSON(Results,
                        readJson("exceptions/exceptions_01_cpp_icfg.json"));
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportCFG01) {
-  auto Results = exportCFGFor("linear_constant/branch_07_cpp_dbg.ll", "main",
+  auto Results = exportCFGFor("linear_constant/branch_07.dbg.ll", "main",
                               /*asSrcCode*/ true);
   // std::cerr << Results.dump(4) << std::endl;
   verifySourceCodeJSON(Results,

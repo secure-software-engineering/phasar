@@ -43,7 +43,7 @@ using namespace psr;
 
 class LLVMBasedICFGGlobCtorDtorTest : public ::testing::Test {
 protected:
-  const std::string PathToLLFiles = unittest::PathToLLTestFiles + "globals/";
+  const std::string PathToLLFiles = "llvm_test_code/globals/";
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
@@ -81,7 +81,7 @@ protected:
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_1_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -99,8 +99,8 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_2_1_cpp.ll",
-                    PathToLLFiles + "globals_ctor_2_2_cpp.ll"},
+  ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_2_1.ll",
+                    PathToLLFiles + "globals_ctor_2_2.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
@@ -119,7 +119,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_dtor_1_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_dtor_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -133,10 +133,10 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
   ensureFunctionOrdering(
       GlobalCtor, ICFG,
       {{"_GLOBAL__sub_I_globals_dtor_1.cpp", "main"},
-       {"main", "__psrGlobalDtorsCaller.globals_dtor_1_cpp.ll"}});
+       {"main", "__psrGlobalDtorsCaller.globals_dtor_1.ll"}});
 
   auto *GlobalDtor =
-      IRDB.getFunction("__psrGlobalDtorsCaller.globals_dtor_1_cpp.ll");
+      IRDB.getFunction("__psrGlobalDtorsCaller.globals_dtor_1.ll");
 
   ASSERT_NE(nullptr, GlobalDtor);
 
@@ -152,7 +152,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_1_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -188,7 +188,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_2_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_2.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -229,7 +229,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_3_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_3.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -273,7 +273,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 // Fails due to exception handling
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(
@@ -306,7 +306,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_1_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(
@@ -339,7 +339,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_5_cpp.ll"});
+  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_5.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,

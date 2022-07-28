@@ -14,7 +14,7 @@ using namespace psr;
 
 TEST(LLVMPointsToSet, Intra_01) {
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/basic_01_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/pointers/basic_01.ll"});
 
   LLVMPointsToSet PTS(IRDB, false);
   const auto *Main = IRDB.getFunctionDefinition("main");
@@ -29,7 +29,7 @@ TEST(LLVMPointsToSet, Intra_01) {
 
 TEST(LLVMPointsToSet, Inter_01) {
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/call_01_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/pointers/call_01.ll"});
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
@@ -45,7 +45,7 @@ TEST(LLVMPointsToSet, Inter_01) {
 
 TEST(LLVMPointsToSet, Global_01) {
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/global_01_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/pointers/global_01.ll"});
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);

@@ -14,8 +14,7 @@ using namespace std;
 using namespace psr;
 
 TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/global_stmt_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/control_flow/global_stmt.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthStoreInstruction(F, 0), nullptr);
   const auto *I = getNthInstruction(F, 4);
@@ -28,8 +27,7 @@ TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
 }
 
 TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/if_else_cpp.ll"});
+  ProjectIRDB IRDB({"llvm_test_code/control_flow/if_else.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthTermInstruction(F, 0), nullptr);
   const auto *I = getNthInstruction(F, 14);
