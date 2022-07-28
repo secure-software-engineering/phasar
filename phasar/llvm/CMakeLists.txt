@@ -7,11 +7,9 @@ just_add_library(
       LLVMAggressiveInstCombine # llvm::createAggressiveInstCombinerPass()
       LLVMAnalysis
       LLVMAsmParser # undefined symbol: llvm::parseAssembly
-      
       LLVMBinaryFormat # llvm::dwarf::getOperationEncoding
       LLVMBitReader # undefined symbol: llvm::getOwningLazyBitcodeModule
       LLVMBitstreamReader # undefined symbol: llvm::BitstreamCursor::skipRecord
-      
       LLVMCore
       LLVMCoroutines # llvm::CoroCleanupPass::run
       LLVMDebugInfoDWARF # llvm::DWARFFormValue::getAsCString()
@@ -29,15 +27,12 @@ just_add_library(
       LLVMProfileData # undefined symbol ProfileSummaryCutoffHot
       LLVMRemarks # llvm::remarks::RemarkStreamer::matchesFilter
       LLVMScalarOpts # llvm::ADCEPass::run
-      
       LLVMSupport
       LLVMTarget # llvm::TargetMachine::getTargetIRAnalysis()
       LLVMTextAPI # llvm::MachO::mapToPlatformSet(llvm::ArrayRef
       LLVMTransformUtils # undefined symbol: llvm::ValueMapper::ValueMapper
-      
       LLVMVectorize # llvm::ShouldRunExtraVectorPasses::Key
       LLVMipo # llvm::AttributorPass::run
-      
       
       nlohmann_json_schema_validator
     EXCLUDE "^.*/WPDS/.*$"
