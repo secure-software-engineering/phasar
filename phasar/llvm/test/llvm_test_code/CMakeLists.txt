@@ -124,7 +124,6 @@ file(GLOB_RECURSE test_code_files
      "*.c*")
 list(FILTER test_code_files INCLUDE REGEX "^.*\.(c|cpp)$")
 list(FILTER test_code_files EXCLUDE REGEX "^.*xtaint0[78].cpp$") # TODO also excluded in CMakeList, maybe remove instead?
-list(FILTER test_code_files EXCLUDE REGEX "^.*key-derivation[1-35-8].c$") # TODO includes are working but which version is the correct one?
 
 foreach(test_code_file ${test_code_files})
     generate_ll_file(

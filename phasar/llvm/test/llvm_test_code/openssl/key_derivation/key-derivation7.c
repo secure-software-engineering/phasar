@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
   *p = OSSL_PARAM_construct_end();
 
   /* Do the derivation */
-  if (EVP_KDF_derive(kctx, derived, sizeof(derived)) <= 0) {
+  if (EVP_KDF_derive(kctx, derived, sizeof(derived), params) <= 0) {
     error("EVP_KDF_derive");
   }
 
