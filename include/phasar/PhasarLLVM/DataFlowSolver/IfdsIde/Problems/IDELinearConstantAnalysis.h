@@ -17,7 +17,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 namespace llvm {
@@ -60,7 +60,7 @@ public:
   static const l_t TOP;
   static const l_t BOTTOM;
 
-  IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
+  IDELinearConstantAnalysis(const LLVMProjectIRDB *IRDB,
                             const LLVMTypeHierarchy *TH,
                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                             std::set<std::string> EntryPoints = {"main"});

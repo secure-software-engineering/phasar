@@ -409,6 +409,34 @@ std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(LLVMProjectIRDB &IRDB,
   }
 }
 
+template <typename MapTy>
+void LLVMBasedICFG::insertGlobalCtorsDtorsImpl(MapTy &Into,
+                                               const llvm::Module *M,
+                                               llvm::StringRef Fun) {
+  const auto *Gtors = M->getGlobalVariable(Fun);
+  if (Gtors == nullptr) {
+    return;
+  }
+
+  if (const auto *FunArray = llvm::dyn_cast<llvm::ArrayType>(
+          Gtors->getType()->getPointerElementType())) {
+    if (const auto *ConstFunArray =
+            llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer())) {
+      for (const auto &Op : ConstFunArray->operands()) {
+        if (const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op)) {
+          auto *Fun = llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1));
+          const auto *Prio =
+              llvm::dyn_cast<llvm::ConstantInt>(FunDesc->getOperand(0));
+          if (Fun && Prio) {
+            auto PrioInt = size_t(Prio->getLimitedValue(SIZE_MAX));
+            Into.emplace(PrioInt, Fun);
+          }
+        }
+      }
+    }
+  }
+}
+
 bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *N) const {
   const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(N);
   return CallSite && CallSite->isIndirectCall();

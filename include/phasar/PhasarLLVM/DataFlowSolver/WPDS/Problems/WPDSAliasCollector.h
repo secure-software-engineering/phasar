@@ -10,15 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/PhasarLLVM/Utils/Printer.h"
+
 #include <memory>
 #include <set>
 #include <string>
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-#include "phasar/PhasarLLVM/Utils/Printer.h"
 
 namespace llvm {
 class Instruction;
@@ -32,7 +31,6 @@ namespace psr {
 class LLVMBasedICFG;
 class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
-class ProjectIRDB;
 
 struct WPDSAliasCollectorAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = BinaryDomain;
@@ -41,7 +39,7 @@ struct WPDSAliasCollectorAnalysisDomain : public LLVMAnalysisDomainDefault {
 class WPDSAliasCollector
     : public WPDSProblem<WPDSAliasCollectorAnalysisDomain> {
 public:
-  WPDSAliasCollector(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+  WPDSAliasCollector(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                      std::set<std::string> EntryPoints);
 

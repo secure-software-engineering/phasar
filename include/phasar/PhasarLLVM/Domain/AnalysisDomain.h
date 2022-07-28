@@ -10,19 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 
-namespace llvm {
-class Value;
-class Instruction;
-class StructType;
-class Function;
-} // namespace llvm
-
 namespace psr {
-
-class LLVMProjectIRDB;
-class LLVMBasedCFG;
-class LLVMBasedICFG;
-enum class BinaryDomain;
 
 // AnalysisDomain - This class should be specialized by different static
 // analyses types... which is why the default version declares all analysis
@@ -68,21 +56,6 @@ struct AnalysisDomain {
   using l_t = void;
   // Container type to be used for analyses run in the monotone framework.
   using mono_container_t = void;
-};
-
-struct LLVMAnalysisDomainDefault : public AnalysisDomain {
-  using d_t = const llvm::Value *;
-  using n_t = const llvm::Instruction *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
-  using c_t = LLVMBasedCFG;
-  using i_t = LLVMBasedICFG;
-  using db_t = LLVMProjectIRDB;
-};
-
-struct LLVMIFDSAnalysisDomainDefault : LLVMAnalysisDomainDefault {
-  using l_t = BinaryDomain;
 };
 
 } // namespace psr

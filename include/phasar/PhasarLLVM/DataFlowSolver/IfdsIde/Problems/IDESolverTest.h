@@ -10,14 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESOLVERTEST_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESOLVERTEST_H
 
-#include <map>
-#include <memory>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
 #include <set>
 #include <string>
 #include <vector>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -50,7 +48,7 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDESolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+  IDESolverTest(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                 const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                 std::set<std::string> EntryPoints = {"main"});
 

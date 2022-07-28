@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_PRINTER_H_
 #define PHASAR_PHASARLLVM_UTILS_PRINTER_H_
 
-#include <ostream>
-#include <sstream>
+#include "llvm/Support/raw_ostream.h"
+
 #include <string>
 
 namespace psr {

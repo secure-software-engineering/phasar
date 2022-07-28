@@ -14,10 +14,15 @@
  *      Author: pdschbrt
  */
 
-#include <algorithm>
-#include <cassert>
-#include <memory>
-#include <ostream>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/Utils/GraphExtensions.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graph_utility.hpp"
@@ -32,16 +37,13 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
+#include "llvm/Support/Format.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/GraphExtensions.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Utilities.h"
+#include <algorithm>
+#include <cassert>
+#include <memory>
+#include <ostream>
 
 using namespace psr;
 using namespace std;
@@ -70,11 +72,10 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
   return Type->getStructName().str();
 }
 
-LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
+LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
-  for (auto *M : IRDB.getAllModules()) {
-    buildLLVMTypeHierarchy(*M);
-  }
+
+  buildLLVMTypeHierarchy(*IRDB.getModule());
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
@@ -168,9 +169,7 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-              CE->getAsInstruction(), &deleteValue);
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {

@@ -36,6 +36,7 @@
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Config/Configuration.h"
@@ -511,6 +512,10 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   return Data->getAsCString();
 }
 
+static llvm::SmallDenseMap<const llvm::Module *,
+                           std::unique_ptr<llvm::ModuleSlotTracker>, 2>
+    MToST{};
+
 llvm::ModuleSlotTracker &
 ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
   auto &Ret = MToST[M];
@@ -522,7 +527,14 @@ ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
 }
 
 void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *M) {
-  MToST[M] = std::make_unique<llvm::ModuleSlotTracker>(M);
+  auto [It, Inserted] = MToST.try_emplace(M, nullptr);
+  if (!Inserted) {
+    llvm::report_fatal_error(
+        "Cannot register the same module twice in the ModulesToSlotTracker! "
+        "Probably you have managed the same LLVM Module with multiple "
+        "ProjectIRDB instances at the same time. Don't do that!");
+  }
+  It->second = std::make_unique<llvm::ModuleSlotTracker>(M);
 }
 void ModulesToSlotTracker::deleteMSTForModule(const llvm::Module *M) {
   MToST.erase(M);

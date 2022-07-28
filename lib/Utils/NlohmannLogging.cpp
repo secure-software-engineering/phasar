@@ -1,7 +1,8 @@
-#include "nlohmann/json.hpp"
-#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/Utils/NlohmannLogging.h"
+
+#include "nlohmann/json.hpp"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 

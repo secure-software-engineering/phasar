@@ -10,11 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSSOLVERTEST_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSSOLVERTEST_H
 
-#include <memory>
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 
@@ -30,7 +27,6 @@ namespace psr {
 class LLVMBasedICFG;
 class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
-class ProjectIRDB;
 
 struct WPDSSolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = BinaryDomain;
@@ -38,7 +34,7 @@ struct WPDSSolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
 
 class WPDSSolverTest : public WPDSProblem<WPDSSolverTestAnalysisDomain> {
 public:
-  WPDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+  WPDSSolverTest(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                  const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                  std::set<std::string> EntryPoints = {"main"});
 

@@ -10,12 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSLINEARCONSTANTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_PROBLEMS_WPDSLINEARCONSTANTANALYSIS_H
 
-#include <string>
-#include <vector>
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
+#include <string>
+#include <vector>
 
 namespace llvm {
 class Value;
@@ -29,7 +29,6 @@ namespace psr {
 class LLVMBasedICFG;
 class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
-class ProjectIRDB;
 
 struct WPDSLinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = int64_t;
@@ -39,7 +38,7 @@ class WPDSLinearConstantAnalysis
     : public virtual WPDSProblem<WPDSLinearConstantAnalysisDomain>,
       public virtual IDELinearConstantAnalysis {
 public:
-  WPDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
+  WPDSLinearConstantAnalysis(const LLVMProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              const std::set<std::string> &EntryPoints = {

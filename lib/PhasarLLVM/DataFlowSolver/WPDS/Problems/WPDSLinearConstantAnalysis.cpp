@@ -18,7 +18,7 @@ using namespace psr;
 namespace psr {
 
 WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     const std::set<std::string> &EntryPoints)
     : WPDSProblem<WPDSLinearConstantAnalysisDomain>(IRDB, TH, ICF, PT,

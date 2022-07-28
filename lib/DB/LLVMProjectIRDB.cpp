@@ -1,5 +1,6 @@
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/Config/Configuration.h"
+#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -32,6 +33,7 @@ LLVMProjectIRDB::LLVMProjectIRDB(llvm::StringRef IRFileName) {
 
   auto *NonConst = M.get();
   Mod = std::move(M);
+  ModulesToSlotTracker::updateMSTForModule(Mod.get());
   preprocessModule(NonConst);
 }
 
@@ -80,6 +82,7 @@ void LLVMProjectIRDB::preprocessModule(llvm::Module *NonConstMod) {
 
 LLVMProjectIRDB::LLVMProjectIRDB(llvm::Module *Mod) : Mod(Mod) {
   assert(Mod != nullptr);
+  ModulesToSlotTracker::updateMSTForModule(Mod);
   initInstructionIds();
 }
 
@@ -87,11 +90,19 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                                  bool DoPreprocessing) {
   assert(Mod != nullptr);
   auto *NonConst = Mod.get();
+  ModulesToSlotTracker::updateMSTForModule(Mod.get());
   this->Mod = std::move(Mod);
+
   if (DoPreprocessing) {
     preprocessModule(NonConst);
   } else {
     initInstructionIds();
+  }
+}
+
+LLVMProjectIRDB::~LLVMProjectIRDB() {
+  if (Mod) {
+    ModulesToSlotTracker::deleteMSTForModule(Mod.get());
   }
 }
 

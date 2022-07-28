@@ -24,7 +24,6 @@ enum class DataFlowAnalysisType {
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
 };
 
-class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMPointsToInfo;

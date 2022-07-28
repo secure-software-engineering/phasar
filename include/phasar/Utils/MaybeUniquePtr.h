@@ -131,6 +131,10 @@ public:
     return !(LHS == RHS);
   }
 
+  explicit operator bool() const noexcept {
+    return Data.getPointer() != nullptr;
+  }
+
 private:
   std::conditional_t<(alignof(T) > 1), llvm::PointerIntPair<T *, 1, bool>,
                      PointerBoolPairFallback>

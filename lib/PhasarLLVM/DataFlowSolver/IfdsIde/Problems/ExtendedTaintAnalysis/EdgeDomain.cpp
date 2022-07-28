@@ -7,6 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "llvm/IR/CFG.h"
+#include "llvm/IR/Type.h"
 #include "llvm/Support/raw_os_ostream.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"

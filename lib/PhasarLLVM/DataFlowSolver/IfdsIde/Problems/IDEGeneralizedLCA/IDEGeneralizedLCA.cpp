@@ -7,15 +7,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <sstream>
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/raw_ostream.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -25,13 +17,21 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
+
+
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 
@@ -42,7 +42,7 @@ inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>> flow(Fn Func) {
 }
 
 IDEGeneralizedLCA::IDEGeneralizedLCA(
-    const ProjectIRDB *IRDB,
+    const LLVMProjectIRDB *IRDB,
     const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
     const LLVMBasedICFG *ICF,
     PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
@@ -229,8 +229,7 @@ IDEGeneralizedLCA::initialSeeds() {
     std::set<IDEGeneralizedLCA::d_t> Globals;
     Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
                   getZeroValue(), bottomElement());
-    for (const auto &G :
-         IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
+    for (const auto &G : IRDB->getModule()->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer()) {
           if (llvm::isa<llvm::ConstantInt>(GV->getInitializer()) ||

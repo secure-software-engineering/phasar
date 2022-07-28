@@ -34,7 +34,7 @@ bool IDETaintAnalysis::setContainsStr(set<string> S, const string &Str) {
   return S.find(Str) != S.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
+IDETaintAnalysis::IDETaintAnalysis(const LLVMProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
                                    LLVMPointsToInfo *PT,

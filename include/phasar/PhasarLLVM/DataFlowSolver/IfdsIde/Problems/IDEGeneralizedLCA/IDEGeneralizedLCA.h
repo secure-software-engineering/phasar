@@ -15,10 +15,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 
 namespace psr {
@@ -60,7 +59,7 @@ public:
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
 
   IDEGeneralizedLCA(
-      const ProjectIRDB *IRDB,
+      const LLVMProjectIRDB *IRDB,
       const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
       const LLVMBasedICFG *ICF,
       PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,

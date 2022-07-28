@@ -243,15 +243,11 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F);
 llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
 
 class ModulesToSlotTracker {
-  friend class ProjectIRDB;
+  friend class LLVMProjectIRDB;
   friend class LLVMBasedICFG;
   friend class LLVMZeroValue;
 
 private:
-  static inline llvm::SmallDenseMap<const llvm::Module *,
-                                    std::unique_ptr<llvm::ModuleSlotTracker>, 2>
-      MToST{};
-
   static void updateMSTForModule(const llvm::Module *Module);
   static void deleteMSTForModule(const llvm::Module *Module);
 

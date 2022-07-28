@@ -17,20 +17,20 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 
+#include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/PhasarLLVM/Utils/Printer.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/Soundness.h"
+
 #include <set>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 
-#include "phasar/PhasarLLVM/Utils/Printer.h"
-#include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/Soundness.h"
-
 namespace psr {
 
 struct HasNoConfigurationType;
 
-class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
 template <typename N, typename F> class CFG;
@@ -47,15 +47,18 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using i_t = typename AnalysisDomainTy::i_t;
   using c_t = typename AnalysisDomainTy::c_t;
+  using db_t = typename AnalysisDomainTy::db_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
   static_assert(std::is_base_of_v<CFG<n_t, f_t>, c_t>,
                 "c_t must implement the CFG interface!");
+  static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                "db_t must implement the ProjectIRDBBase interface!");
 
   using ProblemAnalysisDomain = AnalysisDomainTy;
 
 protected:
-  const ProjectIRDB *IRDB;
+  const db_t *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
   const c_t *CF;
   const PointsToInfo<v_t, n_t> *PT;
@@ -67,7 +70,7 @@ public:
   // a user problem can override the type of configuration to be used, if any
   using ConfigurationTy = HasNoConfigurationType;
 
-  IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+  IntraMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
                    const c_t *CF, const PointsToInfo<v_t, n_t> *PT,
                    std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
@@ -91,7 +94,7 @@ public:
     return EntryPoints;
   }
 
-  [[nodiscard]] const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const db_t *getProjectIRDB() const { return IRDB; }
 
   [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
     return TH;

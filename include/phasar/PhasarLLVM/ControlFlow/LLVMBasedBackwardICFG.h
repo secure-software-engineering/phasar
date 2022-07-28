@@ -37,7 +37,6 @@ class BitCastInst;
 namespace psr {
 
 class Resolver;
-class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMPointsToGraph;
 

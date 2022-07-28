@@ -17,17 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
+#include <set>
+#include <string>
+#include <vector>
 
 namespace psr {
 

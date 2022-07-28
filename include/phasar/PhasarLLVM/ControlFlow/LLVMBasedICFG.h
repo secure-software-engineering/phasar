@@ -17,14 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
-#include <iosfwd>
-#include <memory>
-#include <set>
-#include <stack>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/Utils/Soundness.h"
 
 #include "boost/container/flat_set.hpp"
 #include "boost/graph/adjacency_list.hpp"
@@ -36,9 +31,12 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/Utils/Soundness.h"
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace llvm {
 class Instruction;
@@ -135,30 +133,7 @@ private:
 
   template <typename MapTy>
   static void insertGlobalCtorsDtorsImpl(MapTy &Into, const llvm::Module *M,
-                                         llvm::StringRef Fun) {
-    const auto *Gtors = M->getGlobalVariable(Fun);
-    if (Gtors == nullptr) {
-      return;
-    }
-
-    if (const auto *FunArray = llvm::dyn_cast<llvm::ArrayType>(
-            Gtors->getType()->getPointerElementType())) {
-      if (const auto *ConstFunArray =
-              llvm::dyn_cast<llvm::ConstantArray>(Gtors->getInitializer())) {
-        for (const auto &Op : ConstFunArray->operands()) {
-          if (const auto *FunDesc = llvm::dyn_cast<llvm::ConstantStruct>(Op)) {
-            auto *Fun = llvm::dyn_cast<llvm::Function>(FunDesc->getOperand(1));
-            const auto *Prio =
-                llvm::dyn_cast<llvm::ConstantInt>(FunDesc->getOperand(0));
-            if (Fun && Prio) {
-              auto PrioInt = size_t(Prio->getLimitedValue(SIZE_MAX));
-              Into.emplace(PrioInt, Fun);
-            }
-          }
-        }
-      }
-    }
-  }
+                                         llvm::StringRef Fun);
 
   llvm::Function *buildCRuntimeGlobalDtorsModel(llvm::Module &M);
   const llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M);
