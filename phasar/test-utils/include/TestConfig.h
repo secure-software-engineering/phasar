@@ -7,15 +7,6 @@
 
 namespace psr::unittest {
 
-inline const std::string PathToLLTestFiles(PhasarConfig::PhasarDirectory() +
-                                           "build/test/llvm_test_code/");
-
-inline const std::string PathToTxtTestFiles(PhasarConfig::PhasarDirectory() +
-                                            "build/test/text_test_code/");
-
-inline const std::string PathToJSONTestFiles(PhasarConfig::PhasarDirectory() +
-                                             "test/json_test_code/");
-
 // Remove wrapped tests in case GTEST_SKIP is not available. This is needed as
 // LLVM currently ships with an older version of gtest (<1.10.0) that does not
 // support GTEST_SKIP. TODO: Remove this macro after LLVM updated their gtest.

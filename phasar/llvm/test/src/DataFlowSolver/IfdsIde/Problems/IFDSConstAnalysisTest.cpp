@@ -99,35 +99,35 @@ TEST_F(IFDSConstAnalysisTest, HandleBasicTest_04) {
 
 /* ============== CONTROL FLOW TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleCFForTest_01) {
-  initialize({PathToLlFiles + "control_flow/cf_for_01.dbg.ll"});
+  initialize({PathToLlFiles + "control_flow/cf_for_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCFForTest_02) {
-  initialize({PathToLlFiles + "control_flow/cf_for_02.dbg.ll"});
+  initialize({PathToLlFiles + "control_flow/cf_for_02.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({1}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCFIfTest_01) {
-  initialize({PathToLlFiles + "control_flow/cf_if_01.dbg.ll"});
+  initialize({PathToLlFiles + "control_flow/cf_if_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({1}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCFIfTest_02) {
-  initialize({PathToLlFiles + "control_flow/cf_if_02.dbg.ll"});
+  initialize({PathToLlFiles + "control_flow/cf_if_02.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCFWhileTest_01) {
-  initialize({PathToLlFiles + "control_flow/cf_while_01.dbg.ll"});
+  initialize({PathToLlFiles + "control_flow/cf_while_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({1}, Llvmconstsolver);
@@ -158,7 +158,7 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandlePointerTest_03) {
 }
 
 TEST_F(IFDSConstAnalysisTest, HandlePointerTest_04) {
-  initialize({PathToLlFiles + "pointer/pointer_04.dbg.ll"});
+  initialize({PathToLlFiles + "pointer/pointer_04.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({4}, Llvmconstsolver);
@@ -166,21 +166,21 @@ TEST_F(IFDSConstAnalysisTest, HandlePointerTest_04) {
 
 /* ============== GLOBAL TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_01) {
-  initialize({PathToLlFiles + "global/global_01.dbg.ll"});
+  initialize({PathToLlFiles + "global/global_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_02) {
-  initialize({PathToLlFiles + "global/global_02.dbg.ll"});
+  initialize({PathToLlFiles + "global/global_02.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0, 1}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
-  initialize({PathToLlFiles + "global/global_03.dbg.ll"});
+  initialize({PathToLlFiles + "global/global_03.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
 
@@ -199,21 +199,21 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleGlobalTest_04) {
 
 /* ============== CALL TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_01) {
-  initialize({PathToLlFiles + "call/param/call_param_01.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({5}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_02) {
-  initialize({PathToLlFiles + "call/param/call_param_02.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_02.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({5}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_03) {
-  initialize({PathToLlFiles + "call/param/call_param_03.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_03.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
@@ -222,7 +222,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_03) {
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCallParamTest_04) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
-  initialize({PathToLlFiles + "call/param/call_param_04.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_04.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
@@ -231,49 +231,49 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCallParamTest_04) {
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCallParamTest_05) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
-  initialize({PathToLlFiles + "call/param/call_param_05.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_05.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({2}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_06) {
-  initialize({PathToLlFiles + "call/param/call_param_06.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_06.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_07) {
-  initialize({PathToLlFiles + "call/param/call_param_07.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_07.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({6}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_08) {
-  initialize({PathToLlFiles + "call/param/call_param_08.dbg.ll"});
+  initialize({PathToLlFiles + "call/param/call_param_08.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({4}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_01) {
-  initialize({PathToLlFiles + "call/return/call_ret_01.dbg.ll"});
+  initialize({PathToLlFiles + "call/return/call_ret_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_02) {
-  initialize({PathToLlFiles + "call/return/call_ret_02.dbg.ll"});
+  initialize({PathToLlFiles + "call/return/call_ret_02.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_03) {
-  initialize({PathToLlFiles + "call/return/call_ret_03.dbg.ll"});
+  initialize({PathToLlFiles + "call/return/call_ret_03.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0}, Llvmconstsolver);
@@ -281,21 +281,21 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_03) {
 
 /* ============== ARRAY TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_01) {
-  initialize({PathToLlFiles + "array/array_01.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_02) {
-  initialize({PathToLlFiles + "array/array_02.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_02.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_03) {
-  initialize({PathToLlFiles + "array/array_03.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_03.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
@@ -304,21 +304,21 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_03) {
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleArrayTest_04) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
-  initialize({PathToLlFiles + "array/array_04.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_04.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_05) {
-  initialize({PathToLlFiles + "array/array_05.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_05.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({1}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
-  initialize({PathToLlFiles + "array/array_06.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_06.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   PT->print(llvm::errs());
@@ -328,21 +328,21 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleArrayTest_07) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
-  initialize({PathToLlFiles + "array/array_07.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_07.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_08) {
-  initialize({PathToLlFiles + "array/array_08.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_08.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
-  initialize({PathToLlFiles + "array/array_09.dbg.ll"});
+  initialize({PathToLlFiles + "array/array_09.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0}, Llvmconstsolver);
@@ -350,14 +350,14 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
 
 /* ============== STL ARRAY TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_01) {
-  initialize({PathToLlFiles + "array/stl_array/stl_array_01.dbg.ll"});
+  initialize({PathToLlFiles + "array/stl_array/stl_array_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
-  initialize({PathToLlFiles + "array/stl_array/stl_array_02.dbg.ll"});
+  initialize({PathToLlFiles + "array/stl_array/stl_array_02.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0, 1}, Llvmconstsolver);
@@ -367,7 +367,7 @@ PHASAR_SKIP_TEST(TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   // If we use libcxx this won't work since internal implementation is different
   LIBCPP_GTEST_SKIP;
 
-  initialize({PathToLlFiles + "array/stl_array/stl_array_03.dbg.ll"});
+  initialize({PathToLlFiles + "array/stl_array/stl_array_03.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({0, 1, 2}, Llvmconstsolver);
@@ -376,21 +376,21 @@ PHASAR_SKIP_TEST(TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
 TEST_F(IFDSConstAnalysisTest, DISABLED_HandleSTLArrayTest_04) {
   // Guaranteed to fail - enable, once we have more precise points-to
   // information
-  initialize({PathToLlFiles + "array/stl_array/stl_array_04.dbg.ll"});
+  initialize({PathToLlFiles + "array/stl_array/stl_array_04.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_05) {
-  initialize({PathToLlFiles + "array/stl_array/stl_array_05.dbg.ll"});
+  initialize({PathToLlFiles + "array/stl_array/stl_array_05.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_06) {
-  initialize({PathToLlFiles + "array/stl_array/stl_array_06.dbg.ll"});
+  initialize({PathToLlFiles + "array/stl_array/stl_array_06.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({2}, Llvmconstsolver);
@@ -398,7 +398,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_06) {
 
 /* ============== CSTRING TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleCStringTest_01) {
-  initialize({PathToLlFiles + "array/cstring/cstring_01.dbg.ll"});
+  initialize({PathToLlFiles + "array/cstring/cstring_01.m2r.dbg.ll"});
   IFDSSolver_P<IFDSConstAnalysis> Llvmconstsolver(*Constproblem);
   Llvmconstsolver.solve();
   compareResults({}, Llvmconstsolver);

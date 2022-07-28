@@ -35,7 +35,7 @@ using MapTy = llvm::DenseMap<const llvm::Function *,
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
   const std::string PathToLLFiles = "llvm_test_code/";
-  const std::string &PathToJSONFiles = unittest::PathToJSONTestFiles;
+  const std::string PathToJSONFiles = "json_test_code/";
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
 

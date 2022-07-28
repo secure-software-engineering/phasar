@@ -537,7 +537,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_03) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 17, "GlobalFeature", {"0", "1"}));
-  doAnalysisAndCompareResults("global_03.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("global_03.o1.ll", GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
@@ -557,7 +557,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "_Z7doStuffi", 2, "GlobalFeature", {"0", "3"}));
-  doAnalysisAndCompareResults("global_04.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("global_04.o1.ll", GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
