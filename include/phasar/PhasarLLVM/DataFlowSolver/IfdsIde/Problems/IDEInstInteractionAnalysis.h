@@ -628,19 +628,18 @@ public:
         Seeds.addSeed(&EntryPointFun->front().front(), &Arg, BottomElement);
       }
       // Generate all global variables using generalized initial seeds
-      for (const auto *M : this->IRDB->getAllModules()) {
-        for (const auto &G : M->globals()) {
-          if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-            l_t InitialValues = BitVectorSet<e_t>();
-            std::set<e_t> EdgeFacts;
-            if (EdgeFactGen) {
-              EdgeFacts = EdgeFactGen(GV);
-              // fill BitVectorSet
-              InitialValues =
-                  BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-            }
-            Seeds.addSeed(&EntryPointFun->front().front(), GV, InitialValues);
+
+      for (const auto &G : this->IRDB->getModule()->globals()) {
+        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+          l_t InitialValues = BitVectorSet<e_t>();
+          std::set<e_t> EdgeFacts;
+          if (EdgeFactGen) {
+            EdgeFacts = EdgeFactGen(GV);
+            // fill BitVectorSet
+            InitialValues =
+                BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
           }
+          Seeds.addSeed(&EntryPointFun->front().front(), GV, InitialValues);
         }
       }
     }

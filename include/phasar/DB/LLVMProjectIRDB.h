@@ -19,6 +19,7 @@
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/ErrorOr.h"
 
 #include <memory>
 
@@ -37,7 +38,7 @@ class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
 
 public:
   /// Reads and parses the  given LLVM IR file and owns the resolting IR Module
-  explicit LLVMProjectIRDB(llvm::StringRef IRFileName);
+  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is not being preprocessed.
   ///
@@ -53,6 +54,10 @@ public:
   LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;
 
   ~LLVMProjectIRDB();
+
+  [[nodiscard]] static std::unique_ptr<llvm::Module>
+  getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
+                          llvm::LLVMContext &Ctx) noexcept;
 
   /// Also use the const overload
   using ProjectIRDBBase::getFunction;

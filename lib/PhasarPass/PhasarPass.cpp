@@ -7,12 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Pass.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
-
+#include "phasar/PhasarPass/PhasarPass.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -43,8 +38,13 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarPass/Options.h"
-#include "phasar/PhasarPass/PhasarPass.h"
 #include "phasar/Utils/EnumFlags.h"
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Pass.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 
@@ -54,7 +54,7 @@ llvm::StringRef PhasarPass::getPassName() const { return "PhasarPass"; }
 
 bool PhasarPass::runOnModule(llvm::Module &M) {
   // set up the IRDB
-  ProjectIRDB DB({&M}, IRDBOptions::WPA);
+  LLVMProjectIRDB DB(&M);
   std::set<std::string> EntryPointsSet;
   // check if the requested entry points exist
   for (const std::string &EP : EntryPoints) {

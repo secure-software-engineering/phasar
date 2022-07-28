@@ -3,6 +3,7 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
@@ -13,21 +14,11 @@
 
 namespace psr {
 
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::StringRef IRFileName) {
-  llvm::SMDiagnostic Diag;
-  std::unique_ptr<llvm::Module> M = llvm::parseIRFile(IRFileName, Diag, Ctx);
-  bool BrokenDebugInfo = false;
-  if (M == nullptr) {
-    Diag.print(nullptr, llvm::errs());
-    return;
-  }
-  /* Crash in presence of llvm-3.9.1 module (segfault) */
-  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
-    PHASAR_LOG_LEVEL(ERROR, IRFileName << " could not be parsed correctly!");
-    return;
-  }
-  if (BrokenDebugInfo) {
-    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
+LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName) {
+
+  std::unique_ptr<llvm::Module> M = getParsedIRModuleOrNull(IRFileName, Ctx);
+
+  if (!M) {
     return;
   }
 
@@ -104,6 +95,29 @@ LLVMProjectIRDB::~LLVMProjectIRDB() {
   if (Mod) {
     ModulesToSlotTracker::deleteMSTForModule(Mod.get());
   }
+}
+
+std::unique_ptr<llvm::Module>
+LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
+                                         llvm::LLVMContext &Ctx) noexcept {
+  llvm::SMDiagnostic Diag;
+  llvm::SmallString<256> Buf;
+  std::unique_ptr<llvm::Module> M =
+      llvm::parseIRFile(IRFileName.toStringRef(Buf), Diag, Ctx);
+  bool BrokenDebugInfo = false;
+  if (M == nullptr) {
+    Diag.print(nullptr, llvm::errs());
+    return nullptr;
+  }
+  /* Crash in presence of llvm-3.9.1 module (segfault) */
+  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
+    PHASAR_LOG_LEVEL(ERROR, IRFileName << " could not be parsed correctly!");
+    return nullptr;
+  }
+  if (BrokenDebugInfo) {
+    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
+  }
+  return M;
 }
 
 static llvm::Function *

@@ -1,21 +1,7 @@
 #include "gtest/gtest.h"
 
-#include <algorithm>
-#include <fstream>
-#include <iomanip>
-#include <string>
-#include <vector>
-
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "nlohmann/json.hpp"
-
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
@@ -25,6 +11,21 @@
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "nlohmann/json.hpp"
+
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <string>
+#include <vector>
 
 #include "TestConfig.h"
 
@@ -41,7 +42,7 @@ protected:
 
   nlohmann::json exportICFG(const std::string &TestFile,
                             bool AsSrcCode = false) {
-    ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
@@ -56,7 +57,7 @@ protected:
   nlohmann::json exportCFGFor(const std::string &TestFile,
                               const std::string &FunctionName,
                               bool AsSrcCode = false) {
-    ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
     LLVMBasedCFG CFG;
 
     const auto *F = IRDB.getFunction(FunctionName);
@@ -177,11 +178,11 @@ protected:
 
   void verifyExportICFG(const std::string &TestFile,
                         bool WithDebugOutput = false) {
-    ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
-    std::cerr << "ModuleRef: " << IRDB.getWPAModule() << "\n";
+    std::cerr << "ModuleRef: " << IRDB.getModule() << "\n";
 
     verifyIRJson(ICFG.exportICFGAsJson(), ICFG, WithDebugOutput);
   }

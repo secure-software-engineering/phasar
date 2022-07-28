@@ -7,11 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <memory>
-
-#include "gtest/gtest.h"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
@@ -19,6 +15,10 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
+#include "gtest/gtest.h"
+
+#include <memory>
 
 #include "TestConfig.h"
 
@@ -32,7 +32,7 @@ protected:
       unittest::PathToLLTestFiles + "typestate_analysis_fileio/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
   unique_ptr<LLVMPointsToInfo> PT;
@@ -50,8 +50,8 @@ protected:
   IDETSAnalysisFileIOTest() = default;
   ~IDETSAnalysisFileIOTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  void initialize(const llvm::Twine &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
     ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,

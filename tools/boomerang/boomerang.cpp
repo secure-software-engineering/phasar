@@ -7,9 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <filesystem>
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/SyncPDS/Solver/SyncPDSSolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -17,6 +15,8 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/Support/raw_ostream.h"
+
+#include <filesystem>
 
 using namespace psr;
 
@@ -27,11 +27,11 @@ int main(int Argc, char **Argv) {
     llvm::errs() << "use programs in build/test/llvm_test_code/pointers/\n";
     return 1;
   }
-  ProjectIRDB DB({Argv[1]}, IRDBOptions::WPA);
+  LLVMProjectIRDB DB(Argv[1]);
   LLVMTypeHierarchy H(DB);
   LLVMPointsToSet P(DB);
   LLVMBasedICFG ICFG(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
-  for (auto &F : *DB.getWPAModule()) {
+  for (auto &F : *DB.getModule()) {
     if (F.isDeclaration()) {
       continue;
     }

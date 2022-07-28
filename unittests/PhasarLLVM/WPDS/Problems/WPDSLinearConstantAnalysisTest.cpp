@@ -1,7 +1,7 @@
 // to use unique_ptr
 #include <memory>
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h"
@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
+#include "llvm/ADT/Twine.h"
 #include "gtest/gtest.h"
 
 using namespace std;
@@ -23,7 +24,7 @@ protected:
       "build/test/llvm_test_code/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMPointsToInfo> PT;
   unique_ptr<LLVMBasedICFG> ICFG;
@@ -32,8 +33,8 @@ protected:
   WPDSLinearConstantAnalysisTest() = default;
   ~WPDSLinearConstantAnalysisTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  void initialize(const llvm::Twine &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
     ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,

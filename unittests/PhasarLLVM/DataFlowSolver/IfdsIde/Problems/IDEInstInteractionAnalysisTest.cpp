@@ -7,20 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
-#include <variant>
-
-#include "gtest/gtest.h"
-
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/Instruction.h"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -28,6 +17,17 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+
+#include "gtest/gtest.h"
+
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Instruction.h"
+
+#include <memory>
+#include <set>
+#include <string>
+#include <tuple>
+#include <variant>
 
 #include "TestConfig.h"
 
@@ -45,19 +45,19 @@ protected:
       std::tuple<std::string, std::size_t, std::string,
                  IDEInstInteractionAnalysisT<std::string, true>::l_t>;
 
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
 
   //   IDEInstInteractionAnalysis::lca_restults_t
   void
-  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+  doAnalysisAndCompareResults(llvm::StringRef LlvmFilePath,
                               const std::set<IIACompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(llvm::outs(), false);
+      IRDB->dump();
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);

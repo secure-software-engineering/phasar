@@ -7,11 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <filesystem>
-
-// #include "phasar/Controller/AnalysisExecutor.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Logger.h"
+
+#include <filesystem>
 
 using namespace psr;
 
@@ -22,7 +21,7 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
   Logger::initializeStderrLogger(DEBUG);
-  ProjectIRDB DB({Argv[1]}, IRDBOptions::WPA);
+  LLVMProjectIRDB DB(Argv[1]);
   if (DB.getFunction("main")) {
   } else {
     llvm::errs() << "error: file does not contain a 'main' function!\n";

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -13,9 +13,8 @@ using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_9_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/virtual_call_9_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
@@ -40,9 +39,8 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
 }
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_3_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/virtual_call_3_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
@@ -61,9 +59,8 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
 }
 
 TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_13_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_13_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);

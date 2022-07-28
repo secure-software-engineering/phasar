@@ -7,21 +7,20 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/Controller/AnalysisController.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/ErrorHandling.h"
+
 #include <cassert>
 #include <filesystem>
 #include <functional>
 #include <set>
 #include <utility>
-
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/ErrorHandling.h"
-
-#include "phasar/Controller/AnalysisController.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
-#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
@@ -49,7 +48,7 @@ bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
 }
 
 AnalysisController::AnalysisController(
-    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+    LLVMProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
     CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
     bool AutoGlobalSupport, const std::set<std::string> &EntryPoints,
@@ -184,10 +183,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-preprocess-ir.ll")) {
-        IRDB.emitPreprocessedIR(*OFS);
+        *OFS << *IRDB.getModule();
       }
     } else {
-      IRDB.emitPreprocessedIR();
+      IRDB.dump();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {

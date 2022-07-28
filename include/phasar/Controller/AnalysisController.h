@@ -10,11 +10,7 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
-#include <set>
-#include <string>
-#include <vector>
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -30,6 +26,10 @@
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Soundness.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace psr {
 
@@ -53,7 +53,7 @@ enum class AnalysisControllerEmitterOptions : uint32_t {
 
 class AnalysisController {
 private:
-  ProjectIRDB &IRDB;
+  LLVMProjectIRDB &IRDB;
   LLVMTypeHierarchy TH;
   LLVMPointsToSet PT;
   LLVMBasedICFG ICF;
@@ -187,7 +187,7 @@ private:
   }
 
 public:
-  AnalysisController(ProjectIRDB &IRDB,
+  AnalysisController(LLVMProjectIRDB &IRDB,
                      std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,

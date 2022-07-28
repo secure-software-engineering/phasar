@@ -7,13 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <chrono>
-#include <filesystem>
-#include <set>
-#include <sstream>
-#include <string>
-#include <vector>
+#include "phasar/Config/Configuration.h"
+#include "phasar/Controller/AnalysisController.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Soundness.h"
 
 #include "boost/program_options.hpp"
 #include "boost/program_options/value_semantic.hpp"
@@ -22,12 +22,13 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Utils/IO.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Soundness.h"
+#include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <set>
+#include <string>
+#include <vector>
 
 using namespace psr;
 
@@ -65,20 +66,14 @@ void validateParamConfigFile(const std::string &Config) {
   }
 }
 
-void validateParamModule(const std::vector<std::string> &Modules) {
-  if (Modules.empty()) {
+void validateParamModule(const std::string &Module) {
+
+  std::filesystem::path ModulePath(Module);
+  if (!(std::filesystem::exists(ModulePath) &&
+        !std::filesystem::is_directory(ModulePath) &&
+        (ModulePath.extension() == ".ll" || ModulePath.extension() == ".bc"))) {
     throw boost::program_options::error_with_option_name(
-        "At least one LLVM target module is required!");
-  }
-  for (const auto &Module : Modules) {
-    std::filesystem::path ModulePath(Module);
-    if (!(std::filesystem::exists(ModulePath) &&
-          !std::filesystem::is_directory(ModulePath) &&
-          (ModulePath.extension() == ".ll" ||
-           ModulePath.extension() == ".bc"))) {
-      throw boost::program_options::error_with_option_name(
-          "LLVM module '" + Module + "' does not exist!");
-    }
+        "LLVM module '" + Module + "' does not exist!");
   }
 }
 
@@ -176,7 +171,7 @@ int main(int Argc, const char **Argv) {
       "Configuration file options");
   // clang-format off
     Config.add_options()
-			("module,m", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamModule), "Path to the module(s) under analysis")
+			("module,m", boost::program_options::value<std::string>()->notifier(&validateParamModule), "Path to the module(s) under analysis")
       ("entry-points,E", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->default_value(std::vector({std::string("main")})), "Set the entry point(s) to be used; use '__ALL__' to specify all available function definitions as entry points")
 			("data-flow-analysis,D", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()/*->notifier(&validateParamDataFlowAnalysis)*/, "Set the analysis to be run")
 			("analysis-strategy", boost::program_options::value<std::string>()->default_value("WPA")->notifier(&validateParamAnalysisStrategy))
@@ -309,16 +304,16 @@ int main(int Argc, const char **Argv) {
   bool EmitStats = PhasarConfig::VariablesMap().count("statistical-analysis");
 
   // setup IRDB as source code manager
-  ProjectIRDB IRDB(
-      PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
+  LLVMProjectIRDB IRDB(
+      PhasarConfig::VariablesMap()["module"].as<std::string>());
 
   if (EmitStats) {
-    llvm::outs() << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
+    llvm::outs() << "Module " << IRDB.getModule()->getName().str() << ":\n";
     llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
                  << "\n";
-    llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
-    llvm::outs() << "> global variables:\t"
-                 << IRDB.getWPAModule()->global_size() << "\n";
+    llvm::outs() << "> functions:\t\t" << IRDB.getModule()->size() << "\n";
+    llvm::outs() << "> global variables:\t" << IRDB.getModule()->global_size()
+                 << "\n";
   }
 
   // store enabled data-flow analyses
