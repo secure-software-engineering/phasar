@@ -57,8 +57,3 @@ TEST(LatticeDomain, innerLatticeTypeShouldBeLessThanBottom) {
   EXPECT_TRUE(LD1 < LD2);
   EXPECT_FALSE(LD2 < LD1);
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

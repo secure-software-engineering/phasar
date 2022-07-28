@@ -149,8 +149,3 @@ protected:
 //           "main", 9, "i", 5));
 //   doAnalysisAndCompareResults("advanced_03_cpp.ll", GroundTruth, true);
 // }
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

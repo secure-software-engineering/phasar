@@ -8,7 +8,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
-#include "../TestUtils/TestConfig.h"
+#include "TestConfig.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
@@ -465,8 +465,3 @@ TEST_F(TaintConfigTest, StaticFun_02_Json) {
 
 //===----------------------------------------------------------------------===//
 // The unit tests' entry point
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

@@ -760,10 +760,3 @@ PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
 })
 
 } // namespace psr
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  auto Res = RUN_ALL_TESTS();
-  llvm::llvm_shutdown();
-  return Res;
-}

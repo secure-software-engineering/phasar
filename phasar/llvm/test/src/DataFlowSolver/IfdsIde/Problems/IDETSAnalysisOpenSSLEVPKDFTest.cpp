@@ -339,9 +339,3 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation8) {
              {"159", OpenSSLEVPKeyDerivationState::UNINIT}};
   compareResults(Gt);
 }
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

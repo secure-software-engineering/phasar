@@ -258,8 +258,3 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   GroundTruth[62] = set<string>{"61"};
   compareResults(GroundTruth);
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

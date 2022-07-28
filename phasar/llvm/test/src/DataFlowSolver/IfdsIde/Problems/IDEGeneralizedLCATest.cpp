@@ -195,8 +195,3 @@ TEST_F(IDEGeneralizedLCATest, NullTest) {
   GroundTruth.push_back({{EdgeValue("")}, 4, 5}); // foo(null)
   compareResults(GroundTruth);
 }
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

@@ -121,8 +121,3 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
   ASSERT_EQ(Callees.size(), 1U);
   ASSERT_EQ(Callees.count(Foo), 1U);
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

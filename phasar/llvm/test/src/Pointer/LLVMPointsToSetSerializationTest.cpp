@@ -114,8 +114,3 @@ TEST(LLVMPointsToSetSerializationTest, Ser_Global01) {
            {"_GLOBAL__sub_I_global_01.cpp", "_Z3fooPi", "__cxx_global_var_init",
             "main"}});
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

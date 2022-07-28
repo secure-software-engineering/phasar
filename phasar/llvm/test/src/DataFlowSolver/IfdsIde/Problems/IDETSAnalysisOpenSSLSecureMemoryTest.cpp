@@ -176,9 +176,3 @@ TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory5) {
             {"30", OpenSSLSecureMemoryState::ERROR}};
   compareResults(Gt);
 }
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

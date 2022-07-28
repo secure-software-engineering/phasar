@@ -407,8 +407,3 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_4) {
   ASSERT_TRUE(VertFuns.find(BeforeMain) != boost::end(VertFuns));
   ASSERT_TRUE(VertFuns.find(AfterMain) != boost::end(VertFuns));
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

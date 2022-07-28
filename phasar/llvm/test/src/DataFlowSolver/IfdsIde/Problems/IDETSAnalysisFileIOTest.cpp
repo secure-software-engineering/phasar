@@ -536,9 +536,3 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
       {25, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
 }
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

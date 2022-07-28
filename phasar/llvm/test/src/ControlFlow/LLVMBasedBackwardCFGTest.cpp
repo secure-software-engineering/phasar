@@ -128,8 +128,3 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   Successor.clear();
   ASSERT_EQ(SuccsOfInst, Successor);
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

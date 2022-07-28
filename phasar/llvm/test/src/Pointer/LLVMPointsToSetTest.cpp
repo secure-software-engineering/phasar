@@ -61,8 +61,3 @@ TEST(LLVMPointsToSet, Global_01) {
   PTS.print(llvm::outs());
   llvm::outs() << '\n';
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

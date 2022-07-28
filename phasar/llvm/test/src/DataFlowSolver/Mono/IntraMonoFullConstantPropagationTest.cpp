@@ -150,8 +150,3 @@ TEST_F(IntraMonoFullConstantPropagationTest, BasicTest_06) {
   doAnalysisAndCompareResults("full_constant/basic_06_cpp.ll", GroundTruth,
                               true);
 }
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

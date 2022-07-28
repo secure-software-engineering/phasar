@@ -521,9 +521,3 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCStringTest_02) {
 //  llvmconstsolver.solve();
 //  compareResults({0}, llvmconstsolver);
 //}
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

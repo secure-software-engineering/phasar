@@ -118,9 +118,3 @@ TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctionsThreaded) {
       TestEdgeFunction::getTestCacheData().DataMutex);
   EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1U);
 }
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

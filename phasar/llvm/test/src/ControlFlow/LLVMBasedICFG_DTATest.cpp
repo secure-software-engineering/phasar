@@ -60,8 +60,3 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
   ASSERT_EQ(Callers.size(), 1U);
   ASSERT_TRUE(Callers.count(I));
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

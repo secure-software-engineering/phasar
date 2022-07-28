@@ -99,9 +99,3 @@ TEST(EdgeFunctionComposerTest, HandleEFComposition) {
   EXPECT_EQ(12, Result);
   EXPECT_FALSE(AddEF1->equal_to(AddEF2));
 }
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

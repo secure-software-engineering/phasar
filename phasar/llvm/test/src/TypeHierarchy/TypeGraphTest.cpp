@@ -409,10 +409,3 @@ TEST(TypeGraphTest, TypeAggregation) {
   ASSERT_TRUE(Tg.G[VertexE].Types.size() == 4);
 }
 } // namespace psr
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  auto Res = RUN_ALL_TESTS();
-  llvm::llvm_shutdown();
-  return Res;
-}

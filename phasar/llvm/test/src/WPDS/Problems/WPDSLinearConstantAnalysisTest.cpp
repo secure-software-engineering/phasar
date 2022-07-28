@@ -266,9 +266,3 @@ protected:
 //       {"main.0", LCAProblem->bottomElement()}};
 //   compareResults(gt, llvmlcasolver);
 // }
-
-// main function for the test case
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

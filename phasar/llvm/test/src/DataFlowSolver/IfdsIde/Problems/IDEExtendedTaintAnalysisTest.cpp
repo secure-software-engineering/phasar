@@ -356,8 +356,3 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
   doAnalysis({PathToLLFiles + "xtaint21_cpp.ll"}, Gt,
              CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

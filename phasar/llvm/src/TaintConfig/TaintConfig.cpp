@@ -41,7 +41,7 @@
 
 namespace {
 const nlohmann::json TaintConfigSchema =
-#include "../config/TaintConfigSchema.json"
+#include "config/TaintConfigSchema.json"
     ;
 } // anonymous namespace
 

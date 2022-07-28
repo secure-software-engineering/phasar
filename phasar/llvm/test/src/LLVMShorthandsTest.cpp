@@ -42,8 +42,3 @@ TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
   ASSERT_EQ(getNthTermInstruction(F, 4), I);
   ASSERT_EQ(getNthTermInstruction(F, 5), nullptr);
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

@@ -395,8 +395,3 @@ TEST(InterMonoTaintAnalysisTestNF, TaintTest_05) {
 //   compareResults(Leaks, GroundTruth);
 // }
 // ***********************************************************/
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

@@ -307,8 +307,3 @@ TEST_F(LLVMBasedICFGExportTest, ExportCFG01) {
 }
 
 } // namespace psr
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

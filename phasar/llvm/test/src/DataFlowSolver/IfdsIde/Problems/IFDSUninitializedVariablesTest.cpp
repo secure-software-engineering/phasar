@@ -382,7 +382,3 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
   // 37 => {17}; actual leak
   compareResults(GroundTruth);
 }
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

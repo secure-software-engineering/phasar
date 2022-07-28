@@ -111,8 +111,3 @@ TEST(LLVMBasedICFG_CHATest, VirtualCallSite_7) {
     ASSERT_TRUE(Callees.count(VfuncA));
   }
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

@@ -140,8 +140,3 @@ TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory7) {
             {"29", OpenSSLSecureHeapState::FREED}};
   compareResults(Gt);
 }
-
-int main(int Argc, char *Argv[]) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

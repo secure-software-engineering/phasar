@@ -84,8 +84,3 @@ TEST_F(IntraMonoUninitVariablesTest, Basic_02) {
   GroundTruth.insert({17, {"%a", "%b"}});
   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
 }
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

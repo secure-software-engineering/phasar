@@ -660,9 +660,3 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
           "main", 10, "x", {"1", "4", "5", "13"}));
   doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, false);
 }
-
-// main function for the test case/*  */
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

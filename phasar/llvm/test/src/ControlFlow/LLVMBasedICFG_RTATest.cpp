@@ -80,8 +80,3 @@ TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
     ASSERT_EQ(Callees.size(), 1U);
   }
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}

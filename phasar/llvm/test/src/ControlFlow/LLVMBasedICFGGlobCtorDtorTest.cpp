@@ -374,8 +374,3 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
   // EXPECT_EQ(43, Solver.resultAt(BeforeDtorPrintF, Foo));
 }
-
-int main(int Argc, char **Argv) {
-  ::testing::InitGoogleTest(&Argc, Argv);
-  return RUN_ALL_TESTS();
-}
