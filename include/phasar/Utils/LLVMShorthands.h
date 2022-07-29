@@ -248,6 +248,7 @@ class ModulesToSlotTracker {
   friend class LLVMZeroValue;
 
 private:
+  static void setMSTForModule(const llvm::Module *Module);
   static void updateMSTForModule(const llvm::Module *Module);
   static void deleteMSTForModule(const llvm::Module *Module);
 

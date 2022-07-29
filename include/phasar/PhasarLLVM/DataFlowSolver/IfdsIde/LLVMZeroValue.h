@@ -20,11 +20,7 @@
 #include <memory>
 
 #include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Support/Alignment.h"
 
 namespace llvm {
 class Value;
@@ -58,15 +54,7 @@ public:
   }
 
   // Do not specify a destructor (at all)!
-  static const LLVMZeroValue *getInstance() {
-    auto GetZeroMod = [] {
-      static llvm::LLVMContext Ctx;
-      static llvm::Module Mod("zero_module", Ctx);
-      return &Mod;
-    };
-    static std::unique_ptr<LLVMZeroValue> ZV(new LLVMZeroValue(*GetZeroMod()));
-    return ZV.get();
-  }
+  static const LLVMZeroValue *getInstance();
 };
 } // namespace psr
 

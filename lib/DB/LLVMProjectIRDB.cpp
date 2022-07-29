@@ -24,22 +24,29 @@ LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName) {
 
   auto *NonConst = M.get();
   Mod = std::move(M);
-  ModulesToSlotTracker::updateMSTForModule(Mod.get());
+  ModulesToSlotTracker::setMSTForModule(Mod.get());
   preprocessModule(NonConst);
 }
 
 void LLVMProjectIRDB::initInstructionIds() {
   assert(Mod != nullptr);
-  size_t Offset = Mod->global_size();
+  size_t Id = 0;
+  for (auto &Global : Mod->globals()) {
+    IdToInst.push_back(&Global);
+    InstToId.try_emplace(&Global, Id);
 
-  for (const auto &Fun : *Mod) {
-    for (const auto &Inst : llvm::instructions(Fun)) {
-      InstToId.try_emplace(&Inst, Offset + IdToInst.size());
+    ++Id;
+  }
+  IdOffset = Id;
+
+  for (auto &Fun : *Mod) {
+    for (auto &Inst : llvm::instructions(Fun)) {
       IdToInst.push_back(&Inst);
+      InstToId.try_emplace(&Inst, Id);
+
+      ++Id;
     }
   }
-
-  IdOffset = Offset;
 
   assert(InstToId.size() == IdToInst.size());
 }
@@ -52,6 +59,9 @@ void LLVMProjectIRDB::preprocessModule(llvm::Module *NonConstMod) {
     llvm::MDNode *Node = llvm::MDNode::get(
         Context, llvm::MDString::get(Context, std::to_string(Id)));
     Global.setMetadata(PhasarConfig::MetaDataKind(), Node);
+
+    IdToInst.push_back(&Global);
+    InstToId.try_emplace(&Global, Id);
 
     ++Id;
   }
@@ -69,11 +79,12 @@ void LLVMProjectIRDB::preprocessModule(llvm::Module *NonConstMod) {
       ++Id;
     }
   }
+  assert(InstToId.size() == IdToInst.size());
 }
 
 LLVMProjectIRDB::LLVMProjectIRDB(llvm::Module *Mod) : Mod(Mod) {
   assert(Mod != nullptr);
-  ModulesToSlotTracker::updateMSTForModule(Mod);
+  ModulesToSlotTracker::setMSTForModule(Mod);
   initInstructionIds();
 }
 
@@ -81,7 +92,7 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                                  bool DoPreprocessing) {
   assert(Mod != nullptr);
   auto *NonConst = Mod.get();
-  ModulesToSlotTracker::updateMSTForModule(Mod.get());
+  ModulesToSlotTracker::setMSTForModule(Mod.get());
   this->Mod = std::move(Mod);
 
   if (DoPreprocessing) {

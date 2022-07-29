@@ -77,6 +77,10 @@ public:
   /// Non-const overload
   [[nodiscard]] llvm::Module *getModule() { return Mod.get(); }
 
+  [[nodiscard]] const llvm::Value *getValueFromId(size_t Id) const noexcept {
+    return Id < IdToInst.size() ? IdToInst[Id] : nullptr;
+  }
+
 private:
   [[nodiscard]] m_t getModuleImpl() const noexcept { return Mod.get(); }
   [[nodiscard]] bool debugInfoAvailableImpl() const;
@@ -102,9 +106,12 @@ private:
   }
 
   [[nodiscard]] n_t getInstructionImpl(size_t Id) const noexcept {
-    assert(Id < IdToInst.size());
-    return IdToInst[Id];
+    if (Id - IdOffset < IdToInst.size() - IdOffset) {
+      return llvm::cast<llvm::Instruction>(IdToInst[Id]);
+    }
+    return n_t{};
   }
+
   [[nodiscard]] size_t getInstructionIdImpl(n_t Inst) const {
     auto It = InstToId.find(Inst);
     assert(It != InstToId.end());
@@ -122,8 +129,8 @@ private:
   llvm::LLVMContext Ctx;
   MaybeUniquePtr<llvm::Module> Mod = nullptr;
   size_t IdOffset = 0;
-  llvm::SmallVector<const llvm::Instruction *, 0> IdToInst;
-  llvm::DenseMap<const llvm::Instruction *, size_t> InstToId;
+  llvm::SmallVector<const llvm::Value *, 0> IdToInst;
+  llvm::DenseMap<const llvm::Value *, size_t> InstToId;
 };
 } // namespace psr
 

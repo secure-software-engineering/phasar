@@ -17,6 +17,7 @@
 #include <cctype>
 #include <charconv>
 #include <cstdlib>
+#include <memory>
 #include <optional>
 #include <system_error>
 
@@ -266,14 +267,14 @@ const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
       return Num;
     }
 
-    PHASAR_LOG_LEVEL(WARNING, "Invalid metadata id '"
-                                  << Str.str() << "': "
-                                  << std::make_error_code(EC).message());
+    PHASAR_LOG_LEVEL(WARNING,
+                     "Invalid metadata id '"
+                         << Str << "': " << std::make_error_code(EC).message());
     return std::nullopt;
   };
 
   if (auto Dot = Id.find('.'); Dot != llvm::StringRef::npos) {
-    auto FName = Id.slice(0, Dot);
+    auto FName = Id.take_front(Dot);
 
     auto ArgNr = ParseInt(Id.drop_front(Dot + 1));
 
@@ -290,7 +291,7 @@ const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
   }
 
   auto IdNr = ParseInt(Id);
-  return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
+  return IdNr ? IRDB.getValueFromId(*IdNr) : nullptr;
 }
 
 bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,
@@ -526,7 +527,7 @@ ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
   return *Ret;
 }
 
-void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *M) {
+void ModulesToSlotTracker::setMSTForModule(const llvm::Module *M) {
   auto [It, Inserted] = MToST.try_emplace(M, nullptr);
   if (!Inserted) {
     llvm::report_fatal_error(
@@ -536,6 +537,18 @@ void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *M) {
   }
   It->second = std::make_unique<llvm::ModuleSlotTracker>(M);
 }
+
+void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *Module) {
+  auto It = MToST.find(Module);
+  if (It == MToST.end()) {
+    llvm::report_fatal_error(
+        "Can only update an existing ModuleSlotTracker. There is no MST "
+        "registered for the current module!");
+  }
+  std::destroy_at(It->second.get());
+  new (It->second.get()) llvm::ModuleSlotTracker(Module);
+}
+
 void ModulesToSlotTracker::deleteMSTForModule(const llvm::Module *M) {
   MToST.erase(M);
 }

@@ -1,4 +1,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/Utils/LLVMShorthands.h"
+
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Module.h"
 
 namespace psr {
 LLVMZeroValue::LLVMZeroValue(llvm::Module &Mod)
@@ -12,4 +16,16 @@ LLVMZeroValue::LLVMZeroValue(llvm::Module &Mod)
                            LLVMZeroValueInternalName) {
   setAlignment(llvm::MaybeAlign(4));
 }
+
+const LLVMZeroValue *LLVMZeroValue::getInstance() {
+  auto GetZeroMod = [] {
+    static llvm::LLVMContext Ctx;
+    static llvm::Module Mod("zero_module", Ctx);
+    ModulesToSlotTracker::setMSTForModule(&Mod);
+    return &Mod;
+  };
+  static auto *ZV = new LLVMZeroValue(*GetZeroMod());
+  return ZV;
+}
+
 } // namespace psr
