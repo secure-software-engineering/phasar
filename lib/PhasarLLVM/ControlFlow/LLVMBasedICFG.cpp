@@ -172,9 +172,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB &IRDB,
     }
   }
   if (IncludeGlobals) {
-    /// TODO: Get rid of the const_cast!
-    const auto *GlobCtor = buildCRuntimeGlobalCtorsDtorsModel(
-        const_cast<llvm::Module &>(*IRDB.getModule()));
+    const auto *GlobCtor =
+        buildCRuntimeGlobalCtorsDtorsModel(*IRDB.getModule());
     FunctionWL.push_back(GlobCtor);
   } else {
     FunctionWL.insert(FunctionWL.end(), UserEntryPoints.begin(),
@@ -955,7 +954,7 @@ LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(llvm::Module &M) {
 
 void LLVMBasedICFG::collectRegisteredDtors() {
 
-  auto Mod = IRDB.getModule();
+  auto *Mod = IRDB.getModule();
   PHASAR_LOG_LEVEL(DEBUG,
                    "Collect Registered Dtors for Module " << Mod->getName());
 
@@ -968,9 +967,7 @@ void LLVMBasedICFG::collectRegisteredDtors() {
   PHASAR_LOG_LEVEL(DEBUG,
                    "> Found " << RegisteredDtors.size() << " Registered Dtors");
 
-  /// TODO: Get rid of the const_cast!
-  auto *RegisteredDtorCaller = createDtorCallerForModule(
-      const_cast<llvm::Module *>(Mod), RegisteredDtors);
+  auto *RegisteredDtorCaller = createDtorCallerForModule(Mod, RegisteredDtors);
   // auto It =
   GlobalDtors.emplace(0, RegisteredDtorCaller);
   // GlobalDtorFn.try_emplace(RegisteredDtorCaller, it);
