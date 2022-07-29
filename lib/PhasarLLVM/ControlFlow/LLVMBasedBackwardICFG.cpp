@@ -7,7 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <memory>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMM.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
@@ -21,14 +27,7 @@
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/PAMM.h"
-#include "phasar/Utils/Utilities.h"
+#include <memory>
 
 using namespace psr;
 using namespace std;

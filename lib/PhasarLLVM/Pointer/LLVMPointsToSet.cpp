@@ -7,14 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <cassert>
-#include <cstdlib>
-#include <iomanip>
-#include <iterator>
-#include <memory>
-#include <type_traits>
-#include <utility>
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseSet.h"
@@ -36,15 +36,14 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
+#include <algorithm>
+#include <cassert>
+#include <cstdlib>
+#include <iomanip>
+#include <iterator>
+#include <memory>
+#include <type_traits>
+#include <utility>
 
 using namespace std;
 

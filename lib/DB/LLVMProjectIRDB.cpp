@@ -142,27 +142,23 @@ internalGetFunctionDefinition(const llvm::Module &M,
 }
 
 [[nodiscard]] bool LLVMProjectIRDB::debugInfoAvailableImpl() const {
-  assert(isValid());
   return Mod->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
 /// Non-const overload
 [[nodiscard]] llvm::Function *
 LLVMProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) {
-  assert(isValid());
   return internalGetFunctionDefinition(*Mod, FunctionName);
 }
 
 [[nodiscard]] const llvm::Function *
 LLVMProjectIRDB::getFunctionDefinitionImpl(llvm::StringRef FunctionName) const {
-  assert(isValid());
   return internalGetFunctionDefinition(*Mod, FunctionName);
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
 LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
     llvm::StringRef GlobalVariableName) const {
-  assert(isValid());
   auto *G = Mod->getGlobalVariable(GlobalVariableName);
   if (G && !G->isDeclaration()) {
     return G;
@@ -173,11 +169,7 @@ LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
 bool LLVMProjectIRDB::isValidImpl() const noexcept { return Mod != nullptr; }
 
 void LLVMProjectIRDB::dumpImpl() const {
-  if (!isValid()) {
-    llvm::dbgs() << "<Invalid Module>\n";
-  } else {
-    llvm::dbgs() << *Mod;
-  }
+  llvm::dbgs() << *Mod;
   llvm::dbgs().flush();
 }
 

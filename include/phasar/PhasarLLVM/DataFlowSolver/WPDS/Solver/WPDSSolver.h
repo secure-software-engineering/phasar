@@ -10,12 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_SOLVER_WPDSSOLVER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_WPDS_SOLVER_WPDSSOLVER_H
 
-#include <fstream>
-#include <map>
-#include <memory>
-#include <set>
-#include <unordered_map>
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/JoinLatticeToSemiRingElem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Table.h"
 
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
@@ -31,15 +34,12 @@
 #include "wali/wpds/fwpds/FWPDS.hpp"
 #include "wali/wpds/fwpds/SWPDS.hpp"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/JoinLatticeToSemiRingElem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Table.h"
+#include <fstream>
+#include <map>
+#include <memory>
+#include <set>
+#include <unordered_map>
+#include <utility>
 
 namespace llvm {
 class CallInst;

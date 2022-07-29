@@ -7,6 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
+
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringSwitch.h"
@@ -23,11 +27,6 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
-
-#include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 
 using namespace psr;
 
