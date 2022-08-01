@@ -21,6 +21,7 @@
 #include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Utils/TypeTraitsLLVM.h"
 
 namespace psr {
 
