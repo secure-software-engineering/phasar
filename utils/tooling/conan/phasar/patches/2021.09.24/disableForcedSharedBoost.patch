@@ -1,0 +1,18 @@
+diff --git a/lib/Utils/CMakeLists.txt b/lib/Utils/CMakeLists.txt
+index ba18db16..e98739df 100644
+--- a/lib/Utils/CMakeLists.txt
++++ b/lib/Utils/CMakeLists.txt
+@@ -30,7 +30,12 @@ else()
+ endif()
+ 
+ target_include_directories(phasar_utils PUBLIC ${LLVM_INCLUDE_DIRS})
+-target_compile_definitions(phasar_utils PUBLIC -DBOOST_LOG_DYN_LINK)
++if (${BOOST_LOG_DYN_LINK})
++  target_compile_definitions(phasar_utils PUBLIC -DBOOST_LOG_DYN_LINK)
++elseif(${BOOST_ALL_DYN_LINK})
++  target_compile_definitions(phasar_utils PUBLIC -DBOOST_ALL_DYN_LINK)
++endif()
++
+ 
+ find_package(Boost COMPONENTS log REQUIRED)
+ target_link_libraries(phasar_utils

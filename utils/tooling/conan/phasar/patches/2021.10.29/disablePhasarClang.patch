@@ -1,0 +1,52 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1f81e8dc..a03cea31 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -177,10 +177,10 @@ endif()
+ # Clang
+ # The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
+ if(NOT PHASAR_IN_TREE)
+-  find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+-  if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
++  #find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
++  #if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
+     set(NEED_LIBCLANG_COMPONENT_LIBS on)
+-  endif()
++  #endif()
+ endif()
+ # As fallback, look for the small clang libraries
+ if(PHASAR_IN_TREE OR NEED_LIBCLANG_COMPONENT_LIBS)
+diff --git a/lib/CMakeLists.txt b/lib/CMakeLists.txt
+index 3a62ec94..d8bf49d5 100644
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ add_subdirectory(PhasarLLVM)
+ add_subdirectory(PhasarPass)
+-add_subdirectory(PhasarClang)
++#add_subdirectory(PhasarClang)
+ add_subdirectory(DB)
+ add_subdirectory(Config)
+ add_subdirectory(Experimental)
+diff --git a/tools/CMakeLists.txt b/tools/CMakeLists.txt
+index b493441a..80a024cd 100644
+--- a/tools/CMakeLists.txt
++++ b/tools/CMakeLists.txt
+@@ -1,4 +1,4 @@
+ add_subdirectory(boomerang)
+ add_subdirectory(example-tool)
+-add_subdirectory(phasar-clang)
++#add_subdirectory(phasar-clang)
+ add_subdirectory(phasar-llvm)
+diff --git a/unittests/CMakeLists.txt b/unittests/CMakeLists.txt
+index 56a32a8b..d9d59a92 100644
+--- a/unittests/CMakeLists.txt
++++ b/unittests/CMakeLists.txt
+@@ -27,6 +27,6 @@ add_subdirectory(Controller)
+ add_subdirectory(DB)
+ add_subdirectory(Experimental)
+ add_subdirectory(Flex)
+-add_subdirectory(PhasarClang)
++#add_subdirectory(PhasarClang)
+ add_subdirectory(PhasarLLVM)
+ add_subdirectory(Utils)

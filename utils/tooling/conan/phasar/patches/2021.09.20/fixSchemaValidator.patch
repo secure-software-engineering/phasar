@@ -1,0 +1,43 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3a7affc5..311ecc06 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -58,6 +58,8 @@ option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+ 
+ option(PHASAR_USE_SYSTEM_JSON "Use system installation for nlohmann_json" OFF)
+ 
++option(PHASAR_USE_SYSTEM_JSON_SCHEMA_VALIDATOR "Use system installation for json-schema-validator" OFF)
++
+ option(PHASAR_USE_SYSTEM_WALI "Use system installation for wali" OFF)
+ 
+ option(PHASAR_USE_SYSTEM_GTEST "Use system installation for gtest" OFF)
+@@ -133,6 +135,16 @@ else()
+   include_directories(external/json/single_include/)
+ endif()
+ 
++# JSON schema validator library
++option(JSON_BuildTests OFF)
++if (PHASAR_USE_SYSTEM_JSON_SCHEMA_VALIDATOR)
++  find_package(nlohmann_json_schema_validator REQUIRED)
++  include_directories(${nlohmann_json_schema_validator_INCLUDE_DIR})
++#else()
++#  add_subdirectory(external/json EXCLUDE_FROM_ALL)
++#  include_directories(external/json/single_include/)
++endif()
++
+ # Googletest
+ if (PHASAR_USE_SYSTEM_GTEST)
+   find_package(GTest REQUIRED)
+diff --git a/lib/PhasarLLVM/TaintConfig/CMakeLists.txt b/lib/PhasarLLVM/TaintConfig/CMakeLists.txt
+index 2c34b469..aa369ca7 100644
+--- a/lib/PhasarLLVM/TaintConfig/CMakeLists.txt
++++ b/lib/PhasarLLVM/TaintConfig/CMakeLists.txt
+@@ -19,7 +19,7 @@ endif()
+ target_link_libraries(phasar_taintconfig
+   LINK_PUBLIC
+   nlohmann_json::nlohmann_json
+-  nlohmann_json_schema_validator
++  nlohmann_json_schema_validator::nlohmann_json_schema_validator
+ )
+ 
+ set_target_properties(phasar_taintconfig

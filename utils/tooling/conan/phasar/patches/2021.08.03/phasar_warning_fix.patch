@@ -1,0 +1,13 @@
+diff --git a/include/phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h b/include/phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h
+index f1885fcb..75dfae6b 100644
+--- a/include/phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h
++++ b/include/phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h
+@@ -975,7 +975,7 @@ protected:
+     for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
+       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                     << "Start point: " << IDEProblem.NtoString(StartPoint));
+-      for (const auto &[Fact, Value] : Facts) {
++      for ([[maybe_unused]] const auto &[Fact, Value] : Facts) {
+         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                       << "\tFact: " << IDEProblem.DtoString(Fact));
+         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)

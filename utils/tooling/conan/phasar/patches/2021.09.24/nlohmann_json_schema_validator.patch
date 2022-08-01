@@ -1,0 +1,13 @@
+diff --git a/lib/PhasarLLVM/TaintConfig/CMakeLists.txt b/lib/PhasarLLVM/TaintConfig/CMakeLists.txt
+index 2c34b469..aa369ca7 100644
+--- a/lib/PhasarLLVM/TaintConfig/CMakeLists.txt
++++ b/lib/PhasarLLVM/TaintConfig/CMakeLists.txt
+@@ -19,7 +19,7 @@ endif()
+ target_link_libraries(phasar_taintconfig
+   LINK_PUBLIC
+   nlohmann_json::nlohmann_json
+-  nlohmann_json_schema_validator
++  nlohmann_json_schema_validator::nlohmann_json_schema_validator
+ )
+ 
+ set_target_properties(phasar_taintconfig

@@ -1,0 +1,73 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 349039c6..fb478269 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -56,6 +56,12 @@ option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkag
+ 
+ option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+ 
++option(PHASAR_USE_SYSTEM_JSON "Use system installation for nlohmann_json" OFF)
++
++option(PHASAR_USE_SYSTEM_WALI "Use system installation for wali" OFF)
++
++option(PHASAR_USE_SYSTEM_GTEST "Use system installation for gtest" OFF)
++
+ option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
+ if (PHASAR_ENABLE_WARNINGS)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage ")
+@@ -119,18 +125,28 @@ include_directories(${Boost_INCLUDE_DIRS})
+ 
+ # JSON library
+ option(JSON_BuildTests OFF)
+-add_subdirectory(external/json EXCLUDE_FROM_ALL)
+-include_directories(external/json/single_include/)
++if (PHASAR_USE_SYSTEM_JSON)
++  find_package(nlohmann_json REQUIRED)
++  include_directories(${nlohmann_json_INCLUDE_DIR})
++else()
++  add_subdirectory(external/json EXCLUDE_FROM_ALL)
++  include_directories(external/json/single_include/)
++endif()
+ 
+ # Googletest
+-if (NOT PHASAR_IN_TREE)
+-  add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
+-  include_directories(external/googletest/googletest/include)
+-  include_directories(external/googletest/googlemock/include)
++if (PHASAR_USE_SYSTEM_GTEST)
++  find_package(GTest REQUIRED)
++  include_directories(${GTest_INCLUDE_DIR})
+ else()
+-  # Set llvm distributed includes for gtest header
+-  include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include)
+-  include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googlemock/include)
++  if (NOT PHASAR_IN_TREE)
++    add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
++    include_directories(external/googletest/googletest/include)
++    include_directories(external/googletest/googlemock/include)
++  else()
++    # Set llvm distributed includes for gtest header
++    include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include)
++    include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googlemock/include)
++  endif()
+ endif()
+ 
+ # SQL
+@@ -204,9 +220,14 @@ if (PHASAR_IN_TREE)
+ endif()
+ 
+ # WALi-OpenNWA
+-add_subdirectory(external/WALi-OpenNWA)
+-include_directories(external/WALi-OpenNWA/Source/wali/include)
+-
++if (PHASAR_USE_SYSTEM_WALI)
++  find_package(wali-opennwa REQUIRED)
++  include_directories(${wali-opennwa_INCLUDE_DIR})
++  link_directories(${wali-opennwa_LIB_DIRS})
++else()
++  add_subdirectory(external/WALi-OpenNWA)
++  include_directories(external/WALi-OpenNWA/Source/wali/include)
++endif()
+ 
+ # Add the Phasar subdirectories
+ add_subdirectory(include)
