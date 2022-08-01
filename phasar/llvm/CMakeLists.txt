@@ -35,5 +35,15 @@ just_add_library(
       LLVMipo # llvm::AttributorPass::run
       
       nlohmann_json_schema_validator
-    EXCLUDE "^.*/WPDS/.*$"
+    EXCLUDE "^.*/WPDS/.*$" "phasar-llvm.cpp$"
+)
+
+just_add_executable(
+  LINK
+    phasar-llvm
+    phasar-controller
+    pthread
+  INCLUDE "phasar-llvm.cpp$"
+  SUFFIX "-tool"
+  SKIP_SUBDIRECTORIES
 )

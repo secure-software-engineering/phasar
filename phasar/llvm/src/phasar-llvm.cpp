@@ -48,7 +48,7 @@ std::ostream &operator<<(std::ostream &OS, const std::vector<std::string> &V) {
 namespace {
 
 constexpr char MoreHelp[] =
-#include "../phasar-llvm_more_help.txt"
+#include "../include/phasar-llvm_more_help.txt"
     ;
 
 template <typename T> static std::set<T> vectorToSet(const std::vector<T> &V) {
