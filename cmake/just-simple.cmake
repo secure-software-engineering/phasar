@@ -107,12 +107,12 @@ function(_just_add_check TARGET)
 
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include")
     else()
-        message(FATAL_ERROR "_just_add_check: there is no include folder, please add it")
+        message(FATAL_ERROR "_just_add_check: ${TARGET} has no include folder, please add it")
     endif()
 
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src")
     else()
-        message(FATAL_ERROR "_just_add_check: there is no src folder, please add it")
+        message(FATAL_ERROR "_just_add_check: ${TARGET} has no src folder, please add it")
     endif()
 endfunction()
 
