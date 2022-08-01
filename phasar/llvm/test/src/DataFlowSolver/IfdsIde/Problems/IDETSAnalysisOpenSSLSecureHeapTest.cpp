@@ -111,7 +111,7 @@ protected:
 TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory6) {
   initialize({PathToLlFiles + "memory6.ll"});
 
-  // secureHeapPropagationResults->printReport();
+  // SecureHeapPropagationResults->dumpResults();
 
   std::map<std::size_t, std::map<std::string, int>> Gt;
   Gt[25] = {{"9", OpenSSLSecureHeapState::ZEROED},

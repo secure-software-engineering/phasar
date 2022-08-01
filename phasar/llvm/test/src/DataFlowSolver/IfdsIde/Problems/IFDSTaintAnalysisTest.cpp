@@ -83,7 +83,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
-  initialize({PathToLlFiles + "dummy_source_sink/taint_01.m2r.dbg.ll"});
+  initialize({PathToLlFiles + "dummy_source_sink/taint_01.dbg.ll"});
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
@@ -147,8 +147,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
-  initialize(
-      {PathToLlFiles + "dummy_source_sink/taint_exception_01.m2r.dbg.ll"});
+  initialize({PathToLlFiles + "dummy_source_sink/taint_exception_01.dbg.ll"});
   IFDSSolver_P<IFDSTaintAnalysis> TaintSolver(*TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;

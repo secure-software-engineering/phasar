@@ -109,7 +109,8 @@ protected:
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation1) {
   initialize({PathToLlFiles + "key-derivation1.ll"});
 
-  // llvmtssolver->printReport();
+  const unsigned AfterEvpKdfDerive = 99;
+  const unsigned AfterEvpKdfCtxFree = 147;
 
   std::map<std::size_t, std::map<std::string, int>> Gt;
 
@@ -121,15 +122,15 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation1) {
   Gt[92] = {{"46", OpenSSLEVPKeyDerivationState::PARAM_INIT},
             {"20", OpenSSLEVPKeyDerivationState::PARAM_INIT},
             {"88", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
-  Gt[98] = {{"95", OpenSSLEVPKeyDerivationState::DERIVED},
-            {"46", OpenSSLEVPKeyDerivationState::DERIVED},
-            {"20", OpenSSLEVPKeyDerivationState::DERIVED},
-            {"88", OpenSSLEVPKeyDerivationState::DERIVED}};
-  Gt[146] = {{"144", OpenSSLEVPKeyDerivationState::UNINIT},
-             {"95", OpenSSLEVPKeyDerivationState::UNINIT},
-             {"46", OpenSSLEVPKeyDerivationState::UNINIT},
-             {"20", OpenSSLEVPKeyDerivationState::UNINIT},
-             {"88", OpenSSLEVPKeyDerivationState::UNINIT}};
+  Gt[AfterEvpKdfDerive] = {{"95", OpenSSLEVPKeyDerivationState::DERIVED},
+                           {"46", OpenSSLEVPKeyDerivationState::DERIVED},
+                           {"20", OpenSSLEVPKeyDerivationState::DERIVED},
+                           {"88", OpenSSLEVPKeyDerivationState::DERIVED}};
+  Gt[AfterEvpKdfCtxFree] = {{"145", OpenSSLEVPKeyDerivationState::UNINIT},
+                            {"95", OpenSSLEVPKeyDerivationState::UNINIT},
+                            {"46", OpenSSLEVPKeyDerivationState::UNINIT},
+                            {"20", OpenSSLEVPKeyDerivationState::UNINIT},
+                            {"88", OpenSSLEVPKeyDerivationState::UNINIT}};
   compareResults(Gt);
 }
 
@@ -153,20 +154,20 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation2) {
              {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"110", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
-  Gt[113] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+  Gt[114] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
              {"58", OpenSSLEVPKeyDerivationState::DERIVED},
              {"103", OpenSSLEVPKeyDerivationState::DERIVED},
              {"110", OpenSSLEVPKeyDerivationState::DERIVED}};
-  Gt[160] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+  Gt[161] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
              {"58", OpenSSLEVPKeyDerivationState::DERIVED},
              {"103", OpenSSLEVPKeyDerivationState::DERIVED},
              {"110", OpenSSLEVPKeyDerivationState::DERIVED},
-             {"159", OpenSSLEVPKeyDerivationState::DERIVED}};
-  Gt[161] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"160", OpenSSLEVPKeyDerivationState::DERIVED}};
+  Gt[162] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT},
              {"58", OpenSSLEVPKeyDerivationState::UNINIT},
              {"103", OpenSSLEVPKeyDerivationState::UNINIT},
              {"110", OpenSSLEVPKeyDerivationState::UNINIT},
-             {"159", OpenSSLEVPKeyDerivationState::UNINIT}};
+             {"160", OpenSSLEVPKeyDerivationState::UNINIT}};
   // Fails due to merge conflicts: ID43 and ID162 have both value UNINIT on 22,
   // but it is implicit at ID43, so merging gives BOT
 
@@ -192,20 +193,20 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation3) {
              {"21", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"91", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"98", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
-  Gt[101] = {{"56", OpenSSLEVPKeyDerivationState::DERIVED},
+  Gt[102] = {{"56", OpenSSLEVPKeyDerivationState::DERIVED},
              {"21", OpenSSLEVPKeyDerivationState::DERIVED},
              {"91", OpenSSLEVPKeyDerivationState::DERIVED},
              {"98", OpenSSLEVPKeyDerivationState::DERIVED}};
-  Gt[148] = {{"56", OpenSSLEVPKeyDerivationState::DERIVED},
+  Gt[149] = {{"56", OpenSSLEVPKeyDerivationState::DERIVED},
              {"21", OpenSSLEVPKeyDerivationState::DERIVED},
              {"91", OpenSSLEVPKeyDerivationState::DERIVED},
              {"98", OpenSSLEVPKeyDerivationState::DERIVED},
-             {"147", OpenSSLEVPKeyDerivationState::DERIVED}};
-  Gt[149] = {{"56", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"148", OpenSSLEVPKeyDerivationState::DERIVED}};
+  Gt[150] = {{"56", OpenSSLEVPKeyDerivationState::UNINIT},
              {"21", OpenSSLEVPKeyDerivationState::UNINIT},
              {"91", OpenSSLEVPKeyDerivationState::UNINIT},
              {"98", OpenSSLEVPKeyDerivationState::UNINIT},
-             {"147", OpenSSLEVPKeyDerivationState::UNINIT}};
+             {"148", OpenSSLEVPKeyDerivationState::UNINIT}};
   compareResults(Gt);
 }
 
@@ -258,7 +259,7 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation5) {
              {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"110", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
-  Gt[113] = Gt[160] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+  Gt[114] = Gt[161] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
                        {"58", OpenSSLEVPKeyDerivationState::DERIVED},
                        {"103", OpenSSLEVPKeyDerivationState::DERIVED},
                        {"110", OpenSSLEVPKeyDerivationState::DERIVED}};
@@ -280,7 +281,12 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_KeyDerivation6) {
   compareResults(Gt);
 }
 
-TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation7) {
+/// TODO: openssl EVP_KDF_derive() changed
+// https://github.com/openssl/openssl/commit/7c75f2daf8b50c92bfb5c17fa62136e61f6eb515
+// EVP_KDF_CTX_new(), inputs to the algorithm are supplied either by passing
+// them as part of the EVP_KDF_derive() call or using calls to
+// EVP_KDF_CTX_set_params() before calling EVP_KDF_derive() to derive the key.
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_KeyDerivation7) {
   initialize({PathToLlFiles + "key-derivation7.ll"});
   // llvmtssolver->printReport();
   std::map<std::size_t, std::map<std::string, int>> Gt;
@@ -292,13 +298,13 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation7) {
   Gt[104] = {{"21", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
              {"57", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
              {"102", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
-  Gt[105] = {{"21", OpenSSLEVPKeyDerivationState::ERROR},
+  Gt[106] = {{"21", OpenSSLEVPKeyDerivationState::ERROR},
              {"57", OpenSSLEVPKeyDerivationState::ERROR},
              {"102", OpenSSLEVPKeyDerivationState::ERROR}};
-  Gt[152] = Gt[153] = {{"21", OpenSSLEVPKeyDerivationState::ERROR},
+  Gt[153] = Gt[154] = {{"21", OpenSSLEVPKeyDerivationState::ERROR},
                        {"57", OpenSSLEVPKeyDerivationState::ERROR},
                        {"102", OpenSSLEVPKeyDerivationState::ERROR},
-                       {"151", OpenSSLEVPKeyDerivationState::ERROR}};
+                       {"152", OpenSSLEVPKeyDerivationState::ERROR}};
   compareResults(Gt);
 }
 
@@ -321,19 +327,19 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation8) {
              {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT},
              {"110", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
-  Gt[113] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+  Gt[114] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
              {"58", OpenSSLEVPKeyDerivationState::DERIVED},
              {"103", OpenSSLEVPKeyDerivationState::DERIVED},
              {"110", OpenSSLEVPKeyDerivationState::DERIVED}};
-  Gt[160] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+  Gt[161] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
              {"58", OpenSSLEVPKeyDerivationState::DERIVED},
              {"103", OpenSSLEVPKeyDerivationState::DERIVED},
              {"110", OpenSSLEVPKeyDerivationState::DERIVED},
-             {"159", OpenSSLEVPKeyDerivationState::DERIVED}};
-  Gt[161] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"160", OpenSSLEVPKeyDerivationState::DERIVED}};
+  Gt[162] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT},
              {"58", OpenSSLEVPKeyDerivationState::UNINIT},
              {"103", OpenSSLEVPKeyDerivationState::UNINIT},
              {"110", OpenSSLEVPKeyDerivationState::UNINIT},
-             {"159", OpenSSLEVPKeyDerivationState::UNINIT}};
+             {"160", OpenSSLEVPKeyDerivationState::UNINIT}};
   compareResults(Gt);
 }
