@@ -4,7 +4,7 @@ boost/1.72.0
 gtest/1.12.1
 sqlite3/3.36.0
 json-schema-validator/2.1.0
-nlohmann_json/3.9.1
+nlohmann_json/3.10.5
 libcurl/7.80.0
 zlib/1.2.12 # fix boost / clash zlib
 openssl/3.0.5 # includes needed for some test files
