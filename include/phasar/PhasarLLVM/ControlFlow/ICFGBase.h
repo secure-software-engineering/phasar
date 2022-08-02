@@ -17,10 +17,12 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_ICFGBASE_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_ICFGBASE_H
 
+#include "nlohmann/json.hpp"
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <type_traits>
 
@@ -30,8 +32,10 @@ public:
   using n_t = typename CFGTraits<Derived>::n_t;
   using f_t = typename CFGTraits<Derived>::f_t;
 
-  static_assert(std::is_base_of_v<CFGBase<Derived>, Derived>,
-                "An ICFG must also be a CFG");
+  ICFGBase() noexcept {
+    static_assert(std::is_base_of_v<CFGBase<Derived>, Derived>,
+                  "An ICFG must also be a CFG");
+  }
 
   [[nodiscard]] decltype(auto) getAllFunctions() const {
     return self().getAllFunctionsImpl();
@@ -59,10 +63,32 @@ public:
   }
   [[nodiscard]] decltype(auto) getCallersOf(f_t Fun) const {
     static_assert(
-        is_iterable_over_v<decltype(self().getCallersOfImpl(Fun)), f_t>);
+        is_iterable_over_v<decltype(self().getCallersOfImpl(Fun)), n_t>);
     return self().getCallersOfImpl(Fun);
   }
-  /// TODO: More Member functions
+  [[nodiscard]] decltype(auto) getCallsFromWithin(f_t Fun) const {
+    static_assert(
+        is_iterable_over_v<decltype(self().getCallsFromWithinImpl(Fun)), n_t>);
+    return self().getCallsFromWithinImpl(Fun);
+  }
+  [[nodiscard]] decltype(auto) getReturnSitesOfCallAt(f_t Fun) const {
+    static_assert(
+        is_iterable_over_v<decltype(self().getReturnSitesOfCallAtImpl(Fun)),
+                           n_t>);
+    return self().getReturnSitesOfCallAtImpl(Fun);
+  }
+  [[nodiscard]] decltype(auto) getGlobalInitializers(f_t Fun) const {
+    static_assert(
+        is_iterable_over_v<decltype(self().getGlobalInitializersImpl(Fun)),
+                           f_t>);
+    return self().getGlobalInitializersImpl(Fun);
+  }
+  void print(llvm::raw_ostream &OS = llvm::outs()) const {
+    self().printImpl(OS);
+  }
+  [[nodiscard]] nlohmann::json getAsJson() const {
+    return self().getAsJsonImpl();
+  }
 
 private:
   Derived &self() noexcept { return static_cast<Derived &>(*this); }
