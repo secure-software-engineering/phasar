@@ -10,6 +10,7 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <variant>
@@ -88,6 +89,10 @@ struct has_setIFDSIDESolverConfig<
 template <typename T>
 constexpr bool is_iterable_v = detail::is_iterable<T>::value; // NOLINT
 
+template <typename T, typename U>
+constexpr bool is_iterable_over_v = is_iterable_v<T> // NOLINT
+    &&std::is_convertible_v<decltype(*std::declval<T>().begin()), U>;
+
 template <typename T>
 constexpr bool is_pair_v = detail::is_pair<T>::value; // NOLINT
 
@@ -130,6 +135,10 @@ struct is_variant<std::variant<Args...>> : std::true_type {}; // NOLINT
 
 template <typename T>
 inline constexpr bool is_variant_v = is_variant<T>::value; // NOLINT
+
+template <typename T>
+// NOLINTNEXTLINE
+constexpr bool is_string_like_v = std::is_convertible_v<T, std::string_view>;
 
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr

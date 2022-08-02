@@ -17,30 +17,20 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 
+#include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
+
+#include "nlohmann/json.hpp"
+
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "nlohmann/json.hpp"
 
 namespace llvm {
 class raw_ostream;
 }
 
 namespace psr {
-
-enum class SpecialMemberFunctionType {
-#define SPECIAL_MEMBER_FUNCTION_TYPES(NAME, TYPE) TYPE,
-#include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.def"
-};
-
-std::string toString(const SpecialMemberFunctionType &SMFT);
-
-SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT);
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const SpecialMemberFunctionType &SMFT);
 
 template <typename N, typename F> class CFG {
 public:
