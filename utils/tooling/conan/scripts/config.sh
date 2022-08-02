@@ -3,9 +3,9 @@
 set +o errexit
 
 CONANFILE="$(readlink -f "$(pwd)/../../../../conanfile.txt")"
-TARGET="intellisectest+intellisectest-application/stable"
-REMOTE="itst"
-REMOTE_URL="https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/16796/packages/conan"
+TARGET="just-simple-cmake/debug"
+REMOTE="just-simple-cmake"
+REMOTE_URL="https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/34353/packages/conan"
 
 readonly CONANFILE
 #shellcheck disable=SC2034

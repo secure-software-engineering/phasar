@@ -26,6 +26,7 @@ doc/*
 
 # log/ directory
 log/*
+**/*/logs/
 
 # CMake build dir
 build/*

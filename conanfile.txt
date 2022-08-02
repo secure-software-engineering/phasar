@@ -1,5 +1,5 @@
 [requires]
-llvm/14.0.6@intellisectest+intellisectest-application/stable
+llvm/14.0.6@just-simple-cmake/debug
 boost/1.72.0
 gtest/1.12.1
 sqlite3/3.36.0

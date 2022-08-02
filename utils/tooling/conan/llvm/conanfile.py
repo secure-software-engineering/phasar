@@ -26,9 +26,14 @@ runtimes = [
 ]
 default_projects = [
     'clang',
-    # 'clang-tools-extra',
-    # 'libc',
-    # 'libclc',
+    'clang-tools-extra',
+    #'libc', clang crashes
+    #'libclc',
+    #'lld',
+    #'lldb',
+    #'openmp', omptarget-new-[a-zA-Z0-9_-]* in CONAN_LIBS but cant be resolved
+    #'polly',
+    #'pstl',
 ]
 default_runtimes = [
     # 'compiler-rt',
@@ -107,8 +112,8 @@ class Llvm(ConanFile):
             'fPIC': True,
             'components': 'all',
             'targets': 'all',
-            'exceptions': True,
-            'rtti': True,
+            'exceptions': True, # llvm default off
+            'rtti': True, # llvm default off
             'threads': True,
             'lto': 'Off',
             'static_stdlib': False,
@@ -169,56 +174,54 @@ class Llvm(ConanFile):
 
         cmake = CMake(self, generator="Ninja", parallel=False)
         cmake.configure(defs={
-            'BUILD_SHARED_LIBS': False, # fine but duplicate in cmake invocation False and OFF
+            'BUILD_SHARED_LIBS': False,
             'CMAKE_SKIP_RPATH': True,
             'CMAKE_POSITION_INDEPENDENT_CODE': \
-                self.options.get_safe('fPIC', default=False) or self.options.shared,
-            'LLVM_TARGET_ARCH': 'host', # default
-            'LLVM_TARGETS_TO_BUILD': self.options.targets, # fine
-            'LLVM_BUILD_LLVM_DYLIB': self.options.shared, # fine
-            'LLVM_DYLIB_COMPONENTS': self.options.components, # fine
-            'LLVM_ENABLE_PIC': self.options.get_safe('fPIC', default=False), # fine
-            'LLVM_ABI_BREAKING_CHECKS': 'WITH_ASSERTS', # default
-            'LLVM_ENABLE_WARNINGS': True, # default
-            'LLVM_ENABLE_PEDANTIC': True, # default
-            'LLVM_ENABLE_WERROR': False, # default
-            'LLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN': True, # NOT default
-            'LLVM_USE_RELATIVE_PATHS_IN_DEBUG_INFO': False, # default
-            'LLVM_BUILD_INSTRUMENTED_COVERAGE': False, # default
+                self.options.fPIC or self.options.shared,
+            'LLVM_TARGET_ARCH': 'host',
+            'LLVM_TARGETS_TO_BUILD': self.options.targets,
+            'LLVM_BUILD_LLVM_DYLIB': self.options.shared,
+            'LLVM_DYLIB_COMPONENTS': self.options.components,
+            'LLVM_ENABLE_PIC': self.options.fPIC,
+            'LLVM_ABI_BREAKING_CHECKS': 'WITH_ASSERTS',
+            'LLVM_ENABLE_WARNINGS': True,
+            'LLVM_ENABLE_PEDANTIC': True,
+            'LLVM_ENABLE_WERROR': False,
+            'LLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN': True,
+            'LLVM_USE_RELATIVE_PATHS_IN_DEBUG_INFO': False,
+            'LLVM_BUILD_INSTRUMENTED_COVERAGE': False,
             'LLVM_OPTIMIZED_TABLEGEN': True, # NOT default, can speedup compilation a lot
-            'LLVM_REVERSE_ITERATION': False, # default
+            'LLVM_REVERSE_ITERATION': False,
             'LLVM_ENABLE_BINDINGS': False, # NOT default, dont build OCaml and go bindings
-            'LLVM_CCACHE_BUILD': False, # default, can use ccache for speedup
-            'LLVM_INCLUDE_TOOLS': self.options.shared, # default on
+            'LLVM_CCACHE_BUILD': False,
+            'LLVM_INCLUDE_TOOLS': True,
             'LLVM_INCLUDE_EXAMPLES': False, # NOT default
-            'LLVM_BUILD_TESTS': False, # default
+            'LLVM_BUILD_TESTS': False,
             'LLVM_INCLUDE_TESTS': False, # NOT default
-            'LLVM_INCLUDE_BENCHMARKS': False, # default
-            'LLVM_APPEND_VC_REV': False, # NOT default, why not?
-            'LLVM_BUILD_DOCS': False, # default
-            'LLVM_ENABLE_IDE': False, # unknown default, depends if CMAKE_CONFIGURATION_TYPES is set
+            'LLVM_INCLUDE_BENCHMARKS': False,
+            'LLVM_APPEND_VC_REV': True,
+            'LLVM_BUILD_DOCS': False,
+            'LLVM_ENABLE_IDE': False,
             'LLVM_ENABLE_TERMINFO': False, # NOT default Use terminfo database if available.
-            'LLVM_ENABLE_EH': self.options.exceptions, # default off
-            'LLVM_ENABLE_RTTI': self.options.rtti, # default off
-            'LLVM_ENABLE_THREADS': self.options.threads, # default on
-            'LLVM_ENABLE_LTO': self.options.lto, # default off, possible Off, On, Thin and Full
-            'LLVM_STATIC_LINK_CXX_STDLIB': self.options.static_stdlib, # default off, libst -> libc++ if LLVM_ENABLE_LIBCXX 
-            'LLVM_ENABLE_UNWIND_TABLES': self.options.unwind_tables, # default on
+            'LLVM_ENABLE_EH': self.options.exceptions,
+            'LLVM_ENABLE_RTTI': self.options.rtti,
+            'LLVM_ENABLE_THREADS': self.options.threads,
+            'LLVM_ENABLE_LTO': self.options.lto,
+            'LLVM_STATIC_LINK_CXX_STDLIB': self.options.static_stdlib,
+            'LLVM_ENABLE_UNWIND_TABLES': self.options.unwind_tables,
             'LLVM_ENABLE_EXPENSIVE_CHECKS': self.options.expensive_checks,
             'LLVM_ENABLE_ASSERTIONS': self.settings.build_type == 'Debug',
             'LLVM_USE_NEWPM': False,
             'LLVM_USE_OPROFILE': False,
             'LLVM_USE_PERF': self.options.use_perf,
-            'LLVM_ENABLE_Z3_SOLVER': False,
-            'LLVM_ENABLE_LIBPFM': False,
-            'LLVM_ENABLE_LIBEDIT': False,
+            'LLVM_ENABLE_Z3_SOLVER': False, # default depends if Z3 4.7.1 package found
+            'LLVM_ENABLE_LIBPFM': True,
+            'LLVM_ENABLE_LIBEDIT': True,
             'LLVM_ENABLE_FFI': self.options.with_ffi,
-            'LLVM_ENABLE_ZLIB': self.options.get_safe('with_zlib', False),
-            'LLVM_ENABLE_LIBXML2': self.options.get_safe('with_xml2', False),
+            'LLVM_ENABLE_ZLIB': self.options.with_zlib,
+            'LLVM_ENABLE_LIBXML2': self.options.with_xml2,
             'LLVM_ENABLE_PROJECTS': ';'.join(enabled_projects),
             'LLVM_ENABLE_RUNTIMES': ';'.join(enabled_runtimes),
-            'LLVM_ENABLE_BINDINGS': False,
-            'LLVM_ENABLE_RTTI': self.options.rtti,
         },
                         source_folder=os.path.join(self._source_subfolder,
                                                    'llvm'))
@@ -286,7 +289,73 @@ class Llvm(ConanFile):
         if self.settings.build_type == "Debug" and not self.options.enable_debug:
             raise ConanInvalidConfiguration(
                 "Set the 'enable_debug' option to allow debug builds")
+        
+        for project in projects:
+            for runtime in runtimes:
+                if self.options.get_safe('with_project_' + project, False) and self.options.get_safe('with_runtime_' + runtime, False):
+                    raise ConanInvalidConfiguration("Duplicate entry in enabled projects / runtime found for \"" + 'with_project_' + project + "\"")
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
         self.cpp_info.builddirs = ["lib/cmake"]
+
+    # def package_info(self):
+    #     self.cpp_info.set_property("cmake_file_name", "LLVM")
+
+    #     if self.options.shared:
+    #         self.cpp_info.libs = tools.collect_libs(self)
+    #         if self.settings.os == 'Linux':
+    #             self.cpp_info.system_libs = ['pthread', 'rt', 'dl', 'm']
+    #         elif self.settings.os == 'Macos':
+    #             self.cpp_info.system_libs = ['m']
+    #         return
+
+    #     components_path = \
+    #         os.path.join(self.package_folder, 'lib', 'components.json')
+    #     with open(components_path, 'r') as components_file:
+    #         components = json.load(components_file)
+
+    #     dependencies = ['ffi', 'z', 'iconv', 'xml2']
+    #     targets = {
+    #         'ffi': 'libffi::libffi',
+    #         'z': 'zlib::zlib',
+    #         'xml2': 'libxml2::libxml2'
+    #     }
+
+    #     for component, deps in components.items():
+    #         self.cpp_info.components[component].libs = [component]
+    #         self.cpp_info.components[component].requires.extend(dep for dep in deps if dep.startswith('LLVM'))
+
+    #         for lib, target in targets.items():
+    #             if lib in deps:
+    #                 self.cpp_info.components[component].requires.append(target)
+
+    #         self.cpp_info.components[component].system_libs = [
+    #             dep for dep in deps
+    #             if not dep.startswith('LLVM') and dep not in dependencies
+    #         ]
+
+    #         self.cpp_info.components[component].set_property("cmake_target_name", component)
+    #         self.cpp_info.components[component].builddirs.append(self._module_subfolder)
+    #         self.cpp_info.components[component].names["cmake_find_package"] = component
+    #         self.cpp_info.components[component].names["cmake_find_package_multi"] = component
+    #         self.cpp_info.components[component].build_modules["cmake_find_package"].extend([
+    #             self._alias_module_file_rel_path,
+    #             self._old_alias_module_file_rel_path,
+    #         ])
+    #         self.cpp_info.components[component].build_modules["cmake_find_package_multi"].extend([
+    #             self._alias_module_file_rel_path,
+    #             self._old_alias_module_file_rel_path,
+    #         ])
+
+    #         if self.options.use_llvm_cmake_files:
+    #             self.cpp_info.components[component].build_modules["cmake_find_package"].append(
+    #                 os.path.join(self._module_subfolder, "LLVMConfigInternal.cmake")
+    #             )
+    #             self.cpp_info.components[component].build_modules["cmake_find_package_multi"].append(
+    #                 os.path.join(self._module_subfolder, "LLVMConfigInternal.cmake")
+    #             )
+
+    #     # TODO: to remove in conan v2 once cmake_find_package* generators removed
+    #     self.cpp_info.names["cmake_find_package"] = "LLVM"
+    #     self.cpp_info.names["cmake_find_package_multi"] = "LLVM"
