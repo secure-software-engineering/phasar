@@ -35,6 +35,7 @@ just_add_library(
       LLVMipo # llvm::AttributorPass::run
       
       nlohmann_json_schema_validator
+      z
     EXCLUDE "^.*/WPDS/.*$" "phasar-llvm.cpp$"
 )
 

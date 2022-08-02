@@ -6,6 +6,7 @@ bin/*
 # build directories for cmake
 build/
 build_*/
+cmake-build*/
 
 # LLVM project
 llvm-project/*
@@ -126,13 +127,3 @@ cmake-build-debug/*
 *.pc
 Makefile
 !test/*/Makefile
-
-# Unit test output
-Testing/
-unittests/DB/DBConnTest
-unittests/PhasarLLVM/ControlFlow/LLVMBasedCFGTest
-unittests/PhasarLLVM/ifdside/Problems/IFDSConstAnalysisTest
-unittests/PhasarLLVM/ifdside/Problems/IFDSTaintAnalysisTest
-unittests/PhasarLLVM/Pointer/LLVMTypeHierarchyTest
-unittests/Utils/LLVMShorthandsTest
-unittests/Utils/PAMMTest
