@@ -3,10 +3,19 @@ just_add_library(
         LLVMCore
         LLVMOption
         LLVMSupport
-        #clang-cpp
+        
+        clangAST
+        clangBasic
+        clangFrontend
+        clangLex
+        clangRewrite
+        
+        clangSerialization
+        clangTooling
         phasar-utils
     EXCLUDE "phasar-clang.cpp$"
 )
+# openmp needed: llvm::omp::getOpenMPDirectiveName
 
 just_add_executable(
     LINK

@@ -34,6 +34,7 @@ just_add_library(
       LLVMVectorize # llvm::ShouldRunExtraVectorPasses::Key
       LLVMipo # llvm::AttributorPass::run
       
+      sqlite3
       nlohmann_json_schema_validator
       z
     EXCLUDE "^.*/WPDS/.*$" "phasar-llvm.cpp$"
