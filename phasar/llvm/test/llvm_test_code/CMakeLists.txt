@@ -76,12 +76,37 @@ function(generate_ll_file)
   cmake_path(ABSOLUTE_PATH GEN_LL_FILE NORMALIZE OUTPUT_VARIABLE input_path)
   set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} ${input_path}")
 
+  # What if llvm is shared?
+  # Do we need to add lib folders, maybe here LD_LIBRARY_PATH locally (please please dont globally)
+  # CONAN_LIB_DIRS <- 
+  set(conan_clang)
+  set(conan_clangpp)
+  set(conan_opt)
+  foreach(bin_dir ${CONAN_BIN_DIRS_LLVM})
+    if (EXISTS "${bin_dir}/clang")
+      set(conan_clang "${bin_dir}/clang")
+    endif()
+    if (EXISTS "${bin_dir}/clang++")
+      set(conan_clangpp "${bin_dir}/clang++")
+    endif()
+    if (EXISTS "${bin_dir}/opt")
+      set(conan_opt "${bin_dir}/opt")
+    endif()
+  endforeach()
+  if(NOT conan_clang)
+    message(FATAL_ERROR "For .ll generation I would like to use conan clang but I couldn't find it here: ${CONAN_BIN_DIRS_LLVM}")
+  elseif(NOT conan_clangpp)
+    message(FATAL_ERROR "For .ll generation I would like to use conan clang++ but I couldn't find it here: ${CONAN_BIN_DIRS_LLVM}")
+  elseif(NOT conan_opt)
+    message(FATAL_ERROR "For .ll generation I would like to use conan opt but I couldn't find it here: ${CONAN_BIN_DIRS_LLVM}")
+  endif()
+
   # define .ll file generation command
   if("${GEN_LL_FILE}" MATCHES "\.cpp$")
-    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER})
+    set(GEN_CMD ${conan_clangpp})
     list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
   else()
-    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
+    set(GEN_CMD ${conan_clang})
     list(APPEND GEN_CMD ${GEN_C_FLAGS})
   endif()
   
@@ -93,7 +118,7 @@ function(generate_ll_file)
     add_custom_command(
       OUTPUT ${output_path}
       COMMAND ${GEN_CMD} ${all_include_dirs} "${input_path}" -o "${output_path}"
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S "${output_path}" -o "${output_path}"
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${conan_opt} -mem2reg -S "${output_path}" -o "${output_path}"
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM
@@ -123,8 +148,9 @@ file(GLOB_RECURSE test_code_files
      RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
      "*.c*")
 list(FILTER test_code_files INCLUDE REGEX "^.*\.(c|cpp)$")
-list(FILTER test_code_files EXCLUDE REGEX "^.*xtaint0[78].cpp$") # TODO also excluded in CMakeList, maybe remove instead?
 
+# execute_process(COMMAND clang --version OUTPUT_VARIABLE)
+# contains 14. -> allow system llvm bin instead conan llvm bin
 foreach(test_code_file ${test_code_files})
     generate_ll_file(
       FILE "${test_code_file}"
