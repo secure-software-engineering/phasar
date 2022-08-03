@@ -84,6 +84,28 @@ struct has_setIFDSIDESolverConfig<
     T, decltype(std::declval<T>().setIFDSIDESolverConfig(
            std::declval<IFDSIDESolverConfig>()))> : std::true_type {};
 
+template <template <typename> typename Base, typename Derived>
+class template_arg {
+private:
+  template <template <typename> typename TBase, typename TT>
+  static TT getTemplateArgImpl(const TBase<TT> &Impl);
+  template <template <typename> typename TBase>
+  static void getTemplateArgImpl(...);
+
+public:
+  using type =
+      decltype(getTemplateArgImpl<Base>(std::declval<const Derived &>()));
+};
+
+template <template <typename> typename Base, typename Derived, typename = void>
+struct is_crtp_base_of : std::false_type {}; // NOLINT
+template <template <typename> typename Base, typename Derived>
+struct is_crtp_base_of<
+    Base, Derived,
+    std::enable_if_t<
+        std::is_base_of_v<typename template_arg<Base, Derived>::type, Derived>>>
+    : std::true_type {};
+
 } // namespace detail
 
 template <typename T>
@@ -140,6 +162,9 @@ template <typename T>
 // NOLINTNEXTLINE
 constexpr bool is_string_like_v = std::is_convertible_v<T, std::string_view>;
 
+template <template <typename> typename Base, typename Derived>
+constexpr bool is_crtp_base_of_v = // NOLINT
+    detail::is_crtp_base_of<Base, Derived>::value;
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr
 

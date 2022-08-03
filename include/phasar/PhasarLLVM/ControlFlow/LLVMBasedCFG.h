@@ -88,7 +88,8 @@ private:
   void printImpl(f_t Fun, llvm::raw_ostream &OS) const { OS << *Fun; }
   [[nodiscard]] nlohmann::json getAsJsonImpl(f_t /*Fun*/) const { return ""; }
 
-  bool IgnoreDbgInstructions = false;
+protected:
+  const bool IgnoreDbgInstructions = false;
 };
 
 } // namespace psr

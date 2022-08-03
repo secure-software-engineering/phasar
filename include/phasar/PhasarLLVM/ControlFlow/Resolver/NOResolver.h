@@ -46,6 +46,8 @@ public:
   FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
+
+  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

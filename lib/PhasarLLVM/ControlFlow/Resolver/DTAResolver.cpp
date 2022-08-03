@@ -208,3 +208,5 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   return PossibleCallTargets;
 }
+
+std::string DTAResolver::str() const { return "DTA"; }

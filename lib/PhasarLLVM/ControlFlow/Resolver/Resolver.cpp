@@ -14,6 +14,7 @@
  *      Author: nicolas bellec
  */
 
+#include <memory>
 #include <optional>
 #include <set>
 
@@ -22,8 +23,15 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -136,5 +144,38 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
 }
 
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
+
+std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB,
+                                 LLVMTypeHierarchy *TH, LLVMBasedICFG *ICF,
+                                 LLVMPointsToInfo *PT = nullptr) {
+  assert(IRDB != nullptr);
+
+  switch (Ty) {
+  case CallGraphAnalysisType::NORESOLVE:
+    return std::make_unique<NOResolver>(*IRDB);
+  case CallGraphAnalysisType::CHA:
+    assert(TH != nullptr);
+    return std::make_unique<CHAResolver>(*IRDB, *TH);
+  case CallGraphAnalysisType::RTA:
+    assert(TH != nullptr);
+    return std::make_unique<RTAResolver>(*IRDB, *TH);
+  case CallGraphAnalysisType::DTA:
+    assert(TH != nullptr);
+    return std::make_unique<DTAResolver>(*IRDB, *TH);
+  case CallGraphAnalysisType::VTA:
+    llvm::report_fatal_error(
+        "The VTA callgraph algorithm is not implemented yet");
+  case CallGraphAnalysisType::OTF:
+    assert(TH != nullptr);
+    assert(ICF != nullptr);
+    assert(PT != nullptr);
+    return std::make_unique<OTFResolver>(*IRDB, *TH, *ICF, *PT);
+  case CallGraphAnalysisType::Invalid:
+    llvm::report_fatal_error("Invalid callgraph algorithm specified");
+  }
+
+  llvm_unreachable("All possible callgraph algorithms should be handled in the "
+                   "above switch");
+}
 
 } // namespace psr

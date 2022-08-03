@@ -17,16 +17,22 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Soundness.h"
 
+#include "nlohmann/json.hpp"
+
 #include "boost/graph/adjacency_list.hpp"
+
+#include "llvm/Support/raw_ostream.h"
 namespace psr {
-class LLVMProjectIRDB;
+class ProjectIRDB;
 enum class CallGraphAnalysisType;
-class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
 class LLVMBasedICFG;
@@ -64,19 +70,56 @@ class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   using out_edge_iterator = boost::graph_traits<bidigraph_t>::out_edge_iterator;
   using in_edge_iterator = boost::graph_traits<bidigraph_t>::in_edge_iterator;
 
-  /// The call graph.
-  bidigraph_t CallGraph;
+  struct Builder;
 
 public:
-  explicit LLVMBasedICFG(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-                         const std::set<std::string> &EntryPoints = {},
+  static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
+      "__psrCRuntimeGlobalCtorsModel";
+
+  explicit LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
+                         llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
                          LLVMPointsToInfo *PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
 
+  [[nodiscard]] std::string
+  exportICFGAsDot(bool WithSourceCodeInfo = true) const;
+  [[nodiscard]] nlohmann::json
+  exportICFGAsJson(bool WithSourceCodeInfo = true) const;
+
+  [[nodiscard]] std::vector<f_t> getAllVertexFunctions() const;
+
 private:
-  /// TODO: implement
+  [[nodiscard]] decltype(auto) getAllFunctions() const {
+    return IRDB->getAllFunctions();
+  }
+
+  [[nodiscard]] f_t getFunction(llvm::StringRef Fun) const {
+    return IRDB->getFunction(Fun);
+  }
+
+  [[nodiscard]] bool isIndirectFunctionCallImpl(n_t Inst) const;
+  [[nodiscard]] bool isVirtualFunctionCallImpl(n_t Inst) const;
+  [[nodiscard]] std::vector<n_t> allNonCallStartNodesImpl() const;
+  [[nodiscard]] llvm::SmallVector<f_t> getCalleesOfCallAtImpl(n_t Inst) const;
+  /// TODO: Return a map_iterator on the in_edge_iterator -- How to deal with
+  /// not-contaied funs? assert them out?
+  [[nodiscard]] llvm::SmallVector<n_t> getCallersOfImpl(f_t Fun) const;
+  [[nodiscard]] llvm::SmallVector<n_t> getCallsFromWithinImpl(f_t Fun) const;
+  [[nodiscard]] llvm::SmallVector<n_t, 2>
+  getReturnSitesOfCallAtImpl(n_t Inst) const;
+  void printImpl(llvm::raw_ostream &OS) const;
+  [[nodiscard]] nlohmann::json getAsJsonImpl() const;
+
+  llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
+      llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
+
+  /// The call graph.
+  bidigraph_t CallGraph;
+  llvm::DenseMap<const llvm::Function *, vertex_t> FunctionVertexMap;
+  ProjectIRDB *IRDB = nullptr;
+  MaybeUniquePtr<LLVMTypeHierarchy> TH;
 };
 } // namespace psr
 

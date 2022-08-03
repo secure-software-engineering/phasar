@@ -33,7 +33,7 @@ public:
   using f_t = typename CFGTraits<Derived>::f_t;
 
   ICFGBase() noexcept {
-    static_assert(std::is_base_of_v<CFGBase<Derived>, Derived>,
+    static_assert(is_crtp_base_of_v<CFGBase, Derived>,
                   "An ICFG must also be a CFG");
   }
 
@@ -71,11 +71,11 @@ public:
         is_iterable_over_v<decltype(self().getCallsFromWithinImpl(Fun)), n_t>);
     return self().getCallsFromWithinImpl(Fun);
   }
-  [[nodiscard]] decltype(auto) getReturnSitesOfCallAt(f_t Fun) const {
+  [[nodiscard]] decltype(auto) getReturnSitesOfCallAt(n_t Inst) const {
     static_assert(
-        is_iterable_over_v<decltype(self().getReturnSitesOfCallAtImpl(Fun)),
+        is_iterable_over_v<decltype(self().getReturnSitesOfCallAtImpl(Inst)),
                            n_t>);
-    return self().getReturnSitesOfCallAtImpl(Fun);
+    return self().getReturnSitesOfCallAtImpl(Inst);
   }
   [[nodiscard]] decltype(auto) getGlobalInitializers(f_t Fun) const {
     static_assert(

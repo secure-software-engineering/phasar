@@ -11,12 +11,12 @@
 #include <string>
 
 #include "phasar/PhasarLLVM/ControlFlow/CFG.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace psr;
 
-namespace psr {
-
-std::string toString(const SpecialMemberFunctionType &SMFT) {
+std::string psr::toString(SpecialMemberFunctionType SMFT) {
   switch (SMFT) {
   default:
 #define SPECIAL_MEMBER_FUNCTION_TYPES(NAME, TYPE)                              \
@@ -27,7 +27,8 @@ std::string toString(const SpecialMemberFunctionType &SMFT) {
   }
 }
 
-SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT) {
+SpecialMemberFunctionType
+psr::toSpecialMemberFunctionType(llvm::StringRef SMFT) {
   SpecialMemberFunctionType Type =
       llvm::StringSwitch<SpecialMemberFunctionType>(SMFT)
 #define SPECIAL_MEMBER_FUNCTION_TYPES(NAME, TYPE)                              \
@@ -37,9 +38,7 @@ SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &OS,
-                         const SpecialMemberFunctionType &SMFT) {
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   SpecialMemberFunctionType SMFT) {
   return OS << toString(SMFT);
 }
-
-} // namespace psr

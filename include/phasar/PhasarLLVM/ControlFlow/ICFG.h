@@ -65,10 +65,6 @@ public:
 
   [[nodiscard]] virtual std::set<N> getReturnSitesOfCallAt(N Stmt) const = 0;
 
-  [[nodiscard]] const std::vector<F> &getGlobalInitializers() const {
-    return GlobalInitializers;
-  }
-
   using CFG<N, F>::print; // tell the compiler we wish to have both prints
   virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
 
