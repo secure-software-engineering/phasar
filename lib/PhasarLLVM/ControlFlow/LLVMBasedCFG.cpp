@@ -24,6 +24,11 @@
 
 namespace psr {
 
+auto LLVMBasedCFG::getFunctionOfImpl(n_t Inst) const noexcept -> f_t {
+  assert(Inst != nullptr);
+  return Inst->getFunction();
+}
+
 auto LLVMBasedCFG::getPredsOfImpl(const llvm::Instruction *I) const
     -> llvm::SmallVector<n_t, 2> {
   if (!IgnoreDbgInstructions) {

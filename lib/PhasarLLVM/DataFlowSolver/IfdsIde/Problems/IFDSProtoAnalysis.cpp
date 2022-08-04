@@ -61,7 +61,7 @@ IFDSProtoAnalysis::FlowFunctionPtrType IFDSProtoAnalysis::getRetFlowFunction(
 IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getCallToRetFlowFunction(
     IFDSProtoAnalysis::n_t /*CallSite*/, IFDSProtoAnalysis::n_t /*RetSite*/,
-    set<IFDSProtoAnalysis::f_t> /*Callees*/) {
+    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 

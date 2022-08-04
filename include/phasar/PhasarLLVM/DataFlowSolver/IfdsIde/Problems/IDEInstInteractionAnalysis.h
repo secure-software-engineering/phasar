@@ -544,7 +544,7 @@ public:
 
   inline FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /* RetSite */,
-                           std::set<f_t> Callees) override {
+                           const llvm::SmallVectorImpl<f_t> &Callees) override {
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
@@ -1026,7 +1026,8 @@ public:
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /* RetSite */,
-                           d_t RetSiteNode, std::set<f_t> Callees) override {
+                           d_t RetSiteNode,
+                           const llvm::SmallVectorImpl<f_t> &Callees) override {
     // Check if the user has registered a fact generator function
     l_t UserEdgeFacts = BitVectorSet<e_t>();
     std::set<e_t> EdgeFacts;

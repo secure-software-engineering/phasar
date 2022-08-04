@@ -38,7 +38,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   // HANDLING CONDITIONAL BRANCH
   // br i1 %5, label %6, label %9
   const auto *BRInst = getNthTermInstruction(F, 1);
-  std::vector<const llvm::Instruction *> Predeccessors;
+  llvm::SmallVector<const llvm::Instruction *> Predeccessors;
   // %7 = load i32, i32* %3, align 4
   Predeccessors.push_back(getNthInstruction(F, 10));
   // %10 = load i32, i32* %3, align 4
@@ -67,7 +67,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %4 = call i32 @_Z4multii(i32 2, i32 4)
   const auto *Pred = getNthInstruction(F, 5);
-  std::vector<const llvm::Instruction *> Predeccessor{Pred};
+  llvm::SmallVector<const llvm::Instruction *> Predeccessor{Pred};
   auto PredsOfInst = Cfg.getPredsOf(Inst);
   ASSERT_EQ(PredsOfInst, Predeccessor);
 
@@ -88,7 +88,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   // ret i32 0
   const auto *TermInst = getNthTermInstruction(F, 4);
   std::cout << llvmIRToString(TermInst) << std::endl;
-  std::vector<const llvm::Instruction *> Successor;
+  llvm::SmallVector<const llvm::Instruction *> Successor;
   // br label %12
   Successor.push_back(getNthTermInstruction(F, 3));
   // br label %12
@@ -108,7 +108,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %3 = alloca i32, align 4)
   const auto *Succ = getNthInstruction(F, 3);
-  std::vector<const llvm::Instruction *> Successor{Succ};
+  llvm::SmallVector<const llvm::Instruction *> Successor{Succ};
   auto SuccsOfInst = Cfg.getSuccsOf(Inst);
   ASSERT_EQ(SuccsOfInst, Successor);
 

@@ -145,9 +145,11 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
 
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
 
-std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB,
-                                 LLVMTypeHierarchy *TH, LLVMBasedICFG *ICF,
-                                 LLVMPointsToInfo *PT = nullptr) {
+std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
+                                           ProjectIRDB *IRDB,
+                                           LLVMTypeHierarchy *TH,
+                                           LLVMBasedICFG *ICF,
+                                           LLVMPointsToInfo *PT) {
   assert(IRDB != nullptr);
 
   switch (Ty) {

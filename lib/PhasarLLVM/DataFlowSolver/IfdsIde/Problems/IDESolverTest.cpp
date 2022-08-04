@@ -60,7 +60,7 @@ IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
 
 IDESolverTest::FlowFunctionPtrType IDESolverTest::getCallToRetFlowFunction(
     IDESolverTest::n_t /*CallSite*/, IDESolverTest::n_t /*RetSite*/,
-    std::set<IDESolverTest::f_t> /*Callees*/) {
+    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
@@ -124,7 +124,7 @@ std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getCallToRetEdgeFunction(
     IDESolverTest::n_t /*CallSite*/, IDESolverTest::d_t /*CallNode*/,
     IDESolverTest::n_t /*RetSite*/, IDESolverTest::d_t /*RetSiteNode*/,
-    std::set<IDESolverTest::f_t> /*Callees*/) {
+    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 

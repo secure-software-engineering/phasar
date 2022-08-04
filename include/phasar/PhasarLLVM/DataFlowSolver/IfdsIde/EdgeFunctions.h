@@ -476,7 +476,8 @@ public:
   //
   virtual EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode, std::set<f_t> Callees) = 0;
+                           d_t RetSiteNode,
+                           const llvm::SmallVectorImpl<f_t> &Callees) = 0;
 
   //
   // Also refer to FlowFunction::getSummaryFlowFunction()

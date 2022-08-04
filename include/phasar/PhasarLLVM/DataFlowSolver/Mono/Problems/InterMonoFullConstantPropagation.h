@@ -65,7 +65,7 @@ public:
                               n_t RetSite, const mono_container_t &In) override;
 
   mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
-                                 std::set<f_t> Callees,
+                                 const llvm::SmallVectorImpl<f_t> &Callees,
                                  const mono_container_t &In) override;
 
   mono_container_t merge(const mono_container_t &Lhs,

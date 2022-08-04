@@ -60,6 +60,7 @@ private:
   std::map<std::string, std::unique_ptr<llvm::Module>> Modules;
   // Maps an id to its corresponding instruction
   std::map<std::size_t, llvm::Instruction *> IDInstructionMapping;
+  size_t NumGlobals = 0;
 
   void buildIDModuleMapping(llvm::Module *M);
 
@@ -94,6 +95,7 @@ public:
   ~ProjectIRDB();
 
   void insertModule(llvm::Module *M);
+  void insertFunction(llvm::Function *F);
 
   // add WPA support by providing a fat completely linked module
   void linkForWPA();

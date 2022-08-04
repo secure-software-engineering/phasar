@@ -26,9 +26,9 @@ namespace detail {
 template <typename T, typename = void>
 struct is_iterable : public std::false_type {}; // NOLINT
 template <typename T>
-struct is_iterable<T, std::void_t<typename T::const_iterator, // NOLINT
-                                  decltype(std::declval<T>().begin()),
-                                  decltype(std::declval<T>().end())>>
+struct is_iterable<T, std::void_t< // NOLINT
+                          decltype(std::declval<T>().begin()),
+                          decltype(std::declval<T>().end())>>
     : public std::true_type {};
 
 template <typename T> struct is_pair : public std::false_type {}; // NOLINT

@@ -33,6 +33,7 @@ class Function;
 
 namespace psr {
 class LLVMBasedCFG;
+class LLVMBasedBackwardCFG;
 
 template <> struct CFGTraits<LLVMBasedCFG> {
   using n_t = const llvm::Instruction *;
@@ -41,14 +42,19 @@ template <> struct CFGTraits<LLVMBasedCFG> {
 
 class LLVMBasedCFG : public CFGBase<LLVMBasedCFG> {
   friend CFGBase;
+  friend class LLVMBasedBackwardCFG;
 
 public:
-  LLVMBasedCFG(bool IgnoreDbgInstructions = true)
+  LLVMBasedCFG(bool IgnoreDbgInstructions = true) noexcept
       : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
 
   [[nodiscard]] nlohmann::json exportCFGAsJson(const llvm::Function *F) const;
   [[nodiscard]] nlohmann::json
   exportCFGAsSourceCodeJson(const llvm::Function *F) const;
+
+  [[nodiscard]] bool getIgnoreDbgInstructions() const noexcept {
+    return IgnoreDbgInstructions;
+  }
 
 private:
   [[nodiscard]] f_t getFunctionOfImpl(n_t Inst) const noexcept;
@@ -89,7 +95,7 @@ private:
   [[nodiscard]] nlohmann::json getAsJsonImpl(f_t /*Fun*/) const { return ""; }
 
 protected:
-  const bool IgnoreDbgInstructions = false;
+  bool IgnoreDbgInstructions = false;
 };
 
 } // namespace psr

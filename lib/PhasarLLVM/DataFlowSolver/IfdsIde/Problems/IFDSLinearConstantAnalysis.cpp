@@ -82,7 +82,7 @@ IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t /*CallSite*/,
     IFDSLinearConstantAnalysis::n_t /*RetSite*/,
-    set<IFDSLinearConstantAnalysis::f_t> /* Callees */) {
+    const llvm::SmallVectorImpl<f_t> & /* Callees */) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 

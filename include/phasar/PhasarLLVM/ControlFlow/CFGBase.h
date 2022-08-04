@@ -10,8 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFGBASE_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CFGBASE_H
 
-#include "nlohmann/json.hpp"
 #include "phasar/Utils/TypeTraits.h"
+
+#include "nlohmann/json.hpp"
 
 namespace psr {
 
@@ -119,6 +120,12 @@ private:
     return static_cast<const Derived &>(*this);
   }
 };
+
+template <typename ICF, typename Domain>
+constexpr bool is_cfg_v = is_crtp_base_of_v<CFGBase, ICF>
+    &&std::is_same_v<typename ICF::n_t, typename Domain::n_t>
+        &&std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_CONTROLFLOW_CFGBASE_H

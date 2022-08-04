@@ -80,7 +80,7 @@ InterMonoSolverTest::mono_container_t InterMonoSolverTest::returnFlow(
 
 InterMonoSolverTest::mono_container_t InterMonoSolverTest::callToRetFlow(
     InterMonoSolverTest::n_t /*CallSite*/, InterMonoSolverTest::n_t /*RetSite*/,
-    std::set<InterMonoSolverTest::f_t> /*Callees*/,
+    const llvm::SmallVectorImpl<f_t> & /*Callees*/,
     const InterMonoSolverTest::mono_container_t &In) {
   llvm::outs() << "InterMonoSolverTest::callToRetFlow()\n";
   return In;

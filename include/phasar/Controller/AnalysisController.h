@@ -43,9 +43,9 @@ enum class AnalysisControllerEmitterOptions : uint32_t {
   EmitTHAsText = (1 << 5),
   EmitTHAsDot = (1 << 6),
   EmitTHAsJson = (1 << 7),
-  EmitCGAsText = (1 << 8),
+  // EmitCGAsText = (1 << 8),
   EmitCGAsDot = (1 << 9),
-  EmitCGAsJson = (1 << 10),
+  // EmitCGAsJson = (1 << 10),
   EmitPTAAsText = (1 << 11),
   EmitPTAAsDot = (1 << 12),
   EmitPTAAsJson = (1 << 13),
@@ -59,7 +59,7 @@ private:
   LLVMBasedICFG ICF;
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
-  std::set<std::string> EntryPoints;
+  std::vector<std::string> EntryPoints;
   [[maybe_unused]] AnalysisStrategy Strategy;
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::None;
@@ -129,7 +129,7 @@ private:
   void executeAnalysis() {
     if constexpr (WithConfig) {
       std::string AnalysisConfigPath =
-          (0 < AnalysisConfigs.size()) ? AnalysisConfigs[0] : "";
+          !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
       auto Config =
           !AnalysisConfigPath.empty()
               ? TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath))
@@ -192,7 +192,7 @@ public:
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
                      Soundness SoundnessLevel, bool AutoGlobalSupport,
-                     const std::set<std::string> &EntryPoints,
+                     std::vector<std::string> EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
                      IFDSIDESolverConfig SolverConfig,

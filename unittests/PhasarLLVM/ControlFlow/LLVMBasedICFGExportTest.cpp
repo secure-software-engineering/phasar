@@ -8,8 +8,11 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/IR/AssemblyAnnotationWriter.h"
+#include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
@@ -18,6 +21,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -43,10 +47,9 @@ protected:
                             bool AsSrcCode = false) {
     ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
     LLVMTypeHierarchy TH(IRDB);
-    LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
+    LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
-    auto Ret =
-        AsSrcCode ? ICFG.exportICFGAsSourceCodeJson() : ICFG.exportICFGAsJson();
+    auto Ret = ICFG.exportICFGAsJson(AsSrcCode);
 
     // llvm::errs() << "Result: " << Ret.dump(4) << '\n';
 
@@ -179,11 +182,23 @@ protected:
                         bool WithDebugOutput = false) {
     ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
     LLVMTypeHierarchy TH(IRDB);
-    LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
+    LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH);
 
-    std::cerr << "ModuleRef: " << IRDB.getWPAModule() << "\n";
+    verifyIRJson(ICFG.exportICFGAsJson(/*WithSourceCodeInfo*/ false), ICFG,
+                 WithDebugOutput);
 
-    verifyIRJson(ICFG.exportICFGAsJson(), ICFG, WithDebugOutput);
+    if (WithDebugOutput) {
+      struct AAWriter : public llvm::AssemblyAnnotationWriter {
+        /// emitInstructionAnnot - This may be implemented to emit a string
+        /// right before an instruction is emitted.
+        void emitInstructionAnnot(const llvm::Instruction *Inst,
+                                  llvm::formatted_raw_ostream &OS) override {
+          OS << "  ; | Id: " << getMetaDataID(Inst) << '\n';
+        }
+      } AW;
+      IRDB.getWPAModule()->print(llvm::errs(), &AW);
+      // llvm::errs() << "ModuleRef: " << *IRDB.getWPAModule() << "\n";
+    }
   }
 };
 
@@ -200,7 +215,7 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGIR03) {
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR04) {
-  verifyExportICFG("call_graphs/static_callsite_4_cpp.ll");
+  verifyExportICFG("call_graphs/static_callsite_4_cpp.ll", true);
 }
 
 TEST_F(LLVMBasedICFGExportTest, ExportICFGIR05) {

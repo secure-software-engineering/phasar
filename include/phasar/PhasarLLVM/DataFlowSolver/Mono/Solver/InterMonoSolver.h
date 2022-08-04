@@ -295,14 +295,14 @@ public:
       auto CTXRm(Ctx);
       llvm::outs() << "CTXRm: " << CTXRm << '\n';
       // we need to use several call- and retsites if the context is empty
-      std::set<n_t> CallSites;
+      llvm::SmallVector<n_t> CallSites;
       std::set<n_t> RetSites;
       // handle empty context
       if (Ctx.empty()) {
         CallSites = ICF->getCallersOf(ICF->getFunctionOf(Src));
       } else {
         // handle context containing at least one element
-        CallSites.insert(CTXRm.pop_back());
+        CallSites.push_back(CTXRm.pop_back());
       }
       // retrieve the possible return sites for each call
       for (auto CallSite : CallSites) {

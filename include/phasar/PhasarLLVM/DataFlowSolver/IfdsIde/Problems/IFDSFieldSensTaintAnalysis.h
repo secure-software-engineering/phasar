@@ -68,7 +68,7 @@ public:
   FlowFunctionPtrType
   getCallToRetFlowFunction(const llvm::Instruction *CallSite,
                            const llvm::Instruction *RetSite,
-                           std::set<const llvm::Function *> Callees) override;
+                           const llvm::SmallVectorImpl<f_t> &Callees) override;
 
   FlowFunctionPtrType
   getSummaryFlowFunction(const llvm::Instruction *CallSite,

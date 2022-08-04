@@ -62,8 +62,10 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
-                       &PT);
+    LLVMBasedICFG ICFG(
+        IRDB.get(), CallGraphAnalysisType::CHA,
+        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
+        &PT);
     IDEInstInteractionAnalysisT<std::string, true> IIAProblem(
         IRDB.get(), &TH, &ICFG, &PT, EntryPoints);
     // use Phasar's instruction ids as testing labels

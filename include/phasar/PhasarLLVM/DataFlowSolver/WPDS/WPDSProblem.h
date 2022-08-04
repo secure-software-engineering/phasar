@@ -35,8 +35,8 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
-  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
-                "I must implement the ICFG interface!");
+  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
+                "Type parameter i_t must implement the ICFG interface!");
 
   WPDSProblem(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, f_t> *TH,
               const i_t *ICF, PointsToInfo<v_t, n_t> *PT,

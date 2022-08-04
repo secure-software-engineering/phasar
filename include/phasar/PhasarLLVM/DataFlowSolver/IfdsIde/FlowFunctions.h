@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
 
+#include "llvm/ADT/SmallVector.h"
 #include <functional>
 #include <memory>
 #include <set>
@@ -657,7 +658,7 @@ public:
   //
   virtual FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           std::set<f_t> Callees) = 0;
+                           const llvm::SmallVectorImpl<f_t> &Callees) = 0;
 
   //
   // May be used to encode special sementics of a given callee target (whose

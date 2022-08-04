@@ -56,8 +56,8 @@ public:
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
 
-  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
-                "I must implement the ICFG interface!");
+  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
+                "Type parameter i_t must implement the ICFG interface!");
 
 protected:
   IFDSIDESolverConfig SolverConfig;

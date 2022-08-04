@@ -203,9 +203,9 @@ int main(int Argc, const char **Argv) {
       ("emit-th-as-text", "Emit the type hierarchy as text")
       ("emit-th-as-dot", "Emit the type hierarchy as DOT graph")
       ("emit-th-as-json", "Emit the type hierarchy as JSON")
-      ("emit-cg-as-text", "Emit the call graph as text")
+      // ("emit-cg-as-text", "Emit the call graph as text")
       ("emit-cg-as-dot", "Emit the call graph as DOT graph")
-      ("emit-cg-as-json", "Emit the call graph as JSON")
+      // ("emit-cg-as-json", "Emit the call graph as JSON")
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("emit-pta-as-json", "Emit the points-to information as JSON")
@@ -341,9 +341,8 @@ int main(int Argc, const char **Argv) {
     AnalysisConfigs = PhasarConfig::VariablesMap()["analysis-config"]
                           .as<std::vector<std::string>>();
   }
-  std::set<std::string> EntryPoints =
-      vectorToSet(PhasarConfig::VariablesMap()["entry-points"]
-                      .as<std::vector<std::string>>());
+  auto EntryPoints = PhasarConfig::VariablesMap()["entry-points"]
+                         .as<std::vector<std::string>>();
   // setup pointer algorithm to be used
   PointerAnalysisType PTATy = toPointerAnalysisType(
       PhasarConfig::VariablesMap()["pointer-analysis"].as<std::string>());
@@ -383,15 +382,15 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-th-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
   }
-  if (PhasarConfig::VariablesMap().count("emit-cg-as-text")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
-  }
+  // if (PhasarConfig::VariablesMap().count("emit-cg-as-text")) {
+  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
+  // }
   if (PhasarConfig::VariablesMap().count("emit-cg-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
   }
-  if (PhasarConfig::VariablesMap().count("emit-cg-as-json")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
-  }
+  // if (PhasarConfig::VariablesMap().count("emit-cg-as-json")) {
+  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
+  // }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
   }
@@ -440,8 +439,8 @@ int main(int Argc, const char **Argv) {
   AnalysisController Controller(
       IRDB, std::move(DataFlowAnalyses), std::move(AnalysisConfigs), PTATy,
       CGTy, SoundnessLevel,
-      PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory,
-      PrecomputedPointsToSet);
+      PhasarConfig::VariablesMap()["auto-globals"].as<bool>(),
+      std::move(EntryPoints), Strategy, EmitterOptions, SolverConfig, ProjectID,
+      OutDirectory, PrecomputedPointsToSet);
   return 0;
 }

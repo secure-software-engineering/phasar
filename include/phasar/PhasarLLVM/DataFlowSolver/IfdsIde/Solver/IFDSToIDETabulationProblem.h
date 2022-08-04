@@ -88,8 +88,9 @@ public:
     return Problem.getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite);
   }
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override {
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           const llvm::SmallVectorImpl<f_t> &Callees) override {
     return Problem.getCallToRetFlowFunction(CallSite, RetSite, Callees);
   }
 
@@ -153,10 +154,10 @@ public:
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallToRetEdgeFunction(n_t /*CallSite*/, d_t CallNode, n_t /*ReturnSite*/,
-                           d_t /*ReturnSideNode*/,
-                           std::set<f_t> /*Callees*/) override {
+  std::shared_ptr<EdgeFunction<BinaryDomain>> getCallToRetEdgeFunction(
+      n_t /*CallSite*/, d_t CallNode, n_t /*ReturnSite*/,
+      d_t /*ReturnSideNode*/,
+      const llvm::SmallVectorImpl<f_t> & /*Callees*/) override {
     if (Problem.isZeroValue(CallNode)) {
       return ALLBOTTOM;
     }

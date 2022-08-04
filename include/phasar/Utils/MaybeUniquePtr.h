@@ -18,9 +18,9 @@
 
 namespace psr {
 
-/// A smart-pointer, similar to std::unique_ptr that can be used as both,
-/// owning and non-owning pointer.
-template <typename T> class MaybeUniquePtr {
+namespace detail {
+template <typename T, bool RequireAlignment> class MaybeUniquePtrBase {
+protected:
   struct PointerBoolPairFallback {
     T *Pointer = nullptr;
     bool Flag = false;
@@ -31,11 +31,39 @@ template <typename T> class MaybeUniquePtr {
     void setInt(bool Flag) noexcept { this->Flag = Flag; }
   };
 
+  std::conditional_t<(alignof(T) > 1), llvm::PointerIntPair<T *, 1, bool>,
+                     PointerBoolPairFallback>
+      Data{};
+
+  MaybeUniquePtrBase(T *Ptr, bool Owns) noexcept : Data{Ptr, Owns} {}
+  MaybeUniquePtrBase() noexcept = default;
+};
+
+template <typename T> class MaybeUniquePtrBase<T, true> {
+protected:
+  llvm::PointerIntPair<T *, 1, bool> Data{};
+
+  MaybeUniquePtrBase(T *Ptr, bool Owns) noexcept : Data{Ptr, Owns} {}
+  MaybeUniquePtrBase() noexcept = default;
+};
+} // namespace detail
+
+/// A smart-pointer, similar to std::unique_ptr that can be used as both,
+/// owning and non-owning pointer.
+///
+/// \tparam T The pointee type
+/// \tparam RequireAlignment If true, the datastructure only works if alignof(T)
+/// > 1 holds. Enables incomplete T types
+template <typename T, bool RequireAlignment = false>
+class MaybeUniquePtr : detail::MaybeUniquePtrBase<T, RequireAlignment> {
+  using detail::MaybeUniquePtrBase<T, RequireAlignment>::Data;
+
 public:
   MaybeUniquePtr() noexcept = default;
 
   MaybeUniquePtr(T *Pointer, bool Owns = false) noexcept
-      : Data{Pointer, Owns && Pointer != nullptr} {}
+      : detail::MaybeUniquePtrBase<T, RequireAlignment>(
+            Pointer, Owns && Pointer != nullptr) {}
 
   MaybeUniquePtr(std::unique_ptr<T> &&Owner) noexcept
       : MaybeUniquePtr(Owner.release(), true) {}
@@ -45,7 +73,8 @@ public:
       : MaybeUniquePtr(Owner.release(), true) {}
 
   MaybeUniquePtr(MaybeUniquePtr &&Other) noexcept
-      : Data(std::exchange(Other.Data, {})) {}
+      : detail::MaybeUniquePtrBase<T, RequireAlignment>(
+            std::exchange(Other.Data, {})) {}
 
   void swap(MaybeUniquePtr &Other) noexcept { std::swap(Data, Other, Data); }
 
@@ -136,12 +165,8 @@ public:
   explicit operator bool() const noexcept {
     return Data.getPointer() != nullptr;
   }
-
-private:
-  std::conditional_t<(alignof(T) > 1), llvm::PointerIntPair<T *, 1, bool>,
-                     PointerBoolPairFallback>
-      Data{};
 };
+
 } // namespace psr
 
 #endif // PHASAR_UTILS_MAYBEUNIQUEPTR_H_

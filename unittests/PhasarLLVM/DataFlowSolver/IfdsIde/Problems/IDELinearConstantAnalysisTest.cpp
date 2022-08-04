@@ -36,8 +36,8 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
-                       Soundness::Soundy, /*IncludeGlobals*/ true);
+    LLVMBasedICFG ICFG(IRDB.get(), CallGraphAnalysisType::OTF, {"main"}, &TH,
+                       &PT, Soundness::Soundy, /*IncludeGlobals*/ true);
 
     auto HasGlobalCtor = IRDB->getFunctionDefinition(
                              LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;

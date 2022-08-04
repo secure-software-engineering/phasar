@@ -15,12 +15,15 @@
  */
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -28,10 +31,12 @@
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "boost/graph/graphviz.hpp"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/range/iterator_range_core.hpp>
+
+#include "boost/graph/graphviz.hpp"
+
+#include <utility>
 
 namespace psr {
 struct LLVMBasedICFG::Builder {
@@ -353,6 +358,20 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
   CallGraph = B.buildCallGraph(S);
 }
 
+LLVMBasedICFG::~LLVMBasedICFG() = default;
+
+[[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
+  /// With the new LLVMProjectIRDB, this will be easier...
+  return llvm::map_range(
+      static_cast<const llvm::Module &>(*IRDB->getWPAModule()),
+      Ref2PointerConverter<llvm::Function>{});
+}
+
+[[nodiscard]] auto LLVMBasedICFG::getFunctionImpl(llvm::StringRef Fun) const
+    -> f_t {
+  return IRDB->getFunction(Fun);
+}
+
 [[nodiscard]] bool LLVMBasedICFG::isIndirectFunctionCallImpl(n_t Inst) const {
   const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
   return CallSite && CallSite->isIndirectCall();
@@ -437,21 +456,36 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
   return getSuccsOf(Inst);
 }
 
+LLVMBasedICFG::VertexProperties::VertexProperties(
+    const llvm::Function *F) noexcept
+    : F(F) {}
+[[nodiscard]] llvm::StringRef
+LLVMBasedICFG::VertexProperties::getFunctionName() const noexcept {
+  return F->getName();
+}
+
+LLVMBasedICFG::EdgeProperties::EdgeProperties(
+    const llvm::Instruction *I) noexcept
+    : CS(I) {}
+
+std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
+  return llvmIRToStableString(CS);
+}
+
 void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
   OS << "digraph CallGraph{\n";
   scope_exit CloseBrace = [&OS] { OS << "}\n"; };
 
   for (auto Vtx : boost::make_iterator_range(boost::vertices(CallGraph))) {
-    OS << Vtx << "[label=\""
-       << boost::escape_dot_string(CallGraph[Vtx].getFunctionName())
-       << "\"];\n";
+    OS << Vtx << "[label=\"";
+    OS.write_escaped(CallGraph[Vtx].getFunctionName());
+    OS << "\"];\n";
 
     for (auto Succ :
          boost::make_iterator_range(boost::out_edges(Vtx, CallGraph))) {
-      OS << Vtx << "->" << boost::target(Succ, CallGraph) << "[label=\""
-         << boost::escape_dot_string(
-                CallGraph[target(Succ, CallGraph)].getFunctionName())
-         << "\"]\n;";
+      OS << Vtx << "->" << boost::target(Succ, CallGraph) << "[label=\"";
+      OS.write_escaped(CallGraph[Succ].getCallSiteAsString());
+      OS << "\"]\n;";
     }
     OS << '\n';
   }
@@ -462,12 +496,13 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 
   // iterate all graph vertices
   for (auto Vtx : boost::make_iterator_range(boost::vertices(CallGraph))) {
-    J[PhasarConfig::JsonCallGraphID()][CallGraph[Vtx].getFunctionName()];
+    auto VtxFunName = CallGraph[Vtx].getFunctionName().str();
+    J[PhasarConfig::JsonCallGraphID()][VtxFunName] = nlohmann::json::array();
     // iterate all out edges of vertex vi_v
     for (auto Succ :
          boost::make_iterator_range(boost::out_edges(Vtx, CallGraph))) {
-      J[PhasarConfig::JsonCallGraphID()][CallGraph[Vtx].getFunctionName()] +=
-          CallGraph[boost::target(Succ, CallGraph)].getFunctionName();
+      J[PhasarConfig::JsonCallGraphID()][VtxFunName].push_back(
+          CallGraph[boost::target(Succ, CallGraph)].getFunctionName().str());
     }
   }
   return J;
@@ -483,425 +518,3 @@ auto LLVMBasedICFG::getAllVertexFunctions() const -> std::vector<f_t> {
 }
 
 } // namespace psr
-
-#if 0
-
-
-const llvm::Function *LLVMBasedICFG::getFirstGlobalCtorOrNull() const {
-  auto It = GlobalCtors.begin();
-  if (It != GlobalCtors.end()) {
-    return It->second;
-  }
-  return nullptr;
-}
-const llvm::Function *LLVMBasedICFG::getLastGlobalDtorOrNull() const {
-  auto It = GlobalDtors.rbegin();
-  if (It != GlobalDtors.rend()) {
-    return It->second;
-  }
-  return nullptr;
-}
-
-
-boost::container::flat_set<const llvm::Function *>
-LLVMBasedICFG::getAllVertexFunctions() const {
-  boost::container::flat_set<const llvm::Function *> VertexFuncs;
-  VertexFuncs.reserve(FunctionVertexMap.size());
-  for (auto V : FunctionVertexMap) {
-    VertexFuncs.insert(V.first);
-  }
-  return VertexFuncs;
-}
-
-std::vector<const llvm::Instruction *>
-LLVMBasedICFG::getOutEdges(const llvm::Function *F) const {
-  auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end()) {
-    return {};
-  }
-
-  std::vector<const llvm::Instruction *> Edges;
-  for (const auto EdgeIt : boost::make_iterator_range(
-           boost::out_edges(FunctionMapIt->second, CallGraph))) {
-    auto Edge = CallGraph[EdgeIt];
-    Edges.push_back(Edge.CS);
-  }
-
-  return Edges;
-}
-
-LLVMBasedICFG::OutEdgesAndTargets
-LLVMBasedICFG::getOutEdgeAndTarget(const llvm::Function *F) const {
-  auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end()) {
-    return {};
-  }
-
-  OutEdgesAndTargets Edges;
-  for (const auto EdgeIt : boost::make_iterator_range(
-           boost::out_edges(FunctionMapIt->second, CallGraph))) {
-    auto Edge = CallGraph[EdgeIt];
-    auto Target = CallGraph[boost::target(EdgeIt, CallGraph)];
-    Edges.insert(std::make_pair(Edge.CS, Target.F));
-  }
-
-  return Edges;
-}
-
-size_t LLVMBasedICFG::removeEdges(const llvm::Function *F,
-                                  const llvm::Instruction *I) {
-  auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end()) {
-    return 0;
-  }
-
-  size_t EdgesRemoved = 0;
-  auto OutEdges = boost::out_edges(FunctionMapIt->second, CallGraph);
-  for (auto EdgeIt : boost::make_iterator_range(OutEdges)) {
-    auto Edge = CallGraph[EdgeIt];
-    if (Edge.CS == I) {
-      boost::remove_edge(EdgeIt, CallGraph);
-      ++EdgesRemoved;
-    }
-  }
-  return EdgesRemoved;
-}
-
-bool LLVMBasedICFG::removeVertex(const llvm::Function *F) {
-  auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end()) {
-    return false;
-  }
-
-  boost::remove_vertex(FunctionMapIt->second, CallGraph);
-  FunctionVertexMap.erase(FunctionMapIt);
-  return true;
-}
-
-size_t LLVMBasedICFG::getCallerCount(const llvm::Function *F) const {
-  auto MapEntry = FunctionVertexMap.find(F);
-  if (MapEntry == FunctionVertexMap.end()) {
-    return 0;
-  }
-
-  auto EdgeIterators = boost::in_edges(MapEntry->second, CallGraph);
-  return std::distance(EdgeIterators.first, EdgeIterators.second);
-}
-
-
-
-void LLVMBasedICFG::forEachCalleeOfCallAt(
-    const llvm::Instruction *I,
-    llvm::function_ref<void(const llvm::Function *)> Callback) const {
-  if (!llvm::isa<llvm::CallInst>(I) && !llvm::isa<llvm::InvokeInst>(I)) {
-    return;
-  }
-
-  auto MapEntry = FunctionVertexMap.find(I->getFunction());
-  if (MapEntry == FunctionVertexMap.end()) {
-    return;
-  }
-
-  out_edge_iterator EI;
-
-  out_edge_iterator EIEnd;
-  for (boost::tie(EI, EIEnd) = boost::out_edges(MapEntry->second, CallGraph);
-       EI != EIEnd; ++EI) {
-    auto Edge = CallGraph[*EI];
-    if (I == Edge.CS) {
-      auto Target = boost::target(*EI, CallGraph);
-      Callback(CallGraph[Target].F);
-    }
-  }
-}
-
-
-
-
-void LLVMBasedICFG::collectGlobalInitializers() {
-  // get all functions used to initialize global variables
-  forEachGlobalCtor([this](auto *GlobalCtor) {
-    for (const auto &BB : *GlobalCtor) {
-      for (const auto &I : BB) {
-        if (auto Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
-          GlobalInitializers.push_back(Call->getCalledFunction());
-        }
-      }
-    }
-  });
-}
-
-
-
-
-
-
-
-
-
-
-
-
-void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
-  using vertex_t = bidigraph_t::vertex_descriptor;
-  using vertex_map_t = std::map<vertex_t, vertex_t>;
-  vertex_map_t OldToNewVertexMapping;
-  boost::associative_property_map<vertex_map_t> VertexMapWrapper(
-      OldToNewVertexMapping);
-  boost::copy_graph(Other.CallGraph, CallGraph,
-                    boost::orig_to_copy(VertexMapWrapper));
-
-  // This vector holds the call-sites that are used to merge the whole-module
-  // points-to graphs
-  vector<pair<const llvm::CallBase *, const llvm::Function *>> Calls;
-  vertex_iterator VIv;
-
-  vertex_iterator VIvEnd;
-
-  vertex_iterator VIu;
-
-  vertex_iterator VIuEnd;
-  // Iterate the vertices of this graph 'v'
-  for (boost::tie(VIv, VIvEnd) = boost::vertices(CallGraph); VIv != VIvEnd;
-       ++VIv) {
-    // Iterate the vertices of the other graph 'u'
-    for (boost::tie(VIu, VIuEnd) = boost::vertices(CallGraph); VIu != VIuEnd;
-         ++VIu) {
-      // Check if we have a virtual node that can be replaced with the actual
-      // node
-      if (CallGraph[*VIv].F == CallGraph[*VIu].F &&
-          CallGraph[*VIv].F->isDeclaration() &&
-          !CallGraph[*VIu].F->isDeclaration()) {
-        in_edge_iterator EI;
-
-        in_edge_iterator EIEnd;
-        for (boost::tie(EI, EIEnd) = boost::in_edges(*VIv, CallGraph);
-             EI != EIEnd; ++EI) {
-          auto Source = boost::source(*EI, CallGraph);
-          auto Edge = CallGraph[*EI];
-          // This becomes the new edge for this graph to the other graph
-          boost::add_edge(Source, *VIu, Edge.CS, CallGraph);
-          Calls.emplace_back(llvm::cast<llvm::CallBase>(Edge.CS),
-                             CallGraph[*VIu].F);
-          // Remove the old edge flowing into the virtual node
-          boost::remove_edge(Source, *VIv, CallGraph);
-        }
-        // Remove the virtual node
-        boost::remove_vertex(*VIv, CallGraph);
-      }
-    }
-  }
-
-  // Update the FunctionVertexMap:
-  for (const auto &OtherValues : Other.FunctionVertexMap) {
-    auto MappingIter = OldToNewVertexMapping.find(OtherValues.second);
-    if (MappingIter != OldToNewVertexMapping.end()) {
-      FunctionVertexMap.insert(
-          make_pair(OtherValues.first, MappingIter->second));
-    }
-  }
-
-  // Merge the already visited functions
-  VisitedFunctions.insert(Other.VisitedFunctions.begin(),
-                          Other.VisitedFunctions.end());
-  // Merge the points-to graphs
-  // WholeModulePTG.mergeWith(Other.WholeModulePTG, Calls);
-}
-
-CallGraphAnalysisType LLVMBasedICFG::getCallGraphAnalysisType() const {
-  return CGType;
-}
-
-
-
-nlohmann::json LLVMBasedICFG::exportICFGAsJson() const {
-  nlohmann::json J;
-
-  llvm::DenseSet<const llvm::Instruction *> HandledCallSites;
-
-  for (const auto *F : getAllFunctions()) {
-    for (auto &[From, To] : getAllControlFlowEdges(F)) {
-      if (llvm::isa<llvm::UnreachableInst>(From)) {
-        continue;
-      }
-
-      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(From)) {
-        auto [unused, inserted] = HandledCallSites.insert(Call);
-
-        for (const auto *Callee : getCalleesOfCallAt(Call)) {
-          if (Callee->isDeclaration()) {
-            continue;
-          }
-          if (inserted) {
-            J.push_back(
-                {{"from", llvmIRToStableString(From)},
-                 {"to", llvmIRToStableString(&Callee->front().front())}});
-          }
-
-          for (const auto *ExitInst : getAllExitPoints(Callee)) {
-            J.push_back({{"from", llvmIRToStableString(ExitInst)},
-                         {"to", llvmIRToStableString(To)}});
-          }
-        }
-
-      } else {
-        J.push_back({{"from", llvmIRToStableString(From)},
-                     {"to", llvmIRToStableString(To)}});
-      }
-    }
-  }
-
-  return J;
-}
-
-nlohmann::json LLVMBasedICFG::exportICFGAsSourceCodeJson() const {
-  nlohmann::json J;
-
-  auto isRetVoid = // NOLINT
-      [](const llvm::Instruction *Inst) {
-        const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst);
-        return Ret && !Ret->getReturnValue();
-      };
-
-  auto getLastNonEmpty = // NOLINT
-      [&](const llvm::Instruction *Inst) -> SourceCodeInfoWithIR {
-    if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
-      return {getSrcCodeInfoFromIR(Inst), llvmIRToStableString(Inst)};
-    }
-    for (const auto *Prev = Inst->getPrevNode(); Prev;
-         Prev = Prev->getPrevNode()) {
-      auto Src = getSrcCodeInfoFromIR(Prev);
-      if (!Src.empty()) {
-        return {Src, llvmIRToStableString(Prev)};
-      }
-    }
-
-    return {getSrcCodeInfoFromIR(Inst), llvmIRToStableString(Inst)};
-  };
-
-  auto createInterEdges = // NOLINT
-      [&](const llvm::Instruction *CS, const SourceCodeInfoWithIR &From,
-          std::initializer_list<SourceCodeInfoWithIR> Tos) {
-        for (const auto *Callee : getCalleesOfCallAt(CS)) {
-          if (Callee->isDeclaration()) {
-            continue;
-          }
-
-          // Call Edge
-          auto InterTo = getFirstNonEmpty(&Callee->front());
-          J.push_back({{"from", From}, {"to", std::move(InterTo)}});
-
-          // Return Edges
-          for (const auto *ExitInst : getAllExitPoints(Callee)) {
-            for (const auto &To : Tos) {
-              J.push_back({{"from", getLastNonEmpty(ExitInst)}, {"to", To}});
-            }
-          }
-        }
-      };
-
-  for (const auto *F : getAllFunctions()) {
-    for (const auto &BB : *F) {
-      assert(!BB.empty() && "Invalid IR: Empty BasicBlock");
-      auto It = BB.begin();
-      auto End = BB.end();
-      auto From = getFirstNonEmpty(It, End);
-
-      if (It == End) {
-        continue;
-      }
-
-      const auto *FromInst = &*It;
-
-      ++It;
-
-      // Edges inside the BasicBlock
-      for (; It != End; ++It) {
-        auto To = getFirstNonEmpty(It, End);
-        if (To.empty()) {
-          break;
-        }
-
-        if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(FromInst)) {
-          // Call- and Return Edges
-          createInterEdges(FromInst, From, {To});
-        } else if (From != To && !isRetVoid(&*It)) {
-          // Normal Edge
-          J.push_back({{"from", From}, {"to", To}});
-        }
-
-        FromInst = &*It;
-        From = std::move(To);
-      }
-
-      const auto *Term = BB.getTerminator();
-      assert(Term && "Invalid IR: BasicBlock without terminating instruction!");
-
-      auto NumSuccessors = Term->getNumSuccessors();
-
-      if (NumSuccessors == 0) {
-        // Return edges already handled
-      } else if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(Term)) {
-        // Invoke Edges (they are not handled by the Call edges, because they
-        // are always terminator instructions)
-
-        // Note: The unwindDest is never reachable from a return instruction.
-        // However, this is how it is modeled in the ICFG at the moment
-        createInterEdges(Term,
-                         SourceCodeInfoWithIR{getSrcCodeInfoFromIR(Term),
-                                              llvmIRToStableString(Term)},
-                         {getFirstNonEmpty(Invoke->getNormalDest()),
-                          getFirstNonEmpty(Invoke->getUnwindDest())});
-        // Call Edges
-      } else {
-        // Branch Edges
-        for (size_t I = 0; I < NumSuccessors; ++I) {
-          auto *Succ = Term->getSuccessor(I);
-          assert(Succ && !Succ->empty());
-
-          auto To = getFirstNonEmpty(Succ);
-          if (From != To) {
-            J.push_back({{"from", From}, {"to", std::move(To)}});
-          }
-        }
-      }
-    }
-  }
-
-  return J;
-}
-
-vector<const llvm::Function *> LLVMBasedICFG::getDependencyOrderedFunctions() {
-  vector<vertex_t> Vertices;
-  vector<const llvm::Function *> Functions;
-  dependency_visitor Deps(Vertices);
-  boost::depth_first_search(CallGraph, visitor(Deps));
-  for (auto V : Vertices) {
-    if (!CallGraph[V].F->isDeclaration()) {
-      Functions.push_back(CallGraph[V].F);
-    }
-  }
-  return Functions;
-}
-
-unsigned LLVMBasedICFG::getNumOfVertices() const {
-  return boost::num_vertices(CallGraph);
-}
-
-unsigned LLVMBasedICFG::getNumOfEdges() const {
-  return boost::num_edges(CallGraph);
-}
-
-const llvm::Function *
-LLVMBasedICFG::getRegisteredDtorsCallerOrNull(const llvm::Module *Mod) {
-  auto It = GlobalRegisteredDtorsCaller.find(Mod);
-  if (It != GlobalRegisteredDtorsCaller.end()) {
-    return It->second;
-  }
-
-  return nullptr;
-}
-
-} // namespace psr
-
-#endif

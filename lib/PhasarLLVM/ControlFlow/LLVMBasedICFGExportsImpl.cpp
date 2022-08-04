@@ -211,10 +211,13 @@ struct GetIR {
   }
 
   const std::string &operator()(const llvm::Instruction *Inst) {
+    assert(Inst);
     auto &Ret = Inst2SCI[Inst];
     if (Ret) {
       return *Ret;
     }
+
+    llvm::errs() << "> push back IR: " << llvmIRToStableString(Inst) << '\n';
 
     auto &Last = IR.emplace_back(llvmIRToStableString(Inst));
     assert(IR.capacity() == Capacity &&

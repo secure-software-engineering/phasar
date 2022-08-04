@@ -49,10 +49,9 @@ WPDSSolverTest::FlowFunctionPtrType WPDSSolverTest::getRetFlowFunction(
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
-WPDSSolverTest::FlowFunctionPtrType
-WPDSSolverTest::getCallToRetFlowFunction(WPDSSolverTest::n_t /*CallSite*/,
-                                         WPDSSolverTest::n_t /*RetSite*/,
-                                         set<WPDSSolverTest::f_t> /*Callees*/) {
+WPDSSolverTest::FlowFunctionPtrType WPDSSolverTest::getCallToRetFlowFunction(
+    WPDSSolverTest::n_t /*CallSite*/, WPDSSolverTest::n_t /*RetSite*/,
+    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
@@ -89,11 +88,10 @@ WPDSSolverTest::getReturnEdgeFunction(WPDSSolverTest::n_t /*CallSite*/,
 }
 
 shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
-WPDSSolverTest::getCallToRetEdgeFunction(WPDSSolverTest::n_t /*CallSite*/,
-                                         WPDSSolverTest::d_t /*CallNode*/,
-                                         WPDSSolverTest::n_t /*RetSite*/,
-                                         WPDSSolverTest::d_t /*RetSiteNode*/,
-                                         set<WPDSSolverTest::f_t> /*Callees*/) {
+WPDSSolverTest::getCallToRetEdgeFunction(
+    WPDSSolverTest::n_t /*CallSite*/, WPDSSolverTest::d_t /*CallNode*/,
+    WPDSSolverTest::n_t /*RetSite*/, WPDSSolverTest::d_t /*RetSiteNode*/,
+    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
   return EdgeIdentity<WPDSSolverTest::l_t>::getInstance();
 }
 

@@ -231,9 +231,9 @@ IDELinearConstantAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
-IDELinearConstantAnalysis::getCallToRetFlowFunction(n_t /*CallSite*/,
-                                                    n_t /*RetSite*/,
-                                                    std::set<f_t> Callees) {
+IDELinearConstantAnalysis::getCallToRetFlowFunction(
+    n_t /*CallSite*/, n_t /*RetSite*/,
+    const llvm::SmallVectorImpl<f_t> &Callees) {
   for (const auto *Callee : Callees) {
     if (!ICF->getStartPointsOf(Callee).empty()) {
       return std::make_shared<KillIf<d_t>>([this](d_t Source) {
@@ -409,11 +409,9 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(n_t /*CallSite*/,
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
-IDELinearConstantAnalysis::getCallToRetEdgeFunction(n_t /*CallSite*/,
-                                                    d_t /*CallNode*/,
-                                                    n_t /*RetSite*/,
-                                                    d_t /*RetSiteNode*/,
-                                                    std::set<f_t> /*Callees*/) {
+IDELinearConstantAnalysis::getCallToRetEdgeFunction(
+    n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/,
+    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
   return EdgeIdentity<l_t>::getInstance();
 }
 

@@ -134,7 +134,7 @@ static llvm::Function *createDtorCallerForModule(
   return PhasarDtorCaller;
 }
 
-static void collectRegisteredDtors(
+[[nodiscard]] static llvm::Function *collectRegisteredDtors(
     std::multimap<size_t, llvm::Function *, std::greater<>> &GlobalDtors,
     llvm::Module &Mod) {
   PHASAR_LOG_LEVEL(DEBUG,
@@ -143,7 +143,7 @@ static void collectRegisteredDtors(
   auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
 
   if (RegisteredDtors.empty()) {
-    return;
+    return nullptr;
   }
 
   PHASAR_LOG_LEVEL(DEBUG,
@@ -154,14 +154,15 @@ static void collectRegisteredDtors(
   GlobalDtors.emplace(0, RegisteredDtorCaller);
   // GlobalDtorFn.try_emplace(RegisteredDtorCaller, it);
   // GlobalRegisteredDtorsCaller.try_emplace(Mod, RegisteredDtorCaller);
+  return RegisteredDtorCaller;
 }
 
-static llvm::Function *buildCRuntimeGlobalDtorsModel(
+static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
     llvm::Module &M,
     const std::multimap<size_t, llvm::Function *, std::greater<>>
         &GlobalDtors) {
   if (GlobalDtors.size() == 1) {
-    return GlobalDtors.begin()->second;
+    return {GlobalDtors.begin()->second, false};
   }
 
   auto &CTX = M.getContext();
@@ -184,16 +185,23 @@ static llvm::Function *buildCRuntimeGlobalDtorsModel(
 
   IRB.CreateRetVoid();
 
-  return Cleanup;
+  return {Cleanup, true};
 }
 
 llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
     llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints) {
   auto GlobalCtors = collectGlobalCtors(M);
   auto GlobalDtors = collectGlobalDtors(M);
-  collectRegisteredDtors(GlobalDtors, M);
+  auto *RegisteredDtorCaller = collectRegisteredDtors(GlobalDtors, M);
+  if (RegisteredDtorCaller) {
+    IRDB->insertFunction(RegisteredDtorCaller);
+  }
 
-  auto *GlobalCleanupFn = buildCRuntimeGlobalDtorsModel(M, GlobalDtors);
+  auto [GlobalCleanupFn, Inserted] =
+      buildCRuntimeGlobalDtorsModel(M, GlobalDtors);
+  if (Inserted) {
+    IRDB->insertFunction(GlobalCleanupFn);
+  }
 
   auto &CTX = M.getContext();
   auto *GlobModel = llvm::cast<llvm::Function>(
@@ -223,43 +231,44 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
 
   assert(!UserEntryPoints.empty());
 
-  auto callUEntry = [&](llvm::Function *UEntry) { // NOLINT
-    switch (UEntry->arg_size()) {
-    case 0:
-      IRB.CreateCall(UEntry);
-      break;
-    case 2:
-      if (UEntry->getName() != "main") {
-        PHASAR_LOG_LEVEL(
-            WARNING,
-            "WARNING: The only entrypoint, where parameters are "
-            "supported, is 'main'.\nAutomated global support for library "
-            "analysis (entry-points=__ALL__) is not yet supported.");
+  auto CallUEntry =
+      [&, GlobalCleanupFn{GlobalCleanupFn}](llvm::Function *UEntry) { // NOLINT
+        switch (UEntry->arg_size()) {
+        case 0:
+          IRB.CreateCall(UEntry);
+          break;
+        case 2:
+          if (UEntry->getName() != "main") {
+            PHASAR_LOG_LEVEL(
+                WARNING,
+                "WARNING: The only entrypoint, where parameters are "
+                "supported, is 'main'.\nAutomated global support for library "
+                "analysis (entry-points=__ALL__) is not yet supported.");
 
-        break;
-      }
+            break;
+          }
 
-      IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
-      break;
-    default:
-      PHASAR_LOG_LEVEL(
-          WARNING,
-          "WARNING: Entrypoints with parameters are not supported, "
-          "except for argc and argv in main.\nAutomated global support for "
-          "library analysis (entry-points=__ALL__) is not yet supported.");
+          IRB.CreateCall(UEntry, {GlobModel->getArg(0), GlobModel->getArg(1)});
+          break;
+        default:
+          PHASAR_LOG_LEVEL(
+              WARNING,
+              "WARNING: Entrypoints with parameters are not supported, "
+              "except for argc and argv in main.\nAutomated global support for "
+              "library analysis (entry-points=__ALL__) is not yet supported.");
 
-      break;
-    }
+          break;
+        }
 
-    if (UEntry->getName() == "main") {
-      ///  After the main function, we must call all global destructors...
-      IRB.CreateCall(GlobalCleanupFn);
-    }
-  };
+        if (UEntry->getName() == "main") {
+          ///  After the main function, we must call all global destructors...
+          IRB.CreateCall(GlobalCleanupFn);
+        }
+      };
 
   if (UserEntryPoints.size() == 1) {
     auto *MainFn = *UserEntryPoints.begin();
-    callUEntry(MainFn);
+    CallUEntry(MainFn);
     IRB.CreateRetVoid();
   } else {
 
@@ -285,7 +294,7 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
       auto *BB =
           llvm::BasicBlock::Create(CTX, "call" + UEntry->getName(), GlobModel);
       IRB.SetInsertPoint(BB);
-      callUEntry(UEntry);
+      CallUEntry(UEntry);
       IRB.CreateBr(SwitchEnd);
 
       UEntrySwitch->addCase(IRB.getInt32(Idx), BB);
@@ -299,6 +308,7 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
     IRB.CreateRetVoid();
   }
 
+  IRDB->insertFunction(GlobModel);
   ModulesToSlotTracker::updateMSTForModule(&M);
 
   return GlobModel;
