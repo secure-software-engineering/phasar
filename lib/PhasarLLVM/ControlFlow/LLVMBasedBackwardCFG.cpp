@@ -15,7 +15,7 @@
 namespace psr {
 
 LLVMBasedBackwardCFG::LLVMBasedBackwardCFG(bool IgnoreDbgInstructions) noexcept
-    : ForwardCFG(IgnoreDbgInstructions) {}
+    : detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG>(IgnoreDbgInstructions) {}
 LLVMBasedBackwardCFG::LLVMBasedBackwardCFG(const ProjectIRDB &IRDB,
                                            bool IgnoreDbgInstructions)
     : LLVMBasedBackwardCFG(IgnoreDbgInstructions) {
@@ -33,15 +33,17 @@ auto LLVMBasedBackwardCFG::getFunctionOfImpl(n_t Inst) const noexcept -> f_t {
   if (const auto *Fun = BackwardRetToFunction.lookup(Inst)) {
     return Fun;
   }
-  return ForwardCFG.getFunctionOf(Inst);
+  return this->base_t::getFunctionOfImpl(Inst);
 }
 
 auto LLVMBasedBackwardCFG::getPredsOfImpl(n_t Inst) const
     -> llvm::SmallVector<n_t, 2> {
   if (BackwardRetToFunction.count(Inst)) {
-    return ForwardCFG.getStartPointsOf(ForwardCFG.getFunctionOf(Inst));
+    return this
+        ->detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG>::getStartPointsOf(
+            this->base_t::getFunctionOfImpl(Inst));
   }
-  return ForwardCFG.getSuccsOf(Inst);
+  return this->base_t::getSuccsOfImpl(Inst);
 }
 
 auto LLVMBasedBackwardCFG ::getSuccsOfImpl(n_t Inst) const
@@ -50,10 +52,10 @@ auto LLVMBasedBackwardCFG ::getSuccsOfImpl(n_t Inst) const
     return {};
   }
 
-  auto Ret = ForwardCFG.getPredsOf(Inst);
+  auto Ret = this->base_t::getPredsOfImpl(Inst);
   if (Ret.empty()) {
     if (const auto *BRet =
-            BackwardRets.lookup(ForwardCFG.getFunctionOf(Inst))) {
+            BackwardRets.lookup(this->base_t::getFunctionOfImpl(Inst))) {
       Ret.push_back(BRet);
     }
   }
@@ -66,7 +68,7 @@ auto LLVMBasedBackwardCFG ::getAllControlFlowEdgesImpl(f_t Fun) const
       Edges;
 
   for (const auto &I : llvm::instructions(Fun)) {
-    if (ForwardCFG.IgnoreDbgInstructions) {
+    if (IgnoreDbgInstructions) {
       // Check for call to intrinsic debug function
       if (const auto *DbgCallInst = llvm::dyn_cast<llvm::CallInst>(&I)) {
         if (DbgCallInst->getCalledFunction() &&
@@ -89,27 +91,27 @@ auto LLVMBasedBackwardCFG ::getAllControlFlowEdgesImpl(f_t Fun) const
 
 auto LLVMBasedBackwardCFG ::getStartPointsOfImpl(f_t Fun) const
     -> llvm::SmallVector<n_t, 2> {
-  return ForwardCFG.getExitPointsOf(Fun);
+  return this->base_t::getExitPointsOfImpl(Fun);
 }
 
 auto LLVMBasedBackwardCFG ::getExitPointsOfImpl(f_t Fun) const
-    -> llvm::SmallVector<n_t, 1> {
+    -> llvm::SmallVector<n_t, 2> {
   return BackwardRets.empty()
-             ? ForwardCFG.getStartPointsOf(Fun)
-             : llvm::SmallVector<n_t, 1>{BackwardRets.lookup(Fun)};
+             ? this->base_t::getStartPointsOfImpl(Fun)
+             : llvm::SmallVector<n_t, 2>{BackwardRets.lookup(Fun)};
 }
 
 bool LLVMBasedBackwardCFG ::isExitInstImpl(n_t Inst) const noexcept {
-  return BackwardRetToFunction.empty() ? ForwardCFG.isStartPoint(Inst)
+  return BackwardRetToFunction.empty() ? this->base_t::isStartPointImpl(Inst)
                                        : BackwardRetToFunction.count(Inst);
 }
 
 bool LLVMBasedBackwardCFG ::isStartPointImpl(n_t Inst) const noexcept {
-  return ForwardCFG.isExitInst(Inst);
+  return this->base_t::isExitInstImpl(Inst);
 }
 
 bool LLVMBasedBackwardCFG ::isFallThroughSuccessorImpl(
-    n_t Inst, n_t Succ) const noexcept {
+    n_t /*Inst*/, n_t /*Succ*/) const noexcept {
   assert(false && "FallThrough not valid in LLVM IR");
   return false;
 }

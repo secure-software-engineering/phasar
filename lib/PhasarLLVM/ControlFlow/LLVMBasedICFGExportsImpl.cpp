@@ -131,11 +131,6 @@ struct SourceCodeInfoWithIR : public SourceCodeInfo {
   std::string IR;
 };
 
-// static void from_json(const nlohmann::json &J,
-//                                           SourceCodeInfoWithIR &Info) {
-//   from_json(J, static_cast<SourceCodeInfo &>(Info));
-//   J.at("IR").get_to(Info.IR);
-// }
 static void to_json(nlohmann::json &J, const SourceCodeInfoWithIR &Info) {
   to_json(J, static_cast<const SourceCodeInfo &>(Info));
   J["IR"] = Info.IR;

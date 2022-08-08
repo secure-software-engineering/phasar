@@ -15,21 +15,26 @@
  */
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include <string>
 
 namespace psr {
 
-auto LLVMBasedCFG::getFunctionOfImpl(n_t Inst) const noexcept -> f_t {
+template <typename Derived>
+auto detail::LLVMBasedCFGImpl<Derived>::getFunctionOfImpl(
+    n_t Inst) const noexcept -> f_t {
   assert(Inst != nullptr);
   return Inst->getFunction();
 }
 
-auto LLVMBasedCFG::getPredsOfImpl(const llvm::Instruction *I) const
+template <typename Derived>
+auto detail::LLVMBasedCFGImpl<Derived>::getPredsOfImpl(n_t I) const
     -> llvm::SmallVector<n_t, 2> {
   if (!IgnoreDbgInstructions) {
     if (const auto *PrevInst = I->getPrevNode()) {
@@ -60,7 +65,8 @@ auto LLVMBasedCFG::getPredsOfImpl(const llvm::Instruction *I) const
   return Preds;
 }
 
-auto LLVMBasedCFG::getSuccsOfImpl(const llvm::Instruction *I) const
+template <typename Derived>
+auto detail::LLVMBasedCFGImpl<Derived>::getSuccsOfImpl(n_t I) const
     -> llvm::SmallVector<n_t, 2> {
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
@@ -98,8 +104,9 @@ auto LLVMBasedCFG::getSuccsOfImpl(const llvm::Instruction *I) const
   return Successors;
 }
 
-auto LLVMBasedCFG::getAllControlFlowEdgesImpl(const llvm::Function *Fun) const
-    -> std::vector<std::pair<n_t, n_t>> {
+template <typename Derived>
+auto detail::LLVMBasedCFGImpl<Derived>::getAllControlFlowEdgesImpl(
+    f_t Fun) const -> std::vector<std::pair<n_t, n_t>> {
   std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
       Edges;
 
@@ -116,7 +123,7 @@ auto LLVMBasedCFG::getAllControlFlowEdgesImpl(const llvm::Function *Fun) const
       }
     }
 
-    auto Successors = getSuccsOf(&I);
+    auto Successors = this->getSuccsOf(&I);
     for (const auto *Successor : Successors) {
       Edges.emplace_back(&I, Successor);
     }
@@ -125,8 +132,9 @@ auto LLVMBasedCFG::getAllControlFlowEdgesImpl(const llvm::Function *Fun) const
   return Edges;
 }
 
-auto LLVMBasedCFG::getStartPointsOfImpl(const llvm::Function *Fun) const
-    -> llvm::SmallVector<n_t, 1> {
+template <typename Derived>
+auto detail::LLVMBasedCFGImpl<Derived>::getStartPointsOfImpl(f_t Fun) const
+    -> llvm::SmallVector<n_t, 2> {
   if (!Fun) {
     return {};
   }
@@ -144,7 +152,8 @@ auto LLVMBasedCFG::getStartPointsOfImpl(const llvm::Function *Fun) const
   return {};
 }
 
-auto LLVMBasedCFG::getExitPointsOfImpl(const llvm::Function *Fun) const
+template <typename Derived>
+auto detail::LLVMBasedCFGImpl<Derived>::getExitPointsOfImpl(f_t Fun) const
     -> llvm::SmallVector<n_t, 2> {
   if (!Fun) {
     return {};
@@ -159,8 +168,9 @@ auto LLVMBasedCFG::getExitPointsOfImpl(const llvm::Function *Fun) const
   return {};
 }
 
-bool LLVMBasedCFG::isStartPointImpl(
-    const llvm::Instruction *Inst) const noexcept {
+template <typename Derived>
+bool detail::LLVMBasedCFGImpl<Derived>::isStartPointImpl(
+    n_t Inst) const noexcept {
   auto FirstInst = &Inst->getFunction()->front().front();
   if (Inst == FirstInst) {
     return true;
@@ -169,8 +179,9 @@ bool LLVMBasedCFG::isStartPointImpl(
          Inst == FirstInst->getNextNonDebugInstruction(false);
 }
 
-bool LLVMBasedCFG::isFieldLoadImpl(
-    const llvm::Instruction *Inst) const noexcept {
+template <typename Derived>
+bool detail::LLVMBasedCFGImpl<Derived>::isFieldLoadImpl(
+    n_t Inst) const noexcept {
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Inst)) {
     if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Load->getPointerOperand())) {
@@ -180,8 +191,9 @@ bool LLVMBasedCFG::isFieldLoadImpl(
   return false;
 }
 
-bool LLVMBasedCFG::isFieldStoreImpl(
-    const llvm::Instruction *Inst) const noexcept {
+template <typename Derived>
+bool detail::LLVMBasedCFGImpl<Derived>::isFieldStoreImpl(
+    n_t Inst) const noexcept {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Inst)) {
     if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Store->getPointerOperand())) {
@@ -191,9 +203,9 @@ bool LLVMBasedCFG::isFieldStoreImpl(
   return false;
 }
 
-bool LLVMBasedCFG::isFallThroughSuccessorImpl(
-    const llvm::Instruction *Inst,
-    const llvm::Instruction *Succ) const noexcept {
+template <typename Derived>
+bool detail::LLVMBasedCFGImpl<Derived>::isFallThroughSuccessorImpl(
+    n_t Inst, n_t Succ) const noexcept {
   // assert(false && "FallThrough not valid in LLVM IR");
   if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Inst)) {
     if (B->isConditional()) {
@@ -204,9 +216,9 @@ bool LLVMBasedCFG::isFallThroughSuccessorImpl(
   return false;
 }
 
-bool LLVMBasedCFG::isBranchTargetImpl(
-    const llvm::Instruction *Inst,
-    const llvm::Instruction *Succ) const noexcept {
+template <typename Derived>
+bool detail::LLVMBasedCFGImpl<Derived>::isBranchTargetImpl(
+    n_t Inst, n_t Succ) const noexcept {
   if (Inst->isTerminator()) {
     for (const auto *BB : llvm::successors(Inst->getParent())) {
       if (&BB->front() == Succ) {
@@ -217,15 +229,18 @@ bool LLVMBasedCFG::isBranchTargetImpl(
   return false;
 }
 
-bool LLVMBasedCFG::isHeapAllocatingFunctionImpl(
-    const llvm::Function *Fun) const {
+template <typename Derived>
+bool detail::LLVMBasedCFGImpl<Derived>::isHeapAllocatingFunctionImpl(
+    f_t Fun) const {
   return llvm::StringSwitch<bool>(Fun->getName())
       .Cases("_Znwm", "_Znam", "malloc", "calloc", "realloc", true)
       .Default(false);
 }
 
-SpecialMemberFunctionType LLVMBasedCFG::getSpecialMemberFunctionTypeImpl(
-    const llvm::Function *Fun) const {
+template <typename Derived>
+SpecialMemberFunctionType
+detail::LLVMBasedCFGImpl<Derived>::getSpecialMemberFunctionTypeImpl(
+    f_t Fun) const {
   if (!Fun) {
     return SpecialMemberFunctionType::None;
   }
@@ -284,13 +299,15 @@ SpecialMemberFunctionType LLVMBasedCFG::getSpecialMemberFunctionTypeImpl(
   return SpecialMemberFunctionType::None;
 }
 
+template <typename Derived>
 std::string
-LLVMBasedCFG::getStatementIdImpl(const llvm::Instruction *Inst) const {
+detail::LLVMBasedCFGImpl<Derived>::getStatementIdImpl(n_t Inst) const {
   return getMetaDataID(Inst);
 }
 
+template <typename Derived>
 std::string
-LLVMBasedCFG::getDemangledFunctionNameImpl(const llvm::Function *Fun) const {
+detail::LLVMBasedCFGImpl<Derived>::getDemangledFunctionNameImpl(f_t Fun) const {
   return llvm::demangle(Fun->getName().str());
 }
 
@@ -313,10 +330,6 @@ struct SourceCodeInfoWithIR : public SourceCodeInfo {
   std::string IR;
 };
 
-// static void from_json(const nlohmann::json &J, SourceCodeInfoWithIR &Info) {
-//   from_json(J, static_cast<SourceCodeInfo &>(Info));
-//   J.at("IR").get_to(Info.IR);
-// }
 static void to_json(nlohmann::json &J, const SourceCodeInfoWithIR &Info) {
   to_json(J, static_cast<const SourceCodeInfo &>(Info));
   J["IR"] = Info.IR;
@@ -394,4 +407,6 @@ LLVMBasedCFG::exportCFGAsSourceCodeJson(const llvm::Function *F) const {
   return J;
 }
 
+template class detail::LLVMBasedCFGImpl<LLVMBasedCFG>;
+template class detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG>;
 } // namespace psr

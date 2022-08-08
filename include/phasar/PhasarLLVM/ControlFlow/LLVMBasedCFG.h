@@ -40,23 +40,27 @@ template <> struct CFGTraits<LLVMBasedCFG> {
   using f_t = const llvm::Function *;
 };
 
-class LLVMBasedCFG : public CFGBase<LLVMBasedCFG> {
-  friend CFGBase;
+template <> struct CFGTraits<LLVMBasedBackwardCFG> : CFGTraits<LLVMBasedCFG> {};
+
+namespace detail {
+template <typename Derived> class LLVMBasedCFGImpl : public CFGBase<Derived> {
+  friend CFGBase<Derived>;
   friend class LLVMBasedBackwardCFG;
 
 public:
-  LLVMBasedCFG(bool IgnoreDbgInstructions = true) noexcept
-      : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
-
-  [[nodiscard]] nlohmann::json exportCFGAsJson(const llvm::Function *F) const;
-  [[nodiscard]] nlohmann::json
-  exportCFGAsSourceCodeJson(const llvm::Function *F) const;
+  using typename CFGBase<Derived>::n_t;
+  using typename CFGBase<Derived>::f_t;
 
   [[nodiscard]] bool getIgnoreDbgInstructions() const noexcept {
     return IgnoreDbgInstructions;
   }
 
-private:
+protected:
+  LLVMBasedCFGImpl(bool IgnoreDbgInstructions = true) noexcept
+      : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
+
+  bool IgnoreDbgInstructions = false;
+
   [[nodiscard]] f_t getFunctionOfImpl(n_t Inst) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t, 2> getPredsOfImpl(n_t Inst) const;
   [[nodiscard]] llvm::SmallVector<n_t, 2> getSuccsOfImpl(n_t Inst) const;
@@ -66,7 +70,7 @@ private:
     return llvm::map_range(llvm::instructions(Fun),
                            [](const llvm::Instruction &Inst) { return &Inst; });
   }
-  [[nodiscard]] llvm::SmallVector<n_t, 1> getStartPointsOfImpl(f_t Fun) const;
+  [[nodiscard]] llvm::SmallVector<n_t, 2> getStartPointsOfImpl(f_t Fun) const;
   [[nodiscard]] llvm::SmallVector<n_t, 2> getExitPointsOfImpl(f_t Fun) const;
   [[nodiscard]] bool isCallSiteImpl(n_t Inst) const noexcept {
     return llvm::isa<llvm::CallBase>(Inst);
@@ -82,7 +86,8 @@ private:
   [[nodiscard]] bool isBranchTargetImpl(n_t Inst, n_t Succ) const noexcept;
   [[nodiscard]] bool isHeapAllocatingFunctionImpl(f_t Fun) const;
   [[nodiscard]] bool isSpecialMemberFunctionImpl(f_t Fun) const {
-    return getSpecialMemberFunctionType(Fun) != SpecialMemberFunctionType{};
+    return this->getSpecialMemberFunctionType(Fun) !=
+           SpecialMemberFunctionType{};
   }
   [[nodiscard]] SpecialMemberFunctionType
   getSpecialMemberFunctionTypeImpl(f_t Fun) const;
@@ -93,10 +98,24 @@ private:
   [[nodiscard]] std::string getDemangledFunctionNameImpl(f_t Fun) const;
   void printImpl(f_t Fun, llvm::raw_ostream &OS) const { OS << *Fun; }
   [[nodiscard]] nlohmann::json getAsJsonImpl(f_t /*Fun*/) const { return ""; }
-
-protected:
-  bool IgnoreDbgInstructions = false;
 };
+} // namespace detail
+
+class LLVMBasedCFG : public detail::LLVMBasedCFGImpl<LLVMBasedCFG> {
+  friend CFGBase;
+  friend class LLVMBasedBackwardCFG;
+
+public:
+  LLVMBasedCFG(bool IgnoreDbgInstructions = true) noexcept
+      : detail::LLVMBasedCFGImpl<LLVMBasedCFG>(IgnoreDbgInstructions) {}
+
+  [[nodiscard]] nlohmann::json exportCFGAsJson(const llvm::Function *F) const;
+  [[nodiscard]] nlohmann::json
+  exportCFGAsSourceCodeJson(const llvm::Function *F) const;
+};
+
+extern template class detail::LLVMBasedCFGImpl<LLVMBasedCFG>;
+extern template class detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG>;
 
 } // namespace psr
 
