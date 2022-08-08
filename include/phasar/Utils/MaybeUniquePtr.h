@@ -120,8 +120,14 @@ public:
   [[nodiscard]] T *operator->() noexcept { return get(); }
   [[nodiscard]] const T *operator->() const noexcept { return get(); }
 
-  [[nodiscard]] T &operator*() noexcept { return *get(); }
-  [[nodiscard]] const T &operator*() const noexcept { return *get(); }
+  [[nodiscard]] T &operator*() noexcept {
+    assert(get() != nullptr);
+    return *get();
+  }
+  [[nodiscard]] const T &operator*() const noexcept {
+    assert(get() != nullptr);
+    return *get();
+  }
 
   T *release() noexcept {
     Data.setInt(false);

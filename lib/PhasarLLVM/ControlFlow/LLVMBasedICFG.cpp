@@ -337,7 +337,8 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(bidigraph_t &CallGraph,
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
-                             Soundness S, bool IncludeGlobals) {
+                             Soundness S, bool IncludeGlobals)
+    : TH(TH) {
   assert(IRDB != nullptr);
   this->IRDB = IRDB;
 
