@@ -217,7 +217,7 @@ struct GetIR {
       return *Ret;
     }
 
-    llvm::errs() << "> push back IR: " << llvmIRToStableString(Inst) << '\n';
+    // llvm::errs() << "> push back IR: " << llvmIRToStableString(Inst) << '\n';
 
     auto &Last = IR.emplace_back(llvmIRToStableString(Inst));
     assert(IR.capacity() == Capacity &&
@@ -252,22 +252,22 @@ static void exportICFGAsSourceCodeImpl(const LLVMBasedICFG &ICF,
                                        bool IgnoreDbgInstructions) {
 
   // NOLINTNEXTLINE(readability-identifier-naming)
-  auto isRetVoid = [](const llvm::Instruction *Inst) noexcept {
-    const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst);
-    return Ret && !Ret->getReturnValue();
-  };
+  // auto isRetVoid = [](const llvm::Instruction *Inst) noexcept {
+  //   const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst);
+  //   return Ret && !Ret->getReturnValue();
+  // };
 
   using RetTy = typename GetSCIFn::return_type;
 
   // NOLINTNEXTLINE(readability-identifier-naming)
   auto getLastNonEmpty =
-      [isRetVoid, &getSCI](const llvm::Instruction *Inst) -> const RetTy & {
-    if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
-      return getSCI(Inst);
-    }
-    if (const auto *Prev = Inst->getPrevNode()) {
-      return getSCI(Prev);
-    }
+      [/*isRetVoid,*/ &getSCI](const llvm::Instruction *Inst) -> const RetTy & {
+    // if (!isRetVoid(Inst) || !Inst->getPrevNode()) {
+    //   return getSCI(Inst);
+    // }
+    // if (const auto *Prev = Inst->getPrevNode()) {
+    //   return getSCI(Prev);
+    // }
 
     return getSCI(Inst);
   };
