@@ -720,8 +720,7 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
     return getEdgeIdentity(Curr);
   }
 
-  llvm::SmallVector<const llvm::Function *> Callees =
-      ICF->getCalleesOfCallAt(Curr);
+  const auto &Callees = ICF->getCalleesOfCallAt(Curr);
 
   SanitizerConfigTy SaniConfig;
 

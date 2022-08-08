@@ -30,8 +30,6 @@
 
 namespace psr {
 
-static inline void deleteValue(llvm::Value *V) { V->deleteValue(); }
-
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
  * @param V LLVM Value.

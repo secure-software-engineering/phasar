@@ -175,6 +175,8 @@ public:
 
   [[nodiscard]] std::size_t getNumGlobals() const;
 
+  [[nodiscard]] std::size_t getNumFunctions() const;
+
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);

@@ -246,23 +246,23 @@ detail::LLVMBasedCFGImpl<Derived>::getSpecialMemberFunctionTypeImpl(
   if (!Fun) {
     return SpecialMemberFunctionType::None;
   }
-  auto FunctionName = Fun->getName();
+  llvm::StringRef FunctionName = Fun->getName();
   /// TODO: this looks terrible and needs fix
-  static const std::map<std::string, SpecialMemberFunctionType> Codes{
-      {"C1", SpecialMemberFunctionType::Constructor},
-      {"C2", SpecialMemberFunctionType::Constructor},
-      {"C3", SpecialMemberFunctionType::Constructor},
-      {"D0", SpecialMemberFunctionType::Destructor},
-      {"D1", SpecialMemberFunctionType::Destructor},
-      {"D2", SpecialMemberFunctionType::Destructor},
-      {"aSERKS_", SpecialMemberFunctionType::CopyAssignment},
-      {"aSEOS_", SpecialMemberFunctionType::MoveAssignment}};
-  std::vector<std::pair<std::size_t, SpecialMemberFunctionType>> Found;
+  static constexpr std::pair<llvm::StringLiteral, SpecialMemberFunctionType>
+      Codes[] = {{"C1", SpecialMemberFunctionType::Constructor},
+                 {"C2", SpecialMemberFunctionType::Constructor},
+                 {"C3", SpecialMemberFunctionType::Constructor},
+                 {"D0", SpecialMemberFunctionType::Destructor},
+                 {"D1", SpecialMemberFunctionType::Destructor},
+                 {"D2", SpecialMemberFunctionType::Destructor},
+                 {"aSERKS_", SpecialMemberFunctionType::CopyAssignment},
+                 {"aSEOS_", SpecialMemberFunctionType::MoveAssignment}};
+  llvm::SmallVector<std::pair<std::size_t, SpecialMemberFunctionType>> Found;
   std::size_t Blacklist = 0;
-  auto It = Codes.begin();
-  while (It != Codes.end()) {
+  auto It = std::begin(Codes);
+  while (It != std::end(Codes)) {
     if (std::size_t Index = FunctionName.find(It->first, Blacklist)) {
-      if (Index != std::string::npos) {
+      if (Index != llvm::StringRef::npos) {
         Found.emplace_back(Index, It->second);
         Blacklist = Index + 1;
       } else {

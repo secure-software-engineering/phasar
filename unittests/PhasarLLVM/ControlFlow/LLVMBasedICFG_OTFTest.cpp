@@ -34,14 +34,14 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 
   const auto *CallToAFunc = getNthInstruction(F, 19);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
-  auto AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
+  const auto &AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
   ASSERT_EQ(AsCallees.size(), 2U);
   ASSERT_TRUE(llvm::is_contained(AsCallees, VFuncA));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncA), CallToAFunc));
 
   const auto *CallToBFunc = getNthInstruction(F, 25);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
-  auto BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
+  const auto &BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
   ASSERT_EQ(BsCallees.size(), 2U);
   ASSERT_TRUE(llvm::is_contained(BsCallees, VFuncB));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncB), CallToBFunc));
@@ -80,7 +80,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   const llvm::Function *Bar = IRDB.getFunctionDefinition("_Z3barv");
 
   const auto *FPtrCall = getNthInstruction(Main, 7);
-  auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
+  const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
   auto printCallees // NOLINT
       = [&]() {
@@ -119,7 +119,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
   const llvm::Function *Foo = IRDB.getFunctionDefinition("_Z3foov");
 
   const auto *FPtrCall = getNthInstruction(Main, 8);
-  auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
+  const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
   ASSERT_EQ(Callees.size(), 1U);
   ASSERT_EQ(llvm::is_contained(Callees, Foo), 1U);

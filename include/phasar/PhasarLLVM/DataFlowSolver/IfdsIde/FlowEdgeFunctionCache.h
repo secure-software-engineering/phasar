@@ -272,7 +272,7 @@ public:
 
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           const llvm::SmallVector<f_t> &Callees) {
+                           const llvm::SmallVectorImpl<f_t> &Callees) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return flow function factory call");

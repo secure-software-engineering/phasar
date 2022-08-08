@@ -51,10 +51,12 @@ private:
   [[nodiscard]] bool isIndirectFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] bool isVirtualFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] std::vector<n_t> allNonCallStartNodesImpl() const;
-  [[nodiscard]] llvm::SmallVector<f_t> getCalleesOfCallAtImpl(n_t Inst) const;
+  [[nodiscard]] const llvm::SmallVectorImpl<f_t> &
+  getCalleesOfCallAtImpl(n_t Inst) const noexcept;
   /// TODO: Return a map_iterator on the in_edge_iterator -- How to deal with
-  /// not-contaied funs? assert them out?
-  [[nodiscard]] llvm::SmallVector<n_t> getCallersOfImpl(f_t Fun) const;
+  /// not-contained funs? assert them out?
+  [[nodiscard]] const llvm::SmallVectorImpl<n_t> &
+  getCallersOfImpl(f_t Fun) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t> getCallsFromWithinImpl(f_t Fun) const;
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;

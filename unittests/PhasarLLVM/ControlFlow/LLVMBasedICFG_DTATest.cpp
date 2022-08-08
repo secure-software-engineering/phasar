@@ -31,7 +31,7 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 
   const llvm::Instruction *I = getNthInstruction(F, 16);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    auto Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
 
     ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
     ASSERT_EQ(Callees.size(), 2U);
@@ -57,7 +57,7 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
   ASSERT_TRUE(VFuncB);
 
   const llvm::Instruction *I = getNthInstruction(F, 6);
-  auto Callers = ICFG.getCallersOf(VFuncA);
+  const auto &Callers = ICFG.getCallersOf(VFuncA);
   ASSERT_EQ(Callers.size(), 1U);
   ASSERT_TRUE(llvm::is_contained(Callers, I));
 }

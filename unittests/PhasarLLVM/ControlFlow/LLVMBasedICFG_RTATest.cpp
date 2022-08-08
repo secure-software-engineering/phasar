@@ -27,7 +27,7 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
 
   const llvm::Instruction *I = getNthInstruction(F, 11);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    auto Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
     set<string> CalleeNames;
     for (const llvm::Function *F : Callees) {
       CalleeNames.insert(F->getName().str());
@@ -55,7 +55,7 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
   const llvm::Instruction *I = getNthInstruction(F, 14);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
     ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
-    auto Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
     ASSERT_EQ(Callees.size(), 1U);
     ASSERT_TRUE(llvm::is_contained(Callees, AptrFoo));
   }
@@ -77,7 +77,7 @@ TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
 
   const llvm::Instruction *I = getNthInstruction(F, 15);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    auto Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
     ASSERT_EQ(Callees.size(), 1U);
   }
 }

@@ -51,7 +51,7 @@ LLVMBasedICFG::exportICFGAsDot(bool WithSourceCodeInfo) const {
                               const llvm::Instruction *CS, intptr_t To,
                               llvm::StringRef Label) {
     bool HasDecl = false;
-    auto Callees = getCalleesOfCallAt(CS);
+    const auto &Callees = getCalleesOfCallAt(CS);
 
     for (const auto *Callee : Callees) {
       if (Callee->isDeclaration()) {
@@ -271,7 +271,7 @@ static void exportICFGAsSourceCodeImpl(const LLVMBasedICFG &ICF,
                               const llvm::Instruction *CS, const RetTy &From,
                               const RetTy &To) {
     bool NeedCTREdge = false;
-    auto Callees = ICF.getCalleesOfCallAt(CS);
+    const auto &Callees = ICF.getCalleesOfCallAt(CS);
     for (const auto *Callee : Callees) {
       if (Callee->isDeclaration()) {
         NeedCTREdge = true;

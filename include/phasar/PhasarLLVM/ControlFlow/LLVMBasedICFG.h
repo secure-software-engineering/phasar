@@ -27,8 +27,10 @@
 
 #include "nlohmann/json.hpp"
 
-#include "boost/graph/adjacency_list.hpp"
-
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace psr {
@@ -42,35 +44,6 @@ template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
 
 class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   friend ICFGBase;
-
-  // The VertexProperties for our call-graph.
-  struct VertexProperties {
-    const llvm::Function *F = nullptr;
-    VertexProperties() = default;
-    VertexProperties(const llvm::Function *F) noexcept;
-    [[nodiscard]] llvm::StringRef getFunctionName() const noexcept;
-  };
-
-  // The EdgeProperties for our call-graph.
-  struct EdgeProperties {
-    const llvm::Instruction *CS = nullptr;
-    size_t ID = 0;
-    EdgeProperties() = default;
-    EdgeProperties(const llvm::Instruction *I) noexcept;
-    [[nodiscard]] std::string getCallSiteAsString() const;
-  };
-
-  /// Specify the type of graph to be used.
-  using bidigraph_t =
-      boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-                            VertexProperties, EdgeProperties>;
-
-  // Let us have some handy typedefs.
-  using vertex_t = boost::graph_traits<bidigraph_t>::vertex_descriptor;
-  using vertex_iterator = boost::graph_traits<bidigraph_t>::vertex_iterator;
-  using edge_t = boost::graph_traits<bidigraph_t>::edge_descriptor;
-  using out_edge_iterator = boost::graph_traits<bidigraph_t>::out_edge_iterator;
-  using in_edge_iterator = boost::graph_traits<bidigraph_t>::in_edge_iterator;
 
   struct Builder;
 
@@ -98,7 +71,8 @@ public:
   [[nodiscard]] nlohmann::json
   exportICFGAsJson(bool WithSourceCodeInfo = true) const;
 
-  [[nodiscard]] std::vector<f_t> getAllVertexFunctions() const;
+  [[nodiscard]] const llvm::SmallVectorImpl<f_t> &
+  getAllVertexFunctions() const noexcept;
 
   [[nodiscard]] ProjectIRDB *getIRDB() const noexcept { return IRDB; }
 
@@ -115,10 +89,12 @@ private:
   [[nodiscard]] bool isIndirectFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] bool isVirtualFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] std::vector<n_t> allNonCallStartNodesImpl() const;
-  [[nodiscard]] llvm::SmallVector<f_t> getCalleesOfCallAtImpl(n_t Inst) const;
+  [[nodiscard]] const llvm::SmallVectorImpl<f_t> &
+  getCalleesOfCallAtImpl(n_t Inst) const noexcept;
   /// TODO: Return a map_iterator on the in_edge_iterator -- How to deal with
   /// not-contained funs? assert them out?
-  [[nodiscard]] llvm::SmallVector<n_t> getCallersOfImpl(f_t Fun) const;
+  [[nodiscard]] const llvm::SmallVectorImpl<n_t> &
+  getCallersOfImpl(f_t Fun) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t> getCallsFromWithinImpl(f_t Fun) const;
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;
@@ -128,9 +104,28 @@ private:
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
       llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 
+  // -------------------- Utilities --------------------
+
+  size_t addFunctionVertex(const llvm::Function *F);
+  size_t addInstructionVertex(const llvm::Instruction *Inst);
+
+  void addCallEdge(const llvm::Instruction *CS, const llvm::Function *Callee);
+  void addCallEdge(const llvm::Instruction *CS, size_t CSId,
+                   const llvm::Function *Callee);
+
   /// The call graph.
-  bidigraph_t CallGraph;
-  llvm::DenseMap<const llvm::Function *, vertex_t> FunctionVertexMap;
+
+  /// Maps Instructions/Functions to integer IDs. Instructions and Functions
+  /// have separate ID spaces
+  llvm::DenseMap<const llvm::Value *, size_t> ValueIdMap;
+  llvm::SmallVector<const llvm::Function *, 0> VertexFunctions;
+
+  /// Use deque as we are giving references into these containers to the
+  /// outside. Implementators may retain those references while mutating the
+  /// call-graph on-the-fly which requires reference stability
+  std::deque<llvm::SmallVector<const llvm::Instruction *>> CallersOf;
+  std::deque<llvm::SmallVector<const llvm::Function *>> CalleesAt;
+
   ProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
 };

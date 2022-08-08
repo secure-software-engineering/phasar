@@ -32,6 +32,7 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
@@ -122,12 +123,12 @@ std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
 }
 
 bool LLVMTypeHierarchy::isTypeInfo(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(TypeInfoPrefixDemang);
 }
 
 bool LLVMTypeHierarchy::isVTable(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
 
@@ -168,14 +169,12 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-              CE->getAsInstruction(), &deleteValue);
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName =
-                    removeTypeInfoPrefix(llvm::demangle(Name.str().c_str()));
+                    removeTypeInfoPrefix(llvm::demangle(Name.str()));
                 if (const auto *Type = ClearNameTypeMap[ClearName]) {
                   SubTypes.push_back(Type);
                 }

@@ -243,6 +243,14 @@ std::size_t ProjectIRDB::getNumGlobals() const {
   return Ret;
 }
 
+std::size_t ProjectIRDB::getNumFunctions() const {
+  std::size_t Ret = 0;
+  for (const auto &[File, Module] : Modules) {
+    Ret += Module->size();
+  }
+  return Ret;
+}
+
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) const {
   if (auto It = IDInstructionMapping.find(Id);
       It != IDInstructionMapping.end()) {

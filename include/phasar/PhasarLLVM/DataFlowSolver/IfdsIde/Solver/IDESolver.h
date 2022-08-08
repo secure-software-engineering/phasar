@@ -466,8 +466,8 @@ protected:
     // a call node; line 14...
     d_t d2 = Edge.factAtTarget();
     EdgeFunctionPtrType f = jumpFunction(Edge);
-    const auto ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
-    const auto Callees = ICF->getCalleesOfCallAt(n);
+    const auto &ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
+    const auto &Callees = ICF->getCalleesOfCallAt(n);
 
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Possible callees:"); for (auto Callee
@@ -1084,7 +1084,7 @@ protected:
     // condition
     if (SolverConfig.followReturnsPastSeeds() && Inc.empty() &&
         IDEProblem.isZeroValue(d1)) {
-      const auto Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
+      const auto &Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
       for (n_t Caller : Callers) {
         for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(Caller)) {
           FlowFunctionPtrType RetFunction =
