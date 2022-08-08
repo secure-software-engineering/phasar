@@ -7,13 +7,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-/*
- * ICFG.h
- *
- *  Created on: 17.08.2016
- *      Author: pdschbrt
- */
-
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_ICFGBASE_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_ICFGBASE_H
 

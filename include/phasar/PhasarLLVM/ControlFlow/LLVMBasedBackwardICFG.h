@@ -15,6 +15,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 
 #include "llvm/IR/LLVMContext.h"
+
 namespace psr {
 
 class LLVMBasedICFG;
@@ -53,8 +54,6 @@ private:
   [[nodiscard]] std::vector<n_t> allNonCallStartNodesImpl() const;
   [[nodiscard]] const llvm::SmallVectorImpl<f_t> &
   getCalleesOfCallAtImpl(n_t Inst) const noexcept;
-  /// TODO: Return a map_iterator on the in_edge_iterator -- How to deal with
-  /// not-contained funs? assert them out?
   [[nodiscard]] const llvm::SmallVectorImpl<n_t> &
   getCallersOfImpl(f_t Fun) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t> getCallsFromWithinImpl(f_t Fun) const;

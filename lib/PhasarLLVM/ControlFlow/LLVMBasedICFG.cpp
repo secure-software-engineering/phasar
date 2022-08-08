@@ -1,18 +1,11 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
-
-/*
- * LLVMBasedInterproceduralICFG.cpp
- *
- *  Created on: 09.09.2016
- *      Author: pdschbrt
- */
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/Config/Configuration.h"

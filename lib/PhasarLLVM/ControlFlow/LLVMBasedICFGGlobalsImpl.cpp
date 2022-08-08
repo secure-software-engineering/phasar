@@ -1,11 +1,20 @@
+/******************************************************************************
+ * Copyright (c) 2022 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert, Fabian Schiebel and others
+ *****************************************************************************/
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/IRBuilder.h"
+
 #include <functional>
-#include <map>
 
 namespace psr {
 template <typename MapTy>
