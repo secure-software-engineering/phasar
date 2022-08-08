@@ -17,11 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 
-#include <map>
-#include <set>
-#include <string>
-
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
@@ -29,6 +24,9 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
+
+#include <set>
+#include <string>
 
 namespace psr {
 

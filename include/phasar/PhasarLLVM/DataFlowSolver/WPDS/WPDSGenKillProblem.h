@@ -12,7 +12,6 @@
 
 #include <vector>
 
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"

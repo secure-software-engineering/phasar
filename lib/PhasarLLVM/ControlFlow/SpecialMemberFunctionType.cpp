@@ -7,11 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/ADT/StringSwitch.h>
-#include <string>
+#include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
-#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace psr;

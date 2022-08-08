@@ -16,12 +16,14 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/IntrinsicInst.h"
+
 #include <string>
 
 namespace psr {

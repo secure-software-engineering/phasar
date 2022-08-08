@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 
 #include "llvm/ADT/STLExtras.h"
