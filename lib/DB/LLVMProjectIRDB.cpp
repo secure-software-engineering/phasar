@@ -5,11 +5,13 @@
 
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/IR/AssemblyAnnotationWriter.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/SourceMgr.h"
 
 namespace psr {
@@ -172,5 +174,26 @@ void LLVMProjectIRDB::dumpImpl() const {
   llvm::dbgs() << *Mod;
   llvm::dbgs().flush();
 }
+
+void LLVMProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS) const {
+  assert(isValid());
+  struct AAWriter : llvm::AssemblyAnnotationWriter {
+    const LLVMProjectIRDB *IRDB{};
+
+    explicit AAWriter(const LLVMProjectIRDB *IRDB) noexcept : IRDB(IRDB) {}
+
+    void printInfoComment(const llvm::Value &V,
+                          llvm::formatted_raw_ostream &OS) override {
+      if (auto It = IRDB->InstToId.find(&V); It != IRDB->InstToId.end()) {
+        OS << " | ID: " << It->second;
+      }
+    }
+  };
+
+  AAWriter AAW(this);
+  Mod->print(OS, &AAW);
+}
+
+template class ProjectIRDBBase<LLVMProjectIRDB>;
 
 } // namespace psr

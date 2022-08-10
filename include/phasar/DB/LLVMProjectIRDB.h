@@ -20,6 +20,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/ErrorOr.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 
@@ -77,9 +78,13 @@ public:
   /// Non-const overload
   [[nodiscard]] llvm::Module *getModule() { return Mod.get(); }
 
+  /// Similar to getInstruction(size_t), but is also able to return global
+  /// variables by id
   [[nodiscard]] const llvm::Value *getValueFromId(size_t Id) const noexcept {
     return Id < IdToInst.size() ? IdToInst[Id] : nullptr;
   }
+
+  void emitPreprocessedIR(llvm::raw_ostream &OS) const;
 
 private:
   [[nodiscard]] m_t getModuleImpl() const noexcept { return Mod.get(); }
@@ -93,6 +98,10 @@ private:
   }
   [[nodiscard]] f_t
   getFunctionDefinitionImpl(llvm::StringRef FunctionName) const;
+  [[nodiscard]] bool
+  hasFunctionImpl(llvm::StringRef FunctionName) const noexcept {
+    return Mod->getFunction(FunctionName) != nullptr;
+  }
   [[nodiscard]] g_t
   getGlobalVariableDefinitionImpl(llvm::StringRef GlobalVariableName) const;
   [[nodiscard]] size_t getNumInstructionsImpl() const noexcept {
@@ -106,6 +115,7 @@ private:
   }
 
   [[nodiscard]] n_t getInstructionImpl(size_t Id) const noexcept {
+    // Effectively make use of integer overflow here...
     if (Id - IdOffset < IdToInst.size() - IdOffset) {
       return llvm::cast<llvm::Instruction>(IdToInst[Id]);
     }
@@ -132,6 +142,8 @@ private:
   llvm::SmallVector<const llvm::Value *, 0> IdToInst;
   llvm::DenseMap<const llvm::Value *, size_t> InstToId;
 };
+
+extern template class ProjectIRDBBase<LLVMProjectIRDB>;
 } // namespace psr
 
 #endif // PHASAR_DB_LLVMPROJECTIRDB_H
