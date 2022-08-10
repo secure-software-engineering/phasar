@@ -185,7 +185,7 @@ void LLVMProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS) const {
     void printInfoComment(const llvm::Value &V,
                           llvm::formatted_raw_ostream &OS) override {
       if (auto It = IRDB->InstToId.find(&V); It != IRDB->InstToId.end()) {
-        OS << " | ID: " << It->second;
+        OS << "; | ID: " << It->second;
       }
     }
   };
