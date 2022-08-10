@@ -9,6 +9,7 @@ just_add_library(
         clangFrontend
         clangLex
         clangRewrite
+        omp
         
         clangSerialization
         clangTooling

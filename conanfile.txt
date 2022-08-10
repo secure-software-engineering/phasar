@@ -1,5 +1,5 @@
 [requires]
-llvm/14.0.6@just-simple-cmake/debug
+llvm/14.0.6
 boost/1.72.0
 gtest/1.12.1
 sqlite3/3.36.0
@@ -15,3 +15,6 @@ cmake
 [options]
 llvm:enable_debug=True
 llvm:shared=False
+llvm:with_project_clang=True
+llvm:with_project_openmp=True
+llvm:keep_binaries_regex=^(clang\+\+|clang|opt)$
