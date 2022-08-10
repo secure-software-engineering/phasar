@@ -10,7 +10,6 @@ endif ()
 
 # download cmake dependencies if not present
 set(JUST_SIMPLE_conan "${CMAKE_SOURCE_DIR}/cmake/conan.cmake")
-set(JUST_SIMPLE_coverage "${CMAKE_SOURCE_DIR}/cmake/code-coverage.cmake")
 if(NOT EXISTS "${JUST_SIMPLE_conan}")
     file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
         "${JUST_SIMPLE_conan}"
@@ -19,6 +18,7 @@ if(NOT EXISTS "${JUST_SIMPLE_conan}")
 endif()
 include(${JUST_SIMPLE_conan})
 
+set(JUST_SIMPLE_coverage "${CMAKE_SOURCE_DIR}/cmake/code-coverage.cmake")
 if (NOT EXISTS "${JUST_SIMPLE_coverage}")
     file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/ed79fb95f7bd39b2cb158d7ff83a5dbb639343e8/code-coverage.cmake"
         "${JUST_SIMPLE_coverage}"
@@ -51,7 +51,7 @@ include("${JUST_SIMPLE_coverage}")
 add_code_coverage_all_targets(EXCLUDE ".conan/.*" ".*/test/.*") # TODO its allowed to call it something else, move name enforcing to config?
 
 enable_testing() #enable ctest
-set(CMAKE_CTEST_ARGUMENTS "--output-junit;${CMAKE_BINARY_DIR}/Testing/Temporary/JUnit.xml;") # for ci import
+set(CMAKE_CTEST_ARGUMENTS "--output-junit;${CMAKE_BINARY_DIR}/Testing/Temporary/JUnit.xml;--output-on-failure;") # for ci import
 include(GoogleTest)
 
 # TODO offer a diagnostic run with link / compile = 1, job = 1 and check mem usage with "sar -r cmd" (sysstat package) automatically?
@@ -153,31 +153,6 @@ function(just_copy_resource TARGET)
     endforeach()
 endfunction()
 
-function(_just_check_library_order)
-    set(options)
-    set(oneValueArgs TARGET)
-    set(multiValueArgs LINK)
-    cmake_parse_arguments(PARSE_ARGV "0" "just_check" "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-    set(index -1)
-    set(wrong_order OFF)
-    set(correct_order)
-    foreach(available_lib ${CONAN_LIBS})
-        list(FIND just_check_LINK ${available_lib} found)
-        if (found GREATER -1)
-            list(APPEND correct_order "${available_lib}")
-            if (found LESS index)
-                set(wrong_order ON)
-            endif()
-            set(index "${found}")
-        endif()
-    endforeach()
-
-    if (${wrong_order})
-        message(FATAL_ERROR "${just_check_TARGET} has wrong link order, expecting: ${correct_order}")
-    endif()
-endfunction()
-
 function(just_add_library)
     # Argument parsing
     set(options SKIP_SUBDIRECTORIES)
@@ -192,10 +167,6 @@ function(just_add_library)
         message(FATAL_ERROR "target \"${TARGET}\" has unparsed arguments \"${just_add_UNPARSED_ARGUMENTS}\" maybe LINK in front of it?")
     endif()
     _just_add_check("${TARGET}")
-
-    if (just_add_LINK)
-        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
-    endif()
 
     # create filelist
     file(GLOB_RECURSE files include/* src/*)
@@ -230,6 +201,9 @@ function(just_add_library)
         _just_add_subdirectory()
     endif()
     _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
+    
+    install(TARGETS ${TARGET} EXPORT ${TARGET})
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endfunction()
 
 function(just_add_executable)
@@ -246,11 +220,6 @@ function(just_add_executable)
         message(FATAL_ERROR "target \"${TARGET}\" has unparsed arguments \"${just_add_UNPARSED_ARGUMENTS}\" maybe LINK in front of it?")
     endif()
     _just_add_check("${TARGET}")
-
-    if (just_add_LINK)
-        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
-    endif()
-
 
     # create filelist
     file(GLOB_RECURSE files include/* src/*)
@@ -289,6 +258,8 @@ function(just_add_executable)
     endif()
 
     _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
+
+    install(TARGETS ${TARGET} EXPORT ${TARGET})
 endfunction()
 
 function(just_add_tests)
@@ -314,10 +285,6 @@ function(just_add_tests)
     endif()
     _just_add_check("${TARGET}")
 
-    if (just_add_LINK)
-        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
-    endif()
-
     # create filelist
     file(GLOB_RECURSE files include/* src/*)
     if(just_add_INCLUDE)
@@ -338,7 +305,7 @@ function(just_add_tests)
     add_executable("${TARGET}" ${files})
     string(TOUPPER "RUNTIME_OUTPUT_DIRECTORY_${CMAKE_BUILD_TYPE}" binary_folder)
     set_target_properties("${TARGET}" PROPERTIES "${binary_folder}" "${CMAKE_CURRENT_BINARY_DIR}")
-    gtest_discover_tests("${TARGET}" WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" DISCOVERY_TIMEOUT 60)
+    gtest_discover_tests("${TARGET}" WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" DISCOVERY_TIMEOUT 60 PROPERTIES LABELS ${TARGET_UNDER_TEST})
     target_include_directories("${TARGET}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
     set(LINK_DEPENDENCIES)
