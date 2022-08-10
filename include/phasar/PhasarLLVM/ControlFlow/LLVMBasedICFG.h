@@ -30,8 +30,23 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
+#include <memory>
+
+#include "phasar/Utils/MemoryResource.h"
+
+/// On some MAC systems, <memory_resource> is still not fully implemented, so do
+/// a workaround here
+// #undef HAS_MEMORY_RESOURCE
+// #define HAS_MEMORY_RESOURCE 0
+
+#if HAS_MEMORY_RESOURCE
+#include <memory_resource>
+#else
+#include "llvm/Support/Allocator.h"
+#endif
 
 namespace psr {
 class ProjectIRDB;
@@ -46,6 +61,10 @@ class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   friend ICFGBase;
 
   struct Builder;
+
+  struct OnlyDestroyDeleter {
+    template <typename T> void operator()(T *Data) { std::destroy_at(Data); }
+  };
 
 public:
   static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
@@ -63,8 +82,8 @@ public:
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;
   LLVMBasedICFG &operator=(const LLVMBasedICFG &) = delete;
 
-  LLVMBasedICFG(LLVMBasedICFG &&) noexcept = default;
-  LLVMBasedICFG &operator=(LLVMBasedICFG &&) noexcept = default;
+  LLVMBasedICFG(LLVMBasedICFG &&) noexcept = delete;
+  LLVMBasedICFG &operator=(LLVMBasedICFG &&) noexcept = delete;
 
   [[nodiscard]] std::string
   exportICFGAsDot(bool WithSourceCodeInfo = true) const;
@@ -104,25 +123,35 @@ private:
 
   // -------------------- Utilities --------------------
 
-  size_t addFunctionVertex(const llvm::Function *F);
-  size_t addInstructionVertex(const llvm::Instruction *Inst);
+  llvm::SmallVector<const llvm::Instruction *> *
+  addFunctionVertex(const llvm::Function *F);
+  llvm::SmallVector<const llvm::Function *> *
+  addInstructionVertex(const llvm::Instruction *Inst);
 
   void addCallEdge(const llvm::Instruction *CS, const llvm::Function *Callee);
-  void addCallEdge(const llvm::Instruction *CS, size_t CSId,
+  void addCallEdge(const llvm::Instruction *CS,
+                   llvm::SmallVector<const llvm::Function *> *Callees,
                    const llvm::Function *Callee);
 
   /// The call graph.
 
-  /// Maps Instructions/Functions to integer IDs. Instructions and Functions
-  /// have separate ID spaces
-  llvm::DenseMap<const llvm::Value *, size_t> ValueIdMap;
-  llvm::SmallVector<const llvm::Function *, 0> VertexFunctions;
+#if HAS_MEMORY_RESOURCE
+  std::pmr::monotonic_buffer_resource MRes;
+#else
+  llvm::BumpPtrAllocator MRes;
+#endif
 
-  /// Use deque as we are giving references into these containers to the
-  /// outside. Implementators may retain those references while mutating the
-  /// call-graph on-the-fly which requires reference stability
-  std::deque<llvm::SmallVector<const llvm::Instruction *>> CallersOf;
-  std::deque<llvm::SmallVector<const llvm::Function *>> CalleesAt;
+  llvm::DenseMap<const llvm::Instruction *,
+                 std::unique_ptr<llvm::SmallVector<const llvm::Function *>,
+                                 OnlyDestroyDeleter>>
+      CalleesAt;
+  llvm::DenseMap<const llvm::Function *,
+                 std::unique_ptr<llvm::SmallVector<const llvm::Instruction *>,
+                                 OnlyDestroyDeleter>>
+      CallersOf;
+
+  // llvm::DenseMap<const llvm::Value *, size_t> ValueIdMap;
+  llvm::SmallVector<const llvm::Function *, 0> VertexFunctions;
 
   ProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;

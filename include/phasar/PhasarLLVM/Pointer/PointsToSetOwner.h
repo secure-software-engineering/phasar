@@ -21,20 +21,18 @@
 
 #include <functional>
 #include <memory>
-#include <memory_resource>
 #include <type_traits>
+
+#include "phasar/Utils/MemoryResource.h"
 
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here
 
-#if !defined(__has_include) || __has_include(<memory_resource>)
-#define HAS_MEMORY_RESOURCE 1
+#if HAS_MEMORY_RESOURCE
 #include <memory_resource>
 #else
-#define HAS_MEMORY_RESOURCE 0
 #include "llvm/Support/RecyclingAllocator.h"
 #endif
-
 namespace llvm {
 class Value;
 } // namespace llvm
