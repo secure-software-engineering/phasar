@@ -10,8 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_NORESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_NORESOLVER_H_
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 namespace llvm {

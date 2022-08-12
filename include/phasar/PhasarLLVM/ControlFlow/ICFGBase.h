@@ -46,10 +46,10 @@ public:
     return self().getFunctionImpl(Fun);
   }
 
-  [[nodiscard]] bool isIndirectFunctionCall(n_t Inst) const {
+  [[nodiscard]] bool isIndirectFunctionCall(ByConstRef<n_t> Inst) const {
     return self().isIndirectFunctionCallImpl(Inst);
   }
-  [[nodiscard]] bool isVirtualFunctionCall(n_t Inst) const {
+  [[nodiscard]] bool isVirtualFunctionCall(ByConstRef<n_t> Inst) const {
     return self().isVirtualFunctionCallImpl(Inst);
   }
   [[nodiscard]] decltype(auto) allNonCallStartNodes() const {
@@ -57,28 +57,30 @@ public:
         is_iterable_over_v<decltype(self().allNonCallStartNodesImpl()), n_t>);
     return self().allNonCallStartNodesImpl();
   }
-  [[nodiscard]] decltype(auto) getCalleesOfCallAt(n_t Inst) const {
+  [[nodiscard]] decltype(auto) getCalleesOfCallAt(ByConstRef<n_t> Inst) const {
     static_assert(
         is_iterable_over_v<decltype(self().getCalleesOfCallAtImpl(Inst)), f_t>);
     return self().getCalleesOfCallAtImpl(Inst);
   }
-  [[nodiscard]] decltype(auto) getCallersOf(f_t Fun) const {
+  [[nodiscard]] decltype(auto) getCallersOf(ByConstRef<f_t> Fun) const {
     static_assert(
         is_iterable_over_v<decltype(self().getCallersOfImpl(Fun)), n_t>);
     return self().getCallersOfImpl(Fun);
   }
-  [[nodiscard]] decltype(auto) getCallsFromWithin(f_t Fun) const {
+  [[nodiscard]] decltype(auto) getCallsFromWithin(ByConstRef<f_t> Fun) const {
     static_assert(
         is_iterable_over_v<decltype(self().getCallsFromWithinImpl(Fun)), n_t>);
     return self().getCallsFromWithinImpl(Fun);
   }
-  [[nodiscard]] decltype(auto) getReturnSitesOfCallAt(n_t Inst) const {
+  [[nodiscard]] decltype(auto)
+  getReturnSitesOfCallAt(ByConstRef<n_t> Inst) const {
     static_assert(
         is_iterable_over_v<decltype(self().getReturnSitesOfCallAtImpl(Inst)),
                            n_t>);
     return self().getReturnSitesOfCallAtImpl(Inst);
   }
-  [[nodiscard]] decltype(auto) getGlobalInitializers(f_t Fun) const {
+  [[nodiscard]] decltype(auto)
+  getGlobalInitializers(ByConstRef<f_t> Fun) const {
     static_assert(
         is_iterable_over_v<decltype(self().getGlobalInitializersImpl(Fun)),
                            f_t>);

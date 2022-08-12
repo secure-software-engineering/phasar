@@ -124,7 +124,7 @@ private:
   /// outside. Implementators may retain those references while mutating the
   /// call-graph on-the-fly which requires reference stability
   std::deque<llvm::SmallVector<const llvm::Instruction *>> CallersOf;
-  std::deque<llvm::SmallVector<const llvm::Function *>> CalleesAt;
+  std::deque<llvm::SmallVector<const llvm::Function *, 2>> CalleesAt;
 
   ProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;

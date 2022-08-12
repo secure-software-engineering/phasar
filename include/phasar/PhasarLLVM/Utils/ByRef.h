@@ -11,17 +11,16 @@
 #define PHASAR_PHASARLLVM_UTILS_BYREF_H
 
 #include <type_traits>
+
 namespace psr {
 template <typename T>
-using ByConstRef =
-    std::conditional_t<sizeof(T) <= 2 * sizeof(void *) &&
-                           std::is_trivially_copy_constructible_v<T>,
-                       T, const T &>;
+using ByConstRef = std::conditional_t<sizeof(T) <= 2 * sizeof(void *) &&
+                                          std::is_trivially_copyable_v<T>,
+                                      T, const T &>;
 template <typename T>
-using ByMoveRef =
-    std::conditional_t<sizeof(T) <= 2 * sizeof(void *) &&
-                           std::is_trivially_copy_constructible_v<T>,
-                       T, T &&>;
+using ByMoveRef = std::conditional_t<sizeof(T) <= 2 * sizeof(void *) &&
+                                         std::is_trivially_copyable_v<T>,
+                                     T, T &&>;
 
 } // namespace psr
 

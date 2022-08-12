@@ -418,7 +418,6 @@ LLVMBasedICFG::getCalleesOfCallAtImpl(n_t Inst) const noexcept
   };
 
   if (!llvm::isa<llvm::CallBase>(Inst)) {
-
     return getEmpty();
   }
 

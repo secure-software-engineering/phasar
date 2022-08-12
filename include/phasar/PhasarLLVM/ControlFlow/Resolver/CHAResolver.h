@@ -17,8 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_CHARESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_CHARESOLVER_H_
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 namespace llvm {
