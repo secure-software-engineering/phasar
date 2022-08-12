@@ -7,13 +7,6 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-/*
- * LLVMBasedCFG.cpp
- *
- *  Created on: 07.06.2017
- *      Author: philipp
- */
-
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"

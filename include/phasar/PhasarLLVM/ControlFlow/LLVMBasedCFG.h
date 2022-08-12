@@ -7,13 +7,6 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-/*
- * LLVMBasedCFG.h
- *
- *  Created on: 07.06.2017
- *      Author: philipp
- */
-
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 

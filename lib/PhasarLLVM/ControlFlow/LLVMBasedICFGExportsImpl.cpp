@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2022 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
@@ -9,6 +18,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include <string>
 
 namespace psr {
