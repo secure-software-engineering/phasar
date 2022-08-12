@@ -51,9 +51,9 @@ IFDSSignAnalysis::FlowFunctionPtrType IFDSSignAnalysis::getRetFlowFunction(
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType
-IFDSSignAnalysis::getCallToRetFlowFunction(
-    IFDSSignAnalysis::n_t /*CallSite*/, IFDSSignAnalysis::n_t /*RetSite*/,
-    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
+IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t /*CallSite*/,
+                                           IFDSSignAnalysis::n_t /*RetSite*/,
+                                           llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 

@@ -221,7 +221,7 @@ public:
 
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           const llvm::SmallVectorImpl<f_t> &Callees) override;
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallStmt,
                                              f_t DestFun) override;
@@ -241,7 +241,7 @@ public:
   EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
-                           const llvm::SmallVectorImpl<f_t> &Callees) override;
+                           llvm::ArrayRef<f_t> Callees) override;
 
   EdgeFunctionPtrType getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                              d_t SuccNode) override;

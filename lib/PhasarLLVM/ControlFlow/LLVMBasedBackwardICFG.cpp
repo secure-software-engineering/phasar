@@ -41,12 +41,12 @@ auto LLVMBasedBackwardICFG::allNonCallStartNodesImpl() const
 }
 
 auto LLVMBasedBackwardICFG::getCalleesOfCallAtImpl(n_t Inst) const noexcept
-    -> const llvm::SmallVectorImpl<f_t> & {
+    -> llvm::ArrayRef<f_t> {
   return ForwardICFG->getCalleesOfCallAt(Inst);
 }
 
 auto LLVMBasedBackwardICFG::getCallersOfImpl(f_t Fun) const noexcept
-    -> const llvm::SmallVectorImpl<n_t> & {
+    -> llvm::ArrayRef<n_t> {
   return ForwardICFG->getCallersOf(Fun);
 }
 

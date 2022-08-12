@@ -123,8 +123,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
     InterMonoTaintAnalysis::n_t CallSite,
-    InterMonoTaintAnalysis::n_t /*RetSite*/,
-    const llvm::SmallVectorImpl<f_t> &Callees,
+    InterMonoTaintAnalysis::n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   PHASAR_LOG_LEVEL(DEBUG, "InterMonoTaintAnalysis::callToRetFlow()");
   InterMonoTaintAnalysis::mono_container_t Out(In);

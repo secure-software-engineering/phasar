@@ -33,14 +33,13 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include <memory>
 
 #include "phasar/Utils/MemoryResource.h"
 
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here
-// #undef HAS_MEMORY_RESOURCE
-// #define HAS_MEMORY_RESOURCE 0
 
 #if HAS_MEMORY_RESOURCE
 #include <memory_resource>
@@ -108,10 +107,9 @@ private:
   [[nodiscard]] bool isIndirectFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] bool isVirtualFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] std::vector<n_t> allNonCallStartNodesImpl() const;
-  [[nodiscard]] const llvm::SmallVectorImpl<f_t> &
+  [[nodiscard]] llvm::ArrayRef<f_t>
   getCalleesOfCallAtImpl(n_t Inst) const noexcept;
-  [[nodiscard]] const llvm::SmallVectorImpl<n_t> &
-  getCallersOfImpl(f_t Fun) const noexcept;
+  [[nodiscard]] llvm::ArrayRef<n_t> getCallersOfImpl(f_t Fun) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t> getCallsFromWithinImpl(f_t Fun) const;
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;
@@ -150,7 +148,6 @@ private:
                                  OnlyDestroyDeleter>>
       CallersOf;
 
-  // llvm::DenseMap<const llvm::Value *, size_t> ValueIdMap;
   llvm::SmallVector<const llvm::Function *, 0> VertexFunctions;
 
   ProjectIRDB *IRDB = nullptr;

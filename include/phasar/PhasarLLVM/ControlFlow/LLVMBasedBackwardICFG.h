@@ -52,10 +52,9 @@ private:
   [[nodiscard]] bool isIndirectFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] bool isVirtualFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] std::vector<n_t> allNonCallStartNodesImpl() const;
-  [[nodiscard]] const llvm::SmallVectorImpl<f_t> &
+  [[nodiscard]] llvm::ArrayRef<f_t>
   getCalleesOfCallAtImpl(n_t Inst) const noexcept;
-  [[nodiscard]] const llvm::SmallVectorImpl<n_t> &
-  getCallersOfImpl(f_t Fun) const noexcept;
+  [[nodiscard]] llvm::ArrayRef<n_t> getCallersOfImpl(f_t Fun) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t> getCallsFromWithinImpl(f_t Fun) const;
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;

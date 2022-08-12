@@ -54,7 +54,7 @@ WPDSAliasCollector::FlowFunctionPtrType WPDSAliasCollector::getRetFlowFunction(
 WPDSAliasCollector::FlowFunctionPtrType
 WPDSAliasCollector::getCallToRetFlowFunction(
     WPDSAliasCollector::n_t /*CallSite*/, WPDSAliasCollector::n_t /*RetSite*/,
-    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
+    llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
@@ -92,8 +92,7 @@ shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getCallToRetEdgeFunction(
     WPDSAliasCollector::n_t /*CallSite*/, WPDSAliasCollector::d_t /*CallNode*/,
     WPDSAliasCollector::n_t /*RetSite*/,
-    WPDSAliasCollector::d_t /*RetSiteNode*/,
-    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
+    WPDSAliasCollector::d_t /*RetSiteNode*/, llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 

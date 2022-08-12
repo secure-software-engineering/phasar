@@ -491,7 +491,7 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
     [[maybe_unused]] n_t CallSite, [[maybe_unused]] n_t RetSite,
-    [[maybe_unused]] const llvm::SmallVectorImpl<f_t> &Callees) {
+    [[maybe_unused]] llvm::ArrayRef<f_t> Callees) {
   PHASAR_LOG_LEVEL(DEBUG,
                    "##CallToReturn-FF at: " << psr::llvmIRToString(CallSite));
 
@@ -686,7 +686,7 @@ auto IDEExtendedTaintAnalysis::getReturnEdgeFunction(
 
 auto IDEExtendedTaintAnalysis::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, [[maybe_unused]] n_t RetSite, d_t RetSiteNode,
-    const llvm::SmallVectorImpl<f_t> &Callees) -> EdgeFunctionPtrType {
+    llvm::ArrayRef<f_t> Callees) -> EdgeFunctionPtrType {
 
   // Intrinsics behave as they won't be there...
   bool IsIntrinsic = std::all_of(Callees.begin(), Callees.end(),

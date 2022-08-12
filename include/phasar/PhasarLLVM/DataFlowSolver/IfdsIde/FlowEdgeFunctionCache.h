@@ -270,9 +270,8 @@ public:
     return FF;
   }
 
-  FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           const llvm::SmallVectorImpl<f_t> &Callees) {
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               llvm::ArrayRef<f_t> Callees) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return flow function factory call");
@@ -434,10 +433,9 @@ public:
     return EF;
   }
 
-  EdgeFunctionPtrType
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode,
-                           const llvm::SmallVectorImpl<f_t> &Callees) {
+  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                               n_t RetSite, d_t RetSiteNode,
+                                               llvm::ArrayRef<f_t> Callees) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return edge function factory call");

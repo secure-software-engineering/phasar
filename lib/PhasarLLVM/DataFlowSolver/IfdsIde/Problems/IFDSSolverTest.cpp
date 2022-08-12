@@ -54,9 +54,10 @@ IFDSSolverTest::FlowFunctionPtrType IFDSSolverTest::getRetFlowFunction(
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
-IFDSSolverTest::FlowFunctionPtrType IFDSSolverTest::getCallToRetFlowFunction(
-    IFDSSolverTest::n_t /*CallSite*/, IFDSSolverTest::n_t /*RetSite*/,
-    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
+IFDSSolverTest::FlowFunctionPtrType
+IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t /*CallSite*/,
+                                         IFDSSolverTest::n_t /*RetSite*/,
+                                         llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 

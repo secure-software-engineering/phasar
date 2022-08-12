@@ -197,7 +197,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite,
     [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite,
-    const llvm::SmallVectorImpl<f_t> &Callees) {
+    llvm::ArrayRef<f_t> Callees) {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   std::set<d_t> Gen;
   std::set<d_t> Leak;

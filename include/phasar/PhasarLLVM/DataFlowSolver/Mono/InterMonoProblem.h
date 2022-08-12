@@ -69,10 +69,9 @@ public:
                                       n_t RetSite,
                                       const mono_container_t &In) = 0;
 
-  virtual mono_container_t
-  callToRetFlow(n_t CallSite, n_t RetSite,
-                const llvm::SmallVectorImpl<f_t> &Callees,
-                const mono_container_t &In) = 0;
+  virtual mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
+                                         llvm::ArrayRef<f_t> Callees,
+                                         const mono_container_t &In) = 0;
 
   [[nodiscard]] const i_t *getICFG() const { return ICF; }
 };

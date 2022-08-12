@@ -198,7 +198,7 @@ bool LLVMBasedICFG::Builder::processFunction( // bidigraph_t &CallGraph,
 
       Res->handlePossibleTargets(CS, PossibleTargets);
 
-      auto CallSiteId = ICF->addInstructionVertex(CS);
+      auto *CallSiteId = ICF->addInstructionVertex(CS);
 
       // Insert possible target inside the graph and add the link with
       // the current function
@@ -417,37 +417,27 @@ LLVMBasedICFG::~LLVMBasedICFG() = default;
   }
   return NonCallStartNodes;
 }
+
 [[nodiscard]] auto
 LLVMBasedICFG::getCalleesOfCallAtImpl(n_t Inst) const noexcept
-    -> const llvm::SmallVectorImpl<f_t> & {
-
-  auto getEmpty = []() -> const llvm::SmallVectorImpl<f_t> & {
-    static llvm::SmallVector<const llvm::Function *, 0> Empty;
-    return Empty;
-  };
-
+    -> llvm::ArrayRef<f_t> {
   if (!llvm::isa<llvm::CallBase>(Inst)) {
-    return getEmpty();
+    return {};
   }
 
   auto MapEntry = CalleesAt.find(Inst);
   if (MapEntry == CalleesAt.end()) {
-    return getEmpty();
+    return {};
   }
 
   return *MapEntry->second;
 }
 
 [[nodiscard]] auto LLVMBasedICFG::getCallersOfImpl(f_t Fun) const noexcept
-    -> const llvm::SmallVectorImpl<n_t> & {
-  auto getEmpty = []() -> const llvm::SmallVectorImpl<n_t> & {
-    static llvm::SmallVector<const llvm::Instruction *, 0> Empty;
-    return Empty;
-  };
-
+    -> llvm::ArrayRef<n_t> {
   auto MapEntry = CallersOf.find(Fun);
   if (MapEntry == CallersOf.end()) {
-    return getEmpty();
+    return {};
   }
 
   return *MapEntry->second;

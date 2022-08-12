@@ -179,9 +179,9 @@ IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
 }
 
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
-IDEGeneralizedLCA::getCallToRetFlowFunction(
-    IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::n_t /*RetSite*/,
-    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
+IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
+                                            IDEGeneralizedLCA::n_t /*RetSite*/,
+                                            llvm::ArrayRef<f_t> /*Callees*/) {
   // llvm::outs() << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
@@ -431,10 +431,11 @@ IDEGeneralizedLCA::getReturnEdgeFunction(
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getCallToRetEdgeFunction(
-    IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
-    IDEGeneralizedLCA::n_t /*RetSite*/, IDEGeneralizedLCA::d_t RetSiteNode,
-    const llvm::SmallVectorImpl<f_t> & /*Callees*/) {
+IDEGeneralizedLCA::getCallToRetEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
+                                            IDEGeneralizedLCA::d_t CallNode,
+                                            IDEGeneralizedLCA::n_t /*RetSite*/,
+                                            IDEGeneralizedLCA::d_t RetSiteNode,
+                                            llvm::ArrayRef<f_t> /*Callees*/) {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
   // check for ctor and then demangle function name and check for

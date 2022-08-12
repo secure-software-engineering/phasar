@@ -128,7 +128,7 @@ public:
    */
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           const llvm::SmallVectorImpl<f_t> &Callees) override;
+                           llvm::ArrayRef<f_t> Callees) override;
 
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.

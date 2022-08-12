@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -476,8 +477,7 @@ public:
   //
   virtual EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode,
-                           const llvm::SmallVectorImpl<f_t> &Callees) = 0;
+                           d_t RetSiteNode, llvm::ArrayRef<f_t> Callees) = 0;
 
   //
   // Also refer to FlowFunction::getSummaryFlowFunction()
