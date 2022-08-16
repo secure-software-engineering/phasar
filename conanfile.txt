@@ -1,5 +1,5 @@
 [requires]
-llvm/14.0.6
+llvm/14.0.6@just-simple-cmake/debug
 boost/1.72.0
 gtest/1.12.1
 sqlite3/3.36.0
@@ -13,8 +13,13 @@ openssl/3.0.5 # includes needed for some test files
 cmake
 
 [options]
-llvm:enable_debug=True
+# for phasar shared + replace LLVM.* deps with LLVM
+# sqlite3:shared=True
+# llvm:shared=True
+# for phasar static
 llvm:shared=False
+
+llvm:enable_debug=True
 llvm:with_project_clang=True
 llvm:with_project_openmp=True
-llvm:keep_binaries_regex=^(clang\+\+|clang|opt)$
+llvm:keep_binaries_regex=^(clang|clang\+\+|opt)$

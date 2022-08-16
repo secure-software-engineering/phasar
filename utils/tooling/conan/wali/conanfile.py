@@ -1,5 +1,8 @@
 from conans import ConanFile, CMake, tools
+from collections import defaultdict
+import os, re, shutil, glob, json
 
+import shutil, errno # remove before commit
 
 class WALiOpenNWAConan(ConanFile):
     name = "wali-opennwa"
@@ -19,7 +22,9 @@ class WALiOpenNWAConan(ConanFile):
     }
     generators = "cmake_find_package", "cmake_paths"
     exports_sources = "*"
-    requires = "llvm-core/12.0.0@intellisectest+intellisectest-application/stable"
+    requires = [
+        "llvm-core/12.0.0@intellisectest+intellisectest-application/stable"
+    ]
 
     @property
     def _source_subfolder(self):
@@ -38,11 +43,27 @@ class WALiOpenNWAConan(ConanFile):
             tools.patch(**patch)
 
     def build(self):
+        # workaround to test packaging faster
         self._patch_sources()
         cmake = CMake(self)
         cmake.definitions['BUILD_SHARED_LIBS'] = self.options.shared
-        cmake.configure(source_folder=self._source_subfolder, build_folder=self._build_subfolder)
-        cmake.build()
+        
+        
+        saved_build_dir = "/home/ubuntu/hdd_2/tmp/conan_build/"
+        build_dir = os.path.join(self.build_folder, self._build_subfolder)
+        print(f"build folder: {build_dir} cache folder: {saved_build_dir}")
+        
+        if not os.path.isdir(saved_build_dir):
+            os.mkdir(saved_build_dir)
+            try:
+                shutil.copytree(saved_build_dir, build_dir, dirs_exist_ok=True)
+            except OSError as exc:
+                print(exc)
+                raise 
+        #cmake.configure(source_folder=self._source_subfolder, build_folder=self._build_subfolder)
+        #cmake.build()
+        shutil.copytree(build_dir, saved_build_dir, dirs_exist_ok=True)
+        
 
     def package(self):
         self.copy("LICENSE")
