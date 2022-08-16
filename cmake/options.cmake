@@ -57,24 +57,19 @@ endif ()
 
 
 
-option(PHASAR_BUILD_DOC "Build documentation" ON) # TODO
-if(PHASAR_BUILD_DOC)
-  find_package(Doxygen)
-  if (DOXYGEN_FOUND)
-    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
-    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-    message(FATAL_ERROR "Doxygen build started")
-    add_custom_target(doc_doxygen ALL
-      COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      COMMENT "Generating API documentation with Doxygen"
-      VERBATIM
-    )
-  else(DOXYGEN_FOUND)
-    message(FATAL_ERROR "Doxygen need to be installed to generate the doxygen documentation.")
-  endif()
-endif()
+set(DOXYGEN_PROJECT_BRIEF "Phasar a LLVM-based Static Analysis Framework")
+set(DOXYGEN_PROJECT_LOGO "${PROJECT_SOURCE_DIR}/img/Logo_RGB/Phasar_Logo.png")
+set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs/")
+set(DOXYGEN_ABBREVIATE_BRIEF "")
+set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
+# set(DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES) # according to doc if ONLY C files are used
+set(DOXYGEN_EXTENSION_MAPPING "cu=C++ cuh=C++")
+set(DOXYGEN_HTML_TIMESTAMP "YES")
+# set(DOXYGEN_USE_MATHJAX "YES") # needed by option below
+# set(DOXYGEN_MATHJAX_RELPATH "https://cdn.jsdelivr.net/npm/mathjax@3") # part of original phasar doxygen but not activated
+set(DOXYGEN_HAVE_DOT "YES") # TODO graphviz needs to be there !?
+set(DOXYGEN_DOT_MULTI_TARGETS "YES")
+set(DOXYGEN_EXCLUDE_PATTERNS "*/llvm_test_code/*")
 
 
 

@@ -1,6 +1,11 @@
 
 if (${CMAKE_MINIMUM_REQUIRED_VERSION} VERSION_LESS "3.21") # for --output-junit
-    message(FATAL_ERROR "just-simple.cmake requires min cmake version 3.21")
+    message(FATAL_ERROR "
+        just-simple.cmake requires min cmake version 3.21
+        if this is an issue you can quick fix it with conan:
+        conan install \"cmake/[>3.21 <4.0]@\" -g virtualenv
+        source activate_run.sh
+    ")
 endif()
 
 include(GNUInstallDirs)
@@ -30,7 +35,7 @@ endif()
 # create basic conanfile.txt if not present
 if (NOT EXISTS "${CMAKE_SOURCE_DIR}/conanfile.txt")
     file(WRITE "${CMAKE_SOURCE_DIR}/conanfile.txt" "# doc: https://docs.conan.io/en/latest/reference/conanfile_txt.html\n\n")
-    file(APPEND "${CMAKE_SOURCE_DIR}/conanfile.txt" "[requires]\ngtest/1.12.1\n#package_name/version@user/channel (default @_/_)\n\n")
+    file(APPEND "${CMAKE_SOURCE_DIR}/conanfile.txt" "[requires]\ngtest/1.12.1\ndoxygen/1.9.4\n#package_name/version@user/channel (default @_/_)\n\n")
     file(APPEND "${CMAKE_SOURCE_DIR}/conanfile.txt" "[generators]\ncmake\n\n")
     file(APPEND "${CMAKE_SOURCE_DIR}/conanfile.txt" "[options]\n#package_name:shared=False\n\n")
 endif()
@@ -53,6 +58,7 @@ add_code_coverage_all_targets(EXCLUDE ".conan/.*" ".*/test/.*") # TODO its allow
 enable_testing() #enable ctest
 set(CMAKE_CTEST_ARGUMENTS "--output-junit;${CMAKE_BINARY_DIR}/Testing/Temporary/JUnit.xml;--output-on-failure;") # for ci import
 include(GoogleTest)
+include(FindDoxygen)
 
 # TODO offer a diagnostic run with link / compile = 1, job = 1 and check mem usage with "sar -r cmd" (sysstat package) automatically?
 function(just_limit_jobs)
@@ -201,6 +207,11 @@ function(just_add_library)
         _just_add_subdirectory()
     endif()
     _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
+
+    if (DOXYGEN_USE_MDFILE_AS_MAINPAGE)
+        list(APPEND files "${DOXYGEN_USE_MDFILE_AS_MAINPAGE}")
+    endif()
+    doxygen_add_docs("${TARGET}-doc" ${files} ALL USE_STAMP_FILE)    
     
     install(TARGETS ${TARGET} EXPORT ${TARGET})
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
