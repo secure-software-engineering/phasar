@@ -1,1 +1,3 @@
-just_add_library()
+just_add_library(
+    ${OPTION_TESTS_DISABLED}
+)

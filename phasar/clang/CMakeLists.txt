@@ -1,4 +1,5 @@
 just_add_library(
+    ${OPTION_TESTS_DISABLED}
     LINK
         LLVMCore
         LLVMOption

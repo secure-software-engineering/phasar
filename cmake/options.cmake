@@ -54,7 +54,11 @@ endif()
 
 
 # merged PHASAR_BUILD_OPENSSL_TS_UNITTESTS / PHASAR_BUILD_IR
-option(PHASAR_BUILD_UNITTESTS "Build all tests and IR files (default is ON)" ON) # TODO
+option(PHASAR_BUILD_UNITTESTS "Build all tests and IR files (default is ON)" ON)
+set(OPTION_TESTS_DISABLED)
+if (NOT PHASAR_BUILD_UNITTESTS)
+  set(OPTION_TESTS_DISABLED "SKIP_SUBDIRECTORIES")
+endif()
 
 
 
