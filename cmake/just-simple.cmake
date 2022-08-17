@@ -58,7 +58,6 @@ add_code_coverage_all_targets(EXCLUDE ".conan/.*" ".*/test/.*") # TODO its allow
 enable_testing() #enable ctest
 set(CMAKE_CTEST_ARGUMENTS "--output-junit;${CMAKE_BINARY_DIR}/Testing/Temporary/JUnit.xml;--output-on-failure;") # for ci import
 include(GoogleTest)
-include(FindDoxygen)
 
 # TODO offer a diagnostic run with link / compile = 1, job = 1 and check mem usage with "sar -r cmd" (sysstat package) automatically?
 function(just_limit_jobs)
@@ -208,13 +207,46 @@ function(just_add_library)
     endif()
     _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
 
-    if (DOXYGEN_USE_MDFILE_AS_MAINPAGE)
-        list(APPEND files "${DOXYGEN_USE_MDFILE_AS_MAINPAGE}")
-    endif()
-    doxygen_add_docs("${TARGET}-doc" ${files} ALL USE_STAMP_FILE)    
+    _just_add_doxygen(TARGET ${TARGET} FILES ${files})
     
     install(TARGETS ${TARGET} EXPORT ${TARGET})
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endfunction()
+
+include(FindDoxygen)
+set_property(DIRECTORY "${PROJECT_SOURCE_DIR}" PROPERTY just_doc_counter 0)
+set_property(DIRECTORY "${PROJECT_SOURCE_DIR}" PROPERTY just_doc_files)
+function(_just_add_doxygen)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs FILES)
+    cmake_parse_arguments(PARSE_ARGV "0" "just_doc" "" "${oneValueArgs}" "${multiValueArgs}")
+    # 1. doxygen module support to generate for a one target
+    # 2. there is no merge for multiple generation e.g. to merge generation of two libs
+    # 3. I dont want the user to invoke a command at the end
+
+    # => add per invocation a new target which contains source files of current and recent invocations + only this is part of all target
+
+    get_property(just_doc_files DIRECTORY "${PROJECT_SOURCE_DIR}" PROPERTY just_doc_files)
+    list(APPEND just_doc_files "${just_doc_FILES}")
+
+    get_property(just_doc_counter DIRECTORY "${PROJECT_SOURCE_DIR}" PROPERTY just_doc_counter)
+    if (${just_doc_counter} GREATER 0)
+        set_target_properties("${CMAKE_PROJECT_NAME}-doc-${just_doc_counter}" PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    else()
+        if (DOXYGEN_USE_MDFILE_AS_MAINPAGE) 
+            list(APPEND just_doc_files "${DOXYGEN_USE_MDFILE_AS_MAINPAGE}")
+        endif()
+    endif()
+
+    math(EXPR just_doc_counter "${just_doc_counter} + 1")
+
+    if(NOT DOXYGEN_OUTPUT_DIRECTORY)
+        set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+    endif()
+    doxygen_add_docs("${CMAKE_PROJECT_NAME}-doc-${just_doc_counter}" "${just_doc_files}" ALL USE_STAMP_FILE WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+    set_property(DIRECTORY "${CMAKE_BINARY_DIR}" PROPERTY just_doc_counter ${just_doc_counter})
+    set_property(DIRECTORY "${CMAKE_BINARY_DIR}" PROPERTY just_doc_files ${just_doc_files})
 endfunction()
 
 function(just_add_executable)

@@ -59,7 +59,6 @@ endif ()
 
 set(DOXYGEN_PROJECT_BRIEF "Phasar a LLVM-based Static Analysis Framework")
 set(DOXYGEN_PROJECT_LOGO "${PROJECT_SOURCE_DIR}/img/Logo_RGB/Phasar_Logo.png")
-set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs/")
 set(DOXYGEN_ABBREVIATE_BRIEF "")
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 # set(DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES) # according to doc if ONLY C files are used
