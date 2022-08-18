@@ -29,19 +29,26 @@ public:
   using n_t = typename CFGTraits<Derived>::n_t;
   using f_t = typename CFGTraits<Derived>::f_t;
 
+  /// Returns the function where the given instruction is defined
   [[nodiscard]] f_t getFunctionOf(ByConstRef<n_t> Inst) const noexcept {
     return self().getFunctionOfImpl(Inst);
   }
+  /// Returns an iterable range of all predecessor instructions of Inst in the
+  /// CFG
   [[nodiscard]] decltype(auto) getPredsOf(ByConstRef<n_t> Inst) const {
     static_assert(
         is_iterable_over_v<decltype(self().getPredsOfImpl(Inst)), n_t>);
     return self().getPredsOfImpl(Inst);
   }
+  /// Returns an iterable range of all successor instructions of Inst in the
+  /// CFG. NOTE: This function is typically being caled in a hot part of the
+  /// analysis and should therefore be highly optimized for performance
   [[nodiscard]] decltype(auto) getSuccsOf(ByConstRef<n_t> Inst) const {
     static_assert(
         is_iterable_over_v<decltype(self().getSuccsOfImpl(Inst)), n_t>);
     return self().getSuccsOfImpl(Inst);
   }
+  /// Returns an iterable range of all edges in the CFG of the given function
   [[nodiscard]] decltype(auto)
   getAllControlFlowEdges(ByConstRef<f_t> Fun) const {
     static_assert(
@@ -49,17 +56,25 @@ public:
                            std::pair<n_t, n_t>>);
     return self().getAllControlFlowEdgesImpl(Fun);
   }
+  /// Returns an iterable range of all instructions of the given function. NOTE:
+  /// even if the CFG is initialized to ignore debugging instructions, they may
+  /// be contained here.
   [[nodiscard]] decltype(auto) getAllInstructionsOf(ByConstRef<f_t> Fun) const {
     static_assert(
         is_iterable_over_v<decltype(self().getAllInstructionsOfImpl(Fun)),
                            n_t>);
     return self().getAllInstructionsOfImpl(Fun);
   }
+  /// Returns an iterable range of all starting instructions of the given
+  /// function. For a forward-CFG, this is typically a singleton range
   [[nodiscard]] decltype(auto) getStartPointsOf(ByConstRef<f_t> Fun) const {
     static_assert(
         is_iterable_over_v<decltype(self().getStartPointsOfImpl(Fun)), n_t>);
     return self().getStartPointsOfImpl(Fun);
   }
+  /// Returns an iterable range of all exit instructions (often return
+  /// instructions) of the given function. For a backward-CFG, this is typically
+  /// a singleton range
   [[nodiscard]] decltype(auto) getExitPointsOf(ByConstRef<f_t> Fun) const {
     static_assert(
         is_iterable_over_v<decltype(self().getExitPointsOfImpl(Fun)), n_t>);

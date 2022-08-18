@@ -155,6 +155,14 @@ void validatePTAJsonFile(const std::string &Config) {
   }
 }
 
+void validateLogLevel(const std::string &Level) {
+  if (parseSeverityLevel(Level) == SeverityLevel::INVALID) {
+    throw boost::program_options::error_with_option_name(
+        "Invalid logger severity level '" + Level +
+        "'. Expect DEBUG, INFO, WARNING or ERROR");
+  }
+}
+
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
@@ -190,7 +198,8 @@ int main(int Argc, const char **Argv) {
 			("mwa,M", "Enable Modulewise-program analysis mode")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
       #ifdef DYNAMIC_LOG
-      ("log,L", "Enable logging")
+      ("log,L",boost::program_options::value<std::string>()->notifier(&validateLogLevel), "Enable logging with the specified severity")
+      ("log-cat", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Enable logging for the specified categories with the severity given with the -L/--log option. It is invalid to specify --log-cat without specifying -L/--log.")
       #endif
       ("export,E", boost::program_options::value<std::string>()->notifier(&validateParamExport), "Export mode (JSON, SARIF) (Not implemented yet!)")
       ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project id used for output")
@@ -253,8 +262,23 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 #ifdef DYNAMIC_LOG
-  if (PhasarConfig::VariablesMap().count("log")) {
-    Logger::initializeStderrLogger(DEBUG);
+  if (auto LogIt = PhasarConfig::VariablesMap().find("log");
+      LogIt != PhasarConfig::VariablesMap().end() &&
+      !LogIt->second.as<std::string>().empty()) {
+    auto Sev = parseSeverityLevel(LogIt->second.as<std::string>());
+
+    Logger::initializeStderrLogger(Sev);
+
+    if (auto LogCatIt = PhasarConfig::VariablesMap().find("log-cat");
+        LogCatIt != PhasarConfig::VariablesMap().end()) {
+      for (const auto &Cat : LogCatIt->second.as<std::vector<std::string>>()) {
+        Logger::initializeStderrLogger(Sev, Cat);
+      }
+    }
+  } else if (PhasarConfig::VariablesMap().count("log-cat")) {
+    llvm::errs()
+        << "ERROR: The option --log-cat requires -L/--log to be set as well!\n";
+    return 1;
   }
 #endif
   // print PhASAR version
@@ -313,7 +337,7 @@ int main(int Argc, const char **Argv) {
       PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
 
   if (EmitStats) {
-    llvm::outs() << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
+    llvm::outs() << "Module " << IRDB.getWPAModule()->getName() << ":\n";
     llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
                  << "\n";
     llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";

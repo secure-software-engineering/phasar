@@ -69,6 +69,24 @@ public:
   static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
       "__psrCRuntimeGlobalCtorsModel";
 
+  /// Constructs the ICFG based on the given IRDB and the entry-points using a
+  /// fixpoint iteration. This may take a long time.
+  ///
+  /// \param IRDB The IR code where the ICFG should be based on. Must not be
+  /// nullptr.
+  /// \param CGType The analysis kind to use for call-graph resolution
+  /// \param EntryPoints The names of the functions to start with when
+  /// incrementally building up the ICFG. For whole-program analysis of an
+  /// executable use {"main"}.
+  /// \param TH The type-hierarchy implementation to use. Will be constructed
+  /// on-the-fly if nullptr, but required
+  /// \param PT The points-to implementation to use. Will be constructed
+  /// on-the-fly if nullptr, but required
+  /// \param S The soundness level to expect from the analysis. Currently unused
+  /// \param IncludeGlobals Properly include global constructors/destructors
+  /// into the ICFG, if true. Requires to generate artificial functions into the
+  /// IRDB. True by default
+
   explicit LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
@@ -84,14 +102,22 @@ public:
   LLVMBasedICFG(LLVMBasedICFG &&) noexcept = delete;
   LLVMBasedICFG &operator=(LLVMBasedICFG &&) noexcept = delete;
 
+  /// Exports the whole ICFG (not only the call-graph) as DOT.
+  ///
+  /// \param WithSourceCodeInfo If true, not only contains the LLVM instructions
+  /// as labels, but source-code information as well (e.g. function name, line
+  /// no, col no, src-line).
   [[nodiscard]] std::string
   exportICFGAsDot(bool WithSourceCodeInfo = true) const;
+  /// Similar to exportICFGAsDot, but exports the ICFG as JSON instead
   [[nodiscard]] nlohmann::json
   exportICFGAsJson(bool WithSourceCodeInfo = true) const;
 
-  [[nodiscard]] const llvm::SmallVectorImpl<f_t> &
-  getAllVertexFunctions() const noexcept;
+  /// Returns all functions from the underlying IRDB that are part of the ICFG,
+  /// i.e. that are reachable from the entry-points
+  [[nodiscard]] llvm::ArrayRef<f_t> getAllVertexFunctions() const noexcept;
 
+  /// Gets the underlying IRDB
   [[nodiscard]] ProjectIRDB *getIRDB() const noexcept { return IRDB; }
 
   using CFGBase::print;
@@ -130,8 +156,6 @@ private:
   void addCallEdge(const llvm::Instruction *CS,
                    llvm::SmallVector<const llvm::Function *> *Callees,
                    const llvm::Function *Callee);
-
-  /// The call graph.
 
 #if HAS_MEMORY_RESOURCE
   std::pmr::monotonic_buffer_resource MRes;

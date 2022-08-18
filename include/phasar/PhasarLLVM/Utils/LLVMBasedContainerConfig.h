@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_UTILS_LLVMBASEDCONTAINERCONFIG_H
 
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/iterator.h"
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/IR/Module.h"
 

@@ -108,13 +108,8 @@ auto detail::LLVMBasedCFGImpl<Derived>::getAllControlFlowEdgesImpl(
   for (const auto &I : llvm::instructions(Fun)) {
     if (IgnoreDbgInstructions) {
       // Check for call to intrinsic debug function
-      if (const auto *DbgCallInst = llvm::dyn_cast<llvm::CallInst>(&I)) {
-        if (DbgCallInst->getCalledFunction() &&
-            DbgCallInst->getCalledFunction()->isIntrinsic() &&
-            (DbgCallInst->getCalledFunction()->getName() ==
-             "llvm.dbg.declare")) {
-          continue;
-        }
+      if (llvm::isa<llvm::DbgInfoIntrinsic>(&I)) {
+        continue;
       }
     }
 

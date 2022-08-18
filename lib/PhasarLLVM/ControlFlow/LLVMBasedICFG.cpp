@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Soundness.h"
@@ -55,13 +56,12 @@ struct LLVMBasedICFG::Builder {
 
   void initEntryPoints(llvm::ArrayRef<std::string> EntryPoints);
   void initGlobalsAndWorkList(LLVMBasedICFG *ICFG, bool IncludeGlobals);
-  /* bidigraph_t*/ void buildCallGraph(Soundness S);
+  void buildCallGraph(Soundness S);
 
   /// \returns FixPointReached
   bool processFunction(/*bidigraph_t &Callgraph,*/ const llvm::Function *F);
   /// \returns FoundNewTargets
-  bool constructDynamicCall( // bidigraph_t &CallGraph,
-      const llvm::Instruction *CS);
+  bool constructDynamicCall(const llvm::Instruction *CS);
 };
 
 void LLVMBasedICFG::Builder::initEntryPoints(
@@ -104,26 +104,25 @@ void LLVMBasedICFG::Builder::initGlobalsAndWorkList(LLVMBasedICFG *ICFG,
   }
 }
 
-auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
-    -> /*bidigraph_t*/ void {
-  PHASAR_LOG_LEVEL(INFO, "Starting CallGraphAnalysisType: " << Res->str());
+void LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/) {
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
+                       "Starting CallGraphAnalysisType: " << Res->str());
   VisitedFunctions.reserve(IRDB->getAllFunctions().size());
 
   bool FixpointReached;
-  // bidigraph_t Ret{};
 
   do {
     FixpointReached = true;
     while (!FunctionWL.empty()) {
       const llvm::Function *F = FunctionWL.pop_back_val();
-      FixpointReached &= processFunction(/*Ret, */ F);
+      FixpointReached &= processFunction(F);
     }
 
     /// XXX This can probably be done more efficiently.
     /// However, we cannot just work on the IndirectCalls-delta as we are
     /// mutating the points-to-info on the fly
     for (auto [CS, _] : IndirectCalls) {
-      FixpointReached &= !constructDynamicCall(/*Ret,*/ CS);
+      FixpointReached &= !constructDynamicCall(CS);
     }
 
   } while (!FixpointReached);
@@ -136,20 +135,21 @@ auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
   REG_COUNTER("CG Vertices", boost::num_vertices(ret),
               PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Edges", boost::num_edges(ret), PAMM_SEVERITY_LEVEL::Full);
-  PHASAR_LOG_LEVEL(INFO, "Call graph has been constructed");
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
+                       "Call graph has been constructed");
   // return Ret;
 }
 
-bool LLVMBasedICFG::Builder::processFunction( // bidigraph_t &CallGraph,
-    const llvm::Function *F) {
-  PHASAR_LOG_LEVEL(DEBUG, "Walking in function: " << F->getName());
+bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                       "Walking in function: " << F->getName());
   if (F->isDeclaration() || !VisitedFunctions.insert(F).second) {
-    PHASAR_LOG_LEVEL(DEBUG, "Function already visited or only declaration: "
-                                << F->getName());
+    PHASAR_LOG_LEVEL_CAT(
+        DEBUG, "LLVMBasedICFG",
+        "Function already visited or only declaration: " << F->getName());
     return true;
   }
 
-  // assert(FunctionVertexMap != nullptr);
   assert(Res != nullptr);
 
   // add a node for function F to the call graph (if not present already)
@@ -167,8 +167,9 @@ bool LLVMBasedICFG::Builder::processFunction( // bidigraph_t &CallGraph,
       if (CS->getCalledFunction() != nullptr) {
         PossibleTargets.insert(CS->getCalledFunction());
 
-        PHASAR_LOG_LEVEL(DEBUG, "Found static call-site: "
-                                    << "  " << llvmIRToString(CS));
+        PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                             "Found static call-site: "
+                                 << "  " << llvmIRToString(CS));
       } else {
         // still try to resolve the called function statically
         const llvm::Value *SV = CS->getCalledOperand()->stripPointerCasts();
@@ -176,15 +177,17 @@ bool LLVMBasedICFG::Builder::processFunction( // bidigraph_t &CallGraph,
             !SV->hasName() ? nullptr : IRDB->getFunction(SV->getName());
         if (ValueFunction) {
           PossibleTargets.insert(ValueFunction);
-          PHASAR_LOG_LEVEL(DEBUG,
-                           "Found static call-site: " << llvmIRToString(CS));
+          PHASAR_LOG_LEVEL_CAT(
+              DEBUG, "LLVMBasedICFG",
+              "Found static call-site: " << llvmIRToString(CS));
         } else {
           if (llvm::isa<llvm::InlineAsm>(SV)) {
             continue;
           }
           // the function call must be resolved dynamically
-          PHASAR_LOG_LEVEL(DEBUG, "Found dynamic call-site: "
-                                      << "  " << llvmIRToString(CS));
+          PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                               "Found dynamic call-site: "
+                                   << "  " << llvmIRToString(CS));
           IndirectCalls[CS] = 0;
           ICF->addInstructionVertex(CS);
 
@@ -193,8 +196,9 @@ bool LLVMBasedICFG::Builder::processFunction( // bidigraph_t &CallGraph,
         }
       }
 
-      PHASAR_LOG_LEVEL(DEBUG, "Found " << PossibleTargets.size()
-                                       << " possible target(s)");
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                           "Found " << PossibleTargets.size()
+                                    << " possible target(s)");
 
       Res->handlePossibleTargets(CS, PossibleTargets);
 
@@ -268,8 +272,6 @@ void LLVMBasedICFG::addCallEdge(
 
   Callees->push_back(Callee);
   Callers->push_back(CS);
-
-  /// TODO: What about deduplication? Is it relevant?
 }
 
 static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
@@ -293,8 +295,7 @@ static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
   return getVFTIndex(CallSite) >= 0;
 }
 
-bool LLVMBasedICFG::Builder::constructDynamicCall( // bidigraph_t &CallGraph,
-    const llvm::Instruction *CS) {
+bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
   bool NewTargetsFound = false;
   // Find vertex of calling function.
 
@@ -312,8 +313,9 @@ bool LLVMBasedICFG::Builder::constructDynamicCall( // bidigraph_t &CallGraph,
     Res->preCall(CallSite);
 
     // the function call must be resolved dynamically
-    PHASAR_LOG_LEVEL(DEBUG, "Looking into dynamic call-site: ");
-    PHASAR_LOG_LEVEL(DEBUG, "  " << llvmIRToString(CS));
+    PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                         "Looking into dynamic call-site: ");
+    PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG", "  " << llvmIRToString(CS));
     // call the resolve routine
 
     assert(ICF->TH != nullptr);
@@ -326,8 +328,9 @@ bool LLVMBasedICFG::Builder::constructDynamicCall( // bidigraph_t &CallGraph,
     auto &NumIndCalls = IndirectCalls[CallSite];
 
     if (NumIndCalls < PossibleTargets.size()) {
-      PHASAR_LOG_LEVEL(DEBUG, "Found " << PossibleTargets.size() - NumIndCalls
-                                       << " new possible target(s)");
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                           "Found " << PossibleTargets.size() - NumIndCalls
+                                    << " new possible target(s)");
       NumIndCalls = PossibleTargets.size();
       NewTargetsFound = true;
     }
@@ -371,13 +374,22 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
     B.PT = std::make_unique<LLVMPointsToSet>(*IRDB);
   }
-  // B.FunctionVertexMap = &this->FunctionVertexMap;
 
   B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT.get());
   B.initEntryPoints(EntryPoints);
   B.initGlobalsAndWorkList(this, IncludeGlobals);
 
-  /*CallGraph =*/B.buildCallGraph(S);
+  PHASAR_LOG_LEVEL_CAT(
+      INFO, "LLVMBasedICFG",
+      "Starting ICFG construction "
+          << std::chrono::steady_clock::now().time_since_epoch().count())
+
+  B.buildCallGraph(S);
+
+  PHASAR_LOG_LEVEL_CAT(
+      INFO, "LLVMBasedICFG",
+      "Finished ICFG construction "
+          << std::chrono::steady_clock::now().time_since_epoch().count());
 }
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
@@ -513,7 +525,7 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 }
 
 auto LLVMBasedICFG::getAllVertexFunctions() const noexcept
-    -> const llvm::SmallVectorImpl<f_t> & {
+    -> llvm::ArrayRef<f_t> {
   return VertexFunctions;
 }
 
