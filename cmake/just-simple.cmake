@@ -161,7 +161,7 @@ endfunction()
 function(just_add_library)
     # Argument parsing
     set(options SKIP_SUBDIRECTORIES)
-    set(oneValueArgs SUFFIX)
+    set(oneValueArgs SUFFIX SKIP_DOXYGEN)
     set(multiValueArgs INCLUDE EXCLUDE LINK DEPENDS)
     cmake_parse_arguments(PARSE_ARGV "0" "just_add" "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -207,7 +207,9 @@ function(just_add_library)
     endif()
     _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
 
-    _just_add_doxygen(TARGET ${TARGET} FILES ${files})
+    if(NOT "${just_add_SKIP_DOXYGEN}")
+        _just_add_doxygen(TARGET ${TARGET} FILES ${files})
+    endif()
     
     install(TARGETS ${TARGET} EXPORT ${TARGET})
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
