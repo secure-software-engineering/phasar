@@ -86,7 +86,6 @@ public:
   /// \param IncludeGlobals Properly include global constructors/destructors
   /// into the ICFG, if true. Requires to generate artificial functions into the
   /// IRDB. True by default
-
   explicit LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,

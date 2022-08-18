@@ -13,6 +13,7 @@
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
+#include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -136,9 +137,10 @@ auto detail::LLVMBasedCFGImpl<Derived>::getStartPointsOfImpl(f_t Fun) const
     }
     return {EntryInst};
   }
-  PHASAR_LOG_LEVEL(DEBUG, "Could not get starting points of '"
-                              << Fun->getName()
-                              << "' because it is a declaration");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedCFG",
+                       "Could not get starting points of '"
+                           << Fun->getName()
+                           << "' because it is a declaration");
   return {};
 }
 
@@ -153,8 +155,9 @@ auto detail::LLVMBasedCFGImpl<Derived>::getExitPointsOfImpl(f_t Fun) const
     // A function can have more than one exit point
     return psr::getAllExitPoints(Fun);
   }
-  PHASAR_LOG_LEVEL(DEBUG, "Could not get exit points of '"
-                              << Fun->getName() << "' which is declaration!");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedCFG",
+                       "Could not get exit points of '"
+                           << Fun->getName() << "' which is declaration!");
   return {};
 }
 

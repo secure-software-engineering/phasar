@@ -41,7 +41,7 @@ public:
     return self().getPredsOfImpl(Inst);
   }
   /// Returns an iterable range of all successor instructions of Inst in the
-  /// CFG. NOTE: This function is typically being caled in a hot part of the
+  /// CFG. NOTE: This function is typically being called in a hot part of the
   /// analysis and should therefore be highly optimized for performance
   [[nodiscard]] decltype(auto) getSuccsOf(ByConstRef<n_t> Inst) const {
     static_assert(
@@ -143,6 +143,7 @@ private:
 };
 
 template <typename ICF, typename Domain>
+// NOLINTNEXTLINE(readability-identifier-naming)
 constexpr bool is_cfg_v = is_crtp_base_of_v<CFGBase, ICF>
     &&std::is_same_v<typename ICF::n_t, typename Domain::n_t>
         &&std::is_same_v<typename ICF::f_t, typename Domain::f_t>;

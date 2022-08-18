@@ -66,7 +66,7 @@ public:
   }
   /// Returns an iterable range of all possible callee candidates at the given
   /// call-site induced by the used call-graph. NOTE: This function is typically
-  /// called in a hot part of the analysis any should therefore be very fast
+  /// called in a hot part of the analysis and should therefore be very fast
   [[nodiscard]] decltype(auto) getCalleesOfCallAt(ByConstRef<n_t> Inst) const {
     static_assert(
         is_iterable_over_v<decltype(self().getCalleesOfCallAtImpl(Inst)), f_t>);

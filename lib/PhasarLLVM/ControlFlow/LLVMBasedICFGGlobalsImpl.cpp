@@ -146,8 +146,8 @@ static llvm::Function *createDtorCallerForModule(
 [[nodiscard]] static llvm::Function *collectRegisteredDtors(
     std::multimap<size_t, llvm::Function *, std::greater<>> &GlobalDtors,
     llvm::Module &Mod) {
-  PHASAR_LOG_LEVEL(DEBUG,
-                   "Collect Registered Dtors for Module " << Mod.getName());
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                       "Collect Registered Dtors for Module " << Mod.getName());
 
   auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
 
@@ -155,8 +155,9 @@ static llvm::Function *createDtorCallerForModule(
     return nullptr;
   }
 
-  PHASAR_LOG_LEVEL(DEBUG,
-                   "> Found " << RegisteredDtors.size() << " Registered Dtors");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                       "> Found " << RegisteredDtors.size()
+                                  << " Registered Dtors");
 
   auto *RegisteredDtorCaller = createDtorCallerForModule(Mod, RegisteredDtors);
   // auto It =
@@ -281,10 +282,8 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
     IRB.CreateRetVoid();
   } else {
 
-    auto *UEntrySelectorFn = llvm::cast<llvm::Function>(
-        M.getOrInsertFunction("__psrCRuntimeUserEntrySelector",
-                              llvm::Type::getInt32Ty(CTX))
-            .getCallee());
+    auto UEntrySelectorFn = M.getOrInsertFunction(
+        "__psrCRuntimeUserEntrySelector", llvm::Type::getInt32Ty(CTX));
 
     auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn, {});
 
