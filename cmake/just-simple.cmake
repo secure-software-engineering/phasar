@@ -14,7 +14,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 # download cmake dependencies if not present
-set(JUST_SIMPLE_conan "${CMAKE_SOURCE_DIR}/cmake/conan.cmake")
+set(JUST_SIMPLE_conan "${PROJECT_SOURCE_DIR}/cmake/conan.cmake")
 if(NOT EXISTS "${JUST_SIMPLE_conan}")
     file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
         "${JUST_SIMPLE_conan}"
@@ -23,7 +23,7 @@ if(NOT EXISTS "${JUST_SIMPLE_conan}")
 endif()
 include(${JUST_SIMPLE_conan})
 
-set(JUST_SIMPLE_coverage "${CMAKE_SOURCE_DIR}/cmake/code-coverage.cmake")
+set(JUST_SIMPLE_coverage "${PROJECT_SOURCE_DIR}/cmake/code-coverage.cmake")
 if (NOT EXISTS "${JUST_SIMPLE_coverage}")
     file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/ed79fb95f7bd39b2cb158d7ff83a5dbb639343e8/code-coverage.cmake"
         "${JUST_SIMPLE_coverage}"
@@ -33,15 +33,15 @@ endif()
 
 # setup conan
 # create basic conanfile.txt if not present
-if (NOT EXISTS "${CMAKE_SOURCE_DIR}/conanfile.txt")
-    file(WRITE "${CMAKE_SOURCE_DIR}/conanfile.txt" "# doc: https://docs.conan.io/en/latest/reference/conanfile_txt.html\n\n")
-    file(APPEND "${CMAKE_SOURCE_DIR}/conanfile.txt" "[requires]\ngtest/1.12.1\ndoxygen/1.9.4\n#package_name/version@user/channel (default @_/_)\n\n")
-    file(APPEND "${CMAKE_SOURCE_DIR}/conanfile.txt" "[generators]\ncmake\n\n")
-    file(APPEND "${CMAKE_SOURCE_DIR}/conanfile.txt" "[options]\n#package_name:shared=False\n\n")
+if (NOT EXISTS "${PROJECT_SOURCE_DIR}/conanfile.txt")
+    file(WRITE "${PROJECT_SOURCE_DIR}/conanfile.txt" "# doc: https://docs.conan.io/en/latest/reference/conanfile_txt.html\n\n")
+    file(APPEND "${PROJECT_SOURCE_DIR}/conanfile.txt" "[requires]\ngtest/1.12.1\ndoxygen/1.9.4\n#package_name/version@user/channel (default @_/_)\n\n")
+    file(APPEND "${PROJECT_SOURCE_DIR}/conanfile.txt" "[generators]\ncmake\n\n")
+    file(APPEND "${PROJECT_SOURCE_DIR}/conanfile.txt" "[options]\n#package_name:shared=False\n\n")
 endif()
 conan_cmake_run(
     BASIC_SETUP
-    CONANFILE "${CMAKE_SOURCE_DIR}/conanfile.txt"
+    CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.txt"
     BUILD missing)
 
 # debugging CMAKE https://cliutils.gitlab.io/modern-cmake/chapters/features/debug.html
@@ -245,8 +245,8 @@ function(_just_add_doxygen)
     endif()
     doxygen_add_docs("${CMAKE_PROJECT_NAME}-doc-${just_doc_counter}" "${just_doc_files}" ALL USE_STAMP_FILE WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-    set_property(DIRECTORY "${CMAKE_BINARY_DIR}" PROPERTY just_doc_counter ${just_doc_counter})
-    set_property(DIRECTORY "${CMAKE_BINARY_DIR}" PROPERTY just_doc_files ${just_doc_files})
+    set_property(DIRECTORY "${PROJECT_SOURCE_DIR}" PROPERTY just_doc_counter ${just_doc_counter})
+    set_property(DIRECTORY "${PROJECT_SOURCE_DIR}" PROPERTY just_doc_files ${just_doc_files})
 endfunction()
 
 function(just_add_executable)
