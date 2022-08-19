@@ -14,6 +14,7 @@ doxygen/[>=1.9.0 <2.0.0]
 cmake
 
 [options]
+sqlite3:shared=True
 llvm:shared=False
 llvm:enable_debug=True
 llvm:with_project_clang=True

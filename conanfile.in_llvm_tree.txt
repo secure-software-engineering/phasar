@@ -1,5 +1,4 @@
 [requires]
-llvm/14.0.6@just-simple-cmake/debug
 boost/[>=1.72.0 <1.77]
 gtest/[>=1.10.0 <2.0.0]
 sqlite3/[>=3.36.0 <4.0.0]
@@ -14,8 +13,3 @@ doxygen/[>=1.9.0 <2.0.0]
 cmake
 
 [options]
-llvm:shared=False
-llvm:enable_debug=True
-llvm:with_project_clang=True
-llvm:with_project_openmp=True
-llvm:keep_binaries_regex=^(clang|clang\+\+|opt)$

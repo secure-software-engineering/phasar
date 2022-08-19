@@ -33,15 +33,18 @@ endif()
 
 # setup conan
 # create basic conanfile.txt if not present
-if (NOT EXISTS "${PROJECT_SOURCE_DIR}/conanfile.txt")
-    file(WRITE "${PROJECT_SOURCE_DIR}/conanfile.txt" "# doc: https://docs.conan.io/en/latest/reference/conanfile_txt.html\n\n")
-    file(APPEND "${PROJECT_SOURCE_DIR}/conanfile.txt" "[requires]\ngtest/1.12.1\ndoxygen/1.9.4\n#package_name/version@user/channel (default @_/_)\n\n")
-    file(APPEND "${PROJECT_SOURCE_DIR}/conanfile.txt" "[generators]\ncmake\n\n")
-    file(APPEND "${PROJECT_SOURCE_DIR}/conanfile.txt" "[options]\n#package_name:shared=False\n\n")
+if (NOT CONANFILE)
+    set(CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.txt")
+endif()
+if (NOT EXISTS "${CONANFILE}")
+    file(WRITE "${CONANFILE}" "# doc: https://docs.conan.io/en/latest/reference/conanfile_txt.html\n\n")
+    file(APPEND "${CONANFILE}" "[requires]\ngtest/1.12.1\ndoxygen/1.9.4\n#package_name/version@user/channel (default @_/_)\n\n")
+    file(APPEND "${CONANFILE}" "[generators]\ncmake\n\n")
+    file(APPEND "${CONANFILE}" "[options]\n#package_name:shared=False\n\n")
 endif()
 conan_cmake_run(
     BASIC_SETUP
-    CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.txt"
+    CONANFILE "${CONANFILE}"
     BUILD missing)
 
 # debugging CMAKE https://cliutils.gitlab.io/modern-cmake/chapters/features/debug.html
@@ -377,4 +380,42 @@ function(just_add_tests)
     _just_add_resource("${target_under_test_source_dir}")
     # but also allow them to overwrite & have other dependencies too
     _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
+endfunction()
+
+
+# useful debug commands:
+# source: https://stackoverflow.com/questions/32183975/how-to-print-all-the-properties-of-a-target-in-cmake
+# Get all propreties that cmake supports
+if(NOT CMAKE_PROPERTY_LIST)
+    execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
+    
+    # Convert command output into a CMake list
+    string(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+    string(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+endif()
+    
+function(just_debug_print_properties)
+    message("CMAKE_PROPERTY_LIST = ${CMAKE_PROPERTY_LIST}")
+endfunction()
+    
+function(just_debug_print_target_properties target)
+    if(NOT TARGET ${target})
+      message(STATUS "There is no target named '${target}'")
+      return()
+    endif()
+
+    foreach(property ${CMAKE_PROPERTY_LIST})
+        string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" property ${property})
+
+        # Fix https://stackoverflow.com/questions/32197663/how-can-i-remove-the-the-location-property-may-not-be-read-from-target-error-i
+        if(property STREQUAL "LOCATION" OR property MATCHES "^LOCATION_" OR property MATCHES "_LOCATION$")
+            continue()
+        endif()
+
+        get_property(was_set TARGET ${target} PROPERTY ${property} SET)
+        if(was_set)
+            get_target_property(value ${target} ${property})
+            message("${target} ${property} = ${value}")
+        endif()
+    endforeach()
 endfunction()

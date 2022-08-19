@@ -19,23 +19,14 @@ endif()
 
 
 # Check if we build within the llvm source tree
-set(PHASAR_IN_TREE OFF)
 if (DEFINED LLVM_MAIN_SRC_DIR)
   set(CMAKE_PROJECT_NAME "phasar")
-  set(PHASAR_IN_TREE ON)
   set(PHASAR_BUILD_UNITTESTS OFF)
 
-  # remove conan llvm dependency, targets are already available
-  file(READ "${PROJECT_SOURCE_DIR}/conanfile.txt" conanfile_txt)
-  string(REPLACE "\nllvm" "\n#llvm" conanfile_txt "${conanfile_txt}")
-  file(WRITE "${PROJECT_SOURCE_DIR}/conanfile.txt" "${conanfile_txt}")
+  set(CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.in_llvm_tree.txt")
 
-  # fix llvm_test_code expecting clang/clang++/opt in conan directory
-  file(READ "${PROJECT_SOURCE_DIR}/phasar/llvm/test/llvm_test_code/CMakeLists.txt" llvm_test_code)
-  string(REPLACE "set(conan_clang)" "set(conan_clang clang)" llvm_test_code "${llvm_test_code}")
-  string(REPLACE "set(conan_clangpp)" "set(conan_clangpp clang++)" llvm_test_code "${llvm_test_code}")
-  string(REPLACE "set(conan_opt)" "set(conan_opt opt)" llvm_test_code "${llvm_test_code}")
-  file(WRITE "${PROJECT_SOURCE_DIR}/phasar/llvm/test/llvm_test_code/CMakeLists.txt" "${llvm_test_code}")
+  # TODO code below was used before migration
+  # remove after PHASAR_IN_TREE is successfuly tested
 
   # export given target "nlohmann_json_schema_validator" which is not built by this project.
   #set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
@@ -116,9 +107,8 @@ option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkag
 
 # default option always preset
 option(BUILD_SHARED_LIBS "Build shared libraries (default is OFF)" OFF)
-option(BUILD_SHARED_LIBS_FORCE "Build shared libraries (default is OFF)" OFF)
-if (BUILD_SHARED_LIBS AND NOT BUILD_SHARED_LIBS_FORCE)
-  message(FATAL_ERROR "Shared libs needing some modification:\n1. see conanfile.txt\n2. remove all LLVM.* dependencies to only LLVM\n3. use BUILD_SHARED_LIBS_FORCE=ON\n")
+if(BUILD_SHARED_LIBS)
+  set(CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.shared.txt")
 endif()
 
 

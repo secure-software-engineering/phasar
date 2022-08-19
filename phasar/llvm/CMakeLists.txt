@@ -6,39 +6,38 @@ just_add_library(
       phasar-utils
       phasar-db
 
-      LLVMAggressiveInstCombine # llvm::createAggressiveInstCombinerPass()
+      LLVMAggressiveInstCombine
       LLVMAnalysis
-      LLVMAsmParser # undefined symbol: llvm::parseAssembly
-      LLVMBinaryFormat # llvm::dwarf::getOperationEncoding
-      LLVMBitReader # undefined symbol: llvm::getOwningLazyBitcodeModule
-      LLVMBitstreamReader # undefined symbol: llvm::BitstreamCursor::skipRecord
+      LLVMAsmParser
+      LLVMBinaryFormat
+      LLVMBitReader
+      LLVMBitstreamReader
       LLVMCore
-      LLVMCoroutines # llvm::CoroCleanupPass::run
-      LLVMDebugInfoDWARF # llvm::DWARFFormValue::getAsCString()
+      LLVMCoroutines
+      LLVMDebugInfoDWARF
       LLVMDemangle
-      LLVMFrontendOpenMP # llvm::OpenMPIRBuilder::addAttributes
+      LLVMFrontendOpenMP
       LLVMIRReader
-      LLVMInstCombine # llvm::createInstructionCombiningPass()
-      LLVMInstrumentation # llvm::MemorySanitizerOptions::MemorySanitizerOptions
+      LLVMInstCombine
+      LLVMInstrumentation
       LLVMLinker
-      LLVMMC # llvm::TargetRegistry::lookupTarget
-      LLVMMCParser # llvm::MCAsmParser::setTargetParser
-      LLVMObjCARCOpts # llvm::ObjCARCExpandPass::run
-      LLVMObject # undefined symbol: llvm::ModuleSymbolTable::CollectAsmSymvers
+      LLVMMC
+      LLVMMCParser
+      LLVMObjCARCOpts
+      LLVMObject
       LLVMPasses
-      LLVMProfileData # undefined symbol ProfileSummaryCutoffHot
-      LLVMRemarks # llvm::remarks::RemarkStreamer::matchesFilter
-      LLVMScalarOpts # llvm::ADCEPass::run
+      LLVMProfileData
+      LLVMRemarks
+      LLVMScalarOpts
       LLVMSupport
-      LLVMTarget # llvm::TargetMachine::getTargetIRAnalysis()
-      LLVMTextAPI # llvm::MachO::mapToPlatformSet(llvm::ArrayRef
-      LLVMTransformUtils # undefined symbol: llvm::ValueMapper::ValueMapper
-      LLVMVectorize # llvm::ShouldRunExtraVectorPasses::Key
-      LLVMipo # llvm::AttributorPass::run
+      LLVMTarget
+      LLVMTextAPI
+      LLVMTransformUtils
+      LLVMVectorize
+      LLVMipo
       
       sqlite3
       nlohmann_json_schema_validator
-      z
     EXCLUDE "^.*/WPDS/.*$" "phasar-llvm.cpp$"
 )
 
