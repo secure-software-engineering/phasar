@@ -108,7 +108,7 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory6) {
+TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, DISABLED_Memory6) {
   initialize({PathToLlFiles + "memory6.ll"});
 
   // SecureHeapPropagationResults->dumpResults();
@@ -124,7 +124,7 @@ TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory6) {
   compareResults(Gt);
 }
 
-TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory7) {
+TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, DISABLED_Memory7) {
   initialize({PathToLlFiles + "memory7.ll"});
 
   // secureHeapPropagationResults->printReport();
