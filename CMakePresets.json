@@ -40,7 +40,7 @@
                 "default"
             ],
             "name": "debug-shared",
-            "displayName": "Release Static",
+            "displayName": "Debug Shared",
             "cacheVariables": {
                 "BUILD_SHARED_LIBS": "ON"
             }
@@ -50,7 +50,7 @@
                 "default"
             ],
             "name": "release-shared",
-            "displayName": "Release Static",
+            "displayName": "Release Shared",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "BUILD_SHARED_LIBS": "ON",
@@ -87,6 +87,43 @@
             "targets": [
                 "all"
             ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "debug",
+            "displayName": "Debug Static",
+            "configurePreset": "debug",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "jobs": 20
+            }
+        },
+        {
+            "inherits": [
+                "debug"
+            ],
+            "name": "release",
+            "displayName": "Release Static",
+            "configurePreset": "release"
+        },
+        {
+            "inherits": [
+                "debug"
+            ],
+            "name": "debug-shared",
+            "displayName": "Debug Shared",
+            "configurePreset": "debug-shared"
+        },
+        {
+            "inherits": [
+                "debug"
+            ],
+            "name": "release-shared",
+            "displayName": "Release Shared",
+            "configurePreset": "release-shared"
         }
     ]
 }

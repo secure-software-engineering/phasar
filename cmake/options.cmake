@@ -18,8 +18,21 @@ endif()
 
 
 
+
+# default option always preset
+option(BUILD_SHARED_LIBS "Build shared libraries (default is OFF)" OFF)
+if(BUILD_SHARED_LIBS)
+  set(CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.shared.txt")
+endif()
+
+
+
+
 # Check if we build within the llvm source tree
 if (DEFINED LLVM_MAIN_SRC_DIR)
+  if (BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "currently phasar in tree need to be static")
+  endif()
   set(CMAKE_PROJECT_NAME "phasar")
   set(PHASAR_BUILD_UNITTESTS OFF)
 
@@ -103,13 +116,6 @@ set(DOXYGEN_EXCLUDE_PATTERNS "*/llvm_test_code/*")
 # if private you have to manually handle include / compile
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
-
-
-# default option always preset
-option(BUILD_SHARED_LIBS "Build shared libraries (default is OFF)" OFF)
-if(BUILD_SHARED_LIBS)
-  set(CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.shared.txt")
-endif()
 
 
 

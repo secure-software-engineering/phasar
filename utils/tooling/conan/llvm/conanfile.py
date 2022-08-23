@@ -2,7 +2,11 @@ from conans import ConanFile, tools, CMake
 from conans.tools import Version
 from conans.errors import ConanInvalidConfiguration
 from collections import defaultdict
-import os, shutil, glob, re, json
+import os
+import shutil
+import glob
+import re
+import json
 
 # copied from: https://github.com/jusito/conan-center-index/tree/llvm
 # https://llvm.org/docs/CMake.html#frequently-used-llvm-related-variables
@@ -27,10 +31,23 @@ runtimes = [
 ]
 default_projects = [
     'clang',
+    'clang-tools-extra',
+    # 'libc', # clang-14 crashes for sin/cos/tan for 13.0.0-14.0.6
+    'libclc',
+    'lld',
+    'lldb',
     'openmp',
+    'polly',
+    'pstl',
 ]
 default_runtimes = [
+    # 'compiler-rt',  # fatal error: 'bits/libc-header-start.h' file not found
+    # 'libc',
+    'libcxx',
+    'libcxxabi',
+    'libunwind',
 ]
+
 
 class Llvm(ConanFile):
     name = 'llvm'
@@ -54,6 +71,7 @@ class Llvm(ConanFile):
            for runtime in runtimes},
         **{
             'shared': [True, False],
+            'shared_is_dylib': [True, False],
             'fPIC': [True, False],
             'components': 'ANY',
             'targets': 'ANY',
@@ -98,11 +116,12 @@ class Llvm(ConanFile):
         },
         **{
             'shared': False,
+            'shared_is_dylib': True,
             'fPIC': True,
             'components': 'all',
             'targets': 'all',
-            'exceptions': True, # llvm 14 default off
-            'rtti': True, # llvm 14 default off
+            'exceptions': True,  # llvm 14 default off
+            'rtti': True,  # llvm 14 default off
             'threads': True,
             'lto': 'Off',
             'static_stdlib': False,
@@ -117,12 +136,14 @@ class Llvm(ConanFile):
             'keep_binaries_regex': '^$',
 
             # options removed in package id
-            'enable_debug': False, # disable debug builds in ci
+            'enable_debug': False,  # disable debug builds in ci
             'use_llvm_cmake_files': False,
-            'clean_build_bin': True, # prevent 40gb debug build folder
+            'clean_build_bin': True,  # prevent 40gb debug build folder
         }
     }
     generators = 'cmake_find_package'
+
+    version = "14.0.6"
 
     def requirements(self):
         if self.options.with_ffi:
@@ -130,7 +151,7 @@ class Llvm(ConanFile):
         if self.options.get_safe('with_zlib', False):
             self.requires('zlib/[>1.2.0 <2.0.0]')
         if self.options.get_safe('with_xml2', False):
-           self.requires('libxml2/[>2.9.0 <3.0.0]')
+            self.requires('libxml2/[>2.9.0 <3.0.0]')
         if self.options.get_safe('with_z3', False):
             self.requires('z3/[>4.8.0 <5.0.0]')
 
@@ -144,7 +165,7 @@ class Llvm(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = 'llvm-project-llvmorg-' + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
         self._patch_sources()
 
     def build_requirements(self):
@@ -155,6 +176,8 @@ class Llvm(ConanFile):
     def configure(self):
         if self.options.shared:
             del self.options.fPIC
+        else:
+            del self.options.shared_is_dylib
         if self.settings.os == "Windows":
             del self.options.fPIC
             del self.options.with_zlib
@@ -167,7 +190,8 @@ class Llvm(ConanFile):
             tools.patch(**patch)
 
         # fix LOCATION / LOCATION_${build_type} not set on libxml2
-        tools.replace_in_file(self._source_subfolder + "/llvm/lib/WindowsManifest/CMakeLists.txt", "get_property", 'find_library(libxml2_library NAME xml2 PATHS ${LibXml2_LIB_DIRS} NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH) #')
+        tools.replace_in_file(self._source_subfolder + "/llvm/lib/WindowsManifest/CMakeLists.txt", "get_property",
+                              'find_library(libxml2_library NAME xml2 PATHS ${LibXml2_LIB_DIRS} NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH) #')
 
     def _cmake_configure(self):
         enabled_projects = [
@@ -184,39 +208,53 @@ class Llvm(ConanFile):
             ', '.join(enabled_runtimes)))
 
         cmake = CMake(self, generator="Ninja", parallel=False)
+        build_shared_libs = self.options.shared and not self.options.get_safe(
+            'shared_is_dylib', default=True)
         cmake.configure(
             args=['--graphviz=graph/llvm.dot'],
             defs={
-                'BUILD_SHARED_LIBS': False,
+                'BUILD_SHARED_LIBS': build_shared_libs,
                 'LIBOMP_ENABLE_SHARED': self.options.shared,
-                'CMAKE_SKIP_RPATH': True,
+                # cmake RPATH handling https://gitlab.kitware.com/cmake/community/-/wikis/doc/cmake/RPATH-handling#default-rpath-settings
+                # default behaviour for RPATH is to clear it on install
+                # skipping RPATH for build affects also RUNPATH but
+                # llvm-tblgen with BUILD_SHARED_LIBS needs it during build else build invocation fails because .so not found
+                # e.g. readelf -d bin/llvm-tblgen shows RUNPATH $ORIGIN/../lib for build and install location, which is fine in every case.
+                # Only if executed with elevated privileges this is ignored because of security concerns (it contains $ORIGIN and isn't absolute).
+                # CMAKE_SKIP_RPATH # default is fine, kept for documentation.
                 'CMAKE_POSITION_INDEPENDENT_CODE': \
-                    self.options.get_safe('fPIC', default=False) or self.options.shared,
+                self.options.get_safe(
+                    'fPIC', default=False) or self.options.shared,
                 'LLVM_TARGET_ARCH': 'host',
                 'LLVM_TARGETS_TO_BUILD': self.options.targets,
-                'LLVM_BUILD_LLVM_DYLIB': self.options.shared, # also sets CLANG_LINK_CLANG_DYLIB
+                'LLVM_BUILD_LLVM_DYLIB': self.options.shared and self.options.get_safe('shared_is_dylib', default=True),
                 'LLVM_DYLIB_COMPONENTS': self.options.components,
-                'LLVM_ENABLE_PIC': self.options.get_safe('fPIC', default=False), # llvm default on
+                # llvm default on
+                'LLVM_ENABLE_PIC': self.options.get_safe('fPIC', default=False),
                 'LLVM_ABI_BREAKING_CHECKS': 'WITH_ASSERTS',
                 'LLVM_ENABLE_WARNINGS': True,
                 'LLVM_ENABLE_PEDANTIC': True,
                 'LLVM_ENABLE_WERROR': False,
+                # from llvm-core:
+                # Visual Studio version 16.4, which is known by miscompiling LLVM, is currently being used by conan-center-index's CCI.
+                # Let's use LLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN to make that compilation pass until Visual Studio is upgraded.
                 'LLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN': True,
                 'LLVM_USE_RELATIVE_PATHS_IN_DEBUG_INFO': False,
                 'LLVM_BUILD_INSTRUMENTED_COVERAGE': False,
-                'LLVM_OPTIMIZED_TABLEGEN': True, # NOT default, can speedup compilation a lot
+                'LLVM_OPTIMIZED_TABLEGEN': True,  # NOT default, can speedup compilation a lot
                 'LLVM_REVERSE_ITERATION': False,
-                'LLVM_ENABLE_BINDINGS': False, # NOT default, dont build OCaml and go bindings
+                'LLVM_ENABLE_BINDINGS': False,  # NOT default, dont build OCaml and go bindings
                 'LLVM_CCACHE_BUILD': False,
-                'LLVM_INCLUDE_TOOLS': True, # needed for clang libs, but remove binaries
-                'LLVM_INCLUDE_EXAMPLES': False, # NOT default
+                'LLVM_INCLUDE_TOOLS': True,
+                'LLVM_INCLUDE_EXAMPLES': False,  # NOT default
                 'LLVM_BUILD_TESTS': False,
-                'LLVM_INCLUDE_TESTS': False, # NOT default
+                'LLVM_INCLUDE_TESTS': False,  # NOT default
                 'LLVM_INCLUDE_BENCHMARKS': False,
                 'LLVM_APPEND_VC_REV': True,
                 'LLVM_BUILD_DOCS': False,
                 'LLVM_ENABLE_IDE': False,
-                'LLVM_ENABLE_TERMINFO': False, # NOT default Use terminfo database if available.
+                # NOT default Use terminfo database if available.
+                'LLVM_ENABLE_TERMINFO': False,
                 'LLVM_ENABLE_EH': self.options.exceptions,
                 'LLVM_ENABLE_RTTI': self.options.rtti,
                 'LLVM_ENABLE_THREADS': self.options.threads,
@@ -236,7 +274,7 @@ class Llvm(ConanFile):
                 'LLVM_ENABLE_LIBXML2': self.options.get_safe('with_xml2', False),
                 'LLVM_ENABLE_PROJECTS': ';'.join(enabled_projects),
                 'LLVM_ENABLE_RUNTIMES': ';'.join(enabled_runtimes),
-            }, 
+            },
             source_folder=os.path.join(self._source_subfolder, 'llvm'))
         if not self.options.shared:
             cmake.definitions['DISABLE_LLVM_LINK_LLVM_DYLIB'] = True
@@ -257,8 +295,9 @@ class Llvm(ConanFile):
     def _is_relevant_component(self, target_name):
         package_lib_folder = os.path.join(self.package_folder, "lib")
         return os.path.exists(os.path.join(package_lib_folder, f"lib{target_name}.a")) or \
-                os.path.exists(os.path.join(package_lib_folder, f"lib{target_name}.so")) or \
-                os.path.exists(os.path.join(package_lib_folder, f"lib{target_name}.dylib"))
+            os.path.exists(os.path.join(package_lib_folder, f"lib{target_name}.so")) or \
+            os.path.exists(os.path.join(
+                package_lib_folder, f"lib{target_name}.dylib"))
 
     def package(self):
         cmake = self._cmake_configure()
@@ -276,7 +315,8 @@ class Llvm(ConanFile):
         # Binaries are also used to skip targets
         build_bin_path = os.path.join(self.build_folder, 'bin')
         package_bin_path = os.path.join(self.package_folder, 'bin')
-        binaries = ["lldb-test", "clang-fuzzer", "clang-objc-fuzzer"] # missed targets by the method below
+        # missed targets by the method below
+        binaries = ["lldb-test", "clang-fuzzer", "clang-objc-fuzzer"]
         binaries.extend(os.listdir(build_bin_path))
         binaries.extend(os.listdir(package_bin_path))
         binaries = list(set(binaries))
@@ -284,10 +324,11 @@ class Llvm(ConanFile):
         for bin in binaries:
             if bin_matcher.match(bin):
                 keep_binaries.append(bin)
-                current_bin=bin
+                current_bin = bin
                 # there are links like clang++ -> clang -> clang-14
                 while os.path.islink(os.path.join('bin', current_bin)):
-                    current_bin=os.path.basename(os.readlink(os.path.join('bin', current_bin)))
+                    current_bin = os.path.basename(
+                        os.readlink(os.path.join('bin', current_bin)))
                     keep_binaries.append(current_bin)
 
         # remove unneccessary binaries from package
@@ -298,14 +339,15 @@ class Llvm(ConanFile):
             elif os.path.isfile(bin_path) or os.path.islink(bin_path):
                 self.output.info(f"Removing binary \"{bin}\" from package")
                 os.remove(bin_path)
-        
+
         # remove unneccessary files from package
         ignore = ["share", "libexec", "**/Find*.cmake", "**/*Config.cmake"]
         for ignore_entry in ignore:
             ignore_glob = os.path.join(self.package_folder, ignore_entry)
 
             for ignore_path in glob.glob(ignore_glob, recursive=True):
-                self.output.info('Removing ignored file/directory "{}" from package'.format(ignore_path))
+                self.output.info(
+                    'Removing ignored file/directory "{}" from package'.format(ignore_path))
 
                 if os.path.isfile(ignore_path):
                     os.remove(ignore_path)
@@ -332,14 +374,14 @@ class Llvm(ConanFile):
             'rt': "rt",
             'm': "m",
             'dl': 'dl'
-        } 
+        }
         external_targets_keys = external_targets.keys()
         dummy_targets = defaultdict(list)
         for target, dep in deps:
             if not self._is_relevant_component(target) and target not in external_targets_keys:
                 dummy_targets[target].append(dep)
         dummy_targets_keys = dummy_targets.keys()
-        
+
         # fill components with relevant targets
         components = defaultdict(list)
         ignored_deps = []
@@ -351,12 +393,12 @@ class Llvm(ConanFile):
                 components[lib]
 
                 if isinstance(dep, list):
-                    current_deps  = dep
+                    current_deps = dep
                 elif " " in dep:
-                    current_deps = dep.split() # lib: omp dep: str(-lpthread -lrt)
+                    current_deps = dep.split()  # lib: omp dep: str(-lpthread -lrt)
                 else:
-                    current_deps  = [dep]
-                
+                    current_deps = [dep]
+
                 visited = components[lib].copy()
                 while len(current_deps) > 0:
                     current_dep = current_deps.pop()
@@ -372,11 +414,13 @@ class Llvm(ConanFile):
                         continue
 
                     elif os.path.exists(current_dep):
-                        current_dep = os.path.splitext(os.path.basename(current_dep))[0]
+                        current_dep = os.path.splitext(
+                            os.path.basename(current_dep))[0]
                         current_dep = current_dep.replace('lib', '')
                     # <==
 
-                    if current_dep.startswith("-l"): # e.g. -lpthread -> pthread
+                    # e.g. -lpthread -> pthread
+                    if current_dep.startswith("-l"):
                         current_dep = current_dep[2:]
 
                     if current_dep in dummy_targets_keys:
@@ -428,7 +472,7 @@ class Llvm(ConanFile):
             ('lldbPluginDynamicLoaderPosixDYLD', 'lldbPluginProcessElfCore'),
             ('lldbPluginProcessElfCore', 'lldbPluginDynamicLoaderPosixDYLD'),
         ]
-        keys = components.keys() 
+        keys = components.keys()
 
         for target, remove in remove_dependencies:
             if target in keys:
@@ -445,7 +489,7 @@ class Llvm(ConanFile):
                         r = True
         if r:
             raise "circular dependency found"
-        
+
         lib_path = os.path.join(self.package_folder, 'lib')
         if not self.options.shared:
             if self.options.get_safe('with_zlib', False):
@@ -457,14 +501,15 @@ class Llvm(ConanFile):
             for ext in suffixes:
                 lib = 'libclang*{}*'.format(ext)
                 self.copy(lib, dst='lib', src='lib')
-            
+
         for name in os.listdir(lib_path):
             if not any(suffix in name for suffix in suffixes):
                 remove_path = os.path.join(lib_path, name)
-                # directories are needed for certain binaries, e.g. clang -> lib/clang 
+                # directories are needed for certain binaries, e.g. clang -> lib/clang
                 if os.path.isdir(remove_path):
                     continue
-                self.output.info(f"Removing library \"{remove_path}\" from package because it doesn't contain any of {suffixes}")
+                self.output.info(
+                    f"Removing library \"{remove_path}\" from package because it doesn't contain any of {suffixes}")
                 os.remove(remove_path)
 
         # because we remove libs from lib/folder, we need to clear components as well
@@ -479,11 +524,13 @@ class Llvm(ConanFile):
         for remove in removed:
             for key in components.keys():
                 if remove in components[key]:
-                    self.output.info(f"Removing dependency from \"{key}\" to \"{remove}\" because it doesn't contain any of {suffixes}")
+                    self.output.info(
+                        f"Removing dependency from \"{key}\" to \"{remove}\" because it doesn't contain any of {suffixes}")
                     components[key].remove(remove)
-        
+
         # write components.json for package_info
-        components_path = os.path.join(self.package_folder, 'lib', 'components.json')
+        components_path = os.path.join(
+            self.package_folder, 'lib', 'components.json')
         with open(components_path, 'w') as components_file:
             json.dump(components, components_file, indent=4)
 
@@ -511,12 +558,13 @@ class Llvm(ConanFile):
         if self.settings.build_type == "Debug" and not self.options.enable_debug:
             raise ConanInvalidConfiguration(
                 "Set the 'enable_debug' option to allow debug builds")
-        
+
         for project in projects:
             for runtime in runtimes:
                 if project == runtime and \
-                    self.options.get_safe('with_project_' + project, False) and self.options.get_safe('with_runtime_' + runtime, False):
-                    raise ConanInvalidConfiguration(f"Duplicate entry in enabled projects / runtime found for \"with_project_{project}\"")
+                        self.options.get_safe('with_project_' + project, False) and self.options.get_safe('with_runtime_' + runtime, False):
+                    raise ConanInvalidConfiguration(
+                        f"Duplicate entry in enabled projects / runtime found for \"with_project_{project}\"")
 
     @property
     def _module_subfolder(self):
@@ -548,7 +596,8 @@ class Llvm(ConanFile):
 
         for component, deps in components.items():
             self.cpp_info.components[component].libs = [component]
-            self.cpp_info.components[component].requires.extend(dep for dep in deps if self._is_relevant_component(dep))
+            self.cpp_info.components[component].requires.extend(
+                dep for dep in deps if self._is_relevant_component(dep))
 
             for lib, target in external_targets.items():
                 if lib in deps:
@@ -559,17 +608,21 @@ class Llvm(ConanFile):
                 if not self._is_relevant_component(dep) and dep not in dependencies
             ]
 
-            self.cpp_info.components[component].set_property("cmake_target_name", component)
-            self.cpp_info.components[component].builddirs.append(self._module_subfolder)
+            self.cpp_info.components[component].set_property(
+                "cmake_target_name", component)
+            self.cpp_info.components[component].builddirs.append(
+                self._module_subfolder)
             self.cpp_info.components[component].names["cmake_find_package"] = component
             self.cpp_info.components[component].names["cmake_find_package_multi"] = component
 
             if self.options.use_llvm_cmake_files:
                 self.cpp_info.components[component].build_modules["cmake_find_package"].append(
-                    os.path.join(self._module_subfolder, "LLVMConfigInternal.cmake")
+                    os.path.join(self._module_subfolder,
+                                 "LLVMConfigInternal.cmake")
                 )
                 self.cpp_info.components[component].build_modules["cmake_find_package_multi"].append(
-                    os.path.join(self._module_subfolder, "LLVMConfigInternal.cmake")
+                    os.path.join(self._module_subfolder,
+                                 "LLVMConfigInternal.cmake")
                 )
 
         # TODO: to remove in conan v2 once cmake_find_package* generators removed

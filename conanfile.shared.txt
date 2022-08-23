@@ -1,5 +1,5 @@
 [requires]
-llvm/14.0.6@just-simple-cmake/debug
+llvm/14.0.6@phasar/develop
 boost/[>=1.72.0 <1.77]
 gtest/[>=1.10.0 <2.0.0]
 sqlite3/[>=3.36.0 <4.0.0]
@@ -15,7 +15,8 @@ cmake
 
 [options]
 sqlite3:shared=True
-llvm:shared=False
+llvm:shared=True
+llvm:shared_is_dylib=False
 llvm:enable_debug=True
 llvm:with_project_clang=True
 llvm:with_project_openmp=True
