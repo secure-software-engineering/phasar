@@ -110,6 +110,7 @@ get_longest_common_subsequence() {
         exit 2
     fi
 
+    echo cd "$(dirname "$run_binary")"
     cd "$(dirname "$run_binary")"
     if [ "$debugger" = "lldb" ]; then
         cmd=(lldb -- "$(basename "$run_binary")")
