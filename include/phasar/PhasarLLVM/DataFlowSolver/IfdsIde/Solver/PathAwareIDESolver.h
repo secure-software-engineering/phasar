@@ -1,8 +1,8 @@
 #pragma once
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ExplodedSuperGraph.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/ExplodedSuperGraph.h"
 #include "phasar/Utils/Logger.h"
 
 namespace psr {
@@ -29,7 +29,7 @@ public:
     }
   }
 
-  [[nodiscard]] const ExplodedSuperGraph<domain_t, container_type> &
+  [[nodiscard]] const ExplodedSuperGraph<domain_t> &
   getExplicitESG() const noexcept {
     return ESG;
   }
@@ -40,7 +40,7 @@ private:
     ESG.saveEdges(Curr, CurrNode, Succ, SuccNodes, IsInterProc);
   }
 
-  ExplodedSuperGraph<domain_t, container_type> ESG;
+  ExplodedSuperGraph<domain_t> ESG;
 };
 
 template <typename ProblemTy>

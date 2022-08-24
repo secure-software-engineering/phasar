@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EXPLODEDSUPERGRAPH_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EXPLODEDSUPERGRAPH_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
 
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
@@ -43,13 +43,10 @@ namespace psr {
 /// Not all covered instructions of a BasicBlock might be present; however, it
 /// is guaranteed that for each BasicBlock covered by the analysis there is at
 /// least one node in the ExplicitESG containing an instruction from that BB.
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
-class ExplodedSuperGraph {
+template <typename AnalysisDomainTy> class ExplodedSuperGraph {
 public:
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
-  using container_type = Container;
 
   struct Node {
     d_t Value{};
@@ -76,8 +73,9 @@ public:
 
   [[nodiscard]] const d_t &getZeroValue() const noexcept { return ZeroValue; }
 
-  void saveEdges(n_t Curr, d_t CurrNode, n_t Succ,
-                 const container_type &SuccNodes, bool /*IsInterProc*/) {
+  template <typename Container>
+  void saveEdges(n_t Curr, d_t CurrNode, n_t Succ, const Container &SuccNodes,
+                 bool /*IsInterProc*/) {
     auto Pred = getNodeOrNull(Curr, std::move(CurrNode));
     for (const d_t &SuccNode : SuccNodes) {
       saveEdge(Pred, Curr, CurrNode, Succ, SuccNode);
@@ -252,4 +250,4 @@ private:
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EXPLODEDSUPERGRAPH_H
+#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
