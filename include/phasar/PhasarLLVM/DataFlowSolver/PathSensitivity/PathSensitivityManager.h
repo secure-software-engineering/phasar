@@ -2,6 +2,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/ExplodedSuperGraph.h"
+#include "phasar/Utils/AdjacencyList.h"
 
 #include <cassert>
 
@@ -16,15 +17,20 @@ template <typename AnalysisDomainTy> class PathSensitivityManager {
   }
 
 public:
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using graph_type = AdjacencyList<llvm::SmallVector<n_t, 0>>;
+
   PathSensitivityManager(
       const ExplodedSuperGraph<AnalysisDomainTy> *ESG) noexcept
       : ESG(assertNotNull(ESG)) {}
 
-  /// TODO: Add graph_type
   /// TODO: Add PathBuilder
   /// TODO: Add LLVMPathConstraints
 
-  /// TODO: graph_type pathsDagTo(n_t, d_t)
+  graph_type pathsDagTo(n_t Inst, d_t Fact) const {
+    /// TODO: implement
+  }
 
   /// TODO: FlowPathSequence pathsTo(n_t, d_t)
 

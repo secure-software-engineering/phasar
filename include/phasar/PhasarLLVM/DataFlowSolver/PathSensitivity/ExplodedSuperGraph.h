@@ -135,7 +135,7 @@ public:
       OS.write_escaped(DPrinter.DtoString(Nod.value)) << "\"];\n";
 
       OS << intptr_t(&Nod) << "->" << intptr_t(Nod.predecessor)
-         << "[style=\"bold\" label=\"";
+         << R"([style="bold" label=")";
       OS.write_escaped(NPrinter.NtoString(Nod.source)) << "\"];\n";
       for (auto *NB : Nod.neighbors) {
         OS << intptr_t(&Nod) << "->" << intptr_t(NB) << "[color=\"red\"];\n";

@@ -16,6 +16,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace psr {
@@ -25,9 +26,18 @@ namespace detail {
 template <typename T, typename = void>
 struct is_iterable : public std::false_type {}; // NOLINT
 template <typename T>
-struct is_iterable<T, std::void_t<typename T::const_iterator, // NOLINT
-                                  decltype(std::declval<T>().begin()),
-                                  decltype(std::declval<T>().end())>>
+struct is_iterable<T, std::void_t<decltype(llvm::adl_begin(std::declval<T>())),
+                                  decltype(llvm::adl_end(std::declval<T>()))>>
+    : public std::true_type {};
+
+template <typename T, typename U, typename = void>
+struct is_iterable_over : std::false_type {}; // NOLINT
+template <typename T, typename U>
+struct is_iterable_over<
+    T, U,
+    std::enable_if_t<is_iterable<T>::value &&
+                     std::is_same_v<U, std::decay_t<decltype(*llvm::adl_begin(
+                                           std::declval<T>()))>>>>
     : public std::true_type {};
 
 template <typename T> struct is_pair : public std::false_type {}; // NOLINT
@@ -77,7 +87,7 @@ struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
 
 template <typename T, typename = void>
-struct has_setIFDSIDESolverConfig : std::false_type {};
+struct has_setIFDSIDESolverConfig : std::false_type {}; // NOLINT
 template <typename T>
 struct has_setIFDSIDESolverConfig<
     T, decltype(std::declval<T>().setIFDSIDESolverConfig(
@@ -87,6 +97,10 @@ struct has_setIFDSIDESolverConfig<
 
 template <typename T>
 constexpr bool is_iterable_v = detail::is_iterable<T>::value; // NOLINT
+
+template <typename T, typename U>
+constexpr bool is_iterable_over_v =        // NOLINT
+    detail::is_iterable_over<T, U>::value; // NOLINT
 
 template <typename T>
 constexpr bool is_pair_v = detail::is_pair<T>::value; // NOLINT
