@@ -1,8 +1,14 @@
 from conans import ConanFile, CMake, tools
 from collections import defaultdict
-import os, re, shutil, glob, json
+import os
+import re
+import shutil
+import glob
+import json
 
-import shutil, errno # remove before commit
+import shutil
+import errno  # remove before commit
+
 
 class WALiOpenNWAConan(ConanFile):
     name = "wali-opennwa"
@@ -23,7 +29,9 @@ class WALiOpenNWAConan(ConanFile):
     generators = "cmake_find_package", "cmake_paths"
     exports_sources = "*"
     requires = [
-        "llvm-core/12.0.0@intellisectest+intellisectest-application/stable"
+        "llvm/[>=14.0.6 <15.0.0]@phasar/develop",
+        "boost/[>=1.72.0 <1.77]",
+        "zlib/[>=1.2.0 <2.0.0]"
     ]
 
     @property
@@ -36,7 +44,12 @@ class WALiOpenNWAConan(ConanFile):
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
-        tools.rename('{}-{}'.format("WALi-OpenNWA", self.commit), self._source_subfolder)
+        tools.rename('{}-{}'.format("WALi-OpenNWA", self.commit),
+                     self._source_subfolder)
+
+        # add boost, quick and dirty, not the clean way
+        tools.replace_in_file(self._source_subfolder + "/CMakeLists.txt",
+                              "add_subdirectory(Source)", "find_package(Boost REQUIRED)\ninclude_directories(${Boost_INCLUDE_DIRS})\nadd_subdirectory(Source)")
 
     def _patch_sources(self):
         for patch in self.conan_data.get("patches", {}).get(self.version, []):
@@ -47,28 +60,16 @@ class WALiOpenNWAConan(ConanFile):
         self._patch_sources()
         cmake = CMake(self)
         cmake.definitions['BUILD_SHARED_LIBS'] = self.options.shared
-        
-        
-        saved_build_dir = "/home/ubuntu/hdd_2/tmp/conan_build/"
-        build_dir = os.path.join(self.build_folder, self._build_subfolder)
-        print(f"build folder: {build_dir} cache folder: {saved_build_dir}")
-        
-        if not os.path.isdir(saved_build_dir):
-            os.mkdir(saved_build_dir)
-            try:
-                shutil.copytree(saved_build_dir, build_dir, dirs_exist_ok=True)
-            except OSError as exc:
-                print(exc)
-                raise 
-        #cmake.configure(source_folder=self._source_subfolder, build_folder=self._build_subfolder)
-        #cmake.build()
-        shutil.copytree(build_dir, saved_build_dir, dirs_exist_ok=True)
-        
+        cmake.configure(source_folder=self._source_subfolder,
+                        build_folder=self._build_subfolder)
+        cmake.build()
 
     def package(self):
         self.copy("LICENSE")
-        self.copy("*.h", dst="include", src=self._source_subfolder + "/Source/wali/include")
-        self.copy("*.hpp", dst="include", src=self._source_subfolder + "/Source/wali/include")
+        self.copy("*.h", dst="include",
+                  src=self._source_subfolder + "/Source/wali/include")
+        self.copy("*.hpp", dst="include",
+                  src=self._source_subfolder + "/Source/wali/include")
         self.copy("*.dll", dst="bin", keep_path=False)
         self.copy("*.so", dst="lib", keep_path=False)
         self.copy("*.dylib", dst="lib", keep_path=False)

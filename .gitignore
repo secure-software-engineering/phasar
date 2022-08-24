@@ -4,9 +4,10 @@
 bin/*
 
 # build directories for cmake
-build/
-build_*/
+build*/
 cmake-build*/
+cmake-install*/
+CMakeUserPresets.json
 
 # LLVM project
 llvm-project/*
@@ -119,12 +120,3 @@ TAGS
 # config files
 compiler_info.txt
 standard_header_paths.conf
-
-# CMake temporary files
-CMakeFiles
-CMakeCache.txt
-!cmake/*.cmake
-cmake-build-debug/*
-*.pc
-Makefile
-!test/*/Makefile

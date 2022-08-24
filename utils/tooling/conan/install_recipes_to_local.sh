@@ -16,7 +16,7 @@ set -euo pipefail
 
     conan_export() {
         path="$(realpath ../../../conanfile.txt)"
-        if grep -Fqe "$1/" "$path"; then
+        if grep -Eqe "^$1/" "$path"; then
             conan export ./"$1"/ "$(grep --max-count 1 -Fe "$1/" "$path")"
         else
             echo "WARNING $1 not referenced in $path, skipping export because its not needed"
@@ -24,5 +24,5 @@ set -euo pipefail
     }
     
     conan_export llvm
-    conan_export wali
+    conan_export wali-opennwa
 )

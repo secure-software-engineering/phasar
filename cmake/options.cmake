@@ -111,10 +111,13 @@ set(DOXYGEN_EXCLUDE_PATTERNS "*/llvm_test_code/*")
 
 
 
-# TODO is this really needed?
-# Basically only works if Phasars public API doesn't expose anything at all which is using the dependency, so a user would need to add the dependency on their own
+
+# TODO Basically only works if Phasars public API doesn't expose anything at all which is using the dependency, so a user would need to add the dependency on their own
 # if private you have to manually handle include / compile
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+if (PHASAR_DEBUG_LIBDEPS)
+  message(FATAL_ERROR "PHASAR_DEBUG_LIBDEPS isn't migrated, sorry.")
+endif()
 
 
 
@@ -167,3 +170,37 @@ if (LLVM_ENABLE_LIBCXX)
 else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
+
+
+
+
+# TODO migrate install
+# executables
+# install (TARGETS ${name}
+#     RUNTIME DESTINATION bin
+#   )
+# libraries
+# if(PHASAR_IN_TREE)
+# install(TARGETS ${name}
+# EXPORT LLVMExports
+# LIBRARY DESTINATION lib
+# ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+# else()
+# install(TARGETS ${name}
+# EXPORT phasarTargets
+# LIBRARY DESTINATION ${PHASAR_INSTALL_LIBDIR}
+# ARCHIVE DESTINATION ${PHASAR_INSTALL_LIBDIR})
+# install(TARGETS ${name}
+# EXPORT ${name}-targets
+# COMPONENT ${component_name}
+# DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+# LIBRARY DESTINATION ${PHASAR_INSTALL_LIBDIR}
+# ARCHIVE DESTINATION ${PHASAR_INSTALL_LIBDIR})
+# install(EXPORT ${name}-targets
+# FILE ${name}-targets.cmake
+# NAMESPACE phasar::
+# DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+# COMPONENT ${component_name})
+# install(FILES ${name}-config.cmake
+# DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar)
+# endif()

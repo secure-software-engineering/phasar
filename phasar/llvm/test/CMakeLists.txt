@@ -3,5 +3,5 @@ just_add_tests(
         phasar-test-utils
     DEPENDS
         LLFileGeneration
-    EXCLUDE "^.*/WPDS/.*$"
+    EXCLUDE "^.*/WPDS/.*$" #removed wali
 )

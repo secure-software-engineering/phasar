@@ -1,5 +1,6 @@
 [requires]
 llvm/14.0.6@phasar/develop
+#wali-opennwa/2020.07.31@phasar/develop #removed wali
 boost/[>=1.72.0 <1.77]
 gtest/[>=1.10.0 <2.0.0]
 sqlite3/[>=3.36.0 <4.0.0]
