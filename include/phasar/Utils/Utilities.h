@@ -260,6 +260,17 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
   return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
 }
 
+/// Similar to std::forward, but takes the info, which of lvalue or rvalue
+/// reference to return from Fwd
+template <typename Fwd, typename T>
+constexpr decltype(auto) forward_from(T &Val) noexcept { // NOLINT
+  if constexpr (std::is_lvalue_reference_v<Fwd>) {
+    return static_cast<T &>(Val);
+  } else {
+    return static_cast<T &&>(Val);
+  }
+}
+
 } // namespace psr
 
 #endif

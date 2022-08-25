@@ -1,4 +1,14 @@
-#pragma once
+/******************************************************************************
+ * Copyright (c) 2022 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel
+ *****************************************************************************/
+
+#ifndef PHASAR_UTILS_REPEATITERATOR_H
+#define PHASAR_UTILS_REPEATITERATOR_H
 
 #include "phasar/Utils/TypeTraits.h"
 
@@ -17,7 +27,7 @@ public:
   using reference = const T &;
   using pointer = const T *;
   using difference_type = ptrdiff_t;
-  using iterator_category = std::input_iterator_tag;
+  using iterator_category = std::forward_iterator_tag;
 
   reference operator*() const noexcept {
     assert(elem.has_value() && "Dereferencing end()-iterator");
@@ -70,3 +80,5 @@ template <typename T> auto repeat(T &&Elem, size_t Num) {
 static_assert(is_iterable_over_v<RepeatRangeType<int>, int>);
 
 } // namespace psr
+
+#endif // PHASAR_UTILS_REPEATITERATOR_H

@@ -1,4 +1,14 @@
-#pragma once
+/******************************************************************************
+ * Copyright (c) 2022 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel
+ *****************************************************************************/
+
+#ifndef PHASAR_UTILS_GRAPHTRAITS_H
+#define PHASAR_UTILS_GRAPHTRAITS_H
 
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
@@ -14,6 +24,12 @@
 
 namespace psr {
 
+/// We aim to get rid of boost, so introduce a new GraphTraits class to replace
+/// it.
+/// This GraphTraits type should be specialized for each typy that should
+/// implement a "graph". All the functionality should be reflected by the
+/// GraphTraits class.
+/// Once moving to C++20, we have nice type-checking using concepts
 template <typename Graph> struct GraphTraits;
 
 #if __cplusplus >= 202002L
@@ -50,6 +66,10 @@ concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
     GraphTrait::nodes(cgraph)
     } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
   {
+    GraphTrait::vertices(cgraph)
+        ->psr::is_iterable_over_v<typename GraphTrait::value_type>;
+  }
+  {
     GraphTrait::node(cgraph, vtx)
     } -> std::convertible_to<typename GraphTrait::value_type>;
   { GraphTrait::size(cgraph) } -> std::convertible_to<size_t>;
@@ -64,6 +84,7 @@ concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
   {
     GraphTrait::withEdgeTarget(edge, vtx)
     } -> std::convertible_to<typename GraphTrait::edge_t>;
+  {GraphTrait::weight(edge)};
 };
 
 template <typename Graph>
@@ -110,12 +131,9 @@ std::decay_t<GraphTy> reverseGraph(GraphTy &&G)
   }
 
   for (auto &Nod : traits_t::nodes(G)) {
-    /// NOTE: in case of a const reference, nod will be const as well preventing
-    /// moving
-    traits_t::addNode(Ret, std::move(Nod));
+    traits_t::addNode(Ret, forward_from<GraphTy>(Nod));
   }
-
-  for (size_t I = 0, End = traits_t::size(G); I != End; ++I) {
+  for (auto I : traits_t::vertices(G)) {
     for (auto Child : traits_t::outEdges(G, I)) {
       traits_t::addEdge(Ret, traits_t::target(Child),
                         traits_t::withEdgeTarget(Child, I));
@@ -162,3 +180,5 @@ void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
 }
 
 } // namespace psr
+
+#endif // PHASAR_UTILS_GRAPHTRAITS_H

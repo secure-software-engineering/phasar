@@ -1,6 +1,17 @@
-#pragma once
+/******************************************************************************
+ * Copyright (c) 2022 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel
+ *****************************************************************************/
+
+#ifndef PHASAR_UTILS_ADJACENCYLIST_H
+#define PHASAR_UTILS_ADJACENCYLIST_H
 
 #include "phasar/Utils/GraphTraits.h"
+#include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/RepeatIterator.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -123,6 +134,13 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return repeat(llvm::None, G.Adj.size());
   }
 
+  static auto vertices(const graph_type &G) noexcept {
+    if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
+      assert(G.Adj.size() == G.Nodes.size());
+    }
+    return psr::iota(0, G.Adj.size());
+  }
+
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>>>
   static const value_type &node(const graph_type &G, vertex_t Vtx) noexcept {
@@ -185,6 +203,10 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return Tar;
   }
 
+  static llvm::NoneType weight(edge_t /*unused*/) noexcept {
+    return llvm::None;
+  }
+
 #if __cplusplus >= 202002L
   static_assert(is_graph<AdjacencyList<T>>);
   static_assert(is_reservable_graph_trait<GraphTraits<AdjacencyList<T>>>);
@@ -192,3 +214,5 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
 };
 
 } // namespace psr
+
+#endif // PHASAR_UTILS_ADJACENCYLIST_H
