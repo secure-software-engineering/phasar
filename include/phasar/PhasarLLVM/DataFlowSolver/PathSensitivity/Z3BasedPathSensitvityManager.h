@@ -127,21 +127,21 @@ public:
 
 #ifndef NDEBUG
 #ifdef DYNAMIC_LOG
-    PHASAR_LOG_LEVEL_CAT(
-        DEBUG, "PathSensitivityManager",
-        "Recorded " << Ret.size() << " valid paths:";
-        std::string Str; for (const FlowPath<n_t> &Path
-                              : Ret) {
-          Str.clear();
-          llvm::raw_string_ostream ROS(Str);
-          ROS << "> ";
-          llvm::interleaveComma(Path.Path, ROS, [&ROS](auto *Inst) {
-            ROS << getMetaDataID(Inst);
-          });
-          ROS << ": " << Path.Constraint.to_string();
-          ROS.flush();
-          S << Str;
-        })
+    PHASAR_LOG_LEVEL_CAT(DEBUG, "PathSensitivityManager",
+                         "Recorded " << Ret.size() << " valid paths:");
+
+    std::string Str;
+    for (const FlowPath<n_t> &Path : Ret) {
+      Str.clear();
+      llvm::raw_string_ostream ROS(Str);
+      ROS << "> ";
+      llvm::interleaveComma(Path.Path, ROS,
+                            [&ROS](auto *Inst) { ROS << getMetaDataID(Inst); });
+      ROS << ": " << Path.Constraint.to_string();
+      ROS.flush();
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "PathSensitivityManager", Str);
+    }
+
 #endif // DYNAMIC_LOG
 #endif // NDEBUG
 

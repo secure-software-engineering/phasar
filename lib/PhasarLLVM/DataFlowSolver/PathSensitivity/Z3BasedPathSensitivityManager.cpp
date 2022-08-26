@@ -1,6 +1,10 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/LLVMPathConstraints.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitvityManager.h"
+#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/Casting.h"
 
 namespace psr {
 z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
@@ -50,9 +54,8 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
 
     llvm::SmallVector<z3::expr> Ys;
 
-    const auto &OutEdges = graph_traits_t::outEdges(RevDAG, Vtx);
-
-    for (auto Iter = OutEdges.begin(), End = OutEdges.end(); Iter != End;) {
+    for (auto Iter = graph_traits_t::outEdges(RevDAG, Vtx).begin();
+         Iter != graph_traits_t::outEdges(RevDAG, Vtx).end();) {
       // NOLINTNEXTLINE(readability-qualified-auto, llvm-qualified-auto)
       auto It = Iter++;
       auto Edge = *It;
@@ -99,8 +102,8 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
 
   z3::expr Ret = LPC.getContext().bool_val(false);
 
-  const auto &Roots = graph_traits_t::roots(RevDAG);
-  for (auto Iter = Roots.begin(), End = Roots.end(); Iter != End;) {
+  for (auto Iter = graph_traits_t::roots(RevDAG).begin();
+       Iter != graph_traits_t::roots(RevDAG).end();) {
     // NOLINTNEXTLINE(readability-qualified-auto, llvm-qualified-auto)
     auto It = Iter++;
     auto Rt = *It;
@@ -201,6 +204,8 @@ public:
     }
     if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(Prev);
         CS && !isDirectSuccessorOf(Inst, CS)) {
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "CallStackPathFilter",
+                           "Push CS: " << llvmIRToString(CS));
       pushCS(CS);
 
     } else if (llvm::isa<llvm::ReturnInst>(Prev) ||
@@ -208,10 +213,26 @@ public:
       /// Allow unbalanced returns
       if (!emptyCS()) {
         const auto *CS = popCS();
+
+        PHASAR_LOG_LEVEL_CAT(DEBUG, "CallStackPathFilter",
+                             "Pop CS: " << llvmIRToString(CS) << " at exit "
+                                        << llvmIRToString(Prev)
+                                        << " and ret-site "
+                                        << llvmIRToString(Inst));
+
         if (!isDirectSuccessorOf(Inst, CS)) {
           /// Invalid return
           Valid = false;
+
+          PHASAR_LOG_LEVEL_CAT(DEBUG, "CallStackPathFilter",
+                               "> Invalid return");
+        } else {
+          PHASAR_LOG_LEVEL_CAT(DEBUG, "CallStackPathFilter", "> Valid return");
         }
+      } else {
+        PHASAR_LOG_LEVEL_CAT(DEBUG, "CallStackPathFilter",
+                             "> Unbalanced return at exit "
+                                 << llvmIRToString(Prev));
       }
       /// else: unbalanced return
     }
@@ -237,11 +258,23 @@ public:
 private:
   bool isDirectSuccessorOf(const llvm::Instruction *Succ,
                            const llvm::Instruction *Of) {
+
     while (const auto *Nxt = Of->getNextNode()) {
       if (Nxt == Succ) {
         return true;
       }
       Of = Nxt;
+
+      if (Nxt->isTerminator()) {
+        break;
+      }
+      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Nxt);
+          Call && Call->getCalledFunction() &&
+          !Call->getCalledFunction()->isDeclaration()) {
+        /// Don't skip function calls. We might call the same fun twice in the
+        /// same BB, so we recognize invalid paths there as well!
+        return false;
+      }
     }
 
     assert(Of->isTerminator());

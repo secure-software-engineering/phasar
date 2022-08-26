@@ -24,6 +24,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Compiler.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Utils/Utilities.h"
@@ -78,6 +79,9 @@ std::string llvmIRToStableString(const llvm::Value *V);
  *        resulting string
  */
 std::string llvmIRToShortString(const llvm::Value *V);
+
+LLVM_DUMP_METHOD void dumpIR(const llvm::Value *V);
+LLVM_DUMP_METHOD void dumpIR(const llvm::Instruction *V);
 
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM

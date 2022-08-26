@@ -42,6 +42,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JoinHandlingNode.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h"
@@ -479,14 +480,19 @@ protected:
           PHASAR_LOG_LEVEL(DEBUG, "  " << IDEProblem.NtoString(ret));
         });
 
+    bool HasNoCalleeInformation = true;
+
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
       // check if a special summary for the called procedure exists
       FlowFunctionPtrType SpecialSum =
           CachedFlowEdgeFunctions.getSummaryFlowFunction(n, SCalledProcN);
+
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
+
       if (SpecialSum) {
+        HasNoCalleeInformation = false;
         PHASAR_LOG_LEVEL(DEBUG, "Found and process special summary");
         for (n_t ReturnSiteN : ReturnSiteNs) {
           container_type Res = computeSummaryFlowFunction(SpecialSum, d1, d2);
@@ -494,7 +500,7 @@ protected:
                       PAMM_SEVERITY_LEVEL::Full);
           ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          saveEdges(n, ReturnSiteN, d2, Res, false);
+          saveEdges(n, ReturnSiteN, d2, Res, ESGEdgeKind::Summary);
           for (d_t d3 : Res) {
             EdgeFunctionPtrType SumEdgFnE =
                 CachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
@@ -526,7 +532,8 @@ protected:
         }
         // if startPointsOf is empty, the called function is a declaration
         for (n_t SP : StartPointsOf) {
-          saveEdges(n, SP, d2, Res, true);
+          HasNoCalleeInformation = false;
+          saveEdges(n, SP, d2, Res, ESGEdgeKind::Call);
           // for each result node of the call-flow function
           for (d_t d3 : Res) {
             using TableCell =
@@ -568,7 +575,7 @@ protected:
                     RetFunction, d3, d4, n, Container{d2});
                 ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1,
                                  PAMM_SEVERITY_LEVEL::Full);
-                saveEdges(eP, RetSiteN, d4, ReturnedFacts, true);
+                saveEdges(eP, RetSiteN, d4, ReturnedFacts, ESGEdgeKind::Ret);
                 // for each target value of the function
                 for (d_t d5 : ReturnedFacts) {
                   // update the caller-side summary function
@@ -627,7 +634,9 @@ protected:
           computeCallToReturnFlowFunction(CallToReturnFF, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
-      saveEdges(n, ReturnSiteN, d2, ReturnFacts, false);
+      saveEdges(n, ReturnSiteN, d2, ReturnFacts,
+                HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
+                                       : ESGEdgeKind::CallToRet);
       for (d_t d3 : ReturnFacts) {
         EdgeFunctionPtrType EdgeFnE =
             CachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, ReturnSiteN,
@@ -668,7 +677,7 @@ protected:
       const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
-      saveEdges(n, nPrime, d2, Res, false);
+      saveEdges(n, nPrime, d2, Res, ESGEdgeKind::Normal);
       for (d_t d3 : Res) {
         EdgeFunctionPtrType g =
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
@@ -883,12 +892,12 @@ protected:
   }
 
   virtual void saveEdges(n_t SourceNode, n_t SinkStmt, d_t SourceVal,
-                         const container_type &DestVals, bool InterP) {
+                         const container_type &DestVals, ESGEdgeKind Kind) {
     if (!SolverConfig.recordEdges()) {
       return;
     }
     Table<n_t, n_t, std::map<d_t, container_type>> &TgtMap =
-        (InterP) ? ComputedInterPathEdges : ComputedIntraPathEdges;
+        (isInterProc(Kind)) ? ComputedInterPathEdges : ComputedIntraPathEdges;
     TgtMap.get(SourceNode, SinkStmt)[SourceVal].insert(DestVals.begin(),
                                                        DestVals.end());
   }
@@ -1024,7 +1033,7 @@ protected:
               computeReturnFlowFunction(RetFunction, d1, d2, c, Entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          saveEdges(n, RetSiteC, d2, Targets, true);
+          saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           // for each target value at the return site
           // line 23
           for (d_t d5 : Targets) {
@@ -1097,7 +1106,7 @@ protected:
               RetFunction, d1, d2, Caller, Container{ZeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
-          saveEdges(n, RetSiteC, d2, Targets, true);
+          saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           for (d_t d5 : Targets) {
             EdgeFunctionPtrType f5 =
                 CachedFlowEdgeFunctions.getReturnEdgeFunction(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/ExplodedSuperGraph.h"
 #include "phasar/Utils/Logger.h"
@@ -36,8 +37,8 @@ public:
 
 private:
   void saveEdges(n_t Curr, n_t Succ, d_t CurrNode,
-                 const container_type &SuccNodes, bool IsInterProc) override {
-    ESG.saveEdges(Curr, CurrNode, Succ, SuccNodes, IsInterProc);
+                 const container_type &SuccNodes, ESGEdgeKind Kind) override {
+    ESG.saveEdges(Curr, CurrNode, Succ, SuccNodes, Kind);
   }
 
   ExplodedSuperGraph<domain_t> ESG;

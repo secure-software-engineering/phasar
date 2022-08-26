@@ -10,8 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -75,9 +77,16 @@ public:
 
   template <typename Container>
   void saveEdges(n_t Curr, d_t CurrNode, n_t Succ, const Container &SuccNodes,
-                 bool /*IsInterProc*/) {
+                 ESGEdgeKind Kind) {
     auto Pred = getNodeOrNull(Curr, std::move(CurrNode));
+
+    /// The Identity CTR-flow on the zero-value has no meaning at all regarding
+    /// path sensitivity, so skip it
+    bool MaySkipEdge = Kind == ESGEdgeKind::CallToRet && CurrNode == ZeroValue;
     for (const d_t &SuccNode : SuccNodes) {
+      if (MaySkipEdge && SuccNode == CurrNode) {
+        continue;
+      }
       saveEdge(Pred, Curr, CurrNode, Succ, SuccNode);
     }
   }
@@ -215,11 +224,12 @@ private:
           abort();
         }
         if (Nod == SuccVtx) {
-          llvm::errs() << "> saveEdge -- skip meaningless loop: ("
-                       << NPrinter.NtoString(Curr) << ", "
-                       << DPrinter.DtoString(CurrNode) << ") --> ("
-                       << NPrinter.NtoString(Succ) << ", "
-                       << DPrinter.DtoString(SuccNode) << ")\n";
+          PHASAR_LOG_LEVEL_CAT(INFO, "PathSensitivityManager",
+                               "> saveEdge -- skip meaningless loop: ("
+                                   << NPrinter.NtoString(Curr) << ", "
+                                   << DPrinter.DtoString(CurrNode) << ") --> ("
+                                   << NPrinter.NtoString(Succ) << ", "
+                                   << DPrinter.DtoString(SuccNode) << ")");
           return;
         }
         Nod = Nod->Predecessor;
