@@ -17,6 +17,7 @@
 #include "llvm/ADT/None.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/identity.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <concepts>
@@ -169,9 +170,20 @@ std::decay_t<GraphTy> reverseGraph(GraphTy &&G)
   return Ret;
 }
 
-template <typename GraphTy>
+template <typename N> struct DefaultNodeTransform {
+  std::string operator()(const N &Nod) const {
+    std::string Buf;
+    llvm::raw_string_ostream ROS(Buf);
+    ROS << Nod;
+    ROS.flush();
+    return Buf;
+  }
+};
+
+template <typename GraphTy, typename NodeTransform = DefaultNodeTransform<
+                                typename GraphTraits<GraphTy>::value_type>>
 void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
-                llvm::StringRef Name = "")
+                llvm::StringRef Name = "", NodeTransform NodeToString = {})
 #if __cplusplus >= 202002L
     requires is_graph<GraphTy>
 #endif
@@ -182,18 +194,13 @@ void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
   psr::scope_exit CloseBrace = [&OS] { OS << "}\n"; };
 
   auto Sz = traits_t::size(G);
-  std::string Buf;
 
   for (size_t I = 0; I < Sz; ++I) {
     OS << I;
     if constexpr (!std::is_same_v<llvm::NoneType,
                                   typename traits_t::value_type>) {
       OS << "[label=\"";
-
-      Buf.clear();
-      llvm::raw_string_ostream ROS(Buf);
-      ROS << traits_t::node(G, I);
-      OS.write_escaped(ROS.str());
+      OS.write_escaped(NodeToString(traits_t::node(G, I)));
       OS << "\"]";
     }
     OS << ";\n";

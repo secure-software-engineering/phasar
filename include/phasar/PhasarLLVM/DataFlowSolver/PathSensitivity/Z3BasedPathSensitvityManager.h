@@ -15,15 +15,20 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerMixin.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitivityConfig.h"
 #include "phasar/Utils/GraphTraits.h"
+#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "z3++.h"
 
 #include <cstdint>
 #include <memory>
+#include <system_error>
 #include <type_traits>
 
 namespace llvm {
@@ -92,7 +97,29 @@ public:
           "please call the pathsOrConstraintTo function instead!");
     }
 
-    graph_type Dag = this->pathsDagTo(Inst, std::move(Fact));
+    graph_type Dag = this->pathsDagTo(Inst, std::move(Fact), Config);
+
+    PHASAR_LOG_LEVEL_CAT(
+        DEBUG, "PathSensitivityManager",
+        "PathsTo with MaxDAGDepth: " << Config.DAGDepthThreshold);
+
+#ifndef NDEBUG
+    {
+      std::error_code EC;
+      llvm::raw_fd_stream ROS("dag-" + psr::getMetaDataID(Inst) + ".dot", EC);
+      printGraph(Dag, ROS, "DAG", [](llvm::ArrayRef<n_t> PartialPath) {
+        std::string Buf;
+        llvm::raw_string_ostream ROS(Buf);
+        ROS << "[ ";
+        llvm::interleaveComma(PartialPath, ROS, [&ROS](const auto *Inst) {
+          ROS << psr::getMetaDataID(Inst);
+        });
+        ROS << " ]";
+        ROS.flush();
+        return Buf;
+      });
+    }
+#endif
 
     vertex_t Leaf = [&Dag] {
       for (auto Vtx : graph_traits_t::vertices(Dag)) {

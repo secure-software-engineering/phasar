@@ -40,9 +40,10 @@ protected:
   }
 
 public:
+  template <typename ConfigTy>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, d_t Fact,
-             const PathSensitivityConfig &Config = {}) const {
+             const PathSensitivityConfigBase<ConfigTy> &Config) const {
     auto Nod = ESG.getNodeOrNull(Inst, std::move(Fact));
 
     if (!Nod) {
@@ -66,10 +67,11 @@ public:
 
     if (Config.MinimizeDAG) {
       auto Equiv = minimizeGraph(Dag);
-      Dag =
-          static_cast<const Derived *>(this)->reverseDAG(std::move(Dag), Equiv);
+      Dag = static_cast<const Derived *>(this)->reverseDAG(
+          std::move(Dag), Equiv, Config.DAGDepthThreshold);
     } else {
-      Dag = reverseGraph(std::move(Dag));
+      Dag = static_cast<const Derived *>(this)->reverseDAG(
+          std::move(Dag), Config.DAGDepthThreshold);
     }
 
     return Dag;
