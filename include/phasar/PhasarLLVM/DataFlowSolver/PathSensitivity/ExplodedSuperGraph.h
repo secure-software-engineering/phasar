@@ -132,12 +132,12 @@ public:
     for (const auto &Nod : NodeOwner) {
 
       OS << intptr_t(&Nod) << "[label=\"";
-      OS.write_escaped(DPrinter.DtoString(Nod.value)) << "\"];\n";
+      OS.write_escaped(DPrinter.DtoString(Nod.Value)) << "\"];\n";
 
-      OS << intptr_t(&Nod) << "->" << intptr_t(Nod.predecessor)
+      OS << intptr_t(&Nod) << "->" << intptr_t(Nod.Predecessor)
          << R"([style="bold" label=")";
-      OS.write_escaped(NPrinter.NtoString(Nod.source)) << "\"];\n";
-      for (auto *NB : Nod.neighbors) {
+      OS.write_escaped(NPrinter.NtoString(Nod.Source)) << "\"];\n";
+      for (auto *NB : Nod.Neighbors) {
         OS << intptr_t(&Nod) << "->" << intptr_t(NB) << "[color=\"red\"];\n";
       }
     }

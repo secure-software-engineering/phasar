@@ -28,7 +28,7 @@ template <typename GraphTy>
   using vertex_t = typename traits_t::vertex_t;
   using edge_t = typename traits_t::edge_t;
 
-  auto DagSize = G.size();
+  auto DagSize = traits_t::size(G);
   llvm::SmallVector<std::pair<vertex_t, vertex_t>> WorkList;
   WorkList.reserve(DagSize);
 

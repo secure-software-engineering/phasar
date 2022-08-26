@@ -17,7 +17,8 @@
 #include <optional>
 
 namespace psr {
-struct Z3BasedPathSensitivityConfig : PathSensitivityConfig {
+struct Z3BasedPathSensitivityConfig
+    : PathSensitivityConfigBase<Z3BasedPathSensitivityConfig> {
   std::optional<z3::expr> AdditionalConstraint;
 
   [[nodiscard]] Z3BasedPathSensitivityConfig

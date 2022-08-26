@@ -17,6 +17,10 @@
 #include "llvm/ADT/SmallVector.h"
 
 namespace psr {
+
+template <typename Derived, typename AnalysisDomainTy, typename GraphType>
+class PathSensitivityManagerMixin;
+
 template <typename N> class PathSensitivityManagerBase {
 public:
   using n_t = N;
@@ -24,13 +28,16 @@ public:
 
   static_assert(std::is_integral_v<typename GraphTraits<graph_type>::vertex_t>);
 
+  template <typename Derived, typename AnalysisDomainTy, typename GraphType>
+  friend class PathSensitivityManagerMixin;
+
 protected:
   using graph_traits_t = GraphTraits<graph_type>;
   using vertex_t = typename graph_traits_t::vertex_t;
 
 private:
-  bool assertIsDAG(const graph_type &Dag) {
-    llvm::BitVector Visited(Dag.size());
+  bool assertIsDAG(const graph_type &Dag) const {
+    llvm::BitVector Visited(graph_traits_t::size(Dag));
     llvm::DenseSet<vertex_t> CurrPath;
     CurrPath.reserve(graph_traits_t::size(Dag));
 
@@ -60,11 +67,17 @@ private:
       return true;
     };
 
-    return doAssertIsDAG(doAssertIsDAG, Dag.Root);
+    for (auto Rt : graph_traits_t::roots(Dag)) {
+      if (!doAssertIsDAG(doAssertIsDAG, Rt)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   graph_type reverseDAG(graph_type &&Dag, const llvm::IntEqClasses &Equiv,
-                        size_t MaxDepth = SIZE_MAX) {
+                        size_t MaxDepth = SIZE_MAX) const {
 
     struct ReverseDAGContext {
       llvm::SmallVector<vertex_t> Cache;
@@ -128,7 +141,9 @@ private:
       return Rev;
     };
 
-    buildReverseDag(buildReverseDag, Dag.Root);
+    for (auto Rt : graph_traits_t::roots(Dag)) {
+      buildReverseDag(buildReverseDag, Rt);
+    }
 
     return Ret;
   }

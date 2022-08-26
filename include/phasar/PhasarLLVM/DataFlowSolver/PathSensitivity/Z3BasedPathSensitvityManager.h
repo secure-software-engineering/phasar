@@ -15,11 +15,15 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerMixin.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitivityConfig.h"
 #include "phasar/Utils/GraphTraits.h"
-
 #include "phasar/Utils/Logger.h"
-#include "z3++.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
+
 #include "llvm/Support/ErrorHandling.h"
 
+#include "z3++.h"
+
+#include <cstdint>
+#include <memory>
 #include <type_traits>
 
 namespace llvm {
@@ -47,18 +51,7 @@ protected:
                          const Z3BasedPathSensitivityConfig &Config,
                          LLVMPathConstraints &LPC) const;
 
-  void deduplicatePaths(FlowPathSequence<n_t> &Paths) {
-    /// Some kind of lexical sort for being able to deduplicate the paths easily
-    std::sort(Paths.begin(), Paths.end(),
-              [](const FlowPath<n_t> &LHS, const FlowPath<n_t> &RHS) {
-                return LHS.size() < RHS.size() ||
-                       (LHS.size() == RHS.size() &&
-                        std::lexicographical_compare(LHS.begin(), LHS.end(),
-                                                     RHS.begin(), RHS.end()));
-              });
-
-    Paths.erase(std::unique(Paths.begin(), Paths.end()), Paths.end());
-  }
+  static void deduplicatePaths(FlowPathSequence<n_t> &Paths);
 };
 
 template <typename AnalysisDomainTy,
@@ -80,13 +73,25 @@ public:
   using typename PathSensitivityManagerBase<n_t>::graph_type;
   using MaybeFlowPathSeq = std::variant<FlowPathSequence<n_t>, z3::expr>;
 
-  Z3BasedPathSensitivityManager(
-      const ExplodedSuperGraph<AnalysisDomainTy> *ESG) noexcept
-      : mixin_t(ESG) {}
+  explicit Z3BasedPathSensitivityManager(
+      const ExplodedSuperGraph<AnalysisDomainTy> *ESG,
+      Z3BasedPathSensitivityConfig Config, LLVMPathConstraints *LPC = nullptr)
+      : mixin_t(ESG), Config(std::move(Config)), LPC(LPC) {
+    if (!LPC) {
+      this->LPC = std::make_unique<LLVMPathConstraints>();
+    }
+  }
 
-  FlowPathSequence<n_t> pathsTo(n_t Inst, d_t Fact,
-                                const Z3BasedPathSensitivityConfig &Config,
-                                LLVMPathConstraints &LPC) const {
+  FlowPathSequence<n_t> pathsTo(n_t Inst, d_t Fact) const {
+    if (Config.DAGSizeThreshold != SIZE_MAX) {
+      PHASAR_LOG_LEVEL(
+          WARNING,
+          "Attempting to compute FlowPaths without conditionally "
+          "falling back to constraint collection, but a DAGSizeThreshold "
+          "is specified. It will be ignored here. To make use of it, "
+          "please call the pathsOrConstraintTo function instead!");
+    }
+
     graph_type Dag = this->pathsDagTo(Inst, std::move(Fact));
 
     vertex_t Leaf = [&Dag] {
@@ -98,7 +103,7 @@ public:
       llvm_unreachable("Expect the DAG to have a leaf node!");
     }();
 
-    z3::expr Constraint = filterOutUnreachableNodes(Dag, Leaf, Config, LPC);
+    z3::expr Constraint = filterOutUnreachableNodes(Dag, Leaf, Config, *LPC);
 
     if (Constraint.is_false()) {
       PHASAR_LOG_LEVEL_CAT(INFO, "PathSensitivityManager",
@@ -106,17 +111,17 @@ public:
       return FlowPathSequence<n_t>();
     }
 
-    if (graph_traits_t::size(Dag) > Config.DAGSizeThreshold) {
-      PHASAR_LOG_LEVEL_CAT(
-          INFO, "PathSensitivityManager",
-          "Note: The DAG for query @ "
-              << getMetaDataID(Inst)
-              << " is too large. Don't collect the precise paths "
-                 "here");
-      return Constraint;
-    }
+    // if (graph_traits_t::size(Dag) > Config.DAGSizeThreshold) {
+    //   PHASAR_LOG_LEVEL_CAT(
+    //       INFO, "PathSensitivityManager",
+    //       "Note: The DAG for query @ "
+    //           << getMetaDataID(Inst)
+    //           << " is too large. Don't collect the precise paths "
+    //              "here");
+    //   return Constraint;
+    // }
 
-    auto Ret = filterAndFlattenRevDag(Dag, Leaf, Inst, Config, LPC);
+    auto Ret = filterAndFlattenRevDag(Dag, Leaf, Inst, Config, *LPC);
 
     deduplicatePaths(Ret);
 
@@ -142,6 +147,10 @@ public:
 
     return Ret;
   }
+
+private:
+  Z3BasedPathSensitivityConfig Config{};
+  MaybeUniquePtr<LLVMPathConstraints, true> LPC{};
 };
 } // namespace psr
 

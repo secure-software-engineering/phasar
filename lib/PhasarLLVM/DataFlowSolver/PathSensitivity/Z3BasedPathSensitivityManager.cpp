@@ -526,4 +526,18 @@ auto Z3BasedPathSensitivityManagerBase::filterAndFlattenRevDag(
   return Ret;
 }
 
+void Z3BasedPathSensitivityManagerBase::deduplicatePaths(
+    FlowPathSequence<n_t> &Paths) {
+  /// Some kind of lexical sort for being able to deduplicate the paths easily
+  std::sort(Paths.begin(), Paths.end(),
+            [](const FlowPath<n_t> &LHS, const FlowPath<n_t> &RHS) {
+              return LHS.size() < RHS.size() ||
+                     (LHS.size() == RHS.size() &&
+                      std::lexicographical_compare(LHS.begin(), LHS.end(),
+                                                   RHS.begin(), RHS.end()));
+            });
+
+  Paths.erase(std::unique(Paths.begin(), Paths.end()), Paths.end());
+}
+
 } // namespace psr

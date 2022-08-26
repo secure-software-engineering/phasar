@@ -14,40 +14,44 @@
 #include <cstdint>
 
 namespace psr {
-struct PathSensitivityConfig {
+
+template <typename DerivedConfig> struct PathSensitivityConfigBase {
   size_t DAGSizeThreshold = SIZE_MAX;
   size_t DAGDepthThreshold = SIZE_MAX;
   size_t NumPathsThreshold = SIZE_MAX;
   bool MinimizeDAG = true;
 
-  [[nodiscard]] PathSensitivityConfig
+  [[nodiscard]] DerivedConfig
   withDAGSizeThreshold(size_t MaxDAGSize) const noexcept {
-    auto Ret = *this;
+    auto Ret = *static_cast<const DerivedConfig *>(this);
     Ret.DAGSizeThreshold = MaxDAGSize;
     return Ret;
   }
 
-  [[nodiscard]] PathSensitivityConfig
+  [[nodiscard]] DerivedConfig
   withDAGDepthThreshold(size_t MaxDAGDepth) const noexcept {
-    auto Ret = *this;
+    auto Ret = *static_cast<const DerivedConfig *>(this);
     Ret.DAGDepthThreshold = MaxDAGDepth;
     return Ret;
   }
 
-  [[nodiscard]] PathSensitivityConfig
+  [[nodiscard]] DerivedConfig
   withNumPathsThreshold(size_t MaxNumPaths) const noexcept {
-    auto Ret = *this;
+    auto Ret = *static_cast<const DerivedConfig *>(this);
     Ret.NumPathsThreshold = MaxNumPaths;
     return Ret;
   }
 
-  [[nodiscard]] PathSensitivityConfig
-  withMinimizeDAG(bool DoMinimize) const noexcept {
-    auto Ret = *this;
+  [[nodiscard]] DerivedConfig withMinimizeDAG(bool DoMinimize) const noexcept {
+    auto Ret = *static_cast<const DerivedConfig *>(this);
     Ret.MinimizeDAG = DoMinimize;
     return Ret;
   }
 };
+
+struct PathSensitivityConfig
+    : PathSensitivityConfigBase<PathSensitivityConfig> {};
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYCONFIG_H

@@ -17,24 +17,51 @@
 
 namespace psr {
 
-/// A smart-pointer, similar to std::unique_ptr, that can optionally own an
-/// object.
-template <typename T> class MaybeUniquePtr {
+namespace detail {
+template <typename T, bool RequireAlignment> class MaybeUniquePtrBase {
+protected:
   struct PointerBoolPairFallback {
     T *Pointer = nullptr;
     bool Flag = false;
 
     /// Compatibility with llvm::PointerIntPair:
-    [[nodiscard]] T *getPointer() const noexcept { return Pointer; }
-    [[nodiscard]] bool getInt() const noexcept { return Flag; }
-    void setInt(bool Flag) noexcept { this->Flag = Flag; }
+    [[nodiscard]] constexpr T *getPointer() const noexcept { return Pointer; }
+    [[nodiscard]] constexpr bool getInt() const noexcept { return Flag; }
+    constexpr void setInt(bool Flag) noexcept { this->Flag = Flag; }
   };
+
+  std::conditional_t<(alignof(T) > 1), llvm::PointerIntPair<T *, 1, bool>,
+                     PointerBoolPairFallback>
+      Data{};
+
+  constexpr MaybeUniquePtrBase(T *Ptr, bool Owns) noexcept : Data{Ptr, Owns} {}
+  constexpr MaybeUniquePtrBase() noexcept = default;
+};
+
+template <typename T> class MaybeUniquePtrBase<T, true> {
+protected:
+  llvm::PointerIntPair<T *, 1, bool> Data{};
+
+  constexpr MaybeUniquePtrBase(T *Ptr, bool Owns) noexcept : Data{Ptr, Owns} {}
+  constexpr MaybeUniquePtrBase() noexcept = default;
+};
+} // namespace detail
+
+/// A smart-pointer, similar to std::unique_ptr, that can optionally own an
+/// object.
+///
+/// \tparam T The pointee type
+/// \tparam RequireAlignment If true, the datastructure only works if alignof(T)
+/// > 1 holds. Enables incomplete T types
+template <typename T, bool RequireAlignment = false>
+class MaybeUniquePtr : detail::MaybeUniquePtrBase<T, RequireAlignment> {
+  using detail::MaybeUniquePtrBase<T, RequireAlignment>::Data;
 
 public:
   constexpr MaybeUniquePtr() noexcept = default;
 
   constexpr MaybeUniquePtr(T *Pointer, bool Owns = false) noexcept
-      : Data{Pointer, Owns} {}
+      : detail::MaybeUniquePtrBase<T, RequireAlignment>(Pointer, Owns) {}
 
   constexpr MaybeUniquePtr(std::unique_ptr<T> &&Owner) noexcept
       : MaybeUniquePtr(Owner.release(), true) {}
@@ -43,9 +70,9 @@ public:
   constexpr MaybeUniquePtr(std::unique_ptr<TT> &&Owner) noexcept
       : MaybeUniquePtr(Owner.release(), true) {}
 
-  constexpr MaybeUniquePtr(MaybeUniquePtr &&Other) noexcept : Data(Other.Data) {
-    Other.Data = {};
-  }
+  constexpr MaybeUniquePtr(MaybeUniquePtr &&Other) noexcept
+      : detail::MaybeUniquePtrBase<T, RequireAlignment>(
+            std::exchange(Other.Data, {})) {}
 
   constexpr void swap(MaybeUniquePtr &Other) noexcept {
     std::swap(Data, Other, Data);
@@ -91,16 +118,11 @@ public:
     }
   }
 
-  [[nodiscard]] constexpr T *get() noexcept { return Data.getPointer(); }
-  [[nodiscard]] constexpr const T *get() const noexcept {
-    return Data.getPointer();
-  }
+  [[nodiscard]] constexpr T *get() const noexcept { return Data.getPointer(); }
 
-  [[nodiscard]] constexpr T *operator->() noexcept { return get(); }
-  [[nodiscard]] constexpr const T *operator->() const noexcept { return get(); }
+  [[nodiscard]] constexpr T *operator->() const noexcept { return get(); }
 
-  [[nodiscard]] constexpr T &operator*() noexcept { return *get(); }
-  [[nodiscard]] constexpr const T &operator*() const noexcept { return *get(); }
+  [[nodiscard]] constexpr T &operator*() const noexcept { return *get(); }
 
   constexpr T *release() noexcept {
     Data.setInt(false);
@@ -148,11 +170,6 @@ public:
   constexpr explicit operator bool() const noexcept {
     return Data.getPointer() != nullptr;
   }
-
-private:
-  std::conditional_t<(alignof(T) > 1), llvm::PointerIntPair<T *, 1, bool>,
-                     PointerBoolPairFallback>
-      Data{};
 };
 } // namespace psr
 

@@ -23,8 +23,8 @@ class PathSensitivityManagerMixin {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
 
-  static ExplodedSuperGraph<AnalysisDomainTy> &
-  assertNotNull(ExplodedSuperGraph<AnalysisDomainTy> *ESG) noexcept {
+  static const ExplodedSuperGraph<AnalysisDomainTy> &
+  assertNotNull(const ExplodedSuperGraph<AnalysisDomainTy> *ESG) noexcept {
     assert(ESG != nullptr && "The exploded supergraph passed to the "
                              "pathSensitivityManager must not be nullptr!");
     return *ESG;
@@ -87,12 +87,10 @@ private:
   };
 
   bool pathsToImplLAInvoke(vertex_t Ret, Node *Vtx, PathsToContext &Ctx,
-                           graph_type &RetDag, bool AutoSkipZero) {
+                           graph_type &RetDag) const {
 
     // NOLINTNEXTLINE(readability-identifier-naming)
-    auto reachedEnd = [this, AutoSkipZero](Node *Vtx) {
-      return !Vtx || (AutoSkipZero && Vtx->Value == ESG.getZeroValue());
-    };
+    auto reachedEnd = [](Node *Vtx) { return !Vtx; };
 
     do {
       graph_traits_t::node(RetDag, Ret).push_back(Vtx->Source);
@@ -110,8 +108,8 @@ private:
     scope_exit PopRet = [&Ctx] { Ctx.CurrPath.pop_back(); };
 
     // NOLINTNEXTLINE(readability-identifier-naming)
-    auto traverseNext = [&Ctx, this, Ret, &RetDag, AutoSkipZero](Node *Nxt) {
-      auto Succ = pathsToImplLA(Nxt, Ctx, RetDag, AutoSkipZero);
+    auto traverseNext = [&Ctx, this, Ret, &RetDag](Node *Nxt) {
+      auto Succ = pathsToImplLA(Nxt, Ctx, RetDag);
       if (Succ != graph_traits_t::Invalid && !Ctx.CurrPath.contains(Succ)) {
         graph_traits_t::addEdge(RetDag, Ret, Succ);
       }
@@ -128,8 +126,8 @@ private:
     return graph_traits_t::outDegree(RetDag, Ret) != 0;
   }
 
-  vertex_t pathsToImplLA(Node *Vtx, PathsToContext &Ctx, graph_type &RetDag,
-                         bool AutoSkipZero) {
+  vertex_t pathsToImplLA(Node *Vtx, PathsToContext &Ctx,
+                         graph_type &RetDag) const {
     /// Idea: Treat the graph as firstChild-nextSibling notation and always
     /// traverse with one predecessor lookAhead
 
@@ -138,11 +136,12 @@ private:
       return It->second;
     }
 
-    auto Ret = graph_traits_t::addNode(RetDag, graph_traits_t::value_type());
+    auto Ret =
+        graph_traits_t::addNode(RetDag, typename graph_traits_t::value_type());
     // auto Ret = RetDag.addNode();
     It->second = Ret;
 
-    if (!pathsToImplLAInvoke(Ret, Vtx, Ctx, RetDag, AutoSkipZero)) {
+    if (!pathsToImplLAInvoke(Ret, Vtx, Ctx, RetDag)) {
       /// NOTE: Don't erase Vtx from Cache to guarantee termination
       Ctx.Cache[Vtx] = graph_traits_t::Invalid;
 
@@ -164,24 +163,24 @@ private:
     return Ret;
   }
 
-  vertex_t pathsToImpl(n_t QueryInst, Node *Vtx, graph_type &RetDag,
-                       bool AutoSkipZero) {
+  vertex_t pathsToImpl(n_t QueryInst, Node *Vtx, graph_type &RetDag) const {
     assert(Vtx->Source != QueryInst);
 
-    auto Ret = graph_traits_t::addNode(RetDag, graph_traits_t::value_type());
+    auto Ret =
+        graph_traits_t::addNode(RetDag, typename graph_traits_t::value_type());
     graph_traits_t::node(RetDag, Ret).push_back(QueryInst);
     // RetDag.PartialPath[Ret].push_back(QueryInst);
 
     PathsToContext Ctx;
 
     for (auto *NB : Vtx->Neighbors) {
-      auto NBNode = pathsToImplLA(NB, Ctx, RetDag, AutoSkipZero);
+      auto NBNode = pathsToImplLA(NB, Ctx, RetDag);
       if (NBNode != graph_traits_t::Invalid) {
         graph_traits_t::addEdge(RetDag, Ret, NBNode);
         // Succs.push_back(NBNode);
       }
     }
-    auto VtxNode = pathsToImplLA(Vtx, Ctx, RetDag, AutoSkipZero);
+    auto VtxNode = pathsToImplLA(Vtx, Ctx, RetDag);
     if (VtxNode != graph_traits_t::Invalid) {
       graph_traits_t::addEdge(RetDag, Ret, VtxNode);
       // Succs.push_back(VtxNode);
