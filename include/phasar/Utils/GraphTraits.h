@@ -119,13 +119,15 @@ struct is_removable_graph_trait : std::false_type {};
 template <typename GraphTrait>
 struct is_removable_graph_trait<
     GraphTrait,
-    std::void_t<decltype(GraphTrait::removeEdges(
+    std::void_t<typename GraphTrait::edge_iterator,
+                typename GraphTrait::roots_iterator,
+                decltype(GraphTrait::removeEdge(
                     std::declval<typename GraphTrait::graph_type &>(),
                     std::declval<typename GraphTrait::vertex_t>(),
-                    llvm::ArrayRef<typename GraphTrait::vertex_t>())),
-                decltype(GraphTrait::removeRoots(
+                    std::declval<typename GraphTrait::edge_iterator>())),
+                decltype(GraphTrait::removeRoot(
                     std::declval<typename GraphTrait::graph_type &>(),
-                    llvm::ArrayRef<typename GraphTrait::vertex_t>()))>>
+                    std::declval<typename GraphTrait::roots_iterator>()))>>
     : std::true_type {};
 } // namespace detail
 

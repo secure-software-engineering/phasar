@@ -30,11 +30,11 @@ public:
   using iterator_category = std::forward_iterator_tag;
 
   reference operator*() const noexcept {
-    assert(elem.has_value() && "Dereferencing end()-iterator");
+    assert(Elem.has_value() && "Dereferencing end()-iterator");
     return *Elem;
   }
   pointer operator->() const noexcept {
-    assert(elem.has_value() && "Dereferencing end()-iterator");
+    assert(Elem.has_value() && "Dereferencing end()-iterator");
     return &*Elem;
   }
 

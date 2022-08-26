@@ -162,9 +162,8 @@ struct StringIDLess {
 template <typename Fn> class scope_exit { // NOLINT
 public:
   template <typename FFn, typename = decltype(std::declval<FFn>()())>
-  explicit scope_exit(FFn &&F) noexcept(
-      std::is_nothrow_constructible_v<Fn, FFn> ||
-      std::is_nothrow_constructible_v<Fn, FFn &>)
+  scope_exit(FFn &&F) noexcept(std::is_nothrow_constructible_v<Fn, FFn> ||
+                               std::is_nothrow_constructible_v<Fn, FFn &>)
       : F(std::forward<FFn>(F)) {}
 
   ~scope_exit() { F(); }

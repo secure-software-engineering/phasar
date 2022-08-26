@@ -11,10 +11,12 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_LLVMPATHCONSTRAINTS_H
 
 #include "z3++.h"
+#include "llvm/ADT/SmallVector.h"
 
 #include <optional>
 
 namespace llvm {
+class Value;
 class Instruction;
 } // namespace llvm
 
@@ -22,10 +24,19 @@ namespace psr {
 class LLVMPathConstraints {
   /// TODO: implement
 public:
+  struct ConstraintAndVariables {
+    z3::expr Constraint;
+    llvm::SmallVector<const llvm::Value *, 4> Variables;
+  };
+
   z3::context &getContext() noexcept { return Z3Context; }
 
   std::optional<z3::expr> getConstraintFromEdge(const llvm::Instruction *Curr,
                                                 const llvm::Instruction *Succ);
+
+  std::optional<ConstraintAndVariables>
+  getConstraintAndVariablesFromEdge(const llvm::Instruction *Curr,
+                                    const llvm::Instruction *Succ);
 
 private:
   z3::context Z3Context;

@@ -19,6 +19,7 @@
 #include "llvm/ADT/None.h"
 #include "llvm/ADT/SmallVector.h"
 
+#include <iterator>
 #include <limits>
 #include <type_traits>
 
@@ -41,6 +42,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   using value_type = T;
   using vertex_t = unsigned;
   using edge_t = EdgeTy;
+  using edge_iterator = typename llvm::ArrayRef<edge_t>::const_iterator;
+  using roots_iterator = typename llvm::ArrayRef<vertex_t>::const_iterator;
 
   static inline constexpr auto Invalid = std::numeric_limits<vertex_t>::max();
 
@@ -94,7 +97,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   static void addEdge(graph_type &G, vertex_t From, edge_t To) {
     assert(From < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
-      assert(B.Adj.size() == G.Nodes.size());
+      assert(G.Adj.size() == G.Nodes.size());
     }
     G.Adj[From].push_back(std::move(To));
   }
@@ -251,20 +254,30 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return llvm::None;
   }
 
-  /// Removes all outgoing edges from Vtx in graph G that match the target
-  /// vertices of the DestNodes range. This will sort the
-  template <typename DestNodesRange>
-  static void removeEdges(graph_type &G, vertex_t Vtx,
-                          const DestNodesRange &DestNodes,
-                          bool IsAlreadySorted = false) {
-    assert(Vtx < G.Adj.size());
+  static edge_iterator removeEdge(graph_type &G, vertex_t Vtx,
+                                  edge_iterator It) noexcept {
+    assert(Vtx < G.Nodes.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
-    if (!IsAlreadySorted) {
-      std::sort(G.Adj[Vtx].begin(), G.Adj[Vtx].end());
+    assert(G.Adj[Vtx].begin() <= It && It < G.Adj[Vtx].end());
+    auto Idx = std::distance(std::cbegin(G.Adj[Vtx]), It);
+
+    std::swap(G.Adj[Vtx][Idx], G.Adj[Vtx].back());
+    G.Adj[Vtx].pop_back();
+    return It;
+  }
+
+  static roots_iterator removeRoot(graph_type &G, roots_iterator It) noexcept {
+    if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
+      assert(G.Adj.size() == G.Nodes.size());
     }
-    G.Adj[Vtx].erase(remove_by_index(G.Adj[Vtx], DestNodes), G.Adj[Vtx].end());
+    assert(G.Roots.begin() <= It && It < G.Roots.end());
+
+    auto Idx = std::distance(std::cbegin(G.Roots), It);
+    std::swap(G.Roots[Idx], G.Roots.back());
+    G.Roots.pop_back();
+    return It;
   }
 
 #if __cplusplus >= 202002L

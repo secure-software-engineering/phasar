@@ -102,7 +102,8 @@ private:
         auto &S = Logger::getLogStream(level, std::nullopt);                   \
         Logger::addLinePrefix(S, level, std::nullopt);                         \
         /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
-        S << message << '\n';                                                  \
+        S << message;                                                          \
+        S << '\n';                                                             \
       } while (false);)
 
 #define PHASAR_LOG_LEVEL_CAT(level, cat, message)                              \
@@ -114,7 +115,8 @@ private:
         auto &S = Logger::getLogStream(level, cat);                            \
         Logger::addLinePrefix(S, level, cat);                                  \
         /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
-        S << message << '\n';                                                  \
+        S << message;                                                          \
+        S << '\n';                                                             \
       } while (false);)
 
 #define PHASAR_LOG_CAT(cat, message)                                           \
@@ -124,7 +126,8 @@ private:
         auto &S = Logger::getLogStream(std::nullopt, cat);                     \
         Logger::addLinePrefix(S, std::nullopt, cat);                           \
         /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
-        S << message << '\n';                                                  \
+        S << message;                                                          \
+        << '\n';                                                               \
       } while (false);)
 
 // For performance reason, we want to disable any
