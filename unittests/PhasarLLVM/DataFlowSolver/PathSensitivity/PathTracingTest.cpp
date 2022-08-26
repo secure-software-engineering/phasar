@@ -243,8 +243,8 @@ TEST_F(PathTracingTest, Handle_Inter_04) {
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_04) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   auto PathsVec = doLambdaAnalysis("inter_04_cpp.ll");
   comparePaths(PathsVec,
                {
@@ -321,8 +321,8 @@ TEST_F(PathTracingTest, Lambda_Inter_05) {
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_Depth3_05) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   /// We have 4 branches ==> 16 paths
   auto PathsVec = doLambdaAnalysis("inter_05_cpp.ll", /*MaxDAGDepth*/ 3);
   comparePaths(PathsVec,
@@ -377,8 +377,8 @@ TEST_F(PathTracingTest, Handle_Inter_07) {
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_07) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   auto PathsVec = doLambdaAnalysis("inter_07_cpp.ll");
   comparePaths(PathsVec, {
                              {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
@@ -397,8 +397,8 @@ TEST_F(PathTracingTest, Lambda_Inter_07) {
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_Depth3_07) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   auto PathsVec = doLambdaAnalysis("inter_07_cpp.ll", /*MaxDAGDepth*/ 3);
   comparePaths(PathsVec, {
                              {0, 1, 2, 3, 4, 5, 6, 7, 40, 41, 49, 50},
@@ -449,8 +449,8 @@ TEST_F(PathTracingTest, Handle_Inter_08) {
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_08) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   auto PathsVec = doLambdaAnalysis("inter_08_cpp.ll");
   /// FIXME: Handle mutable z3::exprs; As of now, we reject all paths that go
   /// into a loop, because this requires the loop condiiton to hold, whereas
@@ -504,8 +504,8 @@ TEST_F(PathTracingTest, Handle_Inter_09) {
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_09) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   auto PathsVec = doLambdaAnalysis("inter_09_cpp.ll");
   /// FIXME: Same reason as Lambda_Inter_08
   comparePaths(PathsVec, {
@@ -518,8 +518,8 @@ TEST_F(PathTracingTest, Lambda_Inter_09) {
 }
 
 TEST_F(PathTracingTest, Handle_Inter_10) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   GTEST_SKIP() << "Need globals support";
   auto PathsVec = doAnalysis("inter_10_cpp.ll", true);
   /// TODO: GT
@@ -529,14 +529,14 @@ TEST_F(PathTracingTest, Handle_Inter_11) {
   auto PathsVec = doAnalysis("inter_11_cpp.ll");
   // Note: The alias analysis is strong enough to see that Three::assignValue
   // can never be called
-  comparePaths(PathsVec,
-               {{16, 17, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 32, 33,
-                 34, 18, 19, 20, 21, 22, 23, 24, 25, 41, 44, 46, 47, 48, 26}});
+  comparePaths(PathsVec, {{8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 27, 28, 29,
+                           30, 31, 35, 36, 37, 38, 39, 40, 32, 33, 34, 18, 19,
+                           20, 21, 22, 23, 24, 25, 41, 44, 46, 47, 48, 26}});
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_11) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   auto PathsVec = doLambdaAnalysis("inter_11_cpp.ll");
   // Note: The alias analysis is strong enough to see that Three::assignValue
   // can never be called
@@ -550,15 +550,41 @@ TEST_F(PathTracingTest, Handle_Inter_12) {
   auto PathsVec = doAnalysis("inter_12_cpp.ll");
   comparePaths(
       PathsVec,
-      {{33, 34, 52, 53, 54, 55, 56, 60, 61, 62, 63, 64, 65, 57, 58,
+      {{11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 44, 45, 46, 47, 48,
+        60, 61, 62, 63, 64, 65, 49, 50, 51, 21, 22, 23, 24, 25, 32,
+        33, 34, 52, 53, 54, 55, 56, 60, 61, 62, 63, 64, 65, 57, 58,
         59, 35, 36, 37, 38, 39, 40, 41, 42, 79, 82, 84, 85, 86, 43},
-       {33, 34, 52, 53, 54, 55, 56, 60, 61, 62,  63,  64,  65,  57,  58,
-        59, 35, 36, 37, 38, 39, 40, 41, 42, 109, 112, 114, 115, 116, 43}});
+       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20,  44,  45,  46,  47,  48,
+        60, 61, 62, 63, 64, 65, 49, 50, 51, 21,  22,  23,  24,  25,  32,
+        33, 34, 52, 53, 54, 55, 56, 60, 61, 62,  63,  64,  65,  57,  58,
+        59, 35, 36, 37, 38, 39, 40, 41, 42, 109, 112, 114, 115, 116, 43},
+       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 44, 45, 46, 47, 48, 60, 61,
+        62, 63, 64, 65, 49, 50, 51, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        72, 73, 74, 75, 66, 67, 68, 69, 70, 87, 88, 89, 90, 71, 76, 77, 78,
+        31, 32, 33, 34, 52, 53, 54, 55, 56, 60, 61, 62, 63, 64, 65, 57, 58,
+        59, 35, 36, 37, 38, 39, 40, 41, 42, 79, 82, 84, 85, 86, 43},
+       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20,  44,  45,  46,  47,  48, 60, 61,
+        62, 63, 64, 65, 49, 50, 51, 21, 22, 23,  24,  25,  26,  27,  28, 29, 30,
+        72, 73, 74, 75, 66, 67, 68, 69, 70, 87,  88,  89,  90,  71,  76, 77, 78,
+        31, 32, 33, 34, 52, 53, 54, 55, 56, 60,  61,  62,  63,  64,  65, 57, 58,
+        59, 35, 36, 37, 38, 39, 40, 41, 42, 109, 112, 114, 115, 116, 43},
+       {11,  12, 13, 14, 15, 16,  17,  18,  19,  20,  44, 45, 46, 47,
+        48,  60, 61, 62, 63, 64,  65,  49,  50,  51,  21, 22, 23, 24,
+        25,  26, 27, 28, 29, 30,  102, 103, 104, 105, 96, 97, 98, 99,
+        100, 87, 88, 89, 90, 101, 106, 107, 108, 31,  32, 33, 34, 52,
+        53,  54, 55, 56, 60, 61,  62,  63,  64,  65,  57, 58, 59, 35,
+        36,  37, 38, 39, 40, 41,  42,  79,  82,  84,  85, 86, 43},
+       {11,  12, 13, 14, 15, 16,  17,  18,  19,  20,  44,  45,  46, 47,
+        48,  60, 61, 62, 63, 64,  65,  49,  50,  51,  21,  22,  23, 24,
+        25,  26, 27, 28, 29, 30,  102, 103, 104, 105, 96,  97,  98, 99,
+        100, 87, 88, 89, 90, 101, 106, 107, 108, 31,  32,  33,  34, 52,
+        53,  54, 55, 56, 60, 61,  62,  63,  64,  65,  57,  58,  59, 35,
+        36,  37, 38, 39, 40, 41,  42,  109, 112, 114, 115, 116, 43}});
 }
 
 TEST_F(PathTracingTest, Lambda_Inter_12) {
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "PathSensitivityManager");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  // "PathSensitivityManager");
   auto PathsVec = doLambdaAnalysis("inter_12_cpp.ll");
   comparePaths(
       PathsVec,
