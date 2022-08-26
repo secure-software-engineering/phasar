@@ -13,6 +13,7 @@
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/None.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
@@ -78,6 +79,7 @@ concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
     GraphTrait::roots(cgraph)
     } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
   { GraphTrait::pop(graph, vtx) } -> std::same_as<bool>;
+  { GraphTrait::roots_size(cgraph) } -> std::convertible_to<size_t>;
   {
     GraphTrait::target(edge)
     } -> std::convertible_to<typename GraphTrait::vertex_t>;
@@ -110,12 +112,32 @@ struct is_reservable_graph_trait<
     std::void_t<decltype(GraphTrait::reserve(
         std::declval<typename GraphTrait::graph_type &>(), size_t()))>>
     : std::true_type {};
+
+template <typename GraphTrait, typename = void>
+// NOLINTNEXTLINE(readability-identifier-naming)
+struct is_removable_graph_trait : std::false_type {};
+template <typename GraphTrait>
+struct is_removable_graph_trait<
+    GraphTrait,
+    std::void_t<decltype(GraphTrait::removeEdges(
+                    std::declval<typename GraphTrait::graph_type &>(),
+                    std::declval<typename GraphTrait::vertex_t>(),
+                    llvm::ArrayRef<typename GraphTrait::vertex_t>())),
+                decltype(GraphTrait::removeRoots(
+                    std::declval<typename GraphTrait::graph_type &>(),
+                    llvm::ArrayRef<typename GraphTrait::vertex_t>()))>>
+    : std::true_type {};
 } // namespace detail
 
 template <typename GraphTrait>
 // NOLINTNEXTLINE(readability-identifier-naming)
 static constexpr bool is_reservable_graph_trait_v =
     detail::is_reservable_graph_trait<GraphTrait>::value;
+
+template <typename GraphTrait>
+// NOLINTNEXTLINE(readability-identifier-naming)
+static constexpr bool is_removable_graph_trait_v =
+    detail::is_removable_graph_trait<GraphTrait>::value;
 #endif
 
 template <typename GraphTy>

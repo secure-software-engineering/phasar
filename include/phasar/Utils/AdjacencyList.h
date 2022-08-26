@@ -13,6 +13,7 @@
 #include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/RepeatIterator.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/None.h"
@@ -43,6 +44,9 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
 
   static inline constexpr auto Invalid = std::numeric_limits<vertex_t>::max();
 
+  /// Adds a new node to the graph G with node-tag Val
+  ///
+  /// \returns The vertex-descriptor for the newly created node
   template <typename TT,
             typename = std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>>>
   static vertex_t addNode(graph_type &G, TT &&Val) {
@@ -54,6 +58,9 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return Ret;
   }
 
+  /// Adds a new node to the graph G without node-tag
+  ///
+  /// \returns The vertex-descriptor for the newly created node
   template <typename TT = value_type,
             typename = std::enable_if_t<std::is_same_v<TT, llvm::NoneType>>>
   static vertex_t addNode(graph_type &G, llvm::NoneType /*Val*/ = llvm::None) {
@@ -62,6 +69,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return Ret;
   }
 
+  /// Makes the node Vtx as root in the graph G. A node should not be registered
+  /// as root multiple times
   static void addRoot(graph_type &G, vertex_t Vtx) {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(Vtx < G.Nodes.size());
@@ -70,6 +79,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     G.Roots.push_back(Vtx);
   }
 
+  /// Gets a range of all root nodes of graph G
   static llvm::ArrayRef<vertex_t> roots(const graph_type &G) noexcept {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -77,6 +87,10 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return G.Roots;
   }
 
+  /// Adds a new edge from node From to node To in graph G. From and T should be
+  /// nodes inside G. Multi-edges are supported, i.e. edges are not deduplicated
+  /// automatically; to manualy deduplicate the edges of one source-node, call
+  /// dedupOutEdges()
   static void addEdge(graph_type &G, vertex_t From, edge_t To) {
     assert(From < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
@@ -85,6 +99,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     G.Adj[From].push_back(std::move(To));
   }
 
+  /// Gets a range of all edges outgoing from node Vtx in graph G
   static llvm::ArrayRef<edge_t> outEdges(const graph_type &G,
                                          vertex_t Vtx) noexcept {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
@@ -94,6 +109,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return G.Adj[Vtx];
   }
 
+  /// Gets the number of edges outgoing from node Vtx in graph G
   static size_t outDegree(const graph_type &G, vertex_t Vtx) noexcept {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(Vtx < G.Nodes.size());
@@ -102,6 +118,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return G.Adj[Vtx].size();
   }
 
+  /// Deduplicates the edges outgoing from node Vtx in graph G. Deduplication is
+  /// based on operator< and operator== of the edge_t type
   static void dedupOutEdges(graph_type &G, vertex_t Vtx) noexcept {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(Vtx < G.Nodes.size());
@@ -113,12 +131,14 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
                    OutEdges.end());
   }
 
+  /// Gets a const range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>>>
   static llvm::ArrayRef<value_type> nodes(const graph_type &G) noexcept {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
+  /// Gets a mutable range of all nodes in graph G
   template <typename TT = value_type>
   static std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>,
                           llvm::MutableArrayRef<value_type>>
@@ -126,6 +146,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
+  /// Gets a range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<std::is_same_v<TT, llvm::NoneType>>>
   static std::enable_if_t<std::is_same_v<TT, llvm::NoneType>,
@@ -134,13 +155,15 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return repeat(llvm::None, G.Adj.size());
   }
 
+  /// Gets a range of vertex-descriptors for all nodes in graph G
   static auto vertices(const graph_type &G) noexcept {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
-    return psr::iota(0, G.Adj.size());
+    return psr::iota(size_t(0), G.Adj.size());
   }
 
+  /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>>>
   static const value_type &node(const graph_type &G, vertex_t Vtx) noexcept {
@@ -148,6 +171,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes[Vtx];
   }
+  /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>>>
   static value_type &node(graph_type &G, vertex_t Vtx) noexcept {
@@ -156,6 +180,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return G.Nodes[Vtx];
   }
 
+  /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
   template <typename TT = value_type,
             typename = std::enable_if_t<std::is_same_v<TT, llvm::NoneType>>>
   static llvm::NoneType node([[maybe_unused]] const graph_type &G,
@@ -164,6 +189,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return llvm::None;
   }
 
+  /// Gets the number of nodes in graph G
   static size_t size(const graph_type &G) noexcept {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -171,6 +197,15 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return G.Adj.size();
   }
 
+  /// Gets the number of nodes in graph G that are marked as root
+  static size_t roots_size(const graph_type &G) noexcept {
+    if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
+      assert(G.Adj.size() == G.Nodes.size());
+    }
+    return G.Roots.size();
+  }
+
+  /// Pre-allocates space to hold up to Capacity nodes
   static void reserve(graph_type &G, size_t Capacity) {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -180,6 +215,10 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     G.Adj.reserve(Capacity);
   }
 
+  /// Tries to remove the last inserted node Vtx fro graph G. Fails, if there
+  /// was another not-popped node inserted in between.
+  ///
+  /// \returns True, iff the removal was successful
   static bool pop(graph_type &G, vertex_t Vtx) {
     if (Vtx == G.Adj.size() - 1) {
       G.Adj.pop_back();
@@ -191,20 +230,41 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return false;
   }
 
+  /// Gets the vertex-descriptor of the target-node of the given Edge
   template <typename E = edge_t>
   static std::enable_if_t<std::is_same_v<E, vertex_t>, vertex_t>
   target(edge_t Edge) noexcept {
     return Edge;
   }
 
+  /// Copies the given edge, but replaces the target node by Tar; i.e. the
+  /// weight of the returned edge and the passed edge is same, but the target
+  /// nodes may differ.
   template <typename E = edge_t>
   static std::enable_if_t<std::is_same_v<E, vertex_t>, edge_t>
   withEdgeTarget(edge_t /*edge*/, vertex_t Tar) noexcept {
     return Tar;
   }
 
+  /// Gets the weight associated with the given edge
   static llvm::NoneType weight(edge_t /*unused*/) noexcept {
     return llvm::None;
+  }
+
+  /// Removes all outgoing edges from Vtx in graph G that match the target
+  /// vertices of the DestNodes range. This will sort the
+  template <typename DestNodesRange>
+  static void removeEdges(graph_type &G, vertex_t Vtx,
+                          const DestNodesRange &DestNodes,
+                          bool IsAlreadySorted = false) {
+    assert(Vtx < G.Adj.size());
+    if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
+      assert(G.Adj.size() == G.Nodes.size());
+    }
+    if (!IsAlreadySorted) {
+      std::sort(G.Adj[Vtx].begin(), G.Adj[Vtx].end());
+    }
+    G.Adj[Vtx].erase(remove_by_index(G.Adj[Vtx], DestNodes), G.Adj[Vtx].end());
   }
 
 #if __cplusplus >= 202002L
