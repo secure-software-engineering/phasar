@@ -165,6 +165,19 @@ std::string llvmIRToString(const llvm::Value *V) {
   return IRBuffer;
 }
 
+std::string llvmTypeToString(const llvm::Type *T) {
+  // WARNING: Expensive function, cause is the T->print(RSO)
+  //         (20ms on a medium size code (phasar without debug)
+  //          80ms on a huge size code (clang without debug),
+  //          can be multiplied by times 3 to 5 if passes are enabled)
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  T->print(RSO);
+  RSO.flush();
+  boost::trim_left(IRBuffer);
+  return IRBuffer;
+}
+
 std::string llvmIRToStableString(const llvm::Value *V) {
   if (!V) {
     return "<null>";
