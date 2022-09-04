@@ -36,6 +36,7 @@ template <typename EdgeTy> struct AdjacencyList<llvm::NoneType, EdgeTy> {
   llvm::SmallVector<unsigned, 1> Roots{};
 };
 
+/// A simple graph implementation based on an adjacency list
 template <typename T, typename EdgeTy>
 struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   using graph_type = AdjacencyList<T, EdgeTy>;
@@ -45,6 +46,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   using edge_iterator = typename llvm::ArrayRef<edge_t>::const_iterator;
   using roots_iterator = typename llvm::ArrayRef<vertex_t>::const_iterator;
 
+  /// A vertex that is not inserted into any graph. Can be used to communicate
+  /// failure of certain operations
   static inline constexpr auto Invalid = std::numeric_limits<vertex_t>::max();
 
   /// Adds a new node to the graph G with node-tag Val
@@ -75,8 +78,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   /// Makes the node Vtx as root in the graph G. A node should not be registered
   /// as root multiple times
   static void addRoot(graph_type &G, vertex_t Vtx) {
+    assert(Vtx < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
-      assert(Vtx < G.Nodes.size());
       assert(G.Adj.size() == G.Nodes.size());
     }
     G.Roots.push_back(Vtx);
@@ -90,10 +93,10 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return G.Roots;
   }
 
-  /// Adds a new edge from node From to node To in graph G. From and T should be
-  /// nodes inside G. Multi-edges are supported, i.e. edges are not deduplicated
-  /// automatically; to manualy deduplicate the edges of one source-node, call
-  /// dedupOutEdges()
+  /// Adds a new edge from node From to node To in graph G. From and To should
+  /// be nodes inside G. Multi-edges are supported, i.e. edges are not
+  /// deduplicated automatically; to manually deduplicate the edges of one
+  /// source-node, call dedupOutEdges()
   static void addEdge(graph_type &G, vertex_t From, edge_t To) {
     assert(From < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
@@ -105,8 +108,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   /// Gets a range of all edges outgoing from node Vtx in graph G
   static llvm::ArrayRef<edge_t> outEdges(const graph_type &G,
                                          vertex_t Vtx) noexcept {
+    assert(Vtx < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
-      assert(Vtx < G.Nodes.size());
       assert(G.Adj.size() == G.Nodes.size());
     }
     return G.Adj[Vtx];
@@ -114,8 +117,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
 
   /// Gets the number of edges outgoing from node Vtx in graph G
   static size_t outDegree(const graph_type &G, vertex_t Vtx) noexcept {
+    assert(Vtx < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
-      assert(Vtx < G.Nodes.size());
       assert(G.Adj.size() == G.Nodes.size());
     }
     return G.Adj[Vtx].size();
@@ -124,8 +127,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   /// Deduplicates the edges outgoing from node Vtx in graph G. Deduplication is
   /// based on operator< and operator== of the edge_t type
   static void dedupOutEdges(graph_type &G, vertex_t Vtx) noexcept {
+    assert(Vtx < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
-      assert(Vtx < G.Nodes.size());
       assert(G.Adj.size() == G.Nodes.size());
     }
     auto &OutEdges = G.Adj[Vtx];
@@ -142,19 +145,16 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return G.Nodes;
   }
   /// Gets a mutable range of all nodes in graph G
-  template <typename TT = value_type>
-  static std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>,
-                          llvm::MutableArrayRef<value_type>>
-  nodes(graph_type &G) noexcept {
+  template <typename TT = value_type,
+            typename = std::enable_if_t<!std::is_same_v<TT, llvm::NoneType>>>
+  static llvm::MutableArrayRef<value_type> nodes(graph_type &G) noexcept {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
   /// Gets a range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<std::is_same_v<TT, llvm::NoneType>>>
-  static std::enable_if_t<std::is_same_v<TT, llvm::NoneType>,
-                          RepeatRangeType<value_type>>
-  nodes(const graph_type &G) noexcept {
+  static RepeatRangeType<value_type> nodes(const graph_type &G) noexcept {
     return repeat(llvm::None, G.Adj.size());
   }
 
@@ -201,7 +201,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   }
 
   /// Gets the number of nodes in graph G that are marked as root
-  static size_t roots_size(const graph_type &G) noexcept {
+  static size_t roots_size(const graph_type &G) noexcept { // NOLINT
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
@@ -241,7 +241,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
   }
 
   /// Copies the given edge, but replaces the target node by Tar; i.e. the
-  /// weight of the returned edge and the passed edge is same, but the target
+  /// weight of the returned edge and the parameter edge is same, but the target
   /// nodes may differ.
   template <typename E = edge_t>
   static std::enable_if_t<std::is_same_v<E, vertex_t>, edge_t>
@@ -254,9 +254,14 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return llvm::None;
   }
 
+  /// Removes the edge denoted by It outgoing from source-vertex Vtx from the
+  /// graph G. This function is not required by the is_graph_trait concept.
+  ///
+  /// \returns An edge_iterator directly following It that should be used to
+  /// continue iteration instead of std::next(It)
   static edge_iterator removeEdge(graph_type &G, vertex_t Vtx,
                                   edge_iterator It) noexcept {
-    assert(Vtx < G.Nodes.size());
+    assert(Vtx < G.Adj.size());
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
@@ -268,6 +273,11 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return It;
   }
 
+  /// Removes the root denoted by It from the graph G. This function is not
+  /// required by the is_graph_trait concept.
+  ///
+  /// \returns A roots_iterator directly following It that should be used to
+  /// continue iteration instead of std::next(It)
   static roots_iterator removeRoot(graph_type &G, roots_iterator It) noexcept {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());

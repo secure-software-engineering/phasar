@@ -21,6 +21,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <concepts>
+#include <functional>
 #include <string>
 #include <type_traits>
 
@@ -28,9 +29,8 @@ namespace psr {
 
 /// We aim to get rid of boost, so introduce a new GraphTraits class to replace
 /// it.
-/// This GraphTraits type should be specialized for each typy that should
-/// implement a "graph". All the functionality should be reflected by the
-/// GraphTraits class.
+/// This GraphTraits type should be specialized for each type that implements a
+/// "graph". All the functionality should be reflected by the GraphTraits class.
 /// Once moving to C++20, we have nice type-checking using concepts
 template <typename Graph> struct GraphTraits;
 
@@ -69,8 +69,7 @@ concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
     } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
   {
     GraphTrait::vertices(cgraph)
-        ->psr::is_iterable_over_v<typename GraphTrait::value_type>;
-  }
+    } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
   {
     GraphTrait::node(cgraph, vtx)
     } -> std::convertible_to<typename GraphTrait::value_type>;
@@ -170,8 +169,8 @@ std::decay_t<GraphTy> reverseGraph(GraphTy &&G)
   return Ret;
 }
 
-template <typename N> struct DefaultNodeTransform {
-  std::string operator()(const N &Nod) const {
+struct DefaultNodeTransform {
+  template <typename N> std::string operator()(const N &Nod) const {
     std::string Buf;
     llvm::raw_string_ostream ROS(Buf);
     ROS << Nod;
@@ -180,8 +179,7 @@ template <typename N> struct DefaultNodeTransform {
   }
 };
 
-template <typename GraphTy, typename NodeTransform = DefaultNodeTransform<
-                                typename GraphTraits<GraphTy>::value_type>>
+template <typename GraphTy, typename NodeTransform = DefaultNodeTransform>
 void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
                 llvm::StringRef Name = "", NodeTransform NodeToString = {})
 #if __cplusplus >= 202002L
@@ -200,7 +198,7 @@ void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
     if constexpr (!std::is_same_v<llvm::NoneType,
                                   typename traits_t::value_type>) {
       OS << "[label=\"";
-      OS.write_escaped(NodeToString(traits_t::node(G, I)));
+      OS.write_escaped(std::invoke(NodeToString, traits_t::node(G, I)));
       OS << "\"]";
     }
     OS << ";\n";
