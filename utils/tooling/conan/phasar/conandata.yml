@@ -1,0 +1,16 @@
+# kept as example
+sources:
+  "2021.06.17":
+    url: https://codeload.github.com/secure-software-engineering/phasar/zip/c8b9e9fe794a530524445a37644ea93c98ef0cd3
+    sha256: 9e776294ac3237fb8e393c90acc092c8b4adcec05220931a6d5cf376f0eadc0c
+
+patches:
+  "2021.06.17":
+    - base_path: "source"
+      patch_file: "patches/2021.06.17/disableTools.patch"
+    - base_path: "source"
+      patch_file: "patches/2021.06.17/enableSystemDependencies.patch"
+    - base_path: "source"
+      patch_file: "patches/2021.06.17/conanLLVM.patch"
+    - base_path: "source"
+      patch_file: "patches/2021.06.17/disablePhasarClang.patch"

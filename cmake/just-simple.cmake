@@ -47,6 +47,8 @@ if (NOT CONAN_EXPORTED) # only if conan not already set up
         BASIC_SETUP
         CONANFILE "${CONANFILE}"
         BUILD missing)
+else()
+    conan_cmake_run(BASIC_SETUP)
 endif()
 
 # debugging CMAKE https://cliutils.gitlab.io/modern-cmake/chapters/features/debug.html
