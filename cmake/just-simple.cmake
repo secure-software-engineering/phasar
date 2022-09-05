@@ -33,19 +33,21 @@ endif()
 
 # setup conan
 # create basic conanfile.txt if not present
-if (NOT CONANFILE)
-    set(CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.txt")
+if (NOT CONAN_EXPORTED) # only if conan not already set up
+    if (NOT CONANFILE)
+        set(CONANFILE "${PROJECT_SOURCE_DIR}/conanfile.txt")
+    endif()
+    if (NOT EXISTS "${CONANFILE}")
+        file(WRITE "${CONANFILE}" "# doc: https://docs.conan.io/en/latest/reference/conanfile_txt.html\n\n")
+        file(APPEND "${CONANFILE}" "[requires]\ngtest/1.12.1\ndoxygen/1.9.4\n#package_name/version@user/channel (default @_/_)\n\n")
+        file(APPEND "${CONANFILE}" "[generators]\ncmake\n\n")
+        file(APPEND "${CONANFILE}" "[options]\n#package_name:shared=False\n\n")
+    endif()
+    conan_cmake_run(
+        BASIC_SETUP
+        CONANFILE "${CONANFILE}"
+        BUILD missing)
 endif()
-if (NOT EXISTS "${CONANFILE}")
-    file(WRITE "${CONANFILE}" "# doc: https://docs.conan.io/en/latest/reference/conanfile_txt.html\n\n")
-    file(APPEND "${CONANFILE}" "[requires]\ngtest/1.12.1\ndoxygen/1.9.4\n#package_name/version@user/channel (default @_/_)\n\n")
-    file(APPEND "${CONANFILE}" "[generators]\ncmake\n\n")
-    file(APPEND "${CONANFILE}" "[options]\n#package_name:shared=False\n\n")
-endif()
-conan_cmake_run(
-    BASIC_SETUP
-    CONANFILE "${CONANFILE}"
-    BUILD missing)
 
 # debugging CMAKE https://cliutils.gitlab.io/modern-cmake/chapters/features/debug.html
 #include(CMakePrintHelpers)
@@ -157,8 +159,8 @@ endfunction()
 
 function(just_add_library)
     # Argument parsing
-    set(options SKIP_SUBDIRECTORIES)
-    set(oneValueArgs SUFFIX SKIP_DOXYGEN)
+    set(options SKIP_SUBDIRECTORIES SKIP_DOXYGEN)
+    set(oneValueArgs SUFFIX)
     set(multiValueArgs INCLUDE EXCLUDE LINK DEPENDS)
     cmake_parse_arguments(PARSE_ARGV "0" "just_add" "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
