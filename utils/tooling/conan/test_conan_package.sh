@@ -35,7 +35,7 @@ options=("$@")
     echo "${cmd[@]}"
     "${cmd[@]}"
 
-    cmd=(conan build ./"${name}"/ --source-folder="$test_dir/source" --install-folder="$test_dir/build")
+    cmd=(conan build ./"${name}"/ --source-folder="$test_dir/source" --build-folder="$test_dir/build")
     echo "${cmd[@]}"
     "${cmd[@]}"
 
