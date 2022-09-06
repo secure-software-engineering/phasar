@@ -62,6 +62,11 @@ class PhasarConan(ConanFile):
     def configure(self):
         self.options['llvm'].with_project_clang = True
         self.options['llvm'].with_project_openmp = True
+
+        # actually not needed because unittests are off
+        # it currently is just simplier compared to passing -o llvm:keep_binaries_regex="^(clang|clang\+\+|opt)$" all the time. 
+        # Other solution would be to modify the llvm recipe package_id:
+        # if keep_binaries_regex="^$" append compatible_pkg "ANY" but you can only put there concrete values, no wildcards, so to specific for conan-center
         self.options['llvm'].keep_binaries_regex = "^(clang|clang\+\+|opt)$"
 
         if self.options.shared:
