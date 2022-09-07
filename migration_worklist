@@ -4,6 +4,8 @@ githooks // not migrated
 test // not sure what to do with this
 utils // need to be cleaned
 
+CMakeLists.txt.old // keep because some snippets are still needed
+
 // probably can be removed, conan + cmake + clang is enough
 bootstrap.sh 
 Brewfile
