@@ -217,7 +217,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
 
   // TODO clean-up code
   static const std::set<llvm::StringRef> GetOptFamilyNames{
-      "getopt", "getopt_long", "getopt_long_only"};
+      "getopt", "getopt_long", "getopt_long_only", "apr_getopt"};
   if (Callees.size() == 1) {
     const auto *Callee = *Callees.begin();
     if (GetOptFamilyNames.count(Callee->getName())) {
@@ -234,6 +234,27 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
         std::set<d_t> computeTargets(d_t Source) override {
           if (Actuals.count(Source)) {
             return {Source, CallSite};
+          }
+          return {Source};
+        }
+      };
+      return std::make_shared<TAFF>(CS);
+    }
+    if (Callee->getName() == "apr_getopt_init") {
+      struct TAFF : FlowFunction<d_t> {
+        n_t CallSite;
+        std::set<d_t> Actuals;
+
+        TAFF(const llvm::CallBase *CallSite) : CallSite(CallSite) {
+          for (const auto &Arg : CallSite->args()) {
+            Actuals.insert(Arg);
+          }
+        }
+
+        std::set<d_t> computeTargets(d_t Source) override {
+          if (LLVMZeroValue::isLLVMZeroValue(Source)) {
+            llvm::outs() << "Will generate: " << CallSite->getOperand(0) << '\n';
+            return {Source, CallSite->getOperand(0)};
           }
           return {Source};
         }
