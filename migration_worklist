@@ -1,0 +1,17 @@
+
+examples // untested
+githooks // not migrated
+test // not sure what to do with this
+utils // need to be cleaned
+
+// probably can be removed, conan + cmake + clang is enough
+bootstrap.sh 
+Brewfile
+
+// package / deploy
+lib/**/*-config.cmake // not migrated
+Config.cmake.in
+
+.dockerignore
+docker-compose*
+Dockerfile

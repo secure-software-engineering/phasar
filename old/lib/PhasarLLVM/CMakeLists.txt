@@ -1,8 +1,0 @@
-add_subdirectory(AnalysisStrategy)
-add_subdirectory(ControlFlow)
-add_subdirectory(DataFlowSolver)
-add_subdirectory(Passes)
-add_subdirectory(Pointer)
-add_subdirectory(TaintConfig)
-add_subdirectory(TypeHierarchy)
-add_subdirectory(Utils)

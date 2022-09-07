@@ -1,7 +1,0 @@
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
-
-#define PHASAR_SRC_DIR "@CMAKE_SOURCE_DIR@"
-#define PHASAR_BUILD_DIR "@CMAKE_BINARY_DIR@"
-
-#endif /* __CONFIG_H__  */
