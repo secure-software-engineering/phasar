@@ -32,20 +32,20 @@
 
 namespace psr {
 
-std::string readTextFile(const llvm::Twine &Path) {
-  auto Buffer = readFile(Path);
-  return Buffer->getBuffer().str();
-}
-
-std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
-  auto Ret = llvm::MemoryBuffer::getFile(Path);
-
-  if (!Ret) {
-    throw std::system_error(Ret.getError());
-  }
-
-  return std::move(Ret.get());
-}
+// std::string readTextFile(const llvm::Twine &Path) {
+//   auto Buffer = readFile(Path);
+//   return Buffer->getBuffer().str();
+// }
+// 
+// std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
+//   auto Ret = llvm::MemoryBuffer::getFile(Path);
+// 
+//   if (!Ret) {
+//     throw std::system_error(Ret.getError());
+//   }
+// 
+//   return std::move(Ret.get());
+// }
 
 nlohmann::json readJsonFile(const llvm::Twine &Path) {
   auto Buf = readFile(Path);

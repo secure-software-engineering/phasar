@@ -70,8 +70,17 @@ private:
 
   void preprocessAllModules();
 
-  [[nodiscard]] llvm::Function *
-  internalGetFunction(llvm::StringRef FunctionName) const;
+//   [[nodiscard]] llvm::Function *
+// internalGetFunction(llvm::StringRef FunctionName) const;
+  llvm::Function *internalGetFunction(llvm::StringRef FunctionName) const {
+    for (const auto &[File, Module] : Modules) {
+      auto *F = Module->getFunction(FunctionName);
+      if (F) {
+        return F;
+      }
+    }
+    return nullptr;
+  }
   [[nodiscard]] llvm::Function *
   internalGetFunctionDefinition(llvm::StringRef FunctionName) const;
 
@@ -125,9 +134,16 @@ public:
   [[nodiscard]] llvm::Function *
   getFunctionDefinition(llvm::StringRef FunctionName);
 
-  [[nodiscard]] const llvm::Function *
-  getFunction(llvm::StringRef FunctionName) const;
-  [[nodiscard]] llvm::Function *getFunction(llvm::StringRef FunctionName);
+//  [[nodiscard]] const llvm::Function *
+//  getFunction(llvm::StringRef FunctionName) const;
+//  [[nodiscard]] llvm::Function *getFunction(llvm::StringRef FunctionName);
+  inline const llvm::Function *getFunction(llvm::StringRef FunctionName) const {
+    return internalGetFunction(FunctionName);
+  }
+
+  inline llvm::Function *getFunction(llvm::StringRef FunctionName) {
+    return internalGetFunction(FunctionName);
+  }
 
   [[nodiscard]] const llvm::GlobalVariable *
   getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
@@ -173,7 +189,14 @@ public:
 
   [[nodiscard]] std::size_t getNumGlobals() const;
 
-  [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
+  // [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
+   llvm::Instruction *getInstruction(std::size_t Id) const {
+    if (auto It = IDInstructionMapping.find(Id);
+        It != IDInstructionMapping.end()) {
+      return It->second;
+    }
+    return nullptr;
+  }
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
 

@@ -241,13 +241,13 @@ std::size_t ProjectIRDB::getNumGlobals() const {
   return Ret;
 }
 
-llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) const {
-  if (auto It = IDInstructionMapping.find(Id);
-      It != IDInstructionMapping.end()) {
-    return It->second;
-  }
-  return nullptr;
-}
+// llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) const {
+//  if (auto It = IDInstructionMapping.find(Id);
+//      It != IDInstructionMapping.end()) {
+//    return It->second;
+//  }
+//  return nullptr;
+//}
 
 std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
   std::size_t Id = 0;
@@ -331,25 +331,25 @@ ProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) {
   return internalGetFunctionDefinition(FunctionName);
 }
 
-llvm::Function *
-ProjectIRDB::internalGetFunction(llvm::StringRef FunctionName) const {
-  for (const auto &[File, Module] : Modules) {
-    auto *F = Module->getFunction(FunctionName);
-    if (F) {
-      return F;
-    }
-  }
-  return nullptr;
-}
+// llvm::Function *
+// ProjectIRDB::internalGetFunction(llvm::StringRef FunctionName) const {
+//   for (const auto &[File, Module] : Modules) {
+//     auto *F = Module->getFunction(FunctionName);
+//     if (F) {
+//       return F;
+//     }
+//   }
+//   return nullptr;
+// }
 
-const llvm::Function *
-ProjectIRDB::getFunction(llvm::StringRef FunctionName) const {
-  return internalGetFunction(FunctionName);
-}
-
-llvm::Function *ProjectIRDB::getFunction(llvm::StringRef FunctionName) {
-  return internalGetFunction(FunctionName);
-}
+// const llvm::Function *
+// ProjectIRDB::getFunction(llvm::StringRef FunctionName) const {
+//   return internalGetFunction(FunctionName);
+// }
+// 
+// llvm::Function *ProjectIRDB::getFunction(llvm::StringRef FunctionName) {
+//   return internalGetFunction(FunctionName);
+// }
 
 const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(
     const std::string &GlobalVariableName) const {

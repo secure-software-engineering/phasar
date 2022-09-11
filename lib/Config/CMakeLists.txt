@@ -1,5 +1,9 @@
 file(GLOB_RECURSE CONFIG_SRC *.h *.cpp)
 
+# set(PHASAR_LINK_LIBS
+#   phasar_utils
+# )
+
 set(LLVM_LINK_COMPONENTS
   Support
 )

@@ -27,10 +27,20 @@
 
 namespace psr {
 
-std::string readTextFile(const llvm::Twine &Path);
+inline std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
+  auto Ret = llvm::MemoryBuffer::getFile(Path);
 
-std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path);
+  if (!Ret) {
+    throw std::system_error(Ret.getError());
+  }
 
+  return std::move(Ret.get());
+}
+
+inline std::string readTextFile(const llvm::Twine &Path) {
+  auto Buffer = readFile(Path);
+  return Buffer->getBuffer().str();
+}
 nlohmann::json readJsonFile(const llvm::Twine &Path);
 
 void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content);

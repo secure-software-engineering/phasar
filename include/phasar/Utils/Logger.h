@@ -91,6 +91,9 @@ private:
       const std::variant<StdStream, std::string> &StreamVariant);
 };
 
+#define IF_LOG_ENABLED(computation)                                            \
+  IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
+
 #ifdef DYNAMIC_LOG
 
 #define PHASAR_LOG(message) PHASAR_LOG_LEVEL(DEBUG, message)
@@ -138,9 +141,6 @@ private:
 
 // #define LOG_IF_ENABLE(computation)                                          \
 //   IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
-
-#define IF_LOG_ENABLED(computation)                                            \
-  IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
 
 #define IS_LOG_ENABLED Logger::isLoggingEnabled()
 

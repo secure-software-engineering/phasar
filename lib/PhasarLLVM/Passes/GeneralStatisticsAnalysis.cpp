@@ -177,7 +177,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         llvm::raw_string_ostream Rso(TypeStr);
         Type->print(Rso);
         PHASAR_LOG_LEVEL(INFO, "  " << Rso.str());
-      })
+      });
   // now we are done and can return the results
   return Stats;
 }
