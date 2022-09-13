@@ -41,4 +41,5 @@ else()
 endif()
 
 set(LLVM_LINK_COMPONENTS
+  Core
 )

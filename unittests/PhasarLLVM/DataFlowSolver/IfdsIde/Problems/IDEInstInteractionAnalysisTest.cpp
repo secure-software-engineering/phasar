@@ -119,14 +119,25 @@ protected:
       const auto *Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
       const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultMap = IIASolver.resultsAt(Line);
+      bool FactFound = false;
       for (auto &[Fact, Value] : ResultMap) {
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
           PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
           EXPECT_EQ(std::get<3>(Truth), Value);
+          FactFound = true;
         }
       }
+      if (!FactFound) {
+        PHASAR_LOG_LEVEL(DFADEBUG, "Variable '"
+                                       << std::get<2>(Truth) << "' missing at '"
+                                       << llvmIRToShortString(Line) << "'.");
+        llvm::outs()<< "Variable '"
+                                       << std::get<2>(Truth) << "' missing at '"
+                                       << llvmIRToShortString(Line) << "'.";
+      }
+      EXPECT_TRUE(FactFound);
     }
   }
 
@@ -282,7 +293,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "k", {"10", "11", "12", "16", "19", "20", "25", "27"}));
-  doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth, true);
 })
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
@@ -502,7 +513,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 9, "j", {"0", "5", "6"}));
-  doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, true);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
