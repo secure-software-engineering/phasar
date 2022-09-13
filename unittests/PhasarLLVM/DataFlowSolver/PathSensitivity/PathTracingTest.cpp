@@ -1,21 +1,3 @@
-#include <cassert>
-#include <fstream>
-#include <memory>
-#include <new>
-#include <string>
-
-#include "gtest/gtest.h"
-#include <system_error>
-
-#include "TestConfig.h"
-
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/raw_ostream.h"
-
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
@@ -34,6 +16,24 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "gtest/gtest.h"
+
+#include "TestConfig.h"
+
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <cassert>
+#include <fstream>
+#include <memory>
+#include <new>
+#include <string>
+#include <system_error>
 
 // ============== TEST FIXTURE ============== //
 class PathTracingTest : public ::testing::Test {

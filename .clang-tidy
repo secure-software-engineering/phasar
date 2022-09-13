@@ -31,7 +31,7 @@ Checks: '-*,
            -modernize-use-trailing-return-type,
            -modernize-pass-by-value,
          performance-*,
-         clang-analyzer-*,
+         clang-analyzer-*
         '
 
 FormatStyle:  LLVM

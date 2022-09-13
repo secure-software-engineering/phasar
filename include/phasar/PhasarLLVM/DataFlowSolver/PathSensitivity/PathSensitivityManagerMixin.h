@@ -10,11 +10,17 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGERMIXIN_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGERMIXIN_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/ExplodedSuperGraph.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerBase.h"
 #include "phasar/Utils/GraphTraits.h"
+
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SetVector.h"
+#include "llvm/ADT/SmallVector.h"
+
 #include <type_traits>
 
 namespace psr {
@@ -40,21 +46,26 @@ protected:
   }
 
 public:
-  template <typename ConfigTy>
+  template <typename FactsRangeTy, typename ConfigTy>
   [[nodiscard]] GraphType
-  pathsDagTo(n_t Inst, d_t Fact,
-             const PathSensitivityConfigBase<ConfigTy> &Config) const {
-    auto Nod = ESG.getNodeOrNull(Inst, std::move(Fact));
-
-    if (!Nod) {
-      llvm::report_fatal_error(
-          "Invalid Instruction-FlowFact pair. Only use those pairs that are "
-          "part of the IDE analysis results!");
-    }
-
+  pathsDagToAll(n_t Inst, FactsRangeTy FactsRange,
+                const PathSensitivityConfigBase<ConfigTy> &Config) const {
     graph_type Dag;
-    auto Rt = pathsToImpl(Inst, Nod, Dag);
-    graph_traits_t::addRoot(Dag, Rt);
+
+    for (const d_t &Fact : FactsRange) {
+      auto Nod = ESG.getNodeOrNull(Inst, std::move(Fact));
+
+      if (!Nod) {
+        llvm::report_fatal_error(
+            "Invalid Instruction-FlowFact pair. Only use those pairs that are "
+            "part of the IDE analysis results!");
+      }
+
+      auto Rt = pathsToImpl(Inst, Nod, Dag);
+      if (Rt != GraphTraits<GraphType>::Invalid) {
+        graph_traits_t::addRoot(Dag, Rt);
+      }
+    }
 
 #ifndef NDEBUG
     if (!static_cast<const Derived *>(this)->assertIsDAG(Dag)) {
@@ -75,6 +86,23 @@ public:
     }
 
     return Dag;
+  }
+
+  template <typename ConfigTy, typename L>
+  [[nodiscard]] GraphType
+  pathsDagTo(n_t Inst, const SolverResults<n_t, d_t, L> &SR,
+             const PathSensitivityConfigBase<ConfigTy> &Config) const {
+    auto Res = SR.resultsAt(Inst);
+    auto FactsRange = llvm::make_first_range(Res);
+    return pathsDagToAll(std::move(Inst), FactsRange, Config);
+  }
+
+  template <typename ConfigTy>
+  [[nodiscard]] GraphType
+  pathsDagTo(n_t Inst, d_t Fact,
+             const PathSensitivityConfigBase<ConfigTy> &Config) const {
+
+    return pathsDagToAll(std::move(Inst), llvm::ArrayRef(&Fact, 1), Config);
   }
 
 private:

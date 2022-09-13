@@ -15,6 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerMixin.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitivityConfig.h"
 #include "phasar/Utils/GraphTraits.h"
+#include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
@@ -27,6 +28,7 @@
 #include "z3++.h"
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <system_error>
 #include <type_traits>
@@ -106,7 +108,14 @@ public:
 #ifndef NDEBUG
     {
       std::error_code EC;
-      llvm::raw_fd_stream ROS("dag-" + psr::getMetaDataID(Inst) + ".dot", EC);
+      llvm::raw_fd_stream ROS(
+          "dag-" +
+              std::filesystem::path(psr::getFilePathFromIR(Inst))
+                  .filename()
+                  .string() +
+              "-" + psr::getMetaDataID(Inst) + ".dot",
+          EC);
+      assert(!EC);
       printGraph(Dag, ROS, "DAG", [](llvm::ArrayRef<n_t> PartialPath) {
         std::string Buf;
         llvm::raw_string_ostream ROS(Buf);
@@ -137,16 +146,6 @@ public:
                            "The query position is unreachable");
       return FlowPathSequence<n_t>();
     }
-
-    // if (graph_traits_t::size(Dag) > Config.DAGSizeThreshold) {
-    //   PHASAR_LOG_LEVEL_CAT(
-    //       INFO, "PathSensitivityManager",
-    //       "Note: The DAG for query @ "
-    //           << getMetaDataID(Inst)
-    //           << " is too large. Don't collect the precise paths "
-    //              "here");
-    //   return Constraint;
-    // }
 
     auto Ret = filterAndFlattenRevDag(Dag, Leaf, Inst, Config, *LPC);
 
