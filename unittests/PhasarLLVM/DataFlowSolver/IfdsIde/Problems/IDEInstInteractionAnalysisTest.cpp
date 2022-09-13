@@ -133,9 +133,8 @@ protected:
         PHASAR_LOG_LEVEL(DFADEBUG, "Variable '"
                                        << std::get<2>(Truth) << "' missing at '"
                                        << llvmIRToShortString(Line) << "'.");
-        llvm::outs()<< "Variable '"
-                                       << std::get<2>(Truth) << "' missing at '"
-                                       << llvmIRToShortString(Line) << "'.";
+        llvm::outs() << "Variable '" << std::get<2>(Truth) << "' missing at '"
+                     << llvmIRToShortString(Line) << "'.";
       }
       EXPECT_TRUE(FactFound);
     }
