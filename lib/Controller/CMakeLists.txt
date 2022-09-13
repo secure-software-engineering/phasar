@@ -32,6 +32,7 @@ endif()
 target_link_libraries(phasar_controller
   LINK_PUBLIC
   curl
+  ${CMAKE_THREAD_LIBS_INIT}
   ${PHASAR_STD_FILESYSTEM}
 )
 
