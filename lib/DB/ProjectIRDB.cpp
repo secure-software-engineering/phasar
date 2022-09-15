@@ -126,6 +126,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   MPM.run(*M, MAM);
   // retrieve data from the GeneralStatisticsAnalysis registered earlier
   auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
+  StatsJson = GSPResult.getAsJson();
   NumberCallsites = GSPResult.getFunctioncalls();
   auto Allocas = GSPResult.getAllocaInstructions();
   AllocaInstructions.insert(Allocas.begin(), Allocas.end());
@@ -265,6 +266,10 @@ void ProjectIRDB::print() const {
     llvm::outs() << *Module;
     llvm::outs().flush();
   }
+}
+
+void ProjectIRDB::printAsJson(llvm::raw_ostream &OS) const {
+  OS << StatsJson.dump();
 }
 
 void ProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS,
