@@ -45,7 +45,7 @@ class PhasarConan(ConanFile):
         "gtest/[>=1.10.0 <2.0.0]",
         "sqlite3/[>=3.36.0 <4.0.0]",
         "json-schema-validator/[>=2.1.0 <3.0.0]",
-        "nlohmann_json/[>=3.10.5 <4.0.0]",
+        "nlohmann_json/[>=3.10.5 <3.11.0]",
         "zlib/[>=1.2.0 <2.0.0]" # fix boost / clash zlib
     ]
         
