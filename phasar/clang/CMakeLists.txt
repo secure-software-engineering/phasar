@@ -51,10 +51,6 @@ just_add_library(
     EXCLUDE "phasar-clang.cpp$"
 )
 
-_just_check_library_order(TARGET phasar-clang
-LINK
-)
-
 just_add_executable(
     LINK
         phasar-llvm
