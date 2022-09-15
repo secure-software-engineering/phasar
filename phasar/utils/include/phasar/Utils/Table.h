@@ -23,6 +23,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "llvm/Support/raw_ostream.h"
+
 // we may wish to replace this by boost::multi_index at some point
 
 namespace psr {
