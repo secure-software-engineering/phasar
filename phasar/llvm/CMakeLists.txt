@@ -2,39 +2,46 @@ just_add_library(
     ${OPTION_TESTS_DISABLED}
     ${OPTION_DOXYGEN_DISABLED}
     LINK
+
+      LLVMPasses
+      LLVMCoroutines
+      LLVMipo
+      LLVMFrontendOpenMP
+      LLVMIRReader
+      LLVMAsmParser
+      LLVMInstrumentation
+      LLVMLinker
+      LLVMVectorize
+      LLVMObjCARCOpts
+      LLVMBitWriter
+      LLVMScalarOpts
+      LLVMAggressiveInstCombine
+      LLVMInstCombine
+      LLVMTransformUtils
+      LLVMTarget
+      LLVMAnalysis
+      LLVMProfileData
+      LLVMDebugInfoDWARF
+      LLVMObject
+      LLVMMCParser
+      LLVMMC
+      LLVMDebugInfoCodeView
+      LLVMBitReader
+      LLVMCore
+      LLVMRemarks
+      LLVMBitstreamReader
+      LLVMTextAPI
+      LLVMBinaryFormat
+      LLVMSupport
+      LLVMDemangle
+      z
+      m
+      dl
+      rt
+
       phasar-config
       phasar-utils
       phasar-db
-
-      LLVMAggressiveInstCombine
-      LLVMAnalysis
-      LLVMAsmParser
-      LLVMBinaryFormat
-      LLVMBitReader
-      LLVMBitstreamReader
-      LLVMCore
-      LLVMCoroutines
-      LLVMDebugInfoDWARF
-      LLVMDemangle
-      LLVMFrontendOpenMP
-      LLVMIRReader
-      LLVMInstCombine
-      LLVMInstrumentation
-      LLVMLinker
-      LLVMMC
-      LLVMMCParser
-      LLVMObjCARCOpts
-      LLVMObject
-      LLVMPasses
-      LLVMProfileData
-      LLVMRemarks
-      LLVMScalarOpts
-      LLVMSupport
-      LLVMTarget
-      LLVMTextAPI
-      LLVMTransformUtils
-      LLVMVectorize
-      LLVMipo
       
       sqlite3
       nlohmann_json_schema_validator

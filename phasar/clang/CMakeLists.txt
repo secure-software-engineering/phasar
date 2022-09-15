@@ -2,42 +2,57 @@ just_add_library(
     ${OPTION_TESTS_DISABLED}
     ${OPTION_DOXYGEN_DISABLED}
     LINK
-        LLVMCore
-        LLVMOption
-        LLVMSupport
-        LLVMProfileData
-        LLVMObject
-        LLVMDebugInfoDWARF
-        LLVMMCParser
-        LLVMMC
-        LLVMBitReader
-        LLVMTextAPI
-        
-        clangTooling
-        clangFrontendTool
-        clangFrontend
+        clangTooling # core dep
+        clangFrontend # core dep
         clangDriver
-        clangSerialization
-        clangCodeGen
         clangParse
+        clangSerialization
         clangSema
-        clangStaticAnalyzerFrontend
-        clangStaticAnalyzerCheckers
-        clangStaticAnalyzerCore
         clangAnalysis
-        clangARCMigrate
-        clangRewrite
-        clangRewriteFrontend
+        clangASTMatchers
         clangEdit
         clangAST
-        clangASTMatchers
+        clangFormat
+        clangToolingInclusions
+        clangToolingCore
+        clangRewrite # core dep
         clangLex
         clangBasic
         LLVMFrontendOpenMP
+        LLVMScalarOpts
+        LLVMAggressiveInstCombine
+        LLVMInstCombine
+        LLVMTransformUtils
+        LLVMAnalysis
+        LLVMProfileData
+        LLVMDebugInfoDWARF
+        LLVMObject
+        LLVMMCParser
+        LLVMMC
+        LLVMDebugInfoCodeView
+        LLVMBitReader
+        LLVMCore
+        LLVMRemarks
+        LLVMBitstreamReader
+        LLVMTextAPI
+        LLVMBinaryFormat
+        LLVMOption
+        LLVMSupport
+        LLVMDemangle
+        rt
         dl
+        m
+        pthread
+        z
+
+
 
         phasar-utils
     EXCLUDE "phasar-clang.cpp$"
+)
+
+_just_check_library_order(TARGET phasar-clang
+LINK
 )
 
 just_add_executable(
