@@ -3,7 +3,7 @@
 json="$1"
 if [ -z "$1" ]; then
 echo "preparing help..."
-components="$($(timeout 20 find ~/.conan/data/llvm/ -name components.json || echo "no components.json found in ~/conan/data/llvm/"))"
+components="$(timeout 20 find ~/.conan/data/llvm/ -name components.json || echo "no components.json found in ~/conan/data/llvm/")"
 echo "
 invocation:
 script path/to/components.json llvm-lib1 llvm-lib2 ...
