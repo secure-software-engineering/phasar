@@ -126,6 +126,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   MPM.run(*M, MAM);
   // retrieve data from the GeneralStatisticsAnalysis registered earlier
   auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
+  NumberCallsites = GSPResult.getFunctioncalls();
   auto Allocas = GSPResult.getAllocaInstructions();
   AllocaInstructions.insert(Allocas.begin(), Allocas.end());
   auto ATypes = GSPResult.getAllocatedTypes();

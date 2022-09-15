@@ -60,6 +60,7 @@ private:
   std::map<std::string, std::unique_ptr<llvm::Module>> Modules;
   // Maps an id to its corresponding instruction
   std::map<std::size_t, llvm::Instruction *> IDInstructionMapping;
+  size_t NumberCallsites;
 
   void buildIDModuleMapping(llvm::Module *M);
 
@@ -169,6 +170,10 @@ public:
 
   [[nodiscard]] inline std::size_t getNumInstructions() const {
     return IDInstructionMapping.size();
+  }
+
+  [[nodiscard]] inline std::size_t getNumCallsites() const {
+    return NumberCallsites;
   }
 
   [[nodiscard]] std::size_t getNumGlobals() const;
