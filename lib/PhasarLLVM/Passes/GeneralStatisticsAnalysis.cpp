@@ -216,14 +216,14 @@ GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
 }
 
-  nlohmann::json GeneralStatistics::getAsJson() const {
-    nlohmann::json J;
-    J["Instructions"] = getInstructions();
-    J["Functions"] = Functions;
-    J["Alloca Instructions"] = AllocaInstructions.size();
-    J["Call Sites"] = CallSites;
-    J["Global Variables"] = Globals;
-    return J;
-  }
+nlohmann::json GeneralStatistics::getAsJson() const {
+  nlohmann::json J;
+  J["Instructions"] = getInstructions();
+  J["Functions"] = Functions;
+  J["Alloca Instructions"] = AllocaInstructions.size();
+  J["Call Sites"] = CallSites;
+  J["Global Variables"] = Globals;
+  return J;
+}
 
 } // namespace psr

@@ -320,8 +320,10 @@ int main(int Argc, const char **Argv) {
     llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
     llvm::outs() << "> global variables:\t"
                  << IRDB.getWPAModule()->global_size() << "\n";
-    llvm::outs() << "> Alloca instructions:\t" << IRDB.getAllocaInstructions().size() << "\n";
-    llvm::outs() << "> Memory Locations:\t" << IRDB.getAllMemoryLocations().size() << "\n";
+    llvm::outs() << "> Alloca instructions:\t"
+                 << IRDB.getAllocaInstructions().size() << "\n";
+    llvm::outs() << "> Memory Locations:\t"
+                 << IRDB.getAllMemoryLocations().size() << "\n";
     llvm::outs() << "> Call Sites:\t" << IRDB.getNumCallsites() << "\n";
   }
 

@@ -21,8 +21,8 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
 
-#include "phasar/Utils/EnumFlags.h"
 #include "nlohmann/json.hpp"
+#include "phasar/Utils/EnumFlags.h"
 
 namespace llvm {
 class Value;
