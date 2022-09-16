@@ -19,6 +19,7 @@
 
 #include <set>
 
+#include "nlohmann/json.hpp"
 #include "llvm/IR/PassManager.h"
 
 namespace llvm {
@@ -115,6 +116,7 @@ public:
    */
   [[nodiscard]] std::set<const llvm::Instruction *>
   getRetResInstructions() const;
+  [[nodiscard]] nlohmann::json getAsJson() const;
 };
 
 /**
