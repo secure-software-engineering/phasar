@@ -34,6 +34,8 @@ just_add_library(
       LLVMBinaryFormat
       LLVMSupport
       LLVMDemangle
+      sqlite3
+      nlohmann_json_schema_validator
       z
       m
       dl

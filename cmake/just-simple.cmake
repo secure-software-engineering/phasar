@@ -1,3 +1,69 @@
+# just simple cmake
+#
+# main commands: just_add_library() just_add_executable() just_add_tests()
+# - target name generated "project-folder[-test]"
+# - sources are taken by globbing
+#   - INCLUDE "^.*/namespace/.*$" ... is applied before EXCLUDE
+#   - EXCLUDE "^.*TEST$" ... is applied after INCLUDE
+# - LINK [lib1 ...] (tests linking automatically against target under test)
+# - DEPENDS [custom_command_1 ...]
+# - SKIP_SUBDIRECTORIES if a subfolder contains a CMakeLists.txt its automatically added, but not with this argument
+# - SUFFIX "asd" project-folder -> project-folder-asd 
+# 
+# util commands:
+# - just_limit_jobs(COMPILE 1000 LINK 4000) calculates the compile / link job pools according to your current available memory.
+#   You configure the amount of expected memory usage in mb per compile / link job. 
+#   Get rid of out-of-memory crashes, manually setting jobs with `ninja -j x`.
+# - just_copy_resource(project-NAME) copies resources from given target into current binary dir
+# 
+# other features:
+# + resource/config/server.json -> just create the structure and your test will find it in config/server.json
+# + run tests with ctest (Labels = target under test)
+# + generate Coverage with cmake ... -DCOVERAGE=ON ninja ccov-all
+# + conanfile.txt handling + auto generated if not present
+# + doxygen incremental generation
+#
+# setup:
+# 0. pip install conan
+# 1. Copy to  your project `cmake/just-simple.cmake`
+# 2. Your project invokes before include: [`project(NAME)`](https://cmake.org/cmake/help/latest/command/project.html)
+# 3. Include it from your main file `include("cmake/just-simple.cmake")`
+# 4. Target names are generated `project-folder[-test]` therefore suggested folder structure:
+# .
+# ├── CMakeLists.txt // project(...), include("cmake/just-simple.cmake"), add_subdirector(project/target1), ...
+# ├── CMakePresets
+# ├── conanfile.txt // [requires] sqlite3/[>=3.30.0 <4.0.0]
+# ├── cmake
+# │   └── just-simple.cmake
+# └── project
+#     ├── target1 // project-target1
+#     │   ├── CMakeLists.txt // just_add_executable(LINK project-target2)
+#     │   ├── include
+#     │   │   └── namespace
+#     │   │       └── public_include.hpp
+#     │   └── src
+#     │       └── namespace
+#     │           └── main.cpp
+#     └── target2 // project-target2
+#         ├── CMakeLists.txt // just_add_library(LINK sqlite3) test folder autoloaded because it contains CMakeLists.txt
+#         ├── include
+#         │   └── namespace
+#         │       └── lib.h
+#         ├── resource
+#         │   └── config
+#         │       └── server.cfg
+#         ├── src
+#         │   └── namespace
+#         │       └── lib.cpp
+#         └── test // project-target2-test
+#             ├── CMakeLists.txt // just_add_tests() auto linked vs project-target2 gtest_main, gmock_main
+#             ├── include
+#             │   └── .gitkeep
+#             ├── resource
+#             │   └── config
+#             │       └── test.cfg // tests can load(config/test.cfg) and load(config/server.cfg)
+#             └── src
+#                 └── simple_test.cpp
 
 if (${CMAKE_MINIMUM_REQUIRED_VERSION} VERSION_LESS "3.21") # for --output-junit
     message(FATAL_ERROR "
@@ -14,7 +80,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 # download cmake dependencies if not present
-set(JUST_SIMPLE_conan "${PROJECT_SOURCE_DIR}/cmake/conan.cmake")
+set(JUST_SIMPLE_conan "${CMAKE_CURRENT_LIST_DIR}/conan.cmake")
 if(NOT EXISTS "${JUST_SIMPLE_conan}")
     file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
         "${JUST_SIMPLE_conan}"
@@ -23,7 +89,7 @@ if(NOT EXISTS "${JUST_SIMPLE_conan}")
 endif()
 include(${JUST_SIMPLE_conan})
 
-set(JUST_SIMPLE_coverage "${PROJECT_SOURCE_DIR}/cmake/code-coverage.cmake")
+set(JUST_SIMPLE_coverage "${CMAKE_CURRENT_LIST_DIR}/code-coverage.cmake")
 if (NOT EXISTS "${JUST_SIMPLE_coverage}")
     file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/ed79fb95f7bd39b2cb158d7ff83a5dbb639343e8/code-coverage.cmake"
         "${JUST_SIMPLE_coverage}"
@@ -65,6 +131,9 @@ add_code_coverage_all_targets(EXCLUDE ".conan/.*" ".*/test/.*") # TODO its allow
 enable_testing() #enable ctest
 set(CMAKE_CTEST_ARGUMENTS "--output-junit;${CMAKE_BINARY_DIR}/Testing/Temporary/JUnit.xml;--output-on-failure;") # for ci import
 include(GoogleTest)
+
+# generates compile_commands.json used by IDEs to resolve includes aso
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # TODO offer a diagnostic run with link / compile = 1, job = 1 and check mem usage with "sar -r cmd" (sysstat package) automatically?
 function(just_limit_jobs)
@@ -140,15 +209,11 @@ endfunction()
 
 function(_just_add_resource SRC)
     if (EXISTS "${SRC}/resource")
-        if (NOT EXISTS "${SRC}/resource/CMakeLists.txt")
-            message(NOTICE "found resources in: ${SRC}/resource")
-            file(GLOB_RECURSE files RELATIVE "${SRC}/resource" LIST_DIRECTORIES false "${SRC}/resource/*")
-            foreach(file ${files})
-                configure_file("${SRC}/resource/${file}" "${CMAKE_CURRENT_BINARY_DIR}/${file}" COPYONLY)
-            endforeach()
-        else()
-            message(NOTICE "skipping resource folder: ${SRC}/resource because it contains CMakeLists.txt") # XXX handle if SKIP_SUBDIRECTORIES
-        endif()
+        message(NOTICE "found resources in: ${SRC}/resource")
+        file(GLOB_RECURSE files RELATIVE "${SRC}/resource" LIST_DIRECTORIES false "${SRC}/resource/*")
+        foreach(file ${files})
+            configure_file("${SRC}/resource/${file}" "${CMAKE_CURRENT_BINARY_DIR}/${file}" COPYONLY)
+        endforeach()
     else()
         message(NOTICE "no resource folder: ${SRC}/resource")
     endif()
@@ -156,7 +221,32 @@ endfunction()
 
 function(just_copy_resource TARGET)
     get_target_property(target_folder "${TARGET}" SOURCE_DIR)
-    _just_add_resource("${SOURCE_DIR}")
+    _just_add_resource("${target_folder}")
+endfunction()
+
+function(_just_check_library_order)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs LINK)
+    cmake_parse_arguments(PARSE_ARGV "0" "just_check" "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    set(index -1)
+    set(wrong_order OFF)
+    set(correct_order)
+    foreach(available_lib ${CONAN_LIBS})
+        list(FIND just_check_LINK ${available_lib} found)
+        if (found GREATER -1)
+            list(APPEND correct_order "${available_lib}")
+            if (found LESS index)
+                set(wrong_order ON)
+            endif()
+            set(index "${found}")
+        endif()
+    endforeach()
+
+    if (${wrong_order})
+        message(WARNING "${just_check_TARGET} LINK order looks incorrect, expecting: ${correct_order}")
+    endif()
 endfunction()
 
 function(just_add_library)
@@ -173,6 +263,10 @@ function(just_add_library)
         message(FATAL_ERROR "target \"${TARGET}\" has unparsed arguments \"${just_add_UNPARSED_ARGUMENTS}\" maybe LINK in front of it?")
     endif()
     _just_add_check("${TARGET}")
+
+    if (just_add_LINK)
+        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
+    endif()
 
     # create filelist
     file(GLOB_RECURSE files include/* src/*)
@@ -267,6 +361,10 @@ function(just_add_executable)
     endif()
     _just_add_check("${TARGET}")
 
+    if (just_add_LINK)
+        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
+    endif()
+
     # create filelist
     file(GLOB_RECURSE files include/* src/*)
     if(just_add_INCLUDE)
@@ -323,6 +421,10 @@ function(just_add_tests)
     get_filename_component(TEST_TARGET "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
     set(TARGET "${TARGET_UNDER_TEST}-${TEST_TARGET}${just_add_SUFFIX}")
 
+    if (just_add_LINK)
+        _just_check_library_order(TARGET "${TARGET}" LINK ${just_add_LINK})
+    endif()
+
     if (NOT TARGET "${TARGET_UNDER_TEST}")
         message(FATAL_ERROR "just_add_tests: Expected to create tests for target ${TARGET_UNDER_TEST} but this target doesn't exists.")
     endif()
@@ -378,42 +480,4 @@ function(just_add_tests)
     _just_add_resource("${target_under_test_source_dir}")
     # but also allow them to overwrite & have other dependencies too
     _just_add_resource("${CMAKE_CURRENT_SOURCE_DIR}")
-endfunction()
-
-
-# useful debug commands:
-# source: https://stackoverflow.com/questions/32183975/how-to-print-all-the-properties-of-a-target-in-cmake
-# Get all propreties that cmake supports
-if(NOT CMAKE_PROPERTY_LIST)
-    execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
-    
-    # Convert command output into a CMake list
-    string(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
-    string(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
-endif()
-    
-function(just_debug_print_properties)
-    message("CMAKE_PROPERTY_LIST = ${CMAKE_PROPERTY_LIST}")
-endfunction()
-    
-function(just_debug_print_target_properties target)
-    if(NOT TARGET ${target})
-      message(STATUS "There is no target named '${target}'")
-      return()
-    endif()
-
-    foreach(property ${CMAKE_PROPERTY_LIST})
-        string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" property ${property})
-
-        # Fix https://stackoverflow.com/questions/32197663/how-can-i-remove-the-the-location-property-may-not-be-read-from-target-error-i
-        if(property STREQUAL "LOCATION" OR property MATCHES "^LOCATION_" OR property MATCHES "_LOCATION$")
-            continue()
-        endif()
-
-        get_property(was_set TARGET ${target} PROPERTY ${property} SET)
-        if(was_set)
-            get_target_property(value ${target} ${property})
-            message("${target} ${property} = ${value}")
-        endif()
-    endforeach()
 endfunction()

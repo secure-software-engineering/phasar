@@ -39,13 +39,11 @@ just_add_library(
         LLVMOption
         LLVMSupport
         LLVMDemangle
-        rt
-        dl
+        z        
         m
+        dl
         pthread
-        z
-
-
+        rt
 
         phasar-utils
     EXCLUDE "phasar-clang.cpp$"
