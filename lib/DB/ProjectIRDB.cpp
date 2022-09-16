@@ -269,7 +269,7 @@ void ProjectIRDB::print() const {
 }
 
 void ProjectIRDB::printAsJson(llvm::raw_ostream &OS) const {
-  OS << StatsJson.dump();
+  OS << StatsJson.dump(4) << '\n';
 }
 
 void ProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS,
