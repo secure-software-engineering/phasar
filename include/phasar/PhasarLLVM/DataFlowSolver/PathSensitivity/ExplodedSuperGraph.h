@@ -54,7 +54,7 @@ public:
     d_t Value{};
     n_t Source{};
     Node *Predecessor = nullptr;
-    llvm::TinyPtrVector<Node *> Neighbors;
+    llvm::TinyPtrVector<Node *> Neighbors{};
   };
 
   explicit ExplodedSuperGraph(
@@ -100,37 +100,6 @@ public:
   }
 
   [[nodiscard]] size_t size() const noexcept { return NodeOwner.size(); }
-
-  // LLVM_DUMP_METHOD void dump() const { node_owner.dump(llvm::errs()); }
-
-  void validate(Node *Vtx) const noexcept {
-
-    // NOLINTNEXTLINE(readability-identifier-naming)
-    auto toHexString = [](void *ptr) {
-      std::string Ret(2 + 2 * sizeof(void *), '\0');
-      Ret.resize(snprintf(Ret.data(), Ret.size() + 1, "%p", ptr));
-      return Ret;
-    };
-
-    if (!NodeOwner.member(Vtx)) {
-      llvm::report_fatal_error(llvm::StringRef("Vtx ") + toHexString(Vtx) +
-                               " is no member of the NodeOwner!");
-    }
-
-    for (auto *NB : Vtx->Neighbors) {
-      if (!NodeOwner.member(NB)) {
-        llvm::report_fatal_error(llvm::StringRef("NB ") + toHexString(Vtx) +
-                                 " of Vtx " + toHexString(Vtx) +
-                                 " is no member of the NodeOwner!");
-      }
-    }
-
-    if (Vtx->Predecessor && !NodeOwner.member(Vtx->Predecessor)) {
-      llvm::report_fatal_error(
-          llvm::StringRef("Pred ") + toHexString(Vtx->Predecessor) +
-          " of Vtx " + toHexString(Vtx) + " is no member of the NodeOwner!");
-    }
-  }
 
   /// Printing:
 

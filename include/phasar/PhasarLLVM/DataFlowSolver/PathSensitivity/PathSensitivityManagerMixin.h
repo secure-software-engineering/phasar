@@ -217,20 +217,13 @@ private:
 
     if (!pathsToImplLAInvoke(Ret, Vtx, Ctx, RetDag, PFilter)) {
       /// NOTE: Don't erase Vtx from Cache to guarantee termination
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) -- fp
       Ctx.Cache[Vtx] = graph_traits_t::Invalid;
 
       if (Ctx.CurrPath.contains(Ret) || !graph_traits_t::pop(RetDag, Ret)) {
         PHASAR_LOG_LEVEL(WARNING, "Cannot remove invalid path at: " << Ret);
         graph_traits_t::node(RetDag, Ret).clear();
       }
-
-      // if (RetDag.isLast(Ret) && !Ctx.CurrPath.contains(Ret)) {
-      //   /// Assume, Ret is not referenced by any other node
-      //   RetDag.pop();
-      // } else {
-      //   PHASAR_LOG_LEVEL(WARNING, << "Cannot remove invalid path at: " <<
-      //   Ret); RetDag.PartialPath[Ret].clear();
-      // }
 
       return graph_traits_t::Invalid;
     }

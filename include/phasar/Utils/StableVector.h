@@ -16,6 +16,7 @@
 #include <iterator>
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/MathExtras.h"
@@ -152,20 +153,21 @@ public:
   using allocator_type =
       typename std::allocator_traits<Allocator>::template rebind_alloc<T>;
 
-  StableVector(const allocator_type &Alloc = allocator_type()) noexcept(
+  StableVector() noexcept(
+      std::is_nothrow_default_constructible_v<allocator_type>) = default;
+
+  StableVector(const allocator_type &Alloc) noexcept(
       std::is_nothrow_copy_constructible_v<allocator_type>)
       : Alloc(Alloc) {}
 
   StableVector(StableVector &&Other) noexcept
-      : Blocks(std::move(Other.Blocks)), Start(Other.Start), Pos(Other.Pos),
-        End(Other.End), Size(Other.Size), BlockIdx(Other.BlockIdx),
-        Alloc(std::move(Other.Alloc)) {
-    Other.Start = nullptr;
-    Other.Pos = nullptr;
-    Other.End = nullptr;
-    Other.Size = 0;
-    Other.BlockIdx = 0;
-  }
+      : Blocks(std::move(Other.Blocks)),
+        Start(std::exchange(Other.Start, nullptr)),
+        Pos(std::exchange(Other.Pos, nullptr)),
+        End(std::exchange(Other.End, nullptr)),
+        Size(std::exchange(Other.Size, 0)),
+        BlockIdx(std::exchange(Other.BlockIdx, 0)),
+        Alloc(std::move(Other.Alloc)) {}
 
   explicit StableVector(const StableVector &Other)
       : Size(Other.Size), BlockIdx(Other.BlockIdx),
@@ -199,33 +201,36 @@ public:
     Pos = Blck + (Other.Pos - Other.Start);
   }
 
-  friend void swap(StableVector &LHS, StableVector &RHS) noexcept {
-    std::swap(LHS.Blocks, RHS.Blocks);
-    std::swap(LHS.Start, RHS.Start);
-    std::swap(LHS.Pos, RHS.Pos);
-    std::swap(LHS.End, RHS.End);
-    std::swap(LHS.Size, RHS.Size);
-    std::swap(LHS.BlockIdx, RHS.BlockIdx);
+  void swap(StableVector &Other) noexcept {
+    std::swap(Blocks, Other.Blocks);
+    std::swap(Start, Other.Start);
+    std::swap(Pos, Other.Pos);
+    std::swap(End, Other.End);
+    std::swap(Size, Other.Size);
+    std::swap(BlockIdx, Other.BlockIdx);
 
     if constexpr (std::allocator_traits<
                       allocator_type>::propagate_on_container_swap::value) {
-      std::swap(LHS.Alloc, RHS.Alloc);
+      std::swap(Alloc, Other.Alloc);
     } else {
-      assert(LHS.Alloc == RHS.Alloc &&
+      assert(Alloc == Other.Alloc &&
              "Do not swap two StableVectors with incompatible "
              "allocators that do not propagate on swap!");
     }
   }
 
-  void swap(StableVector &Other) noexcept { swap(*this, Other); }
+  friend void swap(StableVector &LHS, StableVector &RHS) noexcept {
+    LHS.swap(RHS);
+  }
 
   StableVector &operator=(StableVector Other) noexcept {
-    swap(*this, Other);
+    swap(Other);
     return *this;
   }
 
   StableVector &operator=(StableVector &&Other) noexcept {
-    swap(*this, Other);
+    auto Cpy = std::move(Other);
+    swap(Cpy);
     return *this;
   }
 
@@ -458,24 +463,16 @@ public:
     size_t Total = InitialCapacity;
 
     for (size_t I = 0; I < LHS.BlockIdx; ++I) {
-      for (T *LIt = LHS.Blocks[I], *RIt = RHS.Blocks[I], *LEnd = LIt + Cap;
-           LIt != LEnd; ++LIt, ++RIt) {
-        if (*LIt != *RIt) {
-          return false;
-        }
+      auto LIt = LHS.Blocks[I];
+      if (!std::equal(LIt, LIt + Cap, RHS.Blocks[I])) {
+        return false;
       }
 
       Cap = Total;
       Total <<= 1;
     }
 
-    for (T *LIt = LHS.Start, *RIt = RHS.Start, *LEnd = LHS.Pos; LIt != LEnd;
-         ++LIt, ++RIt) {
-      if (*LIt != *RIt) {
-        return false;
-      }
-    }
-    return true;
+    return std::equal(LHS.Start, LHS.Pos, RHS.Start);
   }
 
   [[nodiscard]] friend bool operator!=(const StableVector &LHS,
@@ -538,13 +535,13 @@ private:
     // return Blocks[LogIdx][Offset];
   }
 
-  llvm::SmallVector<T *, 0> Blocks;
+  llvm::SmallVector<T *, 0> Blocks{};
   T *Start = nullptr;
   T *Pos = nullptr;
   T *End = nullptr;
   size_t Size = 0;
   size_t BlockIdx = 0;
-  [[no_unique_address]] allocator_type Alloc;
+  [[no_unique_address]] allocator_type Alloc{};
 };
 
 // NOLINTEND(readability-identifier-naming)
