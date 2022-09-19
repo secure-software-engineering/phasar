@@ -2,6 +2,7 @@ file(GLOB_RECURSE PATHSENSITIVITY_SRC *.h *.cpp)
 
 set(PHASAR_LINK_LIBS
   phasar_config
+  phasar_controlflow
   phasar_utils
   phasar_phasarllvm_utils
   phasar_pointer
@@ -24,7 +25,6 @@ else()
     ${PATHSENSITIVITY_SRC}
   )
 endif()
-
 
 set_target_properties(phasar_pathsensitivity
   PROPERTIES
