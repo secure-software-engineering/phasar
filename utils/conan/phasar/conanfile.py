@@ -50,7 +50,7 @@ class PhasarConan(ConanFile):
         
     def export_sources(self):
         if enforce_local_build: # self.options arent allowed in this method!
-            self.copy("../../../../*", excludes=["build", "cmake-build", ".github", ".cache", ".git"])
+            self.copy("../../../*", excludes=["build", "cmake-build", ".github", ".cache", ".git"])
         else:
             self.copy("*")
 
