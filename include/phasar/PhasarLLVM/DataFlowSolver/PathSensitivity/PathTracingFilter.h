@@ -16,8 +16,9 @@ namespace psr {
 template <typename EndFilter, typename ErrFilter> struct PathTracingFilter {
   using end_filter_t = EndFilter;
   using err_filter_t = ErrFilter;
-  EndFilter HasReachedEnd;
-  ErrFilter IsErrorneousTransition;
+
+  [[no_unique_address]] end_filter_t HasReachedEnd;
+  [[no_unique_address]] err_filter_t IsErrorneousTransition;
 };
 
 namespace detail {
@@ -34,13 +35,13 @@ using DefaultPathTracingFilter =
 
 template <typename F, typename Node, typename = void>
 struct is_pathtracingfilter_for : std::false_type {};
-template <typename F, typename Node>
+
+template <typename EndFilter, typename ErrFilter, typename Node>
 struct is_pathtracingfilter_for<
-    F, Node,
-    std::enable_if_t<std::is_invocable_r_v<bool, typename F::end_filter_t,
-                                           const Node *, const Node *> &&
-                     std::is_invocable_r_v<bool, typename F::err_filter_t,
-                                           const Node *, const Node *>>>
+    PathTracingFilter<EndFilter, ErrFilter>, Node,
+    std::enable_if_t<
+        std::is_invocable_r_v<bool, EndFilter, const Node *, const Node *> &&
+        std::is_invocable_r_v<bool, ErrFilter, const Node *, const Node *>>>
     : std::true_type {};
 
 template <typename F, typename Node>

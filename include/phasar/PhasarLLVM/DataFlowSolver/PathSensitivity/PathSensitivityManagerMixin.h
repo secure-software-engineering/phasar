@@ -58,8 +58,10 @@ protected:
   }
 
 public:
-  template <typename FactsRangeTy, typename ConfigTy,
-            typename Filter = DefaultPathTracingFilter>
+  template <
+      typename FactsRangeTy, typename ConfigTy,
+      typename Filter = DefaultPathTracingFilter,
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, Node>>>
   [[nodiscard]] GraphType
   pathsDagToAll(n_t Inst, FactsRangeTy FactsRange,
                 const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -108,40 +110,58 @@ public:
     return Dag;
   }
 
-  template <typename ConfigTy, typename L>
+  template <
+      typename ConfigTy, typename L, typename Filter = DefaultPathTracingFilter,
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, Node>>>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, const SolverResults<n_t, d_t, L> &SR,
-             const PathSensitivityConfigBase<ConfigTy> &Config) const {
+             const PathSensitivityConfigBase<ConfigTy> &Config,
+             const Filter &PFilter = {}) const {
     auto Res = SR.resultsAt(Inst);
     auto FactsRange = llvm::make_first_range(Res);
-    return pathsDagToAll(std::move(Inst), FactsRange, Config);
+    return pathsDagToAll(std::move(Inst), FactsRange, Config, PFilter);
   }
 
-  template <typename ConfigTy>
+  template <
+      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, Node>>>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, d_t Fact,
-             const PathSensitivityConfigBase<ConfigTy> &Config) const {
+             const PathSensitivityConfigBase<ConfigTy> &Config,
+             const Filter &PFilter = {}) const {
 
-    return pathsDagToAll(std::move(Inst), llvm::ArrayRef(&Fact, 1), Config);
+    return pathsDagToAll(std::move(Inst), llvm::ArrayRef(&Fact, 1), Config,
+                         PFilter);
   }
 
 private:
   template <typename Filter>
   bool pathsToImplLAInvoke(vertex_t Ret, Node *Vtx, PathsToContext &Ctx,
                            graph_type &RetDag, const Filter &PFilter) const {
+    Node *Prev;
+    bool IsEnd = false;
+    bool IsError = false;
 
     do {
+      Prev = Vtx;
       graph_traits_t::node(RetDag, Ret).push_back(Vtx->Source);
 
-      if (!Vtx->Predecessor || PFilter.HasReachedEnd(Vtx, Vtx->Predecessor)) {
+      if (!Vtx->Predecessor) {
         return true;
       }
 
-      if (PFilter.IsErrorneousTransition(Vtx, Vtx->Predecessor)) {
-        return false;
+      Vtx = Vtx->Predecessor;
+
+      if (PFilter.HasReachedEnd(Prev, Vtx)) {
+        IsEnd = true;
+        break;
       }
 
-      Vtx = Vtx->Predecessor;
+      if (PFilter.IsErrorneousTransition(Prev, Vtx)) {
+        IsError = true;
+        break;
+      }
+
     } while (Vtx->Neighbors.empty());
 
     if (!Ctx.CurrPath.insert(Ret)) {
@@ -158,15 +178,25 @@ private:
       }
     };
 
+    if (!IsEnd && !IsError) {
+      traverseNext(Vtx);
+    }
+
     for (auto Nxt : Vtx->Neighbors) {
+      assert(Nxt != nullptr);
+      if (PFilter.IsErrorneousTransition(Prev, Nxt)) {
+        continue;
+      }
+      if (PFilter.HasReachedEnd(Prev, Nxt)) {
+        IsEnd = true;
+        continue;
+      }
       traverseNext(Nxt);
     }
 
-    traverseNext(Vtx);
-
     graph_traits_t::dedupOutEdges(RetDag, Ret);
 
-    return graph_traits_t::outDegree(RetDag, Ret) != 0;
+    return IsEnd || graph_traits_t::outDegree(RetDag, Ret) != 0;
   }
 
   template <typename Filter>
