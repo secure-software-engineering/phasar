@@ -9,13 +9,21 @@ if [ "$#" -eq 0 ]; then
     echo "[help] test_conan_package.sh package_to_build/version@ [-o package:option=value ... | -s package:build_type=Release ... (package can refer a dependency)] "
     echo "[help] set version in recipe: version=\"...\""
     exit 0
-elif grep -Eqe '^[a-zA-Z]*/[0-9.]*$' <<< "$1"; then
-    echo "[error] please provide a \"package/version\""
-    exit 1
 fi
+
 package="$1"
 name="${package//\/*/}"
 shift
+if [ "$name" == "phasar" ]; then
+    calver="$(git show -s --date=format:'%Y.%m.%d' --format='%cd')"
+    short_hash="$(git show -s --format='%h')"
+    package="$(sed "s/\/[^@]/\/$calver+$short_hash/" <<< "$package")"
+fi
+if grep -Eqe '^[a-zA-Z]*/[0-9.]*$' <<< "$package"; then
+    echo "[error] please provide a \"package/version@\""
+    exit 1
+fi
+
 options=("$@")
 
 (

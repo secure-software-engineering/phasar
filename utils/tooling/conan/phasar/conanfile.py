@@ -1,7 +1,6 @@
 from distutils.dir_util import copy_tree
 from conans import ConanFile, CMake, tools
-from conans.model.version import Version
-import glob, os
+import glob
 
 enforce_local_build = True
 
@@ -74,8 +73,11 @@ class PhasarConan(ConanFile):
             self.options['sqlite3'].shared = True
 
         if self.options.get_safe('is_recipe_and_source_in_same_repo', default=enforce_local_build):
-            self.version = "develop"
-        # TODO extract version from root CMakeLists.txt
+            git = tools.Git()
+            calver = git.run("show -s --date=format:'%Y.%m.%d' --format='%cd'")
+            short_hash = git.run("show -s --format='%h'")
+            self.version = f"{calver}+{short_hash}"
+            # XXX extract version from root CMakeLists.txt
 
     def source(self):
         if not self.options.get_safe('is_recipe_and_source_in_same_repo', default=enforce_local_build):

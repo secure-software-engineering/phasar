@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+# Is used to provide non-public conan recipes to a phasar user.
+# We currently dont have a private conan registry and some recipes arent in conan-center.
+#
 set -euo pipefail
 
 (
@@ -15,7 +18,7 @@ set -euo pipefail
     export CONAN_PRINT_RUN_COMMANDS=True
 
     conan_export() {
-        path="$(realpath ../../../conanfile.txt)"
+        path="$(realpath ../../conanfile.txt)"
         if grep -Eqe "^$1/" "$path"; then
             conan export ./"$1"/ "$(grep --max-count 1 -Fe "$1/" "$path")"
         else
