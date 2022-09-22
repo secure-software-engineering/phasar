@@ -25,7 +25,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMM.h"
 #include "phasar/Utils/Utilities.h"

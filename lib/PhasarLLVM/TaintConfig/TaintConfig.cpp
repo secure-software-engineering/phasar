@@ -33,9 +33,9 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IO.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 

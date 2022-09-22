@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 

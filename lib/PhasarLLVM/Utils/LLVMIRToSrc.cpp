@@ -26,7 +26,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
 using namespace psr;
 

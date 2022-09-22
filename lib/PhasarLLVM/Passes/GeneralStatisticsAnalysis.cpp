@@ -26,7 +26,7 @@
 #include "llvm/Support/raw_os_ostream.h"
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 
