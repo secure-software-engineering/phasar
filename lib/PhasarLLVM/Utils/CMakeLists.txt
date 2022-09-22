@@ -3,7 +3,6 @@ file(GLOB_RECURSE UTILS_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
   phasar_config
   phasar_utils
-  phasar_db
 )
 
 set(LLVM_LINK_COMPONENTS

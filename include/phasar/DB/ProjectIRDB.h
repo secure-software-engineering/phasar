@@ -229,6 +229,11 @@ public:
   persistedStringToValue(const std::string &StringRep) const;
 };
 
+/**
+ * Revserses the getMetaDataID function
+ */
+const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id);
+
 } // namespace psr
 
 #endif
