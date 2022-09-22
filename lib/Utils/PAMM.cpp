@@ -24,7 +24,6 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/Utils/PAMM.h"
 
 using namespace psr;
@@ -274,7 +273,8 @@ void PAMM::printMeasuredData(llvm::raw_ostream &Os) {
   Os << "\n----- END OF EVALUATION DATA -----\n\n";
 }
 
-void PAMM::exportMeasuredData(std::string OutputPath) {
+void PAMM::exportMeasuredData(std::string OutputPath,
+                              boost::program_options::variables_map &Config) {
   // json file for holding all data
   json JsonData;
 
@@ -313,18 +313,15 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
 
   // add analysis/project/source file information if available
   json JInfo;
-  if (PhasarConfig::VariablesMap().count("project-id")) {
-    JInfo["Project-ID"] =
-        PhasarConfig::VariablesMap()["project-id"].as<std::string>();
+  if (Config.count("project-id")) {
+    JInfo["Project-ID"] = Config["project-id"].as<std::string>();
   }
-  if (PhasarConfig::VariablesMap().count("module")) {
-    JInfo["Module(s)"] =
-        PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>();
+  if (Config.count("module")) {
+    JInfo["Module(s)"] = Config["module"].as<std::vector<std::string>>();
   }
-  if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
+  if (Config.count("data-flow-analysis")) {
     JInfo["Data-flow analysis"] =
-        PhasarConfig::VariablesMap()["data-flow-analysis"]
-            .as<std::vector<std::string>>();
+        Config["data-flow-analysis"].as<std::vector<std::string>>();
   }
   if (!JInfo.is_null()) {
     JsonData["Info"] = JInfo;
