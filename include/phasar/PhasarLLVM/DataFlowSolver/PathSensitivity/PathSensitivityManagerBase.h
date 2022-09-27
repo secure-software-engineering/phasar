@@ -12,10 +12,15 @@
 
 #include "phasar/Utils/AdjacencyList.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/IntEqClasses.h"
 #include "llvm/ADT/SmallVector.h"
+
+namespace llvm {
+class Instruction;
+} // namespace llvm
 
 namespace psr {
 
@@ -37,7 +42,7 @@ protected:
   using vertex_t = typename graph_traits_t::vertex_t;
 
 private:
-  bool assertIsDAG(const graph_type &Dag) const {
+  [[nodiscard]] bool assertIsDAG(const graph_type &Dag) const {
     llvm::BitVector Visited(graph_traits_t::size(Dag));
     llvm::DenseSet<vertex_t> CurrPath;
     CurrPath.reserve(graph_traits_t::size(Dag));
@@ -77,145 +82,78 @@ private:
     return true;
   }
 
-  graph_type reverseDAG(graph_type &&Dag, size_t MaxDepth) const {
-    struct ReverseDAGContext {
-      llvm::BitVector Visited;
-      size_t CurrDepth = 0;
-      size_t MaxDepth = 0;
-    } Ctx;
-
-    Ctx.Visited.resize(graph_traits_t::size(Dag));
-    Ctx.MaxDepth = MaxDepth;
-
+  template <typename VertexTransform>
+  [[nodiscard]] static graph_type
+  reverseDAG(graph_type &&Dag, const VertexTransform &Equiv, size_t EquivSize,
+             size_t MaxDepth) {
     graph_type Ret{};
-    if constexpr (is_reservable_graph_trait_v<graph_traits_t>) {
-      graph_traits_t::reserve(Ret, graph_traits_t::size(Dag));
+    if constexpr (psr::is_reservable_graph_trait_v<graph_traits_t>) {
+      graph_traits_t::reserve(Ret, EquivSize);
     }
 
-    // NOLINTNEXTLINE(readability-identifier-naming)
-    auto buildReverseDag = [&Ctx, &Ret, &Dag](auto &buildReverseDag,
-                                              vertex_t Vtx) {
-      if (Ctx.Visited.test(Vtx)) {
-        return Vtx;
-      }
+    llvm::SmallVector<vertex_t> Cache;
+    Cache.resize(EquivSize, graph_traits_t::Invalid);
 
-      Ctx.Visited.set(Vtx);
+    llvm::SmallVector<std::pair<vertex_t, vertex_t>> WL1, WL2;
 
-      auto Rev = graph_traits_t::addNode(
-          Ret, std::move(graph_traits_t::node(Dag, Vtx)));
-
-      if (Ctx.CurrDepth >= Ctx.MaxDepth) {
-        graph_traits_t::addRoot(Ret, Rev);
-        return Rev;
-      }
-
-      ++Ctx.CurrDepth;
-      scope_exit DecreaseDepth = [&Ctx] { --Ctx.CurrDepth; };
-
-      for (auto Succ : graph_traits_t::outEdges(Dag, Vtx)) {
-        /// NOTE: Depending on the depth of SuccRev, we can still get DAGs
-        /// deeper than MaxDepth!
-        /// However, this is not considered harmful as of now - the DAG still
-        /// does not exceed a particular program-slice which size is fixed
-        auto SuccRev =
-            buildReverseDag(buildReverseDag, graph_traits_t::target(Succ));
-        graph_traits_t::addEdge(Ret, SuccRev,
-                                graph_traits_t::withEdgeTarget(Succ, Rev));
-      }
-
-      if (graph_traits_t::outDegree(Dag, Vtx) == 0) {
-        graph_traits_t::addRoot(Ret, Rev);
-      }
-
-      return Rev;
-    };
+    auto *WLConsume = &WL1;
+    auto *WLInsert = &WL2;
 
     for (auto Rt : graph_traits_t::roots(Dag)) {
-      buildReverseDag(buildReverseDag, Rt);
+      auto Eq = std::invoke(Equiv, Rt);
+      if (Cache[Eq] == graph_traits_t::Invalid) {
+        Cache[Eq] = graph_traits_t::addNode(
+            Ret, std::move(graph_traits_t::node(Dag, Rt)));
+        WLConsume->emplace_back(Rt, Cache[Eq]);
+      }
+    }
+
+    size_t Depth = 0;
+
+    while (!WLConsume->empty() && Depth < MaxDepth) {
+      for (auto [Vtx, Rev] : *WLConsume) {
+
+        for (auto Succ : graph_traits_t::outEdges(Dag, Vtx)) {
+          auto SuccVtx = graph_traits_t::target(Succ);
+          auto Eq = std::invoke(Equiv, SuccVtx);
+          if (Cache[Eq] == graph_traits_t::Invalid) {
+            Cache[Eq] = graph_traits_t::addNode(
+                Ret, std::move(graph_traits_t::node(Dag, SuccVtx)));
+            WLInsert->emplace_back(SuccVtx, Cache[Eq]);
+          }
+
+          auto SuccRev = Cache[Eq];
+          graph_traits_t::addEdge(Ret, SuccRev,
+                                  graph_traits_t::withEdgeTarget(Succ, Rev));
+        }
+        if (graph_traits_t::outDegree(Dag, Vtx) == 0) {
+          graph_traits_t::addRoot(Ret, Rev);
+        }
+      }
+      WLConsume->clear();
+
+      std::swap(WLConsume, WLInsert);
+      ++Depth;
+    }
+
+    for (auto [Rt, RtRev] : *WLConsume) {
+      // All nodes that were cut off because they are at depth MaxDepth must
+      // become roots
+      graph_traits_t::addRoot(Ret, RtRev);
     }
 
     return Ret;
   }
 
-  graph_type reverseDAG(graph_type &&Dag, const llvm::IntEqClasses &Equiv,
-                        size_t MaxDepth) const {
-
-    struct ReverseDAGContext {
-      llvm::SmallVector<vertex_t> Cache;
-      size_t CurrDepth = 0;
-      size_t MaxDepth = 0;
-    } Ctx;
-
-    Ctx.Cache.resize(Equiv.getNumClasses(), graph_traits_t::Invalid);
-    Ctx.MaxDepth = MaxDepth;
-
-    graph_type Ret{};
-    // Ret.Dag = &Dag;
-    // Ret.Leaf = Equiv[Dag.Root];
-    if constexpr (is_reservable_graph_trait_v<graph_traits_t>) {
-      graph_traits_t::reserve(Ret, Equiv.getNumClasses());
-    }
-    // Ret.Adj.reserve(Equiv.getNumClasses());
-    // Ret.Rev2Vtx.reserve(Equiv.getNumClasses());
-
-    // NOLINTNEXTLINE(readability-identifier-naming)
-    auto buildReverseDag = [&Ctx, &Ret, &Equiv, &Dag](auto &buildReverseDag,
-                                                      vertex_t Vtx) {
-      auto Eq = Equiv[Vtx];
-      if (Ctx.Cache[Eq] != graph_traits_t::Invalid) {
-        return Ctx.Cache[Eq];
-      }
-
-      // typename ReverseDAG::vertex_t Rev = Ret.size();
-      // Ret.Rev2Vtx.push_back(Vtx);
-      // Ret.Adj.emplace_back();
-      auto Rev = graph_traits_t::addNode(
-          Ret, std::move(graph_traits_t::node(Dag, Vtx)));
-      Ctx.Cache[Eq] = Rev;
-
-      if (Ctx.CurrDepth >= Ctx.MaxDepth) {
-        // PHASAR_LOG_LEVEL_CAT(DEBUG, "PathSensitivityManager",
-        //                      "Reached MaxDepth: " << Ctx.CurrDepth);
-        graph_traits_t::addRoot(Ret, Rev);
-        // Ret.Roots.push_back(Rev);
-        return Rev;
-      }
-      // else {
-      //   PHASAR_LOG_LEVEL_CAT(DEBUG, "PathSensitivityManager",
-      //                        "Have not reached MaxDepth: "
-      //                            << Ctx.CurrDepth << " vs " << Ctx.MaxDepth);
-      // }
-
-      ++Ctx.CurrDepth;
-      scope_exit DecreaseDepth = [&Ctx] { --Ctx.CurrDepth; };
-
-      for (auto Succ : graph_traits_t::outEdges(Dag, Vtx)) {
-        /// NOTE: Depending on the depth of SuccRev, we can still get DAGs
-        /// deeper than MaxDepth!
-        /// However, this is not considered harmful as of now - the DAG still
-        /// does not exceed a particular program-slice which size is fixed
-        auto SuccRev =
-            buildReverseDag(buildReverseDag, graph_traits_t::target(Succ));
-        graph_traits_t::addEdge(Ret, SuccRev,
-                                graph_traits_t::withEdgeTarget(Succ, Rev));
-        // Ret.Adj[SuccRev].push_back(Rev);
-      }
-
-      if (graph_traits_t::outDegree(Dag, Vtx) == 0) {
-        graph_traits_t::addRoot(Ret, Rev);
-        // Ret.Roots.push_back(Rev);
-      }
-
-      return Rev;
-    };
-
-    for (auto Rt : graph_traits_t::roots(Dag)) {
-      buildReverseDag(buildReverseDag, Rt);
-    }
-
-    return Ret;
+  [[nodiscard]] static graph_type reverseDAG(graph_type &&Dag,
+                                             size_t MaxDepth) {
+    auto Sz = graph_traits_t::size(Dag);
+    return reverseDAG(std::move(Dag), identity{}, Sz, MaxDepth);
   }
 };
+
+extern template class PathSensitivityManagerBase<const llvm::Instruction *>;
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGERBASE_H

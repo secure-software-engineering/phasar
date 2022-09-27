@@ -259,16 +259,31 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
   return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
 }
 
-/// Similar to std::forward, but takes the info, which of lvalue or rvalue
-/// reference to return from Fwd
-template <typename Fwd, typename T>
-constexpr decltype(auto) forward_from(T &Val) noexcept { // NOLINT
-  if constexpr (std::is_lvalue_reference_v<Fwd>) {
-    return static_cast<T &>(Val);
+/// See https://en.cppreference.com/w/cpp/utility/forward_like
+template <class T, class U>
+[[nodiscard]] constexpr auto &&forward_like(U &&X) noexcept { // NOLINT
+  // NOLINTNEXTLINE
+  constexpr bool is_adding_const = std::is_const_v<std::remove_reference_t<T>>;
+  if constexpr (std::is_lvalue_reference_v<T &&>) {
+    if constexpr (is_adding_const) {
+      return std::as_const(X);
+    } else {
+      return static_cast<U &>(X);
+    }
   } else {
-    return static_cast<T &&>(Val);
+    if constexpr (is_adding_const) {
+      return std::move(std::as_const(X));
+    } else {
+      return std::move(X); // NOLINT
+    }
   }
 }
+
+struct identity {
+  template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
+    return std::forward<T>(Val);
+  }
+};
 
 } // namespace psr
 

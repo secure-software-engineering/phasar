@@ -155,7 +155,7 @@ std::decay_t<GraphTy> reverseGraph(GraphTy &&G)
   }
 
   for (auto &Nod : traits_t::nodes(G)) {
-    traits_t::addNode(Ret, forward_from<GraphTy>(Nod));
+    traits_t::addNode(Ret, forward_like<GraphTy>(Nod));
   }
   for (auto I : traits_t::vertices(G)) {
     for (auto Child : traits_t::outEdges(G, I)) {

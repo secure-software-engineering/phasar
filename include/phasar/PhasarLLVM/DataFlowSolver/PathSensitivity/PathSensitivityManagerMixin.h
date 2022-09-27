@@ -100,11 +100,13 @@ public:
 
     if (Config.MinimizeDAG) {
       auto Equiv = minimizeGraph(Dag);
-      Dag = static_cast<const Derived *>(this)->reverseDAG(
-          std::move(Dag), Equiv, Config.DAGDepthThreshold);
+      Dag = Derived::reverseDAG(
+          std::move(Dag), [&Equiv](vertex_t Vtx) { return Equiv[Vtx]; },
+          Equiv.getNumClasses(), Config.DAGDepthThreshold);
+    } else if (Config.DAGDepthThreshold != SIZE_MAX) {
+      Dag = Derived::reverseDAG(std::move(Dag), Config.DAGDepthThreshold);
     } else {
-      Dag = static_cast<const Derived *>(this)->reverseDAG(
-          std::move(Dag), Config.DAGDepthThreshold);
+      Dag = reverseGraph(std::move(Dag));
     }
 
     return Dag;
