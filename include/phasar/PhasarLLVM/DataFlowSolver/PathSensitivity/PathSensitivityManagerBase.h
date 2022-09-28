@@ -86,40 +86,70 @@ private:
   [[nodiscard]] static graph_type
   reverseDAG(graph_type &&Dag, const VertexTransform &Equiv, size_t EquivSize,
              size_t MaxDepth) {
+    using graph_traits_t = psr::GraphTraits<graph_type>;
+    using vertex_t = typename graph_traits_t::vertex_t;
     graph_type Ret{};
     if constexpr (psr::is_reservable_graph_trait_v<graph_traits_t>) {
       graph_traits_t::reserve(Ret, EquivSize);
     }
 
-    llvm::SmallVector<vertex_t> Cache;
-    Cache.resize(EquivSize, graph_traits_t::Invalid);
+    // Allocate a buffer for the temporary data needed.
+    // We need:
+    // - A cache of vertex_t
+    // - One worklist WLConsume of pair<vertex_t, vertex_t> where we read from
+    // - One worklist WLInsert of same type where we insert to
 
-    llvm::SmallVector<std::pair<vertex_t, vertex_t>> WL1, WL2;
+    // We iterate over the graph in levels. Each level corresponds to the
+    // distance from a root node. We always have all nodes from a level inside a
+    // worklist
+    // -- The level we are processing is in WLConsume, the next level in
+    // WLInsert. This way, we can stop the process, when we have reached the
+    // MaxDepth
 
-    auto *WLConsume = &WL1;
-    auto *WLInsert = &WL2;
+    auto NumBytes =
+        (sizeof(vertex_t) + 2 * sizeof(std::pair<vertex_t, vertex_t>)) *
+        EquivSize;
+
+    // For performance reasons, we wish to allocate the buffer on the stack, if
+    // it is small enough
+    static constexpr size_t MaxNumBytesInStackBuf = 8192;
+
+    auto *Buf = NumBytes <= MaxNumBytesInStackBuf ? alloca(NumBytes)
+                                                  : new char[NumBytes];
+    std::unique_ptr<char[]> Owner;
+    if (NumBytes > MaxNumBytesInStackBuf) {
+      Owner.reset((char *)Buf);
+    }
+
+    auto Cache = (vertex_t *)Buf;
+    std::uninitialized_fill_n(Cache, EquivSize, graph_traits_t::Invalid);
+
+    auto *WLConsumeBegin =
+        (std::pair<vertex_t, vertex_t> *)((vertex_t *)Buf + EquivSize);
+    auto *WLConsumeEnd = WLConsumeBegin;
+    auto *WLInsertBegin = WLConsumeBegin + EquivSize;
+    auto *WLInsertEnd = WLInsertBegin;
 
     for (auto Rt : graph_traits_t::roots(Dag)) {
-      auto Eq = std::invoke(Equiv, Rt);
+      size_t Eq = std::invoke(Equiv, Rt);
       if (Cache[Eq] == graph_traits_t::Invalid) {
-        Cache[Eq] = graph_traits_t::addNode(
-            Ret, std::move(graph_traits_t::node(Dag, Rt)));
-        WLConsume->emplace_back(Rt, Cache[Eq]);
+        Cache[Eq] = graph_traits_t::addNode(Ret, graph_traits_t::node(Dag, Rt));
+        *WLConsumeEnd++ = {Rt, Cache[Eq]};
       }
     }
 
     size_t Depth = 0;
 
-    while (!WLConsume->empty() && Depth < MaxDepth) {
-      for (auto [Vtx, Rev] : *WLConsume) {
+    while (WLConsumeBegin != WLConsumeEnd && Depth < MaxDepth) {
+      for (auto [Vtx, Rev] : llvm::make_range(WLConsumeBegin, WLConsumeEnd)) {
 
         for (auto Succ : graph_traits_t::outEdges(Dag, Vtx)) {
           auto SuccVtx = graph_traits_t::target(Succ);
-          auto Eq = std::invoke(Equiv, SuccVtx);
+          size_t Eq = std::invoke(Equiv, SuccVtx);
           if (Cache[Eq] == graph_traits_t::Invalid) {
             Cache[Eq] = graph_traits_t::addNode(
-                Ret, std::move(graph_traits_t::node(Dag, SuccVtx)));
-            WLInsert->emplace_back(SuccVtx, Cache[Eq]);
+                Ret, graph_traits_t::node(Dag, SuccVtx));
+            *WLInsertEnd++ = {SuccVtx, Cache[Eq]};
           }
 
           auto SuccRev = Cache[Eq];
@@ -130,13 +160,13 @@ private:
           graph_traits_t::addRoot(Ret, Rev);
         }
       }
-      WLConsume->clear();
 
-      std::swap(WLConsume, WLInsert);
+      std::swap(WLConsumeBegin, WLInsertBegin);
+      WLConsumeEnd = std::exchange(WLInsertEnd, WLInsertBegin);
       ++Depth;
     }
 
-    for (auto [Rt, RtRev] : *WLConsume) {
+    for (auto [Rt, RtRev] : llvm::make_range(WLConsumeBegin, WLConsumeEnd)) {
       // All nodes that were cut off because they are at depth MaxDepth must
       // become roots
       graph_traits_t::addRoot(Ret, RtRev);
