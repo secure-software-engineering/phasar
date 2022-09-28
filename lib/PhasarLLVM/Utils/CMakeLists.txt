@@ -8,6 +8,8 @@ set(PHASAR_LINK_LIBS
 set(LLVM_LINK_COMPONENTS
   Core
   Support
+  BitWriter
+  Demangle
 )
 
 # Handle the library files

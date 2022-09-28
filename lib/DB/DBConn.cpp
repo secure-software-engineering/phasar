@@ -34,8 +34,8 @@
 #include "phasar/DB/Hexastore.h"
 #include "phasar/PhasarLLVM/Pointer/VTable.h"
 
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IO.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Macros.h"
 
