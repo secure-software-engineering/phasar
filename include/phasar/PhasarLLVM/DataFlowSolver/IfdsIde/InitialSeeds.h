@@ -15,7 +15,7 @@
 #include <type_traits>
 
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 

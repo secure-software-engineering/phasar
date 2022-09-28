@@ -16,8 +16,6 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FunctionExtras.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-
 namespace llvm {
 class Function;
 class BasicBlock;

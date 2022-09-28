@@ -12,7 +12,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr::XTaint {
 TransferEdgeFunction::TransferEdgeFunction(BasicBlockOrdering &BBO,
