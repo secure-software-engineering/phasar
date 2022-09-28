@@ -21,6 +21,7 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
 
+#include "nlohmann/json.hpp"
 #include "phasar/Utils/EnumFlags.h"
 
 namespace llvm {
@@ -60,6 +61,8 @@ private:
   std::map<std::string, std::unique_ptr<llvm::Module>> Modules;
   // Maps an id to its corresponding instruction
   std::map<std::size_t, llvm::Instruction *> IDInstructionMapping;
+  size_t NumberCallsites;
+  nlohmann::json StatsJson;
 
   void buildIDModuleMapping(llvm::Module *M);
 
@@ -171,11 +174,17 @@ public:
     return IDInstructionMapping.size();
   }
 
+  [[nodiscard]] inline std::size_t getNumCallsites() const {
+    return NumberCallsites;
+  }
+
   [[nodiscard]] std::size_t getNumGlobals() const;
 
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
+
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
   void print() const;
 
