@@ -130,7 +130,7 @@ private:
   void executeAnalysis() {
     if constexpr (WithConfig) {
       std::string AnalysisConfigPath =
-          (0 < AnalysisConfigs.size()) ? AnalysisConfigs[0] : "";
+          !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
       auto Config =
           !AnalysisConfigPath.empty()
               ? TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath))

@@ -23,8 +23,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;

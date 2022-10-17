@@ -13,7 +13,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 //===----------------------------------------------------------------------===//
 // Unit tests for the code annotation taint configuration
