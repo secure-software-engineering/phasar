@@ -28,16 +28,15 @@
 #include "nlohmann/json.hpp"
 
 #include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
-namespace psr {
-
-std::string readTextFile(const llvm::Twine &Path) {
+std::string psr::readTextFile(const llvm::Twine &Path) {
   auto Buffer = readFile(Path);
   return Buffer->getBuffer().str();
 }
 
-std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
+std::unique_ptr<llvm::MemoryBuffer> psr::readFile(const llvm::Twine &Path) {
   auto Ret = llvm::MemoryBuffer::getFile(Path);
 
   if (!Ret) {
@@ -47,13 +46,13 @@ std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path) {
   return std::move(Ret.get());
 }
 
-nlohmann::json readJsonFile(const llvm::Twine &Path) {
+nlohmann::json psr::readJsonFile(const llvm::Twine &Path) {
   auto Buf = readFile(Path);
   assert(Buf && "File reading failure should already be caught");
   return nlohmann::json::parse(Buf->getBufferStart(), Buf->getBufferEnd());
 }
 
-void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content) {
+void psr::writeTextFile(const llvm::Twine &Path, llvm::StringRef Content) {
   std::error_code EC;
   llvm::SmallString<256> Buf;
   llvm::raw_fd_ostream ROS(Path.toNullTerminatedStringRef(Buf), EC);
@@ -65,4 +64,16 @@ void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content) {
   ROS.write(Content.data(), Content.size());
 }
 
-} // namespace psr
+std::unique_ptr<llvm::raw_fd_ostream>
+psr::openFileStream(const llvm::Twine &Filename) {
+  std::error_code EC;
+  llvm::SmallString<256> Buf;
+  auto OFS = std::make_unique<llvm::raw_fd_ostream>(
+      Filename.toNullTerminatedStringRef(Buf), EC);
+  if (EC) {
+    OFS = nullptr;
+    PHASAR_LOG_LEVEL(INFO,
+                     "Failed to open file: " << Buf << "; " << EC.message());
+  }
+  return OFS;
+}

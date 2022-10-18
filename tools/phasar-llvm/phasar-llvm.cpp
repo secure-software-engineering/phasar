@@ -256,7 +256,7 @@ int main(int Argc, const char **Argv) {
 #endif
   // print PhASAR version
   if (PhasarConfig::VariablesMap().count("version")) {
-    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
+    llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion() << '\n';
     return 0;
   }
   // Vanity header
@@ -270,7 +270,7 @@ int main(int Argc, const char **Argv) {
     std::stringstream S;
     S << Visible << '\n';
     if (PhasarConfig::VariablesMap().count("more-help")) {
-      S << MoreHelp << "\n";
+      S << MoreHelp << '\n';
     }
     llvm::outs() << S.str();
     return 0;
@@ -303,24 +303,56 @@ int main(int Argc, const char **Argv) {
     return 0;
   }
 
+  // setup phasar project id
+  std::string ProjectID = "default-phasar-project";
+  if (PhasarConfig::VariablesMap().count("project-id")) {
+    ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
+  }
+
+  // setup output directory
+  std::filesystem::path ResultDirectory{};
+  if (PhasarConfig::VariablesMap().count("out")) {
+    ResultDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
+    if (!ResultDirectory.empty()) {
+      // create directory for results
+      ResultDirectory /= ProjectID + "-" + createTimeStamp();
+      std::filesystem::create_directory(ResultDirectory);
+    }
+  }
+
   bool EmitStats = PhasarConfig::VariablesMap().count("statistical-analysis");
+  bool EmitStatsJson =
+      PhasarConfig::VariablesMap().count("emit-statistic-as-json");
 
   // setup IRDB as source code manager
   LLVMProjectIRDB IRDB(
       PhasarConfig::VariablesMap()["module"].as<std::string>());
 
-  if (EmitStats) {
-    llvm::outs() << "Module " << IRDB.getModule()->getName().str() << ":\n";
-    llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-                 << "\n";
+  if (EmitStats || EmitStatsJson) {
     GeneralStatisticsAnalysis GSA;
     auto Stats = GSA.runOnModule(*IRDB.getModule());
 
-    llvm::outs() << "> functions:\t\t" << Stats.getFunctions() << "\n";
-    llvm::outs() << "> global variables:\t" << Stats.getGlobals() << "\n";
-    llvm::outs() << "> Alloca instructions:\t"
-                 << Stats.getAllocaInstructions().size() << "\n";
-    llvm::outs() << "> Call Sites:\t" << Stats.getFunctioncalls() << "\n";
+    if (EmitStats) {
+      llvm::outs() << "Module " << IRDB.getModule()->getName().str() << ":\n";
+      llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
+                   << '\n';
+
+      llvm::outs() << "> functions:\t\t" << Stats.getFunctions() << '\n';
+      llvm::outs() << "> global variables:\t" << Stats.getGlobals() << '\n';
+      llvm::outs() << "> Alloca instructions:\t"
+                   << Stats.getAllocaInstructions().size() << '\n';
+      llvm::outs() << "> Call Sites:\t" << Stats.getFunctioncalls() << '\n';
+    }
+
+    if (EmitStatsJson) {
+      if (!ResultDirectory.empty()) {
+        if (auto OFS = openFileStream("/psr-IrStatistic.json")) {
+          *OFS << Stats.getAsJson().dump(4) << '\n';
+        }
+      } else {
+        llvm::outs() << Stats.getAsJson().dump(4) << '\n';
+      }
+    }
   }
 
   // store enabled data-flow analyses
@@ -403,9 +435,7 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
-  if (PhasarConfig::VariablesMap().count("emit-statistic-as-json")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticAsJson;
-  }
+
   if (PhasarConfig::VariablesMap().count("follow-return-past-seeds")) {
     SolverConfig.setFollowReturnsPastSeeds(
         PhasarConfig::VariablesMap()["follow-return-past-seeds"].as<bool>());
@@ -432,21 +462,12 @@ int main(int Argc, const char **Argv) {
     PrecomputedPointsToSet =
         readJsonFile(llvm::StringRef(PTAFile->second.as<std::string>()));
   }
-  // setup output directory
-  std::string OutDirectory;
-  if (PhasarConfig::VariablesMap().count("out")) {
-    OutDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
-  }
-  // setup phasar project id
-  std::string ProjectID;
-  if (PhasarConfig::VariablesMap().count("project-id")) {
-    ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
-  }
+
   AnalysisController Controller(
       IRDB, std::move(DataFlowAnalyses), std::move(AnalysisConfigs), PTATy,
       CGTy, SoundnessLevel,
       PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory,
+      Strategy, EmitterOptions, SolverConfig, ProjectID, ResultDirectory,
       PrecomputedPointsToSet);
   return 0;
 }
