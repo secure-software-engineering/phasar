@@ -21,6 +21,7 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
 
+#include "nlohmann/json.hpp"
 #include "phasar/Utils/EnumFlags.h"
 
 namespace llvm {
@@ -61,6 +62,8 @@ private:
   // Maps an id to its corresponding instruction
   std::map<std::size_t, llvm::Instruction *> IDInstructionMapping;
   size_t NumGlobals = 0;
+  size_t NumberCallsites = 0;
+  nlohmann::json StatsJson;
 
   void buildIDModuleMapping(llvm::Module *M);
 
@@ -173,6 +176,10 @@ public:
     return IDInstructionMapping.size();
   }
 
+  [[nodiscard]] inline std::size_t getNumCallsites() const {
+    return NumberCallsites;
+  }
+
   [[nodiscard]] std::size_t getNumGlobals() const;
 
   [[nodiscard]] std::size_t getNumFunctions() const;
@@ -180,6 +187,8 @@ public:
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
+
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
   void print() const;
 
@@ -223,6 +232,11 @@ public:
   [[nodiscard]] const llvm::Value *
   persistedStringToValue(const std::string &StringRep) const;
 };
+
+/**
+ * Revserses the getMetaDataID function
+ */
+const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id);
 
 } // namespace psr
 

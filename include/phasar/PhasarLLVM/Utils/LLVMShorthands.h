@@ -25,7 +25,6 @@
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Utils/Utilities.h"
 
 namespace psr {
@@ -92,11 +91,6 @@ globalValuesUsedinFunction(const llvm::Function *F);
  * an Instruction, GlobalVariable or Argument.
  */
 std::string getMetaDataID(const llvm::Value *V);
-
-/**
- * Revserses the getMetaDataID function
- */
-const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id);
 
 /**
  * @brief Does less-than comparison based on the annotated ID.

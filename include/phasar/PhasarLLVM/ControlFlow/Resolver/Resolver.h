@@ -20,6 +20,7 @@
 #include "llvm/ADT/DenseSet.h"
 
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace llvm {

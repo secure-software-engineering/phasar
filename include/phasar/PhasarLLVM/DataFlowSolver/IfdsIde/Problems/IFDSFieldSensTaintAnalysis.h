@@ -21,7 +21,7 @@
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace llvm {
 class Value;

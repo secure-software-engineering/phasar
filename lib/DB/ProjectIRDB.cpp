@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <charconv>
 #include <filesystem>
 #include <ostream>
 #include <string>
@@ -31,9 +32,9 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/IO.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
@@ -128,6 +129,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   MPM.run(*M, MAM);
   // retrieve data from the GeneralStatisticsAnalysis registered earlier
   auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
+  StatsJson = GSPResult.getAsJson();
+  NumberCallsites = GSPResult.getFunctioncalls();
   auto Allocas = GSPResult.getAllocaInstructions();
   AllocaInstructions.insert(Allocas.begin(), Allocas.end());
   auto ATypes = GSPResult.getAllocatedTypes();
@@ -274,6 +277,10 @@ void ProjectIRDB::print() const {
     llvm::outs() << *Module;
     llvm::outs().flush();
   }
+}
+
+void ProjectIRDB::printAsJson(llvm::raw_ostream &OS) const {
+  OS << StatsJson.dump(4) << '\n';
 }
 
 void ProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS,
@@ -569,3 +576,44 @@ bool ProjectIRDB::debugInfoAvailable() const {
 }
 
 } // namespace psr
+
+const llvm::Value *psr::fromMetaDataId(const ProjectIRDB &IRDB,
+                                       llvm::StringRef Id) {
+  if (Id.empty() || Id[0] == '-') {
+    return nullptr;
+  }
+
+  auto ParseInt = [](llvm::StringRef Str) -> std::optional<unsigned> {
+    unsigned Num;
+    auto [Ptr, EC] = std::from_chars(Str.data(), Str.data() + Str.size(), Num);
+
+    if (EC == std::errc{}) {
+      return Num;
+    }
+
+    PHASAR_LOG_LEVEL(WARNING, "Invalid metadata id '"
+                                  << Str.str() << "': "
+                                  << std::make_error_code(EC).message());
+    return std::nullopt;
+  };
+
+  if (auto Dot = Id.find('.'); Dot != llvm::StringRef::npos) {
+    auto FName = Id.slice(0, Dot);
+
+    auto ArgNr = ParseInt(Id.drop_front(Dot + 1));
+
+    if (!ArgNr) {
+      return nullptr;
+    }
+
+    const auto *F = IRDB.getFunction(FName);
+    if (F) {
+      return getNthFunctionArgument(F, *ArgNr);
+    }
+
+    return nullptr;
+  }
+
+  auto IdNr = ParseInt(Id);
+  return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
+}
