@@ -19,6 +19,7 @@
 
 #include <set>
 
+#include "nlohmann/json.hpp"
 #include "llvm/IR/PassManager.h"
 
 namespace llvm {
@@ -102,19 +103,20 @@ public:
   /**
    * @brief Returns all possible Types.
    */
-  [[nodiscard]] std::set<const llvm::Type *> getAllocatedTypes() const;
+  [[nodiscard]] const std::set<const llvm::Type *> &getAllocatedTypes() const;
 
   /**
    * @brief Returns all stack and heap allocating instructions.
    */
-  [[nodiscard]] std::set<const llvm::Instruction *>
+  [[nodiscard]] const std::set<const llvm::Instruction *> &
   getAllocaInstructions() const;
 
   /**
    * @brief Returns all Return and Resume Instructions.
    */
-  [[nodiscard]] std::set<const llvm::Instruction *>
+  [[nodiscard]] const std::set<const llvm::Instruction *> &
   getRetResInstructions() const;
+  [[nodiscard]] nlohmann::json getAsJson() const;
 };
 
 /**
@@ -147,7 +149,12 @@ public:
 
   explicit GeneralStatisticsAnalysis() = default;
 
-  GeneralStatistics run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
+  GeneralStatistics runOnModule(llvm::Module &M);
+
+  inline GeneralStatistics run(llvm::Module &M,
+                               llvm::ModuleAnalysisManager & /*AM*/) {
+    return runOnModule(M);
+  }
 };
 
 } // namespace psr

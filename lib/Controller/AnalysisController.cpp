@@ -271,6 +271,16 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       ICF.printAsJson();
     }
   }
+
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticAsJson) {
+    if (!ResultDirectory.empty()) {
+      if (auto OFS = openFileStream("/psr-IrStatistic.json")) {
+        IRDB.printAsJson(*OFS);
+      }
+    } else {
+      IRDB.printAsJson();
+    }
+  }
 }
 
 std::unique_ptr<llvm::raw_fd_ostream>

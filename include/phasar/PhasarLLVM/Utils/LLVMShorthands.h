@@ -104,12 +104,6 @@ globalValuesUsedinFunction(const llvm::Function *F);
 std::string getMetaDataID(const llvm::Value *V);
 
 /**
- * Revserses the getMetaDataID function
- */
-const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
-                                  llvm::StringRef Id);
-
-/**
  * @brief Does less-than comparison based on the annotated ID.
  *
  * This is useful, since Instructions/Globals and Arguments have different

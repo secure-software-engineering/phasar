@@ -10,6 +10,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
@@ -204,6 +205,7 @@ int main(int Argc, const char **Argv) {
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("emit-pta-as-json", "Emit the points-to information as JSON")
+      ("emit-statistic-as-json", "Emit the statistic information as JSON")
       ("follow-return-past-seeds", boost::program_options::value<bool>()->default_value(false), "Let the IFDS/IDE Solver process unbalanced returns")
       ("auto-add-zero", boost::program_options::value<bool>()->default_value(true), "Let the IFDS/IDE Solver automatically add the special zero value to any set of dataflow-facts")
       ("compute-values", boost::program_options::value<bool>()->default_value(true), "Let the IDE Solver compute the values attached to each edge in the ESG")
@@ -311,9 +313,14 @@ int main(int Argc, const char **Argv) {
     llvm::outs() << "Module " << IRDB.getModule()->getName().str() << ":\n";
     llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
                  << "\n";
-    llvm::outs() << "> functions:\t\t" << IRDB.getModule()->size() << "\n";
-    llvm::outs() << "> global variables:\t" << IRDB.getModule()->global_size()
-                 << "\n";
+    GeneralStatisticsAnalysis GSA;
+    auto Stats = GSA.runOnModule(*IRDB.getModule());
+
+    llvm::outs() << "> functions:\t\t" << Stats.getFunctions() << "\n";
+    llvm::outs() << "> global variables:\t" << Stats.getGlobals() << "\n";
+    llvm::outs() << "> Alloca instructions:\t"
+                 << Stats.getAllocaInstructions().size() << "\n";
+    llvm::outs() << "> Call Sites:\t" << Stats.getFunctioncalls() << "\n";
   }
 
   // store enabled data-flow analyses
@@ -395,6 +402,9 @@ int main(int Argc, const char **Argv) {
   }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-statistic-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticAsJson;
   }
   if (PhasarConfig::VariablesMap().count("follow-return-past-seeds")) {
     SolverConfig.setFollowReturnsPastSeeds(

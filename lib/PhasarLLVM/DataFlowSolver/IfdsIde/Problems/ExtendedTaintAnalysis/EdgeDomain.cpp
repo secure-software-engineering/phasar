@@ -9,7 +9,10 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/Support/raw_os_ostream.h"
 
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/IR/CFG.h"

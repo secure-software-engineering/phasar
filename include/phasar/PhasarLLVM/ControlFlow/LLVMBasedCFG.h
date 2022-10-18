@@ -18,7 +18,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
 #include "phasar/PhasarLLVM/ControlFlow/CFG.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Function.h"

@@ -142,6 +142,12 @@ private:
   llvm::DenseMap<const llvm::Value *, size_t> InstToId;
 };
 
+/**
+ * Revserses the getMetaDataID function
+ */
+const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
+                                  llvm::StringRef Id);
+
 extern template class ProjectIRDBBase<LLVMProjectIRDB>;
 } // namespace psr
 

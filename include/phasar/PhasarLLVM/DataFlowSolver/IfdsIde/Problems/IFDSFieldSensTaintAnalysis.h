@@ -11,7 +11,7 @@
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"

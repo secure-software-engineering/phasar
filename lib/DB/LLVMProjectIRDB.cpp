@@ -1,6 +1,6 @@
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/Config/Configuration.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallString.h"
@@ -13,6 +13,8 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/SourceMgr.h"
+
+#include <charconv>
 
 namespace psr {
 
@@ -197,3 +199,44 @@ void LLVMProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS) const {
 template class ProjectIRDBBase<LLVMProjectIRDB>;
 
 } // namespace psr
+
+const llvm::Value *psr::fromMetaDataId(const LLVMProjectIRDB &IRDB,
+                                       llvm::StringRef Id) {
+  if (Id.empty() || Id[0] == '-') {
+    return nullptr;
+  }
+
+  auto ParseInt = [](llvm::StringRef Str) -> std::optional<unsigned> {
+    unsigned Num;
+    auto [Ptr, EC] = std::from_chars(Str.data(), Str.data() + Str.size(), Num);
+
+    if (EC == std::errc{}) {
+      return Num;
+    }
+
+    PHASAR_LOG_LEVEL(WARNING, "Invalid metadata id '"
+                                  << Str.str() << "': "
+                                  << std::make_error_code(EC).message());
+    return std::nullopt;
+  };
+
+  if (auto Dot = Id.find('.'); Dot != llvm::StringRef::npos) {
+    auto FName = Id.slice(0, Dot);
+
+    auto ArgNr = ParseInt(Id.drop_front(Dot + 1));
+
+    if (!ArgNr) {
+      return nullptr;
+    }
+
+    const auto *F = IRDB.getFunction(FName);
+    if (F) {
+      return getNthFunctionArgument(F, *ArgNr);
+    }
+
+    return nullptr;
+  }
+
+  auto IdNr = ParseInt(Id);
+  return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
+}

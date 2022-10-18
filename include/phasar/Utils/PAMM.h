@@ -17,6 +17,8 @@
 #ifndef PHASAR_UTILS_PAMM_H_
 #define PHASAR_UTILS_PAMM_H_
 
+#include "boost/program_options/variables_map.hpp"
+
 #include <chrono>        // high_resolution_clock::time_point, milliseconds
 #include <set>           // set
 #include <string>        // string
@@ -25,7 +27,7 @@
 
 namespace llvm {
 class raw_ostream;
-}
+} // namespace llvm
 
 namespace psr {
 
@@ -188,7 +190,8 @@ public:
   /// \brief Exports the measured data to JSON - associated macro:
   /// EXPORT_MEASURED_DATA(PATH).
   /// \param OutputPath to exported JSON file.
-  void exportMeasuredData(std::string OutputPath);
+  void exportMeasuredData(std::string OutputPath,
+                          boost::program_options::variables_map &Config);
 };
 
 } // namespace psr
