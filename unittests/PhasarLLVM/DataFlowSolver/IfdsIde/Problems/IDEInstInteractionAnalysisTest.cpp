@@ -208,6 +208,26 @@ protected:
 // }
 
 /* ============== BASIC TESTS ============== */
+TEST_F(IDEInstInteractionAnalysisTest, HandleArrayFieldSensTest_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  doAnalysisAndCompareResults("array_01_cpp.ll", GroundTruth, true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleArrayFieldSensTest_02) {
+  std::set<IIACompactResult_t> GroundTruth;
+  doAnalysisAndCompareResults("array_02_cpp.ll", GroundTruth, true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleStructFieldSensTest_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleStructFieldSensTest_02) {
+  std::set<IIACompactResult_t> GroundTruth;
+  doAnalysisAndCompareResults("struct_02_cpp.ll", GroundTruth, true);
+}
+
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
