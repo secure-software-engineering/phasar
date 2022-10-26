@@ -243,10 +243,6 @@ if (PHASAR_IN_TREE)
   )
 endif()
 
-# WALi-OpenNWA
-add_subdirectory(external/WALi-OpenNWA)
-include_directories(external/WALi-OpenNWA/Source/wali/include)
-
 # Set up clang-tidy to run during PhASAR's compilation to indicate code smells
 if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
   message(STATUS "Enabled clang-tidy during build")
