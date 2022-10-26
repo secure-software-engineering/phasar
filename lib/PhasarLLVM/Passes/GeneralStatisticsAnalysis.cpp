@@ -42,6 +42,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
+  Stats.ModuleName = M.getName();
   for (auto &F : M) {
     ++Stats.Functions;
     for (auto &BB : F) {
@@ -217,11 +218,12 @@ GeneralStatistics::getRetResInstructions() const {
 
 nlohmann::json GeneralStatistics::getAsJson() const {
   nlohmann::json J;
+  J["ModuleName"] = GeneralStatistics::ModuleName;
   J["Instructions"] = getInstructions();
   J["Functions"] = Functions;
-  J["Alloca Instructions"] = AllocaInstructions.size();
-  J["Call Sites"] = CallSites;
-  J["Global Variables"] = Globals;
+  J["AllocaInstructions"] = AllocaInstructions.size();
+  J["CallSites"] = CallSites;
+  J["GlobalVariables"] = Globals;
   return J;
 }
 

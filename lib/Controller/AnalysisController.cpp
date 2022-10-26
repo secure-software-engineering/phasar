@@ -273,9 +273,9 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     }
   }
 
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticAsJson) {
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-IrStatistic.json")) {
+      if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
         IRDB.printAsJson(*OFS);
       }
     } else {
