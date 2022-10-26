@@ -15,7 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 
@@ -43,6 +43,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
+  Stats.ModuleName = M.getName();
   for (auto &F : M) {
     ++Stats.Functions;
     for (auto &BB : F) {
@@ -107,8 +108,8 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
                         const llvm::CallBase *CTor =
                             llvm::cast<llvm::CallBase>(User);
                         if (CTor->getCalledFunction() &&
-                            getNthFunctionArgument(CTor->getCalledFunction(), 0)
-                                    ->getType() == Cast->getDestTy()) {
+                            CTor->getCalledFunction()->getArg(0)->getType() ==
+                                Cast->getDestTy()) {
                           Stats.AllocatedTypes.insert(
                               Cast->getDestTy()->getPointerElementType());
                         }
@@ -218,11 +219,12 @@ GeneralStatistics::getRetResInstructions() const {
 
 nlohmann::json GeneralStatistics::getAsJson() const {
   nlohmann::json J;
+  J["ModuleName"] = GeneralStatistics::ModuleName;
   J["Instructions"] = getInstructions();
   J["Functions"] = Functions;
-  J["Alloca Instructions"] = AllocaInstructions.size();
-  J["Call Sites"] = CallSites;
-  J["Global Variables"] = Globals;
+  J["AllocaInstructions"] = AllocaInstructions.size();
+  J["CallSites"] = CallSites;
+  J["GlobalVariables"] = Globals;
   return J;
 }
 

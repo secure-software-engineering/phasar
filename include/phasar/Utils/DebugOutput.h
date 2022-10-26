@@ -9,7 +9,7 @@
 #ifndef PHASAR_UTILS_DEBUGOUTPUT_H
 #define PHASAR_UTILS_DEBUGOUTPUT_H
 
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/SmallBitVector.h"

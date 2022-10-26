@@ -7,6 +7,7 @@ include_directories(
 set(PHASAR_LINK_LIBS
   phasar_passes
   phasar_utils
+  phasar_phasarllvm_utils
 )
 
 set(LLVM_LINK_COMPONENTS

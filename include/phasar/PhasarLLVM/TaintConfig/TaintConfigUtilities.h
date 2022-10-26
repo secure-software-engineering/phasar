@@ -18,7 +18,7 @@
 #include "llvm/IR/Instructions.h"
 
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 template <typename ContainerTy,
