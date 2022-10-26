@@ -14,13 +14,10 @@
  *      Author: philipp
  */
 
-#include <cctype>
-#include <charconv>
-#include <cstdlib>
-#include <optional>
-#include <system_error>
-
-#include "boost/algorithm/string/trim.hpp"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Config/Configuration.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -38,10 +35,13 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
+#include "boost/algorithm/string/trim.hpp"
+
+#include <cctype>
+#include <charconv>
+#include <cstdlib>
+#include <optional>
+#include <system_error>
 
 using namespace std;
 using namespace psr;

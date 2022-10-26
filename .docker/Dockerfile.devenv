@@ -16,4 +16,5 @@ USER vscode
 
 ENV CC "/usr/bin/clang-14"
 ENV CXX "/usr/bin/clang++-14"
+ENV PATH "/usr/local/llvm-14/bin:/home/vscode/.local/bin:$PATH"
 ENV CMAKE_GENERATOR "Ninja"
