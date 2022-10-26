@@ -7,20 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
-#include <variant>
-
-#include "gtest/gtest.h"
-
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/Instruction.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -30,6 +19,18 @@
 #include "phasar/Utils/Logger.h"
 
 #include "TestConfig.h"
+
+#include "gtest/gtest.h"
+
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <memory>
+#include <set>
+#include <string>
+#include <tuple>
+#include <variant>
 
 using namespace psr;
 
@@ -49,13 +50,16 @@ protected:
 
   void SetUp() override {}
 
-  //   IDEInstInteractionAnalysis::lca_restults_t
+  void initializeIR(const std::string &LlvmFilePath) {
+    auto IRFiles = {PathToLlFiles + LlvmFilePath};
+    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  }
+
   void
   doAnalysisAndCompareResults(const std::string &LlvmFilePath,
                               const std::set<IIACompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    initializeIR(LlvmFilePath);
     if (PrintDump) {
       IRDB->emitPreprocessedIR(llvm::outs(), false);
     }
@@ -115,18 +119,41 @@ protected:
     }
     // IIASolver.emitESGasDot();
     // do the comparison
-    for (const auto &Truth : GroundTruth) {
-      const auto *Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
-      const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
+    for (const auto &[FunName, SrcLine, VarName, LatticeVal] : GroundTruth) {
+      const auto *Fun = IRDB->getFunctionDefinition(FunName);
+      const auto *Line = getNthInstruction(Fun, SrcLine);
       auto ResultMap = IIASolver.resultsAt(Line);
+      //   // <<<<<<< Updated upstream
+      //   //       for (auto &[Fact, Value] : ResultMap) {
+      //   //         std::string FactStr = llvmIRToString(Fact);
+      //   //         llvm::StringRef FactRef(FactStr);
+      //   //         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
+      //   //           PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " <<
+      //   FactStr);
+      //   //           EXPECT_EQ(std::get<3>(Truth), Value);
+      //   //         }
+      //   //       }
+      //   // =======
+      bool FactFound = false;
       for (auto &[Fact, Value] : ResultMap) {
-        std::string FactStr = llvmIRToString(Fact);
+        std::string FactStr;
+        llvm::raw_string_ostream RSO(FactStr);
+        RSO << Fact;
         llvm::StringRef FactRef(FactStr);
-        if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
+        if (FactRef.startswith("%" + VarName + " ")) {
           PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
-          EXPECT_EQ(std::get<3>(Truth), Value);
+          EXPECT_EQ(LatticeVal, Value);
+          FactFound = true;
         }
       }
+      if (!FactFound) {
+        PHASAR_LOG_LEVEL(DFADEBUG, "Variable '" << VarName << "' missing at '"
+                                                << llvmIRToShortString(Line)
+                                                << "'.");
+        llvm::outs() << "Variable '" << VarName << "' missing at '"
+                     << llvmIRToShortString(Line) << "'.";
+      }
+      EXPECT_TRUE(FactFound);
     }
   }
 
@@ -134,99 +161,289 @@ protected:
 
 }; // Test Fixture
 
-// /* ============== BASIC TESTS for int ====== */
+TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
+  initializeIR("array_01_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 14);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 17);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  ASSERT_TRUE(true);
+}
 
-// // have a minimal individual test that instantiates the
-// // IDEInstInteractionAnalysisT for a non-string template parameter
-// // IDEInstInteractionAnalysisT<int>
-// TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
-//   bool printDump = false;
-//   ProjectIRDB IRDB(
-//       {PhasarConfig::getPhasarConfig().PhasarDirectory() +
-//        "build/test/llvm_test_code/inst_interaction/basic_01_cpp.ll"},
-//       IRDBOptions::WPA);
-//   if (printDump) {
-//     IRDB.emitPreprocessedIR(llvm::outs(), false);
-//   }
-//   ValueAnnotationPass::resetValueID();
-//   LLVMTypeHierarchy TH(IRDB);
-//   LLVMPointsToInfo PT(IRDB);
-//   std::set<std::string> EntryPoints({"main"});
-//   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
-//   &PT); IDEInstInteractionAnalysisT<int> IIAProblem(&IRDB, &TH, &ICFG, &PT,
-//                                               EntryPoints);
-//   // use Phasar's instruction ids as testing labels
-//   auto Generator = [](const llvm::Instruction *I, const llvm::Value *SrcNode,
-//                       const llvm::Value *DestNode) -> std::set<int> {
-//     std::set<int> Labels;
-//     if (I->hasMetadata()) {
-//       std::string Label =
-//           llvm::cast<llvm::MDString>(
-//               I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
-//               ->getString()
-//               .str();
-//       Labels.insert(std::stoi(Label));
-//     }
-//     return Labels;
-//   };
-//   // register the above generator function
-//   IIAProblem.registerEdgeFactGenerator(Generator);
-//   IDESolver_P<IDEInstInteractionAnalysisT<int>> IIASolver(IIAProblem);
-//   IIASolver.solve();
-//   if (printDump) {
-//     IIASolver.dumpResults();
-//   }
-//   // IIASolver.emitESGasDot();
-//   // specify the ground truth
-//   using IIACompactResultInteger_t =
-//       std::tuple<std::string, std::size_t, std::string,
-//                  IDEInstInteractionAnalysisT<int>::l_t>;
-//   std::set<IIACompactResultInteger_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
-//           "main", 9, "i", {1, 4, 5}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
-//           "main", 9, "j", {1, 2, 4, 7}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
-//           "main", 9, "retval", {0, 3}));
-//   // do the comparison
-//   for (auto &Truth : GroundTruth) {
-//     auto Fun = IRDB.getFunctionDefinition(std::get<0>(Truth));
-//     auto Line = getNthInstruction(Fun, std::get<1>(Truth));
-//     auto ResultMap = IIASolver.resultsAt(Line);
-//     for (auto &[Fact, Value] : ResultMap) {
-//       std::string FactStr = llvmIRToString(Fact);
-//       llvm::StringRef FactRef(FactStr);
-//       if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-//         llvm::outs() << "Checking variable: " << FactStr << std::endl;
-//         EXPECT_EQ(std::get<3>(Truth), Value);
-//       }
-//     }
-//   }
+TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_02) {
+  initializeIR("array_02_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 3);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 5);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 6);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  ASSERT_TRUE(true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_03) {
+  initializeIR("array_03_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 5);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 6);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 7);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  ASSERT_TRUE(true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_01) {
+  initializeIR("struct_01_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 14);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 17);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  ASSERT_TRUE(true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_02) {
+  initializeIR("struct_02_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 6);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 7);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  Inst = getNthInstruction(Main, 9);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << FlowFact << '\n';
+  ASSERT_TRUE(true);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_01) {
+  initializeIR("array_01_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, FlowFact);
+
+  Inst = getNthInstruction(Main, 4);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 14);
+  auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_NE(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 14);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 19);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 17);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 22);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_02) {
+  initializeIR("array_02_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, FlowFact);
+
+  Inst = getNthInstruction(Main, 5);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 8);
+  auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 6);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 9);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 5);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 6);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_NE(FlowFact, OtherFlowFact);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_03) {
+  initializeIR("array_03_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, FlowFact);
+
+  Inst = getNthInstruction(Main, 5);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 9);
+  auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 6);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 10);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 7);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 11);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 6);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 11);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  // For K-limit of 2, this should be considered equal
+  if (IDEIIAFlowFact::KLimit <= 2) {
+    ASSERT_EQ(FlowFact, OtherFlowFact);
+  } else {
+    ASSERT_NE(FlowFact, OtherFlowFact);
+  }
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, StructEquality_01) {
+  initializeIR("struct_01_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, FlowFact);
+
+  Inst = getNthInstruction(Main, 14);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 22);
+  auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 17);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 25);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 20);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 28);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 17);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 20);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  llvm::outs() << "Compare:\n";
+  llvm::outs() << FlowFact << '\n';
+  llvm::outs() << OtherFlowFact << '\n';
+  // FIXME
+  // ASSERT_NE(FlowFact, OtherFlowFact);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
+  initializeIR("struct_02_cpp.ll");
+  const auto *Main = IRDB->getFunction("main");
+  const auto *Inst = getNthInstruction(Main, 2);
+  auto FlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, FlowFact);
+
+  Inst = getNthInstruction(Main, 6);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 11);
+  auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 6);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 7);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_NE(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 7);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 12);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 9);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 15);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_EQ(FlowFact, OtherFlowFact);
+
+  Inst = getNthInstruction(Main, 6);
+  FlowFact = IDEIIAFlowFact::create(Inst);
+  Inst = getNthInstruction(Main, 9);
+  OtherFlowFact = IDEIIAFlowFact::create(Inst);
+  ASSERT_NE(FlowFact, OtherFlowFact);
+}
+
+// TODO
+// TEST_F(IDEInstInteractionAnalysisTest, HandleArrayTest_01) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   //   GroundTruth.emplace(
+//   //   std::tuple<std::string, size_t, std::string,
+//   BitVectorSet<std::string>>(
+//   //   "main", 9, "i", {"4", "5"}));
+//   doAnalysisAndCompareResults("array_01_cpp.ll", GroundTruth, true);
 // }
 
-/* ============== BASIC TESTS ============== */
-TEST_F(IDEInstInteractionAnalysisTest, HandleArrayFieldSensTest_01) {
-  std::set<IIACompactResult_t> GroundTruth;
-  doAnalysisAndCompareResults("array_01_cpp.ll", GroundTruth, true);
-}
-
-TEST_F(IDEInstInteractionAnalysisTest, HandleArrayFieldSensTest_02) {
-  std::set<IIACompactResult_t> GroundTruth;
-  doAnalysisAndCompareResults("array_02_cpp.ll", GroundTruth, true);
-}
-
-TEST_F(IDEInstInteractionAnalysisTest, HandleStructFieldSensTest_01) {
-  std::set<IIACompactResult_t> GroundTruth;
-  doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, true);
-}
-
-TEST_F(IDEInstInteractionAnalysisTest, HandleStructFieldSensTest_02) {
-  std::set<IIACompactResult_t> GroundTruth;
-  doAnalysisAndCompareResults("struct_02_cpp.ll", GroundTruth, true);
-}
+// TEST_F(IDEInstInteractionAnalysisTest, HandleArrayTest_02) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   //   GroundTruth.emplace(
+//   //   std::tuple<std::string, size_t, std::string,
+//   BitVectorSet<std::string>>(
+//   //   "main", 9, "i", {"4", "5"}));
+//   doAnalysisAndCompareResults("array_02_cpp.ll", GroundTruth, false);
+// }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {
   std::set<IIACompactResult_t> GroundTruth;

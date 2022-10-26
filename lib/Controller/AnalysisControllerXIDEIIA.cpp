@@ -13,7 +13,7 @@
 namespace psr {
 
 void AnalysisController::executeIDEIIA() {
-  executeIDEAnalysis<IDEInstInteractionAnalysis>();
+  // executeIDEAnalysis<IDEInstInteractionAnalysis>();
 }
 
 } // namespace psr

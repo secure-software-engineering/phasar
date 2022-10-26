@@ -14,62 +14,103 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
+#include <algorithm>
+#include <llvm/IR/Instruction.h>
 #include <memory>
 #include <tuple>
 
 using namespace psr;
 
-IDEIIAFlowFact::IDEIIAFlowFact(const llvm::Value *BaseVal) : Base(BaseVal) {}
+IDEIIAFlowFact::IDEIIAFlowFact(const llvm::Value *BaseVal) : BaseVal(BaseVal) {}
 
 IDEIIAFlowFact::IDEIIAFlowFact(
     const llvm::Value *BaseVal,
-    llvm::SmallVector<const llvm::GetElementPtrInst *, Depth> FieldDesc)
-    : Base(BaseVal), Field(std::move(FieldDesc)) {}
+    llvm::SmallVector<const llvm::GetElementPtrInst *, KLimit> FieldDesc)
+    : BaseVal(BaseVal), FieldDesc(std::move(FieldDesc)) {
+  assert(FieldDesc.size() <= getKLimit() &&
+         "Field descriptor exceeds k-limit!");
+}
 
 IDEIIAFlowFact IDEIIAFlowFact::create(const llvm::Value *BaseVal) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(BaseVal)) {
     return {BaseVal};
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(BaseVal)) {
-    llvm::SmallVector<const llvm::GetElementPtrInst *, Depth> Field;
-    Field.push_back(Gep);
-    const llvm::Value *Base = Gep->getPointerOperand();
-    while (const auto *NextGep = llvm::dyn_cast<llvm::GetElementPtrInst>(Base)
-                                     ->getPointerOperand()) {
-      Field.push_back(NextGep);
-      Base = NextGep;
+    // Construct field descriptor
+    llvm::SmallVector<const llvm::GetElementPtrInst *, KLimit> FieldDesc;
+    FieldDesc.push_back(Gep);
+    const auto *NextGep = Gep->getPointerOperand();
+    while (llvm::isa_and_nonnull<llvm::GetElementPtrInst>(NextGep)) {
+      Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(NextGep);
+      if (FieldDesc.size() >= KLimit) {
+        // do a left shift to make space
+        if (FieldDesc.size() == 1) {
+          FieldDesc.pop_back();
+        } else {
+          for (size_t Idx = 0; Idx < FieldDesc.size() - 1; ++Idx) {
+            FieldDesc[Idx] = FieldDesc[Idx + 1];
+          }
+          FieldDesc.pop_back();
+        }
+      }
+      FieldDesc.push_back(Gep);
+      NextGep = Gep->getPointerOperand();
     }
-    return {Base, Field};
+    std::reverse(FieldDesc.begin(), FieldDesc.end());
+    // Get base variable
+    if (llvm::isa_and_nonnull<llvm::AllocaInst>(NextGep)) {
+      BaseVal = NextGep;
+    }
+    assert(BaseVal && "BaseVal cannot be nullptr!");
+    if (KLimit == 0) {
+      return {BaseVal};
+    }
+    return {BaseVal, FieldDesc};
   }
   llvm::report_fatal_error("Unexpected instruction!");
 }
 
 bool IDEIIAFlowFact::flowFactEqual(const IDEIIAFlowFact &Other) const {
-  return false;
+  return *this == Other;
 }
 
-void IDEIIAFlowFact::print(llvm::raw_ostream &OS, bool IsForDebug) const {
-  OS << "IDEIIAFlowFact { " << *Base;
-  if (Field.empty()) {
+void IDEIIAFlowFact::print(llvm::raw_ostream &OS,
+                           [[maybe_unused]] bool IsForDebug) const {
+  OS << "IDEIIAFlowFact { ";
+  if (!BaseVal) {
+    OS << "nullptr";
+  } else {
+    OS << *BaseVal;
+  }
+  if (FieldDesc.empty()) {
     OS << " }";
   } else {
-    OS << ", [";
-    for (const auto *Gep : Field) {
+    OS << ",\n\t[\n\t\t";
+    for (const auto *Gep : FieldDesc) {
       OS << *Gep;
-      if (Gep != Field.back()) {
-        OS << ", ";
+      if (Gep != FieldDesc.back()) {
+        OS << ",\n\t\t";
       }
     }
-    OS << "] }";
+    OS << "\n\t]\n}";
   }
 }
 
 bool IDEIIAFlowFact::operator==(const IDEIIAFlowFact &Other) const {
-  if (Base != Other.Base) {
+  if (BaseVal != Other.BaseVal) {
     return false;
   }
-  for (unsigned Idx = 0; Idx < Field.size(); ++Idx) {
-    if (Field[Idx] != Other.Field[Idx]) {
+  if (FieldDesc.size() != Other.FieldDesc.size()) {
+    return false;
+  }
+  auto EqualGEPDescriptor = [](const llvm::GetElementPtrInst *Lhs,
+                               const llvm::GetElementPtrInst *Rhs) {
+    const auto *LhsI = llvm::dyn_cast<llvm::Instruction>(Lhs);
+    const auto *RhsI = llvm::dyn_cast<llvm::Instruction>(Rhs);
+    return LhsI->isSameOperationAs(RhsI);
+  };
+  for (unsigned Idx = 0; Idx < FieldDesc.size(); ++Idx) {
+    if (!EqualGEPDescriptor(FieldDesc[Idx], Other.FieldDesc[Idx])) {
       return false;
     }
   }
@@ -81,9 +122,10 @@ bool IDEIIAFlowFact::operator!=(const IDEIIAFlowFact &Other) const {
 }
 
 bool IDEIIAFlowFact::operator<(const IDEIIAFlowFact &Other) const {
-  return std::tie(Base, Field) < std::tie(Other.Base, Other.Field);
+  return std::tie(BaseVal, FieldDesc) <
+         std::tie(Other.BaseVal, Other.FieldDesc);
 }
 
 bool IDEIIAFlowFact::operator==(const llvm::Value *V) const {
-  return Base == V;
+  return BaseVal == V && FieldDesc.empty();
 }
