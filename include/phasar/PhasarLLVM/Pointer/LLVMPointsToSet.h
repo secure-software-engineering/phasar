@@ -22,8 +22,6 @@
 
 #include "nlohmann/json.hpp"
 
-#include <memory_resource>
-
 namespace llvm {
 class Value;
 class Module;

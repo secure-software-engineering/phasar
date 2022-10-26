@@ -7,7 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/ADT/StringSwitch.h>
+#include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include <string>
 
 #include "phasar/PhasarLLVM/ControlFlow/CFG.h"
@@ -37,8 +39,8 @@ SpecialMemberFunctionType toSpecialMemberFunctionType(const std::string &SMFT) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &OS,
-                         const SpecialMemberFunctionType &SMFT) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const SpecialMemberFunctionType &SMFT) {
   return OS << toString(SMFT);
 }
 
