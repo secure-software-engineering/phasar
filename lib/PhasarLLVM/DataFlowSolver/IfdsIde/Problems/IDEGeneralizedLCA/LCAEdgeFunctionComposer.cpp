@@ -35,15 +35,11 @@ LCAEdgeFunctionComposer::composeWith(
   // see <phasar/PhasarLVM/IfdsIde/IDELinearConstantAnalysis.h>
 
   if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
-          SecondFunction.get()) ||
-      dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
-    return shared_from_this();
-  }
-  if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
           SecondFunction.get())) {
     return shared_from_this();
   }
-  if (dynamic_cast<GenConstant *>(SecondFunction.get())) {
+  if (dynamic_cast<GenConstant *>(SecondFunction.get()) ||
+      AllBot::isBot(SecondFunction)) {
     return SecondFunction;
   }
   auto GPrime = G->composeWith(SecondFunction);

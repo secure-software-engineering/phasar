@@ -212,6 +212,13 @@ std::string llvmIRToShortString(const llvm::Value *V) {
   return IRBuffer;
 }
 
+void dumpIRValue(const llvm::Value *V) {
+  llvm::outs() << llvmIRToString(V) << '\n';
+}
+void dumpIRValue(const llvm::Instruction *V) {
+  llvm::outs() << llvmIRToString(V) << '\n';
+}
+
 std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F) {
   std::vector<const llvm::Value *> GlobalsUsed;
