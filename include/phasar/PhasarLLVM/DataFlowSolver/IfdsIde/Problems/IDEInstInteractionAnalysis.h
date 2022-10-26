@@ -1104,6 +1104,7 @@ public:
                                                     CurrNode,
                                                     OnlyConsiderLocalAliases) ||
              Store->getPointerOperand() == CurrNode)) {
+          // Add the original variable, i.e., memory location.
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
         // Kill all labels that are propagated along the edge of the

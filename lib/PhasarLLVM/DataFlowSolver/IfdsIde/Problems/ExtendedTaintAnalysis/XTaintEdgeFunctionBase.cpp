@@ -41,7 +41,7 @@ EdgeFunctionBase::composeWith(EdgeFunctionPtrType SecondFunction) {
 EdgeFunctionBase::EdgeFunctionPtrType
 EdgeFunctionBase::joinWith(EdgeFunctionPtrType OtherFunction) {
   if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
-    return shared_from_this();
+    return OtherFunction;
   }
   if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction)) {
     return shared_from_this();
@@ -50,9 +50,9 @@ EdgeFunctionBase::joinWith(EdgeFunctionPtrType OtherFunction) {
     return shared_from_this();
   }
 
-  if (isEdgeIdentity(&*OtherFunction)) {
-    return getAllBot();
-  }
+  // if (isEdgeIdentity(&*OtherFunction)) {
+  //   return getAllBot();
+  // }
 
   if (auto *Gen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
     if (Gen->getSanitizer() == nullptr) {

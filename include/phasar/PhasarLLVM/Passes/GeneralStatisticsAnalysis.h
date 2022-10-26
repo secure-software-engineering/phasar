@@ -48,6 +48,7 @@ private:
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;
   std::set<const llvm::Instruction *> RetResInstructions;
+  std::string ModuleName = "";
 
 public:
   /**

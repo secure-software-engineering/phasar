@@ -7,12 +7,9 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <unordered_set>
-#include <vector>
-
 #include "gtest/gtest.h"
 
-#include "llvm/Support/raw_ostream.h"
+#include "TestConfig.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
@@ -22,7 +19,10 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
-#include "TestConfig.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <unordered_set>
+#include <vector>
 
 using namespace psr;
 

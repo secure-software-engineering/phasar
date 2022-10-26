@@ -519,7 +519,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "k", {"10", "11", "12", "16", "19", "20", "25", "27"}));
-  doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth, true);
 })
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
@@ -739,7 +739,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 9, "j", {"0", "5", "6"}));
-  doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, false);
+  doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, true);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
