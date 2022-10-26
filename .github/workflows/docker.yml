@@ -3,8 +3,6 @@ name: Docker Image
 on:
   push:
     branches: [ development ]
-  pull_request:
-    branches: [ development ]
 
 jobs:
   push_to_registries:
@@ -19,7 +17,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2 
+        uses: docker/setup-buildx-action@v2
       # If we want to publish an image of PhASAR to the official docker hub we
       # can just use the following code and set the corresponding secrets.
       # - name: Log in to Docker Hub
