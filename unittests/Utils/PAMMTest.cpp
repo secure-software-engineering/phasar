@@ -1,4 +1,5 @@
 #include "phasar/Utils/PAMM.h"
+#include "phasar/Config/Configuration.h"
 #include "gtest/gtest.h"
 #include <thread>
 
@@ -100,7 +101,7 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   Pamm.addToHistogram("Test-Set", "2");
   Pamm.incCounter("setOpCount", 9);
   Pamm.stopTimer("timer3");
-  Pamm.exportMeasuredData("HandleJSONOutputTest");
+  Pamm.exportMeasuredData("HandleJSONOutputTest", PhasarConfig::VariablesMap());
 }
 
 TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {

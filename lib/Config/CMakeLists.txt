@@ -4,6 +4,10 @@ set(LLVM_LINK_COMPONENTS
   Support
 )
 
+set(PHASAR_LINK_LIBS
+  phasar_utils
+)
+
 if(BUILD_SHARED_LIBS)
   add_phasar_library(phasar_config
     SHARED

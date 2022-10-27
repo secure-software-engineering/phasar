@@ -6,9 +6,7 @@ if(PHASAR_ENABLE_PAMM STREQUAL "Off" AND NOT PHASAR_BUILD_UNITTESTS)
   list(REMOVE_ITEM UTILS_SRC ${pamm_src})
 endif()
 
-set(PHASAR_LINK_LIBS
-  phasar_config
-)
+
 
 set(LLVM_LINK_COMPONENTS
   Core
