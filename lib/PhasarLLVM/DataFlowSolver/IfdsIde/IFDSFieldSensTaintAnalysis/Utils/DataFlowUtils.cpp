@@ -2,6 +2,14 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/Analysis/PostDominators.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -14,13 +22,6 @@
 #include <sstream>
 #include <stack>
 #include <string>
-
-#include "llvm/Analysis/PostDominators.h"
-#include "llvm/IR/IntrinsicInst.h"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h"
-#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace psr;
 

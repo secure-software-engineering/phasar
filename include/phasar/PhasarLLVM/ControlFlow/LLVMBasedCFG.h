@@ -25,7 +25,7 @@
 #include "llvm/IR/Function.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/CFG.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
 #include "nlohmann/json.hpp"
 

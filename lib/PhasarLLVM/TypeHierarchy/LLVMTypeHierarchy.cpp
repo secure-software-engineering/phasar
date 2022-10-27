@@ -32,12 +32,13 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/GraphExtensions.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -168,14 +169,13 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-              CE->getAsInstruction(), &deleteValue);
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
+
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName =
-                    removeTypeInfoPrefix(llvm::demangle(Name.str().c_str()));
+                    removeTypeInfoPrefix(llvm::demangle(Name.str()));
                 if (const auto *Type = ClearNameTypeMap[ClearName]) {
                   SubTypes.push_back(Type);
                 }

@@ -21,8 +21,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/LLVMShorthands.h"
 
 namespace std {
 template <> struct hash<pair<const llvm::Value *, unsigned>> {

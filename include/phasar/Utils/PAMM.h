@@ -191,7 +191,7 @@ public:
   /// EXPORT_MEASURED_DATA(PATH).
   /// \param OutputPath to exported JSON file.
   void exportMeasuredData(std::string OutputPath,
-                          boost::program_options::variables_map &VarMap);
+                          boost::program_options::variables_map &Config);
 };
 
 } // namespace psr

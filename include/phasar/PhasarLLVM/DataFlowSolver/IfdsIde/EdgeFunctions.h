@@ -119,7 +119,7 @@ private:
   const L TopElement;
 
 public:
-  AllTop(const L TopElement) : TopElement(std::move(TopElement)) {}
+  AllTop(L TopElement) : TopElement(std::move(TopElement)) {}
 
   ~AllTop() override = default;
 
@@ -160,33 +160,18 @@ private:
   const L BottomElement;
 
 public:
-  AllBottom(const L BottomElement) : BottomElement(std::move(BottomElement)) {}
+  AllBottom(L BottomElement) : BottomElement(std::move(BottomElement)) {}
 
   ~AllBottom() override = default;
 
   L computeTarget(L /*Source*/) override { return BottomElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(SecondFunction.get())) {
-      return this->shared_from_this();
-    }
-    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(SecondFunction.get())) {
-      return this->shared_from_this();
-    }
-    return SecondFunction->composeWith(this->shared_from_this());
+  EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
+    return this->shared_from_this();
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
-    if (OtherFunction.get() == this ||
-        OtherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
-    }
-    if (auto *Alltop = dynamic_cast<AllTop<L> *>(OtherFunction.get())) {
-      return this->shared_from_this();
-    }
-    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(OtherFunction.get())) {
-      return this->shared_from_this();
-    }
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType /*OtherFunction*/) override {
     return this->shared_from_this();
   }
 

@@ -31,7 +31,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
 else()
   message(STATUS "Selected Release Build")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
 endif()
 
 # Enable testing
@@ -280,10 +280,6 @@ if(PHASAR_IN_TREE)
     ${PROJECT_BINARY_DIR}/tools/clang/include
   )
 endif()
-
-# WALi-OpenNWA
-add_subdirectory(external/WALi-OpenNWA)
-include_directories(external/WALi-OpenNWA/Source/wali/include)
 
 # Set up clang-tidy to run during PhASAR's compilation to indicate code smells
 if(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)

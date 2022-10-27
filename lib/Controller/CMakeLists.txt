@@ -10,6 +10,7 @@ set(PHASAR_LINK_LIBS
   phasar_phasarllvm_utils
   phasar_utils
   phasar_analysis_strategy
+  phasar_taintconfig
 )
 
 set(LLVM_LINK_COMPONENTS
@@ -32,6 +33,7 @@ endif()
 target_link_libraries(phasar_controller
   LINK_PUBLIC
   curl
+  ${CMAKE_THREAD_LIBS_INIT}
   ${PHASAR_STD_FILESYSTEM}
 )
 

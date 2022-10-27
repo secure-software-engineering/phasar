@@ -1,12 +1,19 @@
-
-struct X {
-  int i;
-  int j;
-  X(int i, int j) : i(i), j(j) {}
+struct S {
+  int a;
+  int b;
+  int c;
 };
 
 int main() {
-  X x(10, 20);
-  int a = x.i;
-  return a;
+  int i = 1;
+  int j = 2;
+  int k = 3;
+  S l;
+  l.a = i;
+  l.b = j;
+  l.c = k;
+  int x = l.a;
+  int y = l.b;
+  int z = l.c;
+  return 0;
 }

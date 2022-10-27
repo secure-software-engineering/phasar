@@ -9,18 +9,18 @@
 #ifndef PHASAR_UTILS_DEBUGOUTPUT_H
 #define PHASAR_UTILS_DEBUGOUTPUT_H
 
-#include <ostream>
-#include <tuple>
-#include <type_traits>
-#include <utility>
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/TypeTraits.h"
+#include <ostream>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 namespace psr {
 namespace detail {

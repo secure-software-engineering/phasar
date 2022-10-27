@@ -1,4 +1,7 @@
 set(Sources
+  array_01.cpp
+  array_02.cpp
+  array_03.cpp
   basic_01.cpp
   basic_02.cpp
   basic_03.cpp
@@ -24,6 +27,7 @@ set(Sources
   return_01.cpp
   rvo_01.cpp
   struct_01.cpp
+  struct_02.cpp
 )
 
 set(SourcesOpt

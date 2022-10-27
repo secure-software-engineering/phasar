@@ -274,7 +274,7 @@ void PAMM::printMeasuredData(llvm::raw_ostream &Os) {
 }
 
 void PAMM::exportMeasuredData(std::string OutputPath,
-                              boost::program_options::variables_map &VarMap) {
+                              boost::program_options::variables_map &Config) {
   // json file for holding all data
   json JsonData;
 
@@ -313,15 +313,15 @@ void PAMM::exportMeasuredData(std::string OutputPath,
 
   // add analysis/project/source file information if available
   json JInfo;
-  if (VarMap.count("project-id")) {
-    JInfo["Project-ID"] = VarMap["project-id"].as<std::string>();
+  if (Config.count("project-id")) {
+    JInfo["Project-ID"] = Config["project-id"].as<std::string>();
   }
-  if (VarMap.count("module")) {
-    JInfo["Module(s)"] = VarMap["module"].as<std::vector<std::string>>();
+  if (Config.count("module")) {
+    JInfo["Module(s)"] = Config["module"].as<std::vector<std::string>>();
   }
-  if (VarMap.count("data-flow-analysis")) {
+  if (Config.count("data-flow-analysis")) {
     JInfo["Data-flow analysis"] =
-        VarMap["data-flow-analysis"].as<std::vector<std::string>>();
+        Config["data-flow-analysis"].as<std::vector<std::string>>();
   }
   if (!JInfo.is_null()) {
     JsonData["Info"] = JInfo;

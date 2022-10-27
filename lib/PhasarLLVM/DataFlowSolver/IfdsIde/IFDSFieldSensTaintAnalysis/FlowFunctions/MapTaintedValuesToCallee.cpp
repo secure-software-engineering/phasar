@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <tuple>
 
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 

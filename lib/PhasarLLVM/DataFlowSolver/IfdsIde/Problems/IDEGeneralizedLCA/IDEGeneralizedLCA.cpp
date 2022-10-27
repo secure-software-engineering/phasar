@@ -7,15 +7,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <sstream>
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/raw_ostream.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -25,13 +17,21 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
+
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <sstream>
 
 namespace psr {
 
@@ -301,8 +301,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
 
   // All_Bottom for zero value
   if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
-    static auto AllBot = std::make_shared<AllBottom<l_t>>(bottomElement());
-    return AllBot;
+    return EdgeIdentity<l_t>::getInstance();
   }
   // Check store instruction
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {

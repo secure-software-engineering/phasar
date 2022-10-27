@@ -73,31 +73,9 @@ Done!
 
 
 ### Installing PhASAR a MacOS system
-Mac OS 10.13.1 or higher only!
-To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
-
-Please follow the instructions down below.
-
-```
-$ brew install boost
-$ brew install python3
-# Install llvm version 10
-$ brew install llvm
-# Setting the paths
-# Use LLVM's Clang rather than Apple's Clang compiler
-$ export CC=/usr/local/opt/llvm/bin/clang
-$ export CXX=/usr/local/opt/llvm/bin/clang++
-# Set PATH env variable to /usr/local/opt/llvm/bin
-# Go to PhASAR directory run the following commands
-$ git submodule init
-$ git submodule update
-$ mkdir build
-$ cd build/
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ make -j $(nproc) # or use a different number of cores to compile it
-$ sudo make install # if you wish a system-wise installation
-```
-
+Due to unfortunate updates to MacOS and the handling of C++, especially on the newer M1 processors, we can't support native development on Mac.
+The easiest solution to develop PhASAR on a Mac right now is to use [dockers development environments](https://docs.docker.com/desktop/dev-environments/). Clone this repository as described in their documentation. Afterwards, you have to login once manually, as a root user by running `docker exec -it -u root <container name> /bin/bash` to complete the rest of the install process as described in this readme (install submodules, run bootstrap.sh, ...).
+Now you can just attach your docker container to VS Code or any other IDE, which supports remote development.
 
 ### Compiling PhASAR (if not already done using the installation scripts)
 Set the system's variables for the C and C++ compiler to clang:
