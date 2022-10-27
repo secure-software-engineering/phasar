@@ -842,21 +842,22 @@ public:
         if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source.getBase())) {
           return {Source};
         }
-        // Pass global variables as is, if no function definition is available
-        // as they would be otherwise killed. Need llvm::Constant here to cover
-        // also ConstantExpr and ConstantAggregate.
-        if (OnlyDecls && llvm::isa<llvm::Constant>(Source.getBase())) {
+        // Pass variables as identity, if no function definition is available
+        // as they would be otherwise killed.
+        if (OnlyDecls) {
           return {Source};
         }
-        // Propagate if predicate does not hold, i.e., fact is not involved in
-        // the call
-        for (const auto &Arg : CallSite->args()) {
-          if (Arg == Source && !Source.getBase()->getType()->isPointerTy()) {
-            return {Source};
-          }
+        // Do not global variables (if definitions of the callee function(s) are
+        // available), since the effect of the callee on these values will be
+        // modelled using combined getCallFlowFunction and
+        // getReturnFlowFunction.
+        if (llvm::isa<llvm::Constant>(Source.getBase())) {
+          return {};
         }
-        // Otherwise kill fact
-        return {};
+        // Pass everything else as identity. In particular, also do not kill
+        // pointer or reference parameters since this then also captures usages
+        // oft he parameters, which we wish to compute using this analysis.
+        return {Source};
       }
     };
     return std::make_shared<MapFactsAlongsideCallSite>(
@@ -1053,7 +1054,7 @@ public:
           // obtain the label
           if (OrigAlloca) {
             if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
-              UEF->insert(edgeFactGenToBitVectorSet(OrigAlloca));
+              UEF->insert(edgeFactGenForInstToBitVectorSet(OrigAlloca));
             }
           }
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
@@ -1166,6 +1167,15 @@ public:
       //                           o_i
       //
       if (isZeroValue(CurrNode) && Op == SuccNode) {
+        // Constant variables should retain their own label
+        if (llvm::isa<llvm::Constant>(SuccNode.getBase())) {
+          if (llvm::isa_and_nonnull<llvm::GlobalVariable>(SuccNode.getBase())) {
+            if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
+              UEF->insert(edgeFactGenForGlobalVarToBitVectorSet(
+                  llvm::dyn_cast<llvm::GlobalVariable>(SuccNode.getBase())));
+            }
+          }
+        }
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
       //
@@ -1743,9 +1753,19 @@ private:
   static inline const l_t TopElement = Top{};
   const bool OnlyConsiderLocalAliases = true;
 
-  inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t CurrInst) {
+  inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
     if (EdgeFactGen) {
       auto Results = EdgeFactGen(CurrInst);
+      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
+      return BVS;
+    }
+    return {};
+  }
+
+  inline BitVectorSet<e_t>
+  edgeFactGenForGlobalVarToBitVectorSet(const llvm::GlobalVariable *GlobalVar) {
+    if (EdgeFactGen) {
+      auto Results = EdgeFactGen(GlobalVar);
       BitVectorSet<e_t> BVS(Results.begin(), Results.end());
       return BVS;
     }
