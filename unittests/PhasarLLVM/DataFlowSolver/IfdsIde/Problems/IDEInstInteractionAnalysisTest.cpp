@@ -126,14 +126,15 @@ protected:
         llvm::raw_string_ostream RSO(FactStr);
         RSO << *Fact.getBase();
         llvm::StringRef FactRef(FactStr);
-        // llvm::outs() << "Iterating result map entry: " << Fact << ", " << Value
+        // llvm::outs() << "Iterating result map entry: " << Fact << ", " <<
+        // Value
         //              << " with FactRef: " << FactRef
         //              << " and VarName: " << VarName << '\n';
         if (FactRef.ltrim().startswith("%" + VarName + " ") ||
             FactRef.ltrim().startswith("@" + VarName + " ")) {
-        //   llvm::outs() << "Found fact: " << FactRef.ltrim() << '\n';
-        //   llvm::outs() << "Compare Value: " << Value
-        //                << " and LatticeVal: " << LatticeVal << '\n';
+          //   llvm::outs() << "Found fact: " << FactRef.ltrim() << '\n';
+          //   llvm::outs() << "Compare Value: " << Value
+          //                << " and LatticeVal: " << LatticeVal << '\n';
           PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
           EXPECT_EQ(LatticeVal, Value);
           FactFound = true;
