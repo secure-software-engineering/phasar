@@ -1,9 +1,22 @@
 file(GLOB_RECURSE PATHSENSITIVITY_SRC *.h *.cpp)
 
 if(NOT PHASAR_USE_Z3)
-  message("Not compiling LLVMPathConstraints.cpp since Z3 is disabled.")
-  get_filename_component(llvmpathconstraints_src LLVMPathConstraints.cpp ABSOLUTE)
-  list(REMOVE_ITEM PATHSENSITIVITY_SRC ${llvmpathconstraints_src})
+message("Not compiling LLVMPathConstraints.cpp since Z3 is disabled.")
+# get_filename_component(LLVMPathConstraints_src LLVMPathConstraints.cpp ABSOLUTE)
+# list(REMOVE_ITEM PATHSENSITIVITY_SRC ${LLVMPathConstraints_src})
+
+
+get_filename_component(Z3BasedPathSensitvityManager_src Z3BasedPathSensitvityManager.cpp ABSOLUTE)
+# message("Not compiling ${Z3BasedPathSensitvityManager_src} since Z3 is disabled.")
+# list(REMOVE_ITEM PATHSENSITIVITY_SRC ${Z3BasedPathSensitvityManager_src})
+
+# TODO: For whatever reason the list REMOVE_ITEM does not work...
+
+set(PATHSENSITIVITY_SRC
+  PathSensitivityManagerBase.cpp
+)
+
+message("Remaining PathSensitivity targets to build: ${PATHSENSITIVITY_SRC}")
 endif()
 
 set(PHASAR_LINK_LIBS
