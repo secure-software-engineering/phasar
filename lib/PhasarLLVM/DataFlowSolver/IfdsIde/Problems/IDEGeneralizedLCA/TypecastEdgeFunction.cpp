@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 
@@ -21,8 +22,8 @@ TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 TypecastEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
-    return shared_from_this();
+  if (AllBot::isBot(SecondFunction)) {
+    return SecondFunction;
   }
   return std::make_shared<LCAEdgeFunctionComposer>(shared_from_this(),
                                                    SecondFunction, MaxSize);

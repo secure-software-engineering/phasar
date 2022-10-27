@@ -39,8 +39,7 @@ std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> GenConstant::composeWith(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
   // std::cout << "GenConstant composing" << std::endl;
   if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
-          SecondFunction.get()) ||
-      dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
+          SecondFunction.get())) {
 
     return shared_from_this();
   }

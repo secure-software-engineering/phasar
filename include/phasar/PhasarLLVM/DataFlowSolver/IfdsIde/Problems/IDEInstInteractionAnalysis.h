@@ -936,7 +936,7 @@ public:
     //                     0
     //
     if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
-      return std::make_shared<AllBottom<l_t>>(bottomElement());
+      return EdgeIdentity<l_t>::getInstance();
     }
     // check if the user has registered a fact generator function
     l_t UserEdgeFacts = BitVectorSet<e_t>();
