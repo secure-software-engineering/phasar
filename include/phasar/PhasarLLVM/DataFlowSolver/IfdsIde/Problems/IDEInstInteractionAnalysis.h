@@ -1729,7 +1729,7 @@ private:
       // at some point. Therefore, we only care for the variables and their
       // associated values and ignore at which point a variable may holds as a
       // data-flow fact.
-      const auto *Variable = Result.getColumnKey();
+      const auto &Variable = Result.getColumnKey();
       const auto &Value = Result.getValue();
       // skip result entry if variable is not in the set of all variables
       if (Variables.find(Variable) == Variables.end()) {

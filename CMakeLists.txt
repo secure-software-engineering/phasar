@@ -54,6 +54,8 @@ option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
+option(PHASAR_USE_Z3 "Build the phasar_pathsensitivity library with Z3 support for constraint solving (default is ON as long as we are building out of tree)" ON)
+
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
 
 option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (default is OFF)" OFF)
@@ -151,6 +153,8 @@ include_directories(external/json/single_include/)
 
 if(PHASAR_IN_TREE)
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
+  
+  set (PHASAR_USE_Z3 OFF)
 endif()
 
 set(nlohmann_json_DIR ${PHASAR_SRC_DIR}/external/json/single_include/)
@@ -192,35 +196,37 @@ endif()
 add_definitions(${LLVM_DEFINITIONS})
 
 # Z3 Solver
-if(NOT Z3_FOUND)
-  # Z3 does not compile with '-Werror', so disable it for Z3's build
-  # string(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+if(PHASAR_USE_Z3)
+  if(NOT Z3_FOUND)
+    # Z3 does not compile with '-Werror', so disable it for Z3's build
+    # string(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-  # Do not pass DebugSan to z3 as it is unable to handle it
-  if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
-    set(CMAKE_BUILD_TYPE_ADAPTED_FOR_Z3 ON)
-    set(CMAKE_BUILD_TYPE "Debug")
+    # Do not pass DebugSan to z3 as it is unable to handle it
+    if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
+      set(CMAKE_BUILD_TYPE_ADAPTED_FOR_Z3 ON)
+      set(CMAKE_BUILD_TYPE "Debug")
+    endif()
+
+    # Convince z3 to install its library along with phasar libs
+    # To avoid possible side effects we only change CMAKE_INSTALL_LIBDIR
+    # for including z3 (here) and restore it afterwards
+    set(ORIGINAL_CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+    set(CMAKE_INSTALL_LIBDIR ${PHASAR_INSTALL_LIBDIR})
+    add_subdirectory(external/z3/)
+    set(CMAKE_INSTALL_LIBDIR ${ORIGINAL_CMAKE_INSTALL_LIBDIR})
+
+    if(CMAKE_BUILD_TYPE_ADAPTED_FOR_Z3)
+      set(CMAKE_BUILD_TYPE "DebugSan")
+    endif()
+
+    include_directories(external/z3/src/)
+    include_directories(external/z3/src/api/)
+    include_directories(external/z3/src/api/c++/)
+    link_directories(${Z3_BINARY_DIR})
+
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
   endif()
-
-  # Convince z3 to install its library along with phasar libs
-  # To avoid possible side effects we only change CMAKE_INSTALL_LIBDIR
-  # for including z3 (here) and restore it afterwards
-  set(ORIGINAL_CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
-  set(CMAKE_INSTALL_LIBDIR ${PHASAR_INSTALL_LIBDIR})
-  add_subdirectory(external/z3/)
-  set(CMAKE_INSTALL_LIBDIR ${ORIGINAL_CMAKE_INSTALL_LIBDIR})
-
-  if(CMAKE_BUILD_TYPE_ADAPTED_FOR_Z3)
-    set(CMAKE_BUILD_TYPE "DebugSan")
-  endif()
-
-  include_directories(external/z3/src/)
-  include_directories(external/z3/src/api/)
-  include_directories(external/z3/src/api/c++/)
-  link_directories(${Z3_BINARY_DIR})
-
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-endif()
+endif(PHASAR_USE_Z3)
 
 if(NOT PHASAR_IN_TREE)
   find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
