@@ -14,9 +14,9 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerMixin.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitivityConfig.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/GraphTraits.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 

@@ -1,6 +1,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/LLVMPathConstraints.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Instructions.h"

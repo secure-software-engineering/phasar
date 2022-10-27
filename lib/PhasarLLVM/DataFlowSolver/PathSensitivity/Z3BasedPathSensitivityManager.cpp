@@ -1,6 +1,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/LLVMPathConstraints.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitvityManager.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
