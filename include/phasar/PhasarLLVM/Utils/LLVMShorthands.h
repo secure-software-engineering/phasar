@@ -82,6 +82,9 @@ std::string llvmIRToStableString(const llvm::Value *V);
  */
 std::string llvmIRToShortString(const llvm::Value *V);
 
+LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
+LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
+
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.

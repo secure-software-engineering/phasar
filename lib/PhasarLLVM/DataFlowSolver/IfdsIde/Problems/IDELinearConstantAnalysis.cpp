@@ -35,7 +35,20 @@
 #include <memory>
 #include <utility>
 
-using namespace psr;
+#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/MathExtras.h"
+
+#include <limits>
+#include <memory>
+#include <utility>
 
 namespace psr {
 // Initialize debug counter for edge functions
@@ -309,9 +322,12 @@ bool IDELinearConstantAnalysis::isZeroValue(d_t Fact) const {
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
                                                  n_t /*Succ*/, d_t SuccNode) {
+  if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
+    return EdgeIdentity<l_t>::getInstance();
+  }
+
   // ALL_BOTTOM for zero value
-  if ((isZeroValue(CurrNode) && isZeroValue(SuccNode)) ||
-      (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
+  if ((llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
     PHASAR_LOG_LEVEL(DEBUG, "Case: Zero value.");
     PHASAR_LOG_LEVEL(DEBUG, ' ');
     return std::make_shared<AllBottom<l_t>>(BOTTOM);
@@ -450,14 +466,13 @@ std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
   if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+    return SecondFunction;
+  }
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
-  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
+
   return F->composeWith(G->composeWith(SecondFunction));
 }
 
@@ -486,13 +501,9 @@ IDELinearConstantAnalysis::GenConstant::computeTarget(
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::GenConstant::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
+
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
 
@@ -608,18 +619,17 @@ IDELinearConstantAnalysis::BinOp::computeTarget(l_t Source) {
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::BinOp::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<GenConstant *>(SecondFunction.get())) {
+  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<GenConstant *>(SecondFunction.get())) {
     return SecondFunction;
   }
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
+    return this->shared_from_this();
+  }
+
+  // TODO: Optimize Binop::composeWith(BinOp)
+
   return std::make_shared<LCAEdgeFunctionComposer>(this->shared_from_this(),
                                                    SecondFunction);
 }

@@ -64,7 +64,8 @@ JoinEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
   // std::cout << "JoinFn composing" << std::endl;
   // TODO be more precise here
-  if (dynamic_cast<GenConstant *>(SecondFunction.get())) {
+  if (dynamic_cast<GenConstant *>(SecondFunction.get()) ||
+      AllBot::isBot(SecondFunction)) {
     return SecondFunction;
   }
   if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
@@ -82,7 +83,7 @@ JoinEdgeFunction::joinWith(
     return shared_from_this();
   }
   if (AllBot::isBot(OtherFunction)) {
-    return AllBot::getInstance();
+    return OtherFunction;
   }
 
   return std::make_shared<JoinEdgeFunction>(shared_from_this(), OtherFunction,

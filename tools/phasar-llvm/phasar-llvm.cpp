@@ -435,7 +435,6 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
-
   if (PhasarConfig::VariablesMap().count("follow-return-past-seeds")) {
     SolverConfig.setFollowReturnsPastSeeds(
         PhasarConfig::VariablesMap()["follow-return-past-seeds"].as<bool>());

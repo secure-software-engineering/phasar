@@ -50,7 +50,7 @@ enum class AnalysisControllerEmitterOptions : uint32_t {
   EmitPTAAsText = (1 << 11),
   EmitPTAAsDot = (1 << 12),
   EmitPTAAsJson = (1 << 13),
-  EmitStatisticAsJson = (1 << 14),
+  EmitStatisticsAsJson = (1 << 14),
 };
 
 class AnalysisController {

@@ -497,7 +497,7 @@ auto IDETypeStateAnalysis::TSEdgeFunction::composeWith(
 
   if (auto *AB = dynamic_cast<AllBottom<IDETypeStateAnalysis::l_t> *>(
           SecondFunction.get())) {
-    return this->shared_from_this();
+    return SecondFunction;
   }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
           SecondFunction.get())) {

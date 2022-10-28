@@ -174,7 +174,7 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName =
-                    removeTypeInfoPrefix(llvm::demangle(Name.str().c_str()));
+                    removeTypeInfoPrefix(llvm::demangle(Name.str()));
                 if (const auto *Type = ClearNameTypeMap[ClearName]) {
                   SubTypes.push_back(Type);
                 }
