@@ -17,32 +17,31 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+
 #include <memory>
 #include <set>
 #include <type_traits>
 #include <unordered_map>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-
 namespace psr {
 
-template <typename OriginalAnalysisDomain> struct AnalysisDomainExtender;
-
 template <typename AnalysisDomainTy>
-class IFDSSolver : public IDESolver<AnalysisDomainExtender<AnalysisDomainTy>> {
+class IFDSSolver : public IDESolver<AnalysisDomainTy> {
+  static_assert(std::is_same_v<BinaryDomain, typename AnalysisDomainTy::l_t>,
+                "Expect an IFDS analysis domain");
+
 public:
   using ProblemTy = IFDSTabulationProblem<AnalysisDomainTy>;
   using D = typename AnalysisDomainTy::d_t;
   using N = typename AnalysisDomainTy::n_t;
 
   IFDSSolver(IFDSTabulationProblem<AnalysisDomainTy> &IFDSProblem)
-      : IDESolver<AnalysisDomainExtender<AnalysisDomainTy>>(IFDSProblem) {}
+      : IDESolver<AnalysisDomainTy>(IFDSProblem) {}
 
-  ~IFDSSolver() override = default;
+  virtual ~IFDSSolver() = default;
 
   /// Returns the data-flow results at the given statement.
   [[nodiscard]] virtual std::set<D> ifdsResultsAt(N Inst) {

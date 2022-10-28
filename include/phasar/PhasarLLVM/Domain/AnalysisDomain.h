@@ -74,9 +74,13 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using i_t = LLVMBasedICFG;
 };
 
-struct LLVMIFDSAnalysisDomainDefault : LLVMAnalysisDomainDefault {
+template <typename AnalysisDomainTy>
+struct WithBinaryValueDomain : AnalysisDomainTy {
   using l_t = BinaryDomain;
 };
+
+using LLVMIFDSAnalysisDomainDefault =
+    WithBinaryValueDomain<LLVMAnalysisDomainDefault>;
 
 } // namespace psr
 
