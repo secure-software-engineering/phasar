@@ -3,7 +3,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/Utils/LLVMCXXShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMCXXShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 namespace psr {

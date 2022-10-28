@@ -21,7 +21,6 @@
 
 #include <functional>
 #include <memory>
-#include <memory_resource>
 #include <type_traits>
 
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do

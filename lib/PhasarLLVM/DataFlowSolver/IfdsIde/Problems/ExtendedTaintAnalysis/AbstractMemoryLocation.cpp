@@ -7,16 +7,17 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
+#include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DebugOutput.h"
+#include "phasar/Utils/Logger.h"
+
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/raw_os_ostream.h"
-#include <cstddef>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
-#include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
-#include "phasar/Utils/DebugOutput.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include <cstddef>
 
 namespace psr::detail {
 

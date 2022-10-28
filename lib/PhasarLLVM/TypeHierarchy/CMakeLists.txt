@@ -6,6 +6,7 @@ set(PHASAR_LINK_LIBS
 
 set(LLVM_LINK_COMPONENTS
   Core
+  Demangle
   Support
   Analysis
 )

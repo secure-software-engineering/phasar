@@ -24,13 +24,11 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Compiler.h"
 
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Utils/Utilities.h"
 
 namespace psr {
-
-static inline void deleteValue(llvm::Value *V) { V->deleteValue(); }
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -74,6 +72,9 @@ std::string llvmIRToStableString(const llvm::Value *V);
  */
 std::string llvmIRToShortString(const llvm::Value *V);
 
+LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
+LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
+
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.
@@ -94,11 +95,6 @@ globalValuesUsedinFunction(const llvm::Function *F);
  * an Instruction, GlobalVariable or Argument.
  */
 std::string getMetaDataID(const llvm::Value *V);
-
-/**
- * Revserses the getMetaDataID function
- */
-const llvm::Value *fromMetaDataId(const ProjectIRDB &IRDB, llvm::StringRef Id);
 
 /**
  * @brief Does less-than comparison based on the annotated ID.
@@ -241,7 +237,7 @@ class ModulesToSlotTracker {
 private:
   static inline llvm::SmallDenseMap<const llvm::Module *,
                                     std::unique_ptr<llvm::ModuleSlotTracker>, 2>
-      MToST; // NOLINT
+      MToST{};
 
   static void updateMSTForModule(const llvm::Module *Module);
   static void deleteMSTForModule(const llvm::Module *Module);

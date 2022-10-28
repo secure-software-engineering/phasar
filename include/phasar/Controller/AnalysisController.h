@@ -49,6 +49,7 @@ enum class AnalysisControllerEmitterOptions : uint32_t {
   EmitPTAAsText = (1 << 11),
   EmitPTAAsDot = (1 << 12),
   EmitPTAAsJson = (1 << 13),
+  EmitStatisticsAsJson = (1 << 14),
 };
 
 class AnalysisController {
@@ -129,7 +130,7 @@ private:
   void executeAnalysis() {
     if constexpr (WithConfig) {
       std::string AnalysisConfigPath =
-          (0 < AnalysisConfigs.size()) ? AnalysisConfigs[0] : "";
+          !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
       auto Config =
           !AnalysisConfigPath.empty()
               ? TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath))

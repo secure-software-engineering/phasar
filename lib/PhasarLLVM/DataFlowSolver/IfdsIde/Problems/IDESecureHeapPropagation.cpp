@@ -17,8 +17,8 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 IDESecureHeapPropagation::IDESecureHeapPropagation(
@@ -254,9 +254,6 @@ void IDESecureHeapPropagation::IdentityEdgeFunction::print(
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::IdentityEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return shared_from_this();
-  }
   return SecondFunction;
 }
 std::shared_ptr<IDESecureHeapPropagation::IdentityEdgeFunction>

@@ -25,7 +25,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 
@@ -352,6 +352,7 @@ public:
   bool isSensibleToSummarize() {
     // use a heuristic to check whether we should compute a summary
     // make use of the call-graph information
+    return false;
   }
 
   virtual void solve() {

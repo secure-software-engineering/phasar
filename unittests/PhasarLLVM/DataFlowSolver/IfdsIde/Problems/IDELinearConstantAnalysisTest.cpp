@@ -12,7 +12,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 using namespace psr;
 
@@ -325,6 +326,18 @@ TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_04) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_05) {
+  auto Results = doAnalysis("while_05_cpp_dbg.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  // GroundTruth.emplace("foo", 5, "x", Bottom{});
+  // GroundTruth.emplace("foo", 7, "x", Bottom{});
+  GroundTruth.emplace("main", 13, "a", 3);
+  // GroundTruth.emplace("main", 13, "b", Bottom{});
+  compareResults(Results, GroundTruth);
+  EXPECT_EQ(Results["foo"].end(), Results["foo"].find(5));
+  EXPECT_EQ(Results["foo"].end(), Results["foo"].find(7));
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleLoopTest_06) {
   auto Results = doAnalysis("for_01_cpp_dbg.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "a", 0);

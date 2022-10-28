@@ -4,6 +4,7 @@ include_directories(${CLANG_INCLUDE_DIRS})
 
 set(PHASAR_LINK_LIBS
   phasar_utils
+  phasar_taintconfig
 )
 
 set(LLVM_LINK_COMPONENTS

@@ -36,6 +36,7 @@ endif()
 find_package(Boost COMPONENTS graph program_options REQUIRED)
 target_link_libraries(phasar_pass
   LINK_PUBLIC
+  ${CMAKE_THREAD_LIBS_INIT}
   ${PHASAR_LINK_LIBS}
   ${Boost_LIBRARIES}
 )
