@@ -36,6 +36,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 namespace psr {
 
@@ -152,10 +153,22 @@ private:
     auto &SuccVtx = FlowFactVertexMap[std::make_pair(Succ, SuccNode)];
 
     // NOLINTNEXTLINE(readability-identifier-naming)
-    auto makeNode = [this, Pred, Curr,
-                     SuccNode{std::move(SuccNode)}]() mutable {
+    auto makeNode = [this, Pred, Curr, Succ, &CurrNode, &SuccNode]() mutable {
       auto Ret = &NodeOwner.emplace_back();
-      Ret->Value = std::move(SuccNode);
+      Ret->Value = SuccNode;
+
+      if (!Pred) {
+        // llvm::errs() << "> No Pred at edge " << NPrinter.NtoString(Curr) <<
+        // ", "
+        //              << DPrinter.DtoString(CurrNode) << ") --> ("
+        //              << NPrinter.NtoString(Succ) << ", "
+        //              << DPrinter.DtoString(SuccNode) << ")\n";
+
+        // For the seeds: Just that the FlowFactVertexMap is filled at that
+        // position...
+        FlowFactVertexMap[std::make_pair(Curr, CurrNode)] = Ret;
+      }
+
       Ret->Predecessor = Pred;
 
       Ret->Source = Curr;

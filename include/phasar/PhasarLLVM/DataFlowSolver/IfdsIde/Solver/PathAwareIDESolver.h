@@ -48,7 +48,8 @@ public:
 private:
   void saveEdges(n_t Curr, n_t Succ, d_t CurrNode,
                  const container_type &SuccNodes, ESGEdgeKind Kind) override {
-    ESG.saveEdges(Curr, CurrNode, Succ, SuccNodes, Kind);
+    ESG.saveEdges(std::move(Curr), std::move(CurrNode), std::move(Succ),
+                  SuccNodes, Kind);
   }
 
   ExplodedSuperGraph<domain_t> ESG;

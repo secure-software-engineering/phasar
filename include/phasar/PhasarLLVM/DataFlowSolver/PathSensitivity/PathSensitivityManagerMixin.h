@@ -15,6 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathTracingFilter.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/GraphTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -22,7 +23,10 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/raw_ostream.h"
 
+#include <filesystem>
+#include <system_error>
 #include <type_traits>
 
 namespace psr {
@@ -73,6 +77,23 @@ public:
       auto Nod = ESG.getNodeOrNull(Inst, std::move(Fact));
 
       if (!Nod) {
+
+        llvm::errs() << "At Inst " << llvmIRToString(Inst) << "; Fact: " << Fact
+                     << '\n';
+        llvm::errs();
+
+        {
+          std::error_code EC;
+          llvm::raw_fd_ostream ROS("explicitesg-err.dot", EC);
+          ESG.printAsDot(ROS);
+        }
+
+        llvm::errs()
+            << "> ESG written to "
+            << std::filesystem::canonical("explicitesg-err.dot").string()
+            << '\n';
+        llvm::errs().flush();
+
         llvm::report_fatal_error(
             "Invalid Instruction-FlowFact pair. Only use those pairs that are "
             "part of the IDE analysis results!");
@@ -235,7 +256,6 @@ private:
   template <typename Filter>
   vertex_t pathsToImpl(n_t QueryInst, Node *Vtx, graph_type &RetDag,
                        PathsToContext &Ctx, const Filter &PFilter) const {
-    assert(Vtx->Source != QueryInst);
 
     auto Ret =
         graph_traits_t::addNode(RetDag, typename graph_traits_t::value_type());

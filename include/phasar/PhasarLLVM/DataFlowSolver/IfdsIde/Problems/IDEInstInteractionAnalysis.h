@@ -1579,7 +1579,7 @@ public:
   }
 
   void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override {
-    OS << llvmIRToString(FlowFact);
+    OS << FlowFact;
   }
 
   void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {
