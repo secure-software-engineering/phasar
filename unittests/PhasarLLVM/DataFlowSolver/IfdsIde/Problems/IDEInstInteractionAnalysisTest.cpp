@@ -18,17 +18,6 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Logger.h"
 
-#include "gtest/gtest.h"
-
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/Instruction.h"
-
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
-#include <variant>
-
 #include "TestConfig.h"
 
 #include "gtest/gtest.h"
