@@ -431,7 +431,7 @@ int main(int Argc, const char **Argv) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
   if (PhasarConfig::VariablesMap().count("emit-statistic-as-json")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticAsJson;
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsJson;
   }
   if (PhasarConfig::VariablesMap().count("follow-return-past-seeds")) {
     SolverConfig.setFollowReturnsPastSeeds(

@@ -10,15 +10,17 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+
+#include "llvm/Support/raw_ostream.h"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
 
 namespace llvm {
 class Instruction;

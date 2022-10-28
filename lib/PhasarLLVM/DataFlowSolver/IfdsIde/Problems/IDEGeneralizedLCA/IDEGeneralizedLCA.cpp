@@ -300,8 +300,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
 
   // All_Bottom for zero value
   if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
-    static auto AllBot = std::make_shared<AllBottom<l_t>>(bottomElement());
-    return AllBot;
+    return EdgeIdentity<l_t>::getInstance();
   }
   // Check store instruction
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {

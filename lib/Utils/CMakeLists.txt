@@ -33,6 +33,8 @@ target_include_directories(phasar_utils PUBLIC ${LLVM_INCLUDE_DIRS})
 target_link_libraries(phasar_utils
   LINK_PUBLIC
   ${CMAKE_DL_LIBS}
+  ${Boost_LIBRARIES}
+  ${PHASAR_STD_FILESYSTEM}
 )
 
 set_target_properties(phasar_utils

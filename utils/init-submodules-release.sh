@@ -12,5 +12,4 @@ git clone git@github.com:nlohmann/json.git
 safe_cd json/
 git checkout v3.4.0
 safe_cd -
-git clone https://github.com/pdschubert/WALi-OpenNWA.git
 fi
