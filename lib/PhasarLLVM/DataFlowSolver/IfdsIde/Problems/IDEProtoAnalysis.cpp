@@ -7,15 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -27,19 +21,13 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 
-using namespace psr;
-using namespace std;
+#include <utility>
 
 namespace psr {
 
 IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF,
-                                   LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IDETabulationProblem::ZeroValue = IDEProtoAnalysis::createZeroValue();
-}
+    : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 // start formulating our analysis by specifying the parts required for IFDS
 
@@ -64,7 +52,7 @@ IDEProtoAnalysis::FlowFunctionPtrType IDEProtoAnalysis::getRetFlowFunction(
 IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getCallToRetFlowFunction(
     IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::n_t /*RetSite*/,
-    set<IDEProtoAnalysis::f_t> /*Callees*/) {
+    std::set<IDEProtoAnalysis::f_t> /*Callees*/) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
@@ -82,7 +70,7 @@ IDEProtoAnalysis::initialSeeds() {
                IDEProtoAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue(), bottomElement());
   }
   return Seeds;
@@ -100,7 +88,7 @@ bool IDEProtoAnalysis::isZeroValue(IDEProtoAnalysis::d_t Fact) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t /*Curr*/,
                                         IDEProtoAnalysis::d_t /*CurrNode*/,
                                         IDEProtoAnalysis::n_t /*Succ*/,
@@ -108,7 +96,7 @@ IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t /*Curr*/,
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getCallEdgeFunction(
     IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::d_t /*SrcNode*/,
     IDEProtoAnalysis::f_t /*DestinationFunction*/,
@@ -116,7 +104,7 @@ IDEProtoAnalysis::getCallEdgeFunction(
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getReturnEdgeFunction(
     IDEProtoAnalysis::n_t /*CallSite*/,
     IDEProtoAnalysis::f_t /*CalleeFunction*/,
@@ -125,15 +113,15 @@ IDEProtoAnalysis::getReturnEdgeFunction(
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getCallToRetEdgeFunction(
     IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::d_t /*CallNode*/,
     IDEProtoAnalysis::n_t /*RetSite*/, IDEProtoAnalysis::d_t /*RetSiteNode*/,
-    set<IDEProtoAnalysis::f_t> /*Callees*/) {
+    std::set<IDEProtoAnalysis::f_t> /*Callees*/) {
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getSummaryEdgeFunction(
     IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::d_t /*CallNode*/,
     IDEProtoAnalysis::n_t /*RetSite*/, IDEProtoAnalysis::d_t /*RetSiteNode*/) {
@@ -156,10 +144,10 @@ IDEProtoAnalysis::l_t IDEProtoAnalysis::join(IDEProtoAnalysis::l_t /*Lhs*/,
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::allTopFunction() {
   PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::allTopFunction()");
-  return make_shared<IDEProtoAnalysisAllTop>();
+  return std::make_shared<IDEProtoAnalysisAllTop>();
 }
 
 IDEProtoAnalysis::l_t IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget(
@@ -169,24 +157,24 @@ IDEProtoAnalysis::l_t IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget(
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*SecondFunction*/) {
+    std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*SecondFunction*/) {
   PHASAR_LOG_LEVEL(DEBUG,
                    "IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith()");
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
+std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*OtherFunction*/) {
+    std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*OtherFunction*/) {
   PHASAR_LOG_LEVEL(DEBUG,
                    "IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith()");
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
 bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equal_to(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*Other*/) const {
+    std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> /*Other*/) const {
   PHASAR_LOG_LEVEL(DEBUG,
                    "IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo()");
   return false;

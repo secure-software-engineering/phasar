@@ -19,11 +19,14 @@
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
 
+#include <cassert>
 #include <memory>
 #include <set>
 #include <string>
 
 namespace psr {
+
+class ProjectIRDB;
 
 struct HasNoConfigurationType;
 
@@ -49,7 +52,13 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
-  IDETabulationProblem(d_t ZeroValue) : ZeroValue(std::move(ZeroValue)) {}
+  explicit IDETabulationProblem(const ProjectIRDB *IRDB,
+                                std::set<std::string> EntryPoints,
+                                d_t ZeroValue)
+      : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
+        ZeroValue(std::move(ZeroValue)) {
+    assert(IRDB != nullptr);
+  }
 
   virtual ~IDETabulationProblem() = default;
 
@@ -100,9 +109,12 @@ public:
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
 protected:
+  const ProjectIRDB *IRDB;
+  std::set<std::string> EntryPoints;
+  d_t ZeroValue;
+
   IFDSIDESolverConfig SolverConfig{};
 
-  d_t ZeroValue;
   [[maybe_unused]] Soundness SF = Soundness::Unused;
 };
 

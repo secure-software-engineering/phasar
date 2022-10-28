@@ -10,18 +10,16 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+
+#include "llvm/IR/InstrTypes.h"
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
-
-#include "llvm/IR/InstrTypes.h"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class CallBase;
@@ -32,9 +30,8 @@ class Value;
 
 namespace psr {
 
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
+struct TypeStateDescription;
 
 struct IDETypeStateAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = int;
@@ -54,56 +51,11 @@ public:
 
   using ConfigurationTy = TypeStateDescription;
 
-private:
-  const TypeStateDescription &TSD;
-  std::map<const llvm::Value *, LLVMPointsToInfo::PointsToSetTy> PointsToCache;
-  std::map<const llvm::Value *, std::set<const llvm::Value *>>
-      RelevantAllocaCache;
-
-  /**
-   * @brief Returns all alloca's that are (indirect) aliases of V.
-   *
-   * Currently PhASAR's points-to information does not include alloca
-   * instructions, since alloca instructions, i.e. memory locations, are of
-   * type T* for a target type T. Thus they do not alias directly. Therefore,
-   * for each alias of V we collect related alloca instructions by checking
-   * load and store instructions for used alloca's.
-   */
-  std::set<d_t> getRelevantAllocas(d_t V);
-
-  /**
-   * @brief Returns whole-module aliases of V.
-   *
-   * This function retrieves whole-module points-to information. We store
-   * already computed points-to information in a cache to prevent expensive
-   * recomputation since the whole module points-to graph can be huge. This
-   * might become unnecessary once PhASAR's PointsToGraph starts using a cache
-   * itself.
-   */
-  std::set<d_t> getWMPointsToSet(d_t V);
-
-  /**
-   * @brief Provides whole module aliases and relevant alloca's of V.
-   */
-  std::set<d_t> getWMAliasesAndAllocas(d_t V);
-
-  /**
-   * @brief Provides local aliases and relevant alloca's of V.
-   */
-  std::set<d_t> getLocalAliasesAndAllocas(d_t V, const std::string &Fname);
-
-  /**
-   * @brief Checks if the type machtes the type of interest.
-   */
-  bool hasMatchingType(d_t V);
-
-public:
   const l_t TOP;
   const l_t BOTTOM;
 
-  IDETypeStateAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                       const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                       const TypeStateDescription &TSD,
+  IDETypeStateAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+                       const TypeStateDescription *TSD,
                        std::set<std::string> EntryPoints = {"main"});
 
   ~IDETypeStateAnalysis() override = default;
@@ -125,7 +77,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -178,66 +130,49 @@ public:
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
-  // customize the edge function composer
-  class TSEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
-  private:
-    l_t BotElement;
+private:
+  const TypeStateDescription *TSD{};
+  LLVMPointsToInfo *PT{};
+  std::map<const llvm::Value *, LLVMPointsToInfo::PointsToSetTy> PointsToCache;
+  std::map<const llvm::Value *, std::set<const llvm::Value *>>
+      RelevantAllocaCache;
 
-  public:
-    TSEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                           std::shared_ptr<EdgeFunction<l_t>> G, l_t Bot)
-        : EdgeFunctionComposer<l_t>(F, G), BotElement(Bot) {}
+  /**
+   * @brief Returns all alloca's that are (indirect) aliases of V.
+   *
+   * Currently PhASAR's points-to information does not include alloca
+   * instructions, since alloca instructions, i.e. memory locations, are of
+   * type T* for a target type T. Thus they do not alias directly. Therefore,
+   * for each alias of V we collect related alloca instructions by checking
+   * load and store instructions for used alloca's.
+   */
+  std::set<d_t> getRelevantAllocas(d_t V);
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-  };
+  /**
+   * @brief Returns whole-module aliases of V.
+   *
+   * This function retrieves whole-module points-to information. We store
+   * already computed points-to information in a cache to prevent expensive
+   * recomputation since the whole module points-to graph can be huge. This
+   * might become unnecessary once PhASAR's PointsToGraph starts using a cache
+   * itself.
+   */
+  std::set<d_t> getWMPointsToSet(d_t V);
 
-  class TSEdgeFunction : public EdgeFunction<l_t>,
-                         public std::enable_shared_from_this<TSEdgeFunction> {
-  protected:
-    const TypeStateDescription &TSD;
-    // Do not use a reference here, since LLVM's StringRef's (obtained by str())
-    // might turn to nullptr for whatever reason...
-    const std::string Token;
-    const llvm::CallBase *CallSite;
+  /**
+   * @brief Provides whole module aliases and relevant alloca's of V.
+   */
+  std::set<d_t> getWMAliasesAndAllocas(d_t V);
 
-  public:
-    TSEdgeFunction(const TypeStateDescription &TSD, const std::string &Tok,
-                   const llvm::CallBase *CB)
-        : TSD(TSD), Token(Tok), CallSite(CB){};
+  /**
+   * @brief Provides local aliases and relevant alloca's of V.
+   */
+  std::set<d_t> getLocalAliasesAndAllocas(d_t V, const std::string &Fname);
 
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
-  class TSConstant : public EdgeFunction<l_t>,
-                     public std::enable_shared_from_this<TSConstant> {
-    const TypeStateDescription &TSD;
-    l_t State;
-
-  public:
-    TSConstant(const TypeStateDescription &TSD, l_t State);
-
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
+  /**
+   * @brief Checks if the type machtes the type of interest.
+   */
+  bool hasMatchingType(d_t V);
 };
 
 } // namespace psr

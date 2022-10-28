@@ -16,6 +16,7 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -35,13 +36,8 @@ bool IDETaintAnalysis::setContainsStr(set<string> S, const string &Str) {
 }
 
 IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF,
-                                   LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IDETabulationProblem::ZeroValue = IDETaintAnalysis::createZeroValue();
-}
+    : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 // start formulating our analysis by specifying the parts required for IFDS
 
@@ -84,7 +80,7 @@ IDETaintAnalysis::initialSeeds() {
                IDETaintAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue(), bottomElement());
   }
   return Seeds;
@@ -96,7 +92,7 @@ IDETaintAnalysis::d_t IDETaintAnalysis::createZeroValue() const {
 }
 
 bool IDETaintAnalysis::isZeroValue(IDETaintAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts

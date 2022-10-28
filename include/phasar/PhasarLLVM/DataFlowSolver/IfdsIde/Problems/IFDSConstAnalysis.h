@@ -10,14 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -28,10 +28,7 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-
-class LLVMBasedICFG;
 class LLVMPointsToInfo;
-class LLVMTypeHierarchy;
 
 /**
  * This IFDS analysis will compute possibly mutable memory
@@ -44,15 +41,9 @@ class LLVMTypeHierarchy;
  */
 class IFDSConstAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
-private:
-  // Holds all allocated memory locations, including global variables
-  std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
-  // Holds all initialized variables and objects.
-  std::set<d_t> Initialized;
 
 public:
-  IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+  IFDSConstAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
                     std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;
@@ -145,7 +136,7 @@ public:
   /**
    * @brief Returns appropriate zero value.
    */
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -213,6 +204,13 @@ public:
    */ // clang-format on
   static std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
                                                      f_t Context);
+
+private:
+  LLVMPointsToInfo *PT{};
+  // Holds all allocated memory locations, including global variables
+  std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
+  // Holds all initialized variables and objects.
+  std::set<d_t> Initialized;
 };
 
 } // namespace psr

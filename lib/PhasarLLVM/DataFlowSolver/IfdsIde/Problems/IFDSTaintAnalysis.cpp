@@ -7,7 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
@@ -15,43 +22,28 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-
-using namespace std;
-using namespace psr;
+#include <utility>
 
 namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB,
-                                     const LLVMTypeHierarchy *TH,
-                                     const LLVMBasedICFG *ICF,
                                      LLVMPointsToInfo *PT,
-                                     const TaintConfig &Config,
+                                     const TaintConfig *Config,
                                      std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
-      Config(Config) {
-  IFDSTaintAnalysis::ZeroValue = IFDSTaintAnalysis::createZeroValue();
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
+      Config(Config), PT(PT) {
+  assert(Config != nullptr);
+  assert(PT != nullptr);
 }
 
 bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
                                      const llvm::Function *Callee) const {
   for (const auto &Arg : Callee->args()) {
-    if (Config.isSource(&Arg)) {
+    if (Config->isSource(&Arg)) {
       return true;
     }
   }
-  auto Callback = Config.getRegisteredSourceCallBack();
+  auto Callback = Config->getRegisteredSourceCallBack();
   if (!Callback) {
     return false;
   }
@@ -75,11 +67,11 @@ bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
 bool IFDSTaintAnalysis::isSinkCall(const llvm::CallBase *CB,
                                    const llvm::Function *Callee) const {
   for (const auto &Arg : Callee->args()) {
-    if (Config.isSink(&Arg)) {
+    if (Config->isSink(&Arg)) {
       return true;
     }
   }
-  auto Callback = Config.getRegisteredSinkCallBack();
+  auto Callback = Config->getRegisteredSinkCallBack();
   if (!Callback) {
     return false;
   }
@@ -104,7 +96,7 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
                                         const llvm::Function *Callee) const {
   return std::any_of(
       Callee->arg_begin(), Callee->arg_end(),
-      [this](const auto &Arg) { return Config.isSanitizer(&Arg); });
+      [this](const auto &Arg) { return Config->isSanitizer(&Arg); });
 }
 
 void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
@@ -129,11 +121,11 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
     struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
       const llvm::StoreInst *Store;
       TAFF(const llvm::StoreInst *S) : Store(S){};
-      set<IFDSTaintAnalysis::d_t>
+      std::set<IFDSTaintAnalysis::d_t>
       computeTargets(IFDSTaintAnalysis::d_t Source) override {
         if (Store->getValueOperand() == Source) {
-          return set<IFDSTaintAnalysis::d_t>{Store->getPointerOperand(),
-                                             Source};
+          return std::set<IFDSTaintAnalysis::d_t>{Store->getPointerOperand(),
+                                                  Source};
         }
         if (Store->getValueOperand() != Source &&
             Store->getPointerOperand() == Source) {
@@ -142,11 +134,11 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
         return {Source};
       }
     };
-    return make_shared<TAFF>(Store);
+    return std::make_shared<TAFF>(Store);
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
+    return std::make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
         Load, [Load](IFDSTaintAnalysis::d_t Source) {
           return Source == Load->getPointerOperand();
         });
@@ -154,7 +146,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
+    return std::make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
         GEP, [GEP](IFDSTaintAnalysis::d_t Source) {
           return Source == GEP->getPointerOperand();
         });
@@ -175,7 +167,7 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallSite,
     return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
   }
   // Map the actual into the formal parameters
-  return make_shared<MapFactsToCallee<>>(CS, DestFun);
+  return std::make_shared<MapFactsToCallee<>>(CS, DestFun);
 }
 
 IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
@@ -185,7 +177,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
-  return make_shared<MapFactsToCaller<>>(
+  return std::make_shared<MapFactsToCaller<>>(
       llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt, true,
       [](IFDSTaintAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
@@ -197,7 +189,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite,
     [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite,
-    set<IFDSTaintAnalysis::f_t> Callees) {
+    std::set<IFDSTaintAnalysis::f_t> Callees) {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   std::set<d_t> Gen;
   std::set<d_t> Leak;
@@ -208,9 +200,9 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     if (!Callee->isDeclaration()) {
       HasBody = true;
     }
-    collectGeneratedFacts(Gen, Config, CS, Callee);
-    collectLeakedFacts(Leak, Config, CS, Callee);
-    collectSanitizedFacts(Kill, Config, CS, Callee);
+    collectGeneratedFacts(Gen, *Config, CS, Callee);
+    collectLeakedFacts(Leak, *Config, CS, Callee);
+    collectSanitizedFacts(Kill, *Config, CS, Callee);
   }
 
   if (HasBody && Gen.empty() && Leak.empty() && Kill.empty()) {
@@ -298,12 +290,12 @@ IFDSTaintAnalysis::initialSeeds() {
                IFDSTaintAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
     if (EntryPoint == "main") {
-      set<IFDSTaintAnalysis::d_t> CmdArgs;
-      for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
-        Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg);
+      std::set<IFDSTaintAnalysis::d_t> CmdArgs;
+      for (const auto &Arg : IRDB->getFunction(EntryPoint)->args()) {
+        Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(), &Arg);
       }
     }
   }

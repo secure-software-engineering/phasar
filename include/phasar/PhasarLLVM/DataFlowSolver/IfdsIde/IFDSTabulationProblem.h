@@ -34,7 +34,10 @@ public:
   using typename Base::t_t;
   using typename Base::v_t;
 
-  explicit IFDSTabulationProblem(d_t ZeroValue) : Base(std::move(ZeroValue)) {}
+  explicit IFDSTabulationProblem(const ProjectIRDB *IRDB,
+                                 std::set<std::string> EntryPoints,
+                                 d_t ZeroValue)
+      : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}
   ~IFDSTabulationProblem() override = default;
 
   EdgeFunctionPtrType getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,

@@ -7,23 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <memory>
-#include <utility>
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/IR/Value.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "phasar/PhasarLLVM/Utils/LLVMCXXShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -32,21 +21,28 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
-using namespace std;
-using namespace psr;
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Value.h"
+
+#include <memory>
+#include <utility>
+
 namespace psr {
 
 IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
-                                     const LLVMTypeHierarchy *TH,
-                                     const LLVMBasedICFG *ICF,
                                      LLVMPointsToInfo *PT,
                                      std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
+      PT(PT) {
+  assert(PT != nullptr);
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,
               PAMM_SEVERITY_LEVEL::Full);
-  IFDSTabulationProblem::ZeroValue = IFDSConstAnalysis::createZeroValue();
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -111,7 +107,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
     // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
     PHASAR_LOG_LEVEL(DEBUG, "Call statement: " << llvmIRToString(CallSite));
     PHASAR_LOG_LEVEL(DEBUG, "Destination method: " << DestFun->getName());
-    return make_shared<MapFactsToCallee<>>(
+    return std::make_shared<MapFactsToCallee<>>(
         llvm::cast<llvm::CallBase>(CallSite), DestFun,
         [](IFDSConstAnalysis::d_t Actual) {
           return Actual->getType()->isPointerTy();
@@ -127,7 +123,7 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
     IFDSConstAnalysis::n_t ExitStmt, IFDSConstAnalysis::n_t /*RetSite*/) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
-  return make_shared<MapFactsToCaller<>>(
+  return std::make_shared<MapFactsToCaller<>>(
       llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt, true,
       [](IFDSConstAnalysis::d_t Formal) {
         return Formal->getType()->isPointerTy();
@@ -141,7 +137,7 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
 IFDSConstAnalysis::FlowFunctionPtrType
 IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::n_t CallSite, IFDSConstAnalysis::n_t /*RetSite*/,
-    set<IFDSConstAnalysis::f_t> /*Callees*/) {
+    std::set<IFDSConstAnalysis::f_t> /*Callees*/) {
   // Process the effects of a llvm memory intrinsic function.
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     IFDSConstAnalysis::d_t PointerOp = CallSite->getOperand(0);
@@ -152,7 +148,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information of the pointer operand.");
-        return make_shared<
+        return std::make_shared<
             GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
                                             getContextRelevantPointsToSet(
                                                 PointsToSet,
@@ -182,7 +178,7 @@ IFDSConstAnalysis::initialSeeds() {
                IFDSConstAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
   }
   return Seeds;
@@ -223,15 +219,16 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
 #endif
 }
 
-set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
-    set<IFDSConstAnalysis::d_t> &PointsToSet,
+std::set<IFDSConstAnalysis::d_t>
+IFDSConstAnalysis::getContextRelevantPointsToSet(
+    std::set<IFDSConstAnalysis::d_t> &PointsToSet,
     IFDSConstAnalysis::f_t CurrentContext) {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getContextRelevantPointsToSet", 1,
               PAMM_SEVERITY_LEVEL::Full);
   START_TIMER("Context-Relevant-PointsTo-Set Computation",
               PAMM_SEVERITY_LEVEL::Full);
-  set<IFDSConstAnalysis::d_t> ToGenerate;
+  std::set<IFDSConstAnalysis::d_t> ToGenerate;
   for (const auto *Alias : PointsToSet) {
     PHASAR_LOG_LEVEL(DEBUG, "Alias: " << llvmIRToString(Alias));
     // Case (i + ii)
@@ -281,9 +278,11 @@ void IFDSConstAnalysis::emitTextReport(
     const SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
                         BinaryDomain> &SR,
     llvm::raw_ostream &OS) {
+
+  LLVMBasedCFG CFG;
   // 1) Remove all mutable memory locations
-  for (const auto *F : ICF->getAllFunctions()) {
-    for (const auto *Exit : ICF->getExitPointsOf(F)) {
+  for (const auto *F : IRDB->getAllFunctions()) {
+    for (const auto *Exit : CFG.getExitPointsOf(F)) {
       std::set<const llvm::Value *> Facts = SR.ifdsResultsAt(Exit);
       // Empty facts means the exit statement is part of a not
       // analyzed function, thus remove all memory locations of that function
