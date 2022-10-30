@@ -31,6 +31,7 @@ public:
   using typename Base::i_t;
   using typename Base::l_t;
   using typename Base::n_t;
+  using typename Base::ProblemAnalysisDomain;
   using typename Base::t_t;
   using typename Base::v_t;
 

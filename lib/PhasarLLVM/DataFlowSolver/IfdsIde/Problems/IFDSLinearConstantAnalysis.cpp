@@ -20,7 +20,7 @@
 
 #include <utility>
 
-size_t hash<LCAPair>::operator()(const LCAPair &K) const {
+size_t std::hash<psr::LCAPair>::operator()(const psr::LCAPair &K) const {
   return hash<const llvm::Value *>()(K.First) ^ hash<int>()(K.Second);
 }
 
@@ -29,7 +29,7 @@ namespace psr {
 LCAPair::LCAPair(const llvm::Value *V, int I) : First(V), Second(I) {}
 
 bool operator==(const LCAPair &Lhs, const LCAPair &Rhs) {
-  return tie(Lhs.First, Lhs.Second) == tie(Rhs.First, Rhs.Second);
+  return std::tie(Lhs.First, Lhs.Second) == std::tie(Rhs.First, Rhs.Second);
 }
 
 bool operator!=(const LCAPair &Lhs, const LCAPair &Rhs) {
@@ -37,7 +37,7 @@ bool operator!=(const LCAPair &Lhs, const LCAPair &Rhs) {
 }
 
 bool operator<(const LCAPair &Lhs, const LCAPair &Rhs) {
-  return tie(Lhs.First, Lhs.Second) < tie(Rhs.First, Rhs.Second);
+  return std::tie(Lhs.First, Lhs.Second) < std::tie(Rhs.First, Rhs.Second);
 }
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
@@ -71,7 +71,7 @@ IFDSLinearConstantAnalysis::FlowFunctionPtrType
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t /*CallSite*/,
     IFDSLinearConstantAnalysis::n_t /*RetSite*/,
-    set<IFDSLinearConstantAnalysis::f_t> /* Callees */) {
+    std::set<IFDSLinearConstantAnalysis::f_t> /* Callees */) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 

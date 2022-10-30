@@ -42,11 +42,6 @@ class LLVMPointsToInfo;
 
 class IDELinearConstantAnalysis
     : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
-private:
-  // For debug purpose only
-  static unsigned CurrGenConstantId; // NOLINT
-  static unsigned CurrLCAIDId;       // NOLINT
-  static unsigned CurrBinaryId;      // NOLINT
 
 public:
   using IDETabProblemType =
@@ -62,9 +57,7 @@ public:
   static const l_t TOP;
   static const l_t BOTTOM;
 
-  IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
-                            const LLVMTypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+  IDELinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
                             std::set<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
@@ -126,7 +119,7 @@ public:
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -160,105 +153,10 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  // Custom EdgeFunction declarations
-
-  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
-  public:
-    LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                            std::shared_ptr<EdgeFunction<l_t>> G)
-        : EdgeFunctionComposer<l_t>(F, G){};
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-  };
-
-  class GenConstant : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<GenConstant> {
-  private:
-    const unsigned GenConstantId;
-    const int64_t IntConst;
-
-  public:
-    explicit GenConstant(int64_t IntConst);
-
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
-
-  class LCAIdentity : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<LCAIdentity> {
-  private:
-    const unsigned LCAIDId;
-
-  public:
-    explicit LCAIdentity();
-
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
-
-  class BinOp : public EdgeFunction<l_t>,
-                public std::enable_shared_from_this<BinOp> {
-  private:
-    const unsigned EdgeFunctionID, Op;
-    d_t Lop, Rop, CurrNode;
-
-  public:
-    BinOp(unsigned Op, d_t Lop, d_t Rop, d_t CurrNode);
-
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
+private:
+  const LLVMBasedICFG *ICF{};
 
   // Helper functions
-
-  /**
-   * The following binary operations are computed:
-   *  - addition
-   *  - subtraction
-   *  - multiplication
-   *  - division (signed/unsinged)
-   *  - remainder (signed/unsinged)
-   *
-   * @brief Computes the result of a binary operation.
-   * @param op operator
-   * @param lop left operand
-   * @param rop right operand
-   * @return Result of binary operation
-   */
-  static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal);
-
-  static char opToChar(unsigned Op);
 
   [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
 

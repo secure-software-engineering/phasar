@@ -161,7 +161,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {Source};
       }
     };
-    return make_shared<UVFF>(Store, UndefValueUses, ZeroValue);
+    return std::make_shared<UVFF>(Store, UndefValueUses, getZeroValue());
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
@@ -299,7 +299,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         return {Source};
       }
     };
-    return std::make_shared<UVFF>(DestFun, CS, ZeroValue);
+    return std::make_shared<UVFF>(DestFun, CS, getZeroValue());
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -407,7 +407,7 @@ IFDSUninitializedVariables::createZeroValue() const {
 
 bool IFDSUninitializedVariables::isZeroValue(
     IFDSUninitializedVariables::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSUninitializedVariables::printNode(

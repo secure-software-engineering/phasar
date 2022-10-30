@@ -7,14 +7,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <type_traits>
-
-#include "llvm/ADT/SmallSet.h"
-#include "llvm/IR/GlobalValue.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/Support/Casting.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -23,7 +16,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
@@ -32,6 +24,14 @@
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/SmallSet.h"
+#include "llvm/IR/GlobalValue.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/Casting.h"
+
+#include <algorithm>
+#include <type_traits>
 
 namespace psr::XTaint {
 
@@ -50,7 +50,7 @@ IDEExtendedTaintAnalysis::initialSeeds() {
   }
 
   for (const auto &Ep : base_t::EntryPoints) {
-    const auto *EntryFn = base_t::ICF->getFunction(Ep);
+    const auto *EntryFn = ICF->getFunction(Ep);
 
     if (!EntryFn) {
       llvm::errs() << "WARNING: Entry-Function \"" << Ep
@@ -724,7 +724,7 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
   if (const auto *Fn = Call->getCalledFunction()) {
     Callees.insert(Fn);
   } else {
-    base_t::ICF->forEachCalleeOfCallAt(
+    ICF->forEachCalleeOfCallAt(
         Curr, [&Callees](const llvm::Function *F) { Callees.insert(F); });
   }
 

@@ -40,6 +40,7 @@ class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
                              public JoinLattice<AnalysisDomainTy>,
                              public EdgeFactPrinter<AnalysisDomainTy> {
 public:
+  using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
   using n_t = typename AnalysisDomainTy::n_t;
   using f_t = typename AnalysisDomainTy::f_t;
@@ -54,7 +55,7 @@ public:
 
   explicit IDETabulationProblem(const ProjectIRDB *IRDB,
                                 std::set<std::string> EntryPoints,
-                                d_t ZeroValue)
+                                std::optional<d_t> ZeroValue)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
         ZeroValue(std::move(ZeroValue)) {
     assert(IRDB != nullptr);
@@ -68,7 +69,8 @@ public:
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
   [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const {
-    return FlowFact == ZeroValue;
+    assert(ZeroValue.has_value());
+    return FlowFact == *ZeroValue;
   }
 
   /// Returns initial seeds to be used for the analysis. This is a mapping of
@@ -76,7 +78,15 @@ public:
   [[nodiscard]] virtual InitialSeeds<n_t, d_t, l_t> initialSeeds() = 0;
 
   /// Returns the special tautological lambda (or zero) fact.
-  [[nodiscard]] d_t getZeroValue() const { return ZeroValue; }
+  [[nodiscard]] d_t getZeroValue() const {
+    assert(ZeroValue.has_value());
+    return *ZeroValue;
+  }
+
+  void initializeZeroValue(d_t Zero) {
+    assert(!ZeroValue.has_value());
+    ZeroValue = std::move(Zero);
+  }
 
   /// Sets the configuration to be used by the IFDS/IDE solver.
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
@@ -109,9 +119,9 @@ public:
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
 protected:
-  const ProjectIRDB *IRDB;
+  const ProjectIRDB *IRDB{};
   std::set<std::string> EntryPoints;
-  d_t ZeroValue;
+  std::optional<d_t> ZeroValue;
 
   IFDSIDESolverConfig SolverConfig{};
 
