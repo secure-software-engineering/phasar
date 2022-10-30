@@ -10,17 +10,15 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
-#include <set>
-#include <string>
-#include <vector>
-
+#include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
@@ -31,33 +29,15 @@
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Soundness.h"
 
-namespace psr {
+#include <set>
+#include <string>
+#include <vector>
 
-enum class AnalysisControllerEmitterOptions : uint32_t {
-  None = 0,
-  EmitIR = (1 << 0),
-  EmitRawResults = (1 << 1),
-  EmitTextReport = (1 << 2),
-  EmitGraphicalReport = (1 << 3),
-  EmitESGAsDot = (1 << 4),
-  EmitTHAsText = (1 << 5),
-  EmitTHAsDot = (1 << 6),
-  EmitTHAsJson = (1 << 7),
-  EmitCGAsText = (1 << 8),
-  EmitCGAsDot = (1 << 9),
-  EmitCGAsJson = (1 << 10),
-  EmitPTAAsText = (1 << 11),
-  EmitPTAAsDot = (1 << 12),
-  EmitPTAAsJson = (1 << 13),
-  EmitStatisticsAsJson = (1 << 14),
-};
+namespace psr {
 
 class AnalysisController {
 private:
-  ProjectIRDB &IRDB;
-  LLVMTypeHierarchy TH;
-  LLVMPointsToSet PT;
-  LLVMBasedICFG ICF;
+  HelperAnalyses &HA;
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
   std::set<std::string> EntryPoints;
@@ -68,8 +48,6 @@ private:
   std::string OutDirectory;
   std::filesystem::path ResultDirectory;
   IFDSIDESolverConfig SolverConfig;
-  [[maybe_unused]] Soundness SoundnessLevel;
-  [[maybe_unused]] bool AutoGlobalSupport;
 
   ///
   /// \brief The maximum length of the CallStrings used in the InterMonoSolver
@@ -106,79 +84,65 @@ private:
   void executeInterMonoSolverTest();
   void executeInterMonoTaint();
 
-  template <typename AnalysisTy, bool WithConfig = false>
-  void executeIntraMonoAnalysis() {
-    executeAnalysis<IntraMonoSolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  template <typename ProblemTy>
+  void executeIntraMonoAnalysis(ProblemTy &Problem) {
+    IntraMonoSolver Solver(Problem);
+    Solver.solve();
+    emitRequestedDataFlowResults(Solver);
   }
 
-  template <typename AnalysisTy, bool WithConfig = false>
-  void executeInterMonoAnalysis() {
-    executeAnalysis<InterMonoSolver_P<AnalysisTy, 3>, AnalysisTy, WithConfig>();
+  template <typename ProblemTy>
+  void executeInterMonoAnalysis(ProblemTy &Problem) {
+    InterMonoSolver_P<ProblemTy, 3> Solver(Problem);
+    Solver.solve();
+    emitRequestedDataFlowResults(Solver);
   }
 
-  template <typename AnalysisTy, bool WithConfig = false>
-  void executeIFDSAnalysis() {
-    executeAnalysis<IFDSSolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  template <typename ProblemTy> void executeIFDSAnalysis(ProblemTy &Problem) {
+    IFDSSolver Solver(Problem, &HA.getICFG());
+    Solver.solve();
+    emitRequestedDataFlowResults(Solver);
   }
 
-  template <typename AnalysisTy, bool WithConfig = false>
-  void executeIDEAnalysis() {
-    executeAnalysis<IDESolver_P<AnalysisTy>, AnalysisTy, WithConfig>();
+  template <typename ProblemTy> void executeIDEAnalysis(ProblemTy &Problem) {
+    IDESolver Solver(Problem, &HA.getICFG());
+    Solver.solve();
+    emitRequestedDataFlowResults(Solver);
   }
 
-  template <class Solver_P, typename AnalysisTy, bool WithConfig>
-  void executeAnalysis() {
-    if constexpr (WithConfig) {
-      std::string AnalysisConfigPath =
-          !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
-      auto Config =
-          !AnalysisConfigPath.empty()
-              ? TaintConfig(IRDB, parseTaintConfig(AnalysisConfigPath))
-              : TaintConfig(IRDB);
-      WholeProgramAnalysis<Solver_P, AnalysisTy> WPA(
-          SolverConfig, IRDB, &Config, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    } else {
-      WholeProgramAnalysis<Solver_P, AnalysisTy> WPA(
-          SolverConfig, IRDB, EntryPoints, &PT, &ICF, &TH);
-      WPA.solve();
-      emitRequestedDataFlowResults(WPA);
-      WPA.releaseAllHelperAnalyses();
-    }
-  }
+  TaintConfig makeTaintConfig();
 
   std::unique_ptr<llvm::raw_fd_ostream>
   openFileStream(llvm::StringRef Filename);
 
-  template <typename T> void emitRequestedDataFlowResults(T &WPA) {
+  template <typename SolverTy>
+  void emitRequestedDataFlowResults(SolverTy &Solver) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
       if (!ResultDirectory.empty()) {
         if (auto OFS = openFileStream("/psr-report.txt")) {
-          WPA.emitTextReport(*OFS);
+          Solver.emitTextReport(*OFS);
         }
       } else {
-        WPA.emitTextReport(llvm::outs());
+        Solver.emitTextReport(llvm::outs());
       }
     }
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
       if (!ResultDirectory.empty()) {
         if (auto OFS = openFileStream("/psr-report.html")) {
-          WPA.emitGraphicalReport(*OFS);
+          Solver.emitGraphicalReport(*OFS);
         }
       } else {
-        WPA.emitGraphicalReport(llvm::outs());
+        Solver.emitGraphicalReport(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
       if (!ResultDirectory.empty()) {
         if (auto OFS = openFileStream("/psr-raw-results.txt")) {
-          WPA.dumpResults(*OFS);
+          Solver.dumpResults(*OFS);
         }
       } else {
-        WPA.dumpResults(llvm::outs());
+        Solver.dumpResults(llvm::outs());
       }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
@@ -188,18 +152,14 @@ private:
   }
 
 public:
-  AnalysisController(ProjectIRDB &IRDB,
-                     std::vector<DataFlowAnalysisType> DataFlowAnalyses,
-                     std::vector<std::string> AnalysisConfigs,
-                     PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
-                     Soundness SoundnessLevel, bool AutoGlobalSupport,
-                     const std::set<std::string> &EntryPoints,
-                     AnalysisStrategy Strategy,
-                     AnalysisControllerEmitterOptions EmitterOptions,
-                     IFDSIDESolverConfig SolverConfig,
-                     const std::string &ProjectID = "default-phasar-project",
-                     const std::string &OutDirectory = "",
-                     const nlohmann::json &PrecomputedPointsToInfo = {});
+  explicit AnalysisController(
+      HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+      std::vector<std::string> AnalysisConfigs,
+      const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
+      AnalysisControllerEmitterOptions EmitterOptions,
+      IFDSIDESolverConfig SolverConfig,
+      const std::string &ProjectID = "default-phasar-project",
+      const std::string &OutDirectory = "");
 
   ~AnalysisController() = default;
 
@@ -209,6 +169,13 @@ public:
   AnalysisController &operator=(const AnalysisController &&) = delete;
 
   void executeAs(AnalysisStrategy Strategy);
+
+  static constexpr bool
+  needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
+    return (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) ||
+           (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) ||
+           (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText);
+  }
 };
 
 } // namespace psr

@@ -18,8 +18,8 @@
 
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -42,31 +42,17 @@ template <> struct hash<pair<const llvm::Value *, unsigned>> {
 
 namespace psr {
 
-bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
-  return (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) ||
-         (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) ||
-         (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText);
-}
-
 AnalysisController::AnalysisController(
-    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
-    std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
-    CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
-    bool AutoGlobalSupport, const std::set<std::string> &EntryPoints,
-    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
+    HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+    std::vector<std::string> AnalysisConfigs,
+    const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
+    AnalysisControllerEmitterOptions EmitterOptions,
     IFDSIDESolverConfig SolverConfig, const std::string &ProjectID,
-    const std::string &OutDirectory,
-    const nlohmann::json &PrecomputedPointsToInfo)
-    : IRDB(IRDB), TH(IRDB),
-      PT(PrecomputedPointsToInfo.empty()
-             ? LLVMPointsToSet(IRDB, !needsToEmitPTA(EmitterOptions), PTATy)
-             : LLVMPointsToSet(IRDB, PrecomputedPointsToInfo)),
-      ICF(IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel, AutoGlobalSupport),
-      DataFlowAnalyses(std::move(DataFlowAnalyses)),
+    const std::string &OutDirectory)
+    : HA(HA), DataFlowAnalyses(std::move(DataFlowAnalyses)),
       AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
       Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
-      OutDirectory(OutDirectory), SolverConfig(SolverConfig),
-      SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {
+      OutDirectory(OutDirectory), SolverConfig(SolverConfig) {
   if (!OutDirectory.empty()) {
     // create directory for results
     ResultDirectory = OutDirectory;
@@ -184,104 +170,114 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-preprocess-ir.ll")) {
-        IRDB.emitPreprocessedIR(*OFS);
+        HA.getProjectIRDB().emitPreprocessedIR(*OFS);
       }
     } else {
-      IRDB.emitPreprocessedIR();
+      HA.getProjectIRDB().emitPreprocessedIR();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-th.txt")) {
-        TH.print(*OFS);
+        HA.getTypeHierarchy().print(*OFS);
       }
     } else {
-      TH.print();
+      HA.getTypeHierarchy().print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-th.dot")) {
-        TH.printAsDot(*OFS);
+        HA.getTypeHierarchy().printAsDot(*OFS);
       }
     } else {
-      TH.printAsDot();
+      HA.getTypeHierarchy().printAsDot();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsJson) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-th.json")) {
-        TH.printAsJson(*OFS);
+        HA.getTypeHierarchy().printAsJson(*OFS);
       }
     } else {
-      TH.printAsJson();
+      HA.getTypeHierarchy().printAsJson();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-pta.txt")) {
-        PT.print(*OFS);
+        HA.getPointsToInfo().print(*OFS);
       }
     } else {
-      PT.print();
+      HA.getPointsToInfo().print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-pta.dot")) {
-        PT.print(*OFS);
+        HA.getPointsToInfo().print(*OFS);
       }
     } else {
-      PT.print();
+      HA.getPointsToInfo().print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-pta.json")) {
-        PT.printAsJson(*OFS);
+        HA.getPointsToInfo().printAsJson(*OFS);
       }
     } else {
-      PT.printAsJson();
+      HA.getPointsToInfo().printAsJson(llvm::outs());
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-cg.txt")) {
-        ICF.print(*OFS);
+        HA.getICFG().print(*OFS);
       }
     } else {
-      ICF.print();
+      HA.getICFG().print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-cg.dot")) {
-        ICF.printAsDot(*OFS);
+        HA.getICFG().printAsDot(*OFS);
       }
     } else {
-      ICF.printAsDot();
+      HA.getICFG().printAsDot();
     }
   }
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-cg.json")) {
-        ICF.printAsJson(*OFS);
+        HA.getICFG().printAsJson(*OFS);
       }
     } else {
-      ICF.printAsJson();
+      HA.getICFG().printAsJson();
     }
   }
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        IRDB.printAsJson(*OFS);
+        HA.getProjectIRDB().printAsJson(*OFS);
       }
     } else {
-      IRDB.printAsJson();
+      HA.getProjectIRDB().printAsJson();
     }
   }
+}
+
+TaintConfig AnalysisController::makeTaintConfig() {
+  std::string AnalysisConfigPath =
+      !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
+  return !AnalysisConfigPath.empty()
+             ? TaintConfig(HA.getProjectIRDB(),
+                           parseTaintConfig(AnalysisConfigPath))
+             : TaintConfig(HA.getProjectIRDB());
+  ;
 }
 
 std::unique_ptr<llvm::raw_fd_ostream>

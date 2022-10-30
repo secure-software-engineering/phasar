@@ -47,14 +47,14 @@ int main(int Argc, const char **Argv) {
     I.print();
     // IFDS template parametrization test
     llvm::outs() << "Testing IFDS:\n";
-    IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver S(L);
+    IFDSLinearConstantAnalysis L(&DB, {"main"});
+    IFDSSolver S(L, &I);
     S.solve();
     S.dumpResults();
     // IDE template parametrization test
     llvm::outs() << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
-    IDESolver T(M);
+    IDELinearConstantAnalysis M(&DB, &I, {"main"});
+    IDESolver T(M, &I);
     T.solve();
     T.dumpResults();
   } else {

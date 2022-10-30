@@ -72,7 +72,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information for the pointer operand.");
-        return make_shared<
+        return std::make_shared<
             GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
                                             getContextRelevantPointsToSet(
                                                 PointsToSet,

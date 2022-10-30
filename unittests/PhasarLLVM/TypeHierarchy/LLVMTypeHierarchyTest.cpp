@@ -736,7 +736,9 @@ PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles +
                     "type_hierarchies/type_hierarchy_13_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  EXPECT_EQ(TH.getAllTypes().size(), 7U);
+  // NOTE: Even if using libstdc++, depending on the version the generated IR is
+  // different; so, we cannot assert on the number of types here
+  // EXPECT_EQ(TH.getAllTypes().size(), 7U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
   EXPECT_TRUE(TH.hasType(
       TH.getType("struct.std::__cxx11::basic_string<char>::_Alloc_hider")));

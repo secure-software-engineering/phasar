@@ -69,15 +69,16 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   LLVMBasedCFG CFG;
   LLVMBasedICFG I(DB, CGTy, EntryPointsSet, &H, &PT);
   if (DataFlowAnalysis == "ifds-solvertest") {
-    IFDSSolverTest IFDSTest(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver LLVMIFDSTestSolver(IFDSTest);
+    IFDSSolverTest IFDSTest(&DB, EntryPointsSet);
+
+    IFDSSolver LLVMIFDSTestSolver(IFDSTest, &I);
     LLVMIFDSTestSolver.solve();
     if (DumpResults) {
       LLVMIFDSTestSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-solvertest") {
-    IDESolverTest IDETest(&DB, &H, &I, &PT, EntryPointsSet);
-    IDESolver LLVMIDETestSolver(IDETest);
+    IDESolverTest IDETest(&DB, EntryPointsSet);
+    IDESolver LLVMIDETestSolver(IDETest, &I);
     LLVMIDETestSolver.solve();
     if (DumpResults) {
       LLVMIDETestSolver.dumpResults();
@@ -97,70 +98,67 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
       Solver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-const") {
-    IFDSConstAnalysis ConstProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver LLVMConstSolver(ConstProblem);
+    IFDSConstAnalysis ConstProblem(&DB, &PT, EntryPointsSet);
+    IFDSSolver LLVMConstSolver(ConstProblem, &I);
     LLVMConstSolver.solve();
     if (DumpResults) {
       LLVMConstSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-lca") {
-    IFDSLinearConstantAnalysis LcaProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver LLVMLcaSolver(LcaProblem);
+    IFDSLinearConstantAnalysis LcaProblem(&DB, EntryPointsSet);
+    IFDSSolver LLVMLcaSolver(LcaProblem, &I);
     LLVMLcaSolver.solve();
     if (DumpResults) {
       LLVMLcaSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-taint") {
     TaintConfig Config(DB);
-    IFDSTaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, Config,
-                                           EntryPointsSet);
-    IFDSSolver LLVMTaintSolver(TaintAnalysisProblem);
+    IFDSTaintAnalysis TaintAnalysisProblem(&DB, &PT, &Config, EntryPointsSet);
+    IFDSSolver LLVMTaintSolver(TaintAnalysisProblem, &I);
     LLVMTaintSolver.solve();
     if (DumpResults) {
       LLVMTaintSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-type") {
-    IFDSTypeAnalysis TypeAnalysisProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver LLVMTypeSolver(TypeAnalysisProblem);
+    IFDSTypeAnalysis TypeAnalysisProblem(&DB, EntryPointsSet);
+    IFDSSolver LLVMTypeSolver(TypeAnalysisProblem, &I);
     LLVMTypeSolver.solve();
     if (DumpResults) {
       LLVMTypeSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-uninit") {
-    IFDSUninitializedVariables UninitializedVarProblem(&DB, &H, &I, &PT,
-                                                       EntryPointsSet);
-    IFDSSolver LLVMUnivSolver(UninitializedVarProblem);
+    IFDSUninitializedVariables UninitializedVarProblem(&DB, EntryPointsSet);
+    IFDSSolver LLVMUnivSolver(UninitializedVarProblem, &I);
     LLVMUnivSolver.solve();
     if (DumpResults) {
       LLVMUnivSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-lca") {
-    IDELinearConstantAnalysis LcaProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IDESolver LLVMLcaSolver(LcaProblem);
+    IDELinearConstantAnalysis LcaProblem(&DB, &I, EntryPointsSet);
+    IDESolver LLVMLcaSolver(LcaProblem, &I);
     LLVMLcaSolver.solve();
     if (DumpResults) {
       LLVMLcaSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-taint") {
-    IDETaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IDESolver LLVMTaintSolver(TaintAnalysisProblem);
+    IDETaintAnalysis TaintAnalysisProblem(&DB, EntryPointsSet);
+    IDESolver LLVMTaintSolver(TaintAnalysisProblem, &I);
     LLVMTaintSolver.solve();
     if (DumpResults) {
       LLVMTaintSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-typestate") {
     CSTDFILEIOTypeStateDescription FileIODesc;
-    IDETypeStateAnalysis TypeStateProblem(&DB, &H, &I, &PT, FileIODesc,
+    IDETypeStateAnalysis TypeStateProblem(&DB, &PT, &FileIODesc,
                                           EntryPointsSet);
-    IDESolver LLVMTypeStateSolver(TypeStateProblem);
+    IDESolver LLVMTypeStateSolver(TypeStateProblem, &I);
     LLVMTypeStateSolver.solve();
     if (DumpResults) {
       LLVMTypeStateSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-instinteract") {
-    IDEInstInteractionAnalysis InstInteraction(&DB, &H, &I, &PT,
-                                               EntryPointsSet);
-    IDESolver LLVMInstInteractionSolver(InstInteraction);
+    IDEInstInteractionAnalysis InstInteraction(&DB, &I, &PT, EntryPointsSet);
+    IDESolver LLVMInstInteractionSolver(InstInteraction, &I);
     LLVMInstInteractionSolver.solve();
     if (DumpResults) {
       LLVMInstInteractionSolver.dumpResults();

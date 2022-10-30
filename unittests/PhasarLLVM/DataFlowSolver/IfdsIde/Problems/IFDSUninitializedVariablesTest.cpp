@@ -39,8 +39,8 @@ protected:
     ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
                                       EntryPoints, TH.get(), PT.get());
     // TSF = new TaintSensitiveFunctions(true);
-    UninitProblem = make_unique<IFDSUninitializedVariables>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
+    UninitProblem =
+        make_unique<IFDSUninitializedVariables>(IRDB.get(), EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
@@ -65,7 +65,7 @@ protected:
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "all_uninit_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   // all_uninit.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -74,7 +74,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   initialize({PathToLlFiles + "binop_uninit_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
 
   // binop_uninit uses uninitialized variable i in 'int j = i + 10;'
@@ -88,7 +88,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
   initialize({PathToLlFiles + "callnoret_c_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
 
   // callnoret uses uninitialized variable a in 'return a + 10;' of addTen(int)
@@ -110,7 +110,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "ctor_default_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   // ctor.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -119,7 +119,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "struct_member_init_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   // struct_member_init.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -127,7 +127,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "struct_member_uninit_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   // struct_member_uninit.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -154,7 +154,7 @@ Solver(*UninitProblem, false); Solver.solve();
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "global_variable_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   // global_variable.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -179,7 +179,7 @@ Solver(*UninitProblem, false); Solver.solve();
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   initialize({PathToLlFiles + "return_uninit_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   UninitProblem->emitTextReport(Solver.getSolverResults(), llvm::outs());
   map<int, set<string>> GroundTruth;
@@ -194,7 +194,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
 
   initialize({PathToLlFiles + "sanitizer_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   map<int, set<string>> GroundTruth;
   // all undef-uses are sanitized;
@@ -224,7 +224,7 @@ Solver(*UninitProblem, true); Solver.solve();
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 
   initialize({PathToLlFiles + "sanitizer2_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   // The undef-uses do not affect the program behaviour, but are of course still
   // found and reported
@@ -235,7 +235,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "uninit_c_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[14] = {"1"};
@@ -279,7 +279,7 @@ GroundTruth;
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "growing_example_cpp_dbg.ll"});
-  IFDSSolver Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
@@ -349,7 +349,7 @@ Solver(*UninitProblem, false); Solver.solve();
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "recursion_cpp_dbg.ll"});
-  IFDSSolver_P<IFDSUninitializedVariables> Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
@@ -370,7 +370,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "virtual_call_cpp_dbg.ll"});
-  IFDSSolver_P<IFDSUninitializedVariables> Solver(*UninitProblem);
+  IFDSSolver Solver(*UninitProblem, ICFG.get());
   Solver.solve();
 
   map<int, set<string>> GroundTruth = {

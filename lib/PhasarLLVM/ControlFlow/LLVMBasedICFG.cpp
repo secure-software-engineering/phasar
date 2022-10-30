@@ -148,10 +148,11 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     this->PT = new LLVMPointsToSet(IRDB);
     UserPTInfos = false;
   }
-  if (this->PT == nullptr) {
-    llvm::report_fatal_error("LLVMPointsToInfo not passed and "
-                             "CallGraphAnalysisType::OTF was not specified.");
-  }
+  // if (this->PT == nullptr) {
+  //   llvm::report_fatal_error("LLVMPointsToInfo not passed and "
+  //                            "CallGraphAnalysisType::OTF was not
+  //                            specified.");
+  // }
   if (EntryPoints.count("__ALL__")) {
     // Handle the special case in which a user wishes to treat all functions as
     // entry points.
@@ -181,7 +182,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                       UserEntryPoints.end());
   }
   // instantiate the respective resolver type
-  Res = makeResolver(IRDB, *this->TH, *this->PT);
+  Res = makeResolver(IRDB, *this->TH, this->PT);
   PHASAR_LOG_LEVEL(INFO, "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
   bool FixpointReached;
@@ -385,7 +386,7 @@ bool LLVMBasedICFG::constructDynamicCall(const llvm::Instruction *I,
 
 std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
                                                       LLVMTypeHierarchy &TH,
-                                                      LLVMPointsToInfo &PT) {
+                                                      LLVMPointsToInfo *PT) {
   switch (CGType) {
   case (CallGraphAnalysisType::NORESOLVE):
     return make_unique<NOResolver>(IRDB);
@@ -400,7 +401,8 @@ std::unique_ptr<Resolver> LLVMBasedICFG::makeResolver(ProjectIRDB &IRDB,
     return make_unique<DTAResolver>(IRDB, TH);
     break;
   case (CallGraphAnalysisType::OTF):
-    return make_unique<OTFResolver>(IRDB, TH, *this, PT);
+    assert(PT != nullptr);
+    return make_unique<OTFResolver>(IRDB, TH, *this, *PT);
     break;
   default:
     llvm::report_fatal_error("Resolver strategy not properly instantiated");

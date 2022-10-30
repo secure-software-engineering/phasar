@@ -14,6 +14,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+#include <type_traits>
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -74,10 +75,25 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using i_t = LLVMBasedICFG;
 };
 
+namespace detail {
+template <typename AnalysisDomainTy, typename ValueTy = BinaryDomain>
+struct HasBinaryValueDomain : std::false_type {};
 template <typename AnalysisDomainTy>
-struct WithBinaryValueDomain : AnalysisDomainTy {
+struct HasBinaryValueDomain<AnalysisDomainTy, typename AnalysisDomainTy::l_t>
+    : std::true_type {};
+
+template <typename AnalysisDomainTy>
+struct WithBinaryValueDomainExtender : AnalysisDomainTy {
   using l_t = BinaryDomain;
 };
+
+} // namespace detail
+
+template <typename AnalysisDomainTy>
+using WithBinaryValueDomain =
+    std::conditional_t<detail::HasBinaryValueDomain<AnalysisDomainTy>::value,
+                       AnalysisDomainTy,
+                       detail::WithBinaryValueDomainExtender<AnalysisDomainTy>>;
 
 using LLVMIFDSAnalysisDomainDefault =
     WithBinaryValueDomain<LLVMAnalysisDomainDefault>;

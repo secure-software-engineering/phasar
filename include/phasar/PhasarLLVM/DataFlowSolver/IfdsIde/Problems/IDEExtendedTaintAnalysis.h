@@ -185,9 +185,8 @@ public:
   /// The GetDomTree parameter can be used to inject a custom DominatorTree
   /// analysis or the results from a LLVM pass computing dominator trees
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
-  IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                           const TaintConfig *TSF,
+  IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+                           LLVMPointsToInfo *PT, const TaintConfig *TSF,
                            std::set<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
@@ -346,12 +345,11 @@ template <unsigned BOUND = 3, bool USE_STRONG_UPDATES = true>
 class IDEExtendedTaintAnalysis : public XTaint::IDEExtendedTaintAnalysis {
 public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
-  IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                           const TaintConfig &TSF,
+  IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+                           LLVMPointsToInfo *PT, const TaintConfig &TSF,
                            std::set<std::string> EntryPoints = {},
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
-      : XTaint::IDEExtendedTaintAnalysis(IRDB, TH, ICF, PT, &TSF, EntryPoints,
+      : XTaint::IDEExtendedTaintAnalysis(IRDB, ICF, PT, &TSF, EntryPoints,
                                          BOUND, !USE_STRONG_UPDATES,
                                          std::forward<GetDomTree>(GDT)) {}
 

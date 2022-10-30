@@ -18,7 +18,7 @@ class Function;
 class Value;
 } // namespace llvm
 
-namespace psr {
+namespace psr::glca {
 
 class MapFactsToCalleeFlowFunction : public FlowFunction<const llvm::Value *> {
 protected:
@@ -34,6 +34,6 @@ public:
   computeTargets(const llvm::Value *Source) override;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

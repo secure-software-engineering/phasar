@@ -13,7 +13,10 @@
 namespace psr {
 
 void AnalysisController::executeIDEXTaint() {
-  executeIDEAnalysis<IDEExtendedTaintAnalysis<>, true>();
+  auto Config = makeTaintConfig();
+  IDEExtendedTaintAnalysis<> XTA(&HA.getProjectIRDB(), &HA.getICFG(),
+                                 &HA.getPointsToInfo(), Config, EntryPoints);
+  executeIDEAnalysis(XTA);
 }
 
 } // namespace psr

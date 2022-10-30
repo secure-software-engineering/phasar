@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
@@ -7,25 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * ICFG.cpp
- *
- *  Created on: 17.08.2016
- *      Author: pdschbrt
- */
-
-#include <string>
+#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
 
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
-
-using namespace psr;
-
-namespace psr {
-
-std::string toString(const CallGraphAnalysisType &CGA) {
+std::string psr::toString(CallGraphAnalysisType CGA) {
   switch (CGA) {
   default:
 #define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
@@ -36,7 +23,7 @@ std::string toString(const CallGraphAnalysisType &CGA) {
   }
 }
 
-CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S) {
+psr::CallGraphAnalysisType psr::toCallGraphAnalysisType(llvm::StringRef S) {
   CallGraphAnalysisType Type = llvm::StringSwitch<CallGraphAnalysisType>(S)
 #define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
   .Case(NAME, CallGraphAnalysisType::TYPE)
@@ -52,9 +39,7 @@ CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S) {
   return Type;
 }
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const CallGraphAnalysisType &CGA) {
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   CallGraphAnalysisType CGA) {
   return OS << toString(CGA);
 }
-
-} // namespace psr

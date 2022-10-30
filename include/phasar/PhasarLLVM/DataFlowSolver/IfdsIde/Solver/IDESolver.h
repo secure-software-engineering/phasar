@@ -73,13 +73,16 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
-  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
-      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
-        ICF(Problem.getICFG()), SolverConfig(Problem.getIFDSIDESolverConfig()),
+  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
+            const i_t *ICF)
+      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
+        SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
         JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
             AllTop, IDEProblem)),
-        Seeds(Problem.initialSeeds()) {}
+        Seeds(Problem.initialSeeds()) {
+    assert(ICF != nullptr);
+  }
 
   IDESolver(const IDESolver &) = delete;
   IDESolver &operator=(const IDESolver &) = delete;
@@ -1815,9 +1818,10 @@ operator<<(llvm::raw_ostream &OS,
   return OS;
 }
 
-template <typename Problem>
-IDESolver(Problem &) -> IDESolver<typename Problem::ProblemAnalysisDomain,
-                                  typename Problem::container_type>;
+template <typename Problem, typename ICF>
+IDESolver(Problem &, ICF *)
+    -> IDESolver<typename Problem::ProblemAnalysisDomain,
+                 typename Problem::container_type>;
 
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,

@@ -43,10 +43,10 @@ protected:
     auto HasGlobalCtor = IRDB->getFunctionDefinition(
                              LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
     IDELinearConstantAnalysis LCAProblem(
-        IRDB.get(), &TH, &ICFG, &PT,
+        IRDB.get(), &ICFG,
         {HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
                        : "main"});
-    IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
+    IDESolver LCASolver(LCAProblem, &ICFG);
     LCASolver.solve();
     if (PrintDump) {
       IRDB->print();

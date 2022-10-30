@@ -17,17 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
-#include <iosfwd>
-#include <memory>
-#include <set>
-#include <stack>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-#include "boost/container/flat_set.hpp"
-#include "boost/graph/adjacency_list.hpp"
+#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
@@ -36,10 +30,17 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/Utils/Soundness.h"
+#include "boost/container/flat_set.hpp"
+#include "boost/graph/adjacency_list.hpp"
+
+#include <iosfwd>
+#include <memory>
+#include <set>
+#include <stack>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace llvm {
 class Instruction;
@@ -130,7 +131,7 @@ private:
   bool constructDynamicCall(const llvm::Instruction *I, Resolver &Resolver);
 
   std::unique_ptr<Resolver>
-  makeResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo &PT);
+  makeResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo *PT);
 
   template <typename MapTy>
   static void insertGlobalCtorsDtorsImpl(MapTy &Into, const llvm::Module *M,

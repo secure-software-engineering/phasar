@@ -54,9 +54,6 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  static const l_t TOP;
-  static const l_t BOTTOM;
-
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
                             std::set<std::string> EntryPoints = {"main"});
 
@@ -153,9 +150,6 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-private:
-  const LLVMBasedICFG *ICF{};
-
   // Helper functions
 
   [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
@@ -172,6 +166,9 @@ private:
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
+
+private:
+  const LLVMBasedICFG *ICF{};
 };
 
 } // namespace psr

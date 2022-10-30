@@ -28,7 +28,7 @@ namespace psr {
 /// increase precision.
 
 struct IDEGeneralizedLCADomain : LLVMAnalysisDomainDefault {
-  using l_t = EdgeValueSet;
+  using l_t = glca::EdgeValueSet;
 };
 
 class IDEGeneralizedLCA : public IDETabulationProblem<IDEGeneralizedLCADomain> {

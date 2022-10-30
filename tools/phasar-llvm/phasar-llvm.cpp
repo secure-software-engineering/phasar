@@ -7,13 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <chrono>
-#include <filesystem>
-#include <set>
-#include <sstream>
-#include <string>
-#include <vector>
+#include "phasar/Config/Configuration.h"
+#include "phasar/Controller/AnalysisController.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Soundness.h"
 
 #include "boost/program_options.hpp"
 #include "boost/program_options/value_semantic.hpp"
@@ -22,12 +22,14 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Utils/IO.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Soundness.h"
+#include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
 
 using namespace psr;
 
@@ -239,7 +241,7 @@ int main(int Argc, const char **Argv) {
   }
   try {
     if (!ConfigFile.empty()) {
-      std::ifstream Ifs(ConfigFile.c_str());
+      std::ifstream Ifs(ConfigFile);
       if (!Ifs) {
       } else {
         boost::program_options::store(
@@ -308,24 +310,6 @@ int main(int Argc, const char **Argv) {
   }
 
   bool EmitStats = PhasarConfig::VariablesMap().count("statistical-analysis");
-
-  // setup IRDB as source code manager
-  ProjectIRDB IRDB(
-      PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
-
-  if (EmitStats) {
-    llvm::outs() << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
-    llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-                 << "\n";
-    llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
-    llvm::outs() << "> global variables:\t"
-                 << IRDB.getWPAModule()->global_size() << "\n";
-    llvm::outs() << "> Alloca instructions:\t"
-                 << IRDB.getAllocaInstructions().size() << "\n";
-    llvm::outs() << "> Memory Locations:\t"
-                 << IRDB.getAllMemoryLocations().size() << "\n";
-    llvm::outs() << "> Call Sites:\t" << IRDB.getNumCallsites() << "\n";
-  }
 
   // store enabled data-flow analyses
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
@@ -446,11 +430,35 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("project-id")) {
     ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
-  AnalysisController Controller(
-      IRDB, std::move(DataFlowAnalyses), std::move(AnalysisConfigs), PTATy,
+
+  // setup IRDB as source code manager
+  HelperAnalyses HA(
+      PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>(),
+      PrecomputedPointsToSet.empty()
+          ? std::optional<nlohmann::json>()
+          : std::optional<nlohmann::json>(std::move(PrecomputedPointsToSet)),
+      PTATy, !AnalysisController::needsToEmitPTA(EmitterOptions), EntryPoints,
       CGTy, SoundnessLevel,
-      PhasarConfig::VariablesMap()["auto-globals"].as<bool>(), EntryPoints,
-      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory,
-      PrecomputedPointsToSet);
+      PhasarConfig::VariablesMap()["auto-globals"].as<bool>());
+
+  if (EmitStats) {
+    auto &IRDB = HA.getProjectIRDB();
+
+    llvm::outs() << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
+    llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
+                 << "\n";
+    llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
+    llvm::outs() << "> global variables:\t"
+                 << IRDB.getWPAModule()->global_size() << "\n";
+    llvm::outs() << "> Alloca instructions:\t"
+                 << IRDB.getAllocaInstructions().size() << "\n";
+    llvm::outs() << "> Memory Locations:\t"
+                 << IRDB.getAllMemoryLocations().size() << "\n";
+    llvm::outs() << "> Call Sites:\t" << IRDB.getNumCallsites() << "\n";
+  }
+
+  AnalysisController Controller(
+      HA, std::move(DataFlowAnalyses), std::move(AnalysisConfigs), EntryPoints,
+      Strategy, EmitterOptions, SolverConfig, ProjectID, OutDirectory);
   return 0;
 }

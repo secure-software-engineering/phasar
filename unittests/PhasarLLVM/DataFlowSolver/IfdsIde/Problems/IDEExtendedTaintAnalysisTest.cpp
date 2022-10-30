@@ -77,10 +77,9 @@ protected:
                               }},
                    Config);
 
-    IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &TH, &ICFG, &PT, TC,
-                                            EntryPoints);
+    IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &ICFG, &PT, TC, EntryPoints);
 
-    IDESolver_P<IDEExtendedTaintAnalysis<>> Solver(TaintProblem);
+    IDESolver Solver(TaintProblem, &ICFG);
     Solver.solve();
     // Solver.printAnnotatedIR();
     if (DumpResults) {

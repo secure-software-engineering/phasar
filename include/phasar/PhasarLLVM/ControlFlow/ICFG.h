@@ -31,19 +31,6 @@
 
 namespace psr {
 
-enum class CallGraphAnalysisType {
-#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
-  Invalid
-};
-
-std::string toString(const CallGraphAnalysisType &CGA);
-
-CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const CallGraphAnalysisType &CGA);
-
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
 
 protected:

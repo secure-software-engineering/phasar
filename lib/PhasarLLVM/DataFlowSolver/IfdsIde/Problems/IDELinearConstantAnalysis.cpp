@@ -40,6 +40,7 @@
 
 namespace psr {
 
+namespace lca {
 // Custom EdgeFunction declarations
 
 using l_t = IDELinearConstantAnalysisDomain::l_t;
@@ -331,11 +332,7 @@ public:
     }
   }
 };
-
-const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::TOP = Top{};
-
-const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
-    Bottom{};
+} // namespace lca
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
@@ -346,8 +343,8 @@ IDELinearConstantAnalysis::IDELinearConstantAnalysis(
 }
 
 IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
-  CurrGenConstantId = 0;
-  CurrBinaryId = 0;
+  lca::CurrGenConstantId = 0;
+  lca::CurrBinaryId = 0;
 }
 
 // Start formulating our analysis by specifying the parts required for IFDS
@@ -605,7 +602,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   if ((llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
     PHASAR_LOG_LEVEL(DEBUG, "Case: Zero value.");
     PHASAR_LOG_LEVEL(DEBUG, ' ');
-    return std::make_shared<AllBottom<l_t>>(BOTTOM);
+    return std::make_shared<AllBottom<l_t>>(Bottom{});
   }
 
   // Check store instruction
@@ -619,7 +616,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
         PHASAR_LOG_LEVEL(DEBUG, ' ');
         const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ValueOperand);
         auto IntConst = CI->getSExtValue();
-        return std::make_shared<GenConstant>(IntConst);
+        return std::make_shared<lca::GenConstant>(IntConst);
       }
       // Case II: Storing an integer typed value.
       if (CurrNode != SuccNode && ValueOperand->getType()->isIntegerTy()) {
@@ -650,10 +647,10 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
     // For non linear constant computation we propagate bottom
     if ((CurrNode == Lop && !llvm::isa<llvm::ConstantInt>(Rop)) ||
         (CurrNode == Rop && !llvm::isa<llvm::ConstantInt>(Lop))) {
-      return std::make_shared<AllBottom<l_t>>(BOTTOM);
+      return std::make_shared<AllBottom<l_t>>(Bottom{});
     }
 
-    return std::make_shared<BinOp>(OP, Lop, Rop, CurrNode);
+    return std::make_shared<lca::BinOp>(OP, Lop, Rop, CurrNode);
   }
 
   PHASAR_LOG_LEVEL(DEBUG, "Case: Edge identity.");
@@ -672,7 +669,7 @@ IDELinearConstantAnalysis::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
       const auto *Actual = CS->getArgOperand(getFunctionArgumentNr(A));
       if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
-        return std::make_shared<GenConstant>(IntConst);
+        return std::make_shared<lca::GenConstant>(IntConst);
       }
     }
   }
@@ -690,7 +687,7 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(n_t /*CallSite*/,
     auto *ReturnValue = Return->getReturnValue();
     if (auto *CI = llvm::dyn_cast_or_null<llvm::ConstantInt>(ReturnValue)) {
       auto IntConst = CI->getSExtValue();
-      return std::make_shared<GenConstant>(IntConst);
+      return std::make_shared<lca::GenConstant>(IntConst);
     }
   }
   return EdgeIdentity<l_t>::getInstance();
@@ -714,27 +711,27 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t /*CallSite*/,
 }
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::topElement() {
-  return TOP;
+  return Top{};
 }
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::bottomElement() {
-  return BOTTOM;
+  return Bottom{};
 }
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::join(l_t Lhs,
                                                                l_t Rhs) {
-  if (Rhs == Lhs || Lhs == TOP) {
+  if (Rhs == Lhs || Lhs.isTop()) {
     return Rhs;
   }
-  if (Rhs == TOP) {
+  if (Rhs.isTop()) {
     return Lhs;
   }
-  return BOTTOM;
+  return Bottom{};
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::allTopFunction() {
-  return std::make_shared<AllTop<l_t>>(TOP);
+  return std::make_shared<AllTop<l_t>>(Top{});
 }
 
 bool IDELinearConstantAnalysis::isEntryPoint(
@@ -780,7 +777,7 @@ void IDELinearConstantAnalysis::emitTextReport(
         if (!Results.empty()) {
           OS << "At IR statement: " << NtoString(Stmt) << '\n';
           for (auto Res : Results) {
-            if (Res.second != BOTTOM) {
+            if (!Res.second.isBottom()) {
               OS << "   Fact: " << DtoString(Res.first)
                  << "\n  Value: " << LtoString(Res.second) << '\n';
             }
@@ -807,7 +804,7 @@ void IDELinearConstantAnalysis::emitTextReport(
 void IDELinearConstantAnalysis::stripBottomResults(
     std::unordered_map<d_t, l_t> &Res) {
   for (auto It = Res.begin(); It != Res.end();) {
-    if (It->second == BOTTOM) {
+    if (It->second.isBottom()) {
       It = Res.erase(It);
     } else {
       ++It;

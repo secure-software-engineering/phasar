@@ -29,24 +29,28 @@
 namespace psr {
 
 template <typename AnalysisDomainTy>
-class IFDSSolver : public IDESolver<AnalysisDomainTy> {
+class IFDSSolver : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>> {
   static_assert(std::is_same_v<BinaryDomain, typename AnalysisDomainTy::l_t>,
                 "Expect an IFDS analysis domain");
 
 public:
   using ProblemTy = IFDSTabulationProblem<AnalysisDomainTy>;
-  using D = typename AnalysisDomainTy::d_t;
-  using N = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using n_t = typename AnalysisDomainTy::n_t;
+  using i_t = typename AnalysisDomainTy::i_t;
 
-  IFDSSolver(IFDSTabulationProblem<AnalysisDomainTy> &IFDSProblem)
-      : IDESolver<AnalysisDomainTy>(IFDSProblem) {}
+  template <typename IfdsDomainTy,
+            typename = std::enable_if_t<
+                std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
+  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy> &IFDSProblem, const i_t *ICF)
+      : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
 
   virtual ~IFDSSolver() = default;
 
   /// Returns the data-flow results at the given statement.
-  [[nodiscard]] virtual std::set<D> ifdsResultsAt(N Inst) {
-    std::set<D> KeySet;
-    std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(Inst);
+  [[nodiscard]] virtual std::set<d_t> ifdsResultsAt(n_t Inst) {
+    std::set<d_t> KeySet;
+    std::unordered_map<d_t, BinaryDomain> ResultMap = this->resultsAt(Inst);
     for (const auto &FlowFact : ResultMap) {
       KeySet.insert(FlowFact.first);
     }
@@ -68,10 +72,10 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = N>
+  template <typename NTy = n_t>
   [[nodiscard]] typename std::enable_if_t<
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
-      std::set<D>>
+      std::set<d_t>>
   ifdsResultsAtInLLVMSSA(NTy Inst) {
     auto getResultMap // NOLINT
         = [this, Inst]() {
@@ -85,7 +89,7 @@ public:
                    "Expected to find a valid successor node!");
             return this->resultsAt(Inst->getNextNode());
           };
-    std::set<D> KeySet;
+    std::set<d_t> KeySet;
     for (auto &[FlowFact, LatticeValue] : getResultMap()) {
       KeySet.insert(FlowFact);
     }
@@ -93,8 +97,9 @@ public:
   }
 };
 
-template <typename Problem>
-IFDSSolver(Problem &) -> IFDSSolver<typename Problem::ProblemAnalysisDomain>;
+template <typename Problem, typename ICF>
+IFDSSolver(Problem &, ICF *)
+    -> IFDSSolver<typename Problem::ProblemAnalysisDomain>;
 
 template <typename Problem>
 using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain>;

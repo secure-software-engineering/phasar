@@ -30,9 +30,9 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <sstream>
-
 namespace psr {
+
+using namespace glca;
 
 template <typename Fn, typename = std::enable_if_t<
                            std::is_invocable_v<Fn, IDEGeneralizedLCA::d_t>>>

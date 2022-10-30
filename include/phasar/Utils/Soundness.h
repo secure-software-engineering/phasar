@@ -10,7 +10,13 @@
 #ifndef PHASAR_UTILS_SOUNDNESS_H_
 #define PHASAR_UTILS_SOUNDNESS_H_
 
+#include "llvm/ADT/StringRef.h"
+
 #include <string>
+
+namespace llvm {
+class raw_ostream;
+} // namespace llvm
 
 namespace psr {
 
@@ -20,11 +26,11 @@ enum class Soundness {
   Invalid
 };
 
-std::string toString(const Soundness &S);
+std::string toString(Soundness S);
 
-Soundness toSoundness(const std::string &S);
+Soundness toSoundness(llvm::StringRef S);
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Soundness &S);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Soundness S);
 
 } // namespace psr
 

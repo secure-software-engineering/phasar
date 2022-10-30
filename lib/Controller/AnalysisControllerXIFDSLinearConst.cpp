@@ -13,7 +13,8 @@
 namespace psr {
 
 void AnalysisController::executeIFDSLinearConst() {
-  executeIFDSAnalysis<IFDSLinearConstantAnalysis>();
+  IFDSLinearConstantAnalysis LCA(&HA.getProjectIRDB(), EntryPoints);
+  executeIFDSAnalysis(LCA);
 }
 
 } // namespace psr
