@@ -833,23 +833,43 @@ public:
     struct MapFactsAlongsideCallSite : public FlowFunction<IDEIIAFlowFact> {
       bool OnlyDecls;
       const llvm::CallBase *CallSite;
+      d_t ZeroValue;
+      std::set<f_t> Callees;
 
-      MapFactsAlongsideCallSite(bool OnlyDecls, const llvm::CallBase *CallSite)
-          : OnlyDecls(OnlyDecls), CallSite(CallSite) {}
+      MapFactsAlongsideCallSite(bool OnlyDecls, const llvm::CallBase *CallSite,
+                                d_t ZeroValue, std::set<f_t> Callees)
+          : OnlyDecls(OnlyDecls), CallSite(CallSite), ZeroValue(ZeroValue),
+            Callees(Callees) {}
 
       std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
-        // Pass ZeroValue as is
-        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source.getBase())) {
-          return {Source};
-        }
-        // Pass variables as identity, if no function definition is available
-        // as they would be otherwise killed.
+        // There are a few things to consider, in case only declarations of
+        // callee targets are available.
         if (OnlyDecls) {
-          return {Source};
+          auto AllVoidRetTys = [](const std::set<f_t> &Callees) {
+            // Check if one of the callee targets returns a value.
+            bool AllVoidRetTys = true;
+            for (const auto *Callee : Callees) {
+              if (!Callee->getReturnType()->isVoidTy()) {
+                AllVoidRetTys = false;
+              }
+            }
+            return AllVoidRetTys;
+          };
+          if (!AllVoidRetTys(Callees)) {
+            // If one or more of the declaration-only targets return a value, it
+            // must be generated from zero!
+            if (Source == ZeroValue) {
+              return {Source, CallSite};
+            }
+          } else {
+            // If all declaration-only callee targets return void, just pass
+            // everything as identity.
+            return {Source};
+          }
         }
-        // Do not global variables (if definitions of the callee function(s) are
-        // available), since the effect of the callee on these values will be
-        // modelled using combined getCallFlowFunction and
+        // Do not pass global variables if definitions of the callee
+        // function(s) are available, since the effect of the callee on these
+        // values will be modelled using combined getCallFlowFunction and
         // getReturnFlowFunction.
         if (llvm::isa<llvm::Constant>(Source.getBase())) {
           return {};
@@ -861,7 +881,8 @@ public:
       }
     };
     return std::make_shared<MapFactsAlongsideCallSite>(
-        OnlyDecls, llvm::dyn_cast<llvm::CallBase>(CallSite));
+        OnlyDecls, llvm::dyn_cast<llvm::CallBase>(CallSite),
+        this->getZeroValue(), Callees);
   }
 
   inline FlowFunctionPtrType
@@ -1715,7 +1736,7 @@ protected:
   }
 
 private:
-  /// Filters out all variables that had a non empty set during edge functions
+  /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
       const SolverResults<n_t, d_t, l_t> &Solution,
@@ -1729,7 +1750,7 @@ private:
       // at some point. Therefore, we only care for the variables and their
       // associated values and ignore at which point a variable may holds as a
       // data-flow fact.
-      const auto *Variable = Result.getColumnKey();
+      const auto Variable = Result.getColumnKey();
       const auto &Value = Result.getValue();
       // skip result entry if variable is not in the set of all variables
       if (Variables.find(Variable) == Variables.end()) {

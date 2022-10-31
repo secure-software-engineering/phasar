@@ -17,14 +17,14 @@
 #ifndef PHASAR_CONFIG_CONFIGURATION_H_
 #define PHASAR_CONFIG_CONFIGURATION_H_
 
-#include <filesystem>
-#include <string>
-
-#include "boost/program_options.hpp"
+#include "phasar/Config/Version.h"
 
 #include "llvm/ADT/iterator_range.h"
 
-#include "phasar/Config/Version.h"
+#include "boost/program_options.hpp"
+
+#include <filesystem>
+#include <string>
 
 #define XSTR(S) STR(S)
 #define STR(S) #S
