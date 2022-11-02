@@ -35,8 +35,6 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "boost/algorithm/string/trim.hpp"
-
 #include <cctype>
 #include <charconv>
 #include <cstdlib>
@@ -161,8 +159,7 @@ std::string llvmIRToString(const llvm::Value *V) {
   V->print(RSO, getModuleSlotTrackerFor(V));
   RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
-  boost::trim_left(IRBuffer);
-  return IRBuffer;
+  return llvm::StringRef(IRBuffer).ltrim().str();
 }
 
 std::string llvmIRToStableString(const llvm::Value *V) {
@@ -208,8 +205,7 @@ std::string llvmIRToShortString(const llvm::Value *V) {
   }
   RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
-  boost::trim_left(IRBuffer);
-  return IRBuffer;
+  return llvm::StringRef(IRBuffer).ltrim().str();
 }
 
 void dumpIRValue(const llvm::Value *V) {

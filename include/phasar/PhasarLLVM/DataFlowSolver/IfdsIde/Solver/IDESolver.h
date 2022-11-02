@@ -38,8 +38,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include "boost/algorithm/string/trim.hpp"
-
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <map>
@@ -106,15 +105,21 @@ public:
       n_t Curr;
       for (unsigned I = 0; I < Cells.size(); ++I) {
         Curr = Cells[I].getRowKey();
-        std::string NStr = IDEProblem.NtoString(Cells[I].getRowKey());
-        boost::algorithm::trim(NStr);
+        auto NStr = llvm::StringRef(IDEProblem.NtoString(Cells[I].getRowKey()))
+                        .trim()
+                        .str();
+
         std::string NodeStr =
             ICF->getFunctionName(ICF->getFunctionOf(Curr)) + "::" + NStr;
         J[DataFlowID][NodeStr];
-        std::string FactStr = IDEProblem.DtoString(Cells[I].getColumnKey());
-        boost::algorithm::trim(FactStr);
-        std::string ValueStr = IDEProblem.LtoString(Cells[I].getValue());
-        boost::algorithm::trim(ValueStr);
+        std::string FactStr =
+            llvm::StringRef(IDEProblem.DtoString(Cells[I].getColumnKey()))
+                .trim()
+                .str();
+        std::string ValueStr =
+            llvm::StringRef(IDEProblem.LtoString(Cells[I].getValue()))
+                .trim()
+                .str();
         J[DataFlowID][NodeStr]["Facts"] += {FactStr, ValueStr};
       }
     }
