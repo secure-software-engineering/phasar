@@ -18,6 +18,15 @@ HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
       EntryPoints(std::move(EntryPoints)), CGTy(CGTy),
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {}
 
+HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
+                               std::set<std::string> EntryPoints,
+                               HelperAnalysisConfig Config)
+    : IRFiles(std::move(IRFiles)),
+      PrecomputedPTS(std::move(Config.PrecomputedPTS)), PTATy(Config.PTATy),
+      AllowLazyPTS(Config.AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
+      CGTy(Config.CGTy), SoundnessLevel(Config.SoundnessLevel),
+      AutoGlobalSupport(Config.AutoGlobalSupport) {}
+
 HelperAnalyses::~HelperAnalyses() = default;
 
 ProjectIRDB &HelperAnalyses::getProjectIRDB() {

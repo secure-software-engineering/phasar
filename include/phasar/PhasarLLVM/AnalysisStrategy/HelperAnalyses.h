@@ -4,15 +4,13 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
-#include "phasar/Utils/Soundness.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalysisConfig.h"
 
 #include "nlohmann/json.hpp"
 
@@ -35,6 +33,10 @@ public:
                           std::set<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport);
+
+  explicit HelperAnalyses(std::vector<std::string> IRFiles,
+                          std::set<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
   ~HelperAnalyses();
 
   ProjectIRDB &getProjectIRDB();
