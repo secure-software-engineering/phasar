@@ -41,7 +41,7 @@ function(phasar_config executable)
   else()
     llvm_config(${executable} ${PHASAR_LLVM_DEPS})
   endif()
-  
+
   target_link_libraries(${executable}
     PUBLIC
     ${PHASAR_NEEDED_LIBS}
