@@ -31,7 +31,6 @@
 
 namespace psr {
 
-
 template <typename N, typename F> class ICFG : public virtual CFG<N, F> {
 
 protected:
