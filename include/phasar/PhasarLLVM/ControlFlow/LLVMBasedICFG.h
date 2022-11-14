@@ -36,6 +36,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"

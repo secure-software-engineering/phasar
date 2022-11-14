@@ -10,21 +10,23 @@
 #ifndef PHASAR_UTILS_SOUNDNESS_H_
 #define PHASAR_UTILS_SOUNDNESS_H_
 
+#include "llvm/Support/raw_ostream.h"
+
 #include <string>
 
 namespace psr {
 
 enum class Soundness {
-#define SOUNDNESS_FLAG_TYPE(NAME, TYPE) TYPE,
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC) NAME,
 #include "phasar/Utils/Soundness.def"
   Invalid
 };
 
-std::string toString(const Soundness &S);
+std::string toString(Soundness S);
 
-Soundness toSoundness(const std::string &S);
+Soundness toSoundness(llvm::StringRef S);
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Soundness &S);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Soundness S);
 
 } // namespace psr
 

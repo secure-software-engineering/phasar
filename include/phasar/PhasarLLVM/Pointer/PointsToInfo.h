@@ -10,12 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
+#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
+#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
+
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
-
-#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 
 namespace psr {
 
@@ -26,19 +27,6 @@ std::string toString(AliasResult AR);
 AliasResult toAliasResult(const std::string &S);
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const AliasResult &AR);
-
-enum class PointerAnalysisType {
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
-  Invalid
-};
-
-std::string toString(const PointerAnalysisType &PA);
-
-PointerAnalysisType toPointerAnalysisType(const std::string &S);
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const PointerAnalysisType &PA);
 
 template <typename V, typename N> class PointsToInfo {
 public:

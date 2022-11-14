@@ -273,8 +273,10 @@ void PAMM::printMeasuredData(llvm::raw_ostream &Os) {
   Os << "\n----- END OF EVALUATION DATA -----\n\n";
 }
 
-void PAMM::exportMeasuredData(std::string OutputPath,
-                              boost::program_options::variables_map &Config) {
+void PAMM::exportMeasuredData(
+    const std::string &OutputPath, const std::optional<std::string> &ProjectId,
+    const std::optional<std::vector<std::string>> &Modules,
+    const std::optional<std::vector<std::string>> &DataFlowAnalyses) {
   // json file for holding all data
   json JsonData;
 
@@ -313,15 +315,14 @@ void PAMM::exportMeasuredData(std::string OutputPath,
 
   // add analysis/project/source file information if available
   json JInfo;
-  if (Config.count("project-id")) {
-    JInfo["Project-ID"] = Config["project-id"].as<std::string>();
+  if (ProjectId) {
+    JInfo["Project-ID"] = *ProjectId;
   }
-  if (Config.count("module")) {
-    JInfo["Module(s)"] = Config["module"].as<std::vector<std::string>>();
+  if (Modules) {
+    JInfo["Module(s)"] = *Modules;
   }
-  if (Config.count("data-flow-analysis")) {
-    JInfo["Data-flow analysis"] =
-        Config["data-flow-analysis"].as<std::vector<std::string>>();
+  if (DataFlowAnalyses) {
+    JInfo["Data-flow analysis"] = *DataFlowAnalyses;
   }
   if (!JInfo.is_null()) {
     JsonData["Info"] = JInfo;
@@ -329,15 +330,15 @@ void PAMM::exportMeasuredData(std::string OutputPath,
 
   std::filesystem::path Cfp(OutputPath);
   if (Cfp.string().find(".json") == std::string::npos) {
-    OutputPath.append(".json");
+    Cfp.append(".json");
   }
-  std::ofstream File(OutputPath);
+  std::ofstream File(Cfp);
   if (File.is_open()) {
     File << std::setw(2) // sets the indentation
          << JsonData << std::endl;
     File.close();
   } else {
-    throw std::ios_base::failure("could not write file: " + OutputPath);
+    throw std::ios_base::failure("could not write file: " + Cfp.string());
   }
 }
 

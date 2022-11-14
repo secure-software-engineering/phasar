@@ -17,8 +17,9 @@
 #include <type_traits>
 #include <utility>
 
+#include "AnalysisSetup.h"
 #include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
+#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 

@@ -10,12 +10,11 @@
 #include <string>
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
-namespace psr {
-
-std::string toString(AliasResult AR) {
+std::string psr::toString(AliasResult AR) {
   switch (AR) {
   case AliasResult::NoAlias:
     return "NoAlias";
@@ -32,7 +31,7 @@ std::string toString(AliasResult AR) {
   }
 }
 
-AliasResult toAliasResult(const std::string &S) {
+psr::AliasResult psr::toAliasResult(const std::string &S) {
   if (S == "NoAlias") {
     return AliasResult::NoAlias;
   }
@@ -45,39 +44,7 @@ AliasResult toAliasResult(const std::string &S) {
   return AliasResult::MustAlias;
 }
 
-std::ostream &operator<<(std::ostream &OS, const AliasResult &AR) {
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   const AliasResult &AR) {
   return OS << toString(AR);
 }
-
-std::string tostring(const PointerAnalysisType &PA) {
-  switch (PA) {
-  default:
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
-  case PointerAnalysisType::TYPE:                                              \
-    return NAME;                                                               \
-    break;
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
-  }
-}
-
-PointerAnalysisType toPointerAnalysisType(const std::string &S) {
-  PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
-  .Case(NAME, PointerAnalysisType::TYPE)
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
-                                 .Default(PointerAnalysisType::Invalid);
-  if (Type == PointerAnalysisType::Invalid) {
-    Type = llvm::StringSwitch<PointerAnalysisType>(S)
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
-  .Case(CMDFLAG, PointerAnalysisType::TYPE)
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
-               .Default(PointerAnalysisType::Invalid);
-  }
-  return Type;
-}
-
-std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA) {
-  return OS << tostring(PA);
-}
-
-} // namespace psr

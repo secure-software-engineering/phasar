@@ -103,7 +103,8 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   Pamm.addToHistogram("Test-Set", "2");
   Pamm.incCounter("setOpCount", 9);
   Pamm.stopTimer("timer3");
-  Pamm.exportMeasuredData("HandleJSONOutputTest", PhasarConfig::VariablesMap());
+  // Pamm.exportMeasuredData("HandleJSONOutputTest",
+  // PhasarConfig::VariablesMap());
 }
 
 TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
