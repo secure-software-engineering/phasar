@@ -52,14 +52,6 @@ namespace psr {
 const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
                                              "calloc", "realloc"};
 
-bool isFunctionPointer(const llvm::Value *V) noexcept {
-  if (V) {
-    return V->getType()->isPointerTy() &&
-           V->getType()->getPointerElementType()->isFunctionTy();
-  }
-  return false;
-}
-
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {
@@ -89,7 +81,8 @@ bool isTypeMatchForFunctionArgument(llvm::Type *Actual, llvm::Type *Formal) {
   // For PointerType delegate into its element type
   if (llvm::isa<llvm::PointerType>(Actual)) {
     // If formal argument is void *, we can pass anything.
-    if (Formal->getPointerElementType()->isIntegerTy(8)) {
+    if (Actual->isOpaquePointerTy() || Formal->isOpaquePointerTy() ||
+        Formal->getPointerElementType()->isIntegerTy(8)) {
       return true;
     }
     return isTypeMatchForFunctionArgument(Actual->getPointerElementType(),

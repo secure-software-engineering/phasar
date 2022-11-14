@@ -16,7 +16,8 @@
 
 namespace psr {
 
-class DataFlowUtils {
+class [[deprecated("Requires non-opaque pointers, which will no longer be "
+                   "supported by LLVM in the next version!")]] DataFlowUtils {
 public:
   DataFlowUtils() = delete;
 
@@ -26,12 +27,12 @@ public:
   static bool isMemoryLocationTainted(const llvm::Value *MemLocationMatr,
                                       const ExtendedValue &Fact);
 
-  static std::vector<const llvm::Value *>
-  getMemoryLocationSeqFromMatr(const llvm::Value *MemLocationMatr);
-  static std::vector<const llvm::Value *>
-  getMemoryLocationSeqFromFact(const ExtendedValue &MemLocationFact);
-  static std::vector<const llvm::Value *>
-  getVaListMemoryLocationSeqFromFact(const ExtendedValue &VaListFact);
+  static std::vector<const llvm::Value *> getMemoryLocationSeqFromMatr(
+      const llvm::Value *MemLocationMatr);
+  static std::vector<const llvm::Value *> getMemoryLocationSeqFromFact(
+      const ExtendedValue &MemLocationFact);
+  static std::vector<const llvm::Value *> getVaListMemoryLocationSeqFromFact(
+      const ExtendedValue &VaListFact);
 
   static bool isMemoryLocationSeqsEqual(
       const std::vector<const llvm::Value *> &MemLocationSeq1,
@@ -68,8 +69,8 @@ public:
                       const llvm::Function *DestFun,
                       const llvm::Value *ZeroValue);
 
-  static const llvm::BasicBlock *
-  getEndOfTaintedBlock(const llvm::BasicBlock *StartBasicBlock);
+  static const llvm::BasicBlock *getEndOfTaintedBlock(
+      const llvm::BasicBlock *StartBasicBlock);
   static bool removeTaintedBlockInst(const ExtendedValue &Fact,
                                      const llvm::Instruction *CurrentInst);
   static bool isAutoGENInTaintedBlock(const llvm::Instruction *CurrentInst);

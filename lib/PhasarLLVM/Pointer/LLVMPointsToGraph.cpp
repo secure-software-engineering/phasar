@@ -218,15 +218,17 @@ void LLVMPointsToGraph::computePointsToGraph(llvm::Function *F) {
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
   const auto MapEnd = ValueVertexMap.end();
   for (auto I1 = ValueVertexMap.begin(); I1 != MapEnd; ++I1) {
-    llvm::Type *I1ElTy =
-        llvm::cast<llvm::PointerType>(I1->first->getType())->getElementType();
-    const uint64_t I1Size = I1ElTy->isSized()
+    llvm::Type *I1ElTy = !I1->first->getType()->isOpaquePointerTy()
+                             ? I1->first->getType()->getPointerElementType()
+                             : nullptr;
+    const uint64_t I1Size = I1ElTy && I1ElTy->isSized()
                                 ? DL.getTypeStoreSize(I1ElTy)
                                 : llvm::MemoryLocation::UnknownSize;
     for (auto I2 = std::next(I1); I2 != MapEnd; ++I2) {
-      llvm::Type *I2ElTy =
-          llvm::cast<llvm::PointerType>(I2->first->getType())->getElementType();
-      const uint64_t I2Size = I2ElTy->isSized()
+      llvm::Type *I2ElTy = !I2->first->getType()->isOpaquePointerTy()
+                               ? I2->first->getType()->getPointerElementType()
+                               : nullptr;
+      const uint64_t I2Size = I2ElTy && I2ElTy->isSized()
                                   ? DL.getTypeStoreSize(I2ElTy)
                                   : llvm::MemoryLocation::UnknownSize;
       switch (AA.alias(I1->first, I1Size, I2->first, I2Size)) {

@@ -717,10 +717,12 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
                             TSD.getTypeNameOfInterest())) {
       return true;
     }
+    // fallthrough
   }
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (hasMatchingTypeName(
+      if (Alloca->getAllocatedType()->isOpaquePointerTy() ||
+          hasMatchingTypeName(
               Alloca->getAllocatedType()->getPointerElementType(),
               TSD.getTypeNameOfInterest())) {
         return true;
@@ -729,14 +731,9 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
     return false;
   }
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-    if (Load->getPointerOperand()
-            ->getType()
-            ->getPointerElementType()
-            ->isPointerTy()) {
-      if (hasMatchingTypeName(Load->getPointerOperand()
-                                  ->getType()
-                                  ->getPointerElementType()
-                                  ->getPointerElementType(),
+    if (Load->getType()->isPointerTy()) {
+      if (Load->getType()->isOpaquePointerTy() ||
+          hasMatchingTypeName(Load->getType()->getPointerElementType(),
                               TSD.getTypeNameOfInterest())) {
         return true;
       }
@@ -745,7 +742,8 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   }
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
     if (Store->getValueOperand()->getType()->isPointerTy()) {
-      if (hasMatchingTypeName(
+      if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
+          hasMatchingTypeName(
               Store->getValueOperand()->getType()->getPointerElementType(),
               TSD.getTypeNameOfInterest())) {
         return true;

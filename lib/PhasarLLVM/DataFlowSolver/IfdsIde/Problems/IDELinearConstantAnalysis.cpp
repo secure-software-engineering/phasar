@@ -91,7 +91,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   // check load instructions
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
-    if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
+    if (Load->getType()->isIntegerTy()) {
       return std::make_shared<GenIf<d_t>>(Load, [Load](d_t Source) {
         return Source == Load->getPointerOperand();
       });

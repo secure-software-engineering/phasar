@@ -9,6 +9,7 @@
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
@@ -26,9 +27,8 @@ bool isConstant(const llvm::Value *Val) {
   if (llvm::isa<llvm::ConstantPointerNull>(Val)) { // NULL
     return true;
   }
-  if (const auto *Gep = llvm::dyn_cast<llvm::ConstantExpr>(Val);
-      Gep && Val->getType()->isPointerTy() &&
-      Val->getType()->getPointerElementType()->isIntegerTy()) {
+  if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Val);
+      Gep && Gep->getResultElementType()->isIntegerTy()) {
     // const string
     // val isa GEP
     auto *Op1 = Gep->getOperand(0); // op1 is pointer-operand

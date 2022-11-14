@@ -34,7 +34,9 @@ bool isConstructor(const std::string &MangledName);
 
 std::string debasify(const std::string &Name);
 
-const llvm::Type *stripPointer(const llvm::Type *Pointer);
+[[deprecated("Requires non-opaque pointers, which will no longer be "
+             "supported by LLVM in the next version!")]] const llvm::Type *
+stripPointer(const llvm::Type *Pointer);
 
 bool isMangled(const std::string &Name);
 

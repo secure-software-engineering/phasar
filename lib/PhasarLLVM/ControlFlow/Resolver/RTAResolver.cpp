@@ -33,23 +33,8 @@ using namespace psr;
 RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : CHAResolver(IRDB, TH) {}
 
-// void RTAResolver::firstFunction(const llvm::Function *F) {
-//   auto func_type = F->getFunctionType();
-
-//   for (auto param : func_type->params()) {
-//     if (llvm::isa<llvm::PointerType>(param)) {
-//       if (auto struct_ty =
-//               llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-//         unsound_types.insert(struct_ty);
-//       }
-//     }
-//   }
-// }
-
 auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
-  // throw runtime_error("RTA is currently unabled to deal with already built "
-  //                     "library, it has been disable until this is fixed");
 
   FunctionSetTy PossibleCallTargets;
 

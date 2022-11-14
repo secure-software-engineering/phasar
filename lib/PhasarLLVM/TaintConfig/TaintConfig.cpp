@@ -243,8 +243,8 @@ TaintConfig::TaintConfig(const psr::ProjectIRDB &Code, // NOLINT
           } else if (!StructConfigMap.empty()) {
             // Ignorning line numbers for getElementPtr instructions
             if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
-              const auto *StType = llvm::dyn_cast<llvm::StructType>(
-                  Gep->getPointerOperandType()->getPointerElementType());
+              const auto *StType =
+                  llvm::dyn_cast<llvm::StructType>(Gep->getSourceElementType());
               if (StType && StructConfigMap.count(StType)) {
                 const auto VarDesc = StructConfigMap.at(StType);
                 auto VarName = VarDesc["name"].get<std::string>();

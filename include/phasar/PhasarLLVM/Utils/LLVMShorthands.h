@@ -31,14 +31,6 @@
 namespace psr {
 
 /**
- * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
- * @param V LLVM Value.
- * @return True, if given LLVM Value is a LLVM Function Pointer. False,
- * otherwise.
- */
-bool isFunctionPointer(const llvm::Value *V) noexcept;
-
-/**
  * @brief Checks if the given LLVM Value is either a alloca instruction or a
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
  */

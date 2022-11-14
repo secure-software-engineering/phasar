@@ -22,6 +22,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
@@ -59,14 +60,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;
         } // check bitcast instructions for possible types
-        else {
-          for (auto *User : I.users()) {
-            if (const llvm::BitCastInst *Cast =
-                    llvm::dyn_cast<llvm::BitCastInst>(User)) {
-              // types.insert(cast->getDestTy());
-            }
-          }
-        }
+
         // check for return or resume instructions
         if (llvm::isa<llvm::ReturnInst>(I) || llvm::isa<llvm::ResumeInst>(I)) {
           Stats.RetResInstructions.insert(&I);
@@ -84,9 +78,8 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           ++Stats.MemIntrinsics;
         }
         // check for function calls
-        if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
+        if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(&I)) {
           ++Stats.CallSites;
-          const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(&I);
           if (CallSite->getCalledFunction()) {
             if (MemAllocatingFunctions.count(llvm::demangle(
                     CallSite->getCalledFunction()->getName().str()))) {
@@ -95,9 +88,12 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
               ++Stats.AllocationSites;
               // check if an instance of a user-defined type is allocated on the
               // heap
+
               for (auto *User : I.users()) {
                 if (auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
-                  if (Cast->getDestTy()
+                  if (Cast->getDestTy()->isPointerTy() &&
+                      !Cast->getDestTy()->isOpaquePointerTy() &&
+                      Cast->getDestTy()
                           ->getPointerElementType()
                           ->isStructTy()) {
                     // finally check for ctor call
