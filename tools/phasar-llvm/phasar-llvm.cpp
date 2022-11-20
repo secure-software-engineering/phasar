@@ -32,41 +32,40 @@ using namespace psr;
 
 namespace cl = llvm::cl;
 
+namespace {
+
 cl::OptionCategory PsrCat("PhASAR");
 
-#define PSR_OPTION_FLAG(NAME, CMDFLAG, DESC)                                   \
-  cl::opt<bool> NAME(CMDFLAG, cl::desc(DESC), cl::cat(PsrCat))
-#define PSR_TRUE_OPTION_FLAG(NAME, CMDFLAG, DESC)                              \
-  cl::opt<bool> NAME(CMDFLAG, cl::desc(DESC), cl::init(true), cl::cat(PsrCat))
-#define PSR_HIDDEN_OPTION_FLAG(NAME, CMDFLAG, DESC)                            \
-  cl::opt<bool> NAME(CMDFLAG, cl::desc(DESC), cl::cat(PsrCat), cl::Hidden)
+#define PSR_OPTION_FLAG(NAME, CMDFLAG, DESC, ...)                              \
+  cl::opt<bool> NAME(CMDFLAG, cl::desc(DESC), cl::cat(PsrCat), ##__VA_ARGS__)
 
-// cl::opt<std::string>
-//     ConfigOpt("config",
-//               cl::desc("Path to the configuration file, options can be "
-//                        "specified as 'parameter = option'"),
-//               cl::cat(PsrCat));
-// cl::alias ConfigAlias("c", cl::aliasopt(ConfigOpt), cl::cat(PsrCat));
+#define PSR_SHORTLONG_OPTION_TYPE(NAME, TYPE, SHORTCMD, LONGCMD, DESC, ...)    \
+  TYPE NAME(LONGCMD, cl::desc(DESC), cl::cat(PsrCat), ##__VA_ARGS__);          \
+  cl::alias NAME##ShortAlias(SHORTCMD, cl::aliasopt(NAME),                     \
+                             cl::desc(DESC " (alias for --" LONGCMD ")"),      \
+                             cl::cat(PsrCat))
 
-PSR_OPTION_FLAG(SilentOpt, "silent", "Suppress any non-result output");
-cl::alias SilentAlias("s", cl::aliasopt(SilentOpt),
-                      cl::desc("Alias for --silent"), cl::cat(PsrCat));
+#define PSR_SHORTLONG_OPTION(NAME, TYPE, SHORTCMD, LONGCMD, DESC, ...)         \
+  PSR_SHORTLONG_OPTION_TYPE(NAME, cl::opt<TYPE>, SHORTCMD, LONGCMD, DESC,      \
+                            ##__VA_ARGS__)
+
+// PSR_SHORTLONG_OPTION(ConfigOpt, std::string, "c", "config",
+//                      "Path to the configuration file, options can be "
+//                      "specified as 'parameter = option'");
+
+PSR_SHORTLONG_OPTION(SilentOpt, bool, "s", "silent",
+                     "Suppress any non-result output");
 cl::alias QuietAlias("quiet", cl::aliasopt(SilentOpt),
                      cl::desc("Alias for --silent"), cl::cat(PsrCat));
 
-cl::list<std::string>
-    ModuleOpt("module", cl::desc("Path to the LLVM IR module under analysis"),
-              cl::cat(PsrCat), cl::OneOrMore);
-cl::alias ModuleAlias("m", cl::aliasopt(ModuleOpt),
-                      cl::desc("Alias for --module"), cl::cat(PsrCat));
+PSR_SHORTLONG_OPTION_TYPE(ModuleOpt, cl::list<std::string>, "m", "module",
+                          "Path to the LLVM IR module under analysis",
+                          cl::OneOrMore);
 
-cl::list<std::string> EntryOpt(
-    "entry-points",
-    cl::desc("Set the entry point(s) to be used; use '__ALL__' to specify "
-             "all available function definitions as entry points"),
-    cl::cat(PsrCat));
-cl::alias EntryAlias("E", cl::aliasopt(EntryOpt),
-                     cl::desc("Alias for --entry-points"), cl::cat(PsrCat));
+PSR_SHORTLONG_OPTION_TYPE(
+    EntryOpt, cl::list<std::string>, "E", "entry-points",
+    "Set the entry point(s) to be used; use '__ALL__' to specify all available "
+    "function definitions as entry points");
 
 cl::list<DataFlowAnalysisType> DataFlowAnalysisOpt(
     "data-flow-analysis", cl::desc("Set the analyses to be run"),
@@ -130,19 +129,16 @@ cl::opt<Soundness>
 #include "phasar/Utils/Soundness.def"
                      clEnumValN(Soundness::Invalid, "invalid", "invalid")),
                  cl::init(Soundness::Soundy), cl::cat(PsrCat), cl::Hidden);
-PSR_TRUE_OPTION_FLAG(AutoGlobalsOpt, "auto-globals",
-                     "Enable automated support for global initializers");
+PSR_OPTION_FLAG(AutoGlobalsOpt, "auto-globals",
+                "Enable automated support for global initializers",
+                cl::init(true));
 
-PSR_OPTION_FLAG(StatisticsOpt, "statistical-analysis",
-                "Collect and emit statistics of the module(s) under analysis");
-cl::alias StatisticsAlias("S", cl::aliasopt(StatisticsOpt),
-                          cl::desc("Alias for --statistical-analysis"),
-                          cl::cat(PsrCat));
+PSR_SHORTLONG_OPTION(
+    StatisticsOpt, bool, "S", "statistical-analysis",
+    "Collect and emit statistics of the module(s) under analysis");
 
 #ifdef DYNAMIC_LOG
-PSR_OPTION_FLAG(LogOpt, "log", "Enable logging");
-cl::alias LogAlias("L", cl::aliasopt(LogOpt), cl::desc("Alias for --log"),
-                   cl::cat(PsrCat));
+PSR_SHORTLONG_OPTION(LogOpt, bool, "L", "log", "Enable logging");
 #endif
 
 cl::opt<std::string>
@@ -155,22 +151,18 @@ cl::opt<std::string> ProjectIdOpt("project-id",
                                   cl::init("default-phasar-project"),
                                   cl::cat(PsrCat), cl::Hidden);
 
-cl::opt<std::string>
-    OutDirOpt("out",
-              cl::desc("Output directory; if specified all results are written "
-                       "to the output directory instead of stdout"),
-              cl::cat(PsrCat));
-cl::alias OutDirAlias("O", cl::aliasopt(OutDirOpt), cl::desc("Alias for --out"),
-                      cl::cat(PsrCat));
+PSR_SHORTLONG_OPTION(OutDirOpt, std::string, "O", "out",
+                     "Output directory; if specified all results are written "
+                     "to the output directory instead of stdout");
 
 PSR_OPTION_FLAG(EmitIROpt, "emit-ir",
                 "Emit preprocessed and annotated IR of analysis target");
 PSR_OPTION_FLAG(EmitRawResultsOpt, "emit-raw-results",
                 "Emit unprocessed/raw solver results");
-PSR_TRUE_OPTION_FLAG(EmitTextReportOpt, "emit-text-report",
-                     "Emit textual report of solver results");
-PSR_HIDDEN_OPTION_FLAG(EmitGraphicalReportOpt, "emit-graphical-report",
-                       "Emit graphical report of solver results");
+PSR_OPTION_FLAG(EmitTextReportOpt, "emit-text-report",
+                "Emit textual report of solver results", cl::init(true));
+PSR_OPTION_FLAG(EmitGraphicalReportOpt, "emit-graphical-report",
+                "Emit graphical report of solver results", cl::Hidden);
 PSR_OPTION_FLAG(EmitESGAsDotOpt, "emit-esg-as-dot",
                 "Emit the exploded super-graph (ESG) as DOT graph");
 PSR_OPTION_FLAG(EmitTHAsTextOpt, "emit-th-as-text",
@@ -193,37 +185,36 @@ PSR_OPTION_FLAG(EmitPTAAsJsonOpt, "emit-pta-as-json",
                 "Emit the points-to information as json");
 PSR_OPTION_FLAG(EmitStatsAsJsonOpt, "emit-statistics-as-json",
                 "Emit the statistics information as json");
-PSR_HIDDEN_OPTION_FLAG(FollowReturnPastSeedsOpt, "follow-return-past-seeds",
-                       "Let the IFDS/IDE Solver process unbalanced returns");
-PSR_TRUE_OPTION_FLAG(
-    AutoAddZeroOpt, "auto-add-zero",
-    "Let the IFDS/IDE Solver automatically add the special zero "
-    "value to any set of dataflow-facts");
-PSR_TRUE_OPTION_FLAG(
+PSR_OPTION_FLAG(FollowReturnPastSeedsOpt, "follow-return-past-seeds",
+                "Let the IFDS/IDE Solver process unbalanced returns",
+                cl::init(true));
+PSR_OPTION_FLAG(AutoAddZeroOpt, "auto-add-zero",
+                "Let the IFDS/IDE Solver automatically add the special zero "
+                "value to any set of dataflow-facts",
+                cl::init(true));
+PSR_OPTION_FLAG(
     ComputeValuesOpt, "compute-values",
-    "Let the IDE Solver compute the values attached to each edge in the ESG");
-PSR_HIDDEN_OPTION_FLAG(
+    "Let the IDE Solver compute the values attached to each edge in the ESG",
+    cl::init(true));
+PSR_OPTION_FLAG(
     RecordEdgesOpt, "record-edges",
     "Let the IFDS/IDE Solver record all ESG edges whole solving the dataflow "
-    "problem. This can have massive performance impact");
-PSR_HIDDEN_OPTION_FLAG(
-    PersistedSummariesOpt, "persisted-summaries",
-    "Let the IFDS/IDE Solver compute persisted procedure summaries "
-    "(Currently not supported)");
+    "problem. This can have massive performance impact",
+    cl::Hidden);
+PSR_OPTION_FLAG(PersistedSummariesOpt, "persisted-summaries",
+                "Let the IFDS/IDE Solver compute persisted procedure summaries "
+                "(Currently not supported)",
+                cl::Hidden);
 
 cl::opt<std::string>
     LoadPTAFromJsonOpt("load-pta-from-json",
                        cl::desc("Load the points-to info previously exported "
                                 "via emit-pta-as-json from the given file"),
                        cl::cat(PsrCat));
-cl::opt<std::string> PammOutOpt("pamm-out",
-                                cl::desc("Filename for PAMM's gathered data"),
-                                cl::init("PAMM_data.json"), cl::cat(PsrCat),
-                                cl::Hidden);
-cl::alias PammOutAlias("A", cl::aliasopt(PammOutOpt),
-                       cl::desc("Alias for --pamm-out"), cl::cat(PsrCat));
 
-namespace {
+PSR_SHORTLONG_OPTION(PammOutOpt, std::string, "A", "pamm-out",
+                     "Filename for PAMM's gathered data",
+                     cl::init("PAMM_data.json"), cl::cat(PsrCat), cl::Hidden);
 
 // void validateParamConfigFile(const std::string &Config) {
 //   if (!(std::filesystem::exists(Config) &&
@@ -337,24 +328,23 @@ int main(int Argc, const char **Argv) {
   // setup IRDB as source code manager
   ProjectIRDB IRDB(std::vector(ModuleOpt.begin(), ModuleOpt.end()));
   if (StatisticsOpt) {
-    llvm::outs() << "Module " << IRDB.getWPAModule()->getName().str() << ":\n";
+    llvm::outs() << "Module " << IRDB.getWPAModule()->getName() << ":\n";
     llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
                  << "\n";
-    llvm::outs() << "> functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
-    llvm::outs() << "> global variables:\t"
+    llvm::outs() << "> Functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
+    llvm::outs() << "> Global variables:\t"
                  << IRDB.getWPAModule()->global_size() << "\n";
     llvm::outs() << "> Alloca instructions:\t"
                  << IRDB.getAllocaInstructions().size() << "\n";
     llvm::outs() << "> Memory Locations:\t"
                  << IRDB.getAllMemoryLocations().size() << "\n";
-    llvm::outs() << "> Call Sites:\t" << IRDB.getNumCallsites() << "\n";
+    llvm::outs() << "> Call Sites:\t\t" << IRDB.getNumCallsites() << "\n";
   }
 
   // setup the emitter options to display the computed analysis results
-  AnalysisControllerEmitterOptions EmitterOptions =
-      AnalysisControllerEmitterOptions::None;
+  auto EmitterOptions = AnalysisControllerEmitterOptions::None;
 
-  IFDSIDESolverConfig SolverConfig;
+  IFDSIDESolverConfig SolverConfig{};
   if (EmitIROpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitIR;
   }

@@ -12,7 +12,7 @@
 #endif
 
 SOUNDNESS_FLAG_TYPE(Sound, "sound", "As sound as possible (do not tolerate any false negative results)")
-SOUNDNESS_FLAG_TYPE(Soundy, "soundy", "A reasonable soundness level that tries to minimize false negative resultswithout giving up too much of precision and performance")
+SOUNDNESS_FLAG_TYPE(Soundy, "soundy", "A reasonable soundness level that tries to minimize false negative results without giving up too much of precision and performance")
 SOUNDNESS_FLAG_TYPE(Unsound, "unsound", "Trade soundness for increased precision")
 
 #undef SOUNDNESS_FLAG_TYPE
