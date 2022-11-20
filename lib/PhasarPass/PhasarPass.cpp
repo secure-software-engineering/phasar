@@ -19,7 +19,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
@@ -140,13 +139,6 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     LLVMLcaSolver.solve();
     if (DumpResults) {
       LLVMLcaSolver.dumpResults();
-    }
-  } else if (DataFlowAnalysis == "ide-taint") {
-    IDETaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IDESolver LLVMTaintSolver(TaintAnalysisProblem);
-    LLVMTaintSolver.solve();
-    if (DumpResults) {
-      LLVMTaintSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-typestate") {
     CSTDFILEIOTypeStateDescription FileIODesc;
