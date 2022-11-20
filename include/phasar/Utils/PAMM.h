@@ -191,7 +191,7 @@ public:
   /// \param OutputPath to exported JSON file.
   void exportMeasuredData(
       const std::string &OutputPath,
-      const std::optional<std::string> &ProjectId = std::nullopt,
+      const std::string &ProjectId = "default-phasar-project",
       const std::optional<std::vector<std::string>> &Modules = std::nullopt,
       const std::optional<std::vector<std::string>> &DataFlowAnalyses =
           std::nullopt);

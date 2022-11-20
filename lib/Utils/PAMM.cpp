@@ -32,7 +32,7 @@ using json = nlohmann::json;
 namespace psr {
 
 PAMM &PAMM::getInstance() {
-  static PAMM Instance;
+  static PAMM Instance{};
   return Instance;
 }
 
@@ -274,7 +274,7 @@ void PAMM::printMeasuredData(llvm::raw_ostream &Os) {
 }
 
 void PAMM::exportMeasuredData(
-    const std::string &OutputPath, const std::optional<std::string> &ProjectId,
+    const std::string &OutputPath, const std::string &ProjectId,
     const std::optional<std::vector<std::string>> &Modules,
     const std::optional<std::vector<std::string>> &DataFlowAnalyses) {
   // json file for holding all data
@@ -315,9 +315,9 @@ void PAMM::exportMeasuredData(
 
   // add analysis/project/source file information if available
   json JInfo;
-  if (ProjectId) {
-    JInfo["Project-ID"] = *ProjectId;
-  }
+
+  JInfo["Project-ID"] = ProjectId;
+
   if (Modules) {
     JInfo["Module(s)"] = *Modules;
   }
@@ -328,9 +328,9 @@ void PAMM::exportMeasuredData(
     JsonData["Info"] = JInfo;
   }
 
-  std::filesystem::path Cfp(OutputPath);
-  if (Cfp.string().find(".json") == std::string::npos) {
-    Cfp.append(".json");
+  std::string Cfp(OutputPath);
+  if (Cfp.find(".json") == std::string::npos) {
+    Cfp += ".json";
   }
   std::ofstream File(Cfp);
   if (File.is_open()) {
@@ -338,7 +338,7 @@ void PAMM::exportMeasuredData(
          << JsonData << std::endl;
     File.close();
   } else {
-    throw std::ios_base::failure("could not write file: " + Cfp.string());
+    throw std::ios_base::failure("could not write file: " + Cfp);
   }
 }
 
