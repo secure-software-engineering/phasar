@@ -289,15 +289,16 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
   return nullptr;
 }
 
-std::vector<const llvm::Instruction *>
+llvm::SmallVector<const llvm::Instruction *, 2>
 getAllExitPoints(const llvm::Function *F) {
-  std::vector<const llvm::Instruction *> Ret;
+  llvm::SmallVector<const llvm::Instruction *, 2> Ret;
   appendAllExitPoints(F, Ret);
   return Ret;
 }
 
-void appendAllExitPoints(const llvm::Function *F,
-                         std::vector<const llvm::Instruction *> &ExitPoints) {
+void appendAllExitPoints(
+    const llvm::Function *F,
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints) {
   if (!F) {
     return;
   }

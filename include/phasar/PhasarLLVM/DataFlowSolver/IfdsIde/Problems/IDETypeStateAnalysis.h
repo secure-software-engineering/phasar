@@ -10,18 +10,19 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+
+#include "llvm/IR/InstrTypes.h"
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
-
-#include "llvm/IR/InstrTypes.h"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class CallBase;
@@ -117,8 +118,9 @@ public:
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitStmt, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                              f_t DestFun) override;
@@ -145,7 +147,8 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode, std::set<f_t> Callees) override;
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,

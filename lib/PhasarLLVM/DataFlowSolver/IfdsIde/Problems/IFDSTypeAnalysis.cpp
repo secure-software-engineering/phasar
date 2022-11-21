@@ -70,9 +70,9 @@ IFDSTypeAnalysis::FlowFunctionPtrType IFDSTypeAnalysis::getRetFlowFunction(
 }
 
 IFDSTypeAnalysis::FlowFunctionPtrType
-IFDSTypeAnalysis::getCallToRetFlowFunction(
-    IFDSTypeAnalysis::n_t /*CallSite*/, IFDSTypeAnalysis::n_t /*RetSite*/,
-    set<IFDSTypeAnalysis::f_t> /*Callees*/) {
+IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t /*CallSite*/,
+                                           IFDSTypeAnalysis::n_t /*RetSite*/,
+                                           llvm::ArrayRef<f_t> /*Callees*/) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
     computeTargets(IFDSTypeAnalysis::d_t /*Source*/) override {
