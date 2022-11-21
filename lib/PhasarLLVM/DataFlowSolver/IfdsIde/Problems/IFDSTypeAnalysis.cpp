@@ -26,7 +26,7 @@ using namespace psr;
 namespace psr {
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
-                                   std::set<std::string> EntryPoints)
+                                   std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSTypeAnalysis::FlowFunctionPtrType

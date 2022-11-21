@@ -44,7 +44,7 @@ public:
   using typename IDETabProblemType::v_t;
 
   IDEProtoAnalysis(const ProjectIRDB *IRDB,
-                   std::set<std::string> EntryPoints = {"main"});
+                   std::vector<std::string> EntryPoints = {"main"});
 
   ~IDEProtoAnalysis() override = default;
 

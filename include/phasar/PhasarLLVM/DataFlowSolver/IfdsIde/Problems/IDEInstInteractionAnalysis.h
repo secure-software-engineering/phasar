@@ -206,7 +206,7 @@ public:
 
   IDEInstInteractionAnalysisT(
       const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-      std::set<std::string> EntryPoints = {"main"},
+      std::vector<std::string> EntryPoints = {"main"},
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
             IRDB, std::move(EntryPoints), createZeroValue()),

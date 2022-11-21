@@ -57,7 +57,7 @@ public:
    */
   IFDSTaintAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
                     const TaintConfig *Config,
-                    std::set<std::string> EntryPoints = {"main"});
+                    std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSTaintAnalysis() override = default;
 

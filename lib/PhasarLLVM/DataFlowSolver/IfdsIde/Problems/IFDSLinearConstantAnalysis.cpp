@@ -41,7 +41,7 @@ bool operator<(const LCAPair &Lhs, const LCAPair &Rhs) {
 }
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
-    const ProjectIRDB *IRDB, std::set<std::string> EntryPoints)
+    const ProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSLinearConstantAnalysis::FlowFunctionPtrType

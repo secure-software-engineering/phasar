@@ -187,7 +187,7 @@ public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
                            LLVMPointsToInfo *PT, const TaintConfig *TSF,
-                           std::set<std::string> EntryPoints, unsigned Bound,
+                           std::vector<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
       : base_t(IRDB, std::move(EntryPoints), std::nullopt), AnalysisBase(TSF),
@@ -349,11 +349,11 @@ public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
                            LLVMPointsToInfo *PT, const TaintConfig &TSF,
-                           std::set<std::string> EntryPoints = {},
+                           std::vector<std::string> EntryPoints = {},
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
-      : XTaint::IDEExtendedTaintAnalysis(IRDB, ICF, PT, &TSF, EntryPoints,
-                                         BOUND, !USE_STRONG_UPDATES,
-                                         std::forward<GetDomTree>(GDT)) {}
+      : XTaint::IDEExtendedTaintAnalysis(
+            IRDB, ICF, PT, &TSF, std::move(EntryPoints), BOUND,
+            !USE_STRONG_UPDATES, std::forward<GetDomTree>(GDT)) {}
 
   using ConfigurationTy = TaintConfig;
 };

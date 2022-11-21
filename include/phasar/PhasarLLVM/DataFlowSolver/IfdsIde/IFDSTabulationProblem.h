@@ -39,7 +39,7 @@ public:
   using typename Base::v_t;
 
   explicit IFDSTabulationProblem(const ProjectIRDB *IRDB,
-                                 std::set<std::string> EntryPoints,
+                                 std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
       : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}
   ~IFDSTabulationProblem() override = default;

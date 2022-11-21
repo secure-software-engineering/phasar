@@ -21,7 +21,7 @@ class IFDSUninitializedVariablesTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "uninitialized_variables/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;

@@ -26,7 +26,7 @@
 namespace psr {
 
 IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
-                                   std::set<std::string> EntryPoints)
+                                   std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 // start formulating our analysis by specifying the parts required for IFDS

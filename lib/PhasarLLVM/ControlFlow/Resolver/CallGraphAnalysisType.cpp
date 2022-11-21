@@ -1,4 +1,3 @@
-<<<<<<<< HEAD:lib/PhasarLLVM/ControlFlow/CallGraphAnalysisType.cpp
 /******************************************************************************
  * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made

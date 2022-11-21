@@ -29,7 +29,7 @@ namespace psr {
 IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB,
                                      LLVMPointsToInfo *PT,
                                      const TaintConfig *Config,
-                                     std::set<std::string> EntryPoints)
+                                     std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT) {
   assert(Config != nullptr);

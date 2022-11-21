@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
 
-#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
 
 #include "nlohmann/json.hpp"

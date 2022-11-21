@@ -109,7 +109,7 @@ SHPEdgeFn::joinWith(
 }
 
 IDESecureHeapPropagation::IDESecureHeapPropagation(
-    const ProjectIRDB *IRDB, std::set<std::string> EntryPoints)
+    const ProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IDESecureHeapPropagation::FlowFunctionPtrType

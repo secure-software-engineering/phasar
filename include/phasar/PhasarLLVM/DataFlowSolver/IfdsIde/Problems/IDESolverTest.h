@@ -45,7 +45,7 @@ public:
   using typename IDETabProblemType::v_t;
 
   IDESolverTest(const ProjectIRDB *IRDB,
-                std::set<std::string> EntryPoints = {"main"});
+                std::vector<std::string> EntryPoints = {"main"});
 
   ~IDESolverTest() override = default;
 

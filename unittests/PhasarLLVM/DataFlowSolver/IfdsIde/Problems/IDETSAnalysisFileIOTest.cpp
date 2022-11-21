@@ -30,7 +30,7 @@ class IDETSAnalysisFileIOTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "typestate_analysis_fileio/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;

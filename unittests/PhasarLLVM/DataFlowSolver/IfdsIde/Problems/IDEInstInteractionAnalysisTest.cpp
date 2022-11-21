@@ -55,9 +55,11 @@ protected:
     IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
   }
 
-  void doAnalysisAndCompareResults(
-      const std::string &LlvmFilePath, const std::set<std::string> EntryPoints,
-      const std::set<IIACompactResult_t> &GroundTruth, bool PrintDump = false) {
+  void
+  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+                              const std::vector<std::string> EntryPoints,
+                              const std::set<IIACompactResult_t> &GroundTruth,
+                              bool PrintDump = false) {
     initializeIR(LlvmFilePath);
     if (PrintDump) {
       IRDB->emitPreprocessedIR(llvm::outs(), false);

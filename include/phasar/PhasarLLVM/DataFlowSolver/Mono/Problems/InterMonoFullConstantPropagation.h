@@ -52,7 +52,7 @@ public:
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
                                    const LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints = {});
+                                   std::vector<std::string> EntryPoints = {});
 
   ~InterMonoFullConstantPropagation() override = default;
 

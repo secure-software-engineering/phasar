@@ -43,7 +43,7 @@ inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>> flow(Fn Func) {
 
 IDEGeneralizedLCA::IDEGeneralizedLCA(const ProjectIRDB *IRDB,
                                      const LLVMBasedICFG *ICF,
-                                     std::set<std::string> EntryPoints,
+                                     std::vector<std::string> EntryPoints,
                                      size_t MaxSetSize)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       ICF(ICF), MaxSetSize(MaxSetSize) {

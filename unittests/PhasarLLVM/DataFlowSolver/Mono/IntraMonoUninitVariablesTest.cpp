@@ -38,7 +38,7 @@ protected:
 
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB = nullptr;
 

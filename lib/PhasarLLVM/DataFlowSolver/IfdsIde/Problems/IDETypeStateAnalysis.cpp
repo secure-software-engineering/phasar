@@ -208,7 +208,7 @@ public:
 IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
                                            LLVMPointsToInfo *PT,
                                            const TypeStateDescription *TSD,
-                                           std::set<std::string> EntryPoints)
+                                           std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       TOP(TSD->top()), BOTTOM(TSD->bottom()), TSD(TSD), PT(PT) {
   assert(TSD != nullptr);

@@ -32,7 +32,7 @@ class IFDSSignAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
   IFDSSignAnalysis(const ProjectIRDB *IRDB,
-                   std::set<std::string> EntryPoints = {"main"});
+                   std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSSignAnalysis() override = default;
 

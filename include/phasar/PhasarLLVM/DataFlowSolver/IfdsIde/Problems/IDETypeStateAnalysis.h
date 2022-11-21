@@ -57,7 +57,7 @@ public:
 
   IDETypeStateAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
                        const TypeStateDescription *TSD,
-                       std::set<std::string> EntryPoints = {"main"});
+                       std::vector<std::string> EntryPoints = {"main"});
 
   ~IDETypeStateAnalysis() override = default;
 

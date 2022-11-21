@@ -602,10 +602,10 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
     return getGenEdgeFunction(BBO);
   }
 
-  if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
-      Curr == &Curr->getFunction()->front().front()) {
-    return getGenEdgeFunction(BBO);
-  }
+  // if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
+  //     Curr == &Curr->getFunction()->front().front()) {
+  //   return getGenEdgeFunction(BBO);
+  // }
 
   auto [PointerOp, ValueOp] =
       [&]() -> std::tuple<const llvm::Value *, const llvm::Value *> {

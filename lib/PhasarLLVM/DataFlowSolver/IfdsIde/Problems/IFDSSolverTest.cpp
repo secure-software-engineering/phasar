@@ -23,7 +23,7 @@
 namespace psr {
 
 IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB,
-                               std::set<std::string> EntryPoints)
+                               std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSSolverTest::FlowFunctionPtrType

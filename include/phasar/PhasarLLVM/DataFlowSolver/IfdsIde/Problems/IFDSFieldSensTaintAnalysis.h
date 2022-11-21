@@ -42,7 +42,7 @@ public:
 
   IFDSFieldSensTaintAnalysis(const ProjectIRDB *IRDB,
                              const TaintConfig *TaintConfig,
-                             std::set<std::string> EntryPoints = {"main"});
+                             std::vector<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;
 
   FlowFunctionPtrType

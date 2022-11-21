@@ -42,7 +42,7 @@ namespace psr {
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints)
+    std::vector<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 

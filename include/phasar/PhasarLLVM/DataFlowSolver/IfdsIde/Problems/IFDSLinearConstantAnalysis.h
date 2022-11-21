@@ -59,7 +59,7 @@ class IFDSLinearConstantAnalysis
     : public IFDSTabulationProblem<IFDSLinearConstantAnalysisDomain> {
 public:
   IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
-                             std::set<std::string> EntryPoints = {"main"});
+                             std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSLinearConstantAnalysis() override = default;
 

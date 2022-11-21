@@ -54,7 +54,7 @@ public:
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
 
   IDEGeneralizedLCA(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
-                    std::set<std::string> EntryPoints, size_t MaxSetSize);
+                    std::vector<std::string> EntryPoints, size_t MaxSetSize);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t Curr,
                                                            n_t Succ) override;

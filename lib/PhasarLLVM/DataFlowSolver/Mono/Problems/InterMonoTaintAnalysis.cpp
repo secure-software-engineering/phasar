@@ -32,7 +32,7 @@ namespace psr {
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    const TaintConfig &Config, std::set<std::string> EntryPoints)
+    const TaintConfig &Config, std::vector<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, TH, ICF, PT,
                                                      std::move(EntryPoints)),
       Config(Config) {}

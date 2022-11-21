@@ -336,7 +336,7 @@ public:
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
-    std::set<std::string> EntryPoints)
+    std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       ICF(ICF) {
   assert(ICF != nullptr);
@@ -539,8 +539,7 @@ IDELinearConstantAnalysis::initialSeeds() {
   std::set<const llvm::Function *> EntryPointFuns;
 
   // Consider the user-defined entry point(s)
-  if (EntryPoints.size() == 1U &&
-      EntryPoints.find("__ALL__") != EntryPoints.end()) {
+  if (EntryPoints.size() == 1U && EntryPoints.front() == "__ALL__") {
     // Consider all available function definitions as entry points
     for (const auto *Fun : IRDB->getAllFunctions()) {
       if (!Fun->isDeclaration()) {
@@ -729,11 +728,6 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::join(l_t Lhs,
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::allTopFunction() {
   return std::make_shared<AllTop<l_t>>(Top{});
-}
-
-bool IDELinearConstantAnalysis::isEntryPoint(
-    const std::string &FunctionName) const {
-  return EntryPoints.count(FunctionName);
 }
 
 void IDELinearConstantAnalysis::printNode(llvm::raw_ostream &OS,

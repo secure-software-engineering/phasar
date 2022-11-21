@@ -60,7 +60,7 @@ protected:
   const TypeHierarchy<t_t, f_t> *TH;
   const c_t *CF;
   const PointsToInfo<v_t, n_t> *PT;
-  std::set<std::string> EntryPoints;
+  std::vector<std::string> EntryPoints;
   [[maybe_unused]] Soundness S = Soundness::Unused;
 
 public:
@@ -70,7 +70,7 @@ public:
 
   IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, f_t> *TH,
                    const c_t *CF, const PointsToInfo<v_t, n_t> *PT,
-                   std::set<std::string> EntryPoints = {})
+                   std::vector<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
 
@@ -88,7 +88,7 @@ public:
 
   virtual std::unordered_map<n_t, mono_container_t> initialSeeds() = 0;
 
-  [[nodiscard]] std::set<std::string> getEntryPoints() const {
+  [[nodiscard]] const std::vector<std::string> &getEntryPoints() const {
     return EntryPoints;
   }
 

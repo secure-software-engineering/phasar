@@ -48,7 +48,7 @@ using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
 class IDETaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLLFiles = unittest::PathToLLTestFiles + "xtaint/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   IDETaintAnalysisTest() = default;
   ~IDETaintAnalysisTest() override = default;

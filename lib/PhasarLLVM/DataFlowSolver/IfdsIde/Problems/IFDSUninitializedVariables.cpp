@@ -28,7 +28,7 @@
 namespace psr {
 
 IFDSUninitializedVariables::IFDSUninitializedVariables(
-    const ProjectIRDB *IRDB, std::set<std::string> EntryPoints)
+    const ProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSUninitializedVariables::FlowFunctionPtrType

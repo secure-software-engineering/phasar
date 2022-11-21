@@ -55,7 +55,7 @@ public:
   using typename IDETabProblemType::v_t;
 
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
-                            std::set<std::string> EntryPoints = {"main"});
+                            std::vector<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
 
@@ -153,8 +153,6 @@ public:
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
   // Helper functions
-
-  [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
 
   void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 

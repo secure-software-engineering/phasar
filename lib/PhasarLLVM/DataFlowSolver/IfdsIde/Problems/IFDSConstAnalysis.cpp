@@ -35,7 +35,7 @@ namespace psr {
 
 IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
                                      LLVMPointsToInfo *PT,
-                                     std::set<std::string> EntryPoints)
+                                     std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       PT(PT) {
   assert(PT != nullptr);

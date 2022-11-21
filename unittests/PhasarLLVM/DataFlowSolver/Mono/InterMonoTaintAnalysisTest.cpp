@@ -24,7 +24,7 @@ class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "taint_analysis/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   std::unique_ptr<ProjectIRDB> IRDB;
 

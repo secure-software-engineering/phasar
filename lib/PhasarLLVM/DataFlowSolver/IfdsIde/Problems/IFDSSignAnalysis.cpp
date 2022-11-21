@@ -21,7 +21,7 @@
 namespace psr {
 
 IFDSSignAnalysis::IFDSSignAnalysis(const ProjectIRDB *IRDB,
-                                   std::set<std::string> EntryPoints)
+                                   std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSSignAnalysis::FlowFunctionPtrType

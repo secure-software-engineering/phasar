@@ -44,7 +44,7 @@ class IFDSConstAnalysis
 
 public:
   IFDSConstAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
-                    std::set<std::string> EntryPoints = {"main"});
+                    std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;
 

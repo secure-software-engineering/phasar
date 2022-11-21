@@ -57,7 +57,7 @@ protected:
         IRDB.get(), CallGraphAnalysisType::RTA,
         std::vector<std::string>{"main"}, TH.get(), PT.get());
     LCAProblem = std::make_unique<IDEGeneralizedLCA>(
-        IRDB.get(), ICFG.get(), std::set<std::string>{"main"}, MaxSetSize);
+        IRDB.get(), ICFG.get(), std::vector<std::string>{"main"}, MaxSetSize);
     LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(
         *LCAProblem, ICFG.get());
 

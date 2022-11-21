@@ -50,7 +50,7 @@ public:
                              const std::string &Str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB,
-                   std::set<std::string> EntryPoints = {"main"});
+                   std::vector<std::string> EntryPoints = {"main"});
 
   ~IDETaintAnalysis() override = default;
 

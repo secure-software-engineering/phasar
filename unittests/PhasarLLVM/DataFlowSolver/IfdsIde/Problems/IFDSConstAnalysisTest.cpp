@@ -21,7 +21,7 @@ using namespace psr;
 class IFDSConstAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles = unittest::PathToLLTestFiles + "constness/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;

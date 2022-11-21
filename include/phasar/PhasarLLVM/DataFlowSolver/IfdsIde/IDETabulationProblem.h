@@ -59,7 +59,7 @@ public:
   using ConfigurationTy = HasNoConfigurationType;
 
   explicit IDETabulationProblem(const ProjectIRDB *IRDB,
-                                std::set<std::string> EntryPoints,
+                                std::vector<std::string> EntryPoints,
                                 std::optional<d_t> ZeroValue)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
         ZeroValue(std::move(ZeroValue)) {
@@ -125,7 +125,7 @@ public:
 
 protected:
   const ProjectIRDB *IRDB{};
-  std::set<std::string> EntryPoints;
+  std::vector<std::string> EntryPoints;
   std::optional<d_t> ZeroValue;
 
   IFDSIDESolverConfig SolverConfig{};

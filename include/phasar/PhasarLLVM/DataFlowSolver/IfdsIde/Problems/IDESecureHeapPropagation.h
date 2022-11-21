@@ -49,7 +49,7 @@ public:
   using typename IDETabProblemType::v_t;
 
   IDESecureHeapPropagation(const ProjectIRDB *IRDB,
-                           std::set<std::string> EntryPoints = {"main"});
+                           std::vector<std::string> EntryPoints = {"main"});
   ~IDESecureHeapPropagation() override = default;
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;

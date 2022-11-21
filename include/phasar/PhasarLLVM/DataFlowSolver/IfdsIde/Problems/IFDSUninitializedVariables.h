@@ -45,7 +45,7 @@ class IFDSUninitializedVariables
 
 public:
   IFDSUninitializedVariables(const ProjectIRDB *IRDB,
-                             std::set<std::string> EntryPoints = {"main"});
+                             std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSUninitializedVariables() override = default;
 

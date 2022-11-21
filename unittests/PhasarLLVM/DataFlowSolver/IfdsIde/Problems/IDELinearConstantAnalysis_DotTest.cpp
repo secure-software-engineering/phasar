@@ -21,7 +21,7 @@ protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "linear_constant/";
 
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,

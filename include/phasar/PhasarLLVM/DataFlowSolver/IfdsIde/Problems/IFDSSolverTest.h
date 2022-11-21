@@ -31,7 +31,7 @@ class IFDSSolverTest
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
   IFDSSolverTest(const ProjectIRDB *IRDB,
-                 std::set<std::string> EntryPoints = {"main"});
+                 std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSSolverTest() override = default;
 
