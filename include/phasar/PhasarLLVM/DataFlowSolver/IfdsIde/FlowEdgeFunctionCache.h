@@ -283,7 +283,7 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
                                                           : Callees) {
           PHASAR_LOG_LEVEL(DEBUG, "  " << Problem.FtoString(callee));
-        };)
+        };);
     auto Key = std::tie(CallSite, RetSite);
     auto SearchCallToRetFlowFunction = CallToRetFlowFunctionCache.find(Key);
     if (SearchCallToRetFlowFunction != CallToRetFlowFunctionCache.end()) {
