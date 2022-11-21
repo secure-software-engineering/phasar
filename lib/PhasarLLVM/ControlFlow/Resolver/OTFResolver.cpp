@@ -309,3 +309,5 @@ OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CallSite,
   }
   return Pairs;
 }
+
+std::string OTFResolver::str() const { return "OTF"; }

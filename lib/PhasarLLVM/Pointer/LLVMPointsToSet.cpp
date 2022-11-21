@@ -81,7 +81,10 @@ LLVMPointsToSet::LLVMPointsToSet(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
-  PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed");
+  PHASAR_LOG_LEVEL_CAT(
+      INFO, "LLVMPointsToSet",
+      "LLVMPointsToSet completed "
+          << std::chrono::steady_clock::now().time_since_epoch().count());
 }
 
 LLVMPointsToSet::LLVMPointsToSet(LLVMProjectIRDB &IRDB,
@@ -433,7 +436,8 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       !Inserted || F->isDeclaration()) {
     return;
   }
-  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMPointsToSet",
+                       "Analyzing function: " << F->getName());
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;

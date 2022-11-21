@@ -64,9 +64,9 @@ IDETaintAnalysis::FlowFunctionPtrType IDETaintAnalysis::getRetFlowFunction(
 }
 
 IDETaintAnalysis::FlowFunctionPtrType
-IDETaintAnalysis::getCallToRetFlowFunction(
-    IDETaintAnalysis::n_t /*CallSite*/, IDETaintAnalysis::n_t /*RetSite*/,
-    set<IDETaintAnalysis::f_t> /*Callees*/) {
+IDETaintAnalysis::getCallToRetFlowFunction(IDETaintAnalysis::n_t /*CallSite*/,
+                                           IDETaintAnalysis::n_t /*RetSite*/,
+                                           llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
@@ -130,7 +130,7 @@ shared_ptr<EdgeFunction<IDETaintAnalysis::l_t>>
 IDETaintAnalysis::getCallToRetEdgeFunction(
     IDETaintAnalysis::n_t /*CallSite*/, IDETaintAnalysis::d_t /*CallNode*/,
     IDETaintAnalysis::n_t /*RetSite*/, IDETaintAnalysis::d_t /*RetSiteNode*/,
-    set<IDETaintAnalysis::f_t> /*Callees*/) {
+    llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<IDETaintAnalysis::l_t>::getInstance();
 }
 

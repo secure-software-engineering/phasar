@@ -103,6 +103,8 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   return PossibleCallTargets;
 }
 
+std::string RTAResolver::str() const { return "RTA"; }
+
 /// More or less copied from GeneralStatisticsAnalysis
 void RTAResolver::resolveAllocatedStructTypes() {
   if (!AllocatedStructTypes.empty()) {

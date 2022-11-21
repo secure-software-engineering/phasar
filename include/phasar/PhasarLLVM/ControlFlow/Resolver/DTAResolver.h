@@ -17,20 +17,18 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_DTARESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_DTARESOLVER_H_
 
-#include <set>
-#include <string>
-
-#include "llvm/IR/Instructions.h"
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
 // To switch the TypeGraph
 //#include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
 
+#include <string>
+
 namespace llvm {
 class Instruction;
 class CallBase;
 class Function;
+class BitCastInst;
 } // namespace llvm
 
 namespace psr {
@@ -64,6 +62,8 @@ public:
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
+
+  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

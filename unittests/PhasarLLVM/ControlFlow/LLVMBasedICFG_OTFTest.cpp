@@ -1,14 +1,18 @@
-#include "gtest/gtest.h"
 
-#include "TestConfig.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "gtest/gtest.h"
+
+#include "TestConfig.h"
+
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace std;
@@ -19,7 +23,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
                        "call_graphs/virtual_call_7_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB, false);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
@@ -31,17 +35,17 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 
   const auto *CallToAFunc = getNthInstruction(F, 19);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
-  auto AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
+  const auto &AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
   ASSERT_EQ(AsCallees.size(), 2U);
-  ASSERT_TRUE(AsCallees.count(VFuncA));
-  ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(CallToAFunc));
+  ASSERT_TRUE(llvm::is_contained(AsCallees, VFuncA));
+  ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncA), CallToAFunc));
 
   const auto *CallToBFunc = getNthInstruction(F, 25);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
-  auto BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
+  const auto &BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
   ASSERT_EQ(BsCallees.size(), 2U);
-  ASSERT_TRUE(BsCallees.count(VFuncB));
-  ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(CallToBFunc));
+  ASSERT_TRUE(llvm::is_contained(BsCallees, VFuncB));
+  ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncB), CallToBFunc));
 }
 
 // TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
@@ -70,13 +74,13 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
                        "call_graphs/function_pointer_2_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB, false);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Bar = IRDB.getFunctionDefinition("_Z3barv");
 
   const auto *FPtrCall = getNthInstruction(Main, 7);
-  auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
+  const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
   auto printCallees // NOLINT
       = [&]() {
@@ -100,7 +104,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
         };
 
   ASSERT_EQ(Callees.size(), 1U) << "Too many callees: " << printCallees();
-  ASSERT_EQ(Callees.count(Bar), 1U);
+  ASSERT_EQ(llvm::is_contained(Callees, Bar), 1U);
 }
 
 TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
@@ -108,16 +112,16 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
                        "call_graphs/function_pointer_3_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB, false);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo = IRDB.getFunctionDefinition("_Z3foov");
 
   const auto *FPtrCall = getNthInstruction(Main, 8);
-  auto Callees = ICFG.getCalleesOfCallAt(FPtrCall);
+  const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
   ASSERT_EQ(Callees.size(), 1U);
-  ASSERT_EQ(Callees.count(Foo), 1U);
+  ASSERT_EQ(llvm::is_contained(Callees, Foo), 1U);
 }
 
 int main(int Argc, char **Argv) {

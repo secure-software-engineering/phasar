@@ -174,10 +174,11 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo);
 
-std::vector<const llvm::Instruction *>
+llvm::SmallVector<const llvm::Instruction *, 2>
 getAllExitPoints(const llvm::Function *F);
-void appendAllExitPoints(const llvm::Function *F,
-                         std::vector<const llvm::Instruction *> &ExitPoints);
+void appendAllExitPoints(
+    const llvm::Function *F,
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints);
 
 /**
  * @brief Returns the LLVM Module to which the given LLVM Value belongs to.

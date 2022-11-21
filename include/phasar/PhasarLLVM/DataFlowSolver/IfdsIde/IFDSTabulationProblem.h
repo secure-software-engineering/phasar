@@ -17,17 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 
-#include <map>
-#include <set>
-#include <string>
-
 #include "phasar/DB/ProjectIRDBBase.h"
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
+
+#include <set>
+#include <string>
 
 namespace psr {
 
@@ -56,8 +55,8 @@ public:
   using i_t = typename AnalysisDomainTy::i_t;
   using db_t = typename AnalysisDomainTy::db_t;
 
-  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
-                "I must implement the ICFG interface!");
+  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
+                "Type parameter i_t must implement the ICFG interface!");
 
   static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
                 "db_t must implement the ProjectIRDBBase interface!");

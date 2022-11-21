@@ -151,6 +151,14 @@ void validatePTAJsonFile(const std::string &Config) {
   }
 }
 
+void validateLogLevel(const std::string &Level) {
+  if (parseSeverityLevel(Level) == SeverityLevel::INVALID) {
+    throw boost::program_options::error_with_option_name(
+        "Invalid logger severity level '" + Level +
+        "'. Expect DEBUG, INFO, WARNING or ERROR");
+  }
+}
+
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
@@ -186,7 +194,8 @@ int main(int Argc, const char **Argv) {
 			("mwa,M", "Enable Modulewise-program analysis mode")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
       #ifdef DYNAMIC_LOG
-      ("log,L", "Enable logging")
+      ("log,L",boost::program_options::value<std::string>()->notifier(&validateLogLevel), "Enable logging with the specified severity")
+      ("log-cat", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Enable logging for the specified categories with the severity given with the -L/--log option. It is invalid to specify --log-cat without specifying -L/--log.")
       #endif
       ("export,E", boost::program_options::value<std::string>()->notifier(&validateParamExport), "Export mode (JSON, SARIF) (Not implemented yet!)")
       ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project id used for output")
@@ -199,9 +208,9 @@ int main(int Argc, const char **Argv) {
       ("emit-th-as-text", "Emit the type hierarchy as text")
       ("emit-th-as-dot", "Emit the type hierarchy as DOT graph")
       ("emit-th-as-json", "Emit the type hierarchy as JSON")
-      ("emit-cg-as-text", "Emit the call graph as text")
+      // ("emit-cg-as-text", "Emit the call graph as text")
       ("emit-cg-as-dot", "Emit the call graph as DOT graph")
-      ("emit-cg-as-json", "Emit the call graph as JSON")
+      // ("emit-cg-as-json", "Emit the call graph as JSON")
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("emit-pta-as-json", "Emit the points-to information as JSON")
@@ -250,8 +259,23 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 #ifdef DYNAMIC_LOG
-  if (PhasarConfig::VariablesMap().count("log")) {
-    Logger::initializeStderrLogger(DEBUG);
+  if (auto LogIt = PhasarConfig::VariablesMap().find("log");
+      LogIt != PhasarConfig::VariablesMap().end() &&
+      !LogIt->second.as<std::string>().empty()) {
+    auto Sev = parseSeverityLevel(LogIt->second.as<std::string>());
+
+    Logger::initializeStderrLogger(Sev);
+
+    if (auto LogCatIt = PhasarConfig::VariablesMap().find("log-cat");
+        LogCatIt != PhasarConfig::VariablesMap().end()) {
+      for (const auto &Cat : LogCatIt->second.as<std::vector<std::string>>()) {
+        Logger::initializeStderrLogger(Sev, Cat);
+      }
+    }
+  } else if (PhasarConfig::VariablesMap().count("log-cat")) {
+    llvm::errs()
+        << "ERROR: The option --log-cat requires -L/--log to be set as well!\n";
+    return 1;
   }
 #endif
   // print PhASAR version
@@ -337,11 +361,11 @@ int main(int Argc, const char **Argv) {
       llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
                    << '\n';
 
-      llvm::outs() << "> functions:\t\t" << Stats.getFunctions() << '\n';
-      llvm::outs() << "> global variables:\t" << Stats.getGlobals() << '\n';
+      llvm::outs() << "> Functions:\t\t" << Stats.getFunctions() << '\n';
+      llvm::outs() << "> Global variables:\t" << Stats.getGlobals() << '\n';
       llvm::outs() << "> Alloca instructions:\t"
                    << Stats.getAllocaInstructions().size() << '\n';
-      llvm::outs() << "> Call Sites:\t" << Stats.getFunctioncalls() << '\n';
+      llvm::outs() << "> Call Sites:\t\t" << Stats.getFunctioncalls() << '\n';
     }
 
     if (EmitStatsJson) {
@@ -375,9 +399,8 @@ int main(int Argc, const char **Argv) {
     AnalysisConfigs = PhasarConfig::VariablesMap()["analysis-config"]
                           .as<std::vector<std::string>>();
   }
-  std::set<std::string> EntryPoints =
-      vectorToSet(PhasarConfig::VariablesMap()["entry-points"]
-                      .as<std::vector<std::string>>());
+  auto EntryPoints = PhasarConfig::VariablesMap()["entry-points"]
+                         .as<std::vector<std::string>>();
   // setup pointer algorithm to be used
   PointerAnalysisType PTATy = toPointerAnalysisType(
       PhasarConfig::VariablesMap()["pointer-analysis"].as<std::string>());
@@ -417,15 +440,15 @@ int main(int Argc, const char **Argv) {
   if (PhasarConfig::VariablesMap().count("emit-th-as-json")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
   }
-  if (PhasarConfig::VariablesMap().count("emit-cg-as-text")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
-  }
+  // if (PhasarConfig::VariablesMap().count("emit-cg-as-text")) {
+  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
+  // }
   if (PhasarConfig::VariablesMap().count("emit-cg-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
   }
-  if (PhasarConfig::VariablesMap().count("emit-cg-as-json")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
-  }
+  // if (PhasarConfig::VariablesMap().count("emit-cg-as-json")) {
+  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
+  // }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
   }

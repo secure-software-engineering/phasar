@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTERMONOPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTERMONOPROBLEM_H
 
+#include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include "phasar/Utils/BitVectorSet.h"
 
@@ -42,8 +43,8 @@ public:
   using db_t = typename AnalysisDomainTy::db_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
-  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
-                "I must implement the ICFG interface!");
+  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
+                "Type parameter i_t must implement the ICFG interface!");
   static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
                 "db_t must implement the ProjectIRDBBase interface!");
 
@@ -71,7 +72,7 @@ public:
                                       const mono_container_t &In) = 0;
 
   virtual mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
-                                         std::set<f_t> Callees,
+                                         llvm::ArrayRef<f_t> Callees,
                                          const mono_container_t &In) = 0;
 
   [[nodiscard]] const i_t *getICFG() const { return ICF; }

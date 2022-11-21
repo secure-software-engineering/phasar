@@ -21,6 +21,13 @@
 
 namespace psr {
 
+SeverityLevel parseSeverityLevel(llvm::StringRef Str) {
+  return llvm::StringSwitch<SeverityLevel>(Str)
+#define SEVERITY_LEVEL(NAME, TYPE) .Case(NAME, SeverityLevel::TYPE)
+#include "phasar/Utils/SeverityLevel.def"
+      .Default(SeverityLevel::INVALID);
+}
+
 std::string Logger::toString(SeverityLevel Level) {
   switch (Level) {
   default:

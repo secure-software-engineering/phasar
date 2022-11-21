@@ -22,6 +22,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <utility>
 
 namespace llvm {
 class CallBase;
@@ -118,8 +119,9 @@ public:
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitStmt, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                              f_t DestFun) override;
@@ -143,9 +145,10 @@ public:
                                             n_t ExitInst, d_t ExitNode,
                                             n_t RetSite, d_t RetNode) override;
 
-  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
-                                               n_t RetSite, d_t RetSiteNode,
-                                               std::set<f_t> Callees) override;
+  EdgeFunctionPtrType
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   EdgeFunctionPtrType getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
                                              n_t RetSite,
@@ -201,9 +204,9 @@ public:
     const llvm::CallBase *CallSite;
 
   public:
-    TSEdgeFunction(const TypeStateDescription &TSD, const std::string &Tok,
+    TSEdgeFunction(const TypeStateDescription &TSD, std::string Tok,
                    const llvm::CallBase *CB)
-        : TSD(TSD), Token(Tok), CallSite(CB){};
+        : TSD(TSD), Token(std::move(Tok)), CallSite(CB){};
 
     l_t computeTarget(l_t Source) override;
 

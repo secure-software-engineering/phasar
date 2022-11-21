@@ -79,8 +79,9 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Finished type hierarchy");
 }
 
 std::string
@@ -123,12 +124,12 @@ std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
 }
 
 bool LLVMTypeHierarchy::isTypeInfo(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(TypeInfoPrefixDemang);
 }
 
 bool LLVMTypeHierarchy::isVTable(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
 
@@ -162,7 +163,8 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
   std::string ClearName = removeStructOrClassPrefix(Type);
   if (const auto *TI = ClearNameTIMap[ClearName]) {
     if (!TI->hasInitializer()) {
-      PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                           ClearName << " does not have initializer");
       return SubTypes;
     }
     if (const auto *I =
@@ -196,7 +198,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
       if (!TI->hasInitializer()) {
-        PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
+        PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                             ClearName << " does not have initializer");
         return VFS;
       }
       if (const auto *I =
@@ -209,8 +212,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
 }
 
 void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL(DEBUG,
-                   "Analyze types in module: " << M.getModuleIdentifier());
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                       "Analyze types in module: " << M.getModuleIdentifier());
   // store analyzed module
   VisitedModules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();

@@ -8,8 +8,8 @@
  *****************************************************************************/
 
 #include "phasar/PhasarPass/PhasarPass.h"
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
@@ -66,7 +66,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   LLVMTypeHierarchy H(DB);
   LLVMPointsToSet PT(DB);
   LLVMBasedCFG CFG;
-  LLVMBasedICFG I(DB, CGTy, EntryPointsSet, &H, &PT);
+  LLVMBasedICFG I(&DB, CGTy, EntryPoints, &H, &PT);
   if (DataFlowAnalysis == "ifds-solvertest") {
     IFDSSolverTest IFDSTest(&DB, &H, &I, &PT, EntryPointsSet);
     IFDSSolver LLVMIFDSTestSolver(IFDSTest);

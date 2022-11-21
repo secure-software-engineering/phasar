@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 
 #include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Soundness.h"
@@ -50,7 +51,7 @@ public:
   using db_t = typename AnalysisDomainTy::db_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
-  static_assert(std::is_base_of_v<CFG<n_t, f_t>, c_t>,
+  static_assert(is_cfg_v<c_t, AnalysisDomainTy>,
                 "c_t must implement the CFG interface!");
   static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
                 "db_t must implement the ProjectIRDBBase interface!");

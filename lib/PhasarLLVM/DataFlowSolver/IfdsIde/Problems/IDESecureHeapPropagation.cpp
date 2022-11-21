@@ -52,9 +52,8 @@ IDESecureHeapPropagation::getRetFlowFunction(n_t /*CallSite*/,
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite,
-                                                   n_t /*RetSite*/,
-                                                   std::set<f_t> /*Callees*/) {
+IDESecureHeapPropagation::getCallToRetFlowFunction(
+    n_t CallSite, n_t /*RetSite*/, llvm::ArrayRef<f_t> /*Callees*/) {
 
   // Change to CallSite everywhere
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
@@ -144,10 +143,9 @@ IDESecureHeapPropagation::getReturnEdgeFunction(
 }
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
-                                                   n_t /*RetSite*/,
-                                                   d_t RetSiteNode,
-                                                   std::set<f_t> /*Callees*/) {
+IDESecureHeapPropagation::getCallToRetEdgeFunction(
+    n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
+    llvm::ArrayRef<f_t> /*Callees*/) {
   if (CallNode == ZeroValue && RetSiteNode != ZeroValue) {
     // generate
     // std::cerr << "Generate at " << llvmIRToShortString(callSite) <<

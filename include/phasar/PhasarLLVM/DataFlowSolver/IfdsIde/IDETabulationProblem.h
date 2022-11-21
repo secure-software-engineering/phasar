@@ -17,10 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include <memory>
 #include <set>
@@ -48,7 +49,7 @@ public:
   using i_t = typename AnalysisDomainTy::i_t;
   using db_t = typename AnalysisDomainTy::db_t;
 
-  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
+  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
                 "Type parameter i_t must implement the ICFG interface!");
   static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
                 "db_t must implement the ProjectIRDBBase interface!");
