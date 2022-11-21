@@ -10,7 +10,7 @@ namespace psr {
 HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
                                std::optional<nlohmann::json> PrecomputedPTS,
                                PointerAnalysisType PTATy, bool AllowLazyPTS,
-                               std::set<std::string> EntryPoints,
+                               std::vector<std::string> EntryPoints,
                                CallGraphAnalysisType CGTy,
                                Soundness SoundnessLevel, bool AutoGlobalSupport)
     : IRFiles(std::move(IRFiles)), PrecomputedPTS(std::move(PrecomputedPTS)),
@@ -19,7 +19,7 @@ HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {}
 
 HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
-                               std::set<std::string> EntryPoints,
+                               std::vector<std::string> EntryPoints,
                                HelperAnalysisConfig Config)
     : IRFiles(std::move(IRFiles)),
       PrecomputedPTS(std::move(Config.PrecomputedPTS)), PTATy(Config.PTATy),
@@ -58,7 +58,7 @@ LLVMTypeHierarchy &HelperAnalyses::getTypeHierarchy() {
 LLVMBasedICFG &HelperAnalyses::getICFG() {
   if (!ICF) {
     ICF = std::make_unique<LLVMBasedICFG>(
-        getProjectIRDB(), CGTy, EntryPoints, &getTypeHierarchy(),
+        &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
         CGTy == CallGraphAnalysisType::OTF ? &getPointsToInfo() : nullptr,
         SoundnessLevel, AutoGlobalSupport);
   }

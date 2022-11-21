@@ -50,9 +50,9 @@ IDEProtoAnalysis::FlowFunctionPtrType IDEProtoAnalysis::getRetFlowFunction(
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType
-IDEProtoAnalysis::getCallToRetFlowFunction(
-    IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::n_t /*RetSite*/,
-    std::set<IDEProtoAnalysis::f_t> /*Callees*/) {
+IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t /*CallSite*/,
+                                           IDEProtoAnalysis::n_t /*RetSite*/,
+                                           llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
@@ -117,7 +117,8 @@ std::shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getCallToRetEdgeFunction(
     IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::d_t /*CallNode*/,
     IDEProtoAnalysis::n_t /*RetSite*/, IDEProtoAnalysis::d_t /*RetSiteNode*/,
-    std::set<IDEProtoAnalysis::f_t> /*Callees*/) {
+    llvm::ArrayRef<f_t> /*Callees*/) {
+
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 

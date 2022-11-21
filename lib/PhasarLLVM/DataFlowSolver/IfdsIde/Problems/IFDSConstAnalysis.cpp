@@ -135,9 +135,9 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
-IFDSConstAnalysis::getCallToRetFlowFunction(
-    IFDSConstAnalysis::n_t CallSite, IFDSConstAnalysis::n_t /*RetSite*/,
-    std::set<IFDSConstAnalysis::f_t> /*Callees*/) {
+IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
+                                            IFDSConstAnalysis::n_t /*RetSite*/,
+                                            llvm::ArrayRef<f_t> /*Callees*/) {
   // Process the effects of a llvm memory intrinsic function.
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     IFDSConstAnalysis::d_t PointerOp = CallSite->getOperand(0);

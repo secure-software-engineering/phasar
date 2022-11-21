@@ -45,13 +45,14 @@ namespace psr {
 AnalysisController::AnalysisController(
     HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs,
-    const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
+    std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
     AnalysisControllerEmitterOptions EmitterOptions,
     IFDSIDESolverConfig SolverConfig, const std::string &ProjectID,
     const std::string &OutDirectory)
     : HA(HA), DataFlowAnalyses(std::move(DataFlowAnalyses)),
-      AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
-      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      AnalysisConfigs(std::move(AnalysisConfigs)),
+      EntryPoints(std::move(EntryPoints)), Strategy(Strategy),
+      EmitterOptions(EmitterOptions), ProjectID(ProjectID),
       OutDirectory(OutDirectory), SolverConfig(SolverConfig) {
   if (!OutDirectory.empty()) {
     // create directory for results
@@ -230,7 +231,16 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       HA.getPointsToInfo().printAsJson(llvm::outs());
     }
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
+  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
+  //   if (!ResultDirectory.empty()) {
+  //     if (auto OFS = openFileStream("/psr-cg.txt")) {
+  //       ICF.print(*OFS);
+  //     }
+  //   } else {
+  //     ICF.print();
+  //   }
+  // }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-cg.txt")) {
         HA.getICFG().print(*OFS);
@@ -239,25 +249,16 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       HA.getICFG().print();
     }
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
-    if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-cg.dot")) {
-        HA.getICFG().printAsDot(*OFS);
-      }
-    } else {
-      HA.getICFG().printAsDot();
-    }
-  }
 
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-    if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-cg.json")) {
-        HA.getICFG().printAsJson(*OFS);
-      }
-    } else {
-      HA.getICFG().printAsJson();
-    }
-  }
+  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+  //   if (!ResultDirectory.empty()) {
+  //     if (auto OFS = openFileStream("/psr-cg.json")) {
+  //       HA.getICFG().printAsJson(*OFS);
+  //     }
+  //   } else {
+  //     HA.getICFG().printAsJson();
+  //   }
+  // }
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
     if (!ResultDirectory.empty()) {

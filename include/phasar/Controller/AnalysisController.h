@@ -11,10 +11,8 @@
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
@@ -40,7 +38,7 @@ private:
   HelperAnalyses &HA;
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
-  std::set<std::string> EntryPoints;
+  std::vector<std::string> EntryPoints;
   [[maybe_unused]] AnalysisStrategy Strategy;
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::None;
@@ -155,7 +153,7 @@ public:
   explicit AnalysisController(
       HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
       std::vector<std::string> AnalysisConfigs,
-      const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
+      std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
       AnalysisControllerEmitterOptions EmitterOptions,
       IFDSIDESolverConfig SolverConfig,
       const std::string &ProjectID = "default-phasar-project",

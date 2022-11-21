@@ -84,7 +84,7 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
 
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
+  LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
                     &PTS);
 
   auto Ser = PTS.getAsJson();

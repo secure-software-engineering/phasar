@@ -1,3 +1,4 @@
+<<<<<<<< HEAD:lib/PhasarLLVM/ControlFlow/CallGraphAnalysisType.cpp
 /******************************************************************************
  * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
@@ -7,7 +8,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"

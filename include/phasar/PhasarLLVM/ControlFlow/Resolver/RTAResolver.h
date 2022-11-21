@@ -17,8 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RTARESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RTARESOLVER_H_
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
 namespace llvm {
@@ -35,6 +33,8 @@ public:
   ~RTAResolver() override = default;
 
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+
+  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
@@ -179,7 +180,7 @@ IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
 std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t /*RetSite*/,
-                                            std::set<f_t> /*Callees*/) {
+                                            llvm::ArrayRef<f_t> /*Callees*/) {
   // llvm::outs() << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
@@ -428,10 +429,11 @@ IDEGeneralizedLCA::getReturnEdgeFunction(
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getCallToRetEdgeFunction(
-    IDEGeneralizedLCA::n_t CallSite, IDEGeneralizedLCA::d_t CallNode,
-    IDEGeneralizedLCA::n_t /*RetSite*/, IDEGeneralizedLCA::d_t RetSiteNode,
-    std::set<IDEGeneralizedLCA::f_t> /*Callees*/) {
+IDEGeneralizedLCA::getCallToRetEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
+                                            IDEGeneralizedLCA::d_t CallNode,
+                                            IDEGeneralizedLCA::n_t /*RetSite*/,
+                                            IDEGeneralizedLCA::d_t RetSiteNode,
+                                            llvm::ArrayRef<f_t> /*Callees*/) {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
   // check for ctor and then demangle function name and check for

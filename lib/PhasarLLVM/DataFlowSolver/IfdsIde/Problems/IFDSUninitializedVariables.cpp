@@ -353,7 +353,7 @@ IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getCallToRetFlowFunction(
     IFDSUninitializedVariables::n_t CallSite,
     IFDSUninitializedVariables::n_t /*RetSite*/,
-    std::set<IFDSUninitializedVariables::f_t> /*Callees*/) {
+    llvm::ArrayRef<f_t> /*Callees*/) {
   //----------------------------------------------------------------------
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------

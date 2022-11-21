@@ -14,6 +14,9 @@
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
+#include <set>
+#include <string>
+
 namespace psr {
 
 template <typename AnalysisDomainTy,
@@ -63,7 +66,7 @@ public:
   EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/,
                            d_t /*RetSiteNode*/,
-                           std::set<f_t> /*Callees*/) override {
+                           llvm::ArrayRef<f_t> /*Callees*/) override {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 

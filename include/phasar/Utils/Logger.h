@@ -17,6 +17,7 @@
 #include <variant>
 
 #include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -28,6 +29,8 @@ enum SeverityLevel {
 #include "phasar/Utils/SeverityLevel.def"
   INVALID
 };
+
+SeverityLevel parseSeverityLevel(llvm::StringRef Str);
 
 class Logger final {
 public:

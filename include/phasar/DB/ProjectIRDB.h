@@ -61,7 +61,8 @@ private:
   std::map<std::string, std::unique_ptr<llvm::Module>> Modules;
   // Maps an id to its corresponding instruction
   std::map<std::size_t, llvm::Instruction *> IDInstructionMapping;
-  size_t NumberCallsites;
+  size_t NumGlobals = 0;
+  size_t NumberCallsites = 0;
   nlohmann::json StatsJson;
 
   void buildIDModuleMapping(llvm::Module *M);
@@ -97,6 +98,7 @@ public:
   ~ProjectIRDB();
 
   void insertModule(llvm::Module *M);
+  void insertFunction(llvm::Function *F);
 
   // add WPA support by providing a fat completely linked module
   void linkForWPA();
@@ -179,6 +181,8 @@ public:
   }
 
   [[nodiscard]] std::size_t getNumGlobals() const;
+
+  [[nodiscard]] std::size_t getNumFunctions() const;
 
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
 

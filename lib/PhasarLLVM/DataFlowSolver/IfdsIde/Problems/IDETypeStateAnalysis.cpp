@@ -415,7 +415,7 @@ IDETypeStateAnalysis::getRetFlowFunction(
 IDETypeStateAnalysis::FlowFunctionPtrType
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::n_t /*RetSite*/,
-    std::set<IDETypeStateAnalysis::f_t> Callees) {
+    llvm::ArrayRef<f_t> Callees) {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
@@ -548,8 +548,7 @@ std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t /*RetSite*/,
-    IDETypeStateAnalysis::d_t RetSiteNode,
-    std::set<IDETypeStateAnalysis::f_t> Callees) {
+    IDETypeStateAnalysis::d_t RetSiteNode, llvm::ArrayRef<f_t> Callees) {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());

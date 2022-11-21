@@ -30,12 +30,12 @@ public:
   explicit HelperAnalyses(std::vector<std::string> IRFiles,
                           std::optional<nlohmann::json> PrecomputedPTS,
                           PointerAnalysisType PTATy, bool AllowLazyPTS,
-                          std::set<std::string> EntryPoints,
+                          std::vector<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport);
 
   explicit HelperAnalyses(std::vector<std::string> IRFiles,
-                          std::set<std::string> EntryPoints,
+                          std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
   ~HelperAnalyses();
 
@@ -59,7 +59,7 @@ private:
   bool AllowLazyPTS{};
 
   // ICF
-  std::set<std::string> EntryPoints;
+  std::vector<std::string> EntryPoints;
   CallGraphAnalysisType CGTy{};
   Soundness SoundnessLevel{};
   bool AutoGlobalSupport{};
