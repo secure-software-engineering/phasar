@@ -17,11 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
-#include <optional>
-#include <set>
-#include <string>
-
 #include "llvm/ADT/DenseSet.h"
+
+#include <memory>
+#include <optional>
+#include <string>
 
 namespace llvm {
 class Instruction;
@@ -33,6 +33,9 @@ class StructType;
 namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
+enum class CallGraphAnalysisType;
+class LLVMBasedICFG;
 
 std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite);
 
@@ -70,6 +73,12 @@ public:
   virtual FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite);
 
   virtual void otherInst(const llvm::Instruction *Inst);
+
+  [[nodiscard]] virtual std::string str() const = 0;
+
+  static std::unique_ptr<Resolver>
+  create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB, LLVMTypeHierarchy *TH,
+         LLVMBasedICFG *ICF = nullptr, LLVMPointsToInfo *PT = nullptr);
 };
 } // namespace psr
 

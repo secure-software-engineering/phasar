@@ -52,9 +52,9 @@ protected:
         std::vector<std::string>{PathToLLFiles + LLFile}, IRDBOptions::WPA);
     TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = std::make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = std::make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::RTA,
-                                           std::set<std::string>{"main"},
-                                           TH.get(), PT.get());
+    ICFG = std::make_unique<LLVMBasedICFG>(
+        IRDB.get(), CallGraphAnalysisType::RTA,
+        std::vector<std::string>{"main"}, TH.get(), PT.get());
     LCAProblem = std::make_unique<IDEGeneralizedLCA>(
         IRDB.get(), TH.get(), ICFG.get(), PT.get(),
         std::set<std::string>{"main"}, MaxSetSize);

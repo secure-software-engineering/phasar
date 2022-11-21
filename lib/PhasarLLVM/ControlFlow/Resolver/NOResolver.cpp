@@ -43,4 +43,6 @@ auto NOResolver::resolveFunctionPointer(const llvm::CallBase * /*CallSite*/)
 
 void NOResolver::otherInst(const llvm::Instruction *Inst) {}
 
+std::string NOResolver::str() const { return "NOResolver"; }
+
 } // namespace psr

@@ -88,6 +88,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
   }
   if (Options & IRDBOptions::WPA) {
     linkForWPA();
+    NumGlobals = WPAModule->global_size();
   }
   preprocessAllModules();
 }
@@ -100,6 +101,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<llvm::Module *> &Modules,
   }
   if (Options & IRDBOptions::WPA) {
     linkForWPA();
+    NumGlobals = WPAModule->global_size();
   }
 }
 
@@ -240,6 +242,14 @@ std::size_t ProjectIRDB::getNumGlobals() const {
   std::size_t Ret = 0;
   for (const auto &[File, Module] : Modules) {
     Ret += Module->global_size();
+  }
+  return Ret;
+}
+
+std::size_t ProjectIRDB::getNumFunctions() const {
+  std::size_t Ret = 0;
+  for (const auto &[File, Module] : Modules) {
+    Ret += Module->size();
   }
   return Ret;
 }
@@ -494,6 +504,20 @@ void ProjectIRDB::insertModule(llvm::Module *M) {
   Contexts.push_back(std::unique_ptr<llvm::LLVMContext>(&M->getContext()));
   Modules.insert(std::make_pair(M->getModuleIdentifier(), M));
   preprocessModule(M);
+}
+
+void ProjectIRDB::insertFunction(llvm::Function *F) {
+  assert(WPAModule && "insertFunction is only suported in WPA mode!");
+  auto Id = IDInstructionMapping.size() + NumGlobals;
+  auto &Context = F->getContext();
+  for (auto &Inst : llvm::instructions(F)) {
+    llvm::MDNode *Node = llvm::MDNode::get(
+        Context, llvm::MDString::get(Context, std::to_string(Id)));
+    Inst.setMetadata(PhasarConfig::MetaDataKind(), Node);
+
+    IDInstructionMapping[Id] = &Inst;
+    ++Id;
+  }
 }
 
 std::set<const llvm::StructType *>

@@ -126,8 +126,9 @@ public:
    * @param CallSite Call site.
    * @param retSite Return site.
    */
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.

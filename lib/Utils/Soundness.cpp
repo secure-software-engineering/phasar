@@ -9,12 +9,7 @@
 
 #include "phasar/Utils/Soundness.h"
 
-#include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
-
-#include <string>
-
-using namespace psr;
 
 std::string psr::toString(Soundness S) {
   switch (S) {

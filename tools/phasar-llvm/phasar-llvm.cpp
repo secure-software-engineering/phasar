@@ -10,7 +10,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
-#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/IO.h"
@@ -114,7 +114,7 @@ cl::opt<CallGraphAnalysisType> CGTypeOpt(
     cl::values(
 #define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                          \
   clEnumValN(CallGraphAnalysisType::NAME, CMDFLAG, DESC),
-#include "phasar/PhasarLLVM/ControlFlow/CallGraphAnalysisType.def"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.def"
         clEnumValN(CallGraphAnalysisType::Invalid, "invalid", "invalid")),
     cl::init(CallGraphAnalysisType::OTF), cl::cat(PsrCat));
 cl::alias CGTypeAlias("C", cl::aliasopt(CGTypeOpt),
@@ -291,6 +291,14 @@ void validatePTAJsonFile() {
   }
 }
 
+void validateLogLevel(const std::string &Level) {
+  if (parseSeverityLevel(Level) == SeverityLevel::INVALID) {
+    llvm::errs() << "Invalid logger severity level '" << Level
+                 << "'. Expect DEBUG, INFO, WARNING or ERROR\n";
+    exit(1);
+  }
+}
+
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
@@ -370,15 +378,15 @@ int main(int Argc, const char **Argv) {
   if (EmitTHAsJsonOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
   }
-  if (EmitCGAsTextOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
-  }
+  // if (EmitCGAsTextOpt) {
+  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
+  // }
   if (EmitCGAsDotOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
   }
-  if (EmitCGAsJsonOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
-  }
+  // if (EmitCGAsJsonOpt) {
+  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
+  // }
   if (EmitPTAAsTextOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
   }
@@ -409,8 +417,8 @@ int main(int Argc, const char **Argv) {
   AnalysisController Controller(
       IRDB, std::vector(DataFlowAnalysisOpt.begin(), DataFlowAnalysisOpt.end()),
       {AnalysisConfigOpt.getValue()}, PTATypeOpt, CGTypeOpt, SoundnessOpt,
-      AutoGlobalsOpt, std::set(EntryOpt.begin(), EntryOpt.end()), StrategyOpt,
-      EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt,
+      AutoGlobalsOpt, std::vector(EntryOpt.begin(), EntryOpt.end()),
+      StrategyOpt, EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt,
       PrecomputedPointsToSet);
   return 0;
 }

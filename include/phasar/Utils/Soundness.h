@@ -10,9 +10,14 @@
 #ifndef PHASAR_UTILS_SOUNDNESS_H_
 #define PHASAR_UTILS_SOUNDNESS_H_
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
+
+namespace llvm {
+class raw_ostream;
+} // namespace llvm
 
 namespace psr {
 
