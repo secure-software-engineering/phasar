@@ -66,10 +66,14 @@ struct LLVMBasedICFG::Builder {
 void LLVMBasedICFG::Builder::initEntryPoints(
     llvm::ArrayRef<std::string> EntryPoints) {
   if (EntryPoints.size() == 1 && EntryPoints.front() == "__ALL__") {
+    UserEntryPoints.reserve(IRDB->getNumFunctions());
     // Handle the special case in which a user wishes to treat all functions as
     // entry points.
     for (const auto *Fun : IRDB->getAllFunctions()) {
-      if (!Fun->isDeclaration() && Fun->hasName()) {
+      // Only functions with external linkage (or 'main') can be called from the
+      // outside!
+      if (!Fun->isDeclaration() && Fun->hasName() &&
+          (Fun->hasExternalLinkage() || Fun->getName() == "main")) {
         UserEntryPoints.push_back(IRDB->getFunctionDefinition(Fun->getName()));
       }
     }
@@ -413,15 +417,13 @@ LLVMBasedICFG::~LLVMBasedICFG() = default;
 [[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const
     -> std::vector<n_t> {
   std::vector<n_t> NonCallStartNodes;
-  /// NOTE: Gets more performant once we have the new LLVMProjectIRDB
   NonCallStartNodes.reserve(2 * IRDB->getNumFunctions());
-  for (const auto *F : IRDB->getAllFunctions()) {
-    for (const auto &I : llvm::instructions(F)) {
-      if (!llvm::isa<llvm::CallBase>(&I) && !isStartPoint(&I)) {
-        NonCallStartNodes.push_back(&I);
-      }
+  for (const auto *Inst : IRDB->getAllInstructions()) {
+    if (!llvm::isa<llvm::CallBase>(Inst) && !isStartPoint(Inst)) {
+      NonCallStartNodes.push_back(Inst);
     }
   }
+
   return NonCallStartNodes;
 }
 

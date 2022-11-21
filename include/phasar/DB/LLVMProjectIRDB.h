@@ -11,12 +11,15 @@
 #define PHASAR_DB_LLVMPROJECTIRDB_H
 
 #include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/iterator_range.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/raw_ostream.h"
@@ -85,12 +88,17 @@ public:
 
   void emitPreprocessedIR(llvm::raw_ostream &OS) const;
 
+  /// Insert a new function F into the IRDB. F should be present in the same
+  /// llvm::Module that is managed by the IRDB. insertFunction should not be
+  /// called twice for the same function. Use with care!
+  void insertFunction(llvm::Function *F, bool DoPreprocessing = true);
+
 private:
   [[nodiscard]] m_t getModuleImpl() const noexcept { return Mod.get(); }
   [[nodiscard]] bool debugInfoAvailableImpl() const;
-  [[nodiscard]] auto getAllFunctionsImpl() const {
+  [[nodiscard]] FunctionRange getAllFunctionsImpl() const {
     return llvm::map_range(Mod->functions(),
-                           [](const llvm::Function &F) { return &F; });
+                           Ref2PointerConverter<llvm::Function>{});
   }
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef FunctionName) const {
     return Mod->getFunction(FunctionName);
@@ -104,7 +112,7 @@ private:
   [[nodiscard]] g_t
   getGlobalVariableDefinitionImpl(llvm::StringRef GlobalVariableName) const;
   [[nodiscard]] size_t getNumInstructionsImpl() const noexcept {
-    return IdToInst.size();
+    return IdToInst.size() - IdOffset;
   }
   [[nodiscard]] size_t getNumFunctionsImpl() const noexcept {
     return Mod->size();
@@ -119,6 +127,12 @@ private:
       return llvm::cast<llvm::Instruction>(IdToInst[Id]);
     }
     return n_t{};
+  }
+
+  [[nodiscard]] auto getAllInstructionsImpl() const noexcept {
+    return llvm::map_range(
+        llvm::makeArrayRef(IdToInst).drop_front(IdOffset),
+        [](const llvm::Value *V) { return llvm::cast<llvm::Instruction>(V); });
   }
 
   [[nodiscard]] size_t getInstructionIdImpl(n_t Inst) const {

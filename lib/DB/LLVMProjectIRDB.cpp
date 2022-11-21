@@ -96,7 +96,7 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                                  bool DoPreprocessing) {
   assert(Mod != nullptr);
   auto *NonConst = Mod.get();
-  ModulesToSlotTracker::setMSTForModule(Mod.get());
+  ModulesToSlotTracker::setMSTForModule(NonConst);
   this->Mod = std::move(Mod);
 
   if (DoPreprocessing) {
@@ -196,6 +196,27 @@ void LLVMProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS) const {
   Mod->print(OS, &AAW);
 }
 
+void LLVMProjectIRDB::insertFunction(llvm::Function *F, bool DoPreprocessing) {
+  assert(F->getParent() == Mod.get() &&
+         "The new function F should be present in the module of the IRDB!");
+  size_t Id = IdToInst.size();
+
+  auto &Context = F->getContext();
+  for (auto &Inst : llvm::instructions(F)) {
+    if (DoPreprocessing) {
+      llvm::MDNode *Node = llvm::MDNode::get(
+          Context, llvm::MDString::get(Context, std::to_string(Id)));
+      Inst.setMetadata(PhasarConfig::MetaDataKind(), Node);
+    }
+
+    IdToInst.push_back(&Inst);
+    InstToId.try_emplace(&Inst, Id);
+
+    ++Id;
+  }
+  assert(InstToId.size() == IdToInst.size());
+}
+
 template class ProjectIRDBBase<LLVMProjectIRDB>;
 
 } // namespace psr
@@ -208,15 +229,15 @@ const llvm::Value *psr::fromMetaDataId(const LLVMProjectIRDB &IRDB,
 
   auto ParseInt = [](llvm::StringRef Str) -> std::optional<unsigned> {
     unsigned Num;
-    auto [Ptr, EC] = std::from_chars(Str.data(), Str.data() + Str.size(), Num);
+    auto [Ptr, EC] = std::from_chars(Str.begin(), Str.end(), Num);
 
     if (EC == std::errc{}) {
       return Num;
     }
 
-    PHASAR_LOG_LEVEL(WARNING, "Invalid metadata id '"
-                                  << Str.str() << "': "
-                                  << std::make_error_code(EC).message());
+    PHASAR_LOG_LEVEL(WARNING,
+                     "Invalid metadata id '"
+                         << Str << "': " << std::make_error_code(EC).message());
     return std::nullopt;
   };
 

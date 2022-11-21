@@ -115,6 +115,13 @@ public:
     return self().getInstructionId(Inst);
   }
 
+  [[nodiscard]] decltype(auto) getAllInstructions() const {
+    static_assert(
+        is_iterable_over_v<decltype(self().getAllInstructionsImpl()), n_t>);
+    assert(isValid());
+    return self().getAllInstructionsImpl();
+  }
+
   /// Sanity check to verify that th IRDB really manages a Module and all
   /// functions work properly.
   /// All functions of this IRDB require isValid() to return true, if not stated
