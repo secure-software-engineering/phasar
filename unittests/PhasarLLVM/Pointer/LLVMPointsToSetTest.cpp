@@ -32,7 +32,7 @@ TEST(LLVMPointsToSet, Inter_01) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/call_01_cpp.ll"});
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
+  LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
@@ -48,7 +48,7 @@ TEST(LLVMPointsToSet, Global_01) {
   ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/global_01_cpp.ll"});
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICF(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
+  LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &G : Main->getParent()->globals()) {
     auto S = PTS.getPointsToSet(&G); // NOLINT

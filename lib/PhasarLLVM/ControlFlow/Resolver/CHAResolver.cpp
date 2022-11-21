@@ -70,3 +70,5 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   }
   return PossibleCallees;
 }
+
+std::string CHAResolver::str() const { return "CHA"; }

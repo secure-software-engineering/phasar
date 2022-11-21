@@ -79,7 +79,7 @@ public:
 
   std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           std::set<f_t> Callees) override;
+                           llvm::ArrayRef<f_t> Callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t CallStmt, f_t DestMthd) override;
@@ -107,7 +107,8 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode, std::set<f_t> Callees) override;
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t CallStmt, d_t CallNode, n_t RetSite,
