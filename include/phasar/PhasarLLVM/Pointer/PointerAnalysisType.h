@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_PHASARLLVM_POINTER_POINTERANALYSISTYPE_H_
+#define PHASAR_PHASARLLVM_POINTER_POINTERANALYSISTYPE_H_
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
@@ -18,3 +19,5 @@ PointerAnalysisType toPointerAnalysisType(llvm::StringRef S);
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, PointerAnalysisType PA);
 } // namespace psr
+
+#endif // PHASAR_PHASARLLVM_POINTER_POINTERANALYSISTYPE_H_
