@@ -135,10 +135,7 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IFDSSolverTest: {
       executeIFDSSolverTest();
     } break;
-    case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
-      executeIFDSLinearConst();
-    } break;
-    case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
+     case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
       executeIFDSFieldSensTaint();
     } break;
     case DataFlowAnalysisType::IDELinearConstantAnalysis: {
