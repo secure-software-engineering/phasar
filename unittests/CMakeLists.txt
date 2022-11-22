@@ -22,11 +22,8 @@ endfunction()
 
 include_directories(TestUtils)
 
-add_subdirectory(Config)
 add_subdirectory(Controller)
 add_subdirectory(DB)
-add_subdirectory(Experimental)
-add_subdirectory(Flex)
 add_subdirectory(PhasarClang)
 add_subdirectory(PhasarLLVM)
 add_subdirectory(Utils)

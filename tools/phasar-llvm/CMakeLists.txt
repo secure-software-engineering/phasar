@@ -34,7 +34,6 @@ target_link_libraries(phasar-llvm
   phasar_utils
   phasar_mono
   phasar_db
-  phasar_experimental
   phasar_passes
   phasar_pointer
   phasar_typehierarchy

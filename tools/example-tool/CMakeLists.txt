@@ -17,7 +17,6 @@ target_link_libraries(myphasartool
   phasar_config
   phasar_controller
   phasar_db
-  phasar_experimental
   phasar_controlflow
   phasar_ifdside
   phasar_mono
