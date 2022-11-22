@@ -22,7 +22,6 @@ endfunction()
 
 include_directories(TestUtils)
 
-add_subdirectory(Controller)
 add_subdirectory(DB)
 add_subdirectory(PhasarClang)
 add_subdirectory(PhasarLLVM)
