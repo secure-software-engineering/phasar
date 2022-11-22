@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 
+#include "llvm/Support/raw_ostream.h"
 #include <string>
 
 namespace psr {
