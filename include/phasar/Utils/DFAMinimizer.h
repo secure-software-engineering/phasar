@@ -31,8 +31,8 @@ createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
 
   std::decay_t<GraphTy> Ret;
 
-  llvm::SmallVector<std::pair<vertex_t, vertex_t>, 0> Cache(Eq.getNumClasses(),
-                                                            traits_t::Invalid);
+  llvm::SmallVector<std::pair<vertex_t, vertex_t>, 0> Cache(
+      Eq.getNumClasses(), {traits_t::Invalid, traits_t::Invalid});
 
   if constexpr (is_reservable_graph_trait_v<traits_t>) {
     traits_t::reserve(Ret, Eq.getNumClasses());
@@ -40,18 +40,18 @@ createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
 
   for (auto Rt : traits_t::roots(G)) {
     size_t EqVtx = Eq[Rt];
-    if (Cache[EqVtx] != traits_t::Invalid) {
+    if (Cache[EqVtx].second != traits_t::Invalid) {
       continue;
     }
     auto EqRt =
         traits_t::addNode(Ret, forward_like<GraphTy>(traits_t::node(G, Rt)));
 
     Cache[EqVtx] = {Rt, EqRt};
-    traits_t::addRoot(G, EqRt);
+    traits_t::addRoot(Ret, EqRt);
   }
   for (auto Vtx : traits_t::vertices(G)) {
     size_t EqVtx = Eq[Vtx];
-    if (Cache[EqVtx] != traits_t::Invalid) {
+    if (Cache[EqVtx].second != traits_t::Invalid) {
       continue;
     }
     Cache[EqVtx] = {Vtx, traits_t::addNode(Ret, forward_like<GraphTy>(

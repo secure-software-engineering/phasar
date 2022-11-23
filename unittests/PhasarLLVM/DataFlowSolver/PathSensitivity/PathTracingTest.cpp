@@ -13,7 +13,10 @@
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/AdjacencyList.h"
+#include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/DebugOutput.h"
+#include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -722,6 +725,34 @@ TEST_F(PathTracingTest, Handle_Intra_09) {
 TEST_F(PathTracingTest, Handle_Other_01) {
   auto PathsVec = doAnalysis("other_01_cpp.ll");
   comparePaths(PathsVec, {{0, 1, 6, 7, 8, 9, 10, 12, 13}});
+}
+
+TEST(PathsDAGTest, ForwardMinimizeDAGTest) {
+  psr::AdjacencyList<int> Graph;
+  using traits_t = psr::GraphTraits<decltype(Graph)>;
+  auto One = traits_t::addNode(Graph, 1);
+  auto Two = traits_t::addNode(Graph, 2);
+  auto Three = traits_t::addNode(Graph, 2);
+  auto Four = traits_t::addNode(Graph, 2);
+
+  traits_t::addRoot(Graph, One);
+  traits_t::addEdge(Graph, One, Two);
+  traits_t::addEdge(Graph, One, Three);
+  traits_t::addEdge(Graph, One, Four);
+
+  auto Eq = psr::minimizeGraph(Graph);
+  Graph = psr::createEquivalentGraphFrom(std::move(Graph), Eq);
+  // psr::printGraph(Graph, llvm::outs());
+  // llvm::outs() << '\n';
+
+  EXPECT_EQ(traits_t::size(Graph), 2);
+  ASSERT_EQ(traits_t::roots_size(Graph), 1);
+  auto Rt = traits_t::roots(Graph)[0];
+  EXPECT_EQ(traits_t::outDegree(Graph, Rt), 1);
+  EXPECT_NE(traits_t::target(traits_t::outEdges(Graph, Rt)[0]), Rt);
+  EXPECT_EQ(traits_t::outDegree(
+                Graph, traits_t::target(traits_t::outEdges(Graph, Rt)[0])),
+            0);
 }
 
 // main function for the test case
