@@ -12,10 +12,64 @@
 
 #include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/IntEqClasses.h"
+#include "llvm/ADT/SmallVector.h"
 
 namespace psr {
+
+template <typename GraphTy>
+[[nodiscard]] std::decay_t<GraphTy>
+createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
+#if __cplusplus >= 202002L
+    requires is_graph<GraphTy>
+#endif
+{
+  using traits_t = GraphTraits<GraphTy>;
+  using vertex_t = typename traits_t::vertex_t;
+
+  std::decay_t<GraphTy> Ret;
+
+  llvm::SmallVector<std::pair<vertex_t, vertex_t>, 0> Cache(Eq.getNumClasses(),
+                                                            traits_t::Invalid);
+
+  if constexpr (is_reservable_graph_trait_v<traits_t>) {
+    traits_t::reserve(Ret, Eq.getNumClasses());
+  }
+
+  for (auto Rt : traits_t::roots(G)) {
+    size_t EqVtx = Eq[Rt];
+    if (Cache[EqVtx] != traits_t::Invalid) {
+      continue;
+    }
+    auto EqRt =
+        traits_t::addNode(Ret, forward_like<GraphTy>(traits_t::node(G, Rt)));
+
+    Cache[EqVtx] = {Rt, EqRt};
+    traits_t::addRoot(G, EqRt);
+  }
+  for (auto Vtx : traits_t::vertices(G)) {
+    size_t EqVtx = Eq[Vtx];
+    if (Cache[EqVtx] != traits_t::Invalid) {
+      continue;
+    }
+    Cache[EqVtx] = {Vtx, traits_t::addNode(Ret, forward_like<GraphTy>(
+                                                    traits_t::node(G, Vtx)))};
+  }
+
+  for (auto [Vtx, EqVtx] : Cache) {
+    assert(Vtx != traits_t::Invalid);
+    assert(EqVtx != traits_t::Invalid);
+    for (auto Succ : traits_t::outEdges(G, Vtx)) {
+      auto EqSucc = Eq[traits_t::target(Succ)];
+      traits_t::addEdge(Ret, EqVtx, traits_t::withEdgeTarget(Succ, EqSucc));
+    }
+    traits_t::dedupOutEdges(Ret, EqVtx);
+  }
+
+  return Ret;
+}
 
 template <typename GraphTy>
 [[nodiscard]] llvm::IntEqClasses minimizeGraph(const GraphTy &G)
