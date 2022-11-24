@@ -63,7 +63,8 @@ createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
     assert(EqVtx != traits_t::Invalid);
     for (auto Succ : traits_t::outEdges(G, Vtx)) {
       auto EqSucc = Eq[traits_t::target(Succ)];
-      traits_t::addEdge(Ret, EqVtx, traits_t::withEdgeTarget(Succ, EqSucc));
+      traits_t::addEdge(Ret, EqVtx,
+                        traits_t::withEdgeTarget(Succ, Cache[EqSucc].second));
     }
     traits_t::dedupOutEdges(Ret, EqVtx);
   }
