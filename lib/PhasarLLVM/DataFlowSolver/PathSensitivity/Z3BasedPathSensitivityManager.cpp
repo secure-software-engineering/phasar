@@ -38,8 +38,8 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
   }
 
   // NOLINTNEXTLINE(readability-identifier-naming)
-  auto doFilter = [&Ctx, &RevDAG, &LPC](auto &doFilter,
-                                        unsigned Vtx) -> z3::expr {
+  auto doFilter = [&Ctx, &RevDAG, &LPC, Leaf](auto &doFilter,
+                                              vertex_t Vtx) -> z3::expr {
     Ctx.Visited.set(Vtx);
     z3::expr X = Ctx.True;
     llvm::ArrayRef<n_t> PartialPath = graph_traits_t::node(RevDAG, Vtx);
@@ -77,6 +77,21 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
 
       auto Sat = Ctx.Solver.check();
       if (Sat == z3::check_result::unsat) {
+        // llvm::errs() << "> Unsat: " << Ctx.Solver.to_smt2() << '\n';
+        // llvm::errs() << ">> With X: " << X.to_string() << '\n';
+        // llvm::errs() << ">> With Y: " << Y.to_string() << '\n';
+        // llvm::errs() << ">> With NodeConstraints[" << Adj
+        //              << "]: " << Ctx.NodeConstraints[Adj].to_string() <<
+        //              '\n';
+        // if (auto Constr =
+        //         LPC.getConstraintFromEdge(PartialPath.front(), AdjPP.back()))
+        //         {
+        //   llvm::errs() << ">> With EdgeConstraint: " << Constr->to_string()
+        //                << '\n';
+        // } else {
+        //   llvm::errs() << ">> Without EdgeConstraint\n";
+        // }
+
         Iter = graph_traits_t::removeEdge(RevDAG, Vtx, It);
         Ctx.Ctr++;
       } else {
@@ -88,7 +103,7 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
     }
 
     if (graph_traits_t::outDegree(RevDAG, Vtx) == 0) {
-      return Ctx.NodeConstraints[Vtx] = Vtx == 0 ? X : Ctx.False;
+      return Ctx.NodeConstraints[Vtx] = Vtx == Leaf ? X : Ctx.False;
     }
     if (Ys.empty()) {
       llvm_unreachable("Adj nonempty and Ys empty is unexpected");
@@ -110,6 +125,7 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
     auto Res = doFilter(doFilter, Rt);
     Ret = Ret || Res;
     if (Rt != Leaf && RevDAG.Adj[Rt].empty()) {
+      // llvm::errs() << "> Remove root " << Rt << "\n";
       Iter = graph_traits_t::removeRoot(RevDAG, It);
     }
   }
@@ -517,6 +533,8 @@ auto Z3BasedPathSensitivityManagerBase::filterAndFlattenRevDag(
     }
 
     if (Vtx == Leaf) {
+      // llvm::errs() << "> Reached Leaf!\n";
+
       assert(!CurrPath.empty() && "Reported paths must not be empty!");
 
       /// Reached the end

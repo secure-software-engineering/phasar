@@ -172,7 +172,9 @@ protected:
 
     for (const auto &GT : GroundTruth) {
       EXPECT_TRUE(Matches(GT))
-          << "No match found for " << psr::PrettyPrinter{GT};
+          << "No match found for " << psr::PrettyPrinter{GT}
+          << "; MatchingIndices.size() = " << MatchingIndices.size()
+          << "; AnalyzedPaths.size() = " << AnalyzedPaths.size();
     }
 
     EXPECT_EQ(MatchingIndices.size(), AnalyzedPaths.size());
