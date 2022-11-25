@@ -33,7 +33,7 @@ endif()
 # We specifically link internal phasar libs into phasar_pass so on that the
 # llvm user side only has to specify one library.
 
-find_package(Boost COMPONENTS graph program_options REQUIRED)
+find_package(Boost COMPONENTS graph REQUIRED)
 target_link_libraries(phasar_pass
   LINK_PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
