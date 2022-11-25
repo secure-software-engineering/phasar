@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_SOUNDNESS_H_
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <string>
 
@@ -21,7 +22,7 @@ class raw_ostream;
 namespace psr {
 
 enum class Soundness {
-#define SOUNDNESS_FLAG_TYPE(NAME, TYPE) TYPE,
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC) NAME,
 #include "phasar/Utils/Soundness.def"
   Invalid
 };

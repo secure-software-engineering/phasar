@@ -1,30 +1,30 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
-#include "llvm/Support/raw_ostream.h"
 
 std::string psr::toString(CallGraphAnalysisType CGA) {
   switch (CGA) {
-  default:
-#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
-  case CallGraphAnalysisType::TYPE:                                            \
-    return NAME;                                                               \
-    break;
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                          \
+  case CallGraphAnalysisType::NAME:                                            \
+    return #NAME;
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.def"
+  case CallGraphAnalysisType::Invalid:
+    return "Invalid";
   }
 }
 
 psr::CallGraphAnalysisType psr::toCallGraphAnalysisType(llvm::StringRef S) {
   CallGraphAnalysisType Type = llvm::StringSwitch<CallGraphAnalysisType>(S)
-#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
-  .Case(NAME, CallGraphAnalysisType::TYPE)
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                          \
+  .Case(#NAME, CallGraphAnalysisType::NAME)
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.def"
                                    .Default(CallGraphAnalysisType::Invalid);
   if (Type == CallGraphAnalysisType::Invalid) {
     Type = llvm::StringSwitch<CallGraphAnalysisType>(S)
-#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
-  .Case(CMDFLAG, CallGraphAnalysisType::TYPE)
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                          \
+  .Case(CMDFLAG, CallGraphAnalysisType::NAME)
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.def"
                .Default(CallGraphAnalysisType::Invalid);
   }
   return Type;

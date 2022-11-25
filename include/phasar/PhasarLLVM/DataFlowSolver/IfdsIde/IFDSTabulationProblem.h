@@ -69,7 +69,7 @@ protected:
   PointsToInfo<v_t, n_t> *PT;
   d_t ZeroValue;
   std::set<std::string> EntryPoints;
-  [[maybe_unused]] Soundness SF = Soundness::Unused;
+  [[maybe_unused]] Soundness SF = Soundness::Soundy;
 
 public:
   using ConfigurationTy = HasNoConfigurationType;

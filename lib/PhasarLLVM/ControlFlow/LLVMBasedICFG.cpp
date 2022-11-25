@@ -384,7 +384,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
   PHASAR_LOG_LEVEL_CAT(
       INFO, "LLVMBasedICFG",
       "Starting ICFG construction "
-          << std::chrono::steady_clock::now().time_since_epoch().count())
+          << std::chrono::steady_clock::now().time_since_epoch().count());
 
   B.buildCallGraph(S);
 

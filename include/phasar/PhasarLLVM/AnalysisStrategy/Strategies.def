@@ -8,14 +8,13 @@
  *****************************************************************************/
 
 #ifndef ANALYSIS_STRATEGY_TYPES
-#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)
+#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, DESC)
 #endif
 
-ANALYSIS_STRATEGY_TYPES("DemandDrivenAnalysis", "DD", DemandDriven)
-ANALYSIS_STRATEGY_TYPES("IncrementalUpdateAnalysis", "INC", Incremental)
-ANALYSIS_STRATEGY_TYPES("ModuleWiseAnalysis", "MWA", ModuleWise)
-ANALYSIS_STRATEGY_TYPES("VariationalAnalysis", "VAR", Variational)
-ANALYSIS_STRATEGY_TYPES("WholeProgramAnalysis", "WPA", WholeProgram)
-ANALYSIS_STRATEGY_TYPES("None", "none", None)
+ANALYSIS_STRATEGY_TYPES(WholeProgram, "WPA", "Whole-program analysis (default)")
+ANALYSIS_STRATEGY_TYPES(DemandDriven, "DD", "Demand-driven analysis")
+ANALYSIS_STRATEGY_TYPES(Incremental, "INC", "Incremental-update analysis")
+ANALYSIS_STRATEGY_TYPES(ModuleWise, "MWA", "Module-wise analysis")
+ANALYSIS_STRATEGY_TYPES(Variational, "VAR", "Variational analysis")
 
 #undef ANALYSIS_STRATEGY_TYPES
