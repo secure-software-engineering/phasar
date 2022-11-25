@@ -11,7 +11,7 @@
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
@@ -94,20 +94,20 @@ cl::opt<std::string> AnalysisConfigOpt(
     cl::desc("Set the analysis's configuration (if required)"),
     cl::cat(PsrCat));
 
-cl::opt<PointerAnalysisType> PTATypeOpt(
-    "pointer-analysis",
-    cl::desc("Set the points-to analysis to be used (CFLSteens, "
+cl::opt<AliasAnalysisType> AliasTypeOpt(
+    "alias-analysis",
+    cl::desc("Set the alias analysis to be used (CFLSteens, "
              "CFLAnders).  CFLSteens is ~O(N) but inaccurate while "
              "CFLAnders O(N^3) but more accurate."),
     cl::values(
-#define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                             \
-  clEnumValN(PointerAnalysisType::NAME, CMDFLAG, DESC),
-#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.def"
-        clEnumValN(PointerAnalysisType::Invalid, "invalid", "invalid")),
-    cl::init(PointerAnalysisType::CFLAnders), cl::cat(PsrCat));
-cl::alias PTATypeAlias("P", cl::aliasopt(PTATypeOpt),
-                       cl::desc("Alias for --pointer-analysis"),
-                       cl::cat(PsrCat));
+#define ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                               \
+  clEnumValN(AliasAnalysisType::NAME, CMDFLAG, DESC),
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.def"
+        clEnumValN(AliasAnalysisType::Invalid, "invalid", "invalid")),
+    cl::init(AliasAnalysisType::CFLAnders), cl::cat(PsrCat));
+cl::alias AliasTypeAlias("P", cl::aliasopt(AliasTypeOpt),
+                         cl::desc("Alias for --alias-analysis"),
+                         cl::cat(PsrCat));
 
 cl::opt<CallGraphAnalysisType> CGTypeOpt(
     "call-graph-analysis", cl::desc("Set the call-graph algorithm to be used"),
@@ -251,7 +251,7 @@ void validateParamOutput() {
 }
 
 void validateParamPointerAnalysis() {
-  if (PTATypeOpt == PointerAnalysisType::Invalid) {
+  if (AliasTypeOpt == AliasAnalysisType::Invalid) {
     llvm::errs() << "'Invalid' is not a valid pointer analysis!\n";
     exit(1);
   }
@@ -287,14 +287,6 @@ void validatePTAJsonFile() {
         !std::filesystem::is_directory(LoadPTAFromJsonOpt.getValue()))) {
     llvm::errs() << "Points-to info file '" << LoadPTAFromJsonOpt
                  << "' does not exist!\n";
-    exit(1);
-  }
-}
-
-void validateLogLevel(const std::string &Level) {
-  if (parseSeverityLevel(Level) == SeverityLevel::INVALID) {
-    llvm::errs() << "Invalid logger severity level '" << Level
-                 << "'. Expect DEBUG, INFO, WARNING or ERROR\n";
     exit(1);
   }
 }
@@ -405,9 +397,9 @@ int main(int Argc, const char **Argv) {
   SolverConfig.setRecordEdges(RecordEdgesOpt || EmitESGAsDotOpt);
   SolverConfig.setComputePersistedSummaries(PersistedSummariesOpt);
 
-  nlohmann::json PrecomputedPointsToSet;
+  nlohmann::json PrecomputedAliasSet;
   if (!LoadPTAFromJsonOpt.empty()) {
-    PrecomputedPointsToSet = readJsonFile(llvm::StringRef(LoadPTAFromJsonOpt));
+    PrecomputedAliasSet = readJsonFile(llvm::StringRef(LoadPTAFromJsonOpt));
   }
 
   if (EntryOpt.empty()) {
@@ -416,9 +408,9 @@ int main(int Argc, const char **Argv) {
 
   AnalysisController Controller(
       IRDB, std::vector(DataFlowAnalysisOpt.begin(), DataFlowAnalysisOpt.end()),
-      {AnalysisConfigOpt.getValue()}, PTATypeOpt, CGTypeOpt, SoundnessOpt,
+      {AnalysisConfigOpt.getValue()}, AliasTypeOpt, CGTypeOpt, SoundnessOpt,
       AutoGlobalsOpt, std::vector(EntryOpt.begin(), EntryOpt.end()),
       StrategyOpt, EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt,
-      PrecomputedPointsToSet);
+      PrecomputedAliasSet);
   return 0;
 }

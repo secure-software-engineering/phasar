@@ -37,7 +37,7 @@ namespace psr {
 class LLVMBasedCFG;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 struct IntraMonoSolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
   using mono_container_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
@@ -55,7 +55,7 @@ public:
   using mono_container_t = IntraMonoSolverTestAnalysisDomain::mono_container_t;
 
   IntraMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                      const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
+                      const LLVMBasedCFG *CF, const LLVMAliasInfo *PT,
                       std::set<std::string> EntryPoints = {});
 
   ~IntraMonoSolverTest() override = default;

@@ -8,7 +8,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
@@ -36,7 +36,7 @@ protected:
     IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToSet PT(*IRDB);
+    LLVMAliasSet PT(*IRDB);
     LLVMBasedICFG ICFG(IRDB.get(), CallGraphAnalysisType::OTF, {"main"}, &TH,
                        &PT, Soundness::Soundy, /*IncludeGlobals*/ true);
 

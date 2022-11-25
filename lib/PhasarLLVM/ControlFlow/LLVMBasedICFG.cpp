@@ -14,8 +14,8 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -37,7 +37,7 @@ namespace psr {
 struct LLVMBasedICFG::Builder {
   ProjectIRDB *IRDB = nullptr;
   LLVMBasedICFG *ICF = nullptr;
-  MaybeUniquePtr<LLVMPointsToInfo> PT{};
+  MaybeUniquePtr<LLVMAliasInfo> PT{};
   std::unique_ptr<Resolver> Res = nullptr;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions{};
   llvm::SmallVector<llvm::Function *, 1> UserEntryPoints{};
@@ -361,7 +361,7 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
 
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
+                             LLVMTypeHierarchy *TH, LLVMAliasInfo *PT,
                              Soundness S, bool IncludeGlobals)
     : TH(TH) {
   assert(IRDB != nullptr);
@@ -372,7 +372,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
   }
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
-    B.PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    B.PT = std::make_unique<LLVMAliasSet>(*IRDB);
   }
 
   B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT.get());

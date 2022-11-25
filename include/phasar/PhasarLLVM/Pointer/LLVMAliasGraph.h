@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 
-#include <ostream>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 
 #include "boost/graph/adjacency_list.hpp"
 
@@ -21,10 +21,9 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace llvm {
 class Value;
@@ -38,6 +37,8 @@ class Type;
 namespace psr {
 
 /**
+ *  TODO: Is this impl legacy code? Can it be removed?
+ *
  * 	This class is a representation of a points-to graph. It is possible to
  * 	construct a points-to graph for a single function using the results of
  *  the llvm alias analysis or merge several points-to graphs into a single
@@ -47,7 +48,7 @@ namespace psr {
  *
  *	@brief Represents the points-to graph of a function.
  */
-class LLVMPointsToGraph : public LLVMPointsToInfo {
+class LLVMAliasGraph : public LLVMAliasInfo {
 public:
   // Call-graph firends
   friend class LLVMBasedICFG;
@@ -106,18 +107,17 @@ private:
   ValueVertexMapT ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
-  LLVMBasedPointsToAnalysis PTA;
+  LLVMBasedAliasAnalysis PTA;
 
-  PointsToSetOwner<PointsToSetTy>::memory_resource_type MRes;
-  PointsToSetOwner<PointsToSetTy> Owner{&MRes};
-  std::unordered_map<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>
-      Cache;
+  AliasSetOwner<AliasSetTy>::memory_resource_type MRes;
+  AliasSetOwner<AliasSetTy> Owner{&MRes};
+  std::unordered_map<const llvm::Value *, DynamicAliasSetPtr<AliasSetTy>> Cache;
 
-  // void mergeGraph(const LLVMPointsToGraph &Other);
+  // void mergeGraph(const LLVMAliasGraph &Other);
 
-  void computePointsToGraph(const llvm::Value *V);
+  void computeAliasGraph(const llvm::Value *V);
 
-  void computePointsToGraph(llvm::Function *F);
+  void computeAliasGraph(llvm::Function *F);
 
 public:
   /**
@@ -130,21 +130,20 @@ public:
    * considered. False, if May and Must Aliases should be
    * considered.
    */
-  LLVMPointsToGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-                    PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+  LLVMAliasGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+                 AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
-  ~LLVMPointsToGraph() override = default;
+  ~LLVMAliasGraph() override = default;
 
   bool isInterProcedural() const override;
 
-  PointerAnalysisType getPointerAnalysistype() const override;
+  AliasAnalysisType getPointerAnalysistype() const override;
 
   AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
                     const llvm::Instruction *I = nullptr) override;
 
-  PointsToSetPtrTy
-  getPointsToSet(const llvm::Value *V,
-                 const llvm::Instruction *I = nullptr) override;
+  AliasSetPtrTy getAliasSet(const llvm::Value *V,
+                            const llvm::Instruction *I = nullptr) override;
 
   AllocationSiteSetPtrTy
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
@@ -156,8 +155,8 @@ public:
                                bool IntraProcOnly = false,
                                const llvm::Instruction *I = nullptr) override;
 
-  void mergeWith(const PointsToInfo<const llvm::Value *,
-                                    const llvm::Instruction *> &PTI) override;
+  void mergeWith(const AliasInfo<const llvm::Value *, const llvm::Instruction *>
+                     &PTI) override;
 
   void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
                       const llvm::Instruction *I = nullptr,

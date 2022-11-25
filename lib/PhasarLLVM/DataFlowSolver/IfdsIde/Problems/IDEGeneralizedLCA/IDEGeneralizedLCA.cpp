@@ -44,7 +44,7 @@ IDEGeneralizedLCA::IDEGeneralizedLCA(
     const ProjectIRDB *IRDB,
     const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
     const LLVMBasedICFG *ICF,
-    PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
+    AliasInfo<const llvm::Value *, const llvm::Instruction *> *PT,
     std::set<std::string> EntryPoints, size_t MaxSetSize)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
       MaxSetSize(MaxSetSize) {

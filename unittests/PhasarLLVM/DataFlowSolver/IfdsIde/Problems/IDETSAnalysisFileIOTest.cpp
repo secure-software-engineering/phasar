@@ -17,7 +17,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
@@ -35,7 +35,7 @@ protected:
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<LLVMAliasInfo> PT;
   unique_ptr<CSTDFILEIOTypeStateDescription> CSTDFILEIODesc;
   unique_ptr<IDETypeStateAnalysis> TSProblem;
   enum IOSTATE {
@@ -53,7 +53,7 @@ protected:
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(*IRDB);
     ICFG = make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
@@ -456,8 +456,8 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   Llvmtssolver.solve();
   // Llvmtssolver.dumpResults();
 
-  // auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
-  // std::cout << "PointsTo(2) = {";
+  // auto Pts = PT->getAliasSet(IRDB->getInstruction(2));
+  // std::cout << "Alias(2) = {";
   // bool Frst = true;
   // for (const auto *P : *Pts) {
   //   if (Frst) {

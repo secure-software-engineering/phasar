@@ -18,7 +18,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -206,7 +206,7 @@ public:
 
   IDEInstInteractionAnalysisT(
       const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+      const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
       std::set<std::string> EntryPoints = {"main"},
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
@@ -312,7 +312,7 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::LoadInst *Load;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy PTS;
+          LLVMAliasInfo::AllocationSiteSetPtrTy PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
@@ -355,8 +355,8 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::StoreInst *Store;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy ValuePTS;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy PointerPTS;
+          LLVMAliasInfo::AllocationSiteSetPtrTy ValuePTS;
+          LLVMAliasInfo::AllocationSiteSetPtrTy PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
@@ -366,9 +366,8 @@ public:
                         Store->getValueOperand(),
                         Problem.OnlyConsiderLocalAliases);
                   }
-                  return std::make_unique<LLVMPointsToInfo::PointsToSetTy>(
-                      LLVMPointsToInfo::PointsToSetTy{
-                          Store->getValueOperand()});
+                  return std::make_unique<LLVMAliasInfo::AliasSetTy>(
+                      LLVMAliasInfo::AliasSetTy{Store->getValueOperand()});
                 }()),
                 PointerPTS(Problem.PT->getReachableAllocationSites(
                     Store->getPointerOperand(),

@@ -33,7 +33,7 @@ struct HasNoConfigurationType;
 
 class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
-template <typename V, typename N> class PointsToInfo;
+template <typename V, typename N> class AliasInfo;
 template <typename N, typename F> class CFG;
 
 template <typename AnalysisDomainTy>
@@ -59,7 +59,7 @@ protected:
   const ProjectIRDB *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
   const c_t *CF;
-  const PointsToInfo<v_t, n_t> *PT;
+  const AliasInfo<v_t, n_t> *PT;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] Soundness S = Soundness::Soundy;
 
@@ -69,7 +69,7 @@ public:
   using ConfigurationTy = HasNoConfigurationType;
 
   IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, f_t> *TH,
-                   const c_t *CF, const PointsToInfo<v_t, n_t> *PT,
+                   const c_t *CF, const AliasInfo<v_t, n_t> *PT,
                    std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
@@ -100,7 +100,7 @@ public:
 
   [[nodiscard]] const c_t *getCFG() const { return CF; }
 
-  [[nodiscard]] const PointsToInfo<v_t, n_t> *getPointstoInfo() const {
+  [[nodiscard]] const AliasInfo<v_t, n_t> *getPointstoInfo() const {
     return PT;
   }
 

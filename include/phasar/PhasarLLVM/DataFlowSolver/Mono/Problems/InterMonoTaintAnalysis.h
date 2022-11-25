@@ -36,7 +36,7 @@ class StructType;
 
 namespace psr {
 
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 class LLVMTypeHierarchy;
 
 struct InterMonoTaintAnalysisDomain : LLVMAnalysisDomainDefault {
@@ -56,7 +56,7 @@ public:
   using ConfigurationTy = TaintConfig;
 
   InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                         const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                         const LLVMBasedICFG *ICF, const LLVMAliasInfo *PT,
                          const TaintConfig &Config,
                          std::set<std::string> EntryPoints = {});
 

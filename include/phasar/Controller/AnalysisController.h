@@ -24,8 +24,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
@@ -57,7 +57,7 @@ class AnalysisController {
 private:
   ProjectIRDB &IRDB;
   LLVMTypeHierarchy TH;
-  LLVMPointsToSet PT;
+  LLVMAliasSet PT;
   LLVMBasedICFG ICF;
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
@@ -192,7 +192,7 @@ public:
   AnalysisController(ProjectIRDB &IRDB,
                      std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
-                     PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
+                     AliasAnalysisType PTATy, CallGraphAnalysisType CGTy,
                      Soundness SoundnessLevel, bool AutoGlobalSupport,
                      std::vector<std::string> EntryPoints,
                      AnalysisStrategy Strategy,
@@ -200,7 +200,7 @@ public:
                      IFDSIDESolverConfig SolverConfig,
                      const std::string &ProjectID = "default-phasar-project",
                      const std::string &OutDirectory = "",
-                     const nlohmann::json &PrecomputedPointsToInfo = {});
+                     const nlohmann::json &PrecomputedAliasInfo = {});
 
   ~AnalysisController() = default;
 

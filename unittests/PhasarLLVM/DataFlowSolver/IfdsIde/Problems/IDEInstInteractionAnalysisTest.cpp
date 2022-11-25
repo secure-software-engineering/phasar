@@ -12,7 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -63,7 +63,7 @@ protected:
       IRDB->emitPreprocessedIR(llvm::outs(), false);
     }
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToSet PT(*IRDB);
+    LLVMAliasSet PT(*IRDB);
     LLVMBasedICFG ICFG(
         IRDB.get(), CallGraphAnalysisType::CHA,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,

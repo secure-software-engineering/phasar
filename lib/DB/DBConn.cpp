@@ -644,7 +644,7 @@ void operator>>(DBConn &db, const LLVMTypeHierarchy &STH) {
   cout << "READ STH FROM DB\n";
 }
 
-void operator<<(DBConn &db, const PointsToGraph &PTG) {
+void operator<<(DBConn &db, const AliasGraph &PTG) {
   // UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized
   // with an ProjectIRCompiledDB object!");
   // static PHSStringConverter converter(*db.IRDB);
@@ -654,7 +654,7 @@ void operator<<(DBConn &db, const PointsToGraph &PTG) {
   //   cout << fname << " ";
   // }
   // cout << "into hexastore!\n";
-  // typename boost::graph_traits<PointsToGraph::graph_t>::edge_iterator
+  // typename boost::graph_traits<AliasGraph::graph_t>::edge_iterator
   // ei_start, e_end;
   // // iterate over all edges and store the vertices and edges (i.e. string
   // rep. of the vertices/edges) in the hexastore
@@ -683,9 +683,9 @@ void operator<<(DBConn &db, const PointsToGraph &PTG) {
   //   cout << '\n';
   // }
   // cout << "vertices without edges:\n";
-  // typedef boost::graph_traits<PointsToGraph::graph_t>::vertex_iterator
+  // typedef boost::graph_traits<AliasGraph::graph_t>::vertex_iterator
   // vertex_iterator_t;
-  // typename boost::graph_traits<PointsToGraph::graph_t>::out_edge_iterator ei,
+  // typename boost::graph_traits<AliasGraph::graph_t>::out_edge_iterator ei,
   // ei_end;
   // // check for vertices without any adjacent edges and store them in the
   // hexastore
@@ -706,7 +706,7 @@ void operator<<(DBConn &db, const PointsToGraph &PTG) {
   // cout << "\n\n\n";
 }
 
-void operator>>(DBConn &db, PointsToGraph &PTG) {
+void operator>>(DBConn &db, AliasGraph &PTG) {
   // 	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not
   // synchronized with an ProjectIRCompiledDB object!");
   // 	static PHSStringConverter converter(*db.IRDB);
@@ -748,7 +748,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //         PTG.value_vertex_map.end()) {
   //           PTG.value_vertex_map[source] = boost::add_vertex(PTG.ptg);
   //           PTG.ptg[PTG.value_vertex_map[source]] =
-  //           PointsToGraph::VertexProperties(source);
+  //           AliasGraph::VertexProperties(source);
   //         }
   //         // check if the target node (object) exists
   //         if (r.object != "---") {
@@ -758,7 +758,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //           PTG.value_vertex_map.end()) {
   //             PTG.value_vertex_map[target] = boost::add_vertex(PTG.ptg);
   //             PTG.ptg[PTG.value_vertex_map[target]] =
-  //             PointsToGraph::VertexProperties(target);
+  //             AliasGraph::VertexProperties(target);
   //           }
   //           // create an (labeled) edge
   //           if (r.predicate != "---") {
@@ -766,7 +766,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //             converter.HStoreStringRepToP(r.predicate);
   //             boost::add_edge(PTG.value_vertex_map[source],
   //                             PTG.value_vertex_map[target],
-  //                             PointsToGraph::EdgeProperties(edge),
+  //                             AliasGraph::EdgeProperties(edge),
   //                             PTG.ptg);
   //           } else {
   //             boost::add_edge(PTG.value_vertex_map[source],
@@ -797,7 +797,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //               PTG.value_vertex_map.end()) {
   //                 PTG.value_vertex_map[GV] = boost::add_vertex(PTG.ptg);
   //                 PTG.ptg[PTG.value_vertex_map[GV]] =
-  //                 PointsToGraph::VertexProperties(GV);
+  //                 AliasGraph::VertexProperties(GV);
   //               }
   //               break;
   //             }
@@ -814,7 +814,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //           {
   //             PTG.value_vertex_map[GV] = boost::add_vertex(PTG.ptg);
   //             PTG.ptg[PTG.value_vertex_map[GV]] =
-  //             PointsToGraph::VertexProperties(GV);
+  //             AliasGraph::VertexProperties(GV);
   //           }
   //           const llvm::Value *target =
   //           converter.HStoreStringRepToP(r.object);
@@ -822,7 +822,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //           PTG.value_vertex_map.end()) {
   //             PTG.value_vertex_map[target] = boost::add_vertex(PTG.ptg);
   //             PTG.ptg[PTG.value_vertex_map[target]] =
-  //             PointsToGraph::VertexProperties(target);
+  //             AliasGraph::VertexProperties(target);
   //           }
   //           // create an (labeled) edge
   //           if (r.predicate != "---") {
@@ -830,7 +830,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //             converter.HStoreStringRepToP(r.predicate);
   //             boost::add_edge(PTG.value_vertex_map[GV],
   //                             PTG.value_vertex_map[target],
-  //                             PointsToGraph::EdgeProperties(edge),
+  //                             AliasGraph::EdgeProperties(edge),
   //                             PTG.ptg);
   //           } else {
   //             boost::add_edge(PTG.value_vertex_map[GV],
@@ -898,7 +898,7 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
   return LLVMBasedICFG(TH, IRDB);
 }
 
-void DBConn::storePointsToGraph(const PointsToGraph &PTG,
+void DBConn::storeAliasGraph(const AliasGraph &PTG,
                                 const string &ProjectName, bool use_hs) {
   try {
   } catch (sql::SQLException &e) {
@@ -906,13 +906,13 @@ void DBConn::storePointsToGraph(const PointsToGraph &PTG,
   }
 }
 
-PointsToGraph DBConn::loadPointsToGraphFromFunction(const string &FunctionName,
+AliasGraph DBConn::loadAliasGraphFromFunction(const string &FunctionName,
                                                     bool use_hs) {
   try {
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  return PointsToGraph();
+  return AliasGraph();
 }
 
 void DBConn::storeLTHGraphToHex(const LLVMTypeHierarchy::bidigraph_t &G,

@@ -50,17 +50,16 @@ bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
 
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
-    std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
+    std::vector<std::string> AnalysisConfigs, AliasAnalysisType PTATy,
     CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
     bool AutoGlobalSupport, std::vector<std::string> EntryPoints,
     AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
     IFDSIDESolverConfig SolverConfig, const std::string &ProjectID,
-    const std::string &OutDirectory,
-    const nlohmann::json &PrecomputedPointsToInfo)
+    const std::string &OutDirectory, const nlohmann::json &PrecomputedAliasInfo)
     : IRDB(IRDB), TH(IRDB),
-      PT(PrecomputedPointsToInfo.empty()
-             ? LLVMPointsToSet(IRDB, !needsToEmitPTA(EmitterOptions), PTATy)
-             : LLVMPointsToSet(IRDB, PrecomputedPointsToInfo)),
+      PT(PrecomputedAliasInfo.empty()
+             ? LLVMAliasSet(IRDB, !needsToEmitPTA(EmitterOptions), PTATy)
+             : LLVMAliasSet(IRDB, PrecomputedAliasInfo)),
       ICF(&IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel,
           AutoGlobalSupport),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),

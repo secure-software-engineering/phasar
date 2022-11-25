@@ -30,13 +30,13 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 class IFDSSolverTest
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
   IFDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                 const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                 const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                  std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSSolverTest() override = default;

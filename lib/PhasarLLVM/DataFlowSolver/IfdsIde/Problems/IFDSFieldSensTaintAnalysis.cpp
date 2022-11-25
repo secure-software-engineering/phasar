@@ -32,15 +32,15 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStatsWriter.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 namespace psr {
 
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-    const TaintConfig &TaintConfig, std::set<std::string> EntryPoints)
+    const LLVMBasedICFG *ICF, LLVMAliasInfo *PT, const TaintConfig &TaintConfig,
+    std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
       Config(TaintConfig) {
   IFDSFieldSensTaintAnalysis::ZeroValue =

@@ -5,7 +5,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "gtest/gtest.h"
 
@@ -25,7 +25,7 @@ protected:
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<LLVMAliasInfo> PT;
   unique_ptr<IFDSTaintAnalysis> TaintProblem;
   unique_ptr<TaintConfig> TSF;
 
@@ -35,7 +35,7 @@ protected:
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(*IRDB);
     ICFG = make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},

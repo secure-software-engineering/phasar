@@ -28,7 +28,7 @@ class StructType;
 namespace psr {
 
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 class LLVMBasedCFG;
 class LLVMBasedICFG;
 
@@ -48,7 +48,7 @@ public:
   using mono_container_t = IntraMonoUninitVariablesDomain::mono_container_t;
 
   IntraMonoUninitVariables(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
+                           const LLVMBasedCFG *CF, const LLVMAliasInfo *PT,
                            std::set<std::string> EntryPoints = {});
 
   ~IntraMonoUninitVariables() override = default;

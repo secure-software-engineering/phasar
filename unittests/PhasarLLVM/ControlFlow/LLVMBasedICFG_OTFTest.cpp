@@ -4,7 +4,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -23,7 +23,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_7_cpp.ll"});
   IRDB.emitPreprocessedIR();
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB, false);
+  LLVMAliasSet PT(IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -53,7 +53,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 //   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_8_cpp.ll"},
 //                    IRDBOptions::WPA);
 //   LLVMTypeHierarchy TH(IRDB);
-//   LLVMPointsToInfo PT(IRDB);
+//   LLVMAliasInfo PT(IRDB);
 //   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 //   const llvm::Function *F = IRDB.getFunctionDefinition("main");
 //   const llvm::Function *FooC =
@@ -75,7 +75,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
       {unittest::PathToLLTestFiles + "call_graphs/function_pointer_2_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB, false);
+  LLVMAliasSet PT(IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
@@ -114,7 +114,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
       {unittest::PathToLLTestFiles + "call_graphs/function_pointer_3_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB, false);
+  LLVMAliasSet PT(IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");

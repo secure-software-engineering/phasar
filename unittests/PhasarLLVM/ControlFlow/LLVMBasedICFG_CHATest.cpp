@@ -6,7 +6,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -20,7 +20,7 @@ TEST(LLVMBasedICFG_CHATest, StaticCallSite_1) {
       {unittest::PathToLLTestFiles + "call_graphs/static_callsite_1_c.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo = IRDB.getFunctionDefinition("foo");
@@ -43,7 +43,7 @@ TEST(LLVMBasedICFG_CHATest, VirtualCallSite_2) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_2_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   ASSERT_TRUE(F);
@@ -66,7 +66,7 @@ TEST(LLVMBasedICFG_CHATest, VirtualCallSite_9) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_9_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo = IRDB.getFunctionDefinition("_ZN1D3fooEv");
@@ -94,7 +94,7 @@ TEST(LLVMBasedICFG_CHATest, VirtualCallSite_7) {
       {unittest::PathToLLTestFiles + "call_graphs/virtual_call_7_cpp.ll"},
       IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VfuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");

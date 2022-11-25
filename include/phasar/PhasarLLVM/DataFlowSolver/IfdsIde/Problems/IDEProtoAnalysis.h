@@ -30,7 +30,7 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 struct IDEProtoAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = const llvm::Value *;
@@ -48,7 +48,7 @@ public:
   using typename IDETabProblemType::v_t;
 
   IDEProtoAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                   const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                    std::set<std::string> EntryPoints = {"main"});
 
   ~IDEProtoAnalysis() override = default;

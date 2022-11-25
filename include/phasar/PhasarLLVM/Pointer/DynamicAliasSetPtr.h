@@ -23,24 +23,22 @@ class Value;
 namespace psr {
 
 template <typename Container = llvm::DenseSet<const llvm::Value *>>
-class DynamicPointsToSetConstPtr;
+class DynamicAliasSetConstPtr;
 /// A Container** that behaves like a Container*
 template <typename Container = llvm::DenseSet<const llvm::Value *>>
-class DynamicPointsToSetPtr {
+class DynamicAliasSetPtr {
 public:
   using container_type = Container;
 
-  constexpr DynamicPointsToSetPtr() noexcept = default;
-  constexpr DynamicPointsToSetPtr(std::nullptr_t) noexcept {}
-  constexpr DynamicPointsToSetPtr(container_type **Value) noexcept
-      : Value(Value) {
+  constexpr DynamicAliasSetPtr() noexcept = default;
+  constexpr DynamicAliasSetPtr(std::nullptr_t) noexcept {}
+  constexpr DynamicAliasSetPtr(container_type **Value) noexcept : Value(Value) {
     assert(Value != nullptr);
   }
-  constexpr DynamicPointsToSetPtr(const DynamicPointsToSetPtr &) noexcept =
-      default;
-  constexpr DynamicPointsToSetPtr &
-  operator=(const DynamicPointsToSetPtr &) noexcept = default;
-  ~DynamicPointsToSetPtr() noexcept = default;
+  constexpr DynamicAliasSetPtr(const DynamicAliasSetPtr &) noexcept = default;
+  constexpr DynamicAliasSetPtr &
+  operator=(const DynamicAliasSetPtr &) noexcept = default;
+  ~DynamicAliasSetPtr() noexcept = default;
 
   [[nodiscard]] constexpr container_type *get() noexcept { return *Value; }
   [[nodiscard]] constexpr const container_type *get() const noexcept {
@@ -63,165 +61,161 @@ public:
   }
 
   [[nodiscard]] friend constexpr llvm::hash_code
-  hash_value(DynamicPointsToSetPtr // NOLINT(readability-identifier-naming)
+  hash_value(DynamicAliasSetPtr // NOLINT(readability-identifier-naming)
                  Ptr) noexcept {
     return llvm::hash_value(Ptr.Value);
   }
 
   [[nodiscard]] friend constexpr bool
-  operator==(DynamicPointsToSetPtr LHS, DynamicPointsToSetPtr RHS) noexcept {
+  operator==(DynamicAliasSetPtr LHS, DynamicAliasSetPtr RHS) noexcept {
     return LHS.Value == RHS.Value;
   }
   [[nodiscard]] friend constexpr bool
-  operator!=(DynamicPointsToSetPtr LHS, DynamicPointsToSetPtr RHS) noexcept {
+  operator!=(DynamicAliasSetPtr LHS, DynamicAliasSetPtr RHS) noexcept {
     return !(LHS == RHS);
   }
 
   [[nodiscard]] friend constexpr bool
-  operator<(DynamicPointsToSetPtr LHS, DynamicPointsToSetPtr RHS) noexcept {
+  operator<(DynamicAliasSetPtr LHS, DynamicAliasSetPtr RHS) noexcept {
     return LHS.Value < RHS.Value;
   }
   [[nodiscard]] friend constexpr bool
-  operator>(DynamicPointsToSetPtr LHS, DynamicPointsToSetPtr RHS) noexcept {
+  operator>(DynamicAliasSetPtr LHS, DynamicAliasSetPtr RHS) noexcept {
     return LHS.Value > RHS.Value;
   }
 
   [[nodiscard]] friend constexpr bool
-  operator<=(DynamicPointsToSetPtr LHS, DynamicPointsToSetPtr RHS) noexcept {
+  operator<=(DynamicAliasSetPtr LHS, DynamicAliasSetPtr RHS) noexcept {
     return LHS.Value <= RHS.Value;
   }
   [[nodiscard]] friend constexpr bool
-  operator>=(DynamicPointsToSetPtr LHS, DynamicPointsToSetPtr RHS) noexcept {
+  operator>=(DynamicAliasSetPtr LHS, DynamicAliasSetPtr RHS) noexcept {
     return LHS.Value >= RHS.Value;
   }
 
 private:
-  friend class DynamicPointsToSetConstPtr<container_type>;
+  friend class DynamicAliasSetConstPtr<container_type>;
 
   container_type **Value = nullptr;
 };
 
 /// A Container const** that behaves like a const Container*.
-/// NOTE: This is different to const DynamicPointsToSetPtr<Container> which
+/// NOTE: This is different to const DynamicAliasSetPtr<Container> which
 /// propagates the const through all known layers of indirection
 template <typename Container>
-class DynamicPointsToSetConstPtr : private DynamicPointsToSetPtr<Container> {
+class DynamicAliasSetConstPtr : private DynamicAliasSetPtr<Container> {
 public:
-  using DynamicPointsToSetPtr<Container>::DynamicPointsToSetPtr;
-  using DynamicPointsToSetPtr<Container>::operator bool;
-  using typename DynamicPointsToSetPtr<Container>::container_type;
+  using DynamicAliasSetPtr<Container>::DynamicAliasSetPtr;
+  using DynamicAliasSetPtr<Container>::operator bool;
+  using typename DynamicAliasSetPtr<Container>::container_type;
 
-  constexpr DynamicPointsToSetConstPtr(
-      DynamicPointsToSetPtr<Container> Other) noexcept
-      : DynamicPointsToSetPtr<Container>(Other) {}
+  constexpr DynamicAliasSetConstPtr(
+      DynamicAliasSetPtr<Container> Other) noexcept
+      : DynamicAliasSetPtr<Container>(Other) {}
 
   [[nodiscard]] constexpr const container_type *get() const noexcept {
-    return DynamicPointsToSetPtr<Container>::get();
+    return DynamicAliasSetPtr<Container>::get();
   }
 
   constexpr const container_type *operator->() const noexcept { return get(); }
 
   constexpr const container_type &operator*() const noexcept {
-    return *DynamicPointsToSetPtr<Container>::get();
+    return *DynamicAliasSetPtr<Container>::get();
   }
 
   [[nodiscard]] constexpr container_type const *const *value() const noexcept {
-    return DynamicPointsToSetPtr<Container>::value();
+    return DynamicAliasSetPtr<Container>::value();
   }
 
   [[nodiscard]] friend constexpr llvm::hash_code
-  hash_value(DynamicPointsToSetConstPtr // NOLINT(readability-identifier-naming)
+  hash_value(DynamicAliasSetConstPtr // NOLINT(readability-identifier-naming)
                  Ptr) noexcept {
     return llvm::hash_value(Ptr.value());
   }
 
   [[nodiscard]] friend constexpr bool
-  operator==(DynamicPointsToSetConstPtr LHS,
-             DynamicPointsToSetConstPtr RHS) noexcept {
+  operator==(DynamicAliasSetConstPtr LHS,
+             DynamicAliasSetConstPtr RHS) noexcept {
     return LHS.value() == RHS.value();
   }
   [[nodiscard]] friend constexpr bool
-  operator!=(DynamicPointsToSetConstPtr LHS,
-             DynamicPointsToSetConstPtr RHS) noexcept {
+  operator!=(DynamicAliasSetConstPtr LHS,
+             DynamicAliasSetConstPtr RHS) noexcept {
     return !(LHS == RHS);
   }
 
   [[nodiscard]] friend constexpr bool
-  operator<(DynamicPointsToSetConstPtr LHS,
-            DynamicPointsToSetConstPtr RHS) noexcept {
+  operator<(DynamicAliasSetConstPtr LHS, DynamicAliasSetConstPtr RHS) noexcept {
     return LHS.value() < RHS.value();
   }
   [[nodiscard]] friend constexpr bool
-  operator>(DynamicPointsToSetConstPtr LHS,
-            DynamicPointsToSetConstPtr RHS) noexcept {
+  operator>(DynamicAliasSetConstPtr LHS, DynamicAliasSetConstPtr RHS) noexcept {
     return LHS.value() > RHS.value();
   }
 
   [[nodiscard]] friend constexpr bool
-  operator<=(DynamicPointsToSetConstPtr LHS,
-             DynamicPointsToSetConstPtr RHS) noexcept {
+  operator<=(DynamicAliasSetConstPtr LHS,
+             DynamicAliasSetConstPtr RHS) noexcept {
     return LHS.value() <= RHS.value();
   }
   [[nodiscard]] friend constexpr bool
-  operator>=(DynamicPointsToSetConstPtr LHS,
-             DynamicPointsToSetConstPtr RHS) noexcept {
+  operator>=(DynamicAliasSetConstPtr LHS,
+             DynamicAliasSetConstPtr RHS) noexcept {
     return LHS.value() >= RHS.value();
   }
 };
 
-extern template class DynamicPointsToSetPtr<>;
-extern template class DynamicPointsToSetConstPtr<>;
+extern template class DynamicAliasSetPtr<>;
+extern template class DynamicAliasSetConstPtr<>;
 } // namespace psr
 
 namespace std {
-template <typename C> struct hash<psr::DynamicPointsToSetPtr<C>> {
-  constexpr size_t
-  operator()(psr::DynamicPointsToSetPtr<C> Ptr) const noexcept {
+template <typename C> struct hash<psr::DynamicAliasSetPtr<C>> {
+  constexpr size_t operator()(psr::DynamicAliasSetPtr<C> Ptr) const noexcept {
     return std::hash<C **>{}(Ptr.value());
   }
 };
-template <typename C> struct hash<psr::DynamicPointsToSetConstPtr<C>> {
+template <typename C> struct hash<psr::DynamicAliasSetConstPtr<C>> {
   constexpr size_t
-  operator()(psr::DynamicPointsToSetConstPtr<C> Ptr) const noexcept {
+  operator()(psr::DynamicAliasSetConstPtr<C> Ptr) const noexcept {
     return std::hash<C const *const *>{}(Ptr.value());
   }
 };
 } // namespace std
 
 namespace llvm {
-template <typename C> struct DenseMapInfo<psr::DynamicPointsToSetPtr<C>> {
-  inline static psr::DynamicPointsToSetPtr<C> getEmptyKey() noexcept {
+template <typename C> struct DenseMapInfo<psr::DynamicAliasSetPtr<C>> {
+  inline static psr::DynamicAliasSetPtr<C> getEmptyKey() noexcept {
     return DenseMapInfo<C **>::getEmptyKey();
   }
-  inline static psr::DynamicPointsToSetPtr<C> getTombstoneKey() noexcept {
+  inline static psr::DynamicAliasSetPtr<C> getTombstoneKey() noexcept {
     return DenseMapInfo<C **>::getTombstoneKey();
   }
 
-  inline static bool isEqual(psr::DynamicPointsToSetPtr<C> LHS,
-                             psr::DynamicPointsToSetPtr<C> RHS) noexcept {
+  inline static bool isEqual(psr::DynamicAliasSetPtr<C> LHS,
+                             psr::DynamicAliasSetPtr<C> RHS) noexcept {
     return LHS == RHS;
   }
 
-  inline static unsigned
-  getHashValue(psr::DynamicPointsToSetPtr<C> Ptr) noexcept {
+  inline static unsigned getHashValue(psr::DynamicAliasSetPtr<C> Ptr) noexcept {
     return hash_value(Ptr);
   }
 };
-template <typename C> struct DenseMapInfo<psr::DynamicPointsToSetConstPtr<C>> {
-  inline static psr::DynamicPointsToSetConstPtr<C> getEmptyKey() noexcept {
+template <typename C> struct DenseMapInfo<psr::DynamicAliasSetConstPtr<C>> {
+  inline static psr::DynamicAliasSetConstPtr<C> getEmptyKey() noexcept {
     return DenseMapInfo<C **>::getEmptyKey();
   }
-  inline static psr::DynamicPointsToSetConstPtr<C> getTombstoneKey() noexcept {
+  inline static psr::DynamicAliasSetConstPtr<C> getTombstoneKey() noexcept {
     return DenseMapInfo<C **>::getTombstoneKey();
   }
 
-  inline static bool isEqual(psr::DynamicPointsToSetConstPtr<C> LHS,
-                             psr::DynamicPointsToSetConstPtr<C> RHS) noexcept {
+  inline static bool isEqual(psr::DynamicAliasSetConstPtr<C> LHS,
+                             psr::DynamicAliasSetConstPtr<C> RHS) noexcept {
     return LHS == RHS;
   }
 
   inline static unsigned
-  getHashValue(psr::DynamicPointsToSetConstPtr<C> Ptr) noexcept {
+  getHashValue(psr::DynamicAliasSetConstPtr<C> Ptr) noexcept {
     return hash_value(Ptr);
   }
 };

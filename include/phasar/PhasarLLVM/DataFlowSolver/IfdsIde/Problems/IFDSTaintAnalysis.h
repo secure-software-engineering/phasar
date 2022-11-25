@@ -31,7 +31,7 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 struct HasNoConfigurationType;
 
 /**
@@ -71,7 +71,7 @@ public:
    * @param EntryPoints
    */
   IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                    const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                     const TaintConfig &Config,
                     std::set<std::string> EntryPoints = {"main"});
 

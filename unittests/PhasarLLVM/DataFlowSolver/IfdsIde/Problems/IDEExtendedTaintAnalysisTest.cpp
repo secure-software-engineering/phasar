@@ -28,7 +28,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
@@ -61,7 +61,7 @@ protected:
 
     LLVMTypeHierarchy TH(IRDB);
     // llvm::errs() << "TH: " << TH << '\n';
-    LLVMPointsToSet PT(IRDB);
+    LLVMAliasSet PT(IRDB);
     LLVMBasedICFG ICFG(
         &IRDB, CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,

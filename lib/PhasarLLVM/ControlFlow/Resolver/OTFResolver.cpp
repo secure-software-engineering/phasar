@@ -7,14 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- *  DTAResolver.cpp
- *
- *  Created on: 20.07.2018
- *      Author: nicolas bellec
- */
-
-#include <memory>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/Hashing.h"
@@ -30,21 +30,12 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
+#include <memory>
 
-using namespace std;
 using namespace psr;
 
 OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
-                         LLVMBasedICFG &ICF, LLVMPointsToInfo &PT)
+                         LLVMBasedICFG &ICF, LLVMAliasInfo &PT)
     : CHAResolver(IRDB, TH), ICF(ICF), PT(PT) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {}
@@ -110,19 +101,19 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
 
-      auto PTS = PT.getPointsToSet(CallSite->getCalledOperand(), CallSite);
+      auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
       for (const auto *P : *PTS) {
-        if (auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
+        if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
           if (PGV->hasName() &&
               PGV->getName().startswith(LLVMTypeHierarchy::VTablePrefix) &&
               PGV->hasInitializer()) {
-            if (auto *PCS = llvm::dyn_cast<llvm::ConstantStruct>(
+            if (const auto *PCS = llvm::dyn_cast<llvm::ConstantStruct>(
                     PGV->getInitializer())) {
               auto VFs = LLVMVFTable::getVFVectorFromIRVTable(*PCS);
               if (VtableIndex >= VFs.size()) {
                 continue;
               }
-              auto *Callee = VFs[VtableIndex];
+              const auto *Callee = VFs[VtableIndex];
               if (Callee == nullptr || !Callee->hasName() ||
                   Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName) {
                 continue;
@@ -146,7 +137,7 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
 
-      auto PTS = PT.getPointsToSet(CallSite->getCalledOperand(), CallSite);
+      auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
 
       llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
       llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
@@ -240,7 +231,7 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
 }
 
 std::set<const llvm::Type *>
-OTFResolver::getReachableTypes(const LLVMPointsToInfo::PointsToSetTy &Values) {
+OTFResolver::getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values) {
   std::set<const llvm::Type *> Types;
   // an allocation site can either be an AllocaInst or a call to an
   // allocating function

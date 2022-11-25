@@ -33,7 +33,7 @@ class StructType;
 namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 enum class CallGraphAnalysisType;
 class LLVMBasedICFG;
 
@@ -78,7 +78,7 @@ public:
 
   static std::unique_ptr<Resolver>
   create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB, LLVMTypeHierarchy *TH,
-         LLVMBasedICFG *ICF = nullptr, LLVMPointsToInfo *PT = nullptr);
+         LLVMBasedICFG *ICF = nullptr, LLVMAliasInfo *PT = nullptr);
 };
 } // namespace psr
 

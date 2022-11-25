@@ -38,7 +38,7 @@ struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 class IDELinearConstantAnalysis
     : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
@@ -64,7 +64,7 @@ public:
 
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
                             const LLVMTypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                            const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                             std::set<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;

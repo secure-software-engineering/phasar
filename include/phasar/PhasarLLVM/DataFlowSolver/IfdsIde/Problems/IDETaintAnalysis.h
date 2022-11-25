@@ -29,7 +29,7 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 struct IDETaintAnalysisDomain : LLVMAnalysisDomainDefault {
   using l_t = const llvm::Value *;
@@ -54,7 +54,7 @@ public:
                              const std::string &Str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                   const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                    std::set<std::string> EntryPoints = {"main"});
 
   ~IDETaintAnalysis() override = default;

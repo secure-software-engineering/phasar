@@ -21,7 +21,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -36,7 +36,7 @@ namespace psr {
 IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
-                                     LLVMPointsToInfo *PT,
+                                     LLVMAliasInfo *PT,
                                      const TaintConfig &Config,
                                      std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
@@ -110,7 +110,7 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
 void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
   std::set<d_t> Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT->getPointsToSet(Fact);
+    auto Aliases = PT->getAliasSet(Fact);
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
@@ -118,7 +118,7 @@ void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
 }
 
 void IFDSTaintAnalysis::populateWithMustAliases(std::set<d_t> &Facts) const {
-  /// TODO: Find must-aliases; Currently the PointsToSet only contains
+  /// TODO: Find must-aliases; Currently the AliasSet only contains
   /// may-aliases
 }
 

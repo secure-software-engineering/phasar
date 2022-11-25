@@ -17,7 +17,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 using namespace std;
@@ -34,7 +34,7 @@ protected:
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  unique_ptr<LLVMAliasInfo> PT;
   unique_ptr<OpenSSLSecureMemoryDescription> Desc;
   unique_ptr<IDETypeStateAnalysis> TSProblem;
   unique_ptr<IDESolver_P<IDETypeStateAnalysis>> Llvmtssolver;
@@ -53,7 +53,7 @@ protected:
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(*IRDB);
     ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
                                       EntryPoints, TH.get(), PT.get());
     Desc = make_unique<OpenSSLSecureMemoryDescription>();

@@ -36,7 +36,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
@@ -65,7 +65,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   // set up the call-graph algorithm to be used
   CallGraphAnalysisType CGTy = toCallGraphAnalysisType(CallGraphAnalysis);
   LLVMTypeHierarchy H(DB);
-  LLVMPointsToSet PT(DB);
+  LLVMAliasSet PT(DB);
   LLVMBasedCFG CFG;
   LLVMBasedICFG I(&DB, CGTy, EntryPoints, &H, &PT);
   if (DataFlowAnalysis == "ifds-solvertest") {

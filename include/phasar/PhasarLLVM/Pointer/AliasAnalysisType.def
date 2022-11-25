@@ -7,11 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef POINTER_ANALYSIS_TYPE
-#define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)
+#ifndef ALIAS_ANALYSIS_TYPE
+#define ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)
 #endif
 
-POINTER_ANALYSIS_TYPE(CFLSteens, "cflsteens", "Steensgaard-style alias analysis (equality-based)")
-POINTER_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based)")
+ALIAS_ANALYSIS_TYPE(CFLSteens, "cflsteens", "Steensgaard-style alias analysis (equality-based)")
+ALIAS_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based)")
 
-#undef POINTER_ANALYSIS_TYPE
+#undef ALIAS_ANALYSIS_TYPE

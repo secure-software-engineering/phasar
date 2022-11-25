@@ -11,10 +11,10 @@
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H
 
 #include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
+#include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
+#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -34,29 +34,29 @@ class Type;
 
 namespace psr {
 
-class LLVMPointsToSet : public LLVMPointsToInfo {
+class LLVMAliasSet : public LLVMAliasInfo {
 private:
-  using PointsToSetMap =
-      llvm::DenseMap<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>;
+  using AliasSetMap =
+      llvm::DenseMap<const llvm::Value *, DynamicAliasSetPtr<AliasSetTy>>;
 
-  LLVMBasedPointsToAnalysis PTA;
+  LLVMBasedAliasAnalysis PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
-  PointsToSetOwner<PointsToSetTy>::memory_resource_type MRes;
-  PointsToSetOwner<PointsToSetTy> Owner{&MRes};
+  AliasSetOwner<AliasSetTy>::memory_resource_type MRes;
+  AliasSetOwner<AliasSetTy> Owner{&MRes};
 
-  PointsToSetMap PointsToSets;
+  AliasSetMap AliasSets;
 
-  void computeValuesPointsToSet(const llvm::Value *V);
+  void computeValuesAliasSet(const llvm::Value *V);
 
-  void computeFunctionsPointsToSet(llvm::Function *F);
+  void computeFunctionsAliasSet(llvm::Function *F);
 
-  void addSingletonPointsToSet(const llvm::Value *V);
+  void addSingletonAliasSet(const llvm::Value *V);
 
-  void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
+  void mergeAliasSets(const llvm::Value *V1, const llvm::Value *V2);
 
-  void mergePointsToSets(DynamicPointsToSetPtr<PointsToSetTy> PTS1,
-                         DynamicPointsToSetPtr<PointsToSetTy> PTS2);
+  void mergeAliasSets(DynamicAliasSetPtr<AliasSetTy> PTS1,
+                      DynamicAliasSetPtr<AliasSetTy> PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);
@@ -66,12 +66,11 @@ private:
                                         const llvm::Function *VFun,
                                         const llvm::GlobalObject *VG);
 
-  /// Utility function used by computeFunctionsPointsToSet(...)
+  /// Utility function used by computeFunctionsAliasSet(...)
   void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
                   const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
 
-  [[nodiscard]] static DynamicPointsToSetPtr<PointsToSetTy>
-  getEmptyPointsToSet();
+  [[nodiscard]] static DynamicAliasSetPtr<AliasSetTy> getEmptyAliasSet();
 
 public:
   /**
@@ -79,20 +78,18 @@ public:
    * UseLazyEvaluation is true, computes points-to-sets for functions that do
    * not use global variables on the fly
    */
-  explicit LLVMPointsToSet(
-      ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-      PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+  explicit LLVMAliasSet(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+                        AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
-  explicit LLVMPointsToSet(ProjectIRDB &IRDB,
-                           const nlohmann::json &SerializedPTS);
+  explicit LLVMAliasSet(ProjectIRDB &IRDB, const nlohmann::json &SerializedPTS);
 
-  ~LLVMPointsToSet() override = default;
+  ~LLVMAliasSet() override = default;
 
   [[nodiscard]] inline bool isInterProcedural() const override {
     return false;
   };
 
-  [[nodiscard]] inline PointerAnalysisType
+  [[nodiscard]] inline AliasAnalysisType
   getPointerAnalysistype() const override {
     return PTA.getPointerAnalysisType();
   };
@@ -101,9 +98,9 @@ public:
   alias(const llvm::Value *V1, const llvm::Value *V2,
         const llvm::Instruction *I = nullptr) override;
 
-  [[nodiscard]] PointsToSetPtrTy
-  getPointsToSet(const llvm::Value *V,
-                 const llvm::Instruction *I = nullptr) override;
+  [[nodiscard]] AliasSetPtrTy
+  getAliasSet(const llvm::Value *V,
+              const llvm::Instruction *I = nullptr) override;
 
   [[nodiscard]] AllocationSiteSetPtrTy
   getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
@@ -116,7 +113,7 @@ public:
                                bool IntraProcOnly = false,
                                const llvm::Instruction *I = nullptr) override;
 
-  void mergeWith(const PointsToInfo &PTI) override;
+  void mergeWith(const AliasInfo &PTI) override;
 
   void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
                       const llvm::Instruction *I = nullptr,
@@ -137,8 +134,8 @@ public:
    * @param ValueSetPair a pair on an Value* and the corresponding points to set
    * @param Peak the amount of instrutions shown from the points to set
    */
-  static void
-  peakIntoPointsToSet(const PointsToSetMap::value_type &ValueSetPair, int Peak);
+  static void peakIntoAliasSet(const AliasSetMap::value_type &ValueSetPair,
+                               int Peak);
 
   /**
    * Prints out the size distribution for all points to sets.
@@ -146,7 +143,7 @@ public:
    * @param Peak the amount of instrutions shown from one of the biggest points
    * to sets, use 0 show nothing.
    */
-  void drawPointsToSetsDistribution(int Peak = 10) const;
+  void drawAliasSetsDistribution(int Peak = 10) const;
 };
 
 } // namespace psr

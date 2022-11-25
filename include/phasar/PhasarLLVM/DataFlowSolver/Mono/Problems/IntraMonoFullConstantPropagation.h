@@ -42,7 +42,7 @@ class LLVMBasedCFG;
 class LLVMBasedICFG;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 class InterMonoFullConstantPropagation;
 
 struct IntraMonoFullConstantPropagationAnalysisDomain
@@ -78,7 +78,7 @@ public:
   IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedCFG *CF,
-                                   const LLVMPointsToInfo *PT,
+                                   const LLVMAliasInfo *PT,
                                    std::set<std::string> EntryPoints = {});
 
   ~IntraMonoFullConstantPropagation() override = default;

@@ -47,7 +47,7 @@ AbstractMemoryLocationImpl::AbstractMemoryLocationImpl(
 }
 
 bool AbstractMemoryLocationImpl::isZero() const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Baseptr);
+  return LLVMZeroValue::isLLVMZeroValue(Baseptr);
 }
 
 llvm::ArrayRef<ptrdiff_t> AbstractMemoryLocationImpl::offsets() const {
@@ -107,7 +107,7 @@ bool AbstractMemoryLocationImpl::equivalentExceptPointerArithmetics(
 
 bool AbstractMemoryLocationImpl::mustAlias(
     const AbstractMemoryLocationImpl &TV,
-    PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const {
+    AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const {
   PHASAR_LOG_LEVEL(DEBUG, "MustAlias(" << llvmIRToShortString(base()) << ", "
                                        << llvmIRToShortString(TV.base())
                                        << ") = "
@@ -149,7 +149,7 @@ bool AbstractMemoryLocationImpl::isProperPrefixOf(
 
 bool AbstractMemoryLocationImpl::isProperPrefixOf(
     const AbstractMemoryLocationImpl &Larger,
-    PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const {
+    AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const {
   if (base() != Larger.base() &&
       PT.alias(base(), Larger.base()) != AliasResult::MustAlias) {
     return false;
@@ -197,7 +197,7 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               AbstractMemoryLocation TV) {
   // -> Think about better representation
   OS << "(";
-  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(TV->base())) {
+  if (LLVMZeroValue::isLLVMZeroValue(TV->base())) {
     OS << "<ZERO>";
   } else {
     OS << llvmIRToShortString(TV->base());

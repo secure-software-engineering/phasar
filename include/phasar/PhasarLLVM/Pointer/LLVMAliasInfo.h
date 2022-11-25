@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
 
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
 
 namespace llvm {
 class Function;
@@ -20,14 +20,14 @@ class Value;
 
 namespace psr {
 
-class LLVMPointsToInfo
-    : public PointsToInfo<const llvm::Value *, const llvm::Instruction *> {
+class LLVMAliasInfo
+    : public AliasInfo<const llvm::Value *, const llvm::Instruction *> {
 public:
-  using PointsToInfo::AllocationSiteSetPtrTy;
-  using PointsToInfo::PointsToSetPtrTy;
-  using PointsToInfo::PointsToSetTy;
+  using AliasInfo::AliasSetPtrTy;
+  using AliasInfo::AliasSetTy;
+  using AliasInfo::AllocationSiteSetPtrTy;
 
-  ~LLVMPointsToInfo() override = default;
+  ~LLVMAliasInfo() override = default;
 
   static const llvm::Function *retrieveFunction(const llvm::Value *V);
 };

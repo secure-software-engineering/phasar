@@ -23,7 +23,7 @@
 namespace psr {
 IDESecureHeapPropagation::IDESecureHeapPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   ZeroValue = IDESecureHeapPropagation::createZeroValue();

@@ -32,7 +32,7 @@ namespace psr {
 
 class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
-template <typename V, typename N> class PointsToInfo;
+template <typename V, typename N> class AliasInfo;
 
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
@@ -57,7 +57,7 @@ public:
 
   IDETabulationProblem(const ProjectIRDB *IRDB,
                        const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                       PointsToInfo<v_t, n_t> *PT,
+                       AliasInfo<v_t, n_t> *PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<AnalysisDomainTy, Container>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}

@@ -15,7 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -41,7 +41,7 @@ namespace psr {
 IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
                                            const LLVMTypeHierarchy *TH,
                                            const LLVMBasedICFG *ICF,
-                                           LLVMPointsToInfo *PT,
+                                           LLVMAliasInfo *PT,
                                            const TypeStateDescription &TSD,
                                            std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)), TSD(TSD),
@@ -406,11 +406,11 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if (TSD.isConsumingFunction(DemangledFname)) {
       PHASAR_LOG_LEVEL(DEBUG, "Processing consuming function");
       for (auto Idx : TSD.getConsumerParamIdx(DemangledFname)) {
-        std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
+        std::set<IDETypeStateAnalysis::d_t> AliasAndAllocas =
             getWMAliasesAndAllocas(CS->getArgOperand(Idx));
 
         if (CallNode == RetSiteNode &&
-            PointsToAndAllocas.find(CallNode) != PointsToAndAllocas.end()) {
+            AliasAndAllocas.find(CallNode) != AliasAndAllocas.end()) {
           return make_shared<TSEdgeFunction>(TSD, DemangledFname, CS);
         }
       }
@@ -616,11 +616,11 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
   if (RelevantAllocaCache.find(V) != RelevantAllocaCache.end()) {
     return RelevantAllocaCache[V];
   }
-  auto PointsToSet = getWMPointsToSet(V);
+  auto AliasSet = getWMAliasSet(V);
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas;
   PHASAR_LOG_LEVEL(DEBUG, "Compute relevant alloca's of "
                               << IDETypeStateAnalysis::DtoString(V));
-  for (const auto *Alias : PointsToSet) {
+  for (const auto *Alias : AliasSet) {
     PHASAR_LOG_LEVEL(DEBUG,
                      "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
     // Collect the pointer operand of a aliased load instruciton
@@ -648,55 +648,55 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
       }
     }
   }
-  for (const auto *Alias : PointsToSet) {
+  for (const auto *Alias : AliasSet) {
     RelevantAllocaCache[Alias] = RelevantAllocas;
   }
   return RelevantAllocas;
 }
 
 std::set<IDETypeStateAnalysis::d_t>
-IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
-  if (PointsToCache.find(V) != PointsToCache.end()) {
-    std::set<IDETypeStateAnalysis::d_t> PointsToSet(PointsToCache[V].begin(),
-                                                    PointsToCache[V].end());
-    return PointsToSet;
+IDETypeStateAnalysis::getWMAliasSet(IDETypeStateAnalysis::d_t V) {
+  if (AliasCache.find(V) != AliasCache.end()) {
+    std::set<IDETypeStateAnalysis::d_t> AliasSet(AliasCache[V].begin(),
+                                                 AliasCache[V].end());
+    return AliasSet;
   }
-  auto PTS = PT->getPointsToSet(V);
+  auto PTS = PT->getAliasSet(V);
   for (const auto *Alias : *PTS) {
     if (hasMatchingType(Alias)) {
-      PointsToCache[Alias] = *PTS;
+      AliasCache[Alias] = *PTS;
     }
   }
-  std::set<IDETypeStateAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
-  return PointsToSet;
+  std::set<IDETypeStateAnalysis::d_t> AliasSet(PTS->begin(), PTS->end());
+  return AliasSet;
 }
 
 std::set<IDETypeStateAnalysis::d_t>
 IDETypeStateAnalysis::getWMAliasesAndAllocas(IDETypeStateAnalysis::d_t V) {
-  std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas;
+  std::set<IDETypeStateAnalysis::d_t> AliasAndAllocas;
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas = getRelevantAllocas(V);
-  std::set<IDETypeStateAnalysis::d_t> Aliases = getWMPointsToSet(V);
-  PointsToAndAllocas.insert(Aliases.begin(), Aliases.end());
-  PointsToAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
-  return PointsToAndAllocas;
+  std::set<IDETypeStateAnalysis::d_t> Aliases = getWMAliasSet(V);
+  AliasAndAllocas.insert(Aliases.begin(), Aliases.end());
+  AliasAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
+  return AliasAndAllocas;
 }
 
 std::set<IDETypeStateAnalysis::d_t>
 IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
                                                 const std::string & /*Fname*/) {
-  std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas;
+  std::set<IDETypeStateAnalysis::d_t> AliasAndAllocas;
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas = getRelevantAllocas(V);
   std::set<IDETypeStateAnalysis::d_t>
       Aliases; // =
-               // IRDB->getPointsToGraph(Fname)->getPointsToSet(V);
+               // IRDB->getAliasGraph(Fname)->getAliasSet(V);
   for (const auto *Alias : Aliases) {
     if (hasMatchingType(Alias)) {
-      PointsToAndAllocas.insert(Alias);
+      AliasAndAllocas.insert(Alias);
     }
   }
-  // PointsToAndAllocas.insert(Aliases.begin(), Aliases.end());
-  PointsToAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
-  return PointsToAndAllocas;
+  // AliasAndAllocas.insert(Aliases.begin(), Aliases.end());
+  AliasAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
+  return AliasAndAllocas;
 }
 bool hasMatchingTypeName(const llvm::Type *Ty, const std::string &Pattern) {
   if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {

@@ -49,7 +49,7 @@
 
 namespace psr {
 class ProjectIRDB;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 
@@ -89,7 +89,7 @@ public:
   explicit LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
-                         LLVMPointsToInfo *PT = nullptr,
+                         LLVMAliasInfo *PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
 

@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
-#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
-#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
@@ -28,21 +28,21 @@ AliasResult toAliasResult(const std::string &S);
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const AliasResult &AR);
 
-template <typename V, typename N> class PointsToInfo {
+template <typename V, typename N> class AliasInfo {
 public:
-  using PointsToSetTy = llvm::DenseSet<V>;
-  using PointsToSetPtrTy = DynamicPointsToSetConstPtr<PointsToSetTy>;
-  using AllocationSiteSetPtrTy = std::unique_ptr<PointsToSetTy>;
+  using AliasSetTy = llvm::DenseSet<V>;
+  using AliasSetPtrTy = DynamicAliasSetConstPtr<AliasSetTy>;
+  using AllocationSiteSetPtrTy = std::unique_ptr<AliasSetTy>;
 
-  virtual ~PointsToInfo() = default;
+  virtual ~AliasInfo() = default;
 
   [[nodiscard]] virtual bool isInterProcedural() const = 0;
 
-  [[nodiscard]] virtual PointerAnalysisType getPointerAnalysistype() const = 0;
+  [[nodiscard]] virtual AliasAnalysisType getPointerAnalysistype() const = 0;
 
   [[nodiscard]] virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
 
-  [[nodiscard]] virtual PointsToSetPtrTy getPointsToSet(V V1, N I = N{}) = 0;
+  [[nodiscard]] virtual AliasSetPtrTy getAliasSet(V V1, N I = N{}) = 0;
 
   [[nodiscard]] virtual AllocationSiteSetPtrTy
   getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
@@ -62,7 +62,7 @@ public:
   // pieces of information. For instance, during a call-graph construction (or
   // a data-flow analysis) points-to information may be altered to incorporate
   // novel information.
-  virtual void mergeWith(const PointsToInfo &PTI) = 0;
+  virtual void mergeWith(const AliasInfo &PTI) = 0;
 
   virtual void introduceAlias(V V1, V V2, N I = N{},
                               AliasResult Kind = AliasResult::MustAlias) = 0;
@@ -70,7 +70,7 @@ public:
 
 template <typename V, typename N>
 static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const PointsToInfo<V, N> &PTI) {
+                                            const AliasInfo<V, N> &PTI) {
   PTI.print(OS);
   return OS;
 }

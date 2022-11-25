@@ -34,7 +34,7 @@ struct HasNoConfigurationType;
 
 class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
-template <typename V, typename N> class PointsToInfo;
+template <typename V, typename N> class AliasInfo;
 
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
@@ -62,7 +62,7 @@ protected:
   const ProjectIRDB *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
   const i_t *ICF;
-  PointsToInfo<v_t, n_t> *PT;
+  AliasInfo<v_t, n_t> *PT;
   d_t ZeroValue;
   std::set<std::string> EntryPoints;
   [[maybe_unused]] Soundness SF = Soundness::Soundy;
@@ -72,7 +72,7 @@ public:
 
   IFDSTabulationProblem(const ProjectIRDB *IRDB,
                         const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                        PointsToInfo<v_t, n_t> *PT,
+                        AliasInfo<v_t, n_t> *PT,
                         std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
@@ -110,7 +110,7 @@ public:
   [[nodiscard]] const i_t *getICFG() const { return ICF; }
 
   /// Returns the underlying points-to information.
-  [[nodiscard]] PointsToInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
+  [[nodiscard]] AliasInfo<v_t, n_t> *getPointstoInfo() const { return PT; }
 
   /// Sets the configuration to be used by the IFDS/IDE solver.
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {

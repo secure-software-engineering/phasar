@@ -27,7 +27,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
@@ -115,7 +115,7 @@ public:
   isProperPrefixOf(const AbstractMemoryLocationImpl &Larger) const;
   [[nodiscard]] bool isProperPrefixOf(
       const AbstractMemoryLocationImpl &Larger,
-      PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
+      AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
 
   /// Are *this and TV equivalent?
   [[nodiscard]] bool equivalent(const AbstractMemoryLocationImpl &TV) const;
@@ -127,7 +127,7 @@ public:
   /// Are *this and TV equivalent wrt aliasing?
   bool mustAlias(
       const AbstractMemoryLocationImpl &TV,
-      PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
+      AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
 
   /// Provide an arbitrary partial order for being able to store TaintedValues
   /// in std::set or as key in std::map

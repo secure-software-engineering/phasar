@@ -31,7 +31,7 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 // A small pair data type to encode data flow facts for this LCA
 struct LCAPair {
@@ -64,7 +64,7 @@ class IFDSLinearConstantAnalysis
 public:
   IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                              std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSLinearConstantAnalysis() override = default;

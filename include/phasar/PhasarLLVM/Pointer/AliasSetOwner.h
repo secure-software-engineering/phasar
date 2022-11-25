@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H
 
-#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -38,13 +38,13 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-template <typename PointsToSetTy> class PointsToSetOwner {
+template <typename AliasSetTy> class AliasSetOwner {
 public:
   using allocator_type =
 #if HAS_MEMORY_RESOURCE
-      std::pmr::polymorphic_allocator<PointsToSetTy>
+      std::pmr::polymorphic_allocator<AliasSetTy>
 #else
-      llvm::RecyclingAllocator<llvm::BumpPtrAllocator, PointsToSetTy> *
+      llvm::RecyclingAllocator<llvm::BumpPtrAllocator, AliasSetTy> *
 #endif
       ;
 
@@ -52,22 +52,22 @@ public:
 #if HAS_MEMORY_RESOURCE
       std::pmr::unsynchronized_pool_resource
 #else
-      llvm::RecyclingAllocator<llvm::BumpPtrAllocator, PointsToSetTy>
+      llvm::RecyclingAllocator<llvm::BumpPtrAllocator, AliasSetTy>
 #endif
       ;
 
-  PointsToSetOwner(allocator_type Alloc) noexcept : Alloc(Alloc) {
+  AliasSetOwner(allocator_type Alloc) noexcept : Alloc(Alloc) {
     if constexpr (std::is_pointer_v<allocator_type>) {
       assert(Alloc != nullptr);
     }
   }
-  PointsToSetOwner(PointsToSetOwner &&) noexcept = default;
+  AliasSetOwner(AliasSetOwner &&) noexcept = default;
 
-  PointsToSetOwner(const PointsToSetOwner &) = delete;
-  PointsToSetOwner &operator=(const PointsToSetOwner &) = delete;
-  PointsToSetOwner &operator=(PointsToSetOwner &&) = delete;
+  AliasSetOwner(const AliasSetOwner &) = delete;
+  AliasSetOwner &operator=(const AliasSetOwner &) = delete;
+  AliasSetOwner &operator=(AliasSetOwner &&) = delete;
 
-  ~PointsToSetOwner() {
+  ~AliasSetOwner() {
     for (auto PTS : OwnedPTS) {
       std::destroy_at(PTS);
 #if HAS_MEMORY_RESOURCE
@@ -79,7 +79,7 @@ public:
     OwnedPTS.clear();
   }
 
-  DynamicPointsToSetPtr<PointsToSetTy> acquire() {
+  DynamicAliasSetPtr<AliasSetTy> acquire() {
     auto RawMem =
 #if HAS_MEMORY_RESOURCE
         Alloc.allocate(1)
@@ -87,16 +87,16 @@ public:
         Alloc->Allocate()
 #endif
         ;
-    auto Ptr = new (RawMem) PointsToSetTy();
+    auto Ptr = new (RawMem) AliasSetTy();
     OwnedPTS.insert(Ptr);
     return &AllPTS.emplace_back(Ptr);
   }
 
-  void release(PointsToSetTy *PTS) noexcept {
+  void release(AliasSetTy *PTS) noexcept {
     if (LLVM_UNLIKELY(!OwnedPTS.erase(PTS))) {
       llvm::report_fatal_error(
-          "ERROR: release PointsToSet that was either already "
-          "freed, or never allocated with this PointsToSetOwner!");
+          "ERROR: release AliasSet that was either already "
+          "freed, or never allocated with this AliasSetOwner!");
     }
     std::destroy_at(PTS);
 #if HAS_MEMORY_RESOURCE
@@ -109,17 +109,17 @@ public:
 
   void reserve(size_t Capacity) { OwnedPTS.reserve(Capacity); }
 
-  [[nodiscard]] auto getAllPointsToSets() const noexcept {
+  [[nodiscard]] auto getAllAliasSets() const noexcept {
     return llvm::make_range(OwnedPTS.begin(), OwnedPTS.end());
   }
 
 private:
   allocator_type Alloc{};
-  llvm::DenseSet<PointsToSetTy *> OwnedPTS;
-  StableVector<PointsToSetTy *> AllPTS;
+  llvm::DenseSet<AliasSetTy *> OwnedPTS;
+  StableVector<AliasSetTy *> AllPTS;
 };
 
-extern template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
+extern template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_POINTER_POINTSTOSETOWNER_H

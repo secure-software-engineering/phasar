@@ -31,7 +31,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -83,7 +83,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
@@ -103,7 +103,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
                     PathToLLFiles + "globals_ctor_2_2_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
@@ -121,7 +121,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_dtor_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
@@ -154,7 +154,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
@@ -190,7 +190,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_2_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(
@@ -231,7 +231,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_3_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
@@ -275,7 +275,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(
       &IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::Soundy,
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
@@ -308,7 +308,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(
       &IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::Soundy,
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
@@ -341,7 +341,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
   ProjectIRDB IRDB({PathToLLFiles + "globals_lca_5_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy,
                      /*IncludeGlobals*/ true);

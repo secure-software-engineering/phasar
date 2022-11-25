@@ -26,7 +26,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDESummary.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h"
 // If ProjectIRDB is no more returned, forward declare it and remove this
 #include "phasar/DB/ProjectIRDB.h"
@@ -123,9 +123,9 @@ public:
   LLVMBasedICFG loadLLVMBasedICFGfromProject(const std::string &ProjectName,
                                              bool use_hs = false);
 
-  void storePointsToGraph(const LLVMPointsToGraph &PTG,
+  void storeAliasGraph(const LLVMAliasGraph &PTG,
                           const std::string &ProjectName, bool use_hs = false);
-  LLVMPointsToGraph loadPointsToGraphFromFunction(const std::string
+  LLVMAliasGraph loadAliasGraphFromFunction(const std::string
 &FunctionName, bool use_hs = false);
 
   void storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,

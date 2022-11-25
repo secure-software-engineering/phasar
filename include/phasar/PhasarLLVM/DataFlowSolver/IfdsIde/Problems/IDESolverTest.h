@@ -30,7 +30,7 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 struct IDESolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = const llvm::Value *;
@@ -51,7 +51,7 @@ public:
   using typename IDETabProblemType::v_t;
 
   IDESolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                 std::set<std::string> EntryPoints = {"main"});
 
   ~IDESolverTest() override = default;

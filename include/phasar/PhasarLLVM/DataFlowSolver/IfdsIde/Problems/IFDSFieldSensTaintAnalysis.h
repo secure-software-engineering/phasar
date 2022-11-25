@@ -33,7 +33,7 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 struct IFDSFieldSensTaintAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
   using d_t = ExtendedValue;
@@ -46,7 +46,7 @@ public:
 
   IFDSFieldSensTaintAnalysis(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                              const TaintConfig &TaintConfig,
                              std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;

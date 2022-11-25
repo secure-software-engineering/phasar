@@ -23,7 +23,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -36,7 +36,7 @@ namespace psr {
 
 IFDSUninitializedVariables::IFDSUninitializedVariables(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSUninitializedVariables::ZeroValue =

@@ -21,7 +21,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -55,7 +55,7 @@ protected:
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto PT = LLVMPointsToSet(*IRDB);
+    auto PT = LLVMAliasSet(*IRDB);
     LLVMBasedCFG CFG;
     IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, &PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);

@@ -10,13 +10,13 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 using namespace psr;
 
 namespace psr {
 
-const llvm::Function *LLVMPointsToInfo::retrieveFunction(const llvm::Value *V) {
+const llvm::Function *LLVMAliasInfo::retrieveFunction(const llvm::Value *V) {
   if (V) [[likely]] {
     if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
       return Inst->getFunction();

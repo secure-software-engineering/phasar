@@ -10,13 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
 
-#include <unordered_map>
+#include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
 
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
 
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+#include <unordered_map>
 
 namespace llvm {
 class Value;
@@ -28,31 +28,30 @@ namespace psr {
 
 class ProjectIRDB;
 
-class LLVMBasedPointsToAnalysis {
+class LLVMBasedAliasAnalysis {
 private:
   llvm::PassBuilder PB;
   llvm::AAManager AA;
   llvm::FunctionAnalysisManager FAM;
   llvm::FunctionPassManager FPM;
   mutable std::unordered_map<const llvm::Function *, llvm::AAResults *> AAInfos;
-  PointerAnalysisType PATy;
+  AliasAnalysisType PATy;
 
-  bool hasPointsToInfo(const llvm::Function &Fun) const;
+  bool hasAliasInfo(const llvm::Function &Fun) const;
 
-  void computePointsToInfo(llvm::Function &Fun);
+  void computeAliasInfo(llvm::Function &Fun);
 
 public:
-  LLVMBasedPointsToAnalysis(
-      ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-      PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+  LLVMBasedAliasAnalysis(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+                         AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
-  ~LLVMBasedPointsToAnalysis() = default;
+  ~LLVMBasedAliasAnalysis() = default;
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
   [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
-    if (!hasPointsToInfo(*F)) {
-      computePointsToInfo(*F);
+    if (!hasAliasInfo(*F)) {
+      computeAliasInfo(*F);
     }
     return AAInfos.at(F);
   };
@@ -61,7 +60,7 @@ public:
 
   void clear();
 
-  [[nodiscard]] inline PointerAnalysisType getPointerAnalysisType() const {
+  [[nodiscard]] inline AliasAnalysisType getPointerAnalysisType() const {
     return PATy;
   };
 };

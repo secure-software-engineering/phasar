@@ -10,23 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 
-#include <algorithm>
-#include <functional>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <type_traits>
-#include <unordered_map>
-
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/SmallBitVector.h"
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/IR/Value.h"
-#include "llvm/Support/Casting.h"
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
@@ -37,7 +20,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
@@ -45,11 +28,28 @@
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallBitVector.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
+
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+
 namespace psr {
 
 class ProjectIRDB;
 class LLVMBasedICFG;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
   using d_t = AbstractMemoryLocation;
@@ -124,7 +124,7 @@ private:
                                  const llvm::Value *ValueOp,
                                  const llvm::Instruction *Store,
                                  unsigned PALevel = 1);
-  std::set<d_t> propagateAtStore(PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS,
+  std::set<d_t> propagateAtStore(AliasInfo<v_t, n_t>::AliasSetPtrTy PTS,
                                  d_t Source, d_t Val, d_t Mem,
                                  const llvm::Value *PointerOp,
                                  const llvm::Value *ValueOp,
@@ -132,9 +132,9 @@ private:
 
   template <typename CallBack, typename = std::enable_if_t<std::is_invocable_v<
                                    CallBack, const llvm::Value *>>>
-  void forEachAliasOf(PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS,
+  void forEachAliasOf(AliasInfo<v_t, n_t>::AliasSetPtrTy PTS,
                       const llvm::Value *Of, CallBack &&CB) {
-    if (!HasPrecisePointsToInfo) {
+    if (!HasPreciseAliasInfo) {
       auto OfFF = makeFlowFact(Of);
       for (const auto *Alias : *PTS) {
         if (const auto *AliasGlob = llvm::dyn_cast<llvm::GlobalVariable>(Alias);
@@ -187,7 +187,7 @@ public:
   /// analysis or the results from a LLVM pass computing dominator trees
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                           const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                            const TaintConfig *TSF,
                            std::set<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
@@ -204,8 +204,8 @@ public:
 
     this->getIFDSIDESolverConfig().setAutoAddZero(false);
 
-    /// TODO: Once we have better PointsToInfo, do a dynamic_cast over PT and
-    /// set HasPrecisePointsToInfo accordingly
+    /// TODO: Once we have better AliasInfo, do a dynamic_cast over PT and
+    /// set HasPreciseAliasInfo accordingly
   }
 
   ~IDEExtendedTaintAnalysis() override = default;
@@ -301,7 +301,7 @@ private:
 
   bool DisableStrongUpdates = false;
 
-  bool HasPrecisePointsToInfo = false;
+  bool HasPreciseAliasInfo = false;
 
 public:
   BasicBlockOrdering &getBasicBlockOrdering() { return BBO; }
@@ -345,7 +345,7 @@ class IDEExtendedTaintAnalysis : public XTaint::IDEExtendedTaintAnalysis {
 public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
+                           const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
                            const TaintConfig &TSF,
                            std::set<std::string> EntryPoints = {},
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})

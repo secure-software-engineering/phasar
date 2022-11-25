@@ -23,7 +23,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -34,7 +34,7 @@ namespace psr {
 IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMTypeHierarchy *TH,
                                          const LLVMBasedCFG *CF,
-                                         const LLVMPointsToInfo *PT,
+                                         const LLVMAliasInfo *PT,
                                          std::set<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoSolverTestAnalysisDomain>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}

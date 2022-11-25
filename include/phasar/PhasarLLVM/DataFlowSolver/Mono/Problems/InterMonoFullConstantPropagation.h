@@ -33,7 +33,7 @@ namespace psr {
 class ProjectIRDB;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 
 class InterMonoFullConstantPropagation
     : public IntraMonoFullConstantPropagation,
@@ -51,7 +51,7 @@ public:
   InterMonoFullConstantPropagation(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
-                                   const LLVMPointsToInfo *PT,
+                                   const LLVMAliasInfo *PT,
                                    std::set<std::string> EntryPoints = {});
 
   ~InterMonoFullConstantPropagation() override = default;

@@ -81,7 +81,7 @@ public:
 
   /// Identifier for points-to graph export
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string JsonPointsToGraphID() { return "psr.pt"; }
+  [[nodiscard]] static std::string JsonAliasGraphID() { return "psr.pt"; }
 
   /// Identifier for data-flow results export
   // NOLINTNEXTLINE(readability-identifier-naming)

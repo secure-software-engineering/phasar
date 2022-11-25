@@ -16,7 +16,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
@@ -26,7 +26,7 @@ namespace psr {
 InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMTypeHierarchy *TH,
                                          const LLVMBasedICFG *ICF,
-                                         const LLVMPointsToInfo *PT,
+                                         const LLVMAliasInfo *PT,
                                          std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoSolverTestDomain>(IRDB, TH, ICF, PT,
                                                   std::move(EntryPoints)) {}

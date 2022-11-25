@@ -36,7 +36,7 @@ class StructType;
 
 namespace psr {
 
-class LLVMPointsToInfo;
+class LLVMAliasInfo;
 class LLVMTypeHierarchy;
 
 struct InterMonoSolverTestDomain : LLVMAnalysisDomainDefault {
@@ -54,7 +54,7 @@ public:
   using mono_container_t = InterMonoSolverTestDomain::mono_container_t;
 
   InterMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                      const LLVMBasedICFG *ICF, const LLVMAliasInfo *PT,
                       std::set<std::string> EntryPoints = {});
 
   ~InterMonoSolverTest() override = default;
