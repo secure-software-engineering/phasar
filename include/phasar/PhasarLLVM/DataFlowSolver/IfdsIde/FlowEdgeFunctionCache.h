@@ -119,7 +119,7 @@ private:
   std::map<std::tuple<n_t, f_t>, FlowFunctionPtrType> CallFlowFunctionCache;
   std::map<std::tuple<n_t, f_t, n_t, n_t>, FlowFunctionPtrType>
       ReturnFlowFunctionCache;
-  std::map<std::tuple<n_t, n_t, std::set<f_t>>, FlowFunctionPtrType>
+  std::map<std::tuple<n_t, n_t>, FlowFunctionPtrType>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
   std::map<std::tuple<n_t, d_t, f_t, d_t>, EdgeFunctionPtrType>
@@ -270,7 +270,7 @@ public:
   }
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               const std::set<f_t> Callees) {
+                                               llvm::ArrayRef<f_t> Callees) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return flow function factory call");
@@ -282,8 +282,8 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
                                                           : Callees) {
           PHASAR_LOG_LEVEL(DEBUG, "  " << Problem.FtoString(callee));
-        });
-    auto Key = std::tie(CallSite, RetSite, Callees);
+        };);
+    auto Key = std::tie(CallSite, RetSite);
     auto SearchCallToRetFlowFunction = CallToRetFlowFunctionCache.find(Key);
     if (SearchCallToRetFlowFunction != CallToRetFlowFunctionCache.end()) {
       PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
@@ -434,7 +434,7 @@ public:
 
   EdgeFunctionPtrType getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
                                                n_t RetSite, d_t RetSiteNode,
-                                               const std::set<f_t> &Callees) {
+                                               llvm::ArrayRef<f_t> Callees) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return edge function factory call");

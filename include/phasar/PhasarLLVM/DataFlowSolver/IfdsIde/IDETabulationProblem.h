@@ -20,11 +20,13 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <type_traits>
 
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+#include "phasar/Utils/TypeTraits.h"
 
 namespace psr {
 
@@ -48,7 +50,7 @@ public:
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
 
-  static_assert(std::is_base_of_v<ICFG<n_t, f_t>, i_t>,
+  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
                 "Type parameter i_t must implement the ICFG interface!");
 
   using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;

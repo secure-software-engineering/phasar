@@ -8,12 +8,11 @@
  *****************************************************************************/
 
 #ifndef SOUNDNESS_FLAG_TYPE
-#define SOUNDNESS_FLAG_TYPE(NAME, TYPE)
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC)
 #endif
 
-SOUNDNESS_FLAG_TYPE("Sound", Sound)
-SOUNDNESS_FLAG_TYPE("Soundy", Soundy)
-SOUNDNESS_FLAG_TYPE("Unsound", Unsound)
-SOUNDNESS_FLAG_TYPE("Unused", Unused)
+SOUNDNESS_FLAG_TYPE(Sound, "sound", "As sound as possible (do not tolerate any false negative results)")
+SOUNDNESS_FLAG_TYPE(Soundy, "soundy", "A reasonable soundness level that tries to minimize false negative results without giving up too much of precision and performance")
+SOUNDNESS_FLAG_TYPE(Unsound, "unsound", "Trade soundness for increased precision")
 
 #undef SOUNDNESS_FLAG_TYPE
