@@ -17,16 +17,12 @@ std::string psr::toString(AliasResult AR) {
   switch (AR) {
   case AliasResult::NoAlias:
     return "NoAlias";
-    break;
   case AliasResult::MayAlias:
     return "MayAlias";
-    break;
   case AliasResult::PartialAlias:
     return "PartialAlias";
-    break;
   case AliasResult::MustAlias:
     return "MustAlias";
-    break;
   }
 }
 
@@ -44,26 +40,26 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, AliasResult AR) {
 
 std::string psr::toString(PointerAnalysisType PA) {
   switch (PA) {
-  default:
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
-  case PointerAnalysisType::TYPE:                                              \
-    return NAME;                                                               \
-    break;
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, TYPE)                             \
+  case PointerAnalysisType::NAME:                                              \
+    return #NAME;
+#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.def"
+  case PointerAnalysisType::Invalid:
+    return "Invalid";
   }
 }
 
 psr::PointerAnalysisType psr::toPointerAnalysisType(llvm::StringRef S) {
   PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
-  .Case(NAME, PointerAnalysisType::TYPE)
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, TYPE)                             \
+  .Case(#NAME, PointerAnalysisType::NAME)
+#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.def"
                                  .Default(PointerAnalysisType::Invalid);
   if (Type == PointerAnalysisType::Invalid) {
     Type = llvm::StringSwitch<PointerAnalysisType>(S)
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
-  .Case(CMDFLAG, PointerAnalysisType::TYPE)
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, TYPE)                             \
+  .Case(CMDFLAG, PointerAnalysisType::NAME)
+#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.def"
                .Default(PointerAnalysisType::Invalid);
   }
   return Type;

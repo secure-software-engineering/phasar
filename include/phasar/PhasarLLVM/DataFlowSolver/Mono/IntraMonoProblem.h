@@ -61,7 +61,7 @@ protected:
   const c_t *CF;
   const PointsToInfo<v_t, n_t> *PT;
   std::vector<std::string> EntryPoints;
-  [[maybe_unused]] Soundness S = Soundness::Unused;
+  [[maybe_unused]] Soundness S = Soundness::Soundy;
 
 public:
   // denote that a problem does not require a configuration (type/file)

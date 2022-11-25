@@ -1,3 +1,4 @@
+
 /******************************************************************************
  * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
@@ -28,8 +29,8 @@ AliasResult toAliasResult(llvm::StringRef S);
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AliasResult AR);
 
 enum class PointerAnalysisType {
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, TYPE) NAME,
+#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.def"
   Invalid
 };
 

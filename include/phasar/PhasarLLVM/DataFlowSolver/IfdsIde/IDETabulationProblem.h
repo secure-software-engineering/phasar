@@ -130,7 +130,7 @@ protected:
 
   IFDSIDESolverConfig SolverConfig{};
 
-  [[maybe_unused]] Soundness SF = Soundness::Unused;
+  [[maybe_unused]] Soundness SF = Soundness::Soundy;
 };
 
 } // namespace psr

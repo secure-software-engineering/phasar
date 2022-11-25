@@ -14,20 +14,27 @@
 
 std::string psr::toString(Soundness S) {
   switch (S) {
-  default:
-#define SOUNDNESS_FLAG_TYPE(NAME, TYPE)                                        \
-  case Soundness::TYPE:                                                        \
-    return NAME;                                                               \
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC)                               \
+  case Soundness::NAME:                                                        \
+    return #NAME;                                                              \
     break;
 #include "phasar/Utils/Soundness.def"
+  case Soundness::Invalid:
+    return "Invalid";
   }
 }
 
 psr::Soundness psr::toSoundness(llvm::StringRef S) {
   Soundness Type = llvm::StringSwitch<Soundness>(S)
-#define SOUNDNESS_FLAG_TYPE(NAME, TYPE) .Case(NAME, Soundness::TYPE)
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC) .Case(#NAME, Soundness::NAME)
 #include "phasar/Utils/Soundness.def"
                        .Default(Soundness::Invalid);
+  if (Type == Soundness::Invalid) {
+    Type = llvm::StringSwitch<Soundness>(S)
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC) .Case(CMDFLAG, Soundness::NAME)
+#include "phasar/Utils/Soundness.def"
+               .Default(Soundness::Invalid);
+  }
   return Type;
 }
 
