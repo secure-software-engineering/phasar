@@ -246,7 +246,7 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
 
 bool LLVMAliasGraph::isInterProcedural() const { return false; }
 
-AliasAnalysisType LLVMAliasGraph::getPointerAnalysistype() const {
+AliasAnalysisType LLVMAliasGraph::getAliasAnalysisType() const {
   return PTA.getPointerAnalysisType();
 }
 

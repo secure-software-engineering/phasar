@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
-#define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
+#define PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
 
 #include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
@@ -38,7 +38,7 @@ public:
 
   [[nodiscard]] virtual bool isInterProcedural() const = 0;
 
-  [[nodiscard]] virtual AliasAnalysisType getPointerAnalysistype() const = 0;
+  [[nodiscard]] virtual AliasAnalysisType getAliasAnalysisType() const = 0;
 
   [[nodiscard]] virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
 

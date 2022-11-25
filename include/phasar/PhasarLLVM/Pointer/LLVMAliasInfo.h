@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
-#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASINFO_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMALIASINFO_H_
 
 #include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
 

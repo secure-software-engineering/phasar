@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
-#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASGRAPH_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMALIASGRAPH_H_
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
@@ -137,7 +137,7 @@ public:
 
   bool isInterProcedural() const override;
 
-  AliasAnalysisType getPointerAnalysistype() const override;
+  AliasAnalysisType getAliasAnalysisType() const override;
 
   AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
                     const llvm::Instruction *I = nullptr) override;

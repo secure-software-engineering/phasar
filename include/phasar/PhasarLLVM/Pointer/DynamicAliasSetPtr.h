@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_DYNAMICPOINTSTOSET_H
-#define PHASAR_PHASARLLVM_POINTER_DYNAMICPOINTSTOSET_H
+#ifndef PHASAR_PHASARLLVM_POINTER_DYNAMICALIASSET_H
+#define PHASAR_PHASARLLVM_POINTER_DYNAMICALIASSET_H
 
 #include <cstddef>
 
@@ -221,4 +221,4 @@ template <typename C> struct DenseMapInfo<psr::DynamicAliasSetConstPtr<C>> {
 };
 } // namespace llvm
 
-#endif // PHASAR_PHASARLLVM_POINTER_DYNAMICPOINTSTOSET_H
+#endif // PHASAR_PHASARLLVM_POINTER_DYNAMICALIASSET_H

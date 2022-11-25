@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H
-#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
+#define PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
@@ -89,8 +89,7 @@ public:
     return false;
   };
 
-  [[nodiscard]] inline AliasAnalysisType
-  getPointerAnalysistype() const override {
+  [[nodiscard]] inline AliasAnalysisType getAliasAnalysisType() const override {
     return PTA.getPointerAnalysisType();
   };
 
