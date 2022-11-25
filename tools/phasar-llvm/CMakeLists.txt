@@ -20,7 +20,6 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS program_options graph ${BOOST_THREAD} REQUIRED)
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar-llvm

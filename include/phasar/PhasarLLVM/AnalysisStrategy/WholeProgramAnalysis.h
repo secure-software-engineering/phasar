@@ -10,18 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+
 #include <iosfwd>
 #include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 
 namespace psr {
 

@@ -10,13 +10,17 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 
+#include "llvm/Support/raw_ostream.h"
+
 #include <string>
 
 namespace psr {
 
 enum class AnalysisStrategy {
-#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE) TYPE,
+  None,
+#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, DESC) NAME,
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.def"
+
 };
 
 std::string toString(const AnalysisStrategy &S);

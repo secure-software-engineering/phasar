@@ -8,27 +8,27 @@
  *****************************************************************************/
 
 #ifndef DATA_FLOW_ANALYSIS_TYPES
-#define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)
+#define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, DESC)
 #endif
 
-DATA_FLOW_ANALYSIS_TYPES("IFDSUninitializedVariables", "ifds-uninit", IFDSUninitializedVariables)
-DATA_FLOW_ANALYSIS_TYPES("IFDSConstAnalysis", "ifds-const", IFDSConstAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IFDSTaintAnalysis", "ifds-taint", IFDSTaintAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IDETaintAnalysis", "ide-taint", IDETaintAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IDEXTaintAnalysis", "ide-xtaint", IDEExtendedTaintAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IFDSTypeAnalysis", "ifds-type", IFDSTypeAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IDECSTDIOTypeStateAnalysis", "ide-stdio-ts", IDECSTDIOTypeStateAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IDEOpenSSLTypeStateAnalysis", "ide-openssl-ts", IDEOpenSSLTypeStateAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IFDSSolverTest", "ifds-solvertest", IFDSSolverTest)
-DATA_FLOW_ANALYSIS_TYPES("IFDSLinearConstantAnalysis", "ifds-lca", IFDSLinearConstantAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IFDSFieldSensTaintAnalysis", "ifds-fstaint", IFDSFieldSensTaintAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IDELinearConstantAnalysis", "ide-lca", IDELinearConstantAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IDESolverTest", "ide-solvertest", IDESolverTest)
-DATA_FLOW_ANALYSIS_TYPES("IDEInstInteractionAnalysis", "ide-iia", IDEInstInteractionAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("IntraMonoFullConstantPropagation", "intra-mono-fca", IntraMonoFullConstantPropagation)
-DATA_FLOW_ANALYSIS_TYPES("IntraMonoSolverTest", "intra-mono-solvertest", IntraMonoSolverTest)
-DATA_FLOW_ANALYSIS_TYPES("InterMonoSolverTest", "inter-mono-solvertest", InterMonoSolverTest)
-DATA_FLOW_ANALYSIS_TYPES("InterMonoTaintAnalysis", "inter-mono-taint", InterMonoTaintAnalysis)
-DATA_FLOW_ANALYSIS_TYPES("None", "none", None)
+DATA_FLOW_ANALYSIS_TYPES(IFDSUninitializedVariables, "ifds-uninit", "Find usages of uninitialized variables.")
+DATA_FLOW_ANALYSIS_TYPES(IFDSConstAnalysis, "ifds-const", "Find variables that are actually mutated through the program")
+DATA_FLOW_ANALYSIS_TYPES(IFDSTaintAnalysis, "ifds-taint", "Simple, alias-aware taint-analysis. Use with --analysis-config")
+DATA_FLOW_ANALYSIS_TYPES(IDETaintAnalysis, "ide-taint", "Not implemented yet")
+DATA_FLOW_ANALYSIS_TYPES(IDEExtendedTaintAnalysis, "ide-xtaint", "More advanced alias-aware taint analysis that provides limited field-sensitivity. Use with --analysis-config")
+DATA_FLOW_ANALYSIS_TYPES(IFDSTypeAnalysis, "ifds-type", "Simple type analysis")
+DATA_FLOW_ANALYSIS_TYPES(IDECSTDIOTypeStateAnalysis, "ide-stdio-ts", "Find invalid usages of the libc file-io")
+DATA_FLOW_ANALYSIS_TYPES(IDEOpenSSLTypeStateAnalysis, "ide-openssl-ts", "Find invalid usages of a subset of the OpenSSL EVP library")
+DATA_FLOW_ANALYSIS_TYPES(IFDSSolverTest, "ifds-solvertest", "Empty analysis. Just to see that the IFDS solver works")
+DATA_FLOW_ANALYSIS_TYPES(IFDSLinearConstantAnalysis, "ifds-lca", "IFDS-based constant analysis. Use ide-lca instead")
+DATA_FLOW_ANALYSIS_TYPES(IFDSFieldSensTaintAnalysis, "ifds-fstaint", "Specialized taint analysis for tracing environment variables.")
+DATA_FLOW_ANALYSIS_TYPES(IDELinearConstantAnalysis, "ide-lca", "Simple linear constant propagation")
+DATA_FLOW_ANALYSIS_TYPES(IDESolverTest, "ide-solvertest", "Empty analysis. Just to see that the IDE solver works")
+DATA_FLOW_ANALYSIS_TYPES(IDEInstInteractionAnalysis, "ide-iia", "Which instruction has influence on which other instructions?")
+DATA_FLOW_ANALYSIS_TYPES(IntraMonoFullConstantPropagation, "intra-mono-fca", "Simple constant propagation without the restriction to linear binary operations. Only works inTRA-procedurally")
+DATA_FLOW_ANALYSIS_TYPES(IntraMonoSolverTest, "intra-mono-solvertest", "Empty analysis. Just to see that the intraprocedural monotone solver works")
+DATA_FLOW_ANALYSIS_TYPES(InterMonoSolverTest, "inter-mono-solvertest", "Empty analysis. Just to see that the interprocedural monotone solver works")
+DATA_FLOW_ANALYSIS_TYPES(InterMonoTaintAnalysis, "inter-mono-taint", "Simple taint analysis using the monotone framework with k-limited call-strings. Use ifds-taint or ide-xtaint instead.")
+
 
 #undef DATA_FLOW_ANALYSIS_TYPES

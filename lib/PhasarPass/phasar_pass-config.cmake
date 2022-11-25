@@ -1,6 +1,6 @@
 set(PHASAR_pass_COMPONENT_FOUND 1)
 
-find_package(Boost COMPONENTS graph program_options REQUIRED)
+find_package(Boost COMPONENTS graph REQUIRED)
 
 list(APPEND
   PHASAR_LLVM_DEPS
