@@ -21,6 +21,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
@@ -49,7 +50,6 @@ namespace psr {
 
 class ProjectIRDB;
 class LLVMBasedICFG;
-class LLVMAliasInfo;
 
 struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
   using d_t = AbstractMemoryLocation;
@@ -124,7 +124,7 @@ private:
                                  const llvm::Value *ValueOp,
                                  const llvm::Instruction *Store,
                                  unsigned PALevel = 1);
-  std::set<d_t> propagateAtStore(AliasInfo<v_t, n_t>::AliasSetPtrTy PTS,
+  std::set<d_t> propagateAtStore(AliasInfoRef<v_t, n_t>::AliasSetPtrTy PTS,
                                  d_t Source, d_t Val, d_t Mem,
                                  const llvm::Value *PointerOp,
                                  const llvm::Value *ValueOp,
@@ -132,7 +132,7 @@ private:
 
   template <typename CallBack, typename = std::enable_if_t<std::is_invocable_v<
                                    CallBack, const llvm::Value *>>>
-  void forEachAliasOf(AliasInfo<v_t, n_t>::AliasSetPtrTy PTS,
+  void forEachAliasOf(AliasInfoRef<v_t, n_t>::AliasSetPtrTy PTS,
                       const llvm::Value *Of, CallBack &&CB) {
     if (!HasPreciseAliasInfo) {
       auto OfFF = makeFlowFact(Of);
@@ -163,7 +163,7 @@ private:
 
   static const llvm::Value *getVAListTagOrNull(const llvm::Function *DestFun);
 
-  void populateWithMayAliases(SourceConfigTy &Facts) const;
+  void populateWithMayAliases(SourceConfigTy &Facts);
 
   bool isMustAlias(const SanitizerConfigTy &Facts, d_t CurrNod);
 
@@ -187,7 +187,7 @@ public:
   /// analysis or the results from a LLVM pass computing dominator trees
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                           const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                            const TaintConfig *TSF,
                            std::set<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
@@ -345,7 +345,7 @@ class IDEExtendedTaintAnalysis : public XTaint::IDEExtendedTaintAnalysis {
 public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                           const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                            const TaintConfig &TSF,
                            std::set<std::string> EntryPoints = {},
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})

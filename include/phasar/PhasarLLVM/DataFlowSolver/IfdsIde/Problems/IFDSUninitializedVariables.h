@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <map>
 #include <memory>
@@ -29,7 +30,6 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 
 class IFDSUninitializedVariables
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
@@ -52,7 +52,7 @@ private:
 public:
   IFDSUninitializedVariables(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                              std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSUninitializedVariables() override = default;

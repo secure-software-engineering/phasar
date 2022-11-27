@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
 #include <map>
@@ -31,7 +32,6 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 struct HasNoConfigurationType;
 
 /**
@@ -54,8 +54,8 @@ private:
   bool isSanitizerCall(const llvm::CallBase *CB,
                        const llvm::Function *Callee) const;
 
-  void populateWithMayAliases(std::set<d_t> &Facts) const;
-  void populateWithMustAliases(std::set<d_t> &Facts) const;
+  void populateWithMayAliases(std::set<d_t> &Facts);
+  void populateWithMustAliases(std::set<d_t> &Facts);
 
 public:
   // Setup the configuration type
@@ -71,7 +71,7 @@ public:
    * @param EntryPoints
    */
   IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                     const TaintConfig &Config,
                     std::set<std::string> EntryPoints = {"main"});
 

@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 #include <set>
@@ -36,7 +37,6 @@ class StructType;
 
 namespace psr {
 
-class LLVMAliasInfo;
 class LLVMTypeHierarchy;
 
 struct InterMonoSolverTestDomain : LLVMAnalysisDomainDefault {
@@ -54,7 +54,7 @@ public:
   using mono_container_t = InterMonoSolverTestDomain::mono_container_t;
 
   InterMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                      const LLVMBasedICFG *ICF, const LLVMAliasInfo *PT,
+                      const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                       std::set<std::string> EntryPoints = {});
 
   ~InterMonoSolverTest() override = default;

@@ -11,69 +11,278 @@
 #define PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
 
 #include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/TypeName.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
+#include <cstddef>
+#include <memory>
+#include <type_traits>
+
 namespace psr {
 
-enum class AliasResult { NoAlias, MayAlias, PartialAlias, MustAlias };
+template <typename V, typename N> class AliasInfoRef;
 
-std::string toString(AliasResult AR);
+template <typename V, typename N> class AliasInfo;
+template <typename V, typename N>
+struct AliasInfoTraits<AliasInfoRef<V, N>> : DefaultAATraits<V, N> {};
+template <typename V, typename N>
+struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 
-AliasResult toAliasResult(const std::string &S);
+namespace detail {
+template <typename ConcreteAA, typename = void>
+struct CanMergeWithAARef : std::false_type {};
+template <typename ConcreteAA>
+struct CanMergeWithAARef<
+    ConcreteAA, std::void_t<decltype(std::declval<ConcreteAA &>().mergeWith(
+                    std::declval<AliasInfoRef<typename ConcreteAA::v_t,
+                                              typename ConcreteAA::n_t>>()))>>
+    : std::true_type {};
+} // namespace detail
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const AliasResult &AR);
+template <typename V, typename N>
+class AliasInfoRef : public AliasInfoBase<AliasInfoRef<V, N>> {
+  friend AliasInfoBase<AliasInfoRef<V, N>>;
+  friend class AliasInfo<V, N>;
+  using base_t = AliasInfoBase<AliasInfoRef<V, N>>;
 
-template <typename V, typename N> class AliasInfo {
 public:
-  using AliasSetTy = llvm::DenseSet<V>;
-  using AliasSetPtrTy = DynamicAliasSetConstPtr<AliasSetTy>;
-  using AllocationSiteSetPtrTy = std::unique_ptr<AliasSetTy>;
+  using typename base_t::AliasSetPtrTy;
+  using typename base_t::AliasSetTy;
+  using typename base_t::AllocationSiteSetPtrTy;
+  using typename base_t::n_t;
+  using typename base_t::v_t;
 
-  virtual ~AliasInfo() = default;
+  AliasInfoRef() noexcept = default;
+  AliasInfoRef(std::nullptr_t) : AliasInfoRef() {}
+  template <typename ConcreteAA,
+            typename = std::enable_if_t<
+                !std::is_base_of_v<AliasInfoRef, ConcreteAA> &&
+                std::is_same_v<v_t, typename ConcreteAA::v_t> &&
+                std::is_same_v<n_t, typename ConcreteAA::n_t>>>
+  AliasInfoRef(ConcreteAA *AA) : AA(AA), VT(&VTableFor<ConcreteAA>) {
+    if constexpr (!std::is_empty_v<ConcreteAA>) {
+      assert(AA != nullptr);
+    }
+  }
 
-  [[nodiscard]] virtual bool isInterProcedural() const = 0;
+  AliasInfoRef(const AliasInfoRef &) noexcept = default;
+  AliasInfoRef &operator=(const AliasInfoRef &) noexcept = default;
+  ~AliasInfoRef() noexcept = default;
 
-  [[nodiscard]] virtual AliasAnalysisType getAliasAnalysisType() const = 0;
+  explicit operator bool() const noexcept { return VT != nullptr; }
 
-  [[nodiscard]] virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
+private:
+  struct VTable {
+    bool (*IsInterProcedural)(const void *) noexcept;
+    AliasAnalysisType (*GetAliasAnalysisType)(const void *) noexcept;
+    AliasResult (*Alias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
+                         ByConstRef<n_t>);
+    AliasSetPtrTy (*GetAliasSet)(void *, ByConstRef<v_t>, ByConstRef<n_t>);
+    AllocationSiteSetPtrTy (*GetReachableAllocationSites)(void *,
+                                                          ByConstRef<v_t>, bool,
+                                                          ByConstRef<n_t>);
+    bool (*IsInReachableAllocationSites)(void *, ByConstRef<v_t>,
+                                         ByConstRef<v_t>, bool,
+                                         ByConstRef<n_t>);
+    void (*Print)(const void *, llvm::raw_ostream &);
+    nlohmann::json (*GetAsJson)(const void *);
+    void (*PrintAsJson)(const void *, llvm::raw_ostream &);
+    void (*MergeWith)(void *, AliasInfoRef<v_t, n_t>);
+    void (*IntroduceAlias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
+                           ByConstRef<n_t>, AliasResult);
+    void (*Destroy)(void *);
+  };
 
-  [[nodiscard]] virtual AliasSetPtrTy getAliasSet(V V1, N I = N{}) = 0;
+  template <typename ConcreteAA>
+  static constexpr VTable VTableFor = {
+      [](const void *AA) noexcept {
+        return static_cast<const ConcreteAA *>(AA)->isInterProcedural();
+      },
+      [](const void *AA) noexcept {
+        return static_cast<const ConcreteAA *>(AA)->getAliasAnalysisType();
+      },
+      [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+         ByConstRef<n_t> AtInstruction) {
+        return static_cast<ConcreteAA *>(AA)->alias(Pointer1, Pointer2,
+                                                    AtInstruction);
+      },
+      [](void *AA, ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) {
+        return static_cast<ConcreteAA *>(AA)->getAliasSet(Pointer,
+                                                          AtInstruction);
+      },
+      [](void *AA, ByConstRef<v_t> Pointer, bool IntraProcOnly,
+         ByConstRef<n_t> AtInstruction) {
+        return static_cast<ConcreteAA *>(AA)->getReachableAllocationSites(
+            Pointer, IntraProcOnly, AtInstruction);
+      },
+      [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+         bool IntraProcOnly, ByConstRef<n_t> AtInstruction) {
+        return static_cast<ConcreteAA *>(AA)->isInReachableAllocationSites(
+            Pointer1, Pointer2, IntraProcOnly, AtInstruction);
+      },
+      [](const void *AA, llvm::raw_ostream &OS) {
+        static_cast<const ConcreteAA *>(AA)->print(OS);
+      },
+      [](const void *AA) {
+        return static_cast<const ConcreteAA *>(AA)->getAsJson();
+      },
+      [](const void *AA, llvm::raw_ostream &OS) {
+        static_cast<const ConcreteAA *>(AA)->printAsJson(OS);
+      },
+      [](void *AA, AliasInfoRef<v_t, n_t> Other) {
+        if constexpr (detail::CanMergeWithAARef<ConcreteAA>::value) {
+          static_cast<ConcreteAA *>(AA)->mergeWith(Other);
+        } else {
+          llvm::report_fatal_error("Cannot merge alias-info of type " +
+                                   llvm::getTypeName<ConcreteAA>() +
+                                   " with type-erased alias-info");
+        }
+      },
+      [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+         ByConstRef<n_t> AtInstruction, AliasResult Kind) {
+        static_cast<ConcreteAA *>(AA)->introduceAlias(Pointer1, Pointer2,
+                                                      AtInstruction, Kind);
+      },
+      [](void *AA) { delete static_cast<ConcreteAA *>(AA); },
+  };
 
-  [[nodiscard]] virtual AllocationSiteSetPtrTy
-  getReachableAllocationSites(V V1, bool IntraProcOnly = false, N I = N{}) = 0;
+  // -- Impl for AliasInfoBase:
+  [[nodiscard]] bool isInterProceduralImpl() const noexcept {
+    assert(VT != nullptr);
+    return VT->IsInterProcedural(AA);
+  }
+  [[nodiscard]] AliasAnalysisType getAliasAnalysisTypeImpl() const noexcept {
+    assert(VT != nullptr);
+    return VT->GetAliasAnalysisType(AA);
+  }
 
-  // Checks if V2 is a reachable allocation in the points to set of V1.
-  [[nodiscard]] virtual bool
-  isInReachableAllocationSites(V V1, V V2, bool IntraProcOnly = false,
-                               N I = N{}) = 0;
+  [[nodiscard]] AliasResult
+  aliasImpl(ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+            ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->Alias(AA, Pointer1, Pointer2, AtInstruction);
+  }
 
-  virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
+  [[nodiscard]] AliasSetPtrTy
+  getAliasSetImpl(ByConstRef<v_t> Pointer,
+                  ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->GetAliasSet(AA, Pointer, AtInstruction);
+  }
 
-  [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
+  [[nodiscard]] AllocationSiteSetPtrTy
+  getReachableAllocationSitesImpl(ByConstRef<v_t> Pointer,
+                                  bool IntraProcOnly = false,
+                                  ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->GetReachableAllocationSites(AA, Pointer, IntraProcOnly,
+                                           AtInstruction);
+  }
 
-  virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
+  // Checks if Pointer2 is a reachable allocation in the alias set of
+  // Pointer1.
+  [[nodiscard]] bool isInReachableAllocationSitesImpl(
+      ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+      bool IntraProcOnly = false, ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->IsInReachableAllocationSites(AA, Pointer1, Pointer2,
+                                            IntraProcOnly, AtInstruction);
+  }
 
-  // The following functions are relevent when combining points-to with other
-  // pieces of information. For instance, during a call-graph construction (or
-  // a data-flow analysis) points-to information may be altered to incorporate
-  // novel information.
-  virtual void mergeWith(const AliasInfo &PTI) = 0;
+  void printImpl(llvm::raw_ostream &OS = llvm::outs()) const {
+    assert(VT != nullptr);
+    VT->Print(AA, OS);
+  }
 
-  virtual void introduceAlias(V V1, V V2, N I = N{},
-                              AliasResult Kind = AliasResult::MustAlias) = 0;
+  [[nodiscard]] nlohmann::json getAsJsonImpl() const {
+    assert(VT != nullptr);
+    return VT->GetAsJson(AA);
+  }
+
+  void printAsJsonImpl(llvm::raw_ostream &OS) const {
+    assert(VT != nullptr);
+    VT->PrintAsJson(AA, OS);
+  }
+
+  template <typename AI,
+            typename = std::enable_if_t<std::is_same_v<typename AI::n_t, n_t> &&
+                                        std::is_same_v<typename AI::v_t, v_t>>>
+  void mergeWithImpl(const AliasInfoBase<AI> &Other) {
+    assert(VT != nullptr);
+    VT->MergeWith(AA, &Other);
+  }
+
+  void introduceAliasImpl(ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+                          ByConstRef<n_t> AtInstruction = {},
+                          AliasResult Kind = AliasResult::MustAlias) {
+    assert(VT != nullptr);
+    VT->IntroduceAlias(AA, Pointer1, Pointer2, AtInstruction, Kind);
+  }
+
+  // --
+
+  void *AA{};
+  const VTable *VT{};
 };
 
 template <typename V, typename N>
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const AliasInfo<V, N> &PTI) {
-  PTI.print(OS);
-  return OS;
-}
+class AliasInfo final : public AliasInfoRef<V, N> {
+  using base_t = AliasInfoRef<V, N>;
+
+public:
+  using typename base_t::AliasSetPtrTy;
+  using typename base_t::AliasSetTy;
+  using typename base_t::AllocationSiteSetPtrTy;
+  using typename base_t::n_t;
+  using typename base_t::v_t;
+
+  AliasInfo() noexcept = default;
+  AliasInfo(std::nullptr_t) noexcept {};
+  AliasInfo(const AliasInfo &) = delete;
+  AliasInfo &operator=(const AliasInfo &) = delete;
+  AliasInfo(AliasInfo &&Other) noexcept { swap(Other); }
+  AliasInfo &operator=(AliasInfo &&Other) noexcept {
+    auto Cpy{std::move(Other)};
+    swap(Cpy);
+    return *this;
+  }
+
+  void swap(AliasInfo &Other) noexcept {
+    std::swap(this->AA, Other.AA);
+    std::swap(this->VT, Other.VT);
+  }
+  friend void swap(AliasInfo &LHS, AliasInfo &RHS) noexcept { LHS.swap(RHS); }
+
+  template <typename ConcretePTA, typename... ArgTys>
+  explicit AliasInfo(std::in_place_type_t<ConcretePTA> /*unused*/,
+                     ArgTys &&...Args)
+      : base_t(new ConcretePTA(std::forward<ArgTys>(Args)...)) {}
+
+  template <typename ConcretePTA>
+  AliasInfo(std::unique_ptr<ConcretePTA> AA) : base_t(AA.release()) {}
+
+  ~AliasInfo() noexcept {
+    if (*this) {
+      this->VT->Destroy(this->AA);
+      this->VT = nullptr;
+      this->AA = nullptr;
+    }
+  }
+
+  base_t asRef() noexcept { return *this; }
+  AliasInfoRef<V, N> asRef() const noexcept { return *this; }
+
+  /// For better interoperability with unique_ptr
+  base_t get() noexcept { return asRef(); }
+  AliasInfoRef<V, N> get() const noexcept { return asRef(); }
+};
 
 } // namespace psr
 

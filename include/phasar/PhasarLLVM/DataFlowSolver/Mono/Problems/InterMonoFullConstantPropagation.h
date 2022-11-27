@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 #include <cstdint>
@@ -33,7 +34,6 @@ namespace psr {
 class ProjectIRDB;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 
 class InterMonoFullConstantPropagation
     : public IntraMonoFullConstantPropagation,
@@ -51,7 +51,7 @@ public:
   InterMonoFullConstantPropagation(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
-                                   const LLVMAliasInfo *PT,
+                                   LLVMAliasInfoRef PT,
                                    std::set<std::string> EntryPoints = {});
 
   ~InterMonoFullConstantPropagation() override = default;

@@ -113,9 +113,8 @@ public:
   /// implement the GEP-FF
   [[nodiscard]] bool
   isProperPrefixOf(const AbstractMemoryLocationImpl &Larger) const;
-  [[nodiscard]] bool isProperPrefixOf(
-      const AbstractMemoryLocationImpl &Larger,
-      AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
+  [[nodiscard]] bool isProperPrefixOf(const AbstractMemoryLocationImpl &Larger,
+                                      LLVMAliasInfoRef PT) const;
 
   /// Are *this and TV equivalent?
   [[nodiscard]] bool equivalent(const AbstractMemoryLocationImpl &TV) const;
@@ -125,9 +124,8 @@ public:
                                      unsigned PALevel = 1) const;
 
   /// Are *this and TV equivalent wrt aliasing?
-  bool mustAlias(
-      const AbstractMemoryLocationImpl &TV,
-      AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
+  [[nodiscard]] bool mustAlias(const AbstractMemoryLocationImpl &TV,
+                               LLVMAliasInfoRef PT) const;
 
   /// Provide an arbitrary partial order for being able to store TaintedValues
   /// in std::set or as key in std::map

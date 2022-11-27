@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+
 #include "llvm/ADT/DenseSet.h"
 
 #include <memory>
@@ -33,7 +35,6 @@ class StructType;
 namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 enum class CallGraphAnalysisType;
 class LLVMBasedICFG;
 
@@ -78,7 +79,7 @@ public:
 
   static std::unique_ptr<Resolver>
   create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB, LLVMTypeHierarchy *TH,
-         LLVMBasedICFG *ICF = nullptr, LLVMAliasInfo *PT = nullptr);
+         LLVMBasedICFG *ICF = nullptr, LLVMAliasInfoRef PT = nullptr);
 };
 } // namespace psr
 

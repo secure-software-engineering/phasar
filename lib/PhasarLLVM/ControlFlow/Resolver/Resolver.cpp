@@ -137,9 +137,11 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
 
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
 
-std::unique_ptr<Resolver>
-Resolver::create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB,
-                 LLVMTypeHierarchy *TH, LLVMBasedICFG *ICF, LLVMAliasInfo *PT) {
+std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
+                                           ProjectIRDB *IRDB,
+                                           LLVMTypeHierarchy *TH,
+                                           LLVMBasedICFG *ICF,
+                                           LLVMAliasInfoRef PT) {
   assert(IRDB != nullptr);
 
   switch (Ty) {
@@ -160,8 +162,8 @@ Resolver::create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB,
   case CallGraphAnalysisType::OTF:
     assert(TH != nullptr);
     assert(ICF != nullptr);
-    assert(PT != nullptr);
-    return std::make_unique<OTFResolver>(*IRDB, *TH, *ICF, *PT);
+    assert(PT);
+    return std::make_unique<OTFResolver>(*IRDB, *TH, *ICF, PT);
   case CallGraphAnalysisType::Invalid:
     llvm::report_fatal_error("Invalid callgraph algorithm specified");
   }

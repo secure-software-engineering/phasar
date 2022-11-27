@@ -39,7 +39,7 @@ namespace psr {
 IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
-                                     LLVMAliasInfo *PT,
+                                     LLVMAliasInfoRef PT,
                                      std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   PAMM_GET_INSTANCE;
@@ -63,7 +63,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     IFDSConstAnalysis::d_t PointerOp = Store->getPointerOperand();
     PHASAR_LOG_LEVEL(DEBUG, "Pointer operand of store Instruction: "
                                 << llvmIRToString(PointerOp));
-    auto PTS = PT->getAliasSet(PointerOp);
+    auto PTS = PT.getAliasSet(PointerOp);
     std::set<IFDSConstAnalysis::d_t> AliasSet(PTS->begin(), PTS->end());
     // Check if this store instruction is the second write access to the memory
     // location the pointer operand or it's alias are pointing to.
@@ -145,7 +145,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     IFDSConstAnalysis::d_t PointerOp = CallSite->getOperand(0);
     PHASAR_LOG_LEVEL(DEBUG, "Pointer Operand: " << llvmIRToString(PointerOp));
-    auto PTS = PT->getAliasSet(PointerOp);
+    auto PTS = PT.getAliasSet(PointerOp);
     std::set<IFDSConstAnalysis::d_t> AliasSet(PTS->begin(), PTS->end());
     for (const auto *Alias : AliasSet) {
       if (isInitialized(Alias)) {

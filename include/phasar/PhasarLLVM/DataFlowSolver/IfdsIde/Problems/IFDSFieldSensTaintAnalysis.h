@@ -11,6 +11,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -33,7 +34,6 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 
 struct IFDSFieldSensTaintAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
   using d_t = ExtendedValue;
@@ -46,7 +46,7 @@ public:
 
   IFDSFieldSensTaintAnalysis(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                              const TaintConfig &TaintConfig,
                              std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;

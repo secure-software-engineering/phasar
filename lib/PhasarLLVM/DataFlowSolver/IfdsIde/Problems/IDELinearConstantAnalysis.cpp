@@ -50,7 +50,7 @@ const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue =

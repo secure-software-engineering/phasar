@@ -7,11 +7,13 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOBASEDALIASINFO_H
-#define PHASAR_PHASARLLVM_POINTER_POINTSTOBASEDALIASINFO_H
+#ifndef ALIAS_RESULT_TYPE
+#define ALIAS_RESULT_TYPE(NAME)
+#endif
 
-namespace psr {
-/// TODO: Implement something generic to make an AliasInfo out of a PointsToInfo
-} // namespace psr
+ALIAS_RESULT_TYPE(NoAlias)
+ALIAS_RESULT_TYPE(MayAlias)
+ALIAS_RESULT_TYPE(PartialAlias)
+ALIAS_RESULT_TYPE(MustAlias)
 
-#endif // PHASAR_PHASARLLVM_POINTER_POINTSTOBASEDALIASINFO_H
+#undef ALIAS_RESULT_TYPE

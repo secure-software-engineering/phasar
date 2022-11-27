@@ -26,7 +26,7 @@ template <typename T> struct PointsToTraits {
 };
 
 template <typename T, typename Enable = void>
-struct is_PointsToTraits : std::false_type {};
+struct is_PointsToTraits : std::false_type {}; // NOLINT
 template <typename T>
 struct is_PointsToTraits<
     T, std::void_t<typename T::v_t, typename T::n_t, typename T::o_t,
@@ -34,10 +34,11 @@ struct is_PointsToTraits<
     : std::true_type {};
 
 template <typename T>
-static constexpr bool is_PointsToTraits_v = is_PointsToTraits<T>::value;
+static constexpr bool is_PointsToTraits_v = // NOLINT
+    is_PointsToTraits<T>::value;
 
 template <typename T1, typename T2>
-static constexpr bool is_equivalent_PointsToTraits_v =
+static constexpr bool is_equivalent_PointsToTraits_v = // NOLINT
     is_PointsToTraits_v<T1> &&is_PointsToTraits_v<T2>
         &&std::is_same_v<typename T1::n_t, typename T2::n_t>
             &&std::is_same_v<typename T1::v_t, typename T2::v_t>

@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <map>
 #include <memory>
@@ -30,8 +31,6 @@ class Value;
 namespace psr {
 
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 
 // A small pair data type to encode data flow facts for this LCA
 struct LCAPair {
@@ -64,7 +63,7 @@ class IFDSLinearConstantAnalysis
 public:
   IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                              std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSLinearConstantAnalysis() override = default;

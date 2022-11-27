@@ -33,13 +33,14 @@ class PointsToInfoRef<PTATraits,
                       std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
     : PointsToInfoBase<PointsToInfoRef<PTATraits>> {
   friend class PointsToInfo<PTATraits>;
+  using base_t = PointsToInfoBase<PointsToInfoRef<PTATraits>>;
 
 public:
-  using v_t = typename PTATraits::v_t;
-  using n_t = typename PTATraits::n_t;
-  using o_t = typename PTATraits::o_t;
-  using PointsToSetTy = typename PTATraits::PointsToSetTy;
-  using PointsToSetPtrTy = typename PTATraits::PointsToSetPtrTy;
+  using typename base_t::n_t;
+  using typename base_t::o_t;
+  using typename base_t::PointsToSetPtrTy;
+  using typename base_t::PointsToSetTy;
+  using typename base_t::v_t;
 
   PointsToInfoRef() noexcept = default;
   PointsToInfoRef(std::nullptr_t) noexcept : PointsToInfoRef() {}
@@ -50,7 +51,11 @@ public:
                 is_equivalent_PointsToTraits_v<PTATraits,
                                                PointsToTraits<ConcretePTA>>>>
   PointsToInfoRef(const ConcretePTA *PT) noexcept
-      : PT(PT), VT(&VTableFor<ConcretePTA>) {}
+      : PT(PT), VT(&VTableFor<ConcretePTA>) {
+    if constexpr (!std::is_empty_v<ConcretePTA>) {
+      assert(PT != nullptr);
+    }
+  }
 
   PointsToInfoRef(const PointsToInfoRef &) noexcept = default;
   PointsToInfoRef &operator=(const PointsToInfoRef &) noexcept = default;
@@ -68,7 +73,6 @@ private:
     void (*Destroy)(void *); // Useful for the owning variant
   };
 
-  /// TODO: implement non-owning type erased PointsToInfo
   template <typename V = v_t, typename = void> struct VTable : VTableBase {};
   template <typename V>
   struct VTable<V, std::enable_if_t<!std::is_same_v<o_t, V>>> : VTableBase {
@@ -167,7 +171,15 @@ private:
 template <typename PTATraits>
 class PointsToInfo<PTATraits, std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
     final : public PointsToInfoRef<PTATraits> {
+  using base_t = PointsToInfoRef<PTATraits>;
+
 public:
+  using typename base_t::n_t;
+  using typename base_t::o_t;
+  using typename base_t::PointsToSetPtrTy;
+  using typename base_t::PointsToSetTy;
+  using typename base_t::v_t;
+
   PointsToInfo() noexcept = default;
   PointsToInfo(std::nullptr_t) noexcept {};
   PointsToInfo(const PointsToInfo &) = delete;
@@ -175,7 +187,7 @@ public:
   PointsToInfo(PointsToInfo &&Other) noexcept { swap(Other); }
   PointsToInfo &operator=(PointsToInfo &&Other) noexcept {
     auto Cpy{std::move(Other)};
-    swap(Other);
+    swap(Cpy);
     return *this;
   }
 
@@ -195,7 +207,7 @@ public:
 
   ~PointsToInfo() noexcept {
     if (*this) {
-      this->VT->Destroy(this->PT);
+      this->VT->Destroy(const_cast<void *>(this->PT)); // NOLINT
       this->VT = nullptr;
       this->PT = nullptr;
     }

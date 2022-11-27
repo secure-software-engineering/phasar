@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <map>
 #include <memory>
@@ -29,7 +30,6 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 
 struct IDETaintAnalysisDomain : LLVMAnalysisDomainDefault {
   using l_t = const llvm::Value *;
@@ -54,7 +54,7 @@ public:
                              const std::string &Str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                   const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                    std::set<std::string> EntryPoints = {"main"});
 
   ~IDETaintAnalysis() override = default;

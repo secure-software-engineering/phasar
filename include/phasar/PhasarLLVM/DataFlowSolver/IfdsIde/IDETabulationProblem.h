@@ -21,6 +21,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include <memory>
@@ -32,7 +33,6 @@ namespace psr {
 
 class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
-template <typename V, typename N> class AliasInfo;
 
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
@@ -57,7 +57,7 @@ public:
 
   IDETabulationProblem(const ProjectIRDB *IRDB,
                        const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                       AliasInfo<v_t, n_t> *PT,
+                       AliasInfoRef<v_t, n_t> PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<AnalysisDomainTy, Container>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}

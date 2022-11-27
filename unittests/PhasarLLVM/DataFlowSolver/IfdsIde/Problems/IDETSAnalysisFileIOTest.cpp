@@ -34,7 +34,7 @@ protected:
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMAliasInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<CSTDFILEIOTypeStateDescription> CSTDFILEIODesc;
   unique_ptr<IDETypeStateAnalysis> TSProblem;
   enum IOSTATE {

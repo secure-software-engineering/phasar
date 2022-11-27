@@ -20,17 +20,10 @@ class Value;
 
 namespace psr {
 
-class LLVMAliasInfo
-    : public AliasInfo<const llvm::Value *, const llvm::Instruction *> {
-public:
-  using AliasInfo::AliasSetPtrTy;
-  using AliasInfo::AliasSetTy;
-  using AliasInfo::AllocationSiteSetPtrTy;
+using LLVMAliasInfoRef =
+    AliasInfoRef<const llvm::Value *, const llvm::Instruction *>;
 
-  ~LLVMAliasInfo() override = default;
-
-  static const llvm::Function *retrieveFunction(const llvm::Value *V);
-};
+using LLVMAliasInfo = AliasInfo<const llvm::Value *, const llvm::Instruction *>;
 
 } // namespace psr
 

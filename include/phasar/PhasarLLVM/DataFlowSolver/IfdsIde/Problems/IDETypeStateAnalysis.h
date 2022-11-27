@@ -35,7 +35,6 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 
 struct IDETypeStateAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = int;
@@ -103,7 +102,7 @@ public:
   const l_t BOTTOM;
 
   IDETypeStateAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                       const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                       const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                        const TypeStateDescription &TSD,
                        std::set<std::string> EntryPoints = {"main"});
 

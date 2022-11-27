@@ -30,7 +30,7 @@ namespace psr {
 
 IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                               const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                                std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSSolverTest::ZeroValue = IFDSSolverTest::createZeroValue();
@@ -85,7 +85,7 @@ IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() const {
 }
 
 bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSSolverTest::printNode(llvm::raw_ostream &OS,

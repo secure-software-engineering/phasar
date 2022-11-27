@@ -38,7 +38,7 @@ namespace psr {
 struct LLVMBasedICFG::Builder {
   ProjectIRDB *IRDB = nullptr;
   LLVMBasedICFG *ICF = nullptr;
-  MaybeUniquePtr<LLVMAliasInfo> PT{};
+  LLVMAliasInfoRef PT{};
   std::unique_ptr<Resolver> Res = nullptr;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions{};
   llvm::SmallVector<llvm::Function *, 1> UserEntryPoints{};
@@ -362,21 +362,24 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
 
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMAliasInfo *PT,
+                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
     : TH(TH) {
   assert(IRDB != nullptr);
   this->IRDB = IRDB;
 
   Builder B{IRDB, this, PT};
+  LLVMAliasInfo PTOwn;
+
   if (!TH && CGType != CallGraphAnalysisType::NORESOLVE) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
   }
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
-    B.PT = std::make_unique<LLVMAliasSet>(*IRDB);
+    PTOwn = std::make_unique<LLVMAliasSet>(*IRDB);
+    B.PT = PTOwn.asRef();
   }
 
-  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT.get());
+  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT);
   B.initEntryPoints(EntryPoints);
   B.initGlobalsAndWorkList(this, IncludeGlobals);
 

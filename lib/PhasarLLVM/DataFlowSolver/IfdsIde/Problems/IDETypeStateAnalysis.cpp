@@ -42,7 +42,7 @@ namespace psr {
 IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
                                            const LLVMTypeHierarchy *TH,
                                            const LLVMBasedICFG *ICF,
-                                           LLVMAliasInfo *PT,
+                                           LLVMAliasInfoRef PT,
                                            const TypeStateDescription &TSD,
                                            std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)), TSD(TSD),
@@ -662,7 +662,7 @@ IDETypeStateAnalysis::getWMAliasSet(IDETypeStateAnalysis::d_t V) {
                                                  AliasCache[V].end());
     return AliasSet;
   }
-  auto PTS = PT->getAliasSet(V);
+  auto PTS = PT.getAliasSet(V);
   for (const auto *Alias : *PTS) {
     if (hasMatchingType(Alias)) {
       AliasCache[Alias] = *PTS;

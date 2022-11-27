@@ -108,7 +108,7 @@ bool AbstractMemoryLocationImpl::equivalentExceptPointerArithmetics(
 
 bool AbstractMemoryLocationImpl::mustAlias(
     const AbstractMemoryLocationImpl &TV,
-    AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const {
+    AliasInfoRef<const llvm::Value *, const llvm::Instruction *> PT) const {
   PHASAR_LOG_LEVEL(DEBUG, "MustAlias(" << llvmIRToShortString(base()) << ", "
                                        << llvmIRToShortString(TV.base())
                                        << ") = "
@@ -150,7 +150,7 @@ bool AbstractMemoryLocationImpl::isProperPrefixOf(
 
 bool AbstractMemoryLocationImpl::isProperPrefixOf(
     const AbstractMemoryLocationImpl &Larger,
-    AliasInfo<const llvm::Value *, const llvm::Instruction *> &PT) const {
+    AliasInfoRef<const llvm::Value *, const llvm::Instruction *> PT) const {
   if (base() != Larger.base() &&
       PT.alias(base(), Larger.base()) != AliasResult::MustAlias) {
     return false;

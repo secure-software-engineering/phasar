@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -38,7 +39,6 @@ struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMAliasInfo;
 
 class IDELinearConstantAnalysis
     : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
@@ -64,7 +64,7 @@ public:
 
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
                             const LLVMTypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                            const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                             std::set<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;

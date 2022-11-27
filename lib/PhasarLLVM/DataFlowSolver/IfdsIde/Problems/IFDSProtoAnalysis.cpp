@@ -31,7 +31,7 @@ namespace psr {
 IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
-                                     LLVMAliasInfo *PT,
+                                     LLVMAliasInfoRef PT,
                                      std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSProtoAnalysis::ZeroValue = IFDSProtoAnalysis::createZeroValue();
@@ -92,7 +92,7 @@ IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() const {
 }
 
 bool IFDSProtoAnalysis::isZeroValue(IFDSProtoAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSProtoAnalysis::printNode(llvm::raw_ostream &OS,

@@ -26,7 +26,8 @@ namespace psr {
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                                   const LLVMBasedICFG *ICF,
+                                   LLVMAliasInfoRef PT,
                                    std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSTypeAnalysis::ZeroValue = IFDSTypeAnalysis::createZeroValue();

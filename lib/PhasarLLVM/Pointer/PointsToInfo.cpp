@@ -102,6 +102,13 @@ class DummyFieldSensitivePointsToAnalysis
     static PointsToSetTy Empty{};
     return &Empty;
   }
+
+  [[nodiscard]] PointsToSetPtrTy
+  getPointsToSetImpl(ByConstRef<v_t> /*Pointer*/,
+                     ByConstRef<n_t> /*AtInstruction*/) const {
+    static PointsToSetTy Empty{};
+    return &Empty;
+  }
 };
 
 [[maybe_unused]] void testTypeErasure() {

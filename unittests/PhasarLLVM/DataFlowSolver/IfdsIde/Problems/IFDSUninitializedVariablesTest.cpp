@@ -28,7 +28,7 @@ protected:
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMAliasInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<IFDSUninitializedVariables> UninitProblem;
 
   IFDSUninitializedVariablesTest() = default;
@@ -41,10 +41,10 @@ protected:
     ICFG = make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
-        TH.get(), PT.get());
+        TH.get(), PT.asRef());
     // TSF = new TaintSensitiveFunctions(true);
     UninitProblem = make_unique<IFDSUninitializedVariables>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
+        IRDB.get(), TH.get(), ICFG.get(), PT.asRef(), EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }

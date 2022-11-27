@@ -37,7 +37,8 @@ bool IDETaintAnalysis::setContainsStr(set<string> S, const string &Str) {
 
 IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                                   const LLVMBasedICFG *ICF,
+                                   LLVMAliasInfoRef PT,
                                    std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = IDETaintAnalysis::createZeroValue();
@@ -96,7 +97,7 @@ IDETaintAnalysis::d_t IDETaintAnalysis::createZeroValue() const {
 }
 
 bool IDETaintAnalysis::isZeroValue(IDETaintAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts

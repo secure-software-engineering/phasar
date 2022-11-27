@@ -21,6 +21,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/MemoryResource.h"
@@ -47,8 +48,6 @@
 #endif
 
 namespace psr {
-class ProjectIRDB;
-class LLVMAliasInfo;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 
@@ -88,7 +87,7 @@ public:
   explicit LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
-                         LLVMAliasInfo *PT = nullptr,
+                         LLVMAliasInfoRef PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
 

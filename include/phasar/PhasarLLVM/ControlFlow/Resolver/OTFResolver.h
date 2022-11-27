@@ -42,11 +42,11 @@ class LLVMTypeHierarchy;
 class OTFResolver : public CHAResolver {
 protected:
   LLVMBasedICFG &ICF;
-  LLVMAliasInfo &PT;
+  LLVMAliasInfoRef PT;
 
 public:
   OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
-              LLVMAliasInfo &PT);
+              LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;
 

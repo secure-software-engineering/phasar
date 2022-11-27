@@ -33,7 +33,7 @@ namespace psr {
 
 IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMAliasInfo *PT,
+                             const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                              std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = IDESolverTest::createZeroValue();
@@ -91,7 +91,7 @@ IDESolverTest::d_t IDESolverTest::createZeroValue() const {
 }
 
 bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts

@@ -257,7 +257,7 @@ void LLVMAliasSet::mergeAliasSets(DynamicAliasSetPtr<AliasSetTy> PTS1,
 }
 
 bool LLVMAliasSet::interIsReachableAllocationSiteTy(
-    [[maybe_unused]] const llvm::Value *V, const llvm::Value *P) {
+    [[maybe_unused]] const llvm::Value *V, const llvm::Value *P) const {
   // consider the full inter-procedural points-to/alias information
 
   if (llvm::isa<llvm::AllocaInst>(P)) {
@@ -276,7 +276,7 @@ bool LLVMAliasSet::interIsReachableAllocationSiteTy(
 
 bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
     [[maybe_unused]] const llvm::Value *V, const llvm::Value *P,
-    const llvm::Function *VFun, const llvm::GlobalObject *VG) {
+    const llvm::Function *VFun, const llvm::GlobalObject *VG) const {
   // consider the function-local, i.e. intra-procedural, points-to/alias
   // information only
 
@@ -538,8 +538,9 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
   PTA.erase(F);
 }
 
-AliasResult LLVMAliasSet::alias(const llvm::Value *V1, const llvm::Value *V2,
-                                [[maybe_unused]] const llvm::Instruction *I) {
+AliasResult
+LLVMAliasSet::aliasImpl(const llvm::Value *V1, const llvm::Value *V2,
+                        [[maybe_unused]] const llvm::Instruction *I) {
   // if V1 or V2 is not an interesting pointer those values cannot alias
   if (!isInterestingPointer(V1) || !isInterestingPointer(V2)) {
     return AliasResult::NoAlias;
@@ -556,8 +557,8 @@ auto LLVMAliasSet::getEmptyAliasSet() -> DynamicAliasSetPtr<AliasSetTy> {
   return &EmptySetPtr;
 }
 
-auto LLVMAliasSet::getAliasSet(const llvm::Value *V,
-                               [[maybe_unused]] const llvm::Instruction *I)
+auto LLVMAliasSet::getAliasSetImpl(const llvm::Value *V,
+                                   [[maybe_unused]] const llvm::Instruction *I)
     -> AliasSetPtrTy {
 
   // if V is not a (interesting) pointer we can return an empty set
@@ -573,7 +574,7 @@ auto LLVMAliasSet::getAliasSet(const llvm::Value *V,
   return getEmptyAliasSet();
 }
 
-auto LLVMAliasSet::getReachableAllocationSites(
+auto LLVMAliasSet::getReachableAllocationSitesImpl(
     const llvm::Value *V, bool IntraProcOnly,
     [[maybe_unused]] const llvm::Instruction *I) -> AllocationSiteSetPtrTy {
 
@@ -610,7 +611,7 @@ auto LLVMAliasSet::getReachableAllocationSites(
   return AllocSites;
 }
 
-bool LLVMAliasSet::isInReachableAllocationSites(
+bool LLVMAliasSet::isInReachableAllocationSitesImpl(
     const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
     [[maybe_unused]] const llvm::Instruction *I) {
   // if V is not a (interesting) pointer we can return an empty set
@@ -638,17 +639,13 @@ bool LLVMAliasSet::isInReachableAllocationSites(
   return false;
 }
 
-void LLVMAliasSet::mergeWith(const AliasInfo &PTI) {
-  const auto *OtherPTI = dynamic_cast<const LLVMAliasSet *>(&PTI);
-  if (!OtherPTI) {
-    llvm::report_fatal_error(
-        "LLVMAliasSet can only be merged with another LLVMAliasSet!");
-  }
+void LLVMAliasSet::mergeWithImpl(const LLVMAliasSet &OtherPTI) {
+
   // merge analyzed functions
-  AnalyzedFunctions.insert(OtherPTI->AnalyzedFunctions.begin(),
-                           OtherPTI->AnalyzedFunctions.end());
+  AnalyzedFunctions.insert(OtherPTI.AnalyzedFunctions.begin(),
+                           OtherPTI.AnalyzedFunctions.end());
   // merge points-to sets
-  for (const auto &[KeyPtr, Set] : OtherPTI->AliasSets) {
+  for (const auto &[KeyPtr, Set] : OtherPTI.AliasSets) {
     bool FoundElemPtr = false;
     for (const auto *ElemPtr : *Set) {
       // check if a pointer of other is already present in this
@@ -674,9 +671,10 @@ void LLVMAliasSet::mergeWith(const AliasInfo &PTI) {
   }
 }
 
-void LLVMAliasSet::introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
-                                  [[maybe_unused]] const llvm::Instruction *I,
-                                  [[maybe_unused]] AliasResult Kind) {
+void LLVMAliasSet::introduceAliasImpl(
+    const llvm::Value *V1, const llvm::Value *V2,
+    [[maybe_unused]] const llvm::Instruction *I,
+    [[maybe_unused]] AliasResult Kind) {
   //  only introduce aliases if both values are interesting pointer
   if (!isInterestingPointer(V1) || !isInterestingPointer(V2)) {
     return;
@@ -688,7 +686,7 @@ void LLVMAliasSet::introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
   mergeAliasSets(V1, V2);
 }
 
-nlohmann::json LLVMAliasSet::getAsJson() const {
+nlohmann::json LLVMAliasSet::getAsJsonImpl() const {
   nlohmann::json J;
 
   /// Serialize the AliasSets
@@ -715,11 +713,11 @@ nlohmann::json LLVMAliasSet::getAsJson() const {
   return J;
 }
 
-void LLVMAliasSet::printAsJson(llvm::raw_ostream &OS) const {
+void LLVMAliasSet::printAsJsonImpl(llvm::raw_ostream &OS) const {
   OS << getAsJson();
 }
 
-void LLVMAliasSet::print(llvm::raw_ostream &OS) const {
+void LLVMAliasSet::printImpl(llvm::raw_ostream &OS) const {
   for (const auto &[V, PTS] : AliasSets) {
     OS << "V: " << llvmIRToString(V) << '\n';
     for (const auto &Ptr : *PTS) {

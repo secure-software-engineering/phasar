@@ -26,7 +26,7 @@ protected:
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMAliasInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<IFDSTaintAnalysis> TaintProblem;
   unique_ptr<TaintConfig> TSF;
 
@@ -40,7 +40,7 @@ protected:
     ICFG = make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
-        TH.get(), PT.get());
+        TH.get(), PT.asRef());
     TaintConfig::TaintDescriptionCallBackTy SourceCB =
         [](const llvm::Instruction *Inst) {
           std::set<const llvm::Value *> Ret;
@@ -64,7 +64,7 @@ protected:
         };
     TSF = make_unique<TaintConfig>(std::move(SourceCB), std::move(SinkCB));
     TaintProblem = make_unique<IFDSTaintAnalysis>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *TSF, EntryPoints);
+        IRDB.get(), TH.get(), ICFG.get(), PT.asRef(), *TSF, EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }

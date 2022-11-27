@@ -13,7 +13,6 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
 #include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/Utils/StableVector.h"
 
@@ -34,7 +33,15 @@ class Type;
 
 namespace psr {
 
-class LLVMAliasSet : public LLVMAliasInfo {
+class LLVMAliasSet;
+
+template <>
+struct AliasInfoTraits<LLVMAliasSet>
+    : DefaultAATraits<const llvm::Value *, const llvm::Instruction *> {};
+
+class LLVMAliasSet : public AliasInfoBase<LLVMAliasSet> {
+  friend AliasInfoBase;
+
 private:
   using AliasSetMap =
       llvm::DenseMap<const llvm::Value *, DynamicAliasSetPtr<AliasSetTy>>;
@@ -59,12 +66,12 @@ private:
                       DynamicAliasSetPtr<AliasSetTy> PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
-                                        const llvm::Value *P);
+                                        const llvm::Value *P) const;
 
   bool intraIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P,
                                         const llvm::Function *VFun,
-                                        const llvm::GlobalObject *VG);
+                                        const llvm::GlobalObject *VG) const;
 
   /// Utility function used by computeFunctionsAliasSet(...)
   void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
@@ -83,49 +90,6 @@ public:
 
   explicit LLVMAliasSet(ProjectIRDB &IRDB, const nlohmann::json &SerializedPTS);
 
-  ~LLVMAliasSet() override = default;
-
-  [[nodiscard]] inline bool isInterProcedural() const override {
-    return false;
-  };
-
-  [[nodiscard]] inline AliasAnalysisType getAliasAnalysisType() const override {
-    return PTA.getPointerAnalysisType();
-  };
-
-  [[nodiscard]] AliasResult
-  alias(const llvm::Value *V1, const llvm::Value *V2,
-        const llvm::Instruction *I = nullptr) override;
-
-  [[nodiscard]] AliasSetPtrTy
-  getAliasSet(const llvm::Value *V,
-              const llvm::Instruction *I = nullptr) override;
-
-  [[nodiscard]] AllocationSiteSetPtrTy
-  getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
-                              const llvm::Instruction *I = nullptr) override;
-
-  // Checks if PotentialValue is in the reachable allocation sites of V.
-  [[nodiscard]] bool
-  isInReachableAllocationSites(const llvm::Value *V,
-                               const llvm::Value *PotentialValue,
-                               bool IntraProcOnly = false,
-                               const llvm::Instruction *I = nullptr) override;
-
-  void mergeWith(const AliasInfo &PTI) override;
-
-  void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
-                      const llvm::Instruction *I = nullptr,
-                      AliasResult Kind = AliasResult::MustAlias) override;
-
-  [[nodiscard]] inline bool empty() const { return AnalyzedFunctions.empty(); }
-
-  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
-
-  [[nodiscard]] nlohmann::json getAsJson() const override;
-
-  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
-
   /**
    * Shows a parts of an alias set. Good for debugging when one wants to peak
    * into a points to set.
@@ -143,6 +107,47 @@ public:
    * to sets, use 0 show nothing.
    */
   void drawAliasSetsDistribution(int Peak = 10) const;
+
+  [[nodiscard]] inline bool empty() const { return AnalyzedFunctions.empty(); }
+
+private:
+  [[nodiscard]] inline bool isInterProceduralImpl() const noexcept {
+    return false;
+  };
+
+  [[nodiscard]] inline AliasAnalysisType
+  getAliasAnalysisTypeImpl() const noexcept {
+    return PTA.getPointerAnalysisType();
+  };
+
+  [[nodiscard]] AliasResult aliasImpl(const llvm::Value *V1,
+                                      const llvm::Value *V2,
+                                      const llvm::Instruction *I = nullptr);
+
+  [[nodiscard]] AliasSetPtrTy
+  getAliasSetImpl(const llvm::Value *V, const llvm::Instruction *I = nullptr);
+
+  [[nodiscard]] AllocationSiteSetPtrTy
+  getReachableAllocationSitesImpl(const llvm::Value *V,
+                                  bool IntraProcOnly = false,
+                                  const llvm::Instruction *I = nullptr);
+
+  // Checks if PotentialValue is in the reachable allocation sites of V.
+  [[nodiscard]] bool isInReachableAllocationSitesImpl(
+      const llvm::Value *V, const llvm::Value *PotentialValue,
+      bool IntraProcOnly = false, const llvm::Instruction *I = nullptr);
+
+  void mergeWithImpl(const LLVMAliasSet &OtherPTI);
+
+  void introduceAliasImpl(const llvm::Value *V1, const llvm::Value *V2,
+                          const llvm::Instruction *I = nullptr,
+                          AliasResult Kind = AliasResult::MustAlias);
+
+  void printImpl(llvm::raw_ostream &OS = llvm::outs()) const;
+
+  [[nodiscard]] nlohmann::json getAsJsonImpl() const;
+
+  void printAsJsonImpl(llvm::raw_ostream &OS = llvm::outs()) const;
 };
 
 } // namespace psr

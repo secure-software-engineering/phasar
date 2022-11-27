@@ -37,7 +37,7 @@ namespace psr {
 IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
-                                     LLVMAliasInfo *PT,
+                                     LLVMAliasInfoRef PT,
                                      const TaintConfig &Config,
                                      std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
@@ -108,17 +108,17 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
       [this](const auto &Arg) { return Config.isSanitizer(&Arg); });
 }
 
-void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
+void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) {
   std::set<d_t> Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT->getAliasSet(Fact);
+    auto Aliases = PT.getAliasSet(Fact);
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
   Facts = std::move(Tmp);
 }
 
-void IFDSTaintAnalysis::populateWithMustAliases(std::set<d_t> &Facts) const {
+void IFDSTaintAnalysis::populateWithMustAliases(std::set<d_t> &Facts) {
   /// TODO: Find must-aliases; Currently the AliasSet only contains
   /// may-aliases
 }

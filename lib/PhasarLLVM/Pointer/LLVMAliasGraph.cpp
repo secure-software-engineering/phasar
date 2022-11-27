@@ -245,14 +245,15 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
   }
 }
 
-bool LLVMAliasGraph::isInterProcedural() const { return false; }
+bool LLVMAliasGraph::isInterProceduralImpl() const noexcept { return false; }
 
-AliasAnalysisType LLVMAliasGraph::getAliasAnalysisType() const {
+AliasAnalysisType LLVMAliasGraph::getAliasAnalysisTypeImpl() const noexcept {
   return PTA.getPointerAnalysisType();
 }
 
-AliasResult LLVMAliasGraph::alias(const llvm::Value *V1, const llvm::Value *V2,
-                                  const llvm::Instruction * /*I*/) {
+AliasResult LLVMAliasGraph::aliasImpl(const llvm::Value *V1,
+                                      const llvm::Value *V2,
+                                      const llvm::Instruction * /*I*/) {
   computeAliasGraph(V1);
   computeAliasGraph(V2);
   auto PTS = getAliasSet(V1);
@@ -262,7 +263,7 @@ AliasResult LLVMAliasGraph::alias(const llvm::Value *V1, const llvm::Value *V2,
   return AliasResult::NoAlias;
 }
 
-auto LLVMAliasGraph::getReachableAllocationSites(
+auto LLVMAliasGraph::getReachableAllocationSitesImpl(
     const llvm::Value *V, bool /*IntraProcOnly*/,
     const llvm::Instruction * /*I*/) -> AllocationSiteSetPtrTy {
   computeAliasGraph(V);
@@ -276,30 +277,23 @@ auto LLVMAliasGraph::getReachableAllocationSites(
   return AllocSites;
 }
 
-[[nodiscard]] bool LLVMAliasGraph::isInReachableAllocationSites(
+[[nodiscard]] bool LLVMAliasGraph::isInReachableAllocationSitesImpl(
     const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
     const llvm::Instruction *I) {
   return getReachableAllocationSites(V, IntraProcOnly, I)
       ->count(PotentialValue);
 }
 
-void LLVMAliasGraph::mergeWith(
-    const LLVMAliasGraph::AliasInfo<const llvm::Value *,
-                                    const llvm::Instruction *> &PTI) {
-  const auto *OtherPTI = dynamic_cast<const LLVMAliasGraph *>(&PTI);
-  if (!OtherPTI) {
-    llvm::report_fatal_error(
-        "LLVMAliasSet can only be merged with another LLVMAliasSet!");
-  }
-  AnalyzedFunctions.insert(OtherPTI->AnalyzedFunctions.begin(),
-                           OtherPTI->AnalyzedFunctions.end());
+void LLVMAliasGraph::mergeWithImpl(const LLVMAliasGraph &OtherPTI) {
+  AnalyzedFunctions.insert(OtherPTI.AnalyzedFunctions.begin(),
+                           OtherPTI.AnalyzedFunctions.end());
   using vertex_t = graph_t::vertex_descriptor;
   using vertex_map_t = std::map<vertex_t, vertex_t>;
   vertex_map_t OldToNewVertexMapping;
   boost::associative_property_map<vertex_map_t> VertexMapWrapper(
       OldToNewVertexMapping);
-  boost::copy_graph(OtherPTI->PAG, PAG, boost::orig_to_copy(VertexMapWrapper));
-  for (const auto &OtherValues : OtherPTI->ValueVertexMap) {
+  boost::copy_graph(OtherPTI.PAG, PAG, boost::orig_to_copy(VertexMapWrapper));
+  for (const auto &OtherValues : OtherPTI.ValueVertexMap) {
     auto Search = OldToNewVertexMapping.find(OtherValues.second);
     if (Search != OldToNewVertexMapping.end()) {
       ValueVertexMap.insert(make_pair(OtherValues.first, Search->second));
@@ -307,10 +301,10 @@ void LLVMAliasGraph::mergeWith(
   }
 }
 
-void LLVMAliasGraph::introduceAlias(const llvm::Value *V1,
-                                    const llvm::Value *V2,
-                                    const llvm::Instruction *I,
-                                    AliasResult /*Kind*/) {
+void LLVMAliasGraph::introduceAliasImpl(const llvm::Value *V1,
+                                        const llvm::Value *V2,
+                                        const llvm::Instruction *I,
+                                        AliasResult /*Kind*/) {
   computeAliasGraph(V1);
   computeAliasGraph(V2);
   auto Vert1 = ValueVertexMap[V1];
@@ -369,8 +363,8 @@ bool LLVMAliasGraph::containsValue(llvm::Value *V) {
   return false;
 }
 
-auto LLVMAliasGraph::getAliasSet(const llvm::Value *V,
-                                 const llvm::Instruction * /*I*/)
+auto LLVMAliasGraph::getAliasSetImpl(const llvm::Value *V,
+                                     const llvm::Instruction * /*I*/)
     -> AliasSetPtrTy {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getAliasSet", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -404,7 +398,7 @@ auto LLVMAliasGraph::getAliasSet(const llvm::Value *V,
   return ResultSet;
 }
 
-void LLVMAliasGraph::print(llvm::raw_ostream &OS) const {
+void LLVMAliasGraph::printImpl(llvm::raw_ostream &OS) const {
   for (const auto &Fn : AnalyzedFunctions) {
     llvm::outs() << "LLVMAliasGraph for " << Fn->getName() << ":\n";
     vertex_iterator UI;
@@ -431,7 +425,7 @@ void LLVMAliasGraph::printAsDot(llvm::raw_ostream &OS) const {
   OS << S.str();
 }
 
-nlohmann::json LLVMAliasGraph::getAsJson() const {
+nlohmann::json LLVMAliasGraph::getAsJsonImpl() const {
   nlohmann::json J;
   vertex_iterator VIv;
 
@@ -468,7 +462,7 @@ size_t LLVMAliasGraph::getNumVertices() const {
 
 size_t LLVMAliasGraph::getNumEdges() const { return boost::num_edges(PAG); }
 
-void LLVMAliasGraph::printAsJson(llvm::raw_ostream &OS) const {
+void LLVMAliasGraph::printAsJsonImpl(llvm::raw_ostream &OS) const {
   nlohmann::json J = getAsJson();
   OS << J;
 }
