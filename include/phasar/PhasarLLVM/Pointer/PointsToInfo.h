@@ -31,7 +31,7 @@ struct PointsToTraits<PointsToInfo<PTATraits>> : PTATraits {};
 template <typename PTATraits>
 class PointsToInfoRef<PTATraits,
                       std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
-    final : PointsToInfoBase<PointsToInfoRef<PTATraits>> {
+    : PointsToInfoBase<PointsToInfoRef<PTATraits>> {
   friend class PointsToInfo<PTATraits>;
 
 public:
@@ -44,9 +44,11 @@ public:
   PointsToInfoRef() noexcept = default;
   PointsToInfoRef(std::nullptr_t) noexcept : PointsToInfoRef() {}
 
-  template <
-      typename ConcretePTA,
-      typename std::enable_if_t<!std::is_same_v<ConcretePTA, PointsToInfoRef>>>
+  template <typename ConcretePTA,
+            typename = std::enable_if_t<
+                !std::is_base_of_v<PointsToInfoRef, ConcretePTA> &&
+                is_equivalent_PointsToTraits_v<PTATraits,
+                                               PointsToTraits<ConcretePTA>>>>
   PointsToInfoRef(const ConcretePTA *PT) noexcept
       : PT(PT), VT(&VTableFor<ConcretePTA>) {}
 
@@ -164,7 +166,7 @@ private:
 
 template <typename PTATraits>
 class PointsToInfo<PTATraits, std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
-    : public PointsToInfoRef<PTATraits> {
+    final : public PointsToInfoRef<PTATraits> {
 public:
   PointsToInfo() noexcept = default;
   PointsToInfo(std::nullptr_t) noexcept {};

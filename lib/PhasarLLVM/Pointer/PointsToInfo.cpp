@@ -17,6 +17,7 @@
 #include "llvm/ADT/Hashing.h"
 
 #include <array>
+#include <utility>
 
 namespace llvm {
 class Value;
@@ -102,6 +103,22 @@ class DummyFieldSensitivePointsToAnalysis
     return &Empty;
   }
 };
+
+[[maybe_unused]] void testTypeErasure() {
+  DummyFieldInsensitivePointsToAnalysis PTA1;
+  PointsToInfoRef<PointsToTraits<DummyFieldInsensitivePointsToAnalysis>>
+      TEPTA1 = &PTA1;
+
+  DummyFieldSensitivePointsToAnalysis PTA2;
+  PointsToInfoRef<PointsToTraits<DummyFieldSensitivePointsToAnalysis>> TEPTA2 =
+      &PTA2;
+
+  PointsToInfo<PointsToTraits<DummyFieldInsensitivePointsToAnalysis>> TEPTA3(
+      std::in_place_type<DummyFieldInsensitivePointsToAnalysis>);
+
+  PointsToInfo<PointsToTraits<DummyFieldSensitivePointsToAnalysis>> TEPTA4(
+      std::in_place_type<DummyFieldSensitivePointsToAnalysis>);
+}
 
 template class PointsToInfoBase<DummyFieldSensitivePointsToAnalysis>;
 
