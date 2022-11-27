@@ -7,6 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+
 #include "phasar/PhasarLLVM/Pointer/PointsToInfoBase.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
 
@@ -102,5 +104,10 @@ class DummyFieldSensitivePointsToAnalysis
 };
 
 template class PointsToInfoBase<DummyFieldSensitivePointsToAnalysis>;
+
+template class PointsToInfoRef<
+    PointsToTraits<DummyFieldInsensitivePointsToAnalysis>>;
+template class PointsToInfoRef<
+    PointsToTraits<DummyFieldSensitivePointsToAnalysis>>;
 
 } // namespace psr
