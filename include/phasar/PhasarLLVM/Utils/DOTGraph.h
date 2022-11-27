@@ -17,12 +17,12 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
 #define PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
 
+#include "phasar/Config/Configuration.h"
+#include "phasar/Utils/Utilities.h"
+
 #include <map>
 #include <set>
 #include <string>
-
-#include "phasar/Config/Configuration.h"
-#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 

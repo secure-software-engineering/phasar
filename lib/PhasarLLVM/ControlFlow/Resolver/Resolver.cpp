@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"

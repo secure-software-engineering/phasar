@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"

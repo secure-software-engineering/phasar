@@ -23,9 +23,8 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/MemoryResource.h"
 #include "phasar/Utils/Soundness.h"
-
-#include "nlohmann/json.hpp"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
@@ -34,9 +33,9 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <memory>
+#include "nlohmann/json.hpp"
 
-#include "phasar/Utils/MemoryResource.h"
+#include <memory>
 
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here

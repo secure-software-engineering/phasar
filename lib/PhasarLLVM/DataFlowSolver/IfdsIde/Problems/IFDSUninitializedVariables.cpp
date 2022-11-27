@@ -7,7 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
+
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
@@ -17,17 +28,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include <utility>
 
 using namespace std;
 using namespace psr;

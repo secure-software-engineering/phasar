@@ -10,14 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
 namespace psr {
 

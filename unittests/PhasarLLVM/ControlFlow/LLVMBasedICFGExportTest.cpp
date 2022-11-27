@@ -1,22 +1,3 @@
-#include "gtest/gtest.h"
-
-#include <algorithm>
-#include <fstream>
-#include <iomanip>
-#include <string>
-#include <vector>
-
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/IR/AssemblyAnnotationWriter.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/FormattedStream.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "nlohmann/json.hpp"
-
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
@@ -30,7 +11,24 @@
 #include "phasar/PhasarPass/Options.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/IR/AssemblyAnnotationWriter.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+#include "nlohmann/json.hpp"
+
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <string>
+#include <vector>
 
 namespace psr {
 using MapTy = llvm::DenseMap<const llvm::Function *,

@@ -17,16 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 
-#include <memory>
-#include <set>
-#include <string>
-#include <type_traits>
-
 #include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/Utils/TypeTraits.h"
+
+#include <memory>
+#include <set>
+#include <string>
+#include <type_traits>
 
 namespace psr {
 

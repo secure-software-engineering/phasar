@@ -10,20 +10,20 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_HELPERS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_HELPERS_H
 
-#include <functional>
-#include <map>
-#include <memory>
-#include <set>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include <functional>
+#include <map>
+#include <memory>
+#include <set>
 
 namespace llvm {
 class Instruction;

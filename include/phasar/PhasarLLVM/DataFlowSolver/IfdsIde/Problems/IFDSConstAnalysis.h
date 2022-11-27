@@ -10,14 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {

@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
-
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 using namespace psr;
 

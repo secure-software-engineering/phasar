@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/Utils/MemoryResource.h"
 #include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -22,8 +23,6 @@
 #include <functional>
 #include <memory>
 #include <type_traits>
-
-#include "phasar/Utils/MemoryResource.h"
 
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here

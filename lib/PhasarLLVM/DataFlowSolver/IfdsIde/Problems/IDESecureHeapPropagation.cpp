@@ -7,18 +7,19 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <array>
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
+
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <array>
+#include <utility>
 
 namespace psr {
 IDESecureHeapPropagation::IDESecureHeapPropagation(

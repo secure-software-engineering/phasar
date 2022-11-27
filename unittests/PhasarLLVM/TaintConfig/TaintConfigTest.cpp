@@ -1,19 +1,18 @@
-#include <string>
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
-#include "gtest/gtest.h"
-
-#include "nlohmann/json.hpp"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
 #include "../TestUtils/TestConfig.h"
+#include "gtest/gtest.h"
+#include "nlohmann/json.hpp"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <string>
 
 //===----------------------------------------------------------------------===//
 // Unit tests for the code annotation taint configuration

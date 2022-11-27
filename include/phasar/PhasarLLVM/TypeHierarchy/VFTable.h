@@ -10,9 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_VFTABLE_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_VFTABLE_H_
 
-#include <vector>
+#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
+
+#include <vector>
 
 namespace psr {
 

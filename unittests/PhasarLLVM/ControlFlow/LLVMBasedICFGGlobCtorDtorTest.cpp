@@ -7,23 +7,6 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include "gtest/gtest.h"
-
-#include <algorithm>
-#include <array>
-#include <initializer_list>
-#include <string>
-#include <vector>
-
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/StringMap.h"
-#include "llvm/ADT/TinyPtrVector.h"
-#include "llvm/IR/Dominators.h"
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
-
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
@@ -36,7 +19,23 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/TinyPtrVector.h"
+#include "llvm/IR/Dominators.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <algorithm>
+#include <array>
+#include <initializer_list>
+#include <string>
+#include <vector>
 
 using namespace std;
 using namespace psr;

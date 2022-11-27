@@ -10,16 +10,16 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_IDEGENERALIZEDLCA_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_IDEGENERALIZEDLCA_H
 
-#include <map>
-#include <string>
-#include <unordered_set>
-#include <vector>
-
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
+
+#include <map>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
 namespace psr {
 /// \brief An implementation of a linear constant analysis, similar to

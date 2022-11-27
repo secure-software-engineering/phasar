@@ -17,10 +17,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSSUMMARY_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSSUMMARY_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+
 #include <set>
 #include <vector>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 
 namespace psr {
 

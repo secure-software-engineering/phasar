@@ -14,7 +14,14 @@
  *      Author: pdschbrt
  */
 /*
-#include <thread>
+#include "phasar/DB/DBConn.h"
+
+#include "phasar/DB/Hexastore.h"
+#include "phasar/PhasarLLVM/Pointer/VTable.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Macros.h"
 
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/Function.h"
@@ -30,14 +37,7 @@
 #include "cppconn/resultset.h"
 #include "cppconn/statement.h"
 
-#include "phasar/DB/DBConn.h"
-#include "phasar/DB/Hexastore.h"
-#include "phasar/PhasarLLVM/Pointer/VTable.h"
-
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/IO.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Macros.h"
+#include <thread>
 
 using namespace psr;
 using namespace std;

@@ -10,10 +10,6 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
-#include <set>
-#include <string>
-#include <vector>
-
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
@@ -31,6 +27,10 @@
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Soundness.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace psr {
 

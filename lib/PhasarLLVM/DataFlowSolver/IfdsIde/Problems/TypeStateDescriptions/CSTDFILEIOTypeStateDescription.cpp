@@ -7,9 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "llvm/Support/ErrorHandling.h"
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
+
+#include "llvm/Support/ErrorHandling.h"
 
 namespace psr {
 

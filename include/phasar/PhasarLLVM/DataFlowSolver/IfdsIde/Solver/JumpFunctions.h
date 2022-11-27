@@ -17,19 +17,19 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Table.h"
+
+#include "llvm/ADT/SmallVector.h"
+
 #include <functional>
 #include <memory>
 #include <optional>
 #include <ostream>
 #include <unordered_map>
 #include <utility>
-
-#include "llvm/ADT/SmallVector.h"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Table.h"
 
 namespace psr {
 

@@ -15,6 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
+
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"

@@ -7,11 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <string>
+#include "phasar/PhasarPass/Options.h"
 
 #include "llvm/Support/CommandLine.h"
 
-#include "phasar/PhasarPass/Options.h"
+#include <string>
 
 using namespace psr;
 using namespace std;

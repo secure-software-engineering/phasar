@@ -10,8 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
-#include "llvm/ADT/StringRef.h"
-
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -19,6 +17,8 @@
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
+#include "llvm/ADT/StringRef.h"
 
 namespace llvm {
 class Instruction;

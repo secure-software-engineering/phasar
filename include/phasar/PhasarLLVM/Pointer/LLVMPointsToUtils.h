@@ -10,12 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
 
-#include <set>
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
+
+#include <set>
 
 namespace llvm {
 class Value;

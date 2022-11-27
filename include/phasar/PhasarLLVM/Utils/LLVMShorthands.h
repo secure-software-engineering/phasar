@@ -17,8 +17,7 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
-#include <string>
-#include <vector>
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
@@ -26,7 +25,8 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Compiler.h"
 
-#include "phasar/Utils/Utilities.h"
+#include <string>
+#include <vector>
 
 namespace psr {
 

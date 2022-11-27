@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_IDESUMMARIES_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_IDESUMMARIES_H_
 
-#include <memory>
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/Utils/Table.h"
+
+#include <memory>
 
 namespace psr {
 

@@ -7,15 +7,15 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <cassert>
-#include <cctype>
-#include <filesystem>
-#include <map>
-#include <string>
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
-#include "nlohmann/json-schema.hpp"
-#include "nlohmann/json.hpp"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/Annotation.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
@@ -30,14 +30,15 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/PhasarLLVM/Utils/Annotation.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/IO.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
+#include "nlohmann/json-schema.hpp"
+#include "nlohmann/json.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <filesystem>
+#include <map>
+#include <string>
 
 namespace {
 const nlohmann::json TaintConfigSchema =

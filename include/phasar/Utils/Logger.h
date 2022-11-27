@@ -10,17 +10,17 @@
 #ifndef PHASAR_UTILS_LOGGER_H
 #define PHASAR_UTILS_LOGGER_H
 
-#include <map>
-#include <optional>
-#include <string>
-#include <type_traits>
-#include <variant>
-
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include <map>
+#include <optional>
+#include <string>
+#include <type_traits>
+#include <variant>
 
 namespace psr {
 

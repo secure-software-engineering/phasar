@@ -7,25 +7,10 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#include <variant>
-
-#include "gtest/gtest.h"
-
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Support/Casting.h"
-
-#include "nlohmann/json.hpp"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -34,7 +19,21 @@
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/Casting.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+#include "nlohmann/json.hpp"
+
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <variant>
 
 using namespace std;
 using namespace psr;

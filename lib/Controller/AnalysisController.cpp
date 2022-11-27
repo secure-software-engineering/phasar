@@ -7,21 +7,22 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <cassert>
-#include <filesystem>
-#include <functional>
-#include <set>
-#include <utility>
-
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/ErrorHandling.h"
-
 #include "phasar/Controller/AnalysisController.h"
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/ErrorHandling.h"
+
+#include <cassert>
+#include <filesystem>
+#include <functional>
+#include <set>
+#include <utility>
 
 using namespace std;
 using namespace psr;

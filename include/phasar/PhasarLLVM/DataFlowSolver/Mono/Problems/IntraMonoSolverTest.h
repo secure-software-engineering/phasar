@@ -17,13 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
 
-#include <set>
-#include <string>
-#include <unordered_map>
-
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
+
+#include <set>
+#include <string>
+#include <unordered_map>
 
 namespace llvm {
 class Value;

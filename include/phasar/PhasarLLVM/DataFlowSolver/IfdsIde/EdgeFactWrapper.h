@@ -10,13 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFACTWRAPPER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFACTWRAPPER_H
 
-#include <map>
-#include <memory>
-#include <type_traits>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
+#include <map>
+#include <memory>
+#include <type_traits>
 
 namespace psr {
 

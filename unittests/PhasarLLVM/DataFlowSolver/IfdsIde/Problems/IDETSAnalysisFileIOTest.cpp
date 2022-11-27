@@ -7,10 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <memory>
-
-#include "gtest/gtest.h"
-
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
@@ -21,6 +17,9 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <memory>
 
 using namespace std;
 using namespace psr;

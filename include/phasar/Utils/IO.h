@@ -17,13 +17,13 @@
 #ifndef PHASAR_UTILS_IO_H
 #define PHASAR_UTILS_IO_H
 
-#include <filesystem>
-#include <memory>
-#include <string>
+#include "llvm/Support/MemoryBuffer.h"
 
 #include "nlohmann/json.hpp"
 
-#include "llvm/Support/MemoryBuffer.h"
+#include <filesystem>
+#include <memory>
+#include <string>
 
 namespace psr {
 

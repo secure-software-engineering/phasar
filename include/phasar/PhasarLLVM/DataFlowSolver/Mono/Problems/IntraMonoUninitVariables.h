@@ -10,13 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOUNINITVARIABLES_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOUNINITVARIABLES_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Value;

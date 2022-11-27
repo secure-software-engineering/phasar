@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasGraph.h"
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"

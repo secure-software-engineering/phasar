@@ -17,10 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
 #define PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
 
-#include <set>
+#include "llvm/IR/PassManager.h"
 
 #include "nlohmann/json.hpp"
-#include "llvm/IR/PassManager.h"
+
+#include <set>
 
 namespace llvm {
 class Type;

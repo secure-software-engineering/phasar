@@ -1,4 +1,5 @@
 #include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
+
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
 

@@ -1,21 +1,21 @@
-#include "gtest/gtest.h"
-
-#include <string>
-#include <vector>
-
-#include "llvm/Support/raw_ostream.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <string>
+#include <vector>
 
 using namespace std;
 using namespace psr;

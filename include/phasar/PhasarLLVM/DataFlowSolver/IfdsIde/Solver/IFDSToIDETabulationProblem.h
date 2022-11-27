@@ -10,15 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H
 
-#include <memory>
-#include <set>
-#include <sstream>
-#include <string>
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+
+#include <memory>
+#include <set>
+#include <sstream>
+#include <string>
 
 namespace psr {
 

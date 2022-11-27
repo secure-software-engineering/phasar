@@ -7,17 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <unordered_map>
-#include <utility>
-
-#include "llvm/IR/Function.h"
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Value.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
@@ -26,6 +18,15 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
+
+#include <unordered_map>
+#include <utility>
 
 namespace psr {
 

@@ -1,17 +1,18 @@
-#include <memory>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "gtest/gtest.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "TestConfig.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "gtest/gtest.h"
+
+#include <memory>
 
 using namespace std;
 using namespace psr;

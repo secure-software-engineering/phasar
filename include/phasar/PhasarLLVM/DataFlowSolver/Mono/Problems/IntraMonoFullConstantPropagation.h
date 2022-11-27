@@ -17,17 +17,17 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include "phasar/Utils/BitVectorSet.h"
+
 #include <cstdint>
 #include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;

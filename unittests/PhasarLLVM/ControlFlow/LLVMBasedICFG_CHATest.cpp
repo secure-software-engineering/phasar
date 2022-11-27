@@ -1,7 +1,3 @@
-#include "gtest/gtest.h"
-
-#include <string>
-
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -11,6 +7,9 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <string>
 
 using namespace std;
 using namespace psr;

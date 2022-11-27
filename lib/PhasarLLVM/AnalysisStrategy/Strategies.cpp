@@ -7,12 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <string>
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include <string>
 
 namespace psr {
 

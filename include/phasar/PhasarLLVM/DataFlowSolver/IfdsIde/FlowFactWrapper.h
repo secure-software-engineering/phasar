@@ -10,13 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACTWRAPPER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFACTWRAPPER_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
+
 #include <map>
 #include <memory>
 #include <optional>
 #include <set>
 #include <type_traits>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 
 namespace psr {
 

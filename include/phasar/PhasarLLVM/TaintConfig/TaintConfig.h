@@ -10,20 +10,20 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
 
-#include <filesystem>
-#include <functional>
-#include <set>
-#include <string>
-#include <unordered_set>
-
-#include "nlohmann/json.hpp"
+#include "phasar/DB/ProjectIRDB.h"
 
 #include "llvm/ADT/STLExtras.h" // function_ref
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "nlohmann/json.hpp"
+
+#include <filesystem>
+#include <functional>
+#include <set>
+#include <string>
+#include <unordered_set>
 
 namespace psr {
 

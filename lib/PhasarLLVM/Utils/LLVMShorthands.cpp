@@ -15,6 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"

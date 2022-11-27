@@ -10,14 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSSOLVERTEST_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSSOLVERTEST_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+
 #include <initializer_list>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;

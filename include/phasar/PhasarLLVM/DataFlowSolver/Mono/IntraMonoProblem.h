@@ -17,15 +17,15 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 
-#include <set>
-#include <string>
-#include <type_traits>
-#include <unordered_map>
-
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Soundness.h"
+
+#include <set>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
 
 namespace psr {
 

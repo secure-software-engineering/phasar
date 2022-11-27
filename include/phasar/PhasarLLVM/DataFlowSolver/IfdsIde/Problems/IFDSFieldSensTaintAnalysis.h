@@ -5,15 +5,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
-
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
@@ -22,6 +13,15 @@
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
 
 namespace llvm {
 class Value;

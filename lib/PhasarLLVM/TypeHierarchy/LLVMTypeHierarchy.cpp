@@ -14,16 +14,16 @@
  *      Author: pdschbrt
  */
 
-#include <algorithm>
-#include <cassert>
-#include <memory>
-#include <ostream>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
-#include "boost/graph/depth_first_search.hpp"
-#include "boost/graph/graph_utility.hpp"
-#include "boost/graph/graphviz.hpp"
-#include "boost/graph/transitive_closure.hpp"
-#include "boost/property_map/dynamic_property_map.hpp"
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/GraphExtensions.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
@@ -34,15 +34,16 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/GraphExtensions.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Utilities.h"
+#include "boost/graph/depth_first_search.hpp"
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
+#include "boost/graph/transitive_closure.hpp"
+#include "boost/property_map/dynamic_property_map.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <memory>
+#include <ostream>
 
 using namespace psr;
 using namespace std;

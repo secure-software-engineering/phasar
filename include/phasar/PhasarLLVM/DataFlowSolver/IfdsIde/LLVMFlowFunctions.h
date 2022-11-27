@@ -10,18 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
 
-#include <functional>
-#include <memory>
-#include <set>
-#include <vector>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <functional>
+#include <memory>
+#include <set>
+#include <vector>
 
 namespace llvm {
 class Value;

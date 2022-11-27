@@ -10,11 +10,7 @@
 #ifndef PHASAR_DB_PROJECTIRDB_H_
 #define PHASAR_DB_PROJECTIRDB_H_
 
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <vector>
+#include "phasar/Utils/EnumFlags.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -22,7 +18,12 @@
 #include "llvm/Passes/PassBuilder.h"
 
 #include "nlohmann/json.hpp"
-#include "phasar/Utils/EnumFlags.h"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace llvm {
 class Value;

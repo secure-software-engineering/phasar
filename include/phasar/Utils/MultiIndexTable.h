@@ -17,13 +17,13 @@
 #ifndef PHASAR_UTILS_MULTIINTEXTABLE_H_
 #define PHASAR_UTILS_MULTIINTEXTABLE_H_
 
-#include <string>
-
 #include "boost/multi_index/composite_key.hpp"
 #include "boost/multi_index/hashed_index.hpp"
 #include "boost/multi_index/member.hpp"
 #include "boost/multi_index/ordered_index.hpp"
 #include "boost/multi_index_container.hpp"
+
+#include <string>
 
 namespace psr {
 

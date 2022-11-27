@@ -7,20 +7,12 @@
  *     Philipp Schubert, Linus Jungemann, and others
  *****************************************************************************/
 
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
-
-#include "gtest/gtest.h"
-
-#include "llvm/Support/raw_ostream.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -28,7 +20,15 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <memory>
+#include <set>
+#include <string>
+#include <tuple>
 
 using namespace psr;
 

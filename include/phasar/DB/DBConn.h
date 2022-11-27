@@ -17,17 +17,17 @@
 #ifndef PHASAR_DB_DBCONN_H_
 #define PHASAR_DB_DBCONN_H_
 
-#include <initializer_list>
-#include <memory>
-#include <set>
-#include <string>
-
-#include "llvm/IR/Module.h"
-
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDESummary.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h"
+
+#include "llvm/IR/Module.h"
+
+#include <initializer_list>
+#include <memory>
+#include <set>
+#include <string>
 // If ProjectIRDB is no more returned, forward declare it and remove this
 #include "phasar/DB/ProjectIRDB.h"
 

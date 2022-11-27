@@ -7,12 +7,9 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "gtest/gtest.h"
-
-#include "TestConfig.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
 #include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -20,6 +17,9 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include <unordered_set>
 #include <vector>

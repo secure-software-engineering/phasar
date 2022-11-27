@@ -14,12 +14,9 @@
  *      Author: philipp
  */
 
-#include <cstdio>
-#include <filesystem>
-#include <fstream>
-#include <ios>
-#include <string>
-#include <system_error>
+#include "phasar/Utils/IO.h"
+
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Support/MemoryBuffer.h"
@@ -27,8 +24,12 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Utils/IO.h"
-#include "phasar/Utils/Utilities.h"
+#include <cstdio>
+#include <filesystem>
+#include <fstream>
+#include <ios>
+#include <string>
+#include <system_error>
 
 namespace psr {
 

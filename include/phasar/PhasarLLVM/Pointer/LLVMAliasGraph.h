@@ -15,10 +15,9 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 
-#include "boost/graph/adjacency_list.hpp"
-
 #include "llvm/IR/AbstractCallSite.h"
 
+#include "boost/graph/adjacency_list.hpp"
 #include "nlohmann/json.hpp"
 
 #include <unordered_map>

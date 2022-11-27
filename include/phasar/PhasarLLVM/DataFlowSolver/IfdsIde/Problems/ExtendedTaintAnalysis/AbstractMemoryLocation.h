@@ -10,10 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
 
-#include <cstdint>
-#include <memory>
-#include <optional>
-#include <string>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMapInfo.h"
@@ -26,9 +25,10 @@
 #include "llvm/Support/TrailingObjects.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <string>
 
 namespace psr {
 

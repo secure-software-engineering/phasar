@@ -17,24 +17,22 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
+
+#include "llvm/ADT/StringRef.h"
+
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/graph_traits.hpp"
+#include "gtest/gtest_prod.h"
+#include "nlohmann/json.hpp"
+
 #include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include "boost/graph/adjacency_list.hpp"
-#include "boost/graph/graph_traits.hpp"
-
-#include "llvm/ADT/StringRef.h"
-
-#include "gtest/gtest_prod.h"
-
-#include "nlohmann/json.hpp"
-
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
 
 namespace llvm {
 class Module;

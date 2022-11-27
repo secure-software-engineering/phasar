@@ -17,12 +17,12 @@
 #ifndef PHASAR_CONFIG_CONTAINER_CONFIGURATION_H_
 #define PHASAR_CONFIG_CONTAINER_CONFIGURATION_H_
 
-#include <map>
-#include <set>
-
 #include "boost/container/flat_map.hpp"
 #include "boost/container/flat_set.hpp"
 #include "boost/container/small_vector.hpp"
+
+#include <map>
+#include <set>
 
 namespace psr {
 // check if we forgot some more useful container implementations

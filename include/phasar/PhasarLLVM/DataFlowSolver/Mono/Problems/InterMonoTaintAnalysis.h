@@ -17,15 +17,15 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H
 
-#include <map>
-#include <set>
-#include <string>
-
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/Utils/BitVectorSet.h"
+
+#include <map>
+#include <set>
+#include <string>
 
 namespace llvm {
 class Instruction;

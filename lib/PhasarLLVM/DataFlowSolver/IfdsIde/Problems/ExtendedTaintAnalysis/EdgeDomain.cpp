@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
+
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
