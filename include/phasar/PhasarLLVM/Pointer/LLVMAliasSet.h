@@ -148,6 +148,10 @@ private:
   [[nodiscard]] nlohmann::json getAsJsonImpl() const;
 
   void printAsJsonImpl(llvm::raw_ostream &OS = llvm::outs()) const;
+
+  [[nodiscard]] AnalysisProperties getAnalysisPropertiesImpl() const noexcept {
+    return AnalysisProperties::None;
+  }
 };
 
 } // namespace psr

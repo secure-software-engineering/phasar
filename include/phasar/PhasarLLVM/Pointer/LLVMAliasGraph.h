@@ -227,6 +227,10 @@ private:
 
   void printAsJsonImpl(llvm::raw_ostream &OS = llvm::outs()) const;
 
+  [[nodiscard]] AnalysisProperties getAnalysisPropertiesImpl() const noexcept {
+    return AnalysisProperties::None;
+  }
+
   // ---
 
   // void mergeGraph(const LLVMAliasGraph &Other);

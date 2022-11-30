@@ -13,5 +13,6 @@
 
 ALIAS_ANALYSIS_TYPE(CFLSteens, "cflsteens", "Steensgaard-style alias analysis (equality-based)")
 ALIAS_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based)")
+ALIAS_ANALYSIS_TYPE(PointsTo, "points-to", "Alias-information based on (external) points-to information")
 
 #undef ALIAS_ANALYSIS_TYPE

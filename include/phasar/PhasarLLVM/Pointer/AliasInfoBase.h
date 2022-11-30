@@ -14,6 +14,8 @@
 #include "phasar/PhasarLLVM/Pointer/AliasResult.h"
 #include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/AnalysisProperties.h"
+#include "phasar/Utils/EnumFlags.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
@@ -118,6 +120,23 @@ public:
                       ByConstRef<n_t> AtInstruction = {},
                       AliasResult Kind = AliasResult::MustAlias) {
     self().introduceAliasImpl(Pointer1, Pointer2, AtInstruction, Kind);
+  }
+
+  [[nodiscard]] AnalysisProperties getAnalysisProperties() const noexcept {
+    return self().getAnalysisPropertiesImpl();
+  }
+
+  [[nodiscard]] bool isFieldSensitive() const noexcept {
+    return hasFlag(getAnalysisProperties(), AnalysisProperties::FieldSensitive);
+  }
+
+  [[nodiscard]] bool isContextSensitive() const noexcept {
+    return hasFlag(getAnalysisProperties(),
+                   AnalysisProperties::ContextSensitive);
+  }
+
+  [[nodiscard]] bool isFlowSensitive() const noexcept {
+    return hasFlag(getAnalysisProperties(), AnalysisProperties::FlowSensitive);
   }
 
 private:

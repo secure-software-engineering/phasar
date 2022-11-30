@@ -25,6 +25,11 @@
 #include <memory>
 #include <type_traits>
 
+namespace llvm {
+class Value;
+class Instruction;
+} // namespace llvm
+
 namespace psr {
 
 template <typename V, typename N> class AliasInfoRef;
@@ -97,6 +102,7 @@ private:
     void (*MergeWith)(void *, AliasInfoRef<v_t, n_t>);
     void (*IntroduceAlias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
                            ByConstRef<n_t>, AliasResult);
+    AnalysisProperties (*GetAnalysisProperties)(const void *) noexcept;
     void (*Destroy)(void *);
   };
 
@@ -149,6 +155,9 @@ private:
          ByConstRef<n_t> AtInstruction, AliasResult Kind) {
         static_cast<ConcreteAA *>(AA)->introduceAlias(Pointer1, Pointer2,
                                                       AtInstruction, Kind);
+      },
+      [](const void *AA) noexcept {
+        return static_cast<const ConcreteAA *>(AA)->getAnalysisProperties();
       },
       [](void *AA) { delete static_cast<ConcreteAA *>(AA); },
   };
@@ -226,6 +235,11 @@ private:
     VT->IntroduceAlias(AA, Pointer1, Pointer2, AtInstruction, Kind);
   }
 
+  [[nodiscard]] AnalysisProperties getAnalysisPropertiesImpl() const noexcept {
+    assert(VT != nullptr);
+    return VT->GetAnalysisProperties(AA);
+  }
+
   // --
 
   void *AA{};
@@ -276,14 +290,19 @@ public:
     }
   }
 
-  base_t asRef() noexcept { return *this; }
-  AliasInfoRef<V, N> asRef() const noexcept { return *this; }
+  [[nodiscard]] base_t asRef() noexcept { return *this; }
+  [[nodiscard]] AliasInfoRef<V, N> asRef() const noexcept { return *this; }
 
   /// For better interoperability with unique_ptr
-  base_t get() noexcept { return asRef(); }
-  AliasInfoRef<V, N> get() const noexcept { return asRef(); }
+  [[nodiscard]] base_t get() noexcept { return asRef(); }
+  [[nodiscard]] AliasInfoRef<V, N> get() const noexcept { return asRef(); }
 };
 
+extern template class AliasInfoBase<
+    AliasInfoRef<const llvm::Value *, const llvm::Instruction *>>;
+extern template class AliasInfoRef<const llvm::Value *,
+                                   const llvm::Instruction *>;
+extern template class AliasInfo<const llvm::Value *, const llvm::Instruction *>;
 } // namespace psr
 
 #endif

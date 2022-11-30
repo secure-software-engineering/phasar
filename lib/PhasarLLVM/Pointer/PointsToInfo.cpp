@@ -15,6 +15,7 @@
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/STLExtras.h"
 
 #include <array>
 #include <utility>
@@ -47,11 +48,21 @@ class DummyFieldInsensitivePointsToAnalysis
     return Pointer;
   }
 
+  [[nodiscard]] v_t
+  asPointerOrNullImpl(ByConstRef<o_t> Pointer) const noexcept {
+    return Pointer;
+  }
+
   [[nodiscard]] PointsToSetPtrTy
   getPointsToSetImpl(ByConstRef<o_t> /*Pointer*/,
                      ByConstRef<n_t> /*AtInstruction*/) const {
     static PointsToSetTy Empty{};
     return &Empty;
+  }
+
+  [[nodiscard]] std::vector<v_t>
+  getInterestingPointersAtImpl(ByConstRef<n_t> /*AtInstruction*/) const {
+    return {};
   }
 };
 
@@ -96,6 +107,14 @@ class DummyFieldSensitivePointsToAnalysis
     return {Pointer, {0}};
   }
 
+  [[nodiscard]] std::optional<v_t>
+  asPointerOrNullImpl(ByConstRef<o_t> Pointer) const noexcept {
+    if (llvm::all_of(Pointer.AccessPath, [](auto Offs) { return Offs == 0; })) {
+      return Pointer.V;
+    }
+    return std::nullopt;
+  }
+
   [[nodiscard]] PointsToSetPtrTy
   getPointsToSetImpl(ByConstRef<o_t> /*Pointer*/,
                      ByConstRef<n_t> /*AtInstruction*/) const {
@@ -108,6 +127,11 @@ class DummyFieldSensitivePointsToAnalysis
                      ByConstRef<n_t> /*AtInstruction*/) const {
     static PointsToSetTy Empty{};
     return &Empty;
+  }
+
+  [[nodiscard]] std::vector<v_t>
+  getInterestingPointersAtImpl(ByConstRef<n_t> /*AtInstruction*/) const {
+    return {};
   }
 };
 

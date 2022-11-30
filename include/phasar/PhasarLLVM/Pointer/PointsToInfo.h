@@ -15,6 +15,7 @@
 
 #include <cassert>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <utility>
 
@@ -66,10 +67,14 @@ public:
 private:
   struct VTableBase {
     o_t (*AsAbstractObject)(const void *, ByConstRef<v_t>) noexcept;
+    std::optional<v_t> (*AsPointerOrNull)(const void *,
+                                          ByConstRef<o_t>) noexcept;
     bool (*MayPointsTo)(const void *, ByConstRef<o_t>, ByConstRef<o_t>,
                         ByConstRef<n_t>);
     PointsToSetPtrTy (*GetPointsToSet)(const void *, ByConstRef<o_t>,
                                        ByConstRef<n_t>);
+
+    std::vector<v_t> (*GetInterestingPointersAt)(const void *, ByConstRef<n_t>);
     void (*Destroy)(void *); // Useful for the owning variant
   };
 
@@ -89,6 +94,9 @@ private:
           return static_cast<const ConcretePTA *>(PT)->asAbstractObject(
               Pointer);
         },
+        [](const void *PT, ByConstRef<o_t> Obj) noexcept {
+          return static_cast<const ConcretePTA *>(PT)->asPointerOrNull(Obj);
+        },
         [](const void *PT, ByConstRef<o_t> Pointer, ByConstRef<o_t> Obj,
            ByConstRef<n_t> AtInstruction) {
           return static_cast<const ConcretePTA *>(PT)->mayPointsTo(
@@ -98,6 +106,15 @@ private:
            ByConstRef<n_t> AtInstruction) {
           return static_cast<const ConcretePTA *>(PT)->getPointsToSet(
               Pointer, AtInstruction);
+        },
+        [](const void *PT, ByConstRef<n_t> AtInstruction) {
+          std::vector<v_t> Ret;
+          for (ByConstRef<v_t> Ptr :
+               static_cast<const ConcretePTA *>(PT)->getInterestingPointersAt(
+                   AtInstruction)) {
+            Ret.push_back(Ptr);
+          }
+          return Ret;
         },
         [](void *PT) { delete static_cast<ConcretePTA *>(PT); },
     };
@@ -131,6 +148,12 @@ private:
     return VT->AsAbstractObject(PT, Pointer);
   }
 
+  [[nodiscard]] std::optional<v_t>
+  asPointerOrNull(ByConstRef<o_t> Obj) const noexcept {
+    assert(VT);
+    return VT->AsPointerOrNull(PT, Obj);
+  }
+
   [[nodiscard]] bool mayPointsToImpl(ByConstRef<o_t> Pointer,
                                      ByConstRef<o_t> Obj,
                                      ByConstRef<n_t> AtInstruction) const {
@@ -161,6 +184,12 @@ private:
                      ByConstRef<n_t> AtInstruction) const {
     assert(VT);
     return VT->GetPointsToSetV(PT, Pointer, AtInstruction);
+  }
+
+  std::vector<v_t>
+  getInterestingPointersAtImpl(ByConstRef<n_t> AtInstruction) const {
+    assert(VT);
+    return VT->GetInterestingPointersAt(PT, AtInstruction);
   }
 
   // ---

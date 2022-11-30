@@ -11,7 +11,9 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFOBASE_H
 
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/TypeTraits.h"
 
+#include <optional>
 #include <type_traits>
 
 namespace psr {
@@ -65,6 +67,13 @@ public:
     return self().asAbstractObjectImpl(Pointer);
   }
 
+  /// Inverse function of asAbstractObject. If Obj does not directly correspond
+  /// to a pointer, this function may return nullopt.
+  [[nodiscard]] std::optional<v_t>
+  asPointerOrNull(ByConstRef<o_t> Obj) const noexcept {
+    return self().asPointerOrNullImpl(Obj);
+  }
+
   [[nodiscard]] bool mayPointsTo(ByConstRef<o_t> Pointer, ByConstRef<o_t> Obj,
                                  ByConstRef<n_t> AtInstruction) const {
     return self().mayPointsToImpl(Pointer, Obj, AtInstruction);
@@ -87,6 +96,16 @@ public:
   [[nodiscard]] PointsToSetPtrTy
   getPointsToSet(ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) const {
     return self().getPointsToSetImpl(Pointer, AtInstruction);
+  }
+
+  /// Gets all pointers v_t where we have non-empty points-to information at
+  /// this instruction
+  [[nodiscard]] decltype(auto)
+  getInterestingPointersAt(ByConstRef<n_t> AtInstruction) const {
+    static_assert(
+        is_iterable_over_v<
+            decltype(self().getInterestingPointersAtImpl(AtInstruction)), v_t>);
+    return self().getInterestingPointersAtImpl(AtInstruction);
   }
 
 private:
