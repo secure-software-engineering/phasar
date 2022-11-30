@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 (
     cd "$(dirname "$0")/.."
@@ -47,6 +47,7 @@ set -euo pipefail
     }
 
     processTarget() {
+        echo "processing expected target $1 and migrate to $2"
         createStructure "$2"
         moveInclude "$1" "$2"
         moveSrc "$1" "$2"
@@ -133,4 +134,7 @@ set -euo pipefail
     # file unused
     git rm phasar-clang_more_help.txt &> /dev/null || true
     git rm config.h.in &> /dev/null || true # never included and PHASAR_SRC_DIR PHASAR_BUILD_DIR not used
+
+    # cleanup empty directories
+    find . -type d -empty -delete
 ) 
