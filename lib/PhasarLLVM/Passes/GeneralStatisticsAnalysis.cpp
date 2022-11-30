@@ -58,14 +58,16 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           // do not add allocas from llvm internal functions
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;
-        } // check bitcast instructions for possible types
-        else {
-          for (auto *User : I.users()) {
-            if (const llvm::BitCastInst *Cast =
-                    llvm::dyn_cast<llvm::BitCastInst>(User)) {
-              // types.insert(cast->getDestTy());
-            }
-          }
+        }
+
+        if (I.isTerminator()) {
+          ++Stats.Terminators;
+        }
+        if (llvm::isa<llvm::BranchInst>(I)) {
+          ++Stats.Breaks;
+        }
+        if (llvm::isa<llvm::GetElementPtrInst>(I)) {
+          ++Stats.GetElementPtrs;
         }
         // check for return or resume instructions
         if (llvm::isa<llvm::ReturnInst>(I) || llvm::isa<llvm::ResumeInst>(I)) {
@@ -125,7 +127,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
     }
   }
   // check for global pointers
-  for (auto &Global : M.globals()) {
+  for (auto const &Global : M.globals()) {
     if (Global.getType()->isPointerTy()) {
       ++Stats.GlobalPointers;
     }
@@ -225,6 +227,12 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   J["AllocaInstructions"] = AllocaInstructions.size();
   J["CallSites"] = CallSites;
   J["GlobalVariables"] = Globals;
+  J["Breaks"] = Breaks;
+  J["GetElementPtrs"] = GetElementPtrs;
+  J["Terminators"] = Terminators;
+  J["Loops"] = Loops;
+  J["Switchs"] = Switchs;
+  J["StaticMethods"] = StaticMethods;
   return J;
 }
 
