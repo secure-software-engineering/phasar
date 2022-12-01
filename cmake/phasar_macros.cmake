@@ -23,8 +23,6 @@ function(add_phasar_unittest test_name)
     phasar_utils
     phasar_mono
     phasar_db
-    phasar_experimental
-
     # phasar_clang
     phasar_passes
     phasar_pointer

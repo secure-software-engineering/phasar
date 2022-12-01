@@ -14,15 +14,18 @@
  *      Author: philipp
  */
 
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-using namespace psr;
-using namespace std;
 
-namespace psr {
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, BinaryDomain B) {
-  return OS << (B == BinaryDomain::BOTTOM ? "BOTTOM" : "TOP");
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, BinaryDomain B) {
+  switch (B) {
+  case BinaryDomain::BOTTOM:
+    return OS << "BOTTOM";
+  case BinaryDomain::TOP:
+    return OS << "TOP";
+  }
+  llvm_unreachable(
+      "Both TOP and BOTTOM should already be handled in the swith above!");
 }
-} // namespace psr

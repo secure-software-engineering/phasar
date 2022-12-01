@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 #define PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 
-#include <map>
+#include <string>
 
 namespace llvm {
 class raw_ostream;
