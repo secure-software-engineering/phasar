@@ -69,7 +69,6 @@ private:
   void executeIFDSTaint();
   void executeIFDSType();
   void executeIFDSSolverTest();
-  void executeIFDSLinearConst();
   void executeIFDSFieldSensTaint();
   void executeIDEXTaint();
   void executeIDEOpenSSLTS();

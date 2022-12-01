@@ -19,10 +19,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
@@ -103,13 +101,6 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     if (DumpResults) {
       LLVMConstSolver.dumpResults();
     }
-  } else if (DataFlowAnalysis == "ifds-lca") {
-    IFDSLinearConstantAnalysis LcaProblem(&DB, EntryPoints);
-    IFDSSolver LLVMLcaSolver(LcaProblem, &I);
-    LLVMLcaSolver.solve();
-    if (DumpResults) {
-      LLVMLcaSolver.dumpResults();
-    }
   } else if (DataFlowAnalysis == "ifds-taint") {
     TaintConfig Config(DB);
     IFDSTaintAnalysis TaintAnalysisProblem(&DB, &PT, &Config, EntryPoints);
@@ -138,13 +129,6 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     LLVMLcaSolver.solve();
     if (DumpResults) {
       LLVMLcaSolver.dumpResults();
-    }
-  } else if (DataFlowAnalysis == "ide-taint") {
-    IDETaintAnalysis TaintAnalysisProblem(&DB, EntryPoints);
-    IDESolver LLVMTaintSolver(TaintAnalysisProblem, &I);
-    LLVMTaintSolver.solve();
-    if (DumpResults) {
-      LLVMTaintSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-typestate") {
     CSTDFILEIOTypeStateDescription FileIODesc;

@@ -110,18 +110,6 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis: {
       executeIDEXTaint();
     } break;
-    case DataFlowAnalysisType::IDETaintAnalysis: {
-      /// TODO: The IDETaintAnalysis seems not to be implemented at all.
-      /// So, keep the error-message until we have an implementation
-
-      // WholeProgramAnalysis<IDESolver_P<IDETaintAnalysis>, IDETaintAnalysis>
-      //     WPA(SolverConfig, IRDB, EntryPoints, &PT, &ICF, &TH);
-      // WPA.solve();
-      // emitRequestedDataFlowResults(WPA);
-      // WPA.releaseAllHelperAnalyses();
-      llvm::errs() << "The IDETaintAnalysis is currently not available! Please "
-                      "use one of the other taint analyses.\n";
-    } break;
     case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
       executeIDEOpenSSLTS();
     } break;
@@ -133,9 +121,6 @@ void AnalysisController::executeWholeProgram() {
     } break;
     case DataFlowAnalysisType::IFDSSolverTest: {
       executeIFDSSolverTest();
-    } break;
-    case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
-      executeIFDSLinearConst();
     } break;
     case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
       executeIFDSFieldSensTaint();
