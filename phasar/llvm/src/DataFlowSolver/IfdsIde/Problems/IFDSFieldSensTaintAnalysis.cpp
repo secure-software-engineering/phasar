@@ -119,7 +119,7 @@ IFDSFieldSensTaintAnalysis::getRetFlowFunction(
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *CallSite, const llvm::Instruction * /*RetSite*/,
-    std::set<const llvm::Function *> /*Callees*/) {
+    llvm::ArrayRef<f_t> /*Callees*/) {
   /*
    * It is important to wrap the identity call here. Consider the following
    * example:

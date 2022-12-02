@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -119,7 +120,7 @@ private:
   const L TopElement;
 
 public:
-  AllTop(const L TopElement) : TopElement(std::move(TopElement)) {}
+  AllTop(L TopElement) : TopElement(std::move(TopElement)) {}
 
   ~AllTop() override = default;
 
@@ -160,33 +161,18 @@ private:
   const L BottomElement;
 
 public:
-  AllBottom(const L BottomElement) : BottomElement(std::move(BottomElement)) {}
+  AllBottom(L BottomElement) : BottomElement(std::move(BottomElement)) {}
 
   ~AllBottom() override = default;
 
   L computeTarget(L /*Source*/) override { return BottomElement; }
 
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(SecondFunction.get())) {
-      return this->shared_from_this();
-    }
-    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(SecondFunction.get())) {
-      return this->shared_from_this();
-    }
-    return SecondFunction->composeWith(this->shared_from_this());
+  EdgeFunctionPtrType
+  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
+    return this->shared_from_this();
   }
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
-    if (OtherFunction.get() == this ||
-        OtherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
-    }
-    if (auto *Alltop = dynamic_cast<AllTop<L> *>(OtherFunction.get())) {
-      return this->shared_from_this();
-    }
-    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(OtherFunction.get())) {
-      return this->shared_from_this();
-    }
+  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType /*OtherFunction*/) override {
     return this->shared_from_this();
   }
 
@@ -476,7 +462,7 @@ public:
   //
   virtual EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode, std::set<f_t> Callees) = 0;
+                           d_t RetSiteNode, llvm::ArrayRef<f_t> Callees) = 0;
 
   //
   // Also refer to FlowFunction::getSummaryFlowFunction()

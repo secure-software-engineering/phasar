@@ -14,7 +14,10 @@
  *      Author: pdschbrt
  */
 
-#include <string>
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
 
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Demangle/Demangle.h"
@@ -23,12 +26,9 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
-#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/PAMMMacros.h"
+#include <string>
 
 using namespace std;
 using namespace psr;
@@ -43,6 +43,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
+  Stats.ModuleName = M.getName();
   for (auto &F : M) {
     ++Stats.Functions;
     for (auto &BB : F) {
@@ -107,8 +108,8 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
                         const llvm::CallBase *CTor =
                             llvm::cast<llvm::CallBase>(User);
                         if (CTor->getCalledFunction() &&
-                            getNthFunctionArgument(CTor->getCalledFunction(), 0)
-                                    ->getType() == Cast->getDestTy()) {
+                            CTor->getCalledFunction()->getArg(0)->getType() ==
+                                Cast->getDestTy()) {
                           Stats.AllocatedTypes.insert(
                               Cast->getDestTy()->getPointerElementType());
                         }
@@ -177,7 +178,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         llvm::raw_string_ostream Rso(TypeStr);
         Type->print(Rso);
         PHASAR_LOG_LEVEL(INFO, "  " << Rso.str());
-      })
+      });
   // now we are done and can return the results
   return Stats;
 }
@@ -214,6 +215,17 @@ GeneralStatistics::getAllocaInstructions() const {
 set<const llvm::Instruction *>
 GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
+}
+
+nlohmann::json GeneralStatistics::getAsJson() const {
+  nlohmann::json J;
+  J["ModuleName"] = GeneralStatistics::ModuleName;
+  J["Instructions"] = getInstructions();
+  J["Functions"] = Functions;
+  J["AllocaInstructions"] = AllocaInstructions.size();
+  J["CallSites"] = CallSites;
+  J["GlobalVariables"] = Globals;
+  return J;
 }
 
 } // namespace psr

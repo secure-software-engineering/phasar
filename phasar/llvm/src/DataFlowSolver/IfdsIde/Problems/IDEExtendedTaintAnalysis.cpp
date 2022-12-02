@@ -28,8 +28,8 @@
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DebugOutput.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -491,7 +491,7 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
 IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
     [[maybe_unused]] n_t CallSite, [[maybe_unused]] n_t RetSite,
-    [[maybe_unused]] std::set<f_t> Callees) {
+    [[maybe_unused]] llvm::ArrayRef<f_t> Callees) {
   PHASAR_LOG_LEVEL(DEBUG,
                    "##CallToReturn-FF at: " << psr::llvmIRToString(CallSite));
 
@@ -686,7 +686,7 @@ auto IDEExtendedTaintAnalysis::getReturnEdgeFunction(
 
 auto IDEExtendedTaintAnalysis::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, [[maybe_unused]] n_t RetSite, d_t RetSiteNode,
-    std::set<f_t> Callees) -> EdgeFunctionPtrType {
+    llvm::ArrayRef<f_t> Callees) -> EdgeFunctionPtrType {
 
   // Intrinsics behave as they won't be there...
   bool IsIntrinsic = std::all_of(Callees.begin(), Callees.end(),
@@ -720,13 +720,7 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
     return getEdgeIdentity(Curr);
   }
 
-  llvm::SmallSet<const llvm::Function *, 2> Callees;
-  if (const auto *Fn = Call->getCalledFunction()) {
-    Callees.insert(Fn);
-  } else {
-    base_t::ICF->forEachCalleeOfCallAt(
-        Curr, [&Callees](const llvm::Function *F) { Callees.insert(F); });
-  }
+  const auto &Callees = ICF->getCalleesOfCallAt(Curr);
 
   SanitizerConfigTy SaniConfig;
 

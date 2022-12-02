@@ -24,7 +24,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -58,9 +58,10 @@ IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-IDESolverTest::FlowFunctionPtrType IDESolverTest::getCallToRetFlowFunction(
-    IDESolverTest::n_t /*CallSite*/, IDESolverTest::n_t /*RetSite*/,
-    std::set<IDESolverTest::f_t> /*Callees*/) {
+IDESolverTest::FlowFunctionPtrType
+IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t /*CallSite*/,
+                                        IDESolverTest::n_t /*RetSite*/,
+                                        llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
@@ -121,10 +122,11 @@ IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t /*CallSite*/,
 }
 
 std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getCallToRetEdgeFunction(
-    IDESolverTest::n_t /*CallSite*/, IDESolverTest::d_t /*CallNode*/,
-    IDESolverTest::n_t /*RetSite*/, IDESolverTest::d_t /*RetSiteNode*/,
-    std::set<IDESolverTest::f_t> /*Callees*/) {
+IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t /*CallSite*/,
+                                        IDESolverTest::d_t /*CallNode*/,
+                                        IDESolverTest::n_t /*RetSite*/,
+                                        IDESolverTest::d_t /*RetSiteNode*/,
+                                        llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 

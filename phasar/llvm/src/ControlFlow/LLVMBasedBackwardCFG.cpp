@@ -1,92 +1,122 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-/*
- * LLVMBasedBackwardCFG.cpp
- *
- *  Created on: 07.06.2017
- *      Author: philipp
- */
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
+#include "phasar/DB/ProjectIRDB.h"
 
-#include "llvm/IR/CFG.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
-#include "phasar/Utils/LLVMShorthands.h"
-
-using namespace psr;
-using namespace std;
-
 namespace psr {
-// TODO: isFallTroughtSuccessor, isBranchTarget
 
-std::vector<const llvm::Instruction *>
-LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *Inst) const {
-  vector<const llvm::Instruction *> Preds;
-  if (Inst->getNextNode()) {
-    Preds.push_back(Inst->getNextNode());
+LLVMBasedBackwardCFG::LLVMBasedBackwardCFG(bool IgnoreDbgInstructions) noexcept
+    : detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG>(IgnoreDbgInstructions) {}
+LLVMBasedBackwardCFG::LLVMBasedBackwardCFG(const ProjectIRDB &IRDB,
+                                           bool IgnoreDbgInstructions)
+    : LLVMBasedBackwardCFG(IgnoreDbgInstructions) {
+  /// Initialize BackwardRets
+
+  for (const auto *Fun : IRDB.getAllFunctions()) {
+    auto &Ctx = Fun->getParent()->getContext();
+    auto *Ret = llvm::ReturnInst::Create(Ctx);
+    BackwardRets[Fun] = Ret;
+    BackwardRetToFunction[Ret] = Fun;
   }
-  if (Inst->isTerminator()) {
-    for (unsigned I = 0; I < Inst->getNumSuccessors(); ++I) {
-      Preds.push_back(&*Inst->getSuccessor(I)->begin());
+}
+
+auto LLVMBasedBackwardCFG::getFunctionOfImpl(n_t Inst) const noexcept -> f_t {
+  if (const auto *Fun = BackwardRetToFunction.lookup(Inst)) {
+    return Fun;
+  }
+  return this->base_t::getFunctionOfImpl(Inst);
+}
+
+auto LLVMBasedBackwardCFG::getPredsOfImpl(n_t Inst) const
+    -> llvm::SmallVector<n_t, 2> {
+  if (BackwardRetToFunction.count(Inst)) {
+    return this
+        ->detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG>::getStartPointsOf(
+            this->base_t::getFunctionOfImpl(Inst));
+  }
+  return this->base_t::getSuccsOfImpl(Inst);
+}
+
+auto LLVMBasedBackwardCFG ::getSuccsOfImpl(n_t Inst) const
+    -> llvm::SmallVector<n_t, 2> {
+  if (BackwardRetToFunction.count(Inst)) {
+    return {};
+  }
+
+  auto Ret = this->base_t::getPredsOfImpl(Inst);
+  if (Ret.empty()) {
+    if (const auto *BRet =
+            BackwardRets.lookup(this->base_t::getFunctionOfImpl(Inst))) {
+      Ret.push_back(BRet);
     }
   }
-  return Preds;
+  return Ret;
 }
 
-std::vector<const llvm::Instruction *>
-LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *Inst) const {
-  vector<const llvm::Instruction *> Preds;
-  if (Inst->getPrevNode()) {
-    Preds.push_back(Inst->getPrevNode());
-  }
-  if (Inst == &Inst->getParent()->front()) {
-    for (const auto *PredBlock : llvm::predecessors(Inst->getParent())) {
-      Preds.push_back(&PredBlock->back());
+auto LLVMBasedBackwardCFG ::getAllControlFlowEdgesImpl(f_t Fun) const
+    -> std::vector<std::pair<n_t, n_t>> {
+  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
+      Edges;
+
+  for (const auto &I : llvm::instructions(Fun)) {
+    if (IgnoreDbgInstructions) {
+      // Check for call to intrinsic debug function
+      if (const auto *DbgCallInst = llvm::dyn_cast<llvm::CallInst>(&I)) {
+        if (DbgCallInst->getCalledFunction() &&
+            DbgCallInst->getCalledFunction()->isIntrinsic() &&
+            (DbgCallInst->getCalledFunction()->getName() ==
+             "llvm.dbg.declare")) {
+          continue;
+        }
+      }
+    }
+
+    auto Successors = getSuccsOf(&I);
+    for (const auto *Successor : Successors) {
+      Edges.emplace_back(Successor, &I);
     }
   }
-  return Preds;
+
+  return Edges;
 }
 
-std::set<const llvm::Instruction *>
-LLVMBasedBackwardCFG::getStartPointsOf(const llvm::Function *Fun) const {
-  return LLVMBasedCFG::getExitPointsOf(Fun);
+auto LLVMBasedBackwardCFG ::getStartPointsOfImpl(f_t Fun) const
+    -> llvm::SmallVector<n_t, 2> {
+  return this->base_t::getExitPointsOfImpl(Fun);
 }
 
-std::set<const llvm::Instruction *>
-LLVMBasedBackwardCFG::getExitPointsOf(const llvm::Function *Fun) const {
-  return LLVMBasedCFG::getStartPointsOf(Fun);
+auto LLVMBasedBackwardCFG ::getExitPointsOfImpl(f_t Fun) const
+    -> llvm::SmallVector<n_t, 2> {
+  return BackwardRets.empty()
+             ? this->base_t::getStartPointsOfImpl(Fun)
+             : llvm::SmallVector<n_t, 2>{BackwardRets.lookup(Fun)};
 }
 
-// LLVMBasedCFG::isStartPoint
-bool LLVMBasedBackwardCFG::isExitInst(const llvm::Instruction *Inst) const {
-  return (Inst == &Inst->getFunction()->front().front());
+bool LLVMBasedBackwardCFG ::isExitInstImpl(n_t Inst) const noexcept {
+  return BackwardRetToFunction.empty() ? this->base_t::isStartPointImpl(Inst)
+                                       : BackwardRetToFunction.count(Inst);
 }
 
-// LLVMBasedCFG::isExitInst
-bool LLVMBasedBackwardCFG::isStartPoint(const llvm::Instruction *Inst) const {
-  return llvm::isa<llvm::ReturnInst>(Inst);
+bool LLVMBasedBackwardCFG ::isStartPointImpl(n_t Inst) const noexcept {
+  return this->base_t::isExitInstImpl(Inst);
 }
 
-bool LLVMBasedBackwardCFG::isFallThroughSuccessor(
-    const llvm::Instruction * /*Inst*/,
-    const llvm::Instruction * /*Succ*/) const {
+bool LLVMBasedBackwardCFG ::isFallThroughSuccessorImpl(
+    n_t /*Inst*/, n_t /*Succ*/) const noexcept {
   assert(false && "FallThrough not valid in LLVM IR");
   return false;
 }
-
-bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *Inst,
-                                          const llvm::Instruction *Succ) const {
+bool LLVMBasedBackwardCFG ::isBranchTargetImpl(n_t Inst,
+                                               n_t Succ) const noexcept {
   if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Succ)) {
     for (const auto *BB : B->successors()) {
       if (Inst == &(BB->front())) {

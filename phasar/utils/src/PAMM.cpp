@@ -24,7 +24,6 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/Utils/PAMM.h"
 
 using namespace psr;
@@ -33,7 +32,7 @@ using json = nlohmann::json;
 namespace psr {
 
 PAMM &PAMM::getInstance() {
-  static PAMM Instance;
+  static PAMM Instance{};
   return Instance;
 }
 
@@ -274,7 +273,10 @@ void PAMM::printMeasuredData(llvm::raw_ostream &Os) {
   Os << "\n----- END OF EVALUATION DATA -----\n\n";
 }
 
-void PAMM::exportMeasuredData(std::string OutputPath) {
+void PAMM::exportMeasuredData(
+    const std::string &OutputPath, const std::string &ProjectId,
+    const std::optional<std::vector<std::string>> &Modules,
+    const std::optional<std::vector<std::string>> &DataFlowAnalyses) {
   // json file for holding all data
   json JsonData;
 
@@ -313,34 +315,30 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
 
   // add analysis/project/source file information if available
   json JInfo;
-  if (PhasarConfig::VariablesMap().count("project-id")) {
-    JInfo["Project-ID"] =
-        PhasarConfig::VariablesMap()["project-id"].as<std::string>();
+
+  JInfo["Project-ID"] = ProjectId;
+
+  if (Modules) {
+    JInfo["Module(s)"] = *Modules;
   }
-  if (PhasarConfig::VariablesMap().count("module")) {
-    JInfo["Module(s)"] =
-        PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>();
-  }
-  if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
-    JInfo["Data-flow analysis"] =
-        PhasarConfig::VariablesMap()["data-flow-analysis"]
-            .as<std::vector<std::string>>();
+  if (DataFlowAnalyses) {
+    JInfo["Data-flow analysis"] = *DataFlowAnalyses;
   }
   if (!JInfo.is_null()) {
     JsonData["Info"] = JInfo;
   }
 
-  std::filesystem::path Cfp(OutputPath);
-  if (Cfp.string().find(".json") == std::string::npos) {
-    OutputPath.append(".json");
+  std::string Cfp(OutputPath);
+  if (Cfp.find(".json") == std::string::npos) {
+    Cfp += ".json";
   }
-  std::ofstream File(OutputPath);
+  std::ofstream File(Cfp);
   if (File.is_open()) {
     File << std::setw(2) // sets the indentation
          << JsonData << std::endl;
     File.close();
   } else {
-    throw std::ios_base::failure("could not write file: " + OutputPath);
+    throw std::ios_base::failure("could not write file: " + Cfp);
   }
 }
 

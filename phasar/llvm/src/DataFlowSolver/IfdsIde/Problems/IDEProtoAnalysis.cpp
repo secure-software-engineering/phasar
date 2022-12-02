@@ -16,7 +16,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -62,9 +62,9 @@ IDEProtoAnalysis::FlowFunctionPtrType IDEProtoAnalysis::getRetFlowFunction(
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType
-IDEProtoAnalysis::getCallToRetFlowFunction(
-    IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::n_t /*RetSite*/,
-    set<IDEProtoAnalysis::f_t> /*Callees*/) {
+IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t /*CallSite*/,
+                                           IDEProtoAnalysis::n_t /*RetSite*/,
+                                           llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
@@ -129,7 +129,7 @@ shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getCallToRetEdgeFunction(
     IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::d_t /*CallNode*/,
     IDEProtoAnalysis::n_t /*RetSite*/, IDEProtoAnalysis::d_t /*RetSiteNode*/,
-    set<IDEProtoAnalysis::f_t> /*Callees*/) {
+    llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 

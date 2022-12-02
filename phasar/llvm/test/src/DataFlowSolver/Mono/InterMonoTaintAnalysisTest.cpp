@@ -12,7 +12,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 #include "TestConfig.h"
@@ -37,8 +37,10 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     auto PT = std::make_unique<LLVMPointsToSet>(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
-                       PT.get());
+    LLVMBasedICFG ICFG(
+        IRDB.get(), CallGraphAnalysisType::OTF,
+        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
+        PT.get());
     auto ConfigPath = PathToLlFiles + "config.json";
     auto BuildPos = ConfigPath.rfind("/build/") + 1;
     ConfigPath.erase(BuildPos, 6);

@@ -35,7 +35,7 @@ BinaryEdgeFunction::composeWith(
   if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
     // print(std::cout << "Compose ");
     // std::cout << " with ALLBOT" << std::endl;
-    return shared_from_this();
+    return SecondFunction;
   }
   return std::make_shared<LCAEdgeFunctionComposer>(this->shared_from_this(),
                                                    SecondFunction, MaxSize);

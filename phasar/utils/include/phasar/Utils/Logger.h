@@ -17,6 +17,7 @@
 #include <variant>
 
 #include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -28,6 +29,8 @@ enum SeverityLevel {
 #include "phasar/Utils/SeverityLevel.def"
   INVALID
 };
+
+SeverityLevel parseSeverityLevel(llvm::StringRef Str);
 
 class Logger final {
 public:
@@ -91,6 +94,9 @@ private:
       const std::variant<StdStream, std::string> &StreamVariant);
 };
 
+#define IF_LOG_ENABLED(computation)                                            \
+  IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
+
 #ifdef DYNAMIC_LOG
 
 #define PHASAR_LOG(message) PHASAR_LOG_LEVEL(DEBUG, message)
@@ -135,12 +141,6 @@ private:
   if (LLVM_UNLIKELY(condition)) {                                              \
     computation;                                                               \
   }
-
-// #define LOG_IF_ENABLE(computation)                                          \
-//   IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
-
-#define IF_LOG_ENABLED(computation)                                            \
-  IF_LOG_ENABLED_BOOL(Logger::isLoggingEnabled(), computation)
 
 #define IS_LOG_ENABLED Logger::isLoggingEnabled()
 

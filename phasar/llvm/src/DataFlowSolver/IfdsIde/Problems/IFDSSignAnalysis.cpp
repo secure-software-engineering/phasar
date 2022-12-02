@@ -19,7 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 
@@ -51,9 +51,9 @@ IFDSSignAnalysis::FlowFunctionPtrType IFDSSignAnalysis::getRetFlowFunction(
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType
-IFDSSignAnalysis::getCallToRetFlowFunction(
-    IFDSSignAnalysis::n_t /*CallSite*/, IFDSSignAnalysis::n_t /*RetSite*/,
-    std::set<IFDSSignAnalysis::f_t> /*Callees*/) {
+IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t /*CallSite*/,
+                                           IFDSSignAnalysis::n_t /*RetSite*/,
+                                           llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 

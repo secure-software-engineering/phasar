@@ -41,8 +41,8 @@
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 namespace psr {
@@ -219,8 +219,9 @@ public:
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitStmt, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallStmt,
                                              f_t DestFun) override;
@@ -237,9 +238,10 @@ public:
                                             n_t ExitInst, d_t ExitNode,
                                             n_t RetSite, d_t RetNode) override;
 
-  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
-                                               n_t RetSite, d_t RetSiteNode,
-                                               std::set<f_t> Callees) override;
+  EdgeFunctionPtrType
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   EdgeFunctionPtrType getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                              d_t SuccNode) override;

@@ -1,9 +1,11 @@
 #ifndef UNITTEST_TESTUTILS_TESTCONFIG_H_
 #define UNITTEST_TESTUTILS_TESTCONFIG_H_
 
-#include <string>
-
 #include "phasar/Config/Configuration.h"
+
+#include "gtest/gtest.h"
+
+#include <string>
 
 namespace psr::unittest {
 

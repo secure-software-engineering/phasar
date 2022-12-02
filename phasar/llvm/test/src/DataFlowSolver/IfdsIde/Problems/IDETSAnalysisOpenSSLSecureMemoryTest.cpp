@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "gtest/gtest.h"
+#include <vector>
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -52,8 +53,9 @@ protected:
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
-                                      EntryPoints, TH.get(), PT.get());
+    ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
+                                      std::vector<std::string>{"main"},
+                                      TH.get(), PT.get());
     Desc = make_unique<OpenSSLSecureMemoryDescription>();
     TSProblem = make_unique<IDETypeStateAnalysis>(
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), *Desc, EntryPoints);

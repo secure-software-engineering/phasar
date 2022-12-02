@@ -3,7 +3,9 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
@@ -77,7 +79,7 @@ TEST(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
 
   // ret i32 0
   const auto *TermInst = getNthTermInstruction(F, 4);
-  std::vector<const llvm::Instruction *> Predeccessor;
+  llvm::SmallVector<const llvm::Instruction *> Predeccessor;
   // br label %12
   Predeccessor.push_back(getNthTermInstruction(F, 3));
   // br label %12
@@ -96,7 +98,7 @@ TEST(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %3 = alloca i32, align 4)
   const auto *Pred = getNthInstruction(F, 3);
-  std::vector<const llvm::Instruction *> Predeccessor{Pred};
+  llvm::SmallVector<const llvm::Instruction *> Predeccessor{Pred};
   auto PredsOfInst = Cfg.getPredsOf(Inst);
   ASSERT_EQ(PredsOfInst, Predeccessor);
 
@@ -125,7 +127,7 @@ TEST(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   // HANDLING CONDITIONAL BRANCH
   // br i1 %5, label %6, label %9
   const auto *BRInst = getNthTermInstruction(F, 1);
-  std::vector<const llvm::Instruction *> Successors;
+  llvm::SmallVector<const llvm::Instruction *> Successors;
   // %7 = load i32, i32* %3, align 4
   Successors.push_back(getNthInstruction(F, 10));
   // %10 = load i32, i32* %3, align 4
@@ -153,7 +155,7 @@ TEST(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %4 = call i32 @_Z4multii(i32 2, i32 4)
   const auto *Succ = getNthInstruction(F, 5);
-  std::vector<const llvm::Instruction *> Successors{Succ};
+  llvm::SmallVector<const llvm::Instruction *> Successors{Succ};
   auto SuccsOfInst = Cfg.getSuccsOf(Inst);
   ASSERT_EQ(SuccsOfInst, Successors);
 
@@ -176,7 +178,7 @@ TEST(LLVMBasedCFGTest, HandlesCallSuccessor) {
   // store i32 %4, i32* %2, align 4
   const auto *Succ = getNthStoreInstruction(F, 2);
   auto SuccsOfCallInst = Cfg.getSuccsOf(CallInst);
-  std::vector<const llvm::Instruction *> Successors{Succ};
+  llvm::SmallVector<const llvm::Instruction *> Successors{Succ};
   ASSERT_EQ(SuccsOfCallInst, Successors);
 }
 

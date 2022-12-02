@@ -10,6 +10,7 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <variant>
@@ -23,9 +24,9 @@ namespace detail {
 template <typename T, typename = void>
 struct is_iterable : public std::false_type {}; // NOLINT
 template <typename T>
-struct is_iterable<T, std::void_t<typename T::const_iterator, // NOLINT
-                                  decltype(std::declval<T>().begin()),
-                                  decltype(std::declval<T>().end())>>
+struct is_iterable<T, std::void_t< // NOLINT
+                          decltype(std::declval<T>().begin()),
+                          decltype(std::declval<T>().end())>>
     : public std::true_type {};
 
 template <typename T> struct is_pair : public std::false_type {}; // NOLINT
@@ -73,10 +74,38 @@ struct is_llvm_hashable : std::false_type {}; // NOLINT
 template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
+
+template <template <typename> typename Base, typename Derived>
+class template_arg {
+private:
+  template <template <typename> typename TBase, typename TT>
+  static TT getTemplateArgImpl(const TBase<TT> &Impl);
+  template <template <typename> typename TBase>
+  static void getTemplateArgImpl(...);
+
+public:
+  using type =
+      decltype(getTemplateArgImpl<Base>(std::declval<const Derived &>()));
+};
+
+template <template <typename> typename Base, typename Derived, typename = void>
+struct is_crtp_base_of : std::false_type {}; // NOLINT
+template <template <typename> typename Base, typename Derived>
+struct is_crtp_base_of<
+    Base, Derived,
+    std::enable_if_t<
+        std::is_base_of_v<typename template_arg<Base, Derived>::type, Derived>>>
+    : std::true_type {};
+
 } // namespace detail
 
 template <typename T>
 constexpr bool is_iterable_v = detail::is_iterable<T>::value; // NOLINT
+
+template <typename T, typename U>
+constexpr bool is_iterable_over_v =
+    is_iterable_v<T> // NOLINT
+    && std::is_convertible_v<decltype(*std::declval<T>().begin()), U>;
 
 template <typename T>
 constexpr bool is_pair_v = detail::is_pair<T>::value; // NOLINT
@@ -117,6 +146,13 @@ struct is_variant<std::variant<Args...>> : std::true_type {}; // NOLINT
 template <typename T>
 inline constexpr bool is_variant_v = is_variant<T>::value; // NOLINT
 
+template <typename T>
+// NOLINTNEXTLINE
+constexpr bool is_string_like_v = std::is_convertible_v<T, std::string_view>;
+
+template <template <typename> typename Base, typename Derived>
+constexpr bool is_crtp_base_of_v = // NOLINT
+    detail::is_crtp_base_of<Base, Derived>::value;
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr
 

@@ -20,7 +20,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 using namespace std;
@@ -57,7 +57,7 @@ IFDSSolverTest::FlowFunctionPtrType IFDSSolverTest::getRetFlowFunction(
 IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t /*CallSite*/,
                                          IFDSSolverTest::n_t /*RetSite*/,
-                                         set<IFDSSolverTest::f_t> /*Callees*/) {
+                                         llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 

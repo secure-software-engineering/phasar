@@ -21,7 +21,7 @@
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace llvm {
 class Value;
@@ -68,7 +68,7 @@ public:
   FlowFunctionPtrType
   getCallToRetFlowFunction(const llvm::Instruction *CallSite,
                            const llvm::Instruction *RetSite,
-                           std::set<const llvm::Function *> Callees) override;
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType
   getSummaryFlowFunction(const llvm::Instruction *CallSite,

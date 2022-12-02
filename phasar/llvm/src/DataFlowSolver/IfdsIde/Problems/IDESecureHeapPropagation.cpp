@@ -17,8 +17,8 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 IDESecureHeapPropagation::IDESecureHeapPropagation(
@@ -49,9 +49,8 @@ IDESecureHeapPropagation::getRetFlowFunction(n_t /*CallSite*/,
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
-IDESecureHeapPropagation::getCallToRetFlowFunction(n_t CallSite,
-                                                   n_t /*RetSite*/,
-                                                   std::set<f_t> /*Callees*/) {
+IDESecureHeapPropagation::getCallToRetFlowFunction(
+    n_t CallSite, n_t /*RetSite*/, llvm::ArrayRef<f_t> /*Callees*/) {
 
   // Change to CallSite everywhere
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
@@ -141,10 +140,9 @@ IDESecureHeapPropagation::getReturnEdgeFunction(
 }
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
-                                                   n_t /*RetSite*/,
-                                                   d_t RetSiteNode,
-                                                   std::set<f_t> /*Callees*/) {
+IDESecureHeapPropagation::getCallToRetEdgeFunction(
+    n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
+    llvm::ArrayRef<f_t> /*Callees*/) {
   if (CallNode == ZeroValue && RetSiteNode != ZeroValue) {
     // generate
     // std::cerr << "Generate at " << llvmIRToShortString(callSite) <<
@@ -254,9 +252,6 @@ void IDESecureHeapPropagation::IdentityEdgeFunction::print(
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::IdentityEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return shared_from_this();
-  }
   return SecondFunction;
 }
 std::shared_ptr<IDESecureHeapPropagation::IdentityEdgeFunction>

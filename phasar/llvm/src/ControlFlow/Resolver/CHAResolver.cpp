@@ -22,7 +22,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 using namespace std;
@@ -70,3 +70,5 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   }
   return PossibleCallees;
 }
+
+std::string CHAResolver::str() const { return "CHA"; }

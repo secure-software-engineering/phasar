@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <iomanip>
 #include <iterator>
@@ -41,7 +42,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
@@ -60,6 +61,11 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
   auto NumGlobals = IRDB.getNumGlobals();
   PointsToSets.reserve(NumGlobals);
   Owner.reserve(NumGlobals);
+
+  PHASAR_LOG_LEVEL_CAT(
+      INFO, "LLVMPointsToSet",
+      "Start constructing LLVMPointsToSet "
+          << std::chrono::steady_clock::now().time_since_epoch().count());
 
   for (llvm::Module *M : IRDB.getAllModules()) {
     // compute points-to information for all globals
@@ -81,7 +87,10 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       }
     }
   }
-  PHASAR_LOG_LEVEL(DEBUG, "LLVMPointsToSet completed");
+  PHASAR_LOG_LEVEL_CAT(
+      INFO, "LLVMPointsToSet",
+      "LLVMPointsToSet completed "
+          << std::chrono::steady_clock::now().time_since_epoch().count());
 }
 
 LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
@@ -433,7 +442,8 @@ void LLVMPointsToSet::computeFunctionsPointsToSet(llvm::Function *F) {
       !Inserted || F->isDeclaration()) {
     return;
   }
-  PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMPointsToSet",
+                       "Analyzing function: " << F->getName());
 
   llvm::AAResults &AA = *PTA.getAAResults(F);
   bool EvalAAMD = true;

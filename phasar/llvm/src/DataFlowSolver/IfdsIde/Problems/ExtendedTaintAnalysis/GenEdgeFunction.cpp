@@ -15,7 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinConstEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr::XTaint {
 
@@ -59,18 +59,19 @@ GenEdgeFunction::composeWith(EdgeFunctionPtrType SecondFunction) {
 
 GenEdgeFunction::EdgeFunctionPtrType
 GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
-  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
-    return shared_from_this();
-  }
-  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction)) {
-    return OtherFunction;
-  }
-  if (&*getAllSanitized() == &*OtherFunction) {
+  if (Sani == nullptr) {
+    // If there is a non-sanitized taint on any path, keep it
     return shared_from_this();
   }
 
-  if (Sani == nullptr) {
+  if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
     return OtherFunction;
+  }
+  if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction)) {
+    return shared_from_this();
+  }
+  if (&*getAllSanitized() == &*OtherFunction) {
+    return shared_from_this();
   }
 
   if (auto *Other = dynamic_cast<EdgeFunctionBase *>(&*OtherFunction)) {
@@ -98,7 +99,7 @@ GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
       // sanitizers
 
       if (Res.isNotSanitized()) {
-        return makeEF<GenEdgeFunction>(BBO, nullptr);
+        return getGenEdgeFunction(BBO);
       }
 
       return makeEF<JoinConstEdgeFunction>(BBO, OtherJoin->getFunction(),
@@ -106,9 +107,9 @@ GenEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
     }
   }
 
-  if (isEdgeIdentity(&*OtherFunction)) {
-    return getAllBot();
-  }
+  // if (isEdgeIdentity(&*OtherFunction)) {
+  //   return getAllBot();
+  // }
 
   return makeEF<JoinConstEdgeFunction>(BBO, OtherFunction, Sani);
 }

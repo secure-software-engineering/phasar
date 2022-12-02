@@ -1,8 +1,11 @@
 #include "phasar/Utils/PAMM.h"
+#include "phasar/Config/Configuration.h"
+
 #include "gtest/gtest.h"
-#include <thread>
 
 #include "llvm/Support/raw_ostream.h"
+
+#include <thread>
 
 using namespace psr;
 

@@ -17,7 +17,8 @@
 #ifndef PHASAR_UTILS_PAMM_H_
 #define PHASAR_UTILS_PAMM_H_
 
-#include <chrono>        // high_resolution_clock::time_point, milliseconds
+#include <chrono> // high_resolution_clock::time_point, milliseconds
+#include <optional>
 #include <set>           // set
 #include <string>        // string
 #include <unordered_map> // unordered_map
@@ -25,7 +26,7 @@
 
 namespace llvm {
 class raw_ostream;
-}
+} // namespace llvm
 
 namespace psr {
 
@@ -188,7 +189,12 @@ public:
   /// \brief Exports the measured data to JSON - associated macro:
   /// EXPORT_MEASURED_DATA(PATH).
   /// \param OutputPath to exported JSON file.
-  void exportMeasuredData(std::string OutputPath);
+  void exportMeasuredData(
+      const std::string &OutputPath,
+      const std::string &ProjectId = "default-phasar-project",
+      const std::optional<std::vector<std::string>> &Modules = std::nullopt,
+      const std::optional<std::vector<std::string>> &DataFlowAnalyses =
+          std::nullopt);
 };
 
 } // namespace psr

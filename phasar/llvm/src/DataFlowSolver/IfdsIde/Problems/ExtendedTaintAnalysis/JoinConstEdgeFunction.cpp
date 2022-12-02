@@ -14,7 +14,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinConstEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr::XTaint {
 JoinConstEdgeFunction::JoinConstEdgeFunction(
@@ -22,7 +22,9 @@ JoinConstEdgeFunction::JoinConstEdgeFunction(
     const llvm::Instruction *OtherConst)
     : EdgeFunctionBase(EFKind::JoinConst, BBO), OtherFn(std::move(OtherFn)),
       OtherConst(OtherConst) {
-  assert(OtherConst);
+  assert(OtherConst &&
+         "Join with 'NotSanitized' is always 'NotSanitized' and should "
+         "therefore not be modeled by a JoinConstEdgeFunction");
 }
 
 JoinConstEdgeFunction::l_t JoinConstEdgeFunction::computeTarget(l_t Source) {
@@ -33,10 +35,10 @@ JoinConstEdgeFunction::l_t JoinConstEdgeFunction::computeTarget(l_t Source) {
 JoinConstEdgeFunction::EdgeFunctionPtrType
 JoinConstEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
   if (dynamic_cast<psr::AllBottom<l_t> *>(&*OtherFunction)) {
-    return shared_from_this();
+    return OtherFunction;
   }
   if (dynamic_cast<psr::AllTop<l_t> *>(&*OtherFunction)) {
-    return OtherFunction;
+    return shared_from_this();
   }
   if (auto *Gen = dynamic_cast<GenEdgeFunction *>(&*OtherFunction)) {
     if (Gen->getSanitizer() == nullptr) {
@@ -48,7 +50,7 @@ JoinConstEdgeFunction::joinWith(EdgeFunctionPtrType OtherFunction) {
     // we never return Top, Bottom or Sanitized from a join with two sanitizers
 
     if (Res.isNotSanitized()) {
-      return makeEF<GenEdgeFunction>(BBO, nullptr);
+      return getGenEdgeFunction(BBO);
     }
 
     return makeEF<JoinConstEdgeFunction>(BBO, OtherFn, Res.getSanitizer());

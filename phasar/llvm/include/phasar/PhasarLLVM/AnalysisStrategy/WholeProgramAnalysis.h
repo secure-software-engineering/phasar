@@ -10,18 +10,19 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Utils/TypeTraitsLLVM.h"
+
 #include <iosfwd>
 #include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/Utils/TypeTraitsLLVM.h"
 
 namespace psr {
 
@@ -55,7 +56,7 @@ private:
 
 public:
   WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, ProjectIRDB &IRDB,
-                       std::set<std::string> EntryPoints = {},
+                       llvm::ArrayRef<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
                        CallGraphAnalysisTy *CallGraph = nullptr,
                        TypeHierarchyTy *TypeHierarchy = nullptr)
@@ -68,11 +69,12 @@ public:
                         : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
         CallGraph(CallGraph == nullptr
                       ? std::make_unique<CallGraphAnalysisTy>(
-                            IRDB, CallGraphAnalysisType::OTF, EntryPoints,
+                            &IRDB, CallGraphAnalysisType::OTF, EntryPoints,
                             this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        EntryPoints(EntryPoints),
-        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, EntryPoints),
+        EntryPoints(EntryPoints.begin(), EntryPoints.end()),
+        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo,
+                    this->EntryPoints),
         DataFlowSolver(ProblemDesc) {
     if constexpr (has_setIFDSIDESolverConfig_v<ProblemDescription>) {
       ProblemDesc.setIFDSIDESolverConfig(SolverConfig);
@@ -84,7 +86,7 @@ public:
                 typename T::ConfigurationTy, HasNoConfigurationType>>>
   WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, ProjectIRDB &IRDB,
                        ConfigurationTy *Config,
-                       std::set<std::string> EntryPoints = {},
+                       llvm::ArrayRef<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
                        CallGraphAnalysisTy *CallGraph = nullptr,
                        TypeHierarchyTy *TypeHierarchy = nullptr)
@@ -97,12 +99,12 @@ public:
                         : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
         CallGraph(CallGraph == nullptr
                       ? std::make_unique<CallGraphAnalysisTy>(
-                            IRDB, CallGraphAnalysisType::OTF, EntryPoints,
+                            &IRDB, CallGraphAnalysisType::OTF, EntryPoints,
                             this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        EntryPoints(EntryPoints), Config(Config),
+        EntryPoints(EntryPoints.begin(), EntryPoints.end()), Config(Config),
         ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, *Config,
-                    EntryPoints),
+                    this->EntryPoints),
         DataFlowSolver(ProblemDesc) {
     if constexpr (has_setIFDSIDESolverConfig_v<ProblemDescription>) {
       ProblemDesc.setIFDSIDESolverConfig(SolverConfig);
@@ -114,7 +116,7 @@ public:
                 typename T::ConfigurationTy, HasNoConfigurationType>>>
   WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, ProjectIRDB &IRDB,
                        std::string ConfigPath,
-                       std::set<std::string> EntryPoints = {},
+                       llvm::ArrayRef<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
                        CallGraphAnalysisTy *CallGraph = nullptr,
                        TypeHierarchyTy *TypeHierarchy = nullptr)
@@ -127,13 +129,14 @@ public:
                         : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
         CallGraph(CallGraph == nullptr
                       ? std::make_unique<CallGraphAnalysisTy>(
-                            IRDB, CallGraphAnalysisType::OTF, EntryPoints,
+                            &IRDB, CallGraphAnalysisType::OTF, EntryPoints,
                             this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        EntryPoints(EntryPoints), Config(new ConfigurationTy(ConfigPath)),
-        OwnsConfig(true), ConfigPath(ConfigPath),
+        EntryPoints(EntryPoints.begin(), EntryPoints.end()),
+        Config(new ConfigurationTy(ConfigPath)), OwnsConfig(true),
+        ConfigPath(ConfigPath),
         ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, *Config,
-                    EntryPoints),
+                    this->EntryPoints),
         DataFlowSolver(ProblemDesc) {
     if constexpr (has_setIFDSIDESolverConfig_v<ProblemDescription>) {
       ProblemDesc.setIFDSIDESolverConfig(SolverConfig);

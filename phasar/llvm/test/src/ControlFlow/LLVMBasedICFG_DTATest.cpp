@@ -3,9 +3,10 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "TestConfig.h"
 
@@ -17,7 +18,7 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FuncA = IRDB.getFunctionDefinition("_ZN1A4funcEv");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
@@ -29,14 +30,14 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 
   const llvm::Instruction *I = getNthInstruction(F, 16);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
 
     ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
     ASSERT_EQ(Callees.size(), 2U);
-    ASSERT_TRUE(Callees.count(VFuncB));
-    ASSERT_TRUE(Callees.count(VFuncA));
-    ASSERT_TRUE(ICFG.getCallersOf(VFuncA).count(I));
-    ASSERT_TRUE(ICFG.getCallersOf(VFuncB).count(I));
+    ASSERT_TRUE(llvm::is_contained(Callees, VFuncB));
+    ASSERT_TRUE(llvm::is_contained(Callees, VFuncA));
+    ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncA), I));
+    ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncB), I));
   }
 }
 
@@ -45,7 +46,7 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
   const llvm::Function *VFuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");
@@ -54,7 +55,7 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
   ASSERT_TRUE(VFuncB);
 
   const llvm::Instruction *I = getNthInstruction(F, 6);
-  set<const llvm::Instruction *> Callers = ICFG.getCallersOf(VFuncA);
+  const auto &Callers = ICFG.getCallersOf(VFuncA);
   ASSERT_EQ(Callers.size(), 1U);
-  ASSERT_TRUE(Callers.count(I));
+  ASSERT_TRUE(llvm::is_contained(Callers, I));
 }

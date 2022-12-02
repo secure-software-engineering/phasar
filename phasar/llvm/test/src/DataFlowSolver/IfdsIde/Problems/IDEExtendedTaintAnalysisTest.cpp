@@ -62,7 +62,10 @@ protected:
     LLVMTypeHierarchy TH(IRDB);
     // llvm::errs() << "TH: " << TH << '\n';
     LLVMPointsToSet PT(IRDB);
-    LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
+    LLVMBasedICFG ICFG(
+        &IRDB, CallGraphAnalysisType::OTF,
+        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
+        &PT);
     auto TC =
         std::visit(Overloaded{[&](std::monostate) { return TaintConfig(IRDB); },
                               [&](json *JS) {
@@ -216,6 +219,7 @@ TEST_F(IDETaintAnalysisTest, XTaint09_1) {
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09) {
+  GTEST_SKIP() << "stl dependent hint: invoke vs call";
   map<int, set<string>> Gt;
 
   Gt[34] = {"33"};

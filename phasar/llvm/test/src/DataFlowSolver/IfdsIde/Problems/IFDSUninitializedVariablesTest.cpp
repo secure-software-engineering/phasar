@@ -35,8 +35,10 @@ protected:
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
-                                      EntryPoints, TH.get(), PT.get());
+    ICFG = make_unique<LLVMBasedICFG>(
+        IRDB.get(), CallGraphAnalysisType::OTF,
+        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
+        TH.get(), PT.get());
     // TSF = new TaintSensitiveFunctions(true);
     UninitProblem = make_unique<IFDSUninitializedVariables>(
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);

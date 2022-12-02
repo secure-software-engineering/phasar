@@ -7,10 +7,19 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-// #include <functional>
-#include <limits>
-#include <memory>
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/PhasarPass/Options.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
@@ -23,21 +32,9 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/MathExtras.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarPass/Options.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-
-using namespace psr;
+#include <limits>
+#include <memory>
+#include <utility>
 
 namespace psr {
 // Initialize debug counter for edge functions
@@ -231,9 +228,8 @@ IDELinearConstantAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
-IDELinearConstantAnalysis::getCallToRetFlowFunction(n_t /*CallSite*/,
-                                                    n_t /*RetSite*/,
-                                                    std::set<f_t> Callees) {
+IDELinearConstantAnalysis::getCallToRetFlowFunction(
+    n_t /*CallSite*/, n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees) {
   for (const auto *Callee : Callees) {
     if (!ICF->getStartPointsOf(Callee).empty()) {
       return std::make_shared<KillIf<d_t>>([this](d_t Source) {
@@ -312,9 +308,12 @@ bool IDELinearConstantAnalysis::isZeroValue(d_t Fact) const {
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
                                                  n_t /*Succ*/, d_t SuccNode) {
+  if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
+    return EdgeIdentity<l_t>::getInstance();
+  }
+
   // ALL_BOTTOM for zero value
-  if ((isZeroValue(CurrNode) && isZeroValue(SuccNode)) ||
-      (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
+  if ((llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
     PHASAR_LOG_LEVEL(DEBUG, "Case: Zero value.");
     PHASAR_LOG_LEVEL(DEBUG, ' ');
     return std::make_shared<AllBottom<l_t>>(BOTTOM);
@@ -409,11 +408,9 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(n_t /*CallSite*/,
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
-IDELinearConstantAnalysis::getCallToRetEdgeFunction(n_t /*CallSite*/,
-                                                    d_t /*CallNode*/,
-                                                    n_t /*RetSite*/,
-                                                    d_t /*RetSiteNode*/,
-                                                    std::set<f_t> /*Callees*/) {
+IDELinearConstantAnalysis::getCallToRetEdgeFunction(
+    n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/,
+    llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<l_t>::getInstance();
 }
 
@@ -453,14 +450,13 @@ std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
   if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+    return SecondFunction;
+  }
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
-  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
+
   return F->composeWith(G->composeWith(SecondFunction));
 }
 
@@ -489,13 +485,9 @@ IDELinearConstantAnalysis::GenConstant::computeTarget(
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::GenConstant::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
+
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
     return this->shared_from_this();
   }
 
@@ -611,18 +603,17 @@ IDELinearConstantAnalysis::BinOp::computeTarget(l_t Source) {
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::BinOp::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
-    return this->shared_from_this();
-  }
-  if (dynamic_cast<GenConstant *>(SecondFunction.get())) {
+  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<GenConstant *>(SecondFunction.get())) {
     return SecondFunction;
   }
+  if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get()) ||
+      dynamic_cast<LCAIdentity *>(SecondFunction.get())) {
+    return this->shared_from_this();
+  }
+
+  // TODO: Optimize Binop::composeWith(BinOp)
+
   return std::make_shared<LCAEdgeFunctionComposer>(this->shared_from_this(),
                                                    SecondFunction);
 }

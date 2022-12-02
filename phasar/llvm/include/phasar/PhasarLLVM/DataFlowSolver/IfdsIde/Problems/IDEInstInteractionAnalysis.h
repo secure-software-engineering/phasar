@@ -10,18 +10,24 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 
-#include <functional>
-#include <initializer_list>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <variant>
-#include <vector>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
+#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
@@ -34,25 +40,21 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include <functional>
+#include <initializer_list>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <variant>
+#include <vector>
 
-// have some handy helper functionalities
+// Have some handy helper functionalities
 namespace {
 
 [[maybe_unused]] inline const llvm::AllocaInst *
@@ -75,10 +77,98 @@ class Taint;
 } // namespace vara
 
 namespace psr {
+class IDEIIAFlowFact {
+public:
+  constexpr static unsigned KLimit = 2;
+
+private:
+  const llvm::Value *BaseVal = nullptr;
+  llvm::SmallVector<const llvm::GetElementPtrInst *, KLimit> FieldDesc;
+
+public:
+  ~IDEIIAFlowFact() = default;
+  IDEIIAFlowFact() = default;
+  /// Constructs a data-flow fact from the base value. Fields are ignored. Use
+  /// the factory function(s) to construct field-sensitive data-flow facts.
+  IDEIIAFlowFact(const llvm::Value *BaseVal);
+  /// Construct a data-flow fact from the base value and field specification.
+  IDEIIAFlowFact(
+      const llvm::Value *BaseVal,
+      llvm::SmallVector<const llvm::GetElementPtrInst *, KLimit> FieldDesc);
+
+  /// Creates a new data-flow fact of the base value that respects fields. Field
+  /// accesses that exceed the specified depth will be collapsed and not further
+  /// distinguished.
+  static IDEIIAFlowFact create(const llvm::Value *BaseVal);
+
+  /// Returns whether this data-flow fact describes the same abstract memory
+  /// location than the other one.
+  [[nodiscard]] bool flowFactEqual(const IDEIIAFlowFact &Other) const;
+
+  [[nodiscard]] inline const llvm::Value *getBase() const { return BaseVal; }
+  [[nodiscard]] inline llvm::SmallVector<const llvm::GetElementPtrInst *,
+                                         KLimit>
+  getField() const {
+    return FieldDesc;
+  }
+  [[nodiscard]] inline constexpr unsigned getKLimit() const { return KLimit; }
+
+  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const;
+
+  bool operator==(const IDEIIAFlowFact &Other) const;
+  bool operator!=(const IDEIIAFlowFact &Other) const;
+  bool operator<(const IDEIIAFlowFact &Other) const;
+
+  bool operator==(const llvm::Value *V) const;
+
+  inline operator const llvm::Value *() { return BaseVal; }
+};
+
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                     const IDEIIAFlowFact &FlowFact) {
+  FlowFact.print(OS);
+  return OS;
+}
+
+inline std::ostream &operator<<(std::ostream &OS,
+                                const IDEIIAFlowFact &FlowFact) {
+  std::string Buf;
+  llvm::raw_string_ostream Rso(Buf);
+  FlowFact.print(Rso);
+  return OS << Buf;
+}
+
+} // namespace psr
+
+// Implementations of STL traits.
+namespace std {
+template <> struct hash<psr::IDEIIAFlowFact> {
+  size_t operator()(const psr::IDEIIAFlowFact &FlowFact) const {
+    return std::hash<const llvm::Value *>()(FlowFact.getBase());
+  }
+};
+
+template <> struct less<psr::IDEIIAFlowFact> {
+  bool operator()(const psr::IDEIIAFlowFact &Lhs,
+                  const psr::IDEIIAFlowFact &Rhs) const {
+    return Lhs < Rhs;
+  }
+};
+
+template <> struct equal_to<psr::IDEIIAFlowFact> {
+  bool operator()(const psr::IDEIIAFlowFact &Lhs,
+                  const psr::IDEIIAFlowFact &Rhs) const {
+    return Lhs == Rhs;
+  }
+};
+} // namespace std
+
+namespace psr {
 
 template <typename EdgeFactType>
 struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
   // type of the element contained in the sets of edge functions
+  using d_t = IDEIIAFlowFact;
   using e_t = EdgeFactType;
   using l_t = LatticeDomain<BitVectorSet<e_t>>;
 };
@@ -366,12 +456,12 @@ public:
               Facts.insert(Src);
             }
             IF_LOG_ENABLED({
-              for (const auto s : Facts) {
+              for (const auto Fact : Facts) {
                 PHASAR_LOG_LEVEL(DFADEBUG,
-                                 "Create edge: "
-                                     << llvmIRToShortString(Src) << " --"
-                                     << llvmIRToShortString(Store) << "--> "
-                                     << llvmIRToShortString(s));
+                                 "Create edge: " << llvmIRToShortString(Src)
+                                                 << " --"
+                                                 << llvmIRToShortString(Store)
+                                                 << "--> " << Fact);
               }
             });
             return Facts;
@@ -404,12 +494,11 @@ public:
             Facts.insert(Store->getPointerOperand());
           }
           IF_LOG_ENABLED({
-            for (const auto s : Facts) {
+            for (const auto Fact : Facts) {
               PHASAR_LOG_LEVEL(
                   DFADEBUG, "Create edge: " << llvmIRToShortString(Src) << " --"
                                             << llvmIRToShortString(Store)
-                                            << "--> "
-                                            << llvmIRToShortString(s));
+                                            << "--> " << Fact);
             }
           });
           return Facts;
@@ -460,11 +549,11 @@ public:
         // pass everything that already holds as identity
         Facts.insert(Src);
         IF_LOG_ENABLED({
-          for (const auto s : Facts) {
+          for (const auto Fact : Facts) {
             PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
                                            << llvmIRToShortString(Src) << " --"
                                            << llvmIRToShortString(Inst)
-                                           << "--> " << llvmIRToShortString(s));
+                                           << "--> " << Fact);
           }
         });
         return Facts;
@@ -474,52 +563,213 @@ public:
   }
 
   inline FlowFunctionPtrType getCallFlowFunction(n_t CallSite,
-                                                 f_t DestMthd) override {
-    if (this->ICF->isHeapAllocatingFunction(DestMthd)) {
+                                                 f_t DestFun) override {
+    if (this->ICF->isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
       return KillAll<d_t>::getInstance();
     }
-    if (DestMthd->isDeclaration()) {
+    if (DestFun->isDeclaration()) {
       // We don't have anything that we could analyze, kill all facts.
       return KillAll<d_t>::getInstance();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
     // Map actual to formal parameters.
-    auto AutoMapping = std::make_shared<MapFactsToCallee<container_type>>(
-        CS, DestMthd, true /* map globals to callee, too */,
-        // Do not map parameters that have been artificially introduced by the
-        // compiler for RVO (return value optimization). Instead, these values
-        // need to be generated from the zero value.
-        [CS](const llvm::Value *V) {
-          bool PassParameter = true;
-          for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
-            if (V == CS->getArgOperand(Idx)) {
-              return !CS->paramHasAttr(Idx, llvm::Attribute::StructRet);
+    struct MapFactsToCallee : public FlowFunction<IDEIIAFlowFact> {
+      const llvm::CallBase *CallSite;
+      const llvm::Function *DestFun;
+      std::vector<const llvm::Value *> Actuals;
+      std::vector<const llvm::Argument *> Formals;
+      // Predicate for handling actual parameters
+      std::function<bool(const llvm::CallBase *, const llvm::Value *)>
+          ActualPredicate = [](const llvm::CallBase *CS, const llvm::Value *V) {
+            bool PassParameter = true;
+            for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
+              if (V == CS->getArgOperand(Idx)) {
+                return !CS->paramHasAttr(Idx, llvm::Attribute::StructRet);
+              }
+            }
+            return PassParameter;
+          };
+
+      MapFactsToCallee(const llvm::CallBase *CallSite,
+                       const llvm::Function *DestFun)
+          : CallSite(CallSite), DestFun(DestFun) {
+        // Set up the actual parameters
+        for (const auto &Actual : CallSite->args()) {
+          Actuals.push_back(Actual);
+        }
+        // Set up the formal parameters
+        for (const auto &Formal : DestFun->args()) {
+          Formals.push_back(&Formal);
+        }
+      }
+
+      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
+        // If DestFun is a declaration we cannot follow this call, we thus need
+        // to kill everything
+        if (DestFun->isDeclaration()) {
+          return {};
+        }
+        // Pass ZeroValue as is, if desired
+        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+          return {Source};
+        }
+        container_type Res;
+        // Pass global variables as is, if desired Globals could also be actual
+        // arguments, then the formal argument needs to be generated below. Need
+        // llvm::Constant here to cover also ConstantExpr and ConstantAggregate
+        if (llvm::isa<llvm::Constant>(Source.getBase())) {
+          Res.insert(Source);
+        }
+        // Handle C-style varargs functions
+        if (DestFun->isVarArg()) {
+          // Map actual parameters to corresponding formal parameters.
+          for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
+            if (Source == Actuals[Idx] &&
+                ActualPredicate(CallSite, Actuals[Idx])) {
+              if (Idx >= DestFun->arg_size()) {
+                // Over-approximate by trying to add the
+                //   alloca [1 x %struct.__va_list_tag], align 16
+                // to the results
+                // find the allocated %struct.__va_list_tag and generate it
+                for (const auto &BB : *DestFun) {
+                  for (const auto &I : BB) {
+                    if (const auto *Alloc =
+                            llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+                      if (Alloc->getAllocatedType()->isArrayTy() &&
+                          Alloc->getAllocatedType()->getArrayNumElements() >
+                              0 &&
+                          Alloc->getAllocatedType()
+                              ->getArrayElementType()
+                              ->isStructTy() &&
+                          Alloc->getAllocatedType()
+                                  ->getArrayElementType()
+                                  ->getStructName() == "struct.__va_list_tag") {
+                        Res.insert(Alloc);
+                      }
+                    }
+                  }
+                }
+              } else {
+                assert(Idx < Formals.size() &&
+                       "Out of bound access to formal parameters!");
+                Res.insert(Formals[Idx]); // corresponding formal
+              }
             }
           }
-          return PassParameter;
-        });
+        }
+        // Handle ordinary case
+        // Map actual parameters to corresponding formal parameters.
+        for (unsigned Idx = 0;
+             Idx < Actuals.size() && Idx < DestFun->arg_size(); ++Idx) {
+          if (Source == Actuals[Idx] &&
+              ActualPredicate(CallSite, Actuals[Idx])) {
+            assert(Idx < Formals.size() &&
+                   "Out of bound access to formal parameters!");
+            Res.insert(Formals[Idx]); // corresponding formal
+          }
+        }
+        return Res;
+      }
+    };
+    auto MapFactsToCalleeFF = std::make_shared<MapFactsToCallee>(CS, DestFun);
     // Generate the artificially introduced RVO parameters from zero value.
     std::set<d_t> SRetFormals;
     for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
       if (CS->paramHasAttr(Idx, llvm::Attribute::StructRet)) {
-        SRetFormals.insert(DestMthd->getArg(Idx));
+        SRetFormals.insert(DestFun->getArg(Idx));
       }
     }
     auto GenSRetFormals = std::make_shared<GenAllAndKillAllOthers<d_t>>(
         SRetFormals, this->getZeroValue());
     return std::make_shared<Union<d_t>>(
-        std::vector<FlowFunctionPtrType>({AutoMapping, GenSRetFormals}));
+        std::vector<FlowFunctionPtrType>({MapFactsToCalleeFF, GenSRetFormals}));
   }
 
-  inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
+  inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                                 n_t ExitInst,
                                                 n_t /* RetSite */) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
-    auto AutoMapping = std::make_shared<MapFactsToCaller<container_type>>(
-        llvm::cast<llvm::CallBase>(CallSite), CalleeMthd, ExitInst,
-        true /* map globals back to caller, too */);
+    struct MapFactsToCaller : public FlowFunction<IDEIIAFlowFact> {
+      const llvm::CallBase *CallSite;
+      const llvm::Function *CalleeFun;
+      const llvm::ReturnInst *ExitInst;
+      std::vector<const llvm::Value *> Actuals;
+      std::vector<const llvm::Value *> Formals;
+
+      MapFactsToCaller(const llvm::CallBase *CallSite,
+                       const llvm::Function *CalleeFun,
+                       const llvm::ReturnInst *ExitInst)
+          : CallSite(CallSite), CalleeFun(CalleeFun), ExitInst(ExitInst) {
+        // Set up the actual parameters
+        for (const auto &Actual : CallSite->args()) {
+          Actuals.push_back(Actual);
+        }
+        // Set up the formal parameters
+        for (const auto &Formal : CalleeFun->args()) {
+          Formals.push_back(&Formal);
+        }
+      }
+
+      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
+        // Pass ZeroValue as is, if desired
+        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source.getBase())) {
+          return {Source};
+        }
+        // Pass global variables as is, if desired
+        // Need llvm::Constant here to cover also ConstantExpr and
+        // ConstantAggregate
+        if (llvm::isa<llvm::Constant>(Source.getBase())) {
+          return {Source};
+        }
+        // Do the parameter mapping
+        container_type Res;
+        // Handle C-style varargs functions
+        if (CalleeFun->isVarArg()) {
+          const llvm::Instruction *AllocVarArg;
+          // Find the allocation of %struct.__va_list_tag
+          for (const auto &BB : *CalleeFun) {
+            for (const auto &I : BB) {
+              if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+                if (Alloc->getAllocatedType()->isArrayTy() &&
+                    Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                    Alloc->getAllocatedType()
+                        ->getArrayElementType()
+                        ->isStructTy() &&
+                    Alloc->getAllocatedType()
+                            ->getArrayElementType()
+                            ->getStructName() == "struct.__va_list_tag") {
+                  AllocVarArg = Alloc;
+                  // TODO break out this nested loop earlier (without goto ;-)
+                }
+              }
+            }
+          }
+          // Generate the varargs things by using an over-approximation
+          if (Source == AllocVarArg) {
+            for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
+              Res.insert(Actuals[Idx]);
+            }
+          }
+        }
+        // Handle ordinary case
+        // Map formal parameter into corresponding actual parameter.
+        for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
+          if (Source == Formals[Idx]) {
+            Res.insert(Actuals[Idx]); // corresponding actual
+          }
+        }
+        // Collect return value facts
+        if (ExitInst != nullptr && Source == ExitInst->getReturnValue()) {
+          Res.insert(CallSite);
+        }
+        return Res;
+      }
+    };
+    auto MapFactsToCallerFF = std::make_shared<MapFactsToCaller>(
+        llvm::dyn_cast<llvm::CallBase>(CallSite), CalleeFun,
+        llvm::dyn_cast<llvm::ReturnInst>(ExitInst));
     // We must also handle the special case if the returned value is a constant
     // literal, e.g. ret i32 42.
     if (ExitInst) {
@@ -534,17 +784,17 @@ public:
                 CallSite, this->getZeroValue());
             return std::make_shared<Union<d_t>>(
                 std::vector<FlowFunctionPtrType>(
-                    {AutoMapping, ConstantRetGen}));
+                    {MapFactsToCallerFF, ConstantRetGen}));
           }
         }
       }
     }
-    return AutoMapping;
+    return MapFactsToCallerFF;
   }
 
   inline FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /* RetSite */,
-                           std::set<f_t> Callees) override {
+                           llvm::ArrayRef<f_t> Callees) override {
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
@@ -575,36 +825,64 @@ public:
     // behavior that is intended. In that case, we must propagate all data-flow
     // facts alongside the call site.
     bool OnlyDecls = true;
+    bool AllVoidRetTys = true;
     for (auto Callee : Callees) {
       if (!Callee->isDeclaration()) {
         OnlyDecls = false;
       }
+      if (!Callee->getReturnType()->isVoidTy()) {
+        AllVoidRetTys = false;
+      }
     }
-    // Declarations only case
-    return std::make_shared<MapFactsAlongsideCallSite<container_type>>(
-        llvm::cast<llvm::CallBase>(CallSite),
-        OnlyDecls /* Propagate globals alongsite the call site if no function
-                     definition is available. Otherwise, do not propagate
-                     globals here (as they are propagated via call- and
-                     ret-functions. */
-        ,
-        [](const llvm::CallBase * /* CS */, const llvm::Value *V) {
-          // Treat global variables as involved, since we wish to have them
-          // handled by getCallFlowFunction() and getRetFlowFunction() to model
-          // potential effects of the callee.
-          // Constants covers global variables as well as ConstantExpr and
-          // ConstantAggregate
-          if (llvm::isa<llvm::Constant>(V)) {
-            return true;
+
+    struct MapFactsAlongsideCallSite : public FlowFunction<IDEIIAFlowFact> {
+      bool OnlyDecls;
+      bool AllVoidRetTys;
+      const llvm::CallBase *CallSite;
+      d_t ZeroValue;
+
+      MapFactsAlongsideCallSite(bool OnlyDecls, bool AllVoidRetTys,
+                                const llvm::CallBase *CallSite, d_t ZeroValue)
+          : OnlyDecls(OnlyDecls), AllVoidRetTys(AllVoidRetTys),
+            CallSite(CallSite), ZeroValue(ZeroValue) {}
+
+      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
+        // There are a few things to consider, in case only declarations of
+        // callee targets are available.
+        if (OnlyDecls) {
+
+          if (!AllVoidRetTys) {
+            // If one or more of the declaration-only targets return a value, it
+            // must be generated from zero!
+            if (Source == ZeroValue) {
+              return {Source, CallSite};
+            }
+          } else {
+            // If all declaration-only callee targets return void, just pass
+            // everything as identity.
+            return {Source};
           }
-          // Treat all other values as not involved in the call since this also
-          // captures usages of the parameter.
-          return false;
-        });
+        }
+        // Do not pass global variables if definitions of the callee
+        // function(s) are available, since the effect of the callee on these
+        // values will be modelled using combined getCallFlowFunction and
+        // getReturnFlowFunction.
+        if (llvm::isa<llvm::Constant>(Source.getBase())) {
+          return {};
+        }
+        // Pass everything else as identity. In particular, also do not kill
+        // pointer or reference parameters since this then also captures usages
+        // oft he parameters, which we wish to compute using this analysis.
+        return {Source};
+      }
+    };
+    return std::make_shared<MapFactsAlongsideCallSite>(
+        OnlyDecls, AllVoidRetTys, llvm::dyn_cast<llvm::CallBase>(CallSite),
+        this->getZeroValue());
   }
 
   inline FlowFunctionPtrType
-  getSummaryFlowFunction(n_t /* CallSite */, f_t /* DestMthd */) override {
+  getSummaryFlowFunction(n_t /* CallSite */, f_t /* DestFun */) override {
     // Do not use user-crafted summaries.
     return nullptr;
   }
@@ -675,7 +953,7 @@ public:
     //                     0
     //
     if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
-      return std::make_shared<AllBottom<l_t>>(bottomElement());
+      return EdgeIdentity<l_t>::getInstance();
     }
     // check if the user has registered a fact generator function
     l_t UserEdgeFacts = BitVectorSet<e_t>();
@@ -793,7 +1071,7 @@ public:
           // obtain the label
           if (OrigAlloca) {
             if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
-              UEF->insert(edgeFactGenToBitVectorSet(OrigAlloca));
+              UEF->insert(edgeFactGenForInstToBitVectorSet(OrigAlloca));
             }
           }
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
@@ -844,6 +1122,7 @@ public:
                                                     CurrNode,
                                                     OnlyConsiderLocalAliases) ||
              Store->getPointerOperand() == CurrNode)) {
+          // Add the original variable, i.e., memory location.
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
         }
         // Kill all labels that are propagated along the edge of the
@@ -905,6 +1184,15 @@ public:
       //                           o_i
       //
       if (isZeroValue(CurrNode) && Op == SuccNode) {
+        // Constant variables should retain their own label
+        if (llvm::isa<llvm::Constant>(SuccNode.getBase())) {
+          if (llvm::isa_and_nonnull<llvm::GlobalVariable>(SuccNode.getBase())) {
+            if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
+              UEF->insert(edgeFactGenForGlobalVarToBitVectorSet(
+                  llvm::dyn_cast<llvm::GlobalVariable>(SuccNode.getBase())));
+            }
+          }
+        }
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
       //
@@ -1026,7 +1314,8 @@ public:
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /* RetSite */,
-                           d_t RetSiteNode, std::set<f_t> Callees) override {
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override {
     // Check if the user has registered a fact generator function
     l_t UserEdgeFacts = BitVectorSet<e_t>();
     std::set<e_t> EdgeFacts;
@@ -1444,7 +1733,7 @@ protected:
   }
 
 private:
-  /// Filters out all variables that had a non empty set during edge functions
+  /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
       const SolverResults<n_t, d_t, l_t> &Solution,
@@ -1458,7 +1747,7 @@ private:
       // at some point. Therefore, we only care for the variables and their
       // associated values and ignore at which point a variable may holds as a
       // data-flow fact.
-      const auto *Variable = Result.getColumnKey();
+      const auto Variable = Result.getColumnKey();
       const auto &Value = Result.getValue();
       // skip result entry if variable is not in the set of all variables
       if (Variables.find(Variable) == Variables.end()) {
@@ -1482,9 +1771,19 @@ private:
   static inline const l_t TopElement = Top{};
   const bool OnlyConsiderLocalAliases = true;
 
-  inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t CurrInst) {
+  inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
     if (EdgeFactGen) {
       auto Results = EdgeFactGen(CurrInst);
+      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
+      return BVS;
+    }
+    return {};
+  }
+
+  inline BitVectorSet<e_t>
+  edgeFactGenForGlobalVarToBitVectorSet(const llvm::GlobalVariable *GlobalVar) {
+    if (EdgeFactGen) {
+      auto Results = EdgeFactGen(GlobalVar);
       BitVectorSet<e_t> BVS(Results.begin(), Results.end());
       return BVS;
     }

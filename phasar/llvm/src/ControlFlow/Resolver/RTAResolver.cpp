@@ -23,7 +23,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -98,3 +98,5 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   return PossibleCallTargets;
 }
+
+std::string RTAResolver::str() const { return "RTA"; }

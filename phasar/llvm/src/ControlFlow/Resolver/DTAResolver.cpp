@@ -22,10 +22,11 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -113,10 +114,7 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
         if (BitcastExpr->isCast()) {
           if (auto *ConstGep = llvm::dyn_cast<llvm::ConstantExpr>(
                   BitcastExpr->getOperand(0))) {
-            std::unique_ptr<llvm::Instruction, decltype(&deleteValue)>
-                GepAsInst(ConstGep->getAsInstruction(), &deleteValue);
-            if (auto *Gep =
-                    llvm::dyn_cast<llvm::GetElementPtrInst>(GepAsInst.get())) {
+            if (auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(ConstGep)) {
               if (auto *Vtable = llvm::dyn_cast<llvm::Constant>(
                       Gep->getPointerOperand())) {
                 // We can here assume that we found a vtable
@@ -208,3 +206,5 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   return PossibleCallTargets;
 }
+
+std::string DTAResolver::str() const { return "DTA"; }

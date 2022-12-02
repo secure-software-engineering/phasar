@@ -25,7 +25,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 
@@ -295,15 +295,18 @@ public:
       auto CTXRm(Ctx);
       llvm::outs() << "CTXRm: " << CTXRm << '\n';
       // we need to use several call- and retsites if the context is empty
-      std::set<n_t> CallSites;
-      std::set<n_t> RetSites;
+      llvm::SmallVector<n_t> CallSites;
+
       // handle empty context
       if (Ctx.empty()) {
-        CallSites = ICF->getCallersOf(ICF->getFunctionOf(Src));
+        const auto &Callers = ICF->getCallersOf(ICF->getFunctionOf(Src));
+        CallSites.append(Callers.begin(), Callers.end());
       } else {
         // handle context containing at least one element
-        CallSites.insert(CTXRm.pop_back());
+        CallSites.push_back(CTXRm.pop_back());
       }
+
+      std::set<n_t> RetSites;
       // retrieve the possible return sites for each call
       for (auto CallSite : CallSites) {
         auto RetSitesPerCall = ICF->getReturnSitesOfCallAt(CallSite);

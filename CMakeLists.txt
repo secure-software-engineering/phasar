@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(cmake/just-simple.cmake)
 
 just_limit_jobs(COMPILE 1200 LINK 1200)
-add_subdirectory(phasar/boomerang)
 add_subdirectory(phasar/clang)
 add_subdirectory(phasar/config)
 add_subdirectory(phasar/controller)

@@ -56,8 +56,9 @@ protected:
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
-                                      EntryPoints, TH.get(), PT.get());
+    ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
+                                      std::vector<std::string>{"main"},
+                                      TH.get(), PT.get());
 
     SecureHeapPropagationProblem = make_unique<IDESecureHeapPropagation>(
         IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);

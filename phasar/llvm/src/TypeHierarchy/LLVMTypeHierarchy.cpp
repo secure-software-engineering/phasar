@@ -32,12 +32,13 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/GraphExtensions.h"
-#include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -71,15 +72,17 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Construct type hierarchy");
   for (auto *M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Finished type hierarchy");
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Finished type hierarchy");
 }
 
 std::string
@@ -122,12 +125,12 @@ std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
 }
 
 bool LLVMTypeHierarchy::isTypeInfo(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(TypeInfoPrefixDemang);
 }
 
 bool LLVMTypeHierarchy::isVTable(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
 
@@ -161,21 +164,20 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
   std::string ClearName = removeStructOrClassPrefix(Type);
   if (const auto *TI = ClearNameTIMap[ClearName]) {
     if (!TI->hasInitializer()) {
-      PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                           ClearName << " does not have initializer");
       return SubTypes;
     }
     if (const auto *I =
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          std::unique_ptr<llvm::Instruction, decltype(&deleteValue)> AsI(
-              CE->getAsInstruction(), &deleteValue);
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI.get())) {
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName =
-                    removeTypeInfoPrefix(llvm::demangle(Name.str().c_str()));
+                    removeTypeInfoPrefix(llvm::demangle(Name.str()));
                 if (const auto *Type = ClearNameTypeMap[ClearName]) {
                   SubTypes.push_back(Type);
                 }
@@ -197,7 +199,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
       if (!TI->hasInitializer()) {
-        PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
+        PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                             ClearName << " does not have initializer");
         return VFS;
       }
       if (const auto *I =
@@ -210,8 +213,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
 }
 
 void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL(DEBUG,
-                   "Analyze types in module: " << M.getModuleIdentifier());
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                       "Analyze types in module: " << M.getModuleIdentifier());
   // store analyzed module
   VisitedModules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();

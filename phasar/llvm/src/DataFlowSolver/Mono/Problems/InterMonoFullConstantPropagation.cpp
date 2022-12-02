@@ -23,8 +23,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;
@@ -147,7 +147,7 @@ InterMonoFullConstantPropagation::mono_container_t
 InterMonoFullConstantPropagation::callToRetFlow(
     InterMonoFullConstantPropagation::n_t /*CallSite*/,
     InterMonoFullConstantPropagation::n_t /*RetSite*/,
-    std::set<InterMonoFullConstantPropagation::f_t> /*Callees*/,
+    llvm::ArrayRef<f_t> /*Callees*/,
     const InterMonoFullConstantPropagation::mono_container_t &In) {
   return In;
 }

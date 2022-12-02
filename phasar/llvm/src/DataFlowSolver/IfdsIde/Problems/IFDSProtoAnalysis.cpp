@@ -20,7 +20,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 using namespace psr;
 using namespace std;
@@ -59,9 +59,9 @@ IFDSProtoAnalysis::FlowFunctionPtrType IFDSProtoAnalysis::getRetFlowFunction(
 }
 
 IFDSProtoAnalysis::FlowFunctionPtrType
-IFDSProtoAnalysis::getCallToRetFlowFunction(
-    IFDSProtoAnalysis::n_t /*CallSite*/, IFDSProtoAnalysis::n_t /*RetSite*/,
-    set<IFDSProtoAnalysis::f_t> /*Callees*/) {
+IFDSProtoAnalysis::getCallToRetFlowFunction(IFDSProtoAnalysis::n_t /*CallSite*/,
+                                            IFDSProtoAnalysis::n_t /*RetSite*/,
+                                            llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 

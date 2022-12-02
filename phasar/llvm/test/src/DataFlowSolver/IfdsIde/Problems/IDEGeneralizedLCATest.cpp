@@ -7,12 +7,9 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <unordered_set>
-#include <vector>
-
 #include "gtest/gtest.h"
 
-#include "llvm/Support/raw_ostream.h"
+#include "TestConfig.h"
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
@@ -22,7 +19,10 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
-#include "TestConfig.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <unordered_set>
+#include <vector>
 
 using namespace psr;
 
@@ -51,9 +51,9 @@ protected:
         std::vector<std::string>{PathToLLFiles + LLFile}, IRDBOptions::WPA);
     TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = std::make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = std::make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::RTA,
-                                           std::set<std::string>{"main"},
-                                           TH.get(), PT.get());
+    ICFG = std::make_unique<LLVMBasedICFG>(
+        IRDB.get(), CallGraphAnalysisType::RTA,
+        std::vector<std::string>{"main"}, TH.get(), PT.get());
     LCAProblem = std::make_unique<IDEGeneralizedLCA>(
         IRDB.get(), TH.get(), ICFG.get(), PT.get(),
         std::set<std::string>{"main"}, MaxSetSize);

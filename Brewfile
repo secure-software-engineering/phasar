@@ -1,6 +1,0 @@
-tap "homebrew/core"
-tap "homebrew/bundle"
-tap "homebrew/services"
-brew "autoconf"
-brew "cmake"
-brew "python"
