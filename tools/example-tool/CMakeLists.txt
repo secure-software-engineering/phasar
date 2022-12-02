@@ -17,12 +17,10 @@ target_link_libraries(myphasartool
   phasar_config
   phasar_controller
   phasar_db
-  phasar_experimental
   phasar_controlflow
   phasar_ifdside
   phasar_mono
   phasar_passes
-  ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   phasar_typehierarchy
   phasar_phasarllvm_utils

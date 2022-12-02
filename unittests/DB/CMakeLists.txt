@@ -1,5 +1,4 @@
 set(DBSources
-	#DBConnTest.cpp
 	HexastoreTest.cpp
 )
 

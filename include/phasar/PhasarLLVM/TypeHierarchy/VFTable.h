@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "nlohmann/json.hpp"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 
