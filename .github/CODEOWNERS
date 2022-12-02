@@ -21,5 +21,6 @@
 /include/phasar/PhasarLLVM/AnalysisStrategy/ @pdschubert
 
 Dockerfile @janniclas
+/.docker/ @janniclas
 
 /include/phasar/Utils/Logger.h @MMory
