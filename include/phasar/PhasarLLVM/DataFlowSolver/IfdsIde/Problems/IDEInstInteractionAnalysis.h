@@ -244,7 +244,7 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
+      return generateFlow<d_t>(Alloca, this->getZeroValue());
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -416,7 +416,7 @@ public:
     //              0  y  x
     //
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      return std::make_shared<Gen<d_t>>(Load, Load->getPointerOperand());
+      return generateFlow<d_t>(Load, Load->getPointerOperand());
     }
     // Handle store instructions
     //
@@ -611,7 +611,7 @@ public:
           return {};
         }
         // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+        if (LLVMZeroValue::isLLVMZeroValue(Source)) {
           return {Source};
         }
         container_type Res;
@@ -680,10 +680,10 @@ public:
         SRetFormals.insert(DestFun->getArg(Idx));
       }
     }
-    auto GenSRetFormals = std::make_shared<GenAllAndKillAllOthers<d_t>>(
-        SRetFormals, this->getZeroValue());
-    return std::make_shared<Union<d_t>>(
-        std::vector<FlowFunctionPtrType>({MapFactsToCalleeFF, GenSRetFormals}));
+
+    return unionFlows<d_t>(std::move(MapFactsToCalleeFF),
+                           generateManyFlowsAndKillAllOthers(
+                               std::move(SRetFormals), this->getZeroValue()));
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
@@ -714,7 +714,7 @@ public:
 
       std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
         // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source.getBase())) {
+        if (LLVMZeroValue::isLLVMZeroValue(Source.getBase())) {
           return {Source};
         }
         // Pass global variables as is, if desired
@@ -780,11 +780,9 @@ public:
             // Generate the respective callsite. The callsite will receive its
             // value from this very return instruction cf.
             // getReturnEdgeFunction().
-            auto ConstantRetGen = std::make_shared<GenAndKillAllOthers<d_t>>(
-                CallSite, this->getZeroValue());
-            return std::make_shared<Union<d_t>>(
-                std::vector<FlowFunctionPtrType>(
-                    {MapFactsToCallerFF, ConstantRetGen}));
+            return unionFlows<d_t>(std::move(MapFactsToCallerFF),
+                                   generateFlowAndKillAllOthers<d_t>(
+                                       CallSite, this->getZeroValue()));
           }
         }
       }
@@ -813,7 +811,7 @@ public:
           //              v  v
           //              0  x
           //
-          return std::make_shared<Gen<d_t>>(CallSite, this->getZeroValue());
+          return generateFlow<d_t>(CallSite, this->getZeroValue());
         }
       }
     }

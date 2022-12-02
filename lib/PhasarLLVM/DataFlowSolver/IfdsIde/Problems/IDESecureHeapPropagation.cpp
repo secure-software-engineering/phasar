@@ -57,8 +57,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(
 
   auto FName = CS->getCalledFunction()->getName();
   if (FName == InitializerFn) {
-    return std::make_shared<Gen<d_t>>(SecureHeapFact::INITIALIZED,
-                                      getZeroValue());
+    return generateFlow(SecureHeapFact::INITIALIZED, getZeroValue());
   }
   return Identity<d_t>::getInstance();
 }

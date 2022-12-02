@@ -40,8 +40,7 @@ IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
                                          IFDSProtoAnalysis::n_t /*Succ*/) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    return make_shared<Gen<IFDSProtoAnalysis::d_t>>(Store->getPointerOperand(),
-                                                    getZeroValue());
+    return generateFlow(Store->getPointerOperand(), getZeroValue());
   }
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }

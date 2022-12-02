@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/BinaryEdgeFunction.h"
@@ -34,12 +35,6 @@
 
 namespace psr {
 
-template <typename Fn, typename = std::enable_if_t<
-                           std::is_invocable_v<Fn, IDEGeneralizedLCA::d_t>>>
-inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>> flow(Fn Func) {
-  return makeLambdaFlow<IDEGeneralizedLCA::d_t>(std::forward<Fn>(Func));
-}
-
 IDEGeneralizedLCA::IDEGeneralizedLCA(
     const ProjectIRDB *IRDB,
     const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
@@ -60,9 +55,10 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
     const auto *ValueOp = Store->getValueOperand();
     if (isConstant(ValueOp)) {
       // llvm::outs() << "==> constant store" << std::endl;
-      return flow([=](IDEGeneralizedLCA::d_t Source)
-                      -> std::set<IDEGeneralizedLCA::d_t> {
-        // llvm::outs() << "##> normal flow for: " << llvmIRToString(curr)
+      return lambdaFlow<d_t>([=](IDEGeneralizedLCA::d_t Source)
+                                 -> std::set<IDEGeneralizedLCA::d_t> {
+        // llvm::outs() << "##> normal lambdaFlow<d_t> for: " <<
+        // llvmIRToString(curr)
         //          << " with " << llvmIRToString(source) << std::endl;
         if (Source == PointerOp) {
           return {};
@@ -73,7 +69,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
         return {Source};
       });
     }
-    return flow(
+    return lambdaFlow<d_t>(
         [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           if (Source == PointerOp) {
             return {};
@@ -85,7 +81,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
         });
   }
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return flow(
+    return lambdaFlow<d_t>(
         [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           // llvm::outs() << "LOAD " << llvmIRToString(curr) << std::endl;
           // llvm::outs() << "\twith " << llvmIRToString(source) << " ==> ";
@@ -98,7 +94,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
         });
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return flow(
+    return lambdaFlow<d_t>(
         [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           if (Source == Gep->getPointerOperand()) {
             return {Source, Gep};
@@ -112,7 +108,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
        Cast->getSrcTy()->isFloatingPointTy()) &&
       (Cast->getDestTy()->isIntegerTy() ||
        Cast->getDestTy()->isFloatingPointTy())) {
-    return flow(
+    return lambdaFlow<d_t>(
         [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           if (Source == Cast->getOperand(0)) {
             return {Source, Cast};
@@ -128,7 +124,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
     bool BothConst = LeftConst && RightConst;
     bool NoneConst = !LeftConst && !RightConst;
 
-    return flow(
+    return lambdaFlow<d_t>(
         [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           if (Source == Lhs || Source == Rhs ||
               ((BothConst || NoneConst) && isZeroValue(Source))) {
@@ -138,7 +134,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
         });
   } /*else if (llvm::isa<llvm::UnaryOperator>(curr)) {
     auto op = curr->getOperand(0);
-    return flow([=](IDEGeneralizedLCA::d_t source)
+    return lambdaFlow<d_t>([=](IDEGeneralizedLCA::d_t source)
                     -> std::set<IDEGeneralizedLCA::d_t> {
       if (source == op)
         return {source, curr};
@@ -168,7 +164,8 @@ IDEGeneralizedLCA::getRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                       IDEGeneralizedLCA::n_t ExitStmt,
                                       IDEGeneralizedLCA::n_t /*RetSite*/) {
   assert(llvm::isa<llvm::CallBase>(CallSite));
-  // llvm::outs() << "Ret flow: " << llvmIRToString(ExitStmt) << std::endl;
+  // llvm::outs() << "Ret flow: " << llvmIRToString(ExitStmt) <<
+  // std::endl;
   /*return std::make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
       [](const llvm::Value *v) -> bool {
@@ -182,16 +179,16 @@ std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>>
 IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::n_t /*RetSite*/,
                                             llvm::ArrayRef<f_t> /*Callees*/) {
-  // llvm::outs() << "CTR flow: " << llvmIRToString(CallSite) << std::endl;
+  // llvm::outs() << "CTR flow: " << llvmIRToString(CallSite) <<
+  // std::endl;
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // check for ctor and then demangle function name and check for
     // std::basic_string
     if (isStringConstructor(CS->getCalledFunction())) {
       // found std::string ctor
-      return std::make_shared<Gen<IDEGeneralizedLCA::d_t>>(CS->getArgOperand(0),
-                                                           getZeroValue());
+      return generateFlow<d_t>(CS->getArgOperand(0), getZeroValue());
     }
-    // return flow([Call](IDEGeneralizedLCA::d_t Source)
+    // return lambdaFlow<d_t>([Call](IDEGeneralizedLCA::d_t Source)
     //                 -> std::set<IDEGeneralizedLCA::d_t> {
     //   // llvm::outs() << "In getCallToRetFlowFunction\n";
     //   // llvm::outs() << llvmIRToString(Source) << '\n';

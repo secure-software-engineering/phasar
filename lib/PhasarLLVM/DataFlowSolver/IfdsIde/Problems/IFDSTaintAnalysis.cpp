@@ -146,18 +146,12 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        Load, [Load](IFDSTaintAnalysis::d_t Source) {
-          return Source == Load->getPointerOperand();
-        });
+    return generateFlow<d_t>(Load, Load->getPointerOperand());
   }
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        GEP, [GEP](IFDSTaintAnalysis::d_t Source) {
-          return Source == GEP->getPointerOperand();
-        });
+    return generateFlow<d_t>(GEP, GEP->getPointerOperand());
   }
   // Otherwise we do not care and leave everything as it is
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
@@ -231,8 +225,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   populateWithMustAliases(Kill);
 
   if (Gen.empty() && (!Leak.empty() || !Kill.empty())) {
-    return makeLambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)},
-                                this, CallSite](d_t Source) -> std::set<d_t> {
+    return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
+                            CallSite](d_t Source) -> std::set<d_t> {
       if (Leak.count(Source)) {
         Leaks[CallSite].insert(Source);
       }
@@ -245,8 +239,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     });
   }
   if (Kill.empty()) {
-    return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
-                                this, CallSite](d_t Source) -> std::set<d_t> {
+    return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
+                            CallSite](d_t Source) -> std::set<d_t> {
       if (LLVMZeroValue::isLLVMZeroValue(Source)) {
         return Gen;
       }
@@ -258,9 +252,9 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       return {Source};
     });
   }
-  return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
-                              Kill{std::move(Kill)}, this,
-                              CallSite](d_t Source) -> std::set<d_t> {
+  return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
+                          Kill{std::move(Kill)}, this,
+                          CallSite](d_t Source) -> std::set<d_t> {
     if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return Gen;
     }

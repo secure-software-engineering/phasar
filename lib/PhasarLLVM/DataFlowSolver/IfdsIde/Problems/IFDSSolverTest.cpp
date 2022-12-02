@@ -85,7 +85,7 @@ IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() const {
 }
 
 bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSSolverTest::printNode(llvm::raw_ostream &OS,

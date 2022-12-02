@@ -83,7 +83,7 @@ IFDSSignAnalysis::d_t IFDSSignAnalysis::createZeroValue() const {
 }
 
 bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSSignAnalysis::printNode(llvm::raw_ostream &OS,

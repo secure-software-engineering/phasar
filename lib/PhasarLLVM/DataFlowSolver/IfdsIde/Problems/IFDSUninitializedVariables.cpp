@@ -177,7 +177,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
+    return lambdaFlow<IFDSUninitializedVariables::d_t>(
         [Alloc, this](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (isZeroValue(Source)) {
@@ -370,7 +370,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
-    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
+    return lambdaFlow<IFDSUninitializedVariables::d_t>(
         [CS](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
@@ -419,7 +419,7 @@ IFDSUninitializedVariables::createZeroValue() const {
 
 bool IFDSUninitializedVariables::isZeroValue(
     IFDSUninitializedVariables::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSUninitializedVariables::printNode(

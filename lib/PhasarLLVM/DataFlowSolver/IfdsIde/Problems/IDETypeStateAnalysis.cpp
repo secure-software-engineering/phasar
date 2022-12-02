@@ -58,8 +58,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
   // value.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
-      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
-                                                         getZeroValue());
+      return generateFlow<d_t>(Alloca, getZeroValue());
     }
   }
   // Check load instructions for target type. Generate from the loaded value and
@@ -87,7 +86,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return makeLambdaFlow<d_t>([=](d_t Source) -> set<d_t> {
+      return lambdaFlow<d_t>([=](d_t Source) -> set<d_t> {
         // if (Source == Gep->getPointerOperand()) {
         //  return {Source, Gep};
         //}
@@ -289,10 +288,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     if (!TSD.isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
       for (const auto &Arg : CS->args()) {
         if (hasMatchingType(Arg)) {
-          std::set<IDETypeStateAnalysis::d_t> FactsToKill =
-              getWMAliasesAndAllocas(Arg.get());
-          return make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
-              FactsToKill);
+          return killManyFlows<d_t>(getWMAliasesAndAllocas(Arg.get()));
         }
       }
     }

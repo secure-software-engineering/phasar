@@ -67,7 +67,7 @@ IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
-      return std::make_shared<Gen<d_t>>(Alloca, getZeroValue());
+      return generateFlow<d_t>(Alloca, getZeroValue());
     }
   }
   // Check store instructions. Store instructions override previous value
@@ -91,7 +91,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
     if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
-      return std::make_shared<GenIf<d_t>>(Load, [Load](d_t Source) {
+      return generateFlowIf<d_t>(Load, [Load](d_t Source) {
         return Source == Load->getPointerOperand();
       });
     }
@@ -100,7 +100,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (llvm::isa<llvm::BinaryOperator>(Curr)) {
     auto *Lop = Curr->getOperand(0);
     auto *Rop = Curr->getOperand(1);
-    return std::make_shared<GenIf<d_t>>(Curr, [this, Lop, Rop](d_t Source) {
+    return generateFlowIf<d_t>(Curr, [this, Lop, Rop](d_t Source) {
       /// Intentionally include nonlinear operations here for being able to
       /// explicitly set them to BOTTOM in the edge function
       return (Lop == Source) || (Rop == Source) ||
@@ -222,7 +222,7 @@ IDELinearConstantAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
     }
   }
   // All other facts except GlobalVariables are killed at this point
-  return std::make_shared<KillIf<d_t>>(
+  return killFlowIf<d_t>(
       [](d_t Source) { return !llvm::isa<llvm::GlobalVariable>(Source); });
 }
 
@@ -231,7 +231,7 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
     n_t /*CallSite*/, n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees) {
   for (const auto *Callee : Callees) {
     if (!ICF->getStartPointsOf(Callee).empty()) {
-      return std::make_shared<KillIf<d_t>>([this](d_t Source) {
+      return killFlowIf<d_t>([this](d_t Source) {
         return !isZeroValue(Source) && llvm::isa<llvm::GlobalVariable>(Source);
       });
     }

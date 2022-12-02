@@ -76,12 +76,9 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information for the pointer operand.");
-        return make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
-                                            getContextRelevantPointsToSet(
-                                                PointsToSet,
-                                                Curr->getFunction()),
-                                            getZeroValue());
+        return generateManyFlows(
+            getContextRelevantPointsToSet(PointsToSet, Curr->getFunction()),
+            getZeroValue());
       }
     }
     // If neither the pointer operand nor one of its alias is initialized,
@@ -152,12 +149,9 @@ IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information of the pointer operand.");
-        return make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
-                                            getContextRelevantPointsToSet(
-                                                PointsToSet,
-                                                CallSite->getFunction()),
-                                            getZeroValue());
+        return generateManyFlows(
+            getContextRelevantPointsToSet(PointsToSet, CallSite->getFunction()),
+            getZeroValue());
       }
     }
     markAsInitialized(PointerOp);
