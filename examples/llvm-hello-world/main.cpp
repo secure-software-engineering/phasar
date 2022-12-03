@@ -1,8 +1,6 @@
 #include <memory>
 #include <string>
 
-#include "llvm/IR/CallSite.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -24,11 +22,11 @@ int main(int argc, char **argv) {
   }
   // parse an IR file into an LLVM module
   llvm::SMDiagnostic Diag;
-  std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
-  std::unique_ptr<llvm::Module> M = llvm::parseIRFile(argv[1], Diag, *C);
+  llvm::LLVMContext C;
+  std::unique_ptr<llvm::Module> M = llvm::parseIRFile(argv[1], Diag, C);
   // check if the module is alright
   bool broken_debug_info = false;
-  if (M.get() == nullptr ||
+  if (M == nullptr ||
       llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
     llvm::errs() << "error: module not valid\n";
     return 1;
@@ -76,6 +74,5 @@ int main(int argc, char **argv) {
       // C++'s classical 'dynamic_cast'.
     }
   }
-  llvm::llvm_shutdown();
   return 0;
 }

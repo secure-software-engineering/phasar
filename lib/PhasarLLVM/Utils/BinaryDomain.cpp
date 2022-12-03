@@ -14,21 +14,18 @@
  *      Author: philipp
  */
 
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-using namespace psr;
-using namespace std;
 
-namespace psr {
-
-const map<string, BinaryDomain> StringToBinaryDomain = {
-    {"BOTTOM", BinaryDomain::BOTTOM}, {"TOP", BinaryDomain::TOP}};
-
-const map<BinaryDomain, string> BinaryDomainToString = {
-    {BinaryDomain::BOTTOM, "BOTTOM"}, {BinaryDomain::TOP, "TOP"}};
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const BinaryDomain &B) {
-  return OS << BinaryDomainToString.at(B);
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, BinaryDomain B) {
+  switch (B) {
+  case BinaryDomain::BOTTOM:
+    return OS << "BOTTOM";
+  case BinaryDomain::TOP:
+    return OS << "TOP";
+  }
+  llvm_unreachable(
+      "Both TOP and BOTTOM should already be handled in the swith above!");
 }
-} // namespace psr
