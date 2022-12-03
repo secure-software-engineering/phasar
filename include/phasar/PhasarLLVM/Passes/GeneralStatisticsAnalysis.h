@@ -45,11 +45,10 @@ private:
   size_t LoadInstructions = 0;
   size_t MemIntrinsics = 0;
   size_t GlobalPointers = 0;
-  size_t Switchs = 0;
   size_t Branchs = 0;
-  size_t Loops = 0;
   size_t GetElementPtrs = 0;
   size_t Terminators = 0;
+  size_t PhiNodes = 0;
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;
   std::set<const llvm::Instruction *> RetResInstructions;

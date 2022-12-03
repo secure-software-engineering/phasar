@@ -59,6 +59,9 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;
         }
+        if (llvm::isa<llvm::PHINode>(I)) {
+          ++Stats.PhiNodes;
+        }
         if (I.isTerminator()) {
           ++Stats.Terminators;
         }
@@ -229,8 +232,7 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   J["Branchs"] = Branchs;
   J["GetElementPtrs"] = GetElementPtrs;
   J["Terminators"] = Terminators;
-  J["Loops"] = Loops;
-  J["Switchs"] = Switchs;
+  J["PhiNodes"] = PhiNodes;
   return J;
 }
 
