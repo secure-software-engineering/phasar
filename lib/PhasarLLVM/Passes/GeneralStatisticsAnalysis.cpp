@@ -59,12 +59,11 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;
         }
-
         if (I.isTerminator()) {
           ++Stats.Terminators;
         }
         if (llvm::isa<llvm::BranchInst>(I)) {
-          ++Stats.Breaks;
+          ++Stats.Branchs;
         }
         if (llvm::isa<llvm::GetElementPtrInst>(I)) {
           ++Stats.GetElementPtrs;
@@ -227,12 +226,11 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   J["AllocaInstructions"] = AllocaInstructions.size();
   J["CallSites"] = CallSites;
   J["GlobalVariables"] = Globals;
-  J["Breaks"] = Breaks;
+  J["Branchs"] = Branchs;
   J["GetElementPtrs"] = GetElementPtrs;
   J["Terminators"] = Terminators;
   J["Loops"] = Loops;
   J["Switchs"] = Switchs;
-  J["StaticMethods"] = StaticMethods;
   return J;
 }
 
