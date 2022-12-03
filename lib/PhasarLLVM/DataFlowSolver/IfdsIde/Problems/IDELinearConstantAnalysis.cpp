@@ -67,7 +67,7 @@ IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
-      return generateFlow<d_t>(Alloca, getZeroValue());
+      return generateFromZero(Alloca);
     }
   }
   // Check store instructions. Store instructions override previous value
@@ -77,14 +77,13 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
       // return Identity<d_t>::getInstance();
-      return std::make_shared<StrongUpdateStore<d_t>>(
-          Store, [this](d_t Source) { return Source == getZeroValue(); });
+      return strongUpdateStore(Store, [](d_t Source) {
+        return LLVMZeroValue::isLLVMZeroValue(Source);
+      });
     }
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
-      return std::make_shared<StrongUpdateStore<d_t>>(
-          Store,
-          [Store](d_t Source) { return Source == Store->getValueOperand(); });
+      return strongUpdateStore(Store);
     }
   }
   // check load instructions

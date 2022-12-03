@@ -11,6 +11,7 @@
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
@@ -166,23 +167,27 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallSite,
   // The respective taints or leaks are then generated in the corresponding
   // call to return flow function.
   if (isSourceCall(CS, DestFun) || isSinkCall(CS, DestFun)) {
-    return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
+    return killAllFlows<d_t>();
   }
+
   // Map the actual into the formal parameters
-  return make_shared<MapFactsToCallee<>>(CS, DestFun);
+  return mapFactsToCallee(CS, DestFun);
 }
 
 IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
-    IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t CalleeFun,
+    IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t /*CalleeFun*/,
     IFDSTaintAnalysis::n_t ExitStmt,
     [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
-  return make_shared<MapFactsToCaller<>>(
-      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt, true,
-      [](IFDSTaintAnalysis::d_t Formal) {
-        return Formal->getType()->isPointerTy();
+  return mapFactsToCaller(
+      llvm::cast<llvm::CallBase>(CallSite), ExitStmt, /*PropagateGlobals*/ true,
+      Overloaded{
+          [](const llvm::Argument *Formal, d_t Source) {
+            return Formal == Source && Formal->getType()->isPointerTy();
+          },
+          [](d_t RetVal, d_t Source) { return RetVal == Source; },
       });
   // All other stuff is killed at this point
 }

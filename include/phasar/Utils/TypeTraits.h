@@ -165,6 +165,15 @@ constexpr bool is_string_like_v = std::is_convertible_v<T, std::string_view>;
 template <template <typename> typename Base, typename Derived>
 constexpr bool is_crtp_base_of_v = // NOLINT
     detail::is_crtp_base_of<Base, Derived>::value;
+
+#if __cplusplus < 202002L
+template <typename T> struct type_identity { using type = T; }; // NOLINT
+#else
+template <typename T> using type_identity = std::type_identity<T>;
+#endif
+
+template <typename T> using type_identity_t = typename type_identity<T>::type;
+
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr
 

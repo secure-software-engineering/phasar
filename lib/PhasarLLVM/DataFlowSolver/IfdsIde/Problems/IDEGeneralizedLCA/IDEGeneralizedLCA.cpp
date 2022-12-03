@@ -186,7 +186,7 @@ IDEGeneralizedLCA::getCallToRetFlowFunction(IDEGeneralizedLCA::n_t CallSite,
     // std::basic_string
     if (isStringConstructor(CS->getCalledFunction())) {
       // found std::string ctor
-      return generateFlow<d_t>(CS->getArgOperand(0), getZeroValue());
+      return generateFromZero(CS->getArgOperand(0));
     }
     // return lambdaFlow<d_t>([Call](IDEGeneralizedLCA::d_t Source)
     //                 -> std::set<IDEGeneralizedLCA::d_t> {

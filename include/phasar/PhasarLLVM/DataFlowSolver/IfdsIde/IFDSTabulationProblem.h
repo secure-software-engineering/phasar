@@ -67,6 +67,11 @@ protected:
   std::set<std::string> EntryPoints;
   [[maybe_unused]] Soundness SF = Soundness::Soundy;
 
+  typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
+  generateFromZero(d_t FactToGenerate) {
+    return generateFlow(std::move(FactToGenerate), getZeroValue());
+  }
+
 public:
   using ConfigurationTy = HasNoConfigurationType;
 

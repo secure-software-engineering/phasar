@@ -10,54 +10,27 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <set>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
+#include "llvm/ADT/PointerIntPair.h"
 #include "llvm/IR/Constant.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
-namespace llvm {
-class Value;
-class Use;
-class Function;
-class Instruction;
-} // namespace llvm
-
 namespace psr {
-
-/// A flow function that can be wrapped around another flow function
-/// in order to kill unnecessary temporary values that are no longer
-/// in use, but otherwise would be still propagated through the exploded
-/// super-graph.
-/// \brief Automatically kills temporary loads that are no longer in use.
-class AutoKillTMPs : public FlowFunction<const llvm::Value *> {
-protected:
-  FlowFunctionPtrType Delegate;
-  const llvm::Instruction *Inst;
-
-public:
-  AutoKillTMPs(FlowFunctionPtrType FF, const llvm::Instruction *In)
-      : Delegate(std::move(FF)), Inst(In) {}
-
-  ~AutoKillTMPs() override = default;
-
-  container_type computeTargets(const llvm::Value *Source) override {
-    container_type Result = Delegate->computeTargets(Source);
-    for (const llvm::Use &U : Inst->operands()) {
-      if (llvm::isa<llvm::LoadInst>(U)) {
-        Result.erase(U);
-      }
-    }
-    return Result;
-  }
-};
 
 //===----------------------------------------------------------------------===//
 // Mapping functions
@@ -65,187 +38,167 @@ public:
 /// A predicate can be used to specify additional requirements for the
 /// propagation.
 /// \brief Propagates all non pointer parameters alongside the call site.
+template <typename Fn, typename Container = std::set<const llvm::Value *>,
+          typename = std::enable_if_t<std::is_invocable_r_v<
+              bool, Fn, const llvm::CallBase *, const llvm::Value *>>>
+FlowFunctionPtrType<const llvm::Value *, Container>
+mapFactsAlongsideCallSite(const llvm::CallBase *CallSite, bool PropagateGlobals,
+                          Fn &&PropagateOthers) {
+  struct Mapper : public FlowFunction<const llvm::Value *, Container> {
+
+    Mapper(const llvm::CallBase *CS, bool PropagateGlobals, Fn &&PropOthers)
+        : CSAndPropGlob(CS, PropagateGlobals),
+          PropOthers(std::forward<Fn>(PropOthers)) {}
+
+    Container computeTargets(const llvm::Value *Source) override {
+      // Pass ZeroValue as is
+      if (LLVMZeroValue::isLLVMZeroValue(Source)) {
+        return {Source};
+      }
+      // Pass global variables as is, if desired
+      // Need llvm::Constant here to cover also ConstantExpr and
+      // ConstantAggregate
+      if (CSAndPropGlob.getInt() && llvm::isa<llvm::Constant>(Source)) {
+        return {Source};
+      }
+      // Propagate if predicate does not hold, i.e., fact is not involved in the
+      // call
+      if (!std::invoke(PropOthers, CSAndPropGlob.getPointer(), Source)) {
+        return {Source};
+      }
+      // Otherwise kill fact
+      return {};
+    }
+
+    llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
+    std::decay_t<Fn> PropOthers;
+  };
+
+  return std::make_shared<Mapper>(CallSite, PropagateGlobals,
+                                  std::forward<Fn>(PropagateOthers));
+}
+
 template <typename Container = std::set<const llvm::Value *>>
-class MapFactsAlongsideCallSite
-    : public FlowFunction<const llvm::Value *, Container> {
-  using typename FlowFunction<const llvm::Value *, Container>::container_type;
-
-protected:
-  const llvm::CallBase *CallSite;
-  bool PropagateGlobals;
-  std::function<bool(const llvm::CallBase *, const llvm::Value *)> Predicate;
-
-public:
-  MapFactsAlongsideCallSite(
-      const llvm::CallBase *CallSite, bool PropagateGlobals,
-      std::function<bool(const llvm::CallBase *, const llvm::Value *)>
-          Predicate =
-              [](const llvm::CallBase *CallSite, const llvm::Value *V) {
-                // Globals are considered to be involved in this default
-                // implementation.
-                // Need llvm::Constant here to cover also ConstantExpr
-                // and ConstantAggregate
-                if (llvm::isa<llvm::Constant>(V)) {
-                  return true;
-                }
-                // Checks if a values is involved in a call, i.e., may be
-                // modified by a callee, in which case its flow is controlled by
-                // getCallFlowFunction() and getRetFlowFunction().
-                bool Involved = false;
-                for (const auto &Arg : CallSite->args()) {
-                  if (Arg == V && V->getType()->isPointerTy()) {
-                    Involved = true;
-                  }
-                }
-                return Involved;
-              })
-      : CallSite(CallSite), PropagateGlobals(PropagateGlobals),
-        Predicate(std::move(Predicate)){};
-  ~MapFactsAlongsideCallSite() override = default;
-
-  container_type computeTargets(const llvm::Value *Source) override {
-    // Pass ZeroValue as is
-    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-      return {Source};
-    }
-    // Pass global variables as is, if desired
-    // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
-    if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
-      return {Source};
-    }
-    // Propagate if predicate does not hold, i.e., fact is not involved in the
-    // call
-    if (!Predicate(CallSite, Source)) {
-      return {Source};
-    }
-    // Otherwise kill fact
-    return {};
-  }
-};
+FlowFunctionPtrType<const llvm::Value *, Container>
+mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
+                          bool PropagateGlobals = true) {
+  return mapFactsAlongsideCallSite(
+      CallSite, PropagateGlobals,
+      [](const llvm::CallBase *CallSite, const llvm::Value *V) {
+        // Globals are considered to be involved in this default
+        // implementation.
+        // Need llvm::Constant here to cover also ConstantExpr
+        // and ConstantAggregate
+        if (llvm::isa<llvm::Constant>(V)) {
+          return true;
+        }
+        // Checks if a values is involved in a call, i.e., may be
+        // modified by a callee, in which case its flow is controlled by
+        // getCallFlowFunction() and getRetFlowFunction().
+        bool Involved = false;
+        for (const auto &Arg : CallSite->args()) {
+          if (Arg == V && V->getType()->isPointerTy()) {
+            Involved = true;
+          }
+        }
+        return Involved;
+      });
+}
 
 /// A predicate can be used to specifiy additonal requirements for mapping
 /// actual parameter into formal parameter.
 /// \brief Generates all valid formal parameter in the callee context.
-template <typename Container = std::set<const llvm::Value *>>
-class MapFactsToCallee : public FlowFunction<const llvm::Value *, Container> {
-  using typename FlowFunction<const llvm::Value *, Container>::container_type;
+///
+/// \note Unlike the old version, this one is only meant for forward-analyses
+template <typename Fn = std::equal_to<const llvm::Value *>,
+          typename Container = std::set<const llvm::Value *>>
+FlowFunctionPtrType<const llvm::Value *, Container>
+mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
+                 bool PropagateGlobals = true,
+                 Fn &&PropagateArgumentWithSource = {},
+                 bool PropagateZeroToCallee = true) {
+  struct Mapper : public FlowFunction<const llvm::Value *, Container> {
 
-protected:
-  const llvm::Function *DestFun;
-  bool PropagateGlobals;
-  std::vector<const llvm::Value *> Actuals{};
-  std::vector<const llvm::Argument *> Formals{};
-  std::function<bool(const llvm::Value *)> ActualPredicate;
-  std::function<bool(const llvm::Argument *)> FormalPredicate;
-  const llvm::Value *CallInstr;
-  const bool PropagateZeroToCallee;
-  const bool PropagateRetToCallee;
+    Mapper(const llvm::CallBase *CS, const llvm::Function *DestFun,
+           bool PropagateGlobals, bool PropagateZeroToCallee, Fn &&PropArg)
+        : CSAndPropGlob(CS, PropagateGlobals),
+          DestFunAndPropZero(DestFun, PropagateZeroToCallee),
+          PropArg(std::forward<Fn>(PropArg)) {}
 
-public:
-  MapFactsToCallee(
-      const llvm::CallBase *CallSite, const llvm::Function *DestFun,
-      bool PropagateGlobals = true,
-      std::function<bool(const llvm::Value *)> ActualPredicate =
-          [](const llvm::Value *) { return true; },
-      std::function<bool(const llvm::Argument *)> FormalPredicate =
-          [](const llvm::Argument *) { return true; },
-      const bool PropagateZeroToCallee = true,
-      const bool PropagateRetToCallee = false)
-      : DestFun(DestFun), PropagateGlobals(PropagateGlobals),
-        ActualPredicate(std::move(ActualPredicate)),
-        FormalPredicate(std::move(FormalPredicate)), CallInstr(CallSite),
-        PropagateZeroToCallee(PropagateZeroToCallee),
-        PropagateRetToCallee(PropagateRetToCallee) {
-    // Set up the actual parameters
-    for (const auto &Actual : CallSite->args()) {
-      Actuals.push_back(Actual);
-    }
-    // Set up the formal parameters
-    for (const auto &Formal : DestFun->args()) {
-      Formals.push_back(&Formal);
-    }
-  }
-
-  ~MapFactsToCallee() override = default;
-
-  container_type computeTargets(const llvm::Value *Source) override {
-    // If DestFun is a declaration we cannot follow this call, we thus need to
-    // kill everything
-    if (DestFun->isDeclaration()) {
-      return {};
-    }
-    // Pass ZeroValue as is, if desired
-    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-      if (PropagateZeroToCallee) {
-        return {Source};
+    Container computeTargets(const llvm::Value *Source) override {
+      // If DestFun is a declaration we cannot follow this call, we thus need to
+      // kill everything
+      if (DestFunAndPropZero.getPointer()->isDeclaration()) {
+        return {};
       }
-      return {};
-    }
-    container_type Res;
-    // Pass global variables as is, if desired
-    // Globals could also be actual arguments, then the formal argument needs to
-    // be generated below.
-    // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
-    if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
-      Res.insert(Source);
-    }
-    // Handle back propagation of return value in backwards analysis.
-    // We add it to the result here. Later, normal flow in callee can identify
-    // it
-    if (PropagateRetToCallee) {
-      if (Source == CallInstr) {
+
+      Container Res;
+      if (DestFunAndPropZero.getInt() &&
+          LLVMZeroValue::isLLVMZeroValue(Source)) {
+        Res.insert(Source);
+      } else if (CSAndPropGlob.getInt() && llvm::isa<llvm::Constant>(Source)) {
+        // Pass global variables as is, if desired
+        // Globals could also be actual arguments, then the formal argument
+        // needs to be generated below. Need llvm::Constant here to cover also
+        // ConstantExpr and ConstantAggregate
         Res.insert(Source);
       }
-    }
-    // Handle C-style varargs functions
-    if (DestFun->isVarArg()) {
-      // Map actual parameters to corresponding formal parameters.
-      for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-        if (Source == Actuals[Idx] && ActualPredicate(Actuals[Idx])) {
-          if (Idx >= DestFun->arg_size()) {
-            // Over-approximate by trying to add the
-            //   alloca [1 x %struct.__va_list_tag], align 16
-            // to the results
-            // find the allocated %struct.__va_list_tag and generate it
-            for (const auto &BB : *DestFun) {
-              for (const auto &I : BB) {
-                if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                  if (Alloc->getAllocatedType()->isArrayTy() &&
-                      Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                      Alloc->getAllocatedType()
+
+      const auto *CS = CSAndPropGlob.getPointer();
+      const auto *DestFun = DestFunAndPropZero.getPointer();
+      assert(CS->arg_size() >= DestFun->arg_size());
+      assert(CS->arg_size() == DestFun->arg_size() || DestFun->isVarArg());
+
+      llvm::CallBase::const_op_iterator ArgIt = CS->arg_begin();
+      llvm::CallBase::const_op_iterator ArgEnd = CS->arg_end();
+      llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
+      llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
+
+      for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
+        if (std::invoke(PropArg, ArgIt->get(), Source)) {
+          Res.insert(&*ParamIt);
+        }
+      }
+
+      if (ArgIt != ArgEnd &&
+          std::any_of(
+              ArgIt, ArgEnd,
+              std::bind(std::ref(PropArg), std::placeholders::_1, Source))) {
+        // Over-approximate by trying to add the
+        //   alloca [1 x %struct.__va_list_tag], align 16
+        // to the results
+        // find the allocated %struct.__va_list_tag and generate it
+
+        for (const auto &BB : *DestFun) {
+          for (const auto &I : BB) {
+            if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+              if (Alloc->getAllocatedType()->isArrayTy() &&
+                  Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                  Alloc->getAllocatedType()
+                      ->getArrayElementType()
+                      ->isStructTy() &&
+                  Alloc->getAllocatedType()
                           ->getArrayElementType()
-                          ->isStructTy() &&
-                      Alloc->getAllocatedType()
-                              ->getArrayElementType()
-                              ->getStructName() == "struct.__va_list_tag") {
-                    Res.insert(Alloc);
-                  }
-                }
+                          ->getStructName() == "struct.__va_list_tag") {
+                Res.insert(Alloc);
               }
-            }
-          } else {
-            assert(Idx < Formals.size() &&
-                   "Out of bound access to formal parameters!");
-            if (FormalPredicate(Formals[Idx])) {
-              Res.insert(Formals[Idx]); // corresponding formal
             }
           }
         }
       }
+
+      return Res;
     }
-    // Handle ordinary case
-    // Map actual parameters to corresponding formal parameters.
-    for (unsigned Idx = 0; Idx < Actuals.size() && Idx < DestFun->arg_size();
-         ++Idx) {
-      if (Source == Actuals[Idx] && ActualPredicate(Actuals[Idx])) {
-        assert(Idx < Formals.size() &&
-               "Out of bound access to formal parameters!");
-        Res.insert(Formals[Idx]); // corresponding formal
-      }
-    }
-    return Res;
-  }
-}; // namespace psr
+
+    llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
+    llvm::PointerIntPair<const llvm::Function *, 1, bool> DestFunAndPropZero;
+    std::decay_t<Fn> PropArg;
+  };
+
+  return std::make_shared<Mapper>(
+      CallSite, DestFun, PropagateGlobals, PropagateZeroToCallee,
+      std::forward<Fn>(PropagateArgumentWithSource));
+}
 
 /// Predicates can be used to specify additional requirements for mapping
 /// actual parameters into formal parameters and the return value.
@@ -253,170 +206,162 @@ public:
 /// the callee method.
 /// \brief Generates all valid actual parameters and the return value in the
 /// caller context.
-template <typename Container = std::set<const llvm::Value *>>
-class MapFactsToCaller : public FlowFunction<const llvm::Value *, Container> {
-  using typename FlowFunction<const llvm::Value *, Container>::container_type;
+template <typename FnParam = std::equal_to<const llvm::Value *>,
+          typename Container = std::set<const llvm::Value *>>
+FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
+    const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
+    bool PropagateGlobals = true, FnParam &&PropagateParameter = {},
+    bool PropagateZeroToCaller = true) {
+  struct Mapper : public FlowFunction<const llvm::Value *, Container> {
+    Mapper(const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
+           bool PropagateGlobals, FnParam &&PropagateParameter,
+           bool PropagateZeroToCaller)
+        : CSAndPropGlob(CallSite, PropagateGlobals),
+          ExitInstAndPropZero(ExitInst, PropagateZeroToCaller),
+          PropArg(std::forward<FnParam>(PropagateParameter)) {}
 
-private:
-  const llvm::CallBase *CallSite;
-  const llvm::Function *CalleeFun;
-  const llvm::ReturnInst *ExitInst;
-  bool PropagateGlobals;
-  const bool PropagateZeroToCaller;
-  std::vector<const llvm::Value *> Actuals;
-  std::vector<const llvm::Value *> Formals;
-  std::function<bool(const llvm::Value *)> ParamPredicate;
-  std::function<bool(const llvm::Function *)> ReturnPredicate;
-
-public:
-  MapFactsToCaller(
-      const llvm::CallBase *CallSite, const llvm::Function *CalleeFun,
-      const llvm::Instruction *ExitInst, bool PropagateGlobals = true,
-      std::function<bool(const llvm::Value *)> ParamPredicate =
-          [](const llvm::Value *) { return true; },
-      std::function<bool(const llvm::Function *)> ReturnPredicate =
-          [](const llvm::Function *) { return true; },
-      bool PropagateZeroToCaller = true)
-      : CallSite(CallSite), CalleeFun(CalleeFun),
-        ExitInst(llvm::dyn_cast<llvm::ReturnInst>(ExitInst)),
-        PropagateGlobals(PropagateGlobals),
-        PropagateZeroToCaller(PropagateZeroToCaller),
-        ParamPredicate(std::move(ParamPredicate)),
-        ReturnPredicate(std::move(ReturnPredicate)) {
-    assert(ExitInst && "Should not be null");
-    // Set up the actual parameters
-    for (const auto &Actual : CallSite->args()) {
-      Actuals.push_back(Actual);
-    }
-    // Set up the formal parameters
-    for (const auto &Formal : CalleeFun->args()) {
-      Formals.push_back(&Formal);
-    }
-  }
-
-  ~MapFactsToCaller() override = default;
-
-  // std::set<const llvm::Value *>
-  container_type computeTargets(const llvm::Value *Source) override {
-    assert(!CalleeFun->isDeclaration() &&
-           "Cannot perform mapping to caller for function declaration");
-    // Pass ZeroValue as is, if desired
-    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-      if (PropagateZeroToCaller) {
-        return {Source};
+    Container computeTargets(const llvm::Value *Source) override {
+      Container Res;
+      if (ExitInstAndPropZero.getInt() &&
+          LLVMZeroValue::isLLVMZeroValue(Source)) {
+        Res.insert(Source);
+      } else if (CSAndPropGlob.getInt() && llvm::isa<llvm::Constant>(Source)) {
+        // Pass global variables as is, if desired
+        // Globals could also be actual arguments, then the formal argument
+        // needs to be generated below. Need llvm::Constant here to cover also
+        // ConstantExpr and ConstantAggregate
+        Res.insert(Source);
       }
-      return {};
-    }
-    // Pass global variables as is, if desired
-    // Need llvm::Constant here to cover also ConstantExpr and ConstantAggregate
-    if (PropagateGlobals && llvm::isa<llvm::Constant>(Source)) {
-      return {Source};
-    }
-    // Do the parameter mapping
-    container_type Res;
-    // Handle C-style varargs functions
-    if (CalleeFun->isVarArg()) {
-      const llvm::Instruction *AllocVarArg;
-      // Find the allocation of %struct.__va_list_tag
-      for (const auto &BB : *CalleeFun) {
-        for (const auto &I : BB) {
+
+      const auto *CS = CSAndPropGlob.getPointer();
+      const auto *DestFun = ExitInstAndPropZero.getPointer()->getFunction();
+      assert(CS->arg_size() >= DestFun->arg_size());
+      assert(CS->arg_size() == DestFun->arg_size() || DestFun->isVarArg());
+
+      llvm::CallBase::const_op_iterator ArgIt = CS->arg_begin();
+      llvm::CallBase::const_op_iterator ArgEnd = CS->arg_end();
+      llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
+      llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
+
+      for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
+        if (std::invoke(PropArg, &*ParamIt, Source)) {
+          Res.insert(ArgIt->get());
+        }
+      }
+
+      if (ArgIt != ArgEnd) {
+        // Over-approximate by trying to add the
+        //   alloca [1 x %struct.__va_list_tag], align 16
+        // to the results
+        // find the allocated %struct.__va_list_tag and generate it
+
+        for (const auto &I : llvm::instructions(DestFun)) {
           if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-            if (Alloc->getAllocatedType()->isArrayTy() &&
-                Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                Alloc->getAllocatedType()
-                    ->getArrayElementType()
-                    ->isStructTy() &&
-                Alloc->getAllocatedType()
-                        ->getArrayElementType()
-                        ->getStructName() == "struct.__va_list_tag") {
-              AllocVarArg = Alloc;
-              // TODO break out this nested loop earlier (without goto ;-)
+            const auto *AllocTy = Alloc->getAllocatedType();
+            if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
+                AllocTy->getArrayElementType()->isStructTy() &&
+                AllocTy->getArrayElementType()->getStructName() ==
+                    "struct.__va_list_tag") {
+              if (std::invoke(PropArg, Alloc, Source)) {
+                Res.insert(ArgIt, ArgEnd);
+                break;
+              }
             }
           }
         }
       }
-      // Generate the varargs things by using an over-approximation
-      if (Source == AllocVarArg) {
-        for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
-          Res.insert(Actuals[Idx]);
+
+      if (const auto *RetInst = llvm::dyn_cast<llvm::ReturnInst>(
+              ExitInstAndPropZero.getPointer());
+          RetInst && RetInst->getReturnValue()) {
+        if (std::invoke(PropArg, RetInst->getReturnValue(), Source)) {
+          Res.insert(CS);
         }
       }
+
+      return Res;
     }
-    // Handle ordinary case
-    // Map formal parameter into corresponding actual parameter.
-    for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
-      if (Source == Formals[Idx] && ParamPredicate(Formals[Idx])) {
-        Res.insert(Actuals[Idx]); // corresponding actual
-      }
-    }
-    // Collect return value facts
-    if (ExitInst != nullptr && Source == ExitInst->getReturnValue() &&
-        ReturnPredicate(CalleeFun)) {
-      Res.insert(CallSite);
-    }
-    return Res;
-  }
-};
+
+    llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
+    llvm::PointerIntPair<const llvm::Instruction *, 1, bool>
+        ExitInstAndPropZero;
+    std::decay_t<FnParam> PropArg;
+  };
+
+  return std::make_shared<Mapper>(CallSite, ExitInst, PropagateGlobals,
+                                  std::forward<FnParam>(PropagateParameter),
+                                  PropagateZeroToCaller);
+}
 
 //===----------------------------------------------------------------------===//
 // Propagation flow functions
 
-template <typename D> class PropagateLoad : public FlowFunction<D> {
-protected:
-  const llvm::LoadInst *Load;
-
-public:
-  PropagateLoad(const llvm::LoadInst *L) : Load(L) {}
-  virtual ~PropagateLoad() = default;
-
-  std::set<D> computeTargets(D Source) override {
-    if (Source == Load->getPointerOperand()) {
-      return {Source, Load};
-    }
-    return {Source};
-  }
-};
-
-template <typename D> class PropagateStore : public FlowFunction<D> {
-protected:
-  const llvm::StoreInst *Store;
-
-public:
-  PropagateStore(const llvm::StoreInst *S) : Store(S) {}
-  virtual ~PropagateStore() = default;
-
-  std::set<D> computeTargets(D Source) override {
-    if (Store->getValueOperand() == Source) {
-      return {Source, Store->getPointerOperand()};
-    }
-    return {Source};
-  }
-};
+template <typename Container = std::set<const llvm::Value *>>
+FlowFunctionPtrType<const llvm::Value *, Container>
+propagateLoad(const llvm::LoadInst *Load) {
+  return generateFlow<const llvm::Value *, Container>(
+      Load, Load->getPointerOperand());
+}
+template <typename Container = std::set<const llvm::Value *>>
+FlowFunctionPtrType<const llvm::Value *, Container>
+propagateStore(const llvm::StoreInst *Store) {
+  return generateFlow<const llvm::Value *, Container>(
+      Store->getValueOperand(), Store->getPointerOperand());
+}
 
 //===----------------------------------------------------------------------===//
 // Update flow functions
 
-template <typename D> class StrongUpdateStore : public FlowFunction<D> {
-protected:
-  const llvm::StoreInst *Store;
-  std::function<bool(D)> Predicate;
+template <typename Fn, typename Container = std::set<const llvm::Value *>>
+FlowFunctionPtrType<const llvm::Value *, Container>
+strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
+  struct StrongUpdateFlow
+      : public FlowFunction<const llvm::Value *, Container> {
 
-public:
-  StrongUpdateStore(const llvm::StoreInst *S, std::function<bool(D)> P)
-      : Store(S), Predicate(std::move(P)) {}
+    StrongUpdateFlow(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf)
+        : Store(Store), Pred(std::forward<Fn>(GeneratePointerOpIf)) {}
 
-  ~StrongUpdateStore() override = default;
-
-  std::set<D> computeTargets(D Source) override {
-    if (Source == Store->getPointerOperand()) {
-      return {};
+    Container computeTargets(const llvm::Value *Source) override {
+      if (Source == Store->getPointerOperand()) {
+        return {};
+      }
+      if (std::invoke(Pred, Source)) {
+        return {Source, Store->getPointerOperand()};
+      }
+      return {Source};
     }
-    if (Predicate(Source)) {
-      return {Source, Store->getPointerOperand()};
+
+    const llvm::StoreInst *Store;
+    std::decay_t<Fn> Pred;
+  };
+
+  return std::make_shared<StrongUpdateFlow>(
+      Store, std::forward<Fn>(GeneratePointerOpIf));
+}
+
+template <typename Container = std::set<const llvm::Value *>>
+FlowFunctionPtrType<const llvm::Value *, Container>
+strongUpdateStore(const llvm::StoreInst *Store) {
+  struct StrongUpdateFlow
+      : public FlowFunction<const llvm::Value *, Container> {
+
+    StrongUpdateFlow(const llvm::StoreInst *Store) : Store(Store) {}
+
+    Container computeTargets(const llvm::Value *Source) override {
+      if (Source == Store->getPointerOperand()) {
+        return {};
+      }
+      if (Source == Store->getValueOperand()) {
+        return {Source, Store->getPointerOperand()};
+      }
+      return {Source};
     }
-    return {Source};
-  }
-};
+
+    const llvm::StoreInst *Store;
+  };
+
+  return std::make_shared<StrongUpdateFlow>(Store);
+}
 
 } // namespace psr
 

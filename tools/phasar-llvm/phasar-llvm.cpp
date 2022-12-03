@@ -291,14 +291,6 @@ void validatePTAJsonFile() {
   }
 }
 
-void validateLogLevel(const std::string &Level) {
-  if (parseSeverityLevel(Level) == SeverityLevel::INVALID) {
-    llvm::errs() << "Invalid logger severity level '" << Level
-                 << "'. Expect DEBUG, INFO, WARNING or ERROR\n";
-    exit(1);
-  }
-}
-
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
