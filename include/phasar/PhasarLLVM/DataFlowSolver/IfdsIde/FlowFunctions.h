@@ -133,7 +133,10 @@ template <typename D, typename Container = std::set<D>> auto identityFlow() {
 ///          v  v   v   v  v
 ///          x1 x2  x  x3 x4
 ///
-template <typename D, typename Fn, typename Container = std::set<D>>
+template <typename D, typename Fn, typename Container = std::set<D>,
+          typename = std::enable_if_t<
+              std::is_invocable_v<Fn, D> &&
+              std::is_convertible_v<std::invoke_result_t<Fn, D>, Container>>>
 auto lambdaFlow(Fn &&F) {
   struct LambdaFlow final : public FlowFunction<D, Container> {
     LambdaFlow(Fn &&F) : Flow(std::forward<Fn>(F)) {}
@@ -201,7 +204,8 @@ auto generateFlow(psr::type_identity_t<D> FactToGenerate, D From) {
 ///   f(x) = {v, x}   if p(x) == true
 ///   f(x) = {x}      else.
 ///
-template <typename D, typename Fn, typename Container = std::set<D>>
+template <typename D, typename Fn, typename Container = std::set<D>,
+          typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, D>>>
 auto generateFlowIf(D FactToGenerate, Fn Predicate) {
   struct GenFlowIf final : public FlowFunction<D, Container> {
     GenFlowIf(D GenValue, Fn &&Predicate)
@@ -239,7 +243,8 @@ auto generateFlowIf(D FactToGenerate, Fn Predicate) {
 ///       v  v  v  v ... \    v ...
 ///       x  w  v1 v2 ... vN  u
 ///
-template <typename D, typename Range, typename Container = std::set<D>>
+template <typename D, typename Range, typename Container = std::set<D>,
+          typename = std::enable_if_t<is_iterable_over_v<Range, D>>>
 auto generateManyFlows(Range &&FactsToGenerate, D From) {
   struct GenMany final : public FlowFunction<D, Container> {
     GenMany(Container &&GenValues, D FromValue)
@@ -314,7 +319,8 @@ auto killFlow(D FactToKill) {
 ///   f(x) = {}   if p(x) == true
 ///   f(x) = {x}  else.
 ///
-template <typename D, typename Fn, typename Container = std::set<D>>
+template <typename D, typename Fn, typename Container = std::set<D>,
+          typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, D>>>
 auto killFlowIf(Fn Predicate) {
   struct KillFlowIf final : public FlowFunction<D, Container> {
     KillFlowIf(Fn &&Predicate) : Predicate(std::forward<Fn>(Predicate)) {}
@@ -351,7 +357,8 @@ auto killFlowIf(Fn Predicate) {
 ///           v                 v
 ///           u  v1  v2 ... vN  w ...
 ///
-template <typename D, typename Range, typename Container = std::set<D>>
+template <typename D, typename Range, typename Container = std::set<D>,
+          typename = std::enable_if_t<is_iterable_over_v<Range, D>>>
 auto killManyFlows(Range &&FactsToKill) {
   struct KillMany final : public FlowFunction<D, Container> {
     KillMany(Container &&KillValues) : KillValues(std::move(KillValues)) {}
@@ -458,7 +465,8 @@ auto generateFlowAndKillAllOthers(psr::type_identity_t<D> FactToGenerate,
 ///          v  v  v ... \      ...
 ///       x  w  v1 v2 ... vN  u
 ///
-template <typename D, typename Range, typename Container = std::set<D>>
+template <typename D, typename Range, typename Container = std::set<D>,
+          typename = std::enable_if_t<is_iterable_over_v<Range, D>>>
 auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate, D From) {
   struct GenManyAndKillAllOthers final : public FlowFunction<D, Container> {
     GenManyAndKillAllOthers(Container &&GenValues, D FromValue)
@@ -582,7 +590,7 @@ auto unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
 }
 
 /// Wrapper flow function that is automatically used by the IDESolver if the
-/// autoAddZero configuration optiuon is set to true (default).
+/// autoAddZero configuration option is set to true (default).
 /// Ensures that the tautological zero-flow fact (Λ) does not get killed.
 template <typename D, typename Container = std::set<D>>
 class ZeroedFlowFunction : public FlowFunction<D, Container> {

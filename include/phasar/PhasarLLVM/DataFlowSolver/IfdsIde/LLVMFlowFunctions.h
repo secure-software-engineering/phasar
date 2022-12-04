@@ -38,17 +38,17 @@ namespace psr {
 /// A predicate can be used to specify additional requirements for the
 /// propagation.
 /// \brief Propagates all non pointer parameters alongside the call site.
-template <typename Fn, typename Container = std::set<const llvm::Value *>,
-          typename = std::enable_if_t<std::is_invocable_r_v<
-              bool, Fn, const llvm::CallBase *, const llvm::Value *>>>
-FlowFunctionPtrType<const llvm::Value *, Container>
-mapFactsAlongsideCallSite(const llvm::CallBase *CallSite, bool PropagateGlobals,
-                          Fn &&PropagateOthers) {
+template <
+    typename Fn = TrueFn, typename Container = std::set<const llvm::Value *>,
+    typename =
+        std::enable_if_t<std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
+auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
+                               bool PropagateGlobals, Fn &&PropagateArgs = {}) {
   struct Mapper : public FlowFunction<const llvm::Value *, Container> {
 
-    Mapper(const llvm::CallBase *CS, bool PropagateGlobals, Fn &&PropOthers)
+    Mapper(const llvm::CallBase *CS, bool PropagateGlobals, Fn &&PropArgs)
         : CSAndPropGlob(CS, PropagateGlobals),
-          PropOthers(std::forward<Fn>(PropOthers)) {}
+          PropArgs(std::forward<Fn>(PropArgs)) {}
 
     Container computeTargets(const llvm::Value *Source) override {
       // Pass ZeroValue as is
@@ -58,51 +58,31 @@ mapFactsAlongsideCallSite(const llvm::CallBase *CallSite, bool PropagateGlobals,
       // Pass global variables as is, if desired
       // Need llvm::Constant here to cover also ConstantExpr and
       // ConstantAggregate
-      if (CSAndPropGlob.getInt() && llvm::isa<llvm::Constant>(Source)) {
-        return {Source};
+      if (llvm::isa<llvm::Constant>(Source)) {
+        if (CSAndPropGlob.getInt()) {
+          return {Source};
+        }
+        return {};
       }
-      // Propagate if predicate does not hold, i.e., fact is not involved in the
-      // call
-      if (!std::invoke(PropOthers, CSAndPropGlob.getPointer(), Source)) {
-        return {Source};
+
+      for (const auto &Arg : CSAndPropGlob.getPointer()->args()) {
+        if (Arg.get() == Source) {
+          if (std::invoke(PropArgs, Arg.get())) {
+            return {Arg.get()};
+          }
+          return {};
+        }
       }
-      // Otherwise kill fact
-      return {};
+
+      return {Source};
     }
 
     llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
-    std::decay_t<Fn> PropOthers;
+    std::decay_t<Fn> PropArgs;
   };
 
   return std::make_shared<Mapper>(CallSite, PropagateGlobals,
-                                  std::forward<Fn>(PropagateOthers));
-}
-
-template <typename Container = std::set<const llvm::Value *>>
-FlowFunctionPtrType<const llvm::Value *, Container>
-mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
-                          bool PropagateGlobals = true) {
-  return mapFactsAlongsideCallSite(
-      CallSite, PropagateGlobals,
-      [](const llvm::CallBase *CallSite, const llvm::Value *V) {
-        // Globals are considered to be involved in this default
-        // implementation.
-        // Need llvm::Constant here to cover also ConstantExpr
-        // and ConstantAggregate
-        if (llvm::isa<llvm::Constant>(V)) {
-          return true;
-        }
-        // Checks if a values is involved in a call, i.e., may be
-        // modified by a callee, in which case its flow is controlled by
-        // getCallFlowFunction() and getRetFlowFunction().
-        bool Involved = false;
-        for (const auto &Arg : CallSite->args()) {
-          if (Arg == V && V->getType()->isPointerTy()) {
-            Involved = true;
-          }
-        }
-        return Involved;
-      });
+                                  std::forward<Fn>(PropagateArgs));
 }
 
 /// A predicate can be used to specifiy additonal requirements for mapping
@@ -111,7 +91,9 @@ mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
 ///
 /// \note Unlike the old version, this one is only meant for forward-analyses
 template <typename Fn = std::equal_to<const llvm::Value *>,
-          typename Container = std::set<const llvm::Value *>>
+          typename Container = std::set<const llvm::Value *>,
+          typename = std::enable_if_t<std::is_invocable_r_v<
+              bool, Fn, const llvm::Value *, const llvm::Value *>>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
                  bool PropagateGlobals = true,
@@ -136,7 +118,9 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       if (DestFunAndPropZero.getInt() &&
           LLVMZeroValue::isLLVMZeroValue(Source)) {
         Res.insert(Source);
-      } else if (CSAndPropGlob.getInt() && llvm::isa<llvm::Constant>(Source)) {
+      } else if (CSAndPropGlob.getInt() &&
+                 !LLVMZeroValue::isLLVMZeroValue(Source) &&
+                 llvm::isa<llvm::Constant>(Source)) {
         // Pass global variables as is, if desired
         // Globals could also be actual arguments, then the formal argument
         // needs to be generated below. Need llvm::Constant here to cover also
@@ -207,7 +191,9 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 /// \brief Generates all valid actual parameters and the return value in the
 /// caller context.
 template <typename FnParam = std::equal_to<const llvm::Value *>,
-          typename Container = std::set<const llvm::Value *>>
+          typename Container = std::set<const llvm::Value *>,
+          typename = std::enable_if_t<std::is_invocable_r_v<
+              bool, FnParam, const llvm::Value *, const llvm::Value *>>>
 FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
     const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
     bool PropagateGlobals = true, FnParam &&PropagateParameter = {},
@@ -312,7 +298,9 @@ propagateStore(const llvm::StoreInst *Store) {
 //===----------------------------------------------------------------------===//
 // Update flow functions
 
-template <typename Fn, typename Container = std::set<const llvm::Value *>>
+template <typename Fn, typename Container = std::set<const llvm::Value *>,
+          typename = std::enable_if_t<
+              std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
   struct StrongUpdateFlow

@@ -174,6 +174,20 @@ template <typename T> using type_identity = std::type_identity<T>;
 
 template <typename T> using type_identity_t = typename type_identity<T>::type;
 
+struct TrueFn {
+  template <typename... Args>
+  [[nodiscard]] bool operator()(const Args &.../*unused*/) const noexcept {
+    return true;
+  }
+};
+
+struct FalseFn {
+  template <typename... Args>
+  [[nodiscard]] bool operator()(const Args &.../*unused*/) const noexcept {
+    return false;
+  }
+};
+
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr
 
