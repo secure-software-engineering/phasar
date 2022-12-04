@@ -47,7 +47,6 @@ private:
   size_t GlobalPointers = 0;
   size_t Branches = 0;
   size_t GetElementPtrs = 0;
-  size_t Terminators = 0;
   size_t PhiNodes = 0;
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;

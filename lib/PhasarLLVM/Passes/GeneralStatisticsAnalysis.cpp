@@ -62,9 +62,6 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         if (llvm::isa<llvm::PHINode>(I)) {
           ++Stats.PhiNodes;
         }
-        if (I.isTerminator()) {
-          ++Stats.Terminators;
-        }
         if (llvm::isa<llvm::BranchInst>(I)) {
           ++Stats.Branches;
         }
@@ -231,7 +228,7 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   J["GlobalVariables"] = Globals;
   J["Branches"] = Branches;
   J["GetElementPtrs"] = GetElementPtrs;
-  J["Terminators"] = Terminators;
+  J["BasicBlocks"] = BasicBlocks;
   J["PhiNodes"] = PhiNodes;
   return J;
 }
