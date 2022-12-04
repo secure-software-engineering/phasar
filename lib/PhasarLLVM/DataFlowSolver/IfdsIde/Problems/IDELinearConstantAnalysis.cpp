@@ -19,10 +19,13 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
@@ -107,135 +110,53 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
               llvm::isa<llvm::ConstantInt>(Rop));
     });
   }
-  return Identity<d_t>::getInstance();
+  return identityFlow<d_t>();
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun) {
   // Map the actual parameters into the formal parameters
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
-
-    struct LCAFF : FlowFunction<const llvm::Value *> {
-      std::vector<const llvm::Value *> Actuals;
-      std::vector<const llvm::Value *> Formals;
-      const llvm::Function *DestFun;
-      LCAFF(const llvm::CallBase *CallSite, f_t DestFun) : DestFun(DestFun) {
-        // std::set up the actual parameters
-        for (unsigned Idx = 0; Idx < CallSite->arg_size(); ++Idx) {
-          Actuals.push_back(CallSite->getArgOperand(Idx));
-        }
-        // std::set up the formal parameters
-        for (unsigned Idx = 0; Idx < DestFun->arg_size(); ++Idx) {
-          Formals.push_back(getNthFunctionArgument(DestFun, Idx));
-        }
-      }
-      std::set<d_t> computeTargets(d_t Source) override {
-        // std::cout << "call call-ff with: " << llvmIRToString(Source) << '\n';
-        std::set<d_t> Res;
-        for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-          if (Source == Actuals[Idx]) {
-            // Check for C-style varargs: idx >= destFun->arg_size()
-            if (Idx >= DestFun->arg_size() && !DestFun->isDeclaration()) {
-              // Over-approximate by trying to add the
-              //   alloca [1 x %struct.__va_list_tag], align 16
-              // to the results
-              // find the allocated %struct.__va_list_tag and generate it
-              for (const auto &BB : *DestFun) {
-                for (const auto &I : BB) {
-                  if (const auto *Alloc =
-                          llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                    if (Alloc->getAllocatedType()->isArrayTy() &&
-                        Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                        Alloc->getAllocatedType()
-                            ->getArrayElementType()
-                            ->isStructTy() &&
-                        Alloc->getAllocatedType()
-                                ->getArrayElementType()
-                                ->getStructName() == "struct.__va_list_tag") {
-                      Res.insert(Alloc);
-                    }
-                  }
-                }
-              }
-            } else {
-              // Ordinary case: Just perform mapping
-              Res.insert(Formals[Idx]); // corresponding formal
-            }
-          }
-          // Special case: Check if function is called with integer literals as
-          // parameter (in case of varargs ignore)
-          if (LLVMZeroValue::isLLVMZeroValue(Source) &&
-              Idx < DestFun->arg_size() &&
-              llvm::isa<llvm::ConstantInt>(Actuals[Idx])) {
-            Res.insert(Formals[Idx]); // corresponding formal
-          }
-        }
-        if (!LLVMZeroValue::isLLVMZeroValue(Source) &&
-            llvm::isa<llvm::GlobalVariable>(Source)) {
-          Res.insert(Source);
-        }
-        return Res;
-      }
-    };
-
     if (!DestFun->isDeclaration()) {
-      return std::make_shared<LCAFF>(CS, DestFun);
+      return mapFactsToCallee(
+          CS, DestFun, /*PropagateGlobals*/ true, [](d_t Arg, d_t Source) {
+            return Arg == Source || (LLVMZeroValue::isLLVMZeroValue(Source) &&
+                                     llvm::isa<llvm::ConstantInt>(Arg));
+          });
     }
   }
   // Pass everything else as identity
-  return Identity<d_t>::getInstance();
+  return identityFlow<d_t>();
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                               n_t ExitInst, n_t /*RetSite*/) {
-  // Handle the case: %x = call i32 ...
-  if (CallSite->getType()->isIntegerTy()) {
-    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
-    auto *ReturnValue = Return ? Return->getReturnValue() : nullptr;
-
-    if (ReturnValue) {
-      struct LCAFF : FlowFunction<d_t> {
-        n_t CallSite;
-        d_t ReturnValue;
-        LCAFF(n_t CS, d_t RetVal) : CallSite(CS), ReturnValue(RetVal) {}
-        std::set<d_t> computeTargets(d_t Source) override {
-          std::set<d_t> Res;
-          // Collect return value fact
-          if (Source == ReturnValue) {
-            Res.insert(CallSite);
-          }
-          // Return value is integer literal
-          if (LLVMZeroValue::isLLVMZeroValue(Source) &&
-              llvm::isa<llvm::ConstantInt>(ReturnValue)) {
-            Res.insert(CallSite);
-          }
-          if (!LLVMZeroValue::isLLVMZeroValue(Source) &&
-              llvm::isa<llvm::GlobalVariable>(Source)) {
-            Res.insert(Source);
-          }
-          return Res;
-        }
-      };
-      return std::make_shared<LCAFF>(CallSite, ReturnValue);
-    }
-  }
-  // All other facts except GlobalVariables are killed at this point
-  return killFlowIf<d_t>(
-      [](d_t Source) { return !llvm::isa<llvm::GlobalVariable>(Source); });
+  return mapFactsToCaller(
+      llvm::cast<llvm::CallBase>(CallSite), ExitInst,
+      /*PropagateGlobals*/ true,
+      Overloaded{
+          [](const llvm::Argument *Arg, d_t Source) {
+            return Arg == Source && Arg->getType()->isPointerTy();
+          },
+          [](d_t RetVal, d_t Source) {
+            return RetVal == Source ||
+                   (LLVMZeroValue::isLLVMZeroValue(Source) &&
+                    llvm::isa<llvm::ConstantInt>(RetVal));
+          },
+      });
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
-    n_t /*CallSite*/, n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees) {
-  for (const auto *Callee : Callees) {
-    if (!ICF->getStartPointsOf(Callee).empty()) {
-      return killFlowIf<d_t>([this](d_t Source) {
-        return !isZeroValue(Source) && llvm::isa<llvm::GlobalVariable>(Source);
-      });
-    }
+    n_t CallSite, n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees) {
+  if (llvm::all_of(Callees, [](f_t Fun) { return Fun->isDeclaration(); })) {
+    return identityFlow<d_t>();
   }
-  return Identity<d_t>::getInstance();
+
+  return mapFactsAlongsideCallSite(
+      llvm::cast<llvm::CallBase>(CallSite), /*PropagateGlobals*/ false,
+      [](d_t Arg) { return !Arg->getType()->isPointerTy(); });
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
