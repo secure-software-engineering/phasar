@@ -358,7 +358,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
     return make_shared<UVFF>(CS, ExitStmt);
   }
   // kill everything else
-  return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
+  return killAllFlows<d_t>();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType

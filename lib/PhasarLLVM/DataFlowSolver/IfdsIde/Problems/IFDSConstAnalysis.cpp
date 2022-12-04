@@ -101,7 +101,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
   // Handle one of the three llvm memory intrinsics (memcpy, memmove or memset)
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     PHASAR_LOG_LEVEL(DEBUG, "Call statement is a LLVM MemIntrinsic!");
-    return KillAll<IFDSConstAnalysis::d_t>::getInstance();
+    return killAllFlows<d_t>();
   }
   // Check if its a Call Instruction or an Invoke Instruction. If so, we
   // need to map all actual parameters into formal parameters.

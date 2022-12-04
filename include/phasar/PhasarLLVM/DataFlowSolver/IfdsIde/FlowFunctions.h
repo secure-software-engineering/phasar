@@ -96,29 +96,6 @@ using FlowFunctionPtrTypeOf = std::shared_ptr<FF>;
 template <typename D, typename Container = std::set<D>>
 using FlowFunctionPtrType = FlowFunctionPtrTypeOf<FlowFunction<D, Container>>;
 
-template <typename D, typename Container = std::set<D>>
-class Identity : public FlowFunction<D, Container> {
-public:
-  using typename FlowFunction<D, Container>::FlowFunctionType;
-  using typename FlowFunction<D, Container>::FlowFunctionPtrType;
-
-  using typename FlowFunction<D, Container>::container_type;
-
-  ~Identity() override = default;
-  Identity(const Identity &I) = delete;
-  Identity &operator=(const Identity &I) = delete;
-  // simply return what the user provides
-  container_type computeTargets(D Source) override { return {Source}; }
-  static std::shared_ptr<Identity> getInstance() {
-    static std::shared_ptr<Identity> Instance =
-        std::shared_ptr<Identity>(new Identity);
-    return Instance;
-  }
-
-private:
-  Identity() = default;
-};
-
 /// A flow function that propagates all incoming facts unchanged.
 ///
 /// Given a flow-function f = identityFlow(), then for all incoming
@@ -132,9 +109,13 @@ private:
 ///                   v   v   v  ...
 ///                   x1  x2  x3 ...
 ///
-template <typename D, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> identityFlow() {
-  return Identity<D, Container>::getInstance();
+template <typename D, typename Container = std::set<D>> auto identityFlow() {
+  struct IdFF final : public FlowFunction<D, Container> {
+    Container computeTargets(D Source) override { return {std::move(Source)}; }
+  };
+  static auto TheIdentity = std::make_shared<IdFF>();
+
+  return TheIdentity;
 }
 
 /// The most generic flow function. Invokes the passed function object F to
@@ -153,8 +134,8 @@ FlowFunctionPtrType<D, Container> identityFlow() {
 ///          x1 x2  x  x3 x4
 ///
 template <typename D, typename Fn, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> lambdaFlow(Fn &&F) {
-  struct LambdaFlow : public FlowFunction<D, Container> {
+auto lambdaFlow(Fn &&F) {
+  struct LambdaFlow final : public FlowFunction<D, Container> {
     LambdaFlow(Fn &&F) : Flow(std::forward<Fn>(F)) {}
     Container computeTargets(D Source) override {
       return std::invoke(Flow, std::move(Source));
@@ -192,9 +173,8 @@ FlowFunctionPtrType<D, Container> lambdaFlow(Fn &&F) {
 /// being joined together potentially lowing precition. If that is an issue, use
 /// transferFlow instead.
 template <typename D, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container>
-generateFlow(psr::type_identity_t<D> FactToGenerate, D From) {
-  struct GenFrom : public FlowFunction<D, Container> {
+auto generateFlow(psr::type_identity_t<D> FactToGenerate, D From) {
+  struct GenFrom final : public FlowFunction<D, Container> {
     GenFrom(D GenValue, D FromValue)
         : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
 
@@ -222,9 +202,8 @@ generateFlow(psr::type_identity_t<D> FactToGenerate, D From) {
 ///   f(x) = {x}      else.
 ///
 template <typename D, typename Fn, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> generateFlowIf(D FactToGenerate,
-                                                 Fn Predicate) {
-  struct GenFlowIf : public FlowFunction<D, Container> {
+auto generateFlowIf(D FactToGenerate, Fn Predicate) {
+  struct GenFlowIf final : public FlowFunction<D, Container> {
     GenFlowIf(D GenValue, Fn &&Predicate)
         : GenValue(std::move(GenValue)),
           Predicate(std::forward<Fn>(Predicate)) {}
@@ -261,9 +240,8 @@ FlowFunctionPtrType<D, Container> generateFlowIf(D FactToGenerate,
 ///       x  w  v1 v2 ... vN  u
 ///
 template <typename D, typename Range, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> generateManyFlows(Range &&FactsToGenerate,
-                                                    D From) {
-  struct GenMany : public FlowFunction<D, Container> {
+auto generateManyFlows(Range &&FactsToGenerate, D From) {
+  struct GenMany final : public FlowFunction<D, Container> {
     GenMany(Container &&GenValues, D FromValue)
         : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
 
@@ -314,8 +292,8 @@ FlowFunctionPtrType<D, Container> generateManyFlows(Range &&FactsToGenerate,
 ///           u  v  w ...
 ///
 template <typename D, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> killFlow(D FactToKill) {
-  struct KillFlow : public FlowFunction<D, Container> {
+auto killFlow(D FactToKill) {
+  struct KillFlow final : public FlowFunction<D, Container> {
     KillFlow(D KillValue) : KillValue(std::move(KillValue)) {}
     Container computeTargets(D Source) override {
       if (Source == KillValue) {
@@ -337,8 +315,8 @@ FlowFunctionPtrType<D, Container> killFlow(D FactToKill) {
 ///   f(x) = {x}  else.
 ///
 template <typename D, typename Fn, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> killFlowIf(Fn Predicate) {
-  struct KillFlowIf : public FlowFunction<D, Container> {
+auto killFlowIf(Fn Predicate) {
+  struct KillFlowIf final : public FlowFunction<D, Container> {
     KillFlowIf(Fn &&Predicate) : Predicate(std::forward<Fn>(Predicate)) {}
 
     Container computeTargets(D Source) override {
@@ -374,8 +352,8 @@ FlowFunctionPtrType<D, Container> killFlowIf(Fn Predicate) {
 ///           u  v1  v2 ... vN  w ...
 ///
 template <typename D, typename Range, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> killManyFlows(Range &&FactsToKill) {
-  struct KillMany : public FlowFunction<D, Container> {
+auto killManyFlows(Range &&FactsToKill) {
+  struct KillMany final : public FlowFunction<D, Container> {
     KillMany(Container &&KillValues) : KillValues(std::move(KillValues)) {}
 
     Container computeTargets(D Source) override {
@@ -403,36 +381,18 @@ FlowFunctionPtrType<D, Container> killManyFlows(Range &&FactsToKill) {
       MakeContainer(std::forward<Range>(FactsToKill)));
 }
 
-template <typename D, typename Container = std::set<D>>
-class KillAll : public FlowFunction<D, Container> {
-public:
-  using typename FlowFunction<D, Container>::container_type;
-
-  ~KillAll() override = default;
-  KillAll(const KillAll &K) = delete;
-  KillAll &operator=(const KillAll &K) = delete;
-  container_type computeTargets(D /*Source*/) override {
-    return container_type();
-  }
-
-  static std::shared_ptr<KillAll<D>> getInstance() {
-    static std::shared_ptr<KillAll> Instance =
-        std::shared_ptr<KillAll>(new KillAll);
-    return Instance;
-  }
-
-private:
-  KillAll() = default;
-};
-
 /// A flow function that stops propagating *all* incoming dataflow facts.
 ///
 /// Given a flow function f = killAllFlows(), for all incoming dataflow facts x,
 /// f(x) = {}.
 ///
-template <typename D, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container> killAllFlows() {
-  return KillAll<D, Container>::getInstance();
+template <typename D, typename Container = std::set<D>> auto killAllFlows() {
+  struct KillAllFF final : public FlowFunction<D, Container> {
+    Container computeTargets(D Source) override { return {std::move(Source)}; }
+  };
+  static auto TheKillAllFlow = std::make_shared<KillAllFF>();
+
+  return TheKillAllFlow;
 }
 
 //===----------------------------------------------------------------------===//
@@ -460,9 +420,9 @@ FlowFunctionPtrType<D, Container> killAllFlows() {
 ///         x  w  v  u
 ///
 template <typename D, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container>
-generateFlowAndKillAllOthers(psr::type_identity_t<D> FactToGenerate, D From) {
-  struct GenFlowAndKillAllOthers : public FlowFunction<D, Container> {
+auto generateFlowAndKillAllOthers(psr::type_identity_t<D> FactToGenerate,
+                                  D From) {
+  struct GenFlowAndKillAllOthers final : public FlowFunction<D, Container> {
     GenFlowAndKillAllOthers(D GenValue, D FromValue)
         : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
 
@@ -499,9 +459,8 @@ generateFlowAndKillAllOthers(psr::type_identity_t<D> FactToGenerate, D From) {
 ///       x  w  v1 v2 ... vN  u
 ///
 template <typename D, typename Range, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container>
-generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate, D From) {
-  struct GenManyAndKillAllOthers : public FlowFunction<D, Container> {
+auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate, D From) {
+  struct GenManyAndKillAllOthers final : public FlowFunction<D, Container> {
     GenManyAndKillAllOthers(Container &&GenValues, D FromValue)
         : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
 
@@ -560,9 +519,8 @@ generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate, D From) {
 ///       x  w   v  u
 ///
 template <typename D, typename Container = std::set<D>>
-FlowFunctionPtrType<D, Container>
-transferFlow(psr::type_identity_t<D> FactToGenerate, D From) {
-  struct TransferFlow : public FlowFunction<D, Container> {
+auto transferFlow(psr::type_identity_t<D> FactToGenerate, D From) {
+  struct TransferFlow final : public FlowFunction<D, Container> {
     TransferFlow(D GenValue, D FromValue)
         : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
 
@@ -597,9 +555,9 @@ template <typename F1, typename F2, typename D = typename F1::value_type,
           typename = std::enable_if_t<
               std::is_same_v<D, typename F2::value_type> &&
               std::is_same_v<Container, typename F2::container_type>>>
-FlowFunctionPtrType<D, Container>
-unionFlows(FlowFunctionPtrTypeOf<F1> OneFF, FlowFunctionPtrTypeOf<F2> OtherFF) {
-  struct UnionFlow : public FlowFunction<D, Container> {
+auto unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
+                FlowFunctionPtrTypeOf<F2> OtherFF) {
+  struct UnionFlow final : public FlowFunction<D, Container> {
     UnionFlow(FlowFunctionPtrTypeOf<F1> OneFF,
               FlowFunctionPtrTypeOf<F2> OtherFF) noexcept
         : OneFF(std::move(OneFF)), OtherFF(std::move(OtherFF)) {}
@@ -892,6 +850,370 @@ public:
   virtual FlowFunctionPtrType getSummaryFlowFunction(n_t Curr,
                                                      f_t CalleeFun) = 0;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+//                          Legacy Flow Functions
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename D, typename Container = std::set<D>>
+class Identity : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::FlowFunctionType;
+  using typename FlowFunction<D, Container>::FlowFunctionPtrType;
+
+  using typename FlowFunction<D, Container>::container_type;
+
+  ~Identity() override = default;
+  Identity(const Identity &I) = delete;
+  Identity &operator=(const Identity &I) = delete;
+  // simply return what the user provides
+  container_type computeTargets(D Source) override { return {Source}; }
+  static std::shared_ptr<Identity> getInstance() {
+    static std::shared_ptr<Identity> Instance =
+        std::shared_ptr<Identity>(new Identity);
+    return Instance;
+  }
+
+private:
+  Identity() = default;
+};
+
+template <typename D, typename Fn, typename Container = std::set<D>>
+class [[deprecated("Use lambdaFlow() instead")]] LambdaFlow
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  LambdaFlow(Fn && F) : Flow(std::move(F)) {}
+  LambdaFlow(const Fn &F) : Flow(F) {}
+  ~LambdaFlow() override = default;
+  container_type computeTargets(D Source) override { return Flow(Source); }
+
+private:
+  // std::function<container_type(D)> flow;
+  Fn Flow;
+};
+
+template <typename D, typename Fn, typename Container = std::set<D>>
+typename FlowFunction<D>::FlowFunctionPtrType makeLambdaFlow(Fn &&F) {
+  return std::make_shared<LambdaFlow<D, std::decay_t<Fn>, Container>>(
+      std::forward<Fn>(F));
+}
+
+template <typename D, typename Container = std::set<D>>
+class Compose : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::FlowFunctionType;
+  using typename FlowFunction<D, Container>::FlowFunctionPtrType;
+
+  using typename FlowFunction<D, Container>::container_type;
+
+  Compose(const std::vector<FlowFunction<D>> &Funcs) : Funcs(Funcs) {}
+
+  ~Compose() override = default;
+
+  container_type computeTargets(const D &Source) override {
+    container_type Current(Source);
+    for (const FlowFunctionType &Func : Funcs) {
+      container_type Next;
+      for (const D &Fact : Current) {
+        container_type Target = Func.computeTargets(Fact);
+        Next.insert(Target.begin(), Target.end());
+      }
+      Current = Next;
+    }
+    return Current;
+  }
+
+  static FlowFunctionPtrType
+  compose(const std::vector<FlowFunctionType> &Funcs) {
+    std::vector<FlowFunctionType> Vec;
+    for (const FlowFunctionType &Func : Funcs) {
+      if (Func != Identity<D, Container>::getInstance()) {
+        Vec.insert(Func);
+      }
+    }
+    if (Vec.size() == 1) { // NOLINT(readability-container-size-empty)
+      return Vec[0];
+    }
+    if (Vec.empty()) {
+      return Identity<D, Container>::getInstance();
+    }
+    return std::make_shared<Compose>(Vec);
+  }
+
+protected:
+  const std::vector<FlowFunctionType> Funcs;
+};
+
+//===----------------------------------------------------------------------===//
+// Gen flow functions
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use generateFlow() instead")]] Gen
+    : public FlowFunction<D, Container> {
+  using typename FlowFunction<D, Container>::container_type;
+
+protected:
+  D GenValue;
+  D ZeroValue;
+
+public:
+  Gen(D GenValue, D ZeroValue) : GenValue(GenValue), ZeroValue(ZeroValue) {}
+  ~Gen() override = default;
+
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      return {Source, GenValue};
+    }
+    return {Source};
+  }
+};
+
+/**
+ * @brief Generates the given value if the given predicate evaluates to true.
+ * @tparam D The type of data-flow facts to be generated.
+ */
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use generateFlowIf() instead")]] GenIf
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  GenIf(D GenValue, std::function<bool(D)> Predicate)
+      : GenValues({GenValue}), Predicate(std::move(Predicate)) {}
+
+  GenIf(container_type GenValues, std::function<bool(D)> Predicate)
+      : GenValues(std::move(GenValues)), Predicate(std::move(Predicate)) {}
+
+  ~GenIf() override = default;
+
+  container_type computeTargets(D Source) override {
+    if (Predicate(Source)) {
+      container_type ToGenerate;
+      ToGenerate.insert(Source);
+      ToGenerate.insert(GenValues.begin(), GenValues.end());
+      return ToGenerate;
+    }
+    return {Source};
+  }
+
+protected:
+  container_type GenValues;
+  std::function<bool(D)> Predicate;
+};
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use generateManyFlows() instead")]] GenAll
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  GenAll(container_type GenValues, D ZeroValue)
+      : GenValues(std::move(GenValues)), ZeroValue(ZeroValue) {}
+  ~GenAll() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      GenValues.insert(Source);
+      return GenValues;
+    }
+    return {Source};
+  }
+
+protected:
+  container_type GenValues;
+  D ZeroValue;
+};
+
+//===----------------------------------------------------------------------===//
+// Kill flow functions
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use killFlow() instead")]] Kill
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  Kill(D KillValue) : KillValue(KillValue) {}
+  ~Kill() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == KillValue) {
+      return {};
+    }
+    return {Source};
+  }
+
+protected:
+  D KillValue;
+};
+
+/// \brief Kills all facts for which the given predicate evaluates to true.
+/// \tparam D The type of data-flow facts to be killed.
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use killFlowIf instead")]] KillIf
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  KillIf(std::function<bool(D)> Predicate) : Predicate(std::move(Predicate)) {}
+  ~KillIf() override = default;
+  container_type computeTargets(D Source) override {
+    if (Predicate(Source)) {
+      return {};
+    }
+    return {Source};
+  }
+
+protected:
+  std::function<bool(D)> Predicate;
+};
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use killManyFlows() instead")]] KillMultiple
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  KillMultiple(std::set<D> KillValues) : KillValues(std::move(KillValues)) {}
+  ~KillMultiple() override = default;
+  container_type computeTargets(D Source) override {
+    if (KillValues.find(Source) != KillValues.end()) {
+      return {};
+    }
+    return {Source};
+  }
+
+protected:
+  container_type KillValues;
+};
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use killAllFlows() instead")]] KillAll
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  ~KillAll() override = default;
+  KillAll(const KillAll &K) = delete;
+  KillAll &operator=(const KillAll &K) = delete;
+  container_type computeTargets(D /*Source*/) override {
+    return container_type();
+  }
+
+  static std::shared_ptr<KillAll<D>> getInstance() {
+    static std::shared_ptr<KillAll> Instance =
+        std::shared_ptr<KillAll>(new KillAll);
+    return Instance;
+  }
+
+private:
+  KillAll() = default;
+};
+
+//===----------------------------------------------------------------------===//
+// Gen-and-kill flow functions
+template <typename D, typename Container = std::set<D>>
+class [[deprecated(
+    "Use generateFlowAndKillAllOthers() instead")]] GenAndKillAllOthers
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  GenAndKillAllOthers(D GenValue, D ZeroValue)
+      : GenValue(GenValue), ZeroValue(ZeroValue) {}
+  ~GenAndKillAllOthers() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      return {ZeroValue, GenValue};
+    }
+    return {};
+  }
+
+private:
+  D GenValue;
+  D ZeroValue;
+};
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated(
+    "Use generateManyFlowsAndKillAllOthers() instead")]] GenAllAndKillAllOthers
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  GenAllAndKillAllOthers(const container_type &GenValues, D ZeroValue)
+      : GenValues(GenValues), ZeroValue(ZeroValue) {}
+  ~GenAllAndKillAllOthers() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == ZeroValue) {
+      GenValues.insert(Source);
+      return GenValues;
+    }
+    return {};
+  }
+
+protected:
+  container_type GenValues;
+  D ZeroValue;
+};
+
+//===----------------------------------------------------------------------===//
+// Miscellaneous flow functions
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use transferFlow() instead")]] Transfer
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+
+  Transfer(D ToValue, D FromValue) : ToValue(ToValue), FromValue(FromValue) {}
+  ~Transfer() override = default;
+  container_type computeTargets(D Source) override {
+    if (Source == FromValue) {
+      return {Source, ToValue};
+    }
+    if (Source == ToValue) {
+      return {};
+    }
+    return {Source};
+  }
+
+protected:
+  D ToValue;
+  D FromValue;
+};
+
+template <typename D, typename Container = std::set<D>>
+class [[deprecated("Use unionFlows() instead")]] Union
+    : public FlowFunction<D, Container> {
+public:
+  using typename FlowFunction<D, Container>::container_type;
+  using typename FlowFunction<D, Container>::FlowFunctionType;
+  using typename FlowFunction<D, Container>::FlowFunctionPtrType;
+
+  Union(const std::vector<FlowFunctionPtrType> &FlowFuncs)
+      : FlowFuncs([&FlowFuncs]() {
+          if (FlowFuncs.empty()) {
+            return std::vector<FlowFunctionPtrType>(
+                {Identity<D, Container>::getInstance()});
+          }
+          return FlowFuncs;
+        }()) {}
+
+  ~Union() override = default;
+  container_type computeTargets(D Source) override {
+    container_type Result;
+    for (const auto &FlowFunc : FlowFuncs) {
+      container_type Target = FlowFunc->computeTargets(Source);
+      Result.insert(Target.begin(), Target.end());
+    }
+    return Result;
+  }
+
+protected:
+  const std::vector<FlowFunctionPtrType> FlowFuncs;
+};
+
 } // namespace  psr
 
 #endif

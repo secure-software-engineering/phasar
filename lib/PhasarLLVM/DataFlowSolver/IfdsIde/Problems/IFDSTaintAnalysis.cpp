@@ -147,12 +147,12 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return generateFlow<d_t>(Load, Load->getPointerOperand());
+    return generateFlow(Load, Load->getPointerOperand());
   }
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return generateFlow<d_t>(GEP, GEP->getPointerOperand());
+    return generateFlow(GEP, GEP->getPointerOperand());
   }
   // Otherwise we do not care and leave everything as it is
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();

@@ -569,11 +569,11 @@ public:
                                                  f_t DestFun) override {
     if (this->ICF->isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
-      return KillAll<d_t>::getInstance();
+      return killAllFlows<d_t>();
     }
     if (DestFun->isDeclaration()) {
       // We don't have anything that we could analyze, kill all facts.
-      return KillAll<d_t>::getInstance();
+      return killAllFlows<d_t>();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
     // Map actual to formal parameters.

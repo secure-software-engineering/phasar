@@ -152,7 +152,7 @@ IDEGeneralizedLCA::getCallFlowFunction(IDEGeneralizedLCA::n_t CallStmt,
   assert(llvm::isa<llvm::CallBase>(CallStmt));
   if (isStringConstructor(DestMthd)) {
     // kill all data-flow facts at calls to string constructors
-    return KillAll<IDEGeneralizedLCA::d_t>::getInstance();
+    return killAllFlows<d_t>();
   }
   return std::make_shared<MapFactsToCalleeFlowFunction>(
       llvm::cast<llvm::CallBase>(CallStmt), DestMthd);
