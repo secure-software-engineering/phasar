@@ -121,6 +121,7 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getRetResInstructions() const;
   [[nodiscard]] nlohmann::json getAsJson() const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const GeneralStatistics &statistics) {

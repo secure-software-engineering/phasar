@@ -218,6 +218,10 @@ GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
 }
 
+void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
+  OS << getAsJson().dump(4) << '\n';
+}
+
 nlohmann::json GeneralStatistics::getAsJson() const {
   nlohmann::json J;
   J["ModuleName"] = GeneralStatistics::ModuleName;
