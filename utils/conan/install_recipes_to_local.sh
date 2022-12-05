@@ -3,13 +3,15 @@
 # Is used to provide non-public conan recipes to a phasar user.
 # We currently dont have a private conan registry and some recipes arent in conan-center.
 #
+# For only llvm this is maybe a bit much, basically its one line "conan export ./llvm llvm/14.0.6@phasar/develop"
+# But for arbitrary many dependencies, as long as we dont have an own conan artifactory.
 set -euo pipefail
 
 (
     cd "$(dirname "$0")"
 
     if ! which conan; then
-        echo "ERROR you didn't install conan, you can do it with pip3 install conan"
+        echo "ERROR you didn't install conan, you can do it with \"pip3 install conan\""
         exit 1
     fi
 
@@ -27,5 +29,4 @@ set -euo pipefail
     }
     
     conan_export llvm
-    conan_export wali-opennwa
 )

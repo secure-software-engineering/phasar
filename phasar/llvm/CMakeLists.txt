@@ -47,7 +47,7 @@ just_add_library(
       
       sqlite3
       nlohmann_json_schema_validator
-    EXCLUDE "phasar-llvm.cpp$" "^.*/WPDS/.*$" #removed wali
+    EXCLUDE "phasar-llvm.cpp$"
 )
 
 just_add_executable(
