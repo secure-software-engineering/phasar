@@ -860,6 +860,8 @@ public:
             // must be generated from zero!
             if (Source == ZeroValue) {
               return {Source, CallSite};
+            } else {
+              return {Source};
             }
           } else {
             // If all declaration-only callee targets return void, just pass
