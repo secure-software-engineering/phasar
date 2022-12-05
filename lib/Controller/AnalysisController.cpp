@@ -245,10 +245,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     auto stats = IRDB.getStatistics();
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        stats.printAsJson(*OFS);
+        stats->printAsJson(*OFS);
       }
     } else {
-      stats.printAsJson();
+      stats->printAsJson();
     }
   }
 }

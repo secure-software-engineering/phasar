@@ -161,8 +161,8 @@ public:
     return AllocatedTypes;
   };
 
-  [[nodiscard]] psr::GeneralStatistics getStatistics() const {
-    return GSPResult;
+  [[nodiscard]] const psr::GeneralStatistics *getStatistics() const {
+    return &GSPResult;
   };
 
   [[nodiscard]] std::set<const llvm::StructType *>
