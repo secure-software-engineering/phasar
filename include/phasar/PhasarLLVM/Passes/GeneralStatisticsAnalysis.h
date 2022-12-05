@@ -121,6 +121,23 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getRetResInstructions() const;
   [[nodiscard]] nlohmann::json getAsJson() const;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const GeneralStatistics &statistics) {
+    return OS << "General LLVM IR Statistics"
+              << "\n"
+              << "Module " << statistics.ModuleName << ":\n"
+              << "LLVM IR instructions:\t" << statistics.Instructions << "\n"
+              << "Functions:\t" << statistics.Functions << "\n"
+              << "Global Variables:\t" << statistics.Globals << "\n"
+              << "Alloca Instructions:\t"
+              << statistics.AllocaInstructions.size() << "\n"
+              << "Call Sites:\t" << statistics.CallSites << "\n"
+              << "Branches:\t" << statistics.Branches << "\n"
+              << "GetElementPtrs:\t" << statistics.GetElementPtrs << "\n"
+              << "Phi Nodes:\t" << statistics.PhiNodes << "\n"
+              << "Basic Blocks:\t" << statistics.BasicBlocks << "\n";
+  }
 };
 
 /**
