@@ -230,15 +230,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       PT.printAsJson();
     }
   }
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.txt")) {
-  //       ICF.print(*OFS);
-  //     }
-  //   } else {
-  //     ICF.print();
-  //   }
-  // }
+
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-cg.dot")) {
@@ -249,23 +241,14 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     }
   }
 
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.json")) {
-  //       ICF.printAsJson(*OFS);
-  //     }
-  //   } else {
-  //     ICF.printAsJson();
-  //   }
-  // }
-
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
+    auto stats = IRDB.getStatistics();
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        IRDB.printAsJson(*OFS);
+        stats.printAsJson(*OFS);
       }
     } else {
-      IRDB.printAsJson();
+      stats.printAsJson();
     }
   }
 }

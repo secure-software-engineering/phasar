@@ -336,17 +336,12 @@ int main(int Argc, const char **Argv) {
   // setup IRDB as source code manager
   ProjectIRDB IRDB(std::vector(ModuleOpt.begin(), ModuleOpt.end()));
   if (StatisticsOpt) {
-    llvm::outs() << "Module " << IRDB.getWPAModule()->getName() << ":\n";
-    llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-                 << "\n";
-    llvm::outs() << "> Functions:\t\t" << IRDB.getWPAModule()->size() << "\n";
-    llvm::outs() << "> Global variables:\t"
-                 << IRDB.getWPAModule()->global_size() << "\n";
-    llvm::outs() << "> Alloca instructions:\t"
-                 << IRDB.getAllocaInstructions().size() << "\n";
+    auto stats = IRDB.getStatistics();
+    llvm::outs() << stats;
+    // the way we construct memory locations in IRDB is not included in
+    // the GeneralStatistics class right now, thus we print it here separately.
     llvm::outs() << "> Memory Locations:\t"
                  << IRDB.getAllMemoryLocations().size() << "\n";
-    llvm::outs() << "> Call Sites:\t\t" << IRDB.getNumCallsites() << "\n";
   }
 
   // setup the emitter options to display the computed analysis results
