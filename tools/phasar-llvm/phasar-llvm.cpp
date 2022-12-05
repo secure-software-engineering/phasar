@@ -336,8 +336,7 @@ int main(int Argc, const char **Argv) {
   // setup IRDB as source code manager
   ProjectIRDB IRDB(std::vector(ModuleOpt.begin(), ModuleOpt.end()));
   if (StatisticsOpt) {
-    auto stats = IRDB.getStatistics();
-    llvm::outs() << *stats;
+    llvm::outs() << IRDB.getStatistics();
     // the way we construct memory locations in IRDB is not included in
     // the GeneralStatistics class right now, thus we print it here separately.
     llvm::outs() << "> Memory Locations:\t"

@@ -237,4 +237,21 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   return J;
 }
 
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const GeneralStatistics &Statistics) {
+  return OS << "General LLVM IR Statistics"
+            << "\n"
+            << "Module " << Statistics.ModuleName << ":\n"
+            << "LLVM IR instructions:\t" << Statistics.Instructions << "\n"
+            << "Functions:\t" << Statistics.Functions << "\n"
+            << "Global Variables:\t" << Statistics.Globals << "\n"
+            << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
+            << "\n"
+            << "Call Sites:\t" << Statistics.CallSites << "\n"
+            << "Branches:\t" << Statistics.Branches << "\n"
+            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << "\n"
+            << "Phi Nodes:\t" << Statistics.PhiNodes << "\n"
+            << "Basic Blocks:\t" << Statistics.BasicBlocks << "\n";
+}
+
 } // namespace psr

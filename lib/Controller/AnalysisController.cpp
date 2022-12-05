@@ -242,13 +242,13 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
-    auto stats = IRDB.getStatistics();
+    const auto &Stats = IRDB.getStatistics();
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        stats->printAsJson(*OFS);
+        Stats.printAsJson(*OFS);
       }
     } else {
-      stats->printAsJson();
+      Stats.printAsJson();
     }
   }
 }
