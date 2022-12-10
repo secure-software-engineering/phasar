@@ -35,9 +35,23 @@ namespace psr {
 //===----------------------------------------------------------------------===//
 // Mapping functions
 
-/// A predicate can be used to specify additional requirements for the
-/// propagation.
-/// \brief Propagates all non pointer parameters alongside the call site.
+/// A flow function that serves as default-implementation for the call-to-return
+/// flow function.
+/// For more details on the use-case of call-to-return flow functions, see the
+/// documentation of FlowFunction::getCallToRetFlowFunction().
+///
+/// Propagates all dataflow facts unchanged, except for global variables and
+/// arguments of the specified call-site.
+/// Global variables are propagated only if PropagateGlobals is set to true; for
+/// the argument values the PropagateArgs function defines on a per-arg basis
+/// whether the respective argument should be propagated or killed.
+/// By default (when not specifying PropagateArgs), all parameters are
+/// propagated unchanged.
+///
+/// For analyses that propagate values via reference parameters in the
+/// return flow function, it is useful to kill the respective arguments here to
+/// enable strong updates.
+///
 template <
     typename Fn = TrueFn, typename Container = std::set<const llvm::Value *>,
     typename =
@@ -85,9 +99,26 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
                                   std::forward<Fn>(PropagateArgs));
 }
 
-/// A predicate can be used to specifiy additonal requirements for mapping
-/// actual parameter into formal parameter.
-/// \brief Generates all valid formal parameter in the callee context.
+/// A flow function that serves as default implementation of the
+/// call flow function. For more information about call flow functions, see
+/// FlowFunctions::getCallFlowFunction().
+///
+/// Propagates the arguments of the specified call-site into the callee function
+/// if the function PropagateArgumentWithSource evaluates to true when invoked
+/// with the argument and a currently holding dataflow fact.
+/// Global variables are propagated into the callee function only, if the flag
+/// PropagateGlobals is set to true.
+/// The special zero (Λ) value gets propagated into the callee function if
+/// PropagateZeroToCallee is true. For most analyses it makes sense to propagate
+/// Λ everywhere.
+///
+/// Given a call-site cs: r = fun(..., ax, ...) and a function prototype
+/// fun(..., px, ...). Further let f = mapFactsToCallee(cs, fun, ...). Then for
+/// any dataflow fact x:
+///   f(Λ)  = {Λ}  if PropagateZeroToCallee else {},
+///   f(ax) = {px} if PropagateArgumentWithSource(ax, ax) else {},
+///   f(g)  = {g}  if g is GlobalVariable && PropagateGlobals else {},
+///   f(x)  = {px} if PropagateArgumentWithSource(ax, x) else {}.
 ///
 /// \note Unlike the old version, this one is only meant for forward-analyses
 template <typename Fn = std::equal_to<const llvm::Value *>,
@@ -184,12 +215,28 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       std::forward<Fn>(PropagateArgumentWithSource));
 }
 
-/// Predicates can be used to specify additional requirements for mapping
-/// actual parameters into formal parameters and the return value.
-/// \note Currently, the return value predicate only allows checks regarding
-/// the callee method.
-/// \brief Generates all valid actual parameters and the return value in the
-/// caller context.
+/// A flow function that serves as default-implementation of the return flow
+/// function. For more information about return flow functions, see
+/// FlowFunctions::getRetFlowFunction().
+///
+/// Propagates the return value back to the call-site and based on the
+/// PropagateParameter predicate propagates back parameters holding as dataflow
+/// facts.
+///
+/// Let a call-site cs: r = fun(..., ax, ...) a function prototype fun(...,
+/// px, ...) and an exit statement exit: return rv.
+/// Further given a flow function f = mapFactsToCaller(cs, exit, ...). Then for
+/// all dataflow facts x holding at exit:
+///   f(rv) = {r}   if PropagateParameter(rv, rv) else {},
+///   f(px) = {ax}  if PropagateParameter(px, px) else {},
+///   f(g)  = {g}   if PropagateGlobals else {},
+///   f(Λ)  = {Λ}   if PropagateZeroToCaller else {},
+///   f(x)  = {ax}  if PropagateParameter(ax, x) else {}.
+///
+/// NOTE: PropagateParameter is used to dermine if both output parameters and
+/// the return value should be propagated back to the caller. So, it may make
+/// sense to provide two different predicates combined by psr::Overloaded.
+///
 template <typename FnParam = std::equal_to<const llvm::Value *>,
           typename Container = std::set<const llvm::Value *>,
           typename = std::enable_if_t<std::is_invocable_r_v<
@@ -282,12 +329,17 @@ FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
 //===----------------------------------------------------------------------===//
 // Propagation flow functions
 
+/// Utility function to simplify writing a flow function of the form:
+/// generateFlow(Load, from: Load->getPointerOperand()).
 template <typename Container = std::set<const llvm::Value *>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 propagateLoad(const llvm::LoadInst *Load) {
   return generateFlow<const llvm::Value *, Container>(
       Load, Load->getPointerOperand());
 }
+
+/// Utility function to simplify writing a flow function of the form:
+/// generateFlow(Store->getValueOperand(), from: Store->getPointerOperand()).
 template <typename Container = std::set<const llvm::Value *>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 propagateStore(const llvm::StoreInst *Store) {
@@ -298,6 +350,14 @@ propagateStore(const llvm::StoreInst *Store) {
 //===----------------------------------------------------------------------===//
 // Update flow functions
 
+/// A flow function that models a strong update on a memory location modified by
+/// a store instruction
+///
+/// Given a flow function f = strongUpdateStore(store a to b, pred), for all
+/// holding dataflow facts x:
+///   f(b) = {},
+///   f(x) = {x, b} if pred(x) else {x}.
+///
 template <typename Fn, typename Container = std::set<const llvm::Value *>,
           typename = std::enable_if_t<
               std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
@@ -327,6 +387,24 @@ strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
       Store, std::forward<Fn>(GeneratePointerOpIf));
 }
 
+/// A flow function that models a strong update on a memory location modified by
+/// a store instruction. Similar to transferFlow.
+///
+/// Given a flow function f = strongUpdateStore(store a to b), for all
+/// holding dataflow facts x:
+///   f(b) = {},
+///   f(a) = {a, b},
+///   f(x) = {x}.
+///
+/// In the exploded supergraph it may look as follows:
+///
+///               x   a   b  ...
+///               |   |\  |
+///               |   | \    ...
+///  store a to b |   |  \   ...
+///               v   v   v
+///               x   a   b  ...
+///
 template <typename Container = std::set<const llvm::Value *>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 strongUpdateStore(const llvm::StoreInst *Store) {
