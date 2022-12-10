@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
 #include "phasar/PhasarLLVM/Pointer/AliasResult.h"
+#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/EnumFlags.h"
