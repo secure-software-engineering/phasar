@@ -216,15 +216,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       HA.getPointsToInfo().printAsJson(llvm::outs());
     }
   }
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.txt")) {
-  //       ICF.print(*OFS);
-  //     }
-  //   } else {
-  //     ICF.print();
-  //   }
-  // }
+
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-cg.txt")) {
@@ -235,23 +227,14 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     }
   }
 
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.json")) {
-  //       HA.getICFG().printAsJson(*OFS);
-  //     }
-  //   } else {
-  //     HA.getICFG().printAsJson();
-  //   }
-  // }
-
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
+    const auto &Stats = HA.getProjectIRDB().getStatistics();
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        HA.getProjectIRDB().printAsJson(*OFS);
+        Stats.printAsJson(*OFS);
       }
     } else {
-      HA.getProjectIRDB().printAsJson();
+      Stats.printAsJson();
     }
   }
 }

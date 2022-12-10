@@ -45,6 +45,9 @@ private:
   size_t LoadInstructions = 0;
   size_t MemIntrinsics = 0;
   size_t GlobalPointers = 0;
+  size_t Branches = 0;
+  size_t GetElementPtrs = 0;
+  size_t PhiNodes = 0;
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;
   std::set<const llvm::Instruction *> RetResInstructions;
@@ -118,6 +121,10 @@ public:
   [[nodiscard]] std::set<const llvm::Instruction *>
   getRetResInstructions() const;
   [[nodiscard]] nlohmann::json getAsJson() const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const GeneralStatistics &Statistics);
 };
 
 /**
