@@ -10,6 +10,7 @@
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -63,8 +64,9 @@ AnalysisController::AnalysisController(
       ICF(&IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel,
           AutoGlobalSupport),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
-      AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
-      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      AnalysisConfigs(std::move(AnalysisConfigs)),
+      EntryPoints(std::move(EntryPoints)), Strategy(Strategy),
+      EmitterOptions(EmitterOptions), ProjectID(ProjectID),
       ResultDirectory(std::move(OutDirectory)), SolverConfig(SolverConfig),
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {
 
@@ -229,46 +231,16 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       PT.printAsJson();
     }
   }
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.txt")) {
-  //       ICF.print(*OFS);
-  //     }
-  //   } else {
-  //     ICF.print();
-  //   }
-  // }
+
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-cg.dot")) {
+      if (auto OFS = openFileStream(ResultDirectory.string() + "/psr-cg.dot")) {
         ICF.print(*OFS);
       }
     } else {
       ICF.print();
     }
   }
-
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.json")) {
-  //       ICF.printAsJson(*OFS);
-  //     }
-  //   } else {
-  //     ICF.printAsJson();
-  //   }
-  // }
-
-  /// TODO: Print statistics as json
-  // if (EmitterOptions &
-  // AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-  //       IRDB.printAsJson(*OFS);
-  //     }
-  //   } else {
-  //     IRDB.printAsJson();
-  //   }
-  // }
 }
 
 } // namespace psr

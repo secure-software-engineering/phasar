@@ -325,30 +325,18 @@ int main(int Argc, const char **Argv) {
 
   // setup IRDB as source code manager
   LLVMProjectIRDB IRDB(ModuleOpt);
-
   if (StatisticsOpt || EmitStatsAsJsonOpt) {
     GeneralStatisticsAnalysis GSA;
     auto Stats = GSA.runOnModule(*IRDB.getModule());
-
     if (StatisticsOpt) {
-      llvm::outs() << "Module " << IRDB.getModule()->getName().str() << ":\n";
-      llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-                   << '\n';
-      llvm::outs() << "> Functions:\t\t" << Stats.getFunctions() << '\n';
-      llvm::outs() << "> Global variables:\t" << Stats.getGlobals() << '\n';
-      llvm::outs() << "> Alloca instructions:\t"
-                   << Stats.getAllocaInstructions().size() << '\n';
-      llvm::outs() << "> Call Sites:\t\t" << Stats.getFunctioncalls() << '\n';
+      llvm::outs() << Stats;
     }
-
-    if (EmitStatsAsJsonOpt) {
-      if (!OutDirOpt.empty()) {
-        if (auto OFS = openFileStream("/psr-IrStatistic.json")) {
-          *OFS << Stats.getAsJson().dump(4) << '\n';
-        }
-      } else {
-        llvm::outs() << Stats.getAsJson().dump(4) << '\n';
+    if (!OutDirOpt.empty()) {
+      if (auto OFS = openFileStream(OutDirOpt + "/psr-IrStatistics.json")) {
+        Stats.printAsJson(*OFS);
       }
+    } else {
+      Stats.printAsJson();
     }
   }
 
