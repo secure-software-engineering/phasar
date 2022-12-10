@@ -22,6 +22,7 @@
 #include "llvm/Passes/PassBuilder.h"
 
 #include "nlohmann/json.hpp"
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/Utils/EnumFlags.h"
 
 namespace llvm {
@@ -63,7 +64,7 @@ private:
   std::map<std::size_t, llvm::Instruction *> IDInstructionMapping;
   size_t NumGlobals = 0;
   size_t NumberCallsites = 0;
-  nlohmann::json StatsJson;
+  GeneralStatistics GSPResult;
 
   void buildIDModuleMapping(llvm::Module *M);
 
@@ -160,6 +161,10 @@ public:
     return AllocatedTypes;
   };
 
+  [[nodiscard]] const psr::GeneralStatistics &getStatistics() const {
+    return GSPResult;
+  };
+
   [[nodiscard]] std::set<const llvm::StructType *>
   getAllocatedStructTypes() const;
 
@@ -187,8 +192,6 @@ public:
   [[nodiscard]] llvm::Instruction *getInstruction(std::size_t Id) const;
 
   [[nodiscard]] static std::size_t getInstructionID(const llvm::Instruction *I);
-
-  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
   void print() const;
 
