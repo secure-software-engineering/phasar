@@ -1,10 +1,10 @@
 /******************************************************************************
- * Copyright (c) 2019 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Fabian Schiebel and others
  *****************************************************************************/
 
 #ifndef PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
@@ -51,6 +51,19 @@ struct CanMergeWithAARef<
     : std::true_type {};
 } // namespace detail
 
+/// A type-erased reference to any object implementing the AliasInfoBase
+/// interface. Use this, if your analysis is not tied to a specific alias info
+/// implementation.
+///
+/// This is a *non-owning* reference similar to std::string_view and
+/// llvm::ArrayRef. Pass this type by value.
+///
+/// Example:
+/// \code
+/// LLVMAliasSet ASet(...);
+/// AliasInfoRef AA = &ASet;
+/// \endcode
+///
 template <typename V, typename N>
 class AliasInfoRef : public AliasInfoBase<AliasInfoRef<V, N>> {
   friend AliasInfoBase<AliasInfoRef<V, N>>;
@@ -246,6 +259,16 @@ private:
   const VTable *VT{};
 };
 
+/// Similar to AliasInfoRef, but owns the held reference. Us this, if you need
+/// to decide dynamically, which alias info implementation to use.
+///
+/// Implicitly convertible to AliasInfoRef.
+///
+/// Example:
+/// \code
+/// AliasInfo AA = std::make_unique<LLVMAliasSet>(...);
+/// \endcode
+///
 template <typename V, typename N>
 class AliasInfo final : public AliasInfoRef<V, N> {
   using base_t = AliasInfoRef<V, N>;

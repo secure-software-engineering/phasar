@@ -34,7 +34,7 @@ private:
   llvm::AAManager AA;
   llvm::FunctionAnalysisManager FAM;
   llvm::FunctionPassManager FPM;
-  mutable std::unordered_map<const llvm::Function *, llvm::AAResults *> AAInfos;
+  std::unordered_map<const llvm::Function *, llvm::AAResults *> AAInfos;
   AliasAnalysisType PATy;
 
   bool hasAliasInfo(const llvm::Function &Fun) const;

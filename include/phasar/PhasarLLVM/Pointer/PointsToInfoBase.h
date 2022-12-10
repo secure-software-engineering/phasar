@@ -41,13 +41,15 @@ static constexpr bool is_PointsToTraits_v = // NOLINT
 
 template <typename T1, typename T2>
 static constexpr bool is_equivalent_PointsToTraits_v = // NOLINT
-    is_PointsToTraits_v<T1> &&is_PointsToTraits_v<T2>
-        &&std::is_same_v<typename T1::n_t, typename T2::n_t>
-            &&std::is_same_v<typename T1::v_t, typename T2::v_t>
-                &&std::is_same_v<typename T1::o_t, typename T2::o_t>
-                    &&std::is_same_v<typename T1::PointsToSetPtrTy,
-                                     typename T2::PointsToSetPtrTy>;
+    is_PointsToTraits_v<T1> && is_PointsToTraits_v<T2> &&
+    std::is_same_v<typename T1::n_t, typename T2::n_t> &&
+    std::is_same_v<typename T1::v_t, typename T2::v_t> &&
+    std::is_same_v<typename T1::o_t, typename T2::o_t> &&
+    std::is_same_v<typename T1::PointsToSetPtrTy,
+                   typename T2::PointsToSetPtrTy>;
 
+/// Base class of all points-to analysis implementations. Don't use this class
+/// directly. For a type-erased variant, use PointsToInfoRef or PointsToInfo.
 template <typename Derived> class PointsToInfoBase {
 public:
   using v_t = typename PointsToTraits<Derived>::v_t;

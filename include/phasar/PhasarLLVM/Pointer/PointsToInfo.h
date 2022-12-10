@@ -29,6 +29,13 @@ struct PointsToTraits<PointsToInfoRef<PTATraits>> : PTATraits {};
 template <typename PTATraits>
 struct PointsToTraits<PointsToInfo<PTATraits>> : PTATraits {};
 
+/// A type-erased reference to any object implementing th PointsToInfoBase
+/// interface. Use this, if your analysis is not tied to a specific points-to
+/// info implementation.
+///
+/// This is a *non-owning* reference similar to std::string_view and
+/// llvm::ArrayRef. Pass this type by value.
+///
 template <typename PTATraits>
 class PointsToInfoRef<PTATraits,
                       std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
@@ -197,6 +204,11 @@ private:
   const VTable<> *VT{};
 };
 
+/// Similar to PointsToInfoRef, but owns the held reference. Us this, if you
+/// need to decide dynamically, which points-to info implementation to use.
+///
+/// Implicitly convertible to PointsToInfoRef.
+///
 template <typename PTATraits>
 class PointsToInfo<PTATraits, std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
     final : public PointsToInfoRef<PTATraits> {

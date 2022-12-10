@@ -9,9 +9,12 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 
-namespace psr {
+#include "llvm/ADT/StringSwitch.h"
+#include "llvm/IR/Function.h"
 
-const std::set<llvm::StringRef> HeapAllocatingFunctions{
-    "malloc", "calloc", "realloc", "_Znwm", "_Znam"};
-
-} // namespace psr
+bool psr::isHeapAllocatingFunction(const llvm::Function *Fun) {
+  /// XXX: Consider using TargetLibraryInfo here
+  return llvm::StringSwitch<bool>(Fun->getName())
+      .Cases("malloc", "calloc", "realloc", "_Znwm", "_Znam", "_ZnwPv", true)
+      .Default(false);
+}

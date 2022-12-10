@@ -46,6 +46,9 @@ public:
   static const llvm::Function *retrieveFunction(const llvm::Value *V);
 };
 
+/// Base class of all alias analysis implementations.
+/// Don't use this class directly. For a type-erased variant, use AliasInfoRef
+/// or AliasInfo.
 template <typename Derived> class AliasInfoBase : public AliasInfoBaseUtils {
 public:
   using n_t = typename AliasInfoTraits<Derived>::n_t;

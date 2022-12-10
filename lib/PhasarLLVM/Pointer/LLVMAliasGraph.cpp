@@ -70,8 +70,7 @@ struct LLVMAliasGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
         llvm::isa<llvm::InvokeInst>(G[U].V)) {
       const auto *CallSite = llvm::cast<llvm::CallBase>(G[U].V);
       if (CallSite->getCalledFunction() != nullptr &&
-          HeapAllocatingFunctions.count(
-              CallSite->getCalledFunction()->getName())) {
+          isHeapAllocatingFunction(CallSite->getCalledFunction())) {
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matchesStack(G) || CallStack.empty()) {

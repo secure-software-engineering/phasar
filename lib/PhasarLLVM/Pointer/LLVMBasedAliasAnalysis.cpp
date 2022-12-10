@@ -140,7 +140,7 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(ProjectIRDB &IRDB,
 
 void LLVMBasedAliasAnalysis::print(llvm::raw_ostream &OS) const {
   OS << "Points-to Info:\n";
-  for (auto &[Fn, AA] : AAInfos) {
+  for (const auto &[Fn, AA] : AAInfos) {
     bool PrintAll = true;
     bool PrintNoAlias = true;
     bool PrintMayAlias = true;

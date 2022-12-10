@@ -265,8 +265,7 @@ bool LLVMAliasSet::interIsReachableAllocationSiteTy(
   }
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(P)) {
     if (CS->getCalledFunction() != nullptr &&
-        CS->getCalledFunction()->hasName() &&
-        HeapAllocatingFunctions.count(CS->getCalledFunction()->getName())) {
+        isHeapAllocatingFunction(CS->getCalledFunction())) {
       return true;
     }
   }
@@ -294,8 +293,7 @@ bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
   } else if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(P)) {
 
     if (CS->getCalledFunction() != nullptr &&
-        CS->getCalledFunction()->hasName() &&
-        HeapAllocatingFunctions.count(CS->getCalledFunction()->getName())) {
+        isHeapAllocatingFunction(CS->getCalledFunction())) {
       if (VFun && VFun == CS->getFunction()) {
         return true;
       }
