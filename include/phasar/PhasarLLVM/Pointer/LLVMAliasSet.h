@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
 #include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
 #include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
@@ -23,17 +23,15 @@
 
 namespace llvm {
 class Value;
-class Module;
 class Instruction;
-class AAResults;
 class GlobalVariable;
 class Function;
-class Type;
 } // namespace llvm
 
 namespace psr {
 
 class LLVMAliasSet;
+class ProjectIRDB;
 
 template <>
 struct AliasInfoTraits<LLVMAliasSet>

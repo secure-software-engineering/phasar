@@ -10,13 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 
-#include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
 
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
-
-#include <unordered_map>
 
 namespace llvm {
 class Value;
@@ -34,10 +32,10 @@ private:
   llvm::AAManager AA;
   llvm::FunctionAnalysisManager FAM;
   llvm::FunctionPassManager FPM;
-  std::unordered_map<const llvm::Function *, llvm::AAResults *> AAInfos;
+  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
   AliasAnalysisType PATy;
 
-  bool hasAliasInfo(const llvm::Function &Fun) const;
+  [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
 
   void computeAliasInfo(llvm::Function &Fun);
 
@@ -53,7 +51,7 @@ public:
     if (!hasAliasInfo(*F)) {
       computeAliasInfo(*F);
     }
-    return AAInfos.at(F);
+    return AAInfos.lookup(F);
   };
 
   void erase(llvm::Function *F);

@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
 #include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
@@ -51,7 +52,8 @@ namespace psr {
 
 template class DynamicAliasSetPtr<>;
 template class DynamicAliasSetConstPtr<>;
-template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
+template class AliasSetOwner<DefaultAATraits<
+    const llvm::Value *, const llvm::Instruction *>::AliasSetTy>;
 
 LLVMAliasSet::LLVMAliasSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
                            AliasAnalysisType PATy)

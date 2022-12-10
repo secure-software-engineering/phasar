@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_ALIASSETOWNER_H
 #define PHASAR_PHASARLLVM_POINTER_ALIASSETOWNER_H
 
+#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
 #include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/MemoryResource.h"
 #include "phasar/Utils/StableVector.h"
 
@@ -27,13 +27,12 @@
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here
 
-#if HAS_MEMORY_RESOURCE
-#include <memory_resource>
-#else
+#if !HAS_MEMORY_RESOURCE
 #include "llvm/Support/RecyclingAllocator.h"
 #endif
 namespace llvm {
 class Value;
+class Instruction;
 } // namespace llvm
 
 namespace psr {
@@ -118,7 +117,8 @@ private:
   StableVector<AliasSetTy *> AllPTS;
 };
 
-extern template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
+extern template class AliasSetOwner<DefaultAATraits<
+    const llvm::Value *, const llvm::Instruction *>::AliasSetTy>;
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_POINTER_ALIASSETOWNER_H

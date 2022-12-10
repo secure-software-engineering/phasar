@@ -41,9 +41,7 @@
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here
 
-#if HAS_MEMORY_RESOURCE
-#include <memory_resource>
-#else
+#if !HAS_MEMORY_RESOURCE
 #include "llvm/Support/Allocator.h"
 #endif
 

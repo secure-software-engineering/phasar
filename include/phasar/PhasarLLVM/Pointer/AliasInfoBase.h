@@ -10,9 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_ALIASINFOBASE_H
 #define PHASAR_PHASARLLVM_POINTER_ALIASINFOBASE_H
 
-#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
 #include "phasar/PhasarLLVM/Pointer/AliasResult.h"
-#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -31,15 +30,8 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-template <typename T> struct AliasInfoTraits {
-  //   using n_t;
-  //   using v_t;
-};
 
-template <typename V, typename N> struct DefaultAATraits {
-  using n_t = N;
-  using v_t = V;
-};
+enum class AliasAnalysisType;
 
 class AliasInfoBaseUtils {
 public:
@@ -53,14 +45,15 @@ template <typename Derived> class AliasInfoBase : public AliasInfoBaseUtils {
 public:
   using n_t = typename AliasInfoTraits<Derived>::n_t;
   using v_t = typename AliasInfoTraits<Derived>::v_t;
-  using AliasSetTy = llvm::DenseSet<v_t>;
-  using AliasSetPtrTy = DynamicAliasSetConstPtr<AliasSetTy>;
-  using AllocationSiteSetPtrTy = std::unique_ptr<AliasSetTy>;
+  using AliasSetTy = typename AliasInfoTraits<Derived>::AliasSetTy;
+  using AliasSetPtrTy = typename AliasInfoTraits<Derived>::AliasSetPtrTy;
+  using AllocationSiteSetPtrTy =
+      typename AliasInfoTraits<Derived>::AllocationSiteSetPtrTy;
 
   AliasInfoBase() noexcept {
     static_assert(std::is_base_of_v<AliasInfoBase, Derived>,
                   "Invalid CRTP instantiation: Derived must inherit from "
-                  "PointsToInfoBase<Derived>!");
+                  "AliasInfoBase<Derived>!");
   }
 
   [[nodiscard]] bool isInterProcedural() const noexcept {
