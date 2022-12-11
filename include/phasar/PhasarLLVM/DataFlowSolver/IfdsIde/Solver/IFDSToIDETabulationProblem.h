@@ -15,14 +15,13 @@
 #include <sstream>
 #include <string>
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
 namespace psr {
-
-extern const std::shared_ptr<AllBottom<BinaryDomain>> ALLBOTTOM;
 
 template <typename OriginalAnalysisDomain>
 struct AnalysisDomainExtender : public OriginalAnalysisDomain {
@@ -123,14 +122,14 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>> allTopFunction() override {
-    return std::make_shared<AllTop<BinaryDomain>>(BinaryDomain::TOP);
+    return std::make_shared<AllTop<BinaryDomain>>();
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
   getNormalEdgeFunction(n_t /*Src*/, d_t SrcNode, n_t /*Tgt*/,
                         d_t /*TgtNode*/) override {
     if (Problem.isZeroValue(SrcNode)) {
-      return ALLBOTTOM;
+      return AllBottom<BinaryDomain>::getInstance();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
@@ -139,7 +138,7 @@ public:
   getCallEdgeFunction(n_t /*CallSite*/, d_t SrcNode,
                       f_t /*DestinationFunction*/, d_t /*DestNode*/) override {
     if (Problem.isZeroValue(SrcNode)) {
-      return ALLBOTTOM;
+      return AllBottom<BinaryDomain>::getInstance();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
@@ -149,7 +148,7 @@ public:
                         n_t /*ExitInst*/, d_t ExitNode, n_t /*ReturnSite*/,
                         d_t /*RetNode*/) override {
     if (Problem.isZeroValue(ExitNode)) {
-      return ALLBOTTOM;
+      return AllBottom<BinaryDomain>::getInstance();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
@@ -159,7 +158,7 @@ public:
                            d_t /*ReturnSideNode*/,
                            llvm::ArrayRef<f_t> /*Callees*/) override {
     if (Problem.isZeroValue(CallNode)) {
-      return ALLBOTTOM;
+      return AllBottom<BinaryDomain>::getInstance();
     }
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
