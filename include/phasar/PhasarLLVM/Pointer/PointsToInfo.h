@@ -34,7 +34,7 @@ struct PointsToTraits<PointsToInfo<PTATraits>> : PTATraits {};
 /// info implementation.
 ///
 /// This is a *non-owning* reference similar to std::string_view and
-/// llvm::ArrayRef. Pass this type by value.
+/// llvm::ArrayRef. Pass values of this type by value.
 ///
 template <typename PTATraits>
 class PointsToInfoRef<PTATraits,
@@ -65,6 +65,10 @@ public:
     }
   }
 
+  // Prevent dangling references
+  PointsToInfoRef(PointsToInfo<PTATraits> &&) = delete;
+  PointsToInfoRef &operator=(PointsToInfo<PTATraits> &&) = delete;
+
   PointsToInfoRef(const PointsToInfoRef &) noexcept = default;
   PointsToInfoRef &operator=(const PointsToInfoRef &) noexcept = default;
   ~PointsToInfoRef() noexcept = default;
@@ -82,7 +86,7 @@ private:
                                        ByConstRef<n_t>);
 
     std::vector<v_t> (*GetInterestingPointersAt)(const void *, ByConstRef<n_t>);
-    void (*Destroy)(void *); // Useful for the owning variant
+    void (*Destroy)(const void *) noexcept; // Useful for the owning variant
   };
 
   template <typename V = v_t, typename = void> struct VTable : VTableBase {};
@@ -123,7 +127,9 @@ private:
           }
           return Ret;
         },
-        [](void *PT) { delete static_cast<ConcretePTA *>(PT); },
+        [](const void *PT) noexcept {
+          delete static_cast<const ConcretePTA *>(PT);
+        },
     };
     if constexpr (std::is_same_v<o_t, v_t>) {
       return {Base};
@@ -210,7 +216,8 @@ private:
 /// Implicitly convertible to PointsToInfoRef.
 ///
 template <typename PTATraits>
-class PointsToInfo<PTATraits, std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
+class [[clang::trivial_abi]] PointsToInfo<
+    PTATraits, std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
     final : public PointsToInfoRef<PTATraits> {
   using base_t = PointsToInfoRef<PTATraits>;
 
@@ -248,7 +255,7 @@ public:
 
   ~PointsToInfo() noexcept {
     if (*this) {
-      this->VT->Destroy(const_cast<void *>(this->PT)); // NOLINT
+      this->VT->Destroy(this->PT);
       this->VT = nullptr;
       this->PT = nullptr;
     }

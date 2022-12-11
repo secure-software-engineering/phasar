@@ -793,4 +793,6 @@ void LLVMAliasSet::drawAliasSetsDistribution(int Peak) const {
   }
 }
 
+template class AliasInfoBase<LLVMAliasSet>;
+
 } // namespace psr

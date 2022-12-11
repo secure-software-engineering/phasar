@@ -466,4 +466,6 @@ void LLVMAliasGraph::printAsJsonImpl(llvm::raw_ostream &OS) const {
   OS << J;
 }
 
+template class AliasInfoBase<LLVMAliasGraph>;
+
 } // namespace psr

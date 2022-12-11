@@ -255,6 +255,8 @@ private:
   std::unordered_map<const llvm::Value *, DynamicAliasSetPtr<AliasSetTy>> Cache;
 };
 
+extern template class AliasInfoBase<LLVMAliasGraph>;
+
 } // namespace psr
 
 #endif

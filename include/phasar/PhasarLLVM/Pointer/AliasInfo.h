@@ -56,7 +56,7 @@ struct CanMergeWithAARef<
 /// implementation.
 ///
 /// This is a *non-owning* reference similar to std::string_view and
-/// llvm::ArrayRef. Pass this type by value.
+/// llvm::ArrayRef. Pass values of this type by value.
 ///
 /// Example:
 /// \code
@@ -64,6 +64,8 @@ struct CanMergeWithAARef<
 /// AliasInfoRef AA = &ASet;
 /// \endcode
 ///
+/// NOTE: AliasInfoRef::mergeWith() only works if the held concrete
+/// implementation supports merging with a generic AliasInfoRef.
 template <typename V, typename N>
 class AliasInfoRef : public AliasInfoBase<AliasInfoRef<V, N>> {
   friend AliasInfoBase<AliasInfoRef<V, N>>;
@@ -78,17 +80,22 @@ public:
   using typename base_t::v_t;
 
   AliasInfoRef() noexcept = default;
-  AliasInfoRef(std::nullptr_t) : AliasInfoRef() {}
+  AliasInfoRef(std::nullptr_t) noexcept : AliasInfoRef() {}
   template <typename ConcreteAA,
             typename = std::enable_if_t<
                 !std::is_base_of_v<AliasInfoRef, ConcreteAA> &&
                 std::is_same_v<v_t, typename ConcreteAA::v_t> &&
                 std::is_same_v<n_t, typename ConcreteAA::n_t>>>
-  AliasInfoRef(ConcreteAA *AA) : AA(AA), VT(&VTableFor<ConcreteAA>) {
+  AliasInfoRef(ConcreteAA *AA) noexcept : AA(AA), VT(&VTableFor<ConcreteAA>) {
     if constexpr (!std::is_empty_v<ConcreteAA>) {
       assert(AA != nullptr);
     }
   }
+
+  /// Prevent dangling references by disallowing implicit conversion of a
+  /// temporary AliasInfo to AliasInfoRef.
+  AliasInfoRef(AliasInfo<V, N> &&) = delete;
+  AliasInfoRef &operator=(AliasInfo<V, N> &&) = delete;
 
   AliasInfoRef(const AliasInfoRef &) noexcept = default;
   AliasInfoRef &operator=(const AliasInfoRef &) noexcept = default;
@@ -116,7 +123,7 @@ private:
     void (*IntroduceAlias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
                            ByConstRef<n_t>, AliasResult);
     AnalysisProperties (*GetAnalysisProperties)(const void *) noexcept;
-    void (*Destroy)(void *);
+    void (*Destroy)(const void *) noexcept;
   };
 
   template <typename ConcreteAA>
@@ -172,7 +179,9 @@ private:
       [](const void *AA) noexcept {
         return static_cast<const ConcreteAA *>(AA)->getAnalysisProperties();
       },
-      [](void *AA) { delete static_cast<ConcreteAA *>(AA); },
+      [](const void *AA) noexcept {
+        delete static_cast<const ConcreteAA *>(AA);
+      },
   };
 
   // -- Impl for AliasInfoBase:
@@ -259,8 +268,8 @@ private:
   const VTable *VT{};
 };
 
-/// Similar to AliasInfoRef, but owns the held reference. Us this, if you need
-/// to decide dynamically, which alias info implementation to use.
+/// Similar to AliasInfoRef, but exclusively owns the held reference. Use this,
+/// if you need to decide dynamically, which alias info implementation to use.
 ///
 /// Implicitly convertible to AliasInfoRef.
 ///
@@ -270,7 +279,7 @@ private:
 /// \endcode
 ///
 template <typename V, typename N>
-class AliasInfo final : public AliasInfoRef<V, N> {
+class [[clang::trivial_abi]] AliasInfo final : public AliasInfoRef<V, N> {
   using base_t = AliasInfoRef<V, N>;
 
 public:
@@ -313,12 +322,14 @@ public:
     }
   }
 
-  [[nodiscard]] base_t asRef() noexcept { return *this; }
-  [[nodiscard]] AliasInfoRef<V, N> asRef() const noexcept { return *this; }
+  [[nodiscard]] base_t asRef() &noexcept { return *this; }
+  [[nodiscard]] AliasInfoRef<V, N> asRef() const &noexcept { return *this; }
+  [[nodiscard]] AliasInfoRef<V, N> asRef() && = delete;
 
   /// For better interoperability with unique_ptr
-  [[nodiscard]] base_t get() noexcept { return asRef(); }
-  [[nodiscard]] AliasInfoRef<V, N> get() const noexcept { return asRef(); }
+  [[nodiscard]] base_t get() &noexcept { return asRef(); }
+  [[nodiscard]] AliasInfoRef<V, N> get() const &noexcept { return asRef(); }
+  [[nodiscard]] AliasInfoRef<V, N> get() && = delete;
 };
 
 extern template class AliasInfoBase<

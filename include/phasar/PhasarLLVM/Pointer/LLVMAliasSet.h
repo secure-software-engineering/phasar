@@ -152,6 +152,8 @@ private:
   }
 };
 
+extern template class AliasInfoBase<LLVMAliasSet>;
+
 } // namespace psr
 
 #endif
