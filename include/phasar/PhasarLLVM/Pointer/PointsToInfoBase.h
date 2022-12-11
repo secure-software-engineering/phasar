@@ -39,6 +39,7 @@ template <typename T>
 static constexpr bool is_PointsToTraits_v = // NOLINT
     is_PointsToTraits<T>::value;
 
+// clang-format off
 template <typename T1, typename T2>
 static constexpr bool is_equivalent_PointsToTraits_v = // NOLINT
     is_PointsToTraits_v<T1> && is_PointsToTraits_v<T2> &&
@@ -47,6 +48,7 @@ static constexpr bool is_equivalent_PointsToTraits_v = // NOLINT
     std::is_same_v<typename T1::o_t, typename T2::o_t> &&
     std::is_same_v<typename T1::PointsToSetPtrTy,
                    typename T2::PointsToSetPtrTy>;
+// clang-format on
 
 /// Base class of all points-to analysis implementations. Don't use this class
 /// directly. For a type-erased variant, use PointsToInfoRef or PointsToInfo.
