@@ -129,8 +129,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PHASAR_LOG_LEVEL(INFO, "Preprocess module: " << M->getModuleIdentifier());
   MPM.run(*M, MAM);
   // retrieve data from the GeneralStatisticsAnalysis registered earlier
-  auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
-  StatsJson = GSPResult.getAsJson();
+  GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
+
   NumberCallsites = GSPResult.getFunctioncalls();
   auto Allocas = GSPResult.getAllocaInstructions();
   AllocaInstructions.insert(Allocas.begin(), Allocas.end());
@@ -278,10 +278,6 @@ void ProjectIRDB::print() const {
     llvm::outs() << *Module;
     llvm::outs().flush();
   }
-}
-
-void ProjectIRDB::printAsJson(llvm::raw_ostream &OS) const {
-  OS << StatsJson.dump(4) << '\n';
 }
 
 void ProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS,

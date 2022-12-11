@@ -9,22 +9,17 @@
 
 #include "phasar/PhasarLLVM/Utils/Scopes.h"
 
-#include <ostream>
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
-using namespace std;
-using namespace psr;
-
-namespace psr {
-
-const map<string, Scope> StringToScope{{"function", Scope::function},
-                                       {"module", Scope::module},
-                                       {"project", Scope::project}};
-
-const map<Scope, string> ScopeToString{{Scope::function, "function"},
-                                       {Scope::module, "module"},
-                                       {Scope::project, "project"}};
-
-ostream &operator<<(ostream &OS, const Scope &S) {
-  return OS << ScopeToString.at(S);
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, Scope S) {
+  switch (S) {
+  case Scope::function:
+    return OS << "function";
+  case Scope::module:
+    return OS << "module";
+  case Scope::project:
+    return OS << "project";
+  }
+  llvm_unreachable("All scopes should be handled in the switch above");
 }
-} // namespace psr

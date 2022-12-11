@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWEDGEFUNCTIONCACHE_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWEDGEFUNCTIONCACHE_H_
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Utils/EquivalenceClassMap.h"

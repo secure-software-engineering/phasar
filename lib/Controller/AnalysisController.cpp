@@ -124,18 +124,6 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis: {
       executeIDEXTaint();
     } break;
-    case DataFlowAnalysisType::IDETaintAnalysis: {
-      /// TODO: The IDETaintAnalysis seems not to be implemented at all.
-      /// So, keep the error-message until we have an implementation
-
-      // WholeProgramAnalysis<IDESolver_P<IDETaintAnalysis>, IDETaintAnalysis>
-      //     WPA(SolverConfig, IRDB, EntryPoints, &PT, &ICF, &TH);
-      // WPA.solve();
-      // emitRequestedDataFlowResults(WPA);
-      // WPA.releaseAllHelperAnalyses();
-      llvm::errs() << "The IDETaintAnalysis is currently not available! Please "
-                      "use one of the other taint analyses.\n";
-    } break;
     case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
       executeIDEOpenSSLTS();
     } break;
@@ -147,9 +135,6 @@ void AnalysisController::executeWholeProgram() {
     } break;
     case DataFlowAnalysisType::IFDSSolverTest: {
       executeIFDSSolverTest();
-    } break;
-    case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
-      executeIFDSLinearConst();
     } break;
     case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
       executeIFDSFieldSensTaint();
@@ -245,15 +230,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       PT.printAsJson();
     }
   }
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.txt")) {
-  //       ICF.print(*OFS);
-  //     }
-  //   } else {
-  //     ICF.print();
-  //   }
-  // }
+
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-cg.dot")) {
@@ -264,23 +241,14 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     }
   }
 
-  // if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-  //   if (!ResultDirectory.empty()) {
-  //     if (auto OFS = openFileStream("/psr-cg.json")) {
-  //       ICF.printAsJson(*OFS);
-  //     }
-  //   } else {
-  //     ICF.printAsJson();
-  //   }
-  // }
-
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
+    const auto &Stats = IRDB.getStatistics();
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        IRDB.printAsJson(*OFS);
+        Stats.printAsJson(*OFS);
       }
     } else {
-      IRDB.printAsJson();
+      Stats.printAsJson();
     }
   }
 }
