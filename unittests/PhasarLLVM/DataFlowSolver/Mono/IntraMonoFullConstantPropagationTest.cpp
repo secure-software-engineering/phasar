@@ -55,8 +55,10 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
-                       &PT);
+    LLVMBasedICFG ICFG(
+        IRDB, CallGraphAnalysisType::OTF,
+        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
+        &PT);
     IntraMonoFullConstantPropagation FCP(IRDB, &TH, &ICFG, &PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoFullConstantPropagation> IMSolver(FCP);
     IMSolver.solve();

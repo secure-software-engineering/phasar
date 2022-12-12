@@ -88,6 +88,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
   }
   if (Options & IRDBOptions::WPA) {
     linkForWPA();
+    NumGlobals = WPAModule->global_size();
   }
   preprocessAllModules();
 }
@@ -100,6 +101,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<llvm::Module *> &Modules,
   }
   if (Options & IRDBOptions::WPA) {
     linkForWPA();
+    NumGlobals = WPAModule->global_size();
   }
 }
 
@@ -126,8 +128,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PHASAR_LOG_LEVEL(INFO, "Preprocess module: " << M->getModuleIdentifier());
   MPM.run(*M, MAM);
   // retrieve data from the GeneralStatisticsAnalysis registered earlier
-  auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
-  StatsJson = GSPResult.getAsJson();
+  GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
+
   NumberCallsites = GSPResult.getFunctioncalls();
   auto Allocas = GSPResult.getAllocaInstructions();
   AllocaInstructions.insert(Allocas.begin(), Allocas.end());
@@ -244,6 +246,14 @@ std::size_t ProjectIRDB::getNumGlobals() const {
   return Ret;
 }
 
+std::size_t ProjectIRDB::getNumFunctions() const {
+  std::size_t Ret = 0;
+  for (const auto &[File, Module] : Modules) {
+    Ret += Module->size();
+  }
+  return Ret;
+}
+
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) const {
   if (auto It = IDInstructionMapping.find(Id);
       It != IDInstructionMapping.end()) {
@@ -267,10 +277,6 @@ void ProjectIRDB::print() const {
     llvm::outs() << *Module;
     llvm::outs().flush();
   }
-}
-
-void ProjectIRDB::printAsJson(llvm::raw_ostream &OS) const {
-  OS << StatsJson.dump(4) << '\n';
 }
 
 void ProjectIRDB::emitPreprocessedIR(llvm::raw_ostream &OS,
@@ -494,6 +500,20 @@ void ProjectIRDB::insertModule(llvm::Module *M) {
   Contexts.push_back(std::unique_ptr<llvm::LLVMContext>(&M->getContext()));
   Modules.insert(std::make_pair(M->getModuleIdentifier(), M));
   preprocessModule(M);
+}
+
+void ProjectIRDB::insertFunction(llvm::Function *F) {
+  assert(WPAModule && "insertFunction is only suported in WPA mode!");
+  auto Id = IDInstructionMapping.size() + NumGlobals;
+  auto &Context = F->getContext();
+  for (auto &Inst : llvm::instructions(F)) {
+    llvm::MDNode *Node = llvm::MDNode::get(
+        Context, llvm::MDString::get(Context, std::to_string(Id)));
+    Inst.setMetadata(PhasarConfig::MetaDataKind(), Node);
+
+    IDInstructionMapping[Id] = &Inst;
+    ++Id;
+  }
 }
 
 std::set<const llvm::StructType *>

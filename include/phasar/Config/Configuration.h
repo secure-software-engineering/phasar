@@ -21,9 +21,8 @@
 
 #include "llvm/ADT/iterator_range.h"
 
-#include "boost/program_options.hpp"
-
 #include <filesystem>
+#include <set>
 #include <string>
 
 #define XSTR(S) STR(S)
@@ -103,13 +102,6 @@ public:
   /// the analysis.
   void addSpecialFunctionName(std::string SFName) {
     SpecialFuncNames.insert(std::move(SFName));
-  }
-
-  /// Variables map of the parsed command-line parameters
-  // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static boost::program_options::variables_map &VariablesMap() {
-    static boost::program_options::variables_map VMap;
-    return VMap;
   }
 
   ~PhasarConfig() = default;

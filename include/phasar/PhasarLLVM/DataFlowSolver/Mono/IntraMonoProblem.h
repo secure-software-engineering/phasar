@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Soundness.h"
@@ -49,7 +50,7 @@ public:
   using c_t = typename AnalysisDomainTy::c_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
-  static_assert(std::is_base_of_v<CFG<n_t, f_t>, c_t>,
+  static_assert(is_cfg_v<c_t, AnalysisDomainTy>,
                 "c_t must implement the CFG interface!");
 
   using ProblemAnalysisDomain = AnalysisDomainTy;
@@ -60,7 +61,7 @@ protected:
   const c_t *CF;
   const PointsToInfo<v_t, n_t> *PT;
   std::set<std::string> EntryPoints;
-  [[maybe_unused]] Soundness S = Soundness::Unused;
+  [[maybe_unused]] Soundness S = Soundness::Soundy;
 
 public:
   // denote that a problem does not require a configuration (type/file)

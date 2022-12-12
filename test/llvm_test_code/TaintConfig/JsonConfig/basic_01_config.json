@@ -1,29 +1,29 @@
 {
-    "name": "taint-config-test",
-    "version": 1.0,
-    "functions": [
-        {
-            "file": "simple_test_code.cpp",
-            "name": "foo",
-            "params": {
-                "sink": [
-                    1
-                ]
-            }
-        },
-        {
-            "file": "simple_test_code.cpp",
-            "name": "bar",
-            "ret": "source"
-        },
-        {
-            "file": "simple_test_code.cpp",
-            "name": "baz",
-            "params": {
-                "sink": [
-                    1
-                ]
-            }
-        }
-    ]
+  "name": "taint-config-test",
+  "version": 1.0,
+  "functions": [
+    {
+      "file": "simple_test_code.cpp",
+      "name": "foo",
+      "params": {
+        "sink": [
+          1
+        ]
+      }
+    },
+    {
+      "file": "simple_test_code.cpp",
+      "name": "bar",
+      "ret": "source"
+    },
+    {
+      "file": "simple_test_code.cpp",
+      "name": "baz",
+      "params": {
+        "sink": [
+          1
+        ]
+      }
+    }
+  ]
 }

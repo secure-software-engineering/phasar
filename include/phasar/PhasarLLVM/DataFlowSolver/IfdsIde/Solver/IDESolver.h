@@ -43,9 +43,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JoinHandlingNode.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LinkedNode.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/DOTGraph.h"
@@ -466,8 +464,8 @@ protected:
     // a call node; line 14...
     d_t d2 = Edge.factAtTarget();
     EdgeFunctionPtrType f = jumpFunction(Edge);
-    const std::set<n_t> ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
-    const std::set<f_t> Callees = ICF->getCalleesOfCallAt(n);
+    const auto &ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
+    const auto &Callees = ICF->getCalleesOfCallAt(n);
 
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Possible callees:"); for (auto Callee
@@ -518,7 +516,7 @@ protected:
         ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
         // for each callee's start point(s)
-        std::set<n_t> StartPointsOf = ICF->getStartPointsOf(SCalledProcN);
+        auto StartPointsOf = ICF->getStartPointsOf(SCalledProcN);
         if (StartPointsOf.empty()) {
           PHASAR_LOG_LEVEL(DEBUG, "Start points of '" +
                                       ICF->getFunctionName(SCalledProcN) +
@@ -921,9 +919,8 @@ protected:
     // Phase II(ii)
     // we create an array of all nodes and then dispatch fractions of this
     // array to multiple threads
-    const std::set<n_t> AllNonCallStartNodes = ICF->allNonCallStartNodes();
-    valueComputationTask(
-        {AllNonCallStartNodes.begin(), AllNonCallStartNodes.end()});
+    const auto AllNonCallStartNodes = ICF->allNonCallStartNodes();
+    valueComputationTask(AllNonCallStartNodes);
   }
 
   /// Schedules the processing of initial seeds, initiating the analysis.
@@ -993,8 +990,7 @@ protected:
     d_t d1 = Edge.factAtSource();
     d_t d2 = Edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
-    const std::set<n_t> StartPointsOf =
-        ICF->getStartPointsOf(FunctionThatNeedsSummary);
+    const auto StartPointsOf = ICF->getStartPointsOf(FunctionThatNeedsSummary);
     std::map<n_t, container_type> Inc;
     for (n_t SP : StartPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
@@ -1086,7 +1082,7 @@ protected:
     // condition
     if (SolverConfig.followReturnsPastSeeds() && Inc.empty() &&
         IDEProblem.isZeroValue(d1)) {
-      const std::set<n_t> Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
+      const auto &Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
       for (n_t Caller : Callers) {
         for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(Caller)) {
           FlowFunctionPtrType RetFunction =

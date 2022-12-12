@@ -794,7 +794,7 @@ public:
 
   inline FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /* RetSite */,
-                           std::set<f_t> Callees) override {
+                           llvm::ArrayRef<f_t> Callees) override {
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
@@ -825,37 +825,33 @@ public:
     // behavior that is intended. In that case, we must propagate all data-flow
     // facts alongside the call site.
     bool OnlyDecls = true;
+    bool AllVoidRetTys = true;
     for (auto Callee : Callees) {
       if (!Callee->isDeclaration()) {
         OnlyDecls = false;
       }
+      if (!Callee->getReturnType()->isVoidTy()) {
+        AllVoidRetTys = false;
+      }
     }
+
     struct MapFactsAlongsideCallSite : public FlowFunction<IDEIIAFlowFact> {
       bool OnlyDecls;
+      bool AllVoidRetTys;
       const llvm::CallBase *CallSite;
       d_t ZeroValue;
-      std::set<f_t> Callees;
 
-      MapFactsAlongsideCallSite(bool OnlyDecls, const llvm::CallBase *CallSite,
-                                d_t ZeroValue, std::set<f_t> Callees)
-          : OnlyDecls(OnlyDecls), CallSite(CallSite), ZeroValue(ZeroValue),
-            Callees(Callees) {}
+      MapFactsAlongsideCallSite(bool OnlyDecls, bool AllVoidRetTys,
+                                const llvm::CallBase *CallSite, d_t ZeroValue)
+          : OnlyDecls(OnlyDecls), AllVoidRetTys(AllVoidRetTys),
+            CallSite(CallSite), ZeroValue(ZeroValue) {}
 
       std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
         // There are a few things to consider, in case only declarations of
         // callee targets are available.
         if (OnlyDecls) {
-          auto AllVoidRetTys = [](const std::set<f_t> &Callees) {
-            // Check if one of the callee targets returns a value.
-            bool AllVoidRetTys = true;
-            for (const auto *Callee : Callees) {
-              if (!Callee->getReturnType()->isVoidTy()) {
-                AllVoidRetTys = false;
-              }
-            }
-            return AllVoidRetTys;
-          };
-          if (!AllVoidRetTys(Callees)) {
+
+          if (!AllVoidRetTys) {
             // If one or more of the declaration-only targets return a value, it
             // must be generated from zero!
             if (Source == ZeroValue) {
@@ -883,8 +879,8 @@ public:
       }
     };
     return std::make_shared<MapFactsAlongsideCallSite>(
-        OnlyDecls, llvm::dyn_cast<llvm::CallBase>(CallSite),
-        this->getZeroValue(), Callees);
+        OnlyDecls, AllVoidRetTys, llvm::dyn_cast<llvm::CallBase>(CallSite),
+        this->getZeroValue());
   }
 
   inline FlowFunctionPtrType
@@ -1311,7 +1307,8 @@ public:
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /* RetSite */,
-                           d_t RetSiteNode, std::set<f_t> Callees) override {
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override {
     // Check if the user has registered a fact generator function
     l_t UserEdgeFacts = BitVectorSet<e_t>();
     std::set<e_t> EdgeFacts;

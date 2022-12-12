@@ -52,7 +52,7 @@ AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
     CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
-    bool AutoGlobalSupport, const std::set<std::string> &EntryPoints,
+    bool AutoGlobalSupport, std::vector<std::string> EntryPoints,
     AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
     IFDSIDESolverConfig SolverConfig, const std::string &ProjectID,
     const std::string &OutDirectory,
@@ -61,7 +61,8 @@ AnalysisController::AnalysisController(
       PT(PrecomputedPointsToInfo.empty()
              ? LLVMPointsToSet(IRDB, !needsToEmitPTA(EmitterOptions), PTATy)
              : LLVMPointsToSet(IRDB, PrecomputedPointsToInfo)),
-      ICF(IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel, AutoGlobalSupport),
+      ICF(&IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel,
+          AutoGlobalSupport),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
       AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
       Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
@@ -123,18 +124,6 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis: {
       executeIDEXTaint();
     } break;
-    case DataFlowAnalysisType::IDETaintAnalysis: {
-      /// TODO: The IDETaintAnalysis seems not to be implemented at all.
-      /// So, keep the error-message until we have an implementation
-
-      // WholeProgramAnalysis<IDESolver_P<IDETaintAnalysis>, IDETaintAnalysis>
-      //     WPA(SolverConfig, IRDB, EntryPoints, &PT, &ICF, &TH);
-      // WPA.solve();
-      // emitRequestedDataFlowResults(WPA);
-      // WPA.releaseAllHelperAnalyses();
-      llvm::errs() << "The IDETaintAnalysis is currently not available! Please "
-                      "use one of the other taint analyses.\n";
-    } break;
     case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
       executeIDEOpenSSLTS();
     } break;
@@ -146,9 +135,6 @@ void AnalysisController::executeWholeProgram() {
     } break;
     case DataFlowAnalysisType::IFDSSolverTest: {
       executeIFDSSolverTest();
-    } break;
-    case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
-      executeIFDSLinearConst();
     } break;
     case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
       executeIFDSFieldSensTaint();
@@ -244,42 +230,25 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       PT.printAsJson();
     }
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
+
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-cg.txt")) {
+      if (auto OFS = openFileStream("/psr-cg.dot")) {
         ICF.print(*OFS);
       }
     } else {
       ICF.print();
     }
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
-    if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-cg.dot")) {
-        ICF.printAsDot(*OFS);
-      }
-    } else {
-      ICF.printAsDot();
-    }
-  }
-
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-    if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-cg.json")) {
-        ICF.printAsJson(*OFS);
-      }
-    } else {
-      ICF.printAsJson();
-    }
-  }
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
+    const auto &Stats = IRDB.getStatistics();
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        IRDB.printAsJson(*OFS);
+        Stats.printAsJson(*OFS);
       }
     } else {
-      IRDB.printAsJson();
+      Stats.printAsJson();
     }
   }
 }

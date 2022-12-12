@@ -147,7 +147,7 @@ InterMonoFullConstantPropagation::mono_container_t
 InterMonoFullConstantPropagation::callToRetFlow(
     InterMonoFullConstantPropagation::n_t /*CallSite*/,
     InterMonoFullConstantPropagation::n_t /*RetSite*/,
-    std::set<InterMonoFullConstantPropagation::f_t> /*Callees*/,
+    llvm::ArrayRef<f_t> /*Callees*/,
     const InterMonoFullConstantPropagation::mono_container_t &In) {
   return In;
 }

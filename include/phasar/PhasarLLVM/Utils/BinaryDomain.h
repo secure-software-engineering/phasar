@@ -18,20 +18,17 @@
 #define PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 
 #include <map>
+#include <string>
 
 namespace llvm {
 class raw_ostream;
-}
+} // namespace llvm
 
 namespace psr {
 
 enum class BinaryDomain { BOTTOM = 0, TOP = 1 };
 
-extern const std::map<std::string, BinaryDomain> StringToBinaryDomain;
-
-extern const std::map<BinaryDomain, std::string> BinaryDomainToString;
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const BinaryDomain &B);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, BinaryDomain B);
 
 } // namespace psr
 

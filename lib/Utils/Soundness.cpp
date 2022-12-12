@@ -7,38 +7,36 @@
  *     Linus Jungemann and others
  *****************************************************************************/
 
-#include <ostream>
-#include <string>
+#include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/StringSwitch.h"
 
-#include "phasar/Utils/Soundness.h"
-
-using namespace psr;
-
-namespace psr {
-
-std::string toString(const Soundness &S) {
+std::string psr::toString(Soundness S) {
   switch (S) {
-  default:
-#define SOUNDNESS_FLAG_TYPE(NAME, TYPE)                                        \
-  case Soundness::TYPE:                                                        \
-    return NAME;                                                               \
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC)                               \
+  case Soundness::NAME:                                                        \
+    return #NAME;                                                              \
     break;
 #include "phasar/Utils/Soundness.def"
+  case Soundness::Invalid:
+    return "Invalid";
   }
 }
 
-Soundness toSoundness(const std::string &S) {
+psr::Soundness psr::toSoundness(llvm::StringRef S) {
   Soundness Type = llvm::StringSwitch<Soundness>(S)
-#define SOUNDNESS_FLAG_TYPE(NAME, TYPE) .Case(NAME, Soundness::TYPE)
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC) .Case(#NAME, Soundness::NAME)
 #include "phasar/Utils/Soundness.def"
                        .Default(Soundness::Invalid);
+  if (Type == Soundness::Invalid) {
+    Type = llvm::StringSwitch<Soundness>(S)
+#define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC) .Case(CMDFLAG, Soundness::NAME)
+#include "phasar/Utils/Soundness.def"
+               .Default(Soundness::Invalid);
+  }
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &OS, const Soundness &S) {
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, Soundness S) {
   return OS << toString(S);
 }
-
-} // namespace psr

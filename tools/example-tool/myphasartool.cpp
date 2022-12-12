@@ -12,8 +12,9 @@
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -42,12 +43,12 @@ int main(int Argc, const char **Argv) {
     LLVMPointsToSet P(DB);
     // print points-to information
     P.print();
-    LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
+    LLVMBasedICFG I(&DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
     // print inter-procedural control-flow graph
     I.print();
     // IFDS template parametrization test
     llvm::outs() << "Testing IFDS:\n";
-    IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
+    IFDSSolverTest L(&DB, &H, &I, &P, {"main"});
     IFDSSolver S(L);
     S.solve();
     S.dumpResults();
