@@ -182,13 +182,11 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
   return mapFactsToCaller(
-      llvm::cast<llvm::CallBase>(CallSite), ExitStmt, /*PropagateGlobals*/ true,
-      Overloaded{
-          [](const llvm::Argument *Formal, d_t Source) {
-            return Formal == Source && Formal->getType()->isPointerTy();
-          },
-          [](d_t RetVal, d_t Source) { return RetVal == Source; },
-      });
+      llvm::cast<llvm::CallBase>(CallSite), ExitStmt,
+      [](d_t Formal, d_t Source) {
+        return Formal == Source && Formal->getType()->isPointerTy();
+      },
+      [](d_t RetVal, d_t Source) { return RetVal == Source; });
   // All other stuff is killed at this point
 }
 

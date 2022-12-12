@@ -144,7 +144,7 @@ auto lambdaFlow(Fn &&F) {
       return std::invoke(Flow, std::move(Source));
     }
 
-    std::decay_t<Fn> Flow;
+    [[no_unique_address]] std::decay_t<Fn> Flow;
   };
 
   return std::make_shared<LambdaFlow>(std::forward<Fn>(F));
@@ -220,7 +220,7 @@ auto generateFlowIf(D FactToGenerate, Fn Predicate) {
     }
 
     D GenValue;
-    std::decay_t<Fn> Predicate;
+    [[no_unique_address]] std::decay_t<Fn> Predicate;
   };
 
   return std::make_shared<GenFlowIf>(std::move(FactToGenerate),
@@ -332,7 +332,7 @@ auto killFlowIf(Fn Predicate) {
       return {std::move(Source)};
     }
 
-    std::decay_t<Fn> Predicate;
+    [[no_unique_address]] std::decay_t<Fn> Predicate;
   };
 
   return std::make_shared<KillFlowIf>(std::forward<Fn>(Predicate));

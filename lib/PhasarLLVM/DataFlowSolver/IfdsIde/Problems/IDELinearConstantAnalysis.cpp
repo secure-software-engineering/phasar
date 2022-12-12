@@ -118,11 +118,10 @@ IDELinearConstantAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun) {
   // Map the actual parameters into the formal parameters
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     if (!DestFun->isDeclaration()) {
-      return mapFactsToCallee(
-          CS, DestFun, /*PropagateGlobals*/ true, [](d_t Arg, d_t Source) {
-            return Arg == Source || (LLVMZeroValue::isLLVMZeroValue(Source) &&
-                                     llvm::isa<llvm::ConstantInt>(Arg));
-          });
+      return mapFactsToCallee(CS, DestFun, [](d_t Arg, d_t Source) {
+        return Arg == Source || (LLVMZeroValue::isLLVMZeroValue(Source) &&
+                                 llvm::isa<llvm::ConstantInt>(Arg));
+      });
     }
   }
   // Pass everything else as identity
@@ -134,16 +133,12 @@ IDELinearConstantAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                               n_t ExitInst, n_t /*RetSite*/) {
   return mapFactsToCaller(
       llvm::cast<llvm::CallBase>(CallSite), ExitInst,
-      /*PropagateGlobals*/ true,
-      Overloaded{
-          [](const llvm::Argument *Arg, d_t Source) {
-            return Arg == Source && Arg->getType()->isPointerTy();
-          },
-          [](d_t RetVal, d_t Source) {
-            return RetVal == Source ||
-                   (LLVMZeroValue::isLLVMZeroValue(Source) &&
-                    llvm::isa<llvm::ConstantInt>(RetVal));
-          },
+      [](d_t Arg, d_t Source) {
+        return Arg == Source && Arg->getType()->isPointerTy();
+      },
+      [](d_t RetVal, d_t Source) {
+        return RetVal == Source || (LLVMZeroValue::isLLVMZeroValue(Source) &&
+                                    llvm::isa<llvm::ConstantInt>(RetVal));
       });
 }
 
@@ -155,8 +150,9 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
   }
 
   return mapFactsAlongsideCallSite(
-      llvm::cast<llvm::CallBase>(CallSite), /*PropagateGlobals*/ false,
-      [](d_t Arg) { return !Arg->getType()->isPointerTy(); });
+      llvm::cast<llvm::CallBase>(CallSite),
+      [](d_t Arg) { return !Arg->getType()->isPointerTy(); },
+      /*PropagateGlobals*/ false);
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType

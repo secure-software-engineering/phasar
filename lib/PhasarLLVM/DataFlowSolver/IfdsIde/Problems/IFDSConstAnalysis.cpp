@@ -109,10 +109,9 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
     // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
     PHASAR_LOG_LEVEL(DEBUG, "Call statement: " << llvmIRToString(CallSite));
     PHASAR_LOG_LEVEL(DEBUG, "Destination method: " << DestFun->getName());
-    return mapFactsToCallee(
-        Call, DestFun, /*PropagateGlobals*/ true, [](d_t Actual, d_t Source) {
-          return Actual == Source && Actual->getType()->isPointerTy();
-        });
+    return mapFactsToCallee(Call, DestFun, [](d_t Actual, d_t Source) {
+      return Actual == Source && Actual->getType()->isPointerTy();
+    });
   } /* end call/invoke instruction */
 
   // Pass everything else as identity
@@ -126,7 +125,7 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
   // Map formal parameter back to the actual parameter in the caller.
 
   return mapFactsToCaller(llvm::cast<llvm::CallBase>(CallSite), ExitStmt,
-                          /*PropagateGlobals*/ true, [](d_t Param, d_t Source) {
+                          [](d_t Param, d_t Source) {
                             return Param == Source &&
                                    Param->getType()->isPointerTy();
                           });

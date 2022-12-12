@@ -57,7 +57,8 @@ template <
     typename =
         std::enable_if_t<std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
 auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
-                               bool PropagateGlobals, Fn &&PropagateArgs = {}) {
+                               Fn &&PropagateArgs = {},
+                               bool PropagateGlobals = true) {
   struct Mapper : public FlowFunction<const llvm::Value *, Container> {
 
     Mapper(const llvm::CallBase *CS, bool PropagateGlobals, Fn &&PropArgs)
@@ -92,7 +93,7 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
     }
 
     llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
-    std::decay_t<Fn> PropArgs;
+    [[no_unique_address]] std::decay_t<Fn> PropArgs;
   };
 
   return std::make_shared<Mapper>(CallSite, PropagateGlobals,
@@ -127,8 +128,8 @@ template <typename Fn = std::equal_to<const llvm::Value *>,
               bool, Fn, const llvm::Value *, const llvm::Value *>>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
-                 bool PropagateGlobals = true,
                  Fn &&PropagateArgumentWithSource = {},
+                 bool PropagateGlobals = true,
                  bool PropagateZeroToCallee = true) {
   struct Mapper : public FlowFunction<const llvm::Value *, Container> {
 
@@ -207,7 +208,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 
     llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
     llvm::PointerIntPair<const llvm::Function *, 1, bool> DestFunAndPropZero;
-    std::decay_t<Fn> PropArg;
+    [[no_unique_address]] std::decay_t<Fn> PropArg;
   };
 
   return std::make_shared<Mapper>(
@@ -227,31 +228,33 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 /// px, ...) and an exit statement exit: return rv.
 /// Further given a flow function f = mapFactsToCaller(cs, exit, ...). Then for
 /// all dataflow facts x holding at exit:
-///   f(rv) = {r}   if PropagateParameter(rv, rv) else {},
+///   f(rv) = {r}   if PropagateRet(rv, rv) else {},
 ///   f(px) = {ax}  if PropagateParameter(px, px) else {},
 ///   f(g)  = {g}   if PropagateGlobals else {},
 ///   f(Λ)  = {Λ}   if PropagateZeroToCaller else {},
-///   f(x)  = {ax}  if PropagateParameter(ax, x) else {}.
-///
-/// NOTE: PropagateParameter is used to dermine if both output parameters and
-/// the return value should be propagated back to the caller. So, it may make
-/// sense to provide two different predicates combined by psr::Overloaded.
+///   f(x)  = ({ax} if PropagateParameter(ax, x) else {}) union ({r} if
+///                    PropagateRet(rv, x) else {}).
 ///
 template <typename FnParam = std::equal_to<const llvm::Value *>,
+          typename FnRet = std::equal_to<const llvm::Value *>,
           typename Container = std::set<const llvm::Value *>,
-          typename = std::enable_if_t<std::is_invocable_r_v<
-              bool, FnParam, const llvm::Value *, const llvm::Value *>>>
+          typename = std::enable_if_t<
+              std::is_invocable_r_v<bool, FnParam, const llvm::Value *,
+                                    const llvm::Value *> &&
+              std::is_invocable_r_v<bool, FnRet, const llvm::Value *,
+                                    const llvm::Value *>>>
 FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
     const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
-    bool PropagateGlobals = true, FnParam &&PropagateParameter = {},
-    bool PropagateZeroToCaller = true) {
+    FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
+    bool PropagateGlobals = true, bool PropagateZeroToCaller = true) {
   struct Mapper : public FlowFunction<const llvm::Value *, Container> {
     Mapper(const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
            bool PropagateGlobals, FnParam &&PropagateParameter,
-           bool PropagateZeroToCaller)
+           FnRet &&PropagateRet, bool PropagateZeroToCaller)
         : CSAndPropGlob(CallSite, PropagateGlobals),
           ExitInstAndPropZero(ExitInst, PropagateZeroToCaller),
-          PropArg(std::forward<FnParam>(PropagateParameter)) {}
+          PropArg(std::forward<FnParam>(PropagateParameter)),
+          PropRet(std::forward<FnRet>(PropagateRet)) {}
 
     Container computeTargets(const llvm::Value *Source) override {
       Container Res;
@@ -307,7 +310,7 @@ FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
       if (const auto *RetInst = llvm::dyn_cast<llvm::ReturnInst>(
               ExitInstAndPropZero.getPointer());
           RetInst && RetInst->getReturnValue()) {
-        if (std::invoke(PropArg, RetInst->getReturnValue(), Source)) {
+        if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
           Res.insert(CS);
         }
       }
@@ -318,11 +321,13 @@ FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
     llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
     llvm::PointerIntPair<const llvm::Instruction *, 1, bool>
         ExitInstAndPropZero;
-    std::decay_t<FnParam> PropArg;
+    [[no_unique_address]] std::decay_t<FnParam> PropArg;
+    [[no_unique_address]] std::decay_t<FnRet> PropRet;
   };
 
   return std::make_shared<Mapper>(CallSite, ExitInst, PropagateGlobals,
                                   std::forward<FnParam>(PropagateParameter),
+                                  std::forward<FnRet>(PropagateRet),
                                   PropagateZeroToCaller);
 }
 
@@ -380,7 +385,7 @@ strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
     }
 
     const llvm::StoreInst *Store;
-    std::decay_t<Fn> Pred;
+    [[no_unique_address]] std::decay_t<Fn> Pred;
   };
 
   return std::make_shared<StrongUpdateFlow>(
