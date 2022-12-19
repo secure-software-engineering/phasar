@@ -8,7 +8,7 @@ Active Contributors:
 N: Philipp Schubert
 E: philipp.schubert@upb.de
 W: http://it-schubert.com
-D: Initial implementation, high-level architecture, IDESolver
+D: Initial implementation, high-level architecture, IDESolver, InstInteractionAnalysis
 
 N: Martin Mory
 E: martin.mory@upb.de
@@ -24,7 +24,7 @@ D: ESG visualization adaptor, Docker, Mac Support
 
 N: Florian Sattler
 E: sattlerf@fim.uni-passau.de
-D: CMake and CMake build as llvm drop-in, CI/CD Pipeline, Performance
+D: CMake and CMake build as llvm drop-in, CI/CD Pipeline, Performance, InstInteractionAnalysis
 
 
 Former Contributors:
