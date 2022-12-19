@@ -50,8 +50,8 @@ protected:
   EdgeFunctionPtrType G;
 
 public:
-  EdgeFunctionComposer(EdgeFunctionPtrType &F, EdgeFunctionPtrType &G)
-      : EFComposerId(++CurrEFComposerId), F(F), G(G) {}
+  EdgeFunctionComposer(EdgeFunctionPtrType F, EdgeFunctionPtrType G)
+      : EFComposerId(++CurrEFComposerId), F(std::move(F)), G(std::move(G)) {}
 
   ~EdgeFunctionComposer() override = default;
 

@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONUTILS_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include <memory>
 
 namespace psr {
 template <typename L>
@@ -24,9 +26,7 @@ private:
 
 public:
   EdgeIdentity(const EdgeIdentity &EI) = delete;
-
   EdgeIdentity &operator=(const EdgeIdentity &EI) = delete;
-
   ~EdgeIdentity() override = default;
 
   L computeTarget(L Source) override { return Source; }
@@ -42,7 +42,7 @@ public:
     return this == Other.get();
   }
 
-  static EdgeFunctionPtrType getInstance() {
+  static ByConstRef<EdgeFunctionPtrType> getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
     static EdgeFunctionPtrType Instance(new EdgeIdentity<L>());
     return Instance;
@@ -87,7 +87,7 @@ public:
     }
   }
 
-private:
+protected:
   L Value;
 };
 
@@ -195,7 +195,7 @@ public:
 
   template <typename LL = L,
             typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
-  static EdgeFunctionPtrType getInstance() {
+  static ByConstRef<EdgeFunctionPtrType> getInstance() {
     static EdgeFunctionPtrType AllBotFn = std::make_shared<AllBottom>();
     return AllBotFn;
   }
@@ -211,9 +211,8 @@ public:
 
   ~AllTop() override = default;
 
-  EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
-    return this->shared_from_this();
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
+    return SecondFunction;
   }
 
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
@@ -257,7 +256,7 @@ auto ConstantEdgeFunction<L, Enable>::joinWith(
     if (JoinedVal == Value) {
       return this->shared_from_this();
     }
-    if (JoinedVal == OtherConst == Value) {
+    if (JoinedVal == OtherConst->Value) {
       return OtherFunction;
     }
     if (JoinedVal != JoinLatticeTraits<L>::bottom()) {
@@ -273,6 +272,11 @@ auto ConstantEdgeFunction<L, Enable>::composeWith(
     EdgeFunctionPtrType SecondFunction) -> EdgeFunctionPtrType {
   if (SecondFunction == EdgeIdentity<L>::getInstance()) {
     return this->shared_from_this();
+  }
+
+  if (SecondFunction == AllBottom<L>::getInstance() ||
+      dynamic_cast<ConstantEdgeFunction<L> *>(SecondFunction.get())) {
+    return SecondFunction;
   }
 
   auto NextVal = SecondFunction->computeTarget(Value);
