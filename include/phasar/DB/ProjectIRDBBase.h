@@ -73,7 +73,7 @@ public:
     assert(isValid());
     return self().getFunctionDefinitionImpl(FunctionName);
   }
-  /// Returns whether the contains a function with the given name.
+  /// Returns whether the IRDB contains a function with the given name.
   [[nodiscard]] bool hasFunction(llvm::StringRef FunctionName) const noexcept {
     assert(isValid());
     return self().hasFunctionImpl(FunctionName);

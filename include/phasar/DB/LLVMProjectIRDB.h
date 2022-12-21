@@ -40,7 +40,7 @@ class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
   friend ProjectIRDBBase;
 
 public:
-  /// Reads and parses the  given LLVM IR file and owns the resolting IR Module
+  /// Reads and parses the given LLVM IR file and owns the resulting IR Module
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is not being preprocessed.
