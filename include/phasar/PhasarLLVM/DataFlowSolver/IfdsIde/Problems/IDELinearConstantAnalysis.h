@@ -12,7 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -54,7 +54,8 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDELinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+  IDELinearConstantAnalysis(const LLVMProjectIRDB *IRDB,
+                            const LLVMBasedICFG *ICF,
                             std::vector<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
@@ -75,24 +76,7 @@ public:
              IRTrace == Rhs.IRTrace;
     }
 
-    operator std::string() const {
-      std::string Buffer;
-      llvm::raw_string_ostream OS(Buffer);
-      OS << "Line " << LineNr << ": " << SrcNode << '\n';
-      OS << "Var(s): ";
-      for (auto It = VariableToValue.begin(); It != VariableToValue.end();
-           ++It) {
-        if (It != VariableToValue.begin()) {
-          OS << ", ";
-        }
-        OS << It->first << " = " << It->second;
-      }
-      OS << "\nCorresponding IR Instructions:\n";
-      for (const auto *Ir : IRTrace) {
-        OS << "  " << llvmIRToString(Ir) << '\n';
-      }
-      return OS.str();
-    }
+    operator std::string() const;
   };
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;

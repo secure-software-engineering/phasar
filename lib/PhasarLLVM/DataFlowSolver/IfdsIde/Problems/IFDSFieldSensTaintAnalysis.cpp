@@ -3,6 +3,7 @@
  */
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/BranchSwitchInstFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CallToRetFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CheckOperandsFlowFunction.h"
@@ -35,7 +36,7 @@
 namespace psr {
 
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
-    const ProjectIRDB *IRDB, const TaintConfig *TaintConfig,
+    const LLVMProjectIRDB *IRDB, const TaintConfig *TaintConfig,
     std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(TaintConfig) {

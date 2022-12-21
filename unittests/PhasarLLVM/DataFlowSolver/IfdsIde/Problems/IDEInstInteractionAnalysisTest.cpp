@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
@@ -45,14 +45,13 @@ protected:
       std::tuple<std::string, std::size_t, std::string,
                  IDEInstInteractionAnalysisT<std::string, true>::l_t>;
 
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
 
   void initializeIR(const std::string &LlvmFilePath) {
     ValueAnnotationPass::resetValueID();
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
   }
 
   void
@@ -62,7 +61,7 @@ protected:
                               bool PrintDump = false) {
     initializeIR(LlvmFilePath);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(llvm::outs(), false);
+      IRDB->dump();
     }
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);

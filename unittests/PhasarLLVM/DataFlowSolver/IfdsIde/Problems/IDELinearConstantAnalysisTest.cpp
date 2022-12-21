@@ -1,19 +1,18 @@
-#include <memory>
-#include <tuple>
-
-#include "gtest/gtest.h"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "gtest/gtest.h"
+
+#include <memory>
+#include <tuple>
 
 #include "TestConfig.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 using namespace psr;
 
@@ -26,14 +25,13 @@ protected:
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
 
   IDELinearConstantAnalysis::lca_results_t
-  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
@@ -49,7 +47,7 @@ protected:
     IDESolver LCASolver(LCAProblem, &ICFG);
     LCASolver.solve();
     if (PrintDump) {
-      IRDB->print();
+      IRDB->dump();
       ICFG.print();
       LCASolver.dumpResults();
     }

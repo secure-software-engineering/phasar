@@ -27,6 +27,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/DOTGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"

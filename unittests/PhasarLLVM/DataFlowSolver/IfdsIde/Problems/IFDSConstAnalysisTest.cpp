@@ -1,17 +1,21 @@
-#include <memory>
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/IR/Instructions.h"
+
 #include "gtest/gtest.h"
 
 #include "TestConfig.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include <memory>
 
 using namespace std;
 using namespace psr;
@@ -23,17 +27,18 @@ protected:
   const std::string PathToLlFiles = unittest::PathToLLTestFiles + "constness/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
   unique_ptr<LLVMPointsToInfo> PT;
   unique_ptr<IFDSConstAnalysis> Constproblem;
+  std::vector<const llvm::Instruction *> RetOrResInstructions;
 
   IFDSConstAnalysisTest() = default;
   ~IFDSConstAnalysisTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  void initialize(const llvm::Twine &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
     ICFG = make_unique<LLVMBasedICFG>(
@@ -46,11 +51,26 @@ protected:
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
+  llvm::ArrayRef<const llvm::Instruction *> getRetOrResInstructions() {
+    if (!RetOrResInstructions.empty()) {
+      return RetOrResInstructions;
+    }
+
+    for (const auto *Fun : IRDB->getAllFunctions()) {
+      for (const auto &Inst : llvm::instructions(Fun)) {
+        if (llvm::isa<llvm::ReturnInst>(&Inst) ||
+            llvm::isa<llvm::ResumeInst>(&Inst)) {
+          RetOrResInstructions.push_back(&Inst);
+        }
+      }
+    }
+    return RetOrResInstructions;
+  }
+
   void compareResults(const std::set<unsigned long> &GroundTruth,
                       IFDSSolver_P<IFDSConstAnalysis> &Solver) {
-    IRDB->emitPreprocessedIR();
     std::set<const llvm::Value *> AllMutableAllocas;
-    for (const auto *RR : IRDB->getRetOrResInstructions()) {
+    for (const auto *RR : getRetOrResInstructions()) {
       std::set<const llvm::Value *> Facts = Solver.ifdsResultsAt(RR);
       for (const auto *Fact : Facts) {
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||

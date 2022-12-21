@@ -11,8 +11,10 @@
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
@@ -25,6 +27,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/Soundness.h"
 
 #include <set>
@@ -43,7 +46,6 @@ private:
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::None;
   std::string ProjectID;
-  std::string OutDirectory;
   std::filesystem::path ResultDirectory;
   IFDSIDESolverConfig SolverConfig;
 
@@ -109,14 +111,11 @@ private:
 
   TaintConfig makeTaintConfig();
 
-  std::unique_ptr<llvm::raw_fd_ostream>
-  openFileStream(llvm::StringRef Filename);
-
-  template <typename SolverTy>
-  void emitRequestedDataFlowResults(SolverTy &Solver) {
+  template <typename T> void emitRequestedDataFlowResults(T &Solver) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
       if (!ResultDirectory.empty()) {
-        if (auto OFS = openFileStream("/psr-report.txt")) {
+        if (auto OFS =
+                openFileStream(ResultDirectory.string() + "/psr-report.txt")) {
           Solver.emitTextReport(*OFS);
         }
       } else {
@@ -126,7 +125,8 @@ private:
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
       if (!ResultDirectory.empty()) {
-        if (auto OFS = openFileStream("/psr-report.html")) {
+        if (auto OFS =
+                openFileStream(ResultDirectory.string() + "/psr-report.html")) {
           Solver.emitGraphicalReport(*OFS);
         }
       } else {
@@ -135,7 +135,8 @@ private:
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
       if (!ResultDirectory.empty()) {
-        if (auto OFS = openFileStream("/psr-raw-results.txt")) {
+        if (auto OFS = openFileStream(ResultDirectory.string() +
+                                      "/psr-raw-results.txt")) {
           Solver.dumpResults(*OFS);
         }
       } else {

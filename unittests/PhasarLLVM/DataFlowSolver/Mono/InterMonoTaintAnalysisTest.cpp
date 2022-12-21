@@ -1,19 +1,21 @@
-#include <memory>
 
-#include "llvm/Support/raw_ostream.h"
 
-#include "gtest/gtest.h"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+
+#include "llvm/Support/raw_ostream.h"
+
+#include "gtest/gtest.h"
+
+#include <memory>
 
 #include "TestConfig.h"
 
@@ -26,15 +28,14 @@ protected:
       unittest::PathToLLTestFiles + "taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
   void TearDown() override {}
 
   std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
-  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     auto PT = std::make_unique<LLVMPointsToSet>(*IRDB);

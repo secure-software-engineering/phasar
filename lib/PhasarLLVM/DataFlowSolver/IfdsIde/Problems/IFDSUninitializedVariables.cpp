@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -28,7 +28,7 @@
 namespace psr {
 
 IFDSUninitializedVariables::IFDSUninitializedVariables(
-    const ProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
+    const LLVMProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSUninitializedVariables::FlowFunctionPtrType

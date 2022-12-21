@@ -8,12 +8,13 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -316,7 +317,8 @@ public:
     return this == Other.get();
   }
 
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override {
+  void print(llvm::raw_ostream &OS,
+             bool /*IsForDebug*/ = false) const override {
     if (const auto *LIC = llvm::dyn_cast<llvm::ConstantInt>(Lop)) {
       OS << LIC->getSExtValue();
     } else {
@@ -333,7 +335,7 @@ public:
 } // namespace lca
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
-    const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+    const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
     std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       ICF(ICF) {
@@ -557,15 +559,14 @@ IDELinearConstantAnalysis::initialSeeds() {
     Seeds.addSeed(&EntryPointFun->front().front(), getZeroValue(),
                   bottomElement());
     // Generate global integer-typed variables using generalized initial seeds
-    for (const auto *M : IRDB->getAllModules()) {
-      for (const auto &G : M->globals()) {
-        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-          if (GV->hasInitializer()) {
-            if (const auto *ConstInt =
-                    llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
-              Seeds.addSeed(&EntryPointFun->front().front(), GV,
-                            ConstInt->getSExtValue());
-            }
+
+    for (const auto &G : IRDB->getModule()->globals()) {
+      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+        if (GV->hasInitializer()) {
+          if (const auto *ConstInt =
+                  llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
+            Seeds.addSeed(&EntryPointFun->front().front(), GV,
+                          ConstInt->getSExtValue());
           }
         }
       }
@@ -896,6 +897,24 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
 
 void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) {
   OS << this;
+}
+
+IDELinearConstantAnalysis::LCAResult::operator std::string() const {
+  std::string Buffer;
+  llvm::raw_string_ostream OS(Buffer);
+  OS << "Line " << LineNr << ": " << SrcNode << '\n';
+  OS << "Var(s): ";
+  for (auto It = VariableToValue.begin(); It != VariableToValue.end(); ++It) {
+    if (It != VariableToValue.begin()) {
+      OS << ", ";
+    }
+    OS << It->first << " = " << It->second;
+  }
+  OS << "\nCorresponding IR Instructions:\n";
+  for (const auto *Ir : IRTrace) {
+    OS << "  " << llvmIRToString(Ir) << '\n';
+  }
+  return OS.str();
 }
 
 } // namespace psr

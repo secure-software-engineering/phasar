@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 
+#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -27,8 +28,6 @@
 #include <type_traits>
 
 namespace psr {
-
-class ProjectIRDB;
 
 struct HasNoConfigurationType;
 
@@ -50,19 +49,19 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
-
-  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
-                "Type parameter i_t must implement the ICFG interface!");
+  using db_t = typename AnalysisDomainTy::db_t;
 
   using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
 
   using ConfigurationTy = HasNoConfigurationType;
 
-  explicit IDETabulationProblem(const ProjectIRDB *IRDB,
+  explicit IDETabulationProblem(const db_t *IRDB,
                                 std::vector<std::string> EntryPoints,
                                 std::optional<d_t> ZeroValue)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
         ZeroValue(std::move(ZeroValue)) {
+    static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                  "db_t must implement the ProjectIRDBBase interface!");
     assert(IRDB != nullptr);
   }
 
@@ -124,7 +123,7 @@ public:
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
 protected:
-  const ProjectIRDB *IRDB{};
+  const db_t *IRDB{};
   std::vector<std::string> EntryPoints;
   std::optional<d_t> ZeroValue;
 

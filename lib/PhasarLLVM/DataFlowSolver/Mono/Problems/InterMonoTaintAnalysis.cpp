@@ -16,6 +16,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -30,7 +31,7 @@
 namespace psr {
 
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     const TaintConfig &Config, std::vector<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, TH, ICF, PT,

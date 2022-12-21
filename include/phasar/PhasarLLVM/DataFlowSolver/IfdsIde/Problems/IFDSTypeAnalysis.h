@@ -11,26 +11,18 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTYPEANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
-
-namespace llvm {
-class Instruction;
-class Function;
-class StructType;
-class Value;
-} // namespace llvm
 
 namespace psr {
 
 class IFDSTypeAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
-  IFDSTypeAnalysis(const ProjectIRDB *IRDB,
+  IFDSTypeAnalysis(const LLVMProjectIRDB *IRDB,
                    std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSTypeAnalysis() override = default;

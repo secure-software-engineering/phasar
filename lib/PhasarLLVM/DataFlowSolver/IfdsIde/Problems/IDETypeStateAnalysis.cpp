@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
@@ -205,7 +205,7 @@ public:
   }
 };
 
-IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
+IDETypeStateAnalysis::IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB,
                                            LLVMPointsToInfo *PT,
                                            const TypeStateDescription *TSD,
                                            std::vector<std::string> EntryPoints)
@@ -498,10 +498,10 @@ bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t Fact) const {
 
 // in addition provide specifications for the IDE parts
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getNormalEdgeFunction(
+auto IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t Curr, IDETypeStateAnalysis::d_t CurrNode,
-    IDETypeStateAnalysis::n_t /*Succ*/, IDETypeStateAnalysis::d_t SuccNode) {
+    IDETypeStateAnalysis::n_t /*Succ*/, IDETypeStateAnalysis::d_t SuccNode)
+    -> EdgeFunctionPtrType {
   // Set alloca instructions of target type to uninitialized.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
@@ -524,31 +524,29 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getCallEdgeFunction(
+auto IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::d_t /*SrcNode*/,
     IDETypeStateAnalysis::f_t /*DestinationFunction*/,
-    IDETypeStateAnalysis::d_t /*DestNode*/) {
+    IDETypeStateAnalysis::d_t /*DestNode*/) -> EdgeFunctionPtrType {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getReturnEdgeFunction(
+auto IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::f_t /*CalleeFunction*/,
     IDETypeStateAnalysis::n_t /*ExitSite*/,
     IDETypeStateAnalysis::d_t /*ExitNode*/,
-    IDETypeStateAnalysis::n_t /*ReSite*/,
-    IDETypeStateAnalysis::d_t /*RetNode*/) {
+    IDETypeStateAnalysis::n_t /*ReSite*/, IDETypeStateAnalysis::d_t /*RetNode*/)
+    -> EdgeFunctionPtrType {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getCallToRetEdgeFunction(
+auto IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t /*RetSite*/,
-    IDETypeStateAnalysis::d_t RetSiteNode, llvm::ArrayRef<f_t> Callees) {
+    IDETypeStateAnalysis::d_t RetSiteNode, llvm::ArrayRef<f_t> Callees)
+    -> EdgeFunctionPtrType {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
@@ -585,12 +583,11 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getSummaryEdgeFunction(
+auto IDETypeStateAnalysis::getSummaryEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::d_t /*CallNode*/,
     IDETypeStateAnalysis::n_t /*RetSite*/,
-    IDETypeStateAnalysis::d_t /*RetSiteNode*/) {
+    IDETypeStateAnalysis::d_t /*RetSiteNode*/) -> EdgeFunctionPtrType {
   return nullptr;
 }
 

@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -30,7 +30,7 @@
 
 namespace psr {
 
-IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
+IDESolverTest::IDESolverTest(const LLVMProjectIRDB *IRDB,
                              std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
@@ -86,7 +86,7 @@ IDESolverTest::d_t IDESolverTest::createZeroValue() const {
 }
 
 bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts

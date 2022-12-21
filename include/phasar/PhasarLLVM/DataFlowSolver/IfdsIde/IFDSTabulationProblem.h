@@ -29,6 +29,7 @@ class IFDSTabulationProblem
 
 public:
   using typename Base::d_t;
+  using typename Base::db_t;
   using typename Base::EdgeFunctionPtrType;
   using typename Base::f_t;
   using typename Base::i_t;
@@ -38,7 +39,7 @@ public:
   using typename Base::t_t;
   using typename Base::v_t;
 
-  explicit IFDSTabulationProblem(const ProjectIRDB *IRDB,
+  explicit IFDSTabulationProblem(const db_t *IRDB,
                                  std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
       : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}

@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -109,7 +109,7 @@ SHPEdgeFn::joinWith(
 }
 
 IDESecureHeapPropagation::IDESecureHeapPropagation(
-    const ProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
+    const LLVMProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IDESecureHeapPropagation::FlowFunctionPtrType

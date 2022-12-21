@@ -11,9 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -43,7 +42,7 @@ class IFDSConstAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 
 public:
-  IFDSConstAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+  IFDSConstAnalysis(const LLVMProjectIRDB *IRDB, LLVMPointsToInfo *PT,
                     std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;

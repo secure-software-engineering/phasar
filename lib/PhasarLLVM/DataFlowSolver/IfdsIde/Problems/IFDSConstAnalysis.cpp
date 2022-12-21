@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
@@ -33,7 +33,7 @@
 
 namespace psr {
 
-IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
+IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
                                      LLVMPointsToInfo *PT,
                                      std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
@@ -61,13 +61,14 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
                                 << llvmIRToString(PointerOp));
     auto PTS = PT->getPointsToSet(PointerOp);
     std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
-    // Check if this store instruction is the second write access to the memory
-    // location the pointer operand or it's alias are pointing to.
+    // Check if this store instruction is the second write access to the
+    // memory location the pointer operand or it's alias are pointing to.
     // This is done by checking the Initialized set.
     // If so, generate the pointer operand as a new data-flow fact. Also
-    // generate data-flow facts of all alias that meet the 'context-relevant'
-    // requirements! (see getContextRelevantPointsToSet function)
-    // NOTE: The points-to set of value x also contains the value x itself!
+    // generate data-flow facts of all alias that meet the
+    // 'context-relevant' requirements! (see getContextRelevantPointsToSet
+    // function) NOTE: The points-to set of value x also contains the value
+    // x itself!
     for (const auto *Alias : PointsToSet) {
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
@@ -82,8 +83,8 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     }
     // If neither the pointer operand nor one of its alias is initialized,
     // we mark only the pointer operand (to keep the Initialized set as
-    // small as possible) as initialized by adding it to the Initialized set.
-    // We do not generate any new data-flow facts at this point.
+    // small as possible) as initialized by adding it to the Initialized
+    // set. We do not generate any new data-flow facts at this point.
     markAsInitialized(PointerOp);
     PHASAR_LOG_LEVEL(DEBUG, "Pointer operand marked as initialized!");
   } /* end store instruction */
@@ -95,7 +96,8 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
 IFDSConstAnalysis::FlowFunctionPtrType
 IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
                                        IFDSConstAnalysis::f_t DestFun) {
-  // Handle one of the three llvm memory intrinsics (memcpy, memmove or memset)
+  // Handle one of the three llvm memory intrinsics (memcpy, memmove or
+  // memset)
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     PHASAR_LOG_LEVEL(DEBUG, "Call statement is a LLVM MemIntrinsic!");
     return KillAll<IFDSConstAnalysis::d_t>::getInstance();
@@ -131,7 +133,8 @@ IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
       [](IFDSConstAnalysis::f_t Cmthd) {
         return Cmthd->getReturnType()->isPointerTy();
       });
-  // All other data-flow facts of the callee function are killed at this point
+  // All other data-flow facts of the callee function are killed at this
+  // point
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -285,7 +288,8 @@ void IFDSConstAnalysis::emitTextReport(
     for (const auto *Exit : CFG.getExitPointsOf(F)) {
       std::set<const llvm::Value *> Facts = SR.ifdsResultsAt(Exit);
       // Empty facts means the exit statement is part of a not
-      // analyzed function, thus remove all memory locations of that function
+      // analyzed function, thus remove all memory locations of that
+      // function
       if (Facts.empty()) {
         for (auto MemItr = AllMemLocs.begin(); MemItr != AllMemLocs.end();) {
           if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(*MemItr)) {
@@ -302,7 +306,8 @@ void IFDSConstAnalysis::emitTextReport(
         for (const auto *Fact : Facts) {
           if (isAllocaInstOrHeapAllocaFunction(Fact) ||
               llvm::isa<llvm::GlobalValue>(Fact)) {
-            // remove memory locations that are mutable, i.e. are valid facts
+            // remove memory locations that are mutable, i.e. are valid
+            // facts
             AllMemLocs.erase(Fact);
           }
         }

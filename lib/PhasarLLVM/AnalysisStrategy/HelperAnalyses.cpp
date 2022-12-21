@@ -1,5 +1,5 @@
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -7,21 +7,21 @@
 #include <memory>
 
 namespace psr {
-HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
+HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::optional<nlohmann::json> PrecomputedPTS,
                                PointerAnalysisType PTATy, bool AllowLazyPTS,
                                std::vector<std::string> EntryPoints,
                                CallGraphAnalysisType CGTy,
                                Soundness SoundnessLevel, bool AutoGlobalSupport)
-    : IRFiles(std::move(IRFiles)), PrecomputedPTS(std::move(PrecomputedPTS)),
+    : IRFile(std::move(IRFile)), PrecomputedPTS(std::move(PrecomputedPTS)),
       PTATy(PTATy), AllowLazyPTS(AllowLazyPTS),
       EntryPoints(std::move(EntryPoints)), CGTy(CGTy),
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {}
 
-HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
+HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::vector<std::string> EntryPoints,
                                HelperAnalysisConfig Config)
-    : IRFiles(std::move(IRFiles)),
+    : IRFile(std::move(IRFile)),
       PrecomputedPTS(std::move(Config.PrecomputedPTS)), PTATy(Config.PTATy),
       AllowLazyPTS(Config.AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
       CGTy(Config.CGTy), SoundnessLevel(Config.SoundnessLevel),
@@ -29,9 +29,9 @@ HelperAnalyses::HelperAnalyses(std::vector<std::string> IRFiles,
 
 HelperAnalyses::~HelperAnalyses() = default;
 
-ProjectIRDB &HelperAnalyses::getProjectIRDB() {
+LLVMProjectIRDB &HelperAnalyses::getProjectIRDB() {
   if (!IRDB) {
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles);
+    IRDB = std::make_unique<LLVMProjectIRDB>(IRFile);
   }
   return *IRDB;
 }

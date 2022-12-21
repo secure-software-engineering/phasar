@@ -20,38 +20,38 @@
 #include <vector>
 
 namespace psr {
-class ProjectIRDB;
+class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMPointsToInfo;
 
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
-  explicit HelperAnalyses(std::vector<std::string> IRFiles,
+  explicit HelperAnalyses(std::string IRFile,
                           std::optional<nlohmann::json> PrecomputedPTS,
                           PointerAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport);
 
-  explicit HelperAnalyses(std::vector<std::string> IRFiles,
+  explicit HelperAnalyses(std::string IRFile,
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
   ~HelperAnalyses();
 
-  ProjectIRDB &getProjectIRDB();
+  LLVMProjectIRDB &getProjectIRDB();
   LLVMPointsToInfo &getPointsToInfo();
   LLVMTypeHierarchy &getTypeHierarchy();
   LLVMBasedICFG &getICFG();
 
 private:
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
   std::unique_ptr<LLVMPointsToInfo> PT;
   std::unique_ptr<LLVMTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
 
   // IRDB
-  std::vector<std::string> IRFiles;
+  std::string IRFile;
 
   // PTS
   std::optional<nlohmann::json> PrecomputedPTS;

@@ -8,7 +8,6 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
@@ -938,17 +937,17 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
 }
 
 const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
-    IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) & {
+    const SolverResults<n_t, d_t, l_t> &SR) & {
   if (!PostProcessed) {
-    doPostProcessing(Solver.getSolverResults());
+    doPostProcessing(SR);
   }
   return Leaks;
 }
 
 LeakMap_t IDEExtendedTaintAnalysis::getAllLeaks(
-    IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) && {
+    const SolverResults<n_t, d_t, l_t> &SR) && {
   if (!PostProcessed) {
-    doPostProcessing(Solver.getSolverResults());
+    doPostProcessing(SR);
   }
   return std::move(Leaks);
 }

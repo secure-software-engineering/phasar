@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -23,6 +23,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
+
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -41,7 +42,7 @@ inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>> flow(Fn Func) {
   return makeLambdaFlow<IDEGeneralizedLCA::d_t>(std::forward<Fn>(Func));
 }
 
-IDEGeneralizedLCA::IDEGeneralizedLCA(const ProjectIRDB *IRDB,
+IDEGeneralizedLCA::IDEGeneralizedLCA(const LLVMProjectIRDB *IRDB,
                                      const LLVMBasedICFG *ICF,
                                      std::vector<std::string> EntryPoints,
                                      size_t MaxSetSize)
@@ -227,8 +228,7 @@ IDEGeneralizedLCA::initialSeeds() {
     std::set<IDEGeneralizedLCA::d_t> Globals;
     Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
                   getZeroValue(), bottomElement());
-    for (const auto &G :
-         IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
+    for (const auto &G : IRDB->getModule()->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer()) {
           if (llvm::isa<llvm::ConstantInt>(GV->getInitializer()) ||

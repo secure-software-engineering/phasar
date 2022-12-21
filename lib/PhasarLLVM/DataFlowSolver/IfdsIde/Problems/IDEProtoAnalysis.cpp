@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -25,7 +25,7 @@
 
 namespace psr {
 
-IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
+IDEProtoAnalysis::IDEProtoAnalysis(const LLVMProjectIRDB *IRDB,
                                    std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
@@ -83,7 +83,7 @@ IDEProtoAnalysis::d_t IDEProtoAnalysis::createZeroValue() const {
 }
 
 bool IDEProtoAnalysis::isZeroValue(IDEProtoAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts

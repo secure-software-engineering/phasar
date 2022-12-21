@@ -11,10 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSSOLVERTEST_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
-#include <map>
-#include <memory>
 #include <set>
 #include <string>
 
@@ -30,7 +28,7 @@ namespace psr {
 class IFDSSolverTest
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
-  IFDSSolverTest(const ProjectIRDB *IRDB,
+  IFDSSolverTest(const LLVMProjectIRDB *IRDB,
                  std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSSolverTest() override = default;

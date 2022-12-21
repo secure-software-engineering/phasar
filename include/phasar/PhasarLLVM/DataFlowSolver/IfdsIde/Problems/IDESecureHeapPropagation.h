@@ -11,16 +11,9 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include "llvm/ADT/StringRef.h"
-
-namespace llvm {
-class Instruction;
-class Value;
-class StructType;
-class Function;
-} // namespace llvm
 
 namespace psr {
 enum class SecureHeapFact { ZERO, INITIALIZED };
@@ -48,8 +41,9 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDESecureHeapPropagation(const ProjectIRDB *IRDB,
+  IDESecureHeapPropagation(const LLVMProjectIRDB *IRDB,
                            std::vector<std::string> EntryPoints = {"main"});
+
   ~IDESecureHeapPropagation() override = default;
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;

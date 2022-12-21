@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 
 #include <map>
@@ -53,7 +53,7 @@ public:
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
 
-  IDEGeneralizedLCA(const ProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+  IDEGeneralizedLCA(const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
                     std::vector<std::string> EntryPoints, size_t MaxSetSize);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t Curr,

@@ -11,10 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESOLVERTEST_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
-#include <map>
-#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -44,7 +42,7 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDESolverTest(const ProjectIRDB *IRDB,
+  IDESolverTest(const LLVMProjectIRDB *IRDB,
                 std::vector<std::string> EntryPoints = {"main"});
 
   ~IDESolverTest() override = default;

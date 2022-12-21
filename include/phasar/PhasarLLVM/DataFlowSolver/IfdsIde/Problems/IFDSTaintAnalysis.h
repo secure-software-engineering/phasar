@@ -11,7 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include <map>
 #include <memory>
@@ -20,10 +20,8 @@
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
-class Instruction;
 class Function;
-class StructType;
-class Value;
+class CallBase;
 } // namespace llvm
 
 namespace psr {
@@ -55,7 +53,7 @@ public:
    * @param TSF
    * @param EntryPoints
    */
-  IFDSTaintAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+  IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMPointsToInfo *PT,
                     const TaintConfig *Config,
                     std::vector<std::string> EntryPoints = {"main"});
 

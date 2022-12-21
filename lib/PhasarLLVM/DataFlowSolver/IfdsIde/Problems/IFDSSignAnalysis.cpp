@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -20,7 +20,7 @@
 
 namespace psr {
 
-IFDSSignAnalysis::IFDSSignAnalysis(const ProjectIRDB *IRDB,
+IFDSSignAnalysis::IFDSSignAnalysis(const LLVMProjectIRDB *IRDB,
                                    std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 

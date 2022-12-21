@@ -27,7 +27,8 @@ enum class AnalysisControllerEmitterOptions {
   EmitPTAAsText = (1 << 11),
   EmitPTAAsDot = (1 << 12),
   EmitPTAAsJson = (1 << 13),
-  EmitStatisticsAsJson = (1 << 14),
+  EmitStatisticsAsText = (1 << 14),
+  EmitStatisticsAsJson = (1 << 15),
 };
 } // namespace psr
 

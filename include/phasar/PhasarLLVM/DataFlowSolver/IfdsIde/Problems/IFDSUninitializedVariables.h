@@ -11,19 +11,12 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-
-namespace llvm {
-class Instruction;
-class Function;
-class StructType;
-class Value;
-} // namespace llvm
 
 namespace psr {
 
@@ -44,7 +37,7 @@ class IFDSUninitializedVariables
   };
 
 public:
-  IFDSUninitializedVariables(const ProjectIRDB *IRDB,
+  IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
                              std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSUninitializedVariables() override = default;

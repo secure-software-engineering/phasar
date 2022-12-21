@@ -14,10 +14,14 @@
  *      Author: pdschbrt
  */
 
-#include <algorithm>
-#include <cassert>
-#include <memory>
-#include <ostream>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graph_utility.hpp"
@@ -33,15 +37,12 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/Support/Format.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Utilities.h"
+#include <algorithm>
+#include <cassert>
+#include <memory>
+#include <ostream>
 
 using namespace psr;
 using namespace std;
@@ -70,12 +71,10 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
   return Type->getStructName().str();
 }
 
-LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Construct type hierarchy");
-  for (auto *M : IRDB.getAllModules()) {
-    buildLLVMTypeHierarchy(*M);
-  }
-  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Finished type hierarchy");
+LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
+  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
+
+  buildLLVMTypeHierarchy(*IRDB.getModule());
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {

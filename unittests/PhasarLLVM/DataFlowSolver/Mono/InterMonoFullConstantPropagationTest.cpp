@@ -7,26 +7,26 @@
  *     Philipp Schubert, Linus Jungemann, and others
  *****************************************************************************/
 
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
-
-#include "gtest/gtest.h"
-
-#include "llvm/Support/raw_ostream.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+
+#include "gtest/gtest.h"
+
+#include "llvm/Support/raw_ostream.h"
+
+#include <memory>
+#include <set>
+#include <string>
+#include <tuple>
 
 #include "TestConfig.h"
 
@@ -42,19 +42,18 @@ protected:
   using IMFCPCompactResult_t =
       std::tuple<std::string, std::size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>;
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
   void TearDown() override {}
 
   void
-  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+  doAnalysisAndCompareResults(llvm::StringRef LlvmFilePath,
                               const std::set<IMFCPCompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(llvm::outs(), false);
+      IRDB->dump();
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);

@@ -11,16 +11,15 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 #include "llvm/IR/InstrTypes.h"
 
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
-#include <type_traits>
+#include <utility>
 
 namespace llvm {
 class CallBase;
@@ -55,7 +54,7 @@ public:
   const l_t TOP;
   const l_t BOTTOM;
 
-  IDETypeStateAnalysis(const ProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+  IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB, LLVMPointsToInfo *PT,
                        const TypeStateDescription *TSD,
                        std::vector<std::string> EntryPoints = {"main"});
 
@@ -85,26 +84,25 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                        d_t SuccNode) override;
+  EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                            d_t SuccNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t CallSite, d_t SrcNode, f_t DestinationFunction,
-                      d_t DestNode) override;
+  EdgeFunctionPtrType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                          f_t DestinationFunction,
+                                          d_t DestNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction, n_t ExitInst,
-                        d_t ExitNode, n_t RetSite, d_t RetNode) override;
+  EdgeFunctionPtrType getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
+                                            n_t ExitInst, d_t ExitNode,
+                                            n_t RetSite, d_t RetNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                         d_t RetSiteNode) override;
+  EdgeFunctionPtrType getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
+                                             n_t RetSite,
+                                             d_t RetSiteNode) override;
 
   l_t topElement() override;
 
@@ -120,7 +118,7 @@ public:
    */
   l_t join(l_t Lhs, l_t Rhs) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
+  EdgeFunctionPtrType allTopFunction() override;
 
   void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 

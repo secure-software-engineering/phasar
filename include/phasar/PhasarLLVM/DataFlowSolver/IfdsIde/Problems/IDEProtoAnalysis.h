@@ -11,13 +11,11 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
-#include <vector>
 
 namespace llvm {
 class Instruction;
@@ -43,7 +41,7 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDEProtoAnalysis(const ProjectIRDB *IRDB,
+  IDEProtoAnalysis(const LLVMProjectIRDB *IRDB,
                    std::vector<std::string> EntryPoints = {"main"});
 
   ~IDEProtoAnalysis() override = default;
