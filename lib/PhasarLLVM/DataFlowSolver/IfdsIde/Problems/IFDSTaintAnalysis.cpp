@@ -7,20 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
-#include "llvm/IR/Argument.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Value.h"
-#include "llvm/Support/raw_ostream.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
@@ -29,12 +20,17 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-using namespace std;
-using namespace psr;
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <utility>
 
 namespace psr {
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB,
+IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
                                      LLVMPointsToInfo *PT,
@@ -130,11 +126,11 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
     struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
       const llvm::StoreInst *Store;
       TAFF(const llvm::StoreInst *S) : Store(S){};
-      set<IFDSTaintAnalysis::d_t>
+      std::set<IFDSTaintAnalysis::d_t>
       computeTargets(IFDSTaintAnalysis::d_t Source) override {
         if (Store->getValueOperand() == Source) {
-          return set<IFDSTaintAnalysis::d_t>{Store->getPointerOperand(),
-                                             Source};
+          return std::set<IFDSTaintAnalysis::d_t>{Store->getPointerOperand(),
+                                                  Source};
         }
         if (Store->getValueOperand() != Source &&
             Store->getPointerOperand() == Source) {
@@ -143,7 +139,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
         return {Source};
       }
     };
-    return make_shared<TAFF>(Store);
+    return std::make_shared<TAFF>(Store);
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
@@ -298,7 +294,7 @@ IFDSTaintAnalysis::initialSeeds() {
     Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
     if (EntryPoint == "main") {
-      set<IFDSTaintAnalysis::d_t> CmdArgs;
+      std::set<IFDSTaintAnalysis::d_t> CmdArgs;
       for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
         Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg);
       }

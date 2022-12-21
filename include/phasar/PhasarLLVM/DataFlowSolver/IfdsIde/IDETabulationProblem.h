@@ -17,20 +17,18 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
 
-#include <memory>
-#include <set>
-#include <string>
-#include <type_traits>
-
 #include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include <memory>
+#include <set>
+#include <string>
+
 namespace psr {
 
-class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
 
@@ -49,15 +47,17 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
+  using db_t = typename AnalysisDomainTy::db_t;
 
   static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
                 "Type parameter i_t must implement the ICFG interface!");
+  static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                "db_t must implement the ProjectIRDBBase interface!");
 
   using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
 
-  IDETabulationProblem(const ProjectIRDB *IRDB,
-                       const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                       PointsToInfo<v_t, n_t> *PT,
+  IDETabulationProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+                       const i_t *ICF, PointsToInfo<v_t, n_t> *PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<AnalysisDomainTy, Container>(
             IRDB, TH, ICF, PT, std::move(EntryPoints)) {}

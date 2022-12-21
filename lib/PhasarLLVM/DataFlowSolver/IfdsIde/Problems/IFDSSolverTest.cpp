@@ -7,28 +7,25 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
-
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-using namespace std;
-using namespace psr;
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
+
+#include <utility>
 
 namespace psr {
 
-IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB,
+IFDSSolverTest::IFDSSolverTest(const LLVMProjectIRDB *IRDB,
                                const LLVMTypeHierarchy *TH,
                                const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)

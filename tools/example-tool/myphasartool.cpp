@@ -7,10 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <filesystem>
-#include <fstream>
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
@@ -20,6 +17,8 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
+
+#include <filesystem>
 
 namespace llvm {
 class Value;
@@ -35,7 +34,7 @@ int main(int Argc, const char **Argv) {
                     "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
-  ProjectIRDB DB({Argv[1]});
+  LLVMProjectIRDB DB(Argv[1]);
   if (const auto *F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
     // print type hierarchy

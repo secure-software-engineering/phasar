@@ -7,15 +7,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <type_traits>
-
-#include "llvm/ADT/SmallSet.h"
-#include "llvm/IR/GlobalValue.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/Support/Casting.h"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
@@ -23,7 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
@@ -32,6 +24,14 @@
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/SmallSet.h"
+#include "llvm/IR/GlobalValue.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/Casting.h"
+
+#include <algorithm>
+#include <type_traits>
 
 namespace psr::XTaint {
 
@@ -938,17 +938,17 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
 }
 
 const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
-    IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) & {
+    const SolverResults<n_t, d_t, l_t> &SR) & {
   if (!PostProcessed) {
-    doPostProcessing(Solver.getSolverResults());
+    doPostProcessing(SR);
   }
   return Leaks;
 }
 
 LeakMap_t IDEExtendedTaintAnalysis::getAllLeaks(
-    IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) && {
+    const SolverResults<n_t, d_t, l_t> &SR) && {
   if (!PostProcessed) {
-    doPostProcessing(Solver.getSolverResults());
+    doPostProcessing(SR);
   }
   return std::move(Leaks);
 }

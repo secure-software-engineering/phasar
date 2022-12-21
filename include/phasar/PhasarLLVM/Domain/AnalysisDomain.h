@@ -10,15 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-
 namespace psr {
 
 // AnalysisDomain - This class should be specialized by different static
@@ -57,25 +48,14 @@ struct AnalysisDomain {
   // Inter-procedural control flow --- Specifies the type of the
   // inter-procedural control-flow graph to be used.
   using i_t = void;
+  // The ProjectIRDB type to use. Must inherit from the ProjectIRDBBase CRTP
+  // template
+  using db_t = void;
   // Lattice element --- Specifies the type of the underlying lattice; the value
   // computation domain IDE's edge functions or WPDS's weights operate on.
   using l_t = void;
   // Container type to be used for analyses run in the monotone framework.
   using mono_container_t = void;
-};
-
-struct LLVMAnalysisDomainDefault : public AnalysisDomain {
-  using d_t = const llvm::Value *;
-  using n_t = const llvm::Instruction *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
-  using c_t = LLVMBasedCFG;
-  using i_t = LLVMBasedICFG;
-};
-
-struct LLVMIFDSAnalysisDomainDefault : LLVMAnalysisDomainDefault {
-  using l_t = BinaryDomain;
 };
 
 } // namespace psr

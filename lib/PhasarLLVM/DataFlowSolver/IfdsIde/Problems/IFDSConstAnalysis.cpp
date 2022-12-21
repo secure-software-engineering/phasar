@@ -7,26 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <memory>
-#include <utility>
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
-#include "llvm/IR/Argument.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/IR/Value.h"
-#include "llvm/Support/Casting.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-
 #include "phasar/PhasarLLVM/Utils/LLVMCXXShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -34,11 +22,19 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
-using namespace std;
-using namespace psr;
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Value.h"
+
+#include <memory>
+#include <utility>
+
 namespace psr {
 
-IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
+IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
                                      const LLVMTypeHierarchy *TH,
                                      const LLVMBasedICFG *ICF,
                                      LLVMPointsToInfo *PT,
@@ -214,15 +210,16 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
 #endif
 }
 
-set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
-    set<IFDSConstAnalysis::d_t> &PointsToSet,
+std::set<IFDSConstAnalysis::d_t>
+IFDSConstAnalysis::getContextRelevantPointsToSet(
+    std::set<IFDSConstAnalysis::d_t> &PointsToSet,
     IFDSConstAnalysis::f_t CurrentContext) {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getContextRelevantPointsToSet", 1,
               PAMM_SEVERITY_LEVEL::Full);
   START_TIMER("Context-Relevant-PointsTo-Set Computation",
               PAMM_SEVERITY_LEVEL::Full);
-  set<IFDSConstAnalysis::d_t> ToGenerate;
+  std::set<IFDSConstAnalysis::d_t> ToGenerate;
   for (const auto *Alias : PointsToSet) {
     PHASAR_LOG_LEVEL(DEBUG, "Alias: " << llvmIRToString(Alias));
     // Case (i + ii)

@@ -11,6 +11,7 @@
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/IO.h"
@@ -58,9 +59,8 @@ PSR_SHORTLONG_OPTION(SilentOpt, bool, "s", "silent",
 cl::alias QuietAlias("quiet", cl::aliasopt(SilentOpt),
                      cl::desc("Alias for --silent"), cl::cat(PsrCat));
 
-PSR_SHORTLONG_OPTION_TYPE(ModuleOpt, cl::list<std::string>, "m", "module",
-                          "Path to the LLVM IR module under analysis",
-                          cl::OneOrMore);
+PSR_SHORTLONG_OPTION(ModuleOpt, std::string, "m", "module",
+                     "Path to the LLVM IR module under analysis");
 
 PSR_SHORTLONG_OPTION_TYPE(
     EntryOpt, cl::list<std::string>, "E", "entry-points",
@@ -229,15 +229,14 @@ void validateParamModule() {
     llvm::errs() << "At least one LLVM target module is required!\n";
     exit(1);
   }
-  for (const auto &Module : ModuleOpt) {
-    std::filesystem::path ModulePath(Module);
-    if (!(std::filesystem::exists(ModulePath) &&
-          !std::filesystem::is_directory(ModulePath) &&
-          (ModulePath.extension() == ".ll" ||
-           ModulePath.extension() == ".bc"))) {
-      llvm::errs() << "LLVM module '" << Module << "' does not exist!\n";
-      exit(1);
-    }
+
+  std::filesystem::path ModulePath(ModuleOpt.getValue());
+  if (!(std::filesystem::exists(ModulePath) &&
+        !std::filesystem::is_directory(ModulePath) &&
+        (ModulePath.extension() == ".ll" || ModulePath.extension() == ".bc"))) {
+    llvm::errs() << "LLVM module '" << std::filesystem::absolute(ModulePath)
+                 << "' does not exist!\n";
+    exit(1);
   }
 }
 
@@ -305,7 +304,6 @@ int main(int Argc, const char **Argv) {
     Logger::initializeStderrLogger(DEBUG);
   }
 #endif
-
   // Vanity header
   if (!SilentOpt) {
     llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion()
@@ -326,13 +324,20 @@ int main(int Argc, const char **Argv) {
   validatePTAJsonFile();
 
   // setup IRDB as source code manager
-  ProjectIRDB IRDB(std::vector(ModuleOpt.begin(), ModuleOpt.end()));
-  if (StatisticsOpt) {
-    llvm::outs() << IRDB.getStatistics();
-    // the way we construct memory locations in IRDB is not included in
-    // the GeneralStatistics class right now, thus we print it here separately.
-    llvm::outs() << "> Memory Locations:\t"
-                 << IRDB.getAllMemoryLocations().size() << "\n";
+  LLVMProjectIRDB IRDB(ModuleOpt);
+  if (StatisticsOpt || EmitStatsAsJsonOpt) {
+    GeneralStatisticsAnalysis GSA;
+    auto Stats = GSA.runOnModule(*IRDB.getModule());
+    if (StatisticsOpt) {
+      llvm::outs() << Stats;
+    }
+    if (!OutDirOpt.empty()) {
+      if (auto OFS = openFileStream(OutDirOpt + "/psr-IrStatistics.json")) {
+        Stats.printAsJson(*OFS);
+      }
+    } else {
+      Stats.printAsJson();
+    }
   }
 
   // setup the emitter options to display the computed analysis results
@@ -382,9 +387,7 @@ int main(int Argc, const char **Argv) {
   if (EmitPTAAsJsonOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
-  if (EmitStatsAsJsonOpt) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsJson;
-  }
+
   SolverConfig.setFollowReturnsPastSeeds(FollowReturnPastSeedsOpt);
   SolverConfig.setAutoAddZero(AutoAddZeroOpt);
   SolverConfig.setComputeValues(ComputeValuesOpt);
@@ -404,7 +407,7 @@ int main(int Argc, const char **Argv) {
       IRDB, std::vector(DataFlowAnalysisOpt.begin(), DataFlowAnalysisOpt.end()),
       {AnalysisConfigOpt.getValue()}, PTATypeOpt, CGTypeOpt, SoundnessOpt,
       AutoGlobalsOpt, std::vector(EntryOpt.begin(), EntryOpt.end()),
-      StrategyOpt, EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt,
-      PrecomputedPointsToSet);
+      StrategyOpt, EmitterOptions, SolverConfig, ProjectIdOpt,
+      OutDirOpt.getValue(), PrecomputedPointsToSet);
   return 0;
 }

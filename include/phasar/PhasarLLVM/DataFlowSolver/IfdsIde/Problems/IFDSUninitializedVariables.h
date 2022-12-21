@@ -10,13 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -50,7 +50,7 @@ private:
   std::map<n_t, std::set<d_t>> UndefValueUses;
 
 public:
-  IFDSUninitializedVariables(const ProjectIRDB *IRDB,
+  IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints = {"main"});

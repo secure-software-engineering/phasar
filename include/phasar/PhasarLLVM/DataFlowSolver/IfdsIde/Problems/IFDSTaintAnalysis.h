@@ -11,8 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include <map>
 #include <memory>
@@ -33,6 +32,7 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 struct HasNoConfigurationType;
+class TaintConfig;
 
 /**
  * This analysis tracks data-flows through a program. Data flows from
@@ -70,7 +70,7 @@ public:
    * @param TSF
    * @param EntryPoints
    */
-  IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+  IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                     const TaintConfig &Config,
                     std::set<std::string> EntryPoints = {"main"});

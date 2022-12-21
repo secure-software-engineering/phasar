@@ -10,12 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
 
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
 #include <map>
 #include <set>
 #include <type_traits>
-
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 

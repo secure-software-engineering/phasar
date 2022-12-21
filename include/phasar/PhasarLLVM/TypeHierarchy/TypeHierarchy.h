@@ -17,6 +17,8 @@
 
 #include "phasar/PhasarLLVM/TypeHierarchy/VFTable.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 namespace psr {
 
 template <typename T, typename F> class TypeHierarchy {

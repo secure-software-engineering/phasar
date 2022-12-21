@@ -17,11 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 
+#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/InitialSeeds.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -32,9 +32,9 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
-class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
+template <typename N, typename D, typename L> class SolverResults;
 
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
@@ -53,13 +53,17 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
+  using db_t = typename AnalysisDomainTy::db_t;
 
   static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
                 "Type parameter i_t must implement the ICFG interface!");
 
+  static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                "db_t must implement the ProjectIRDBBase interface!");
+
 protected:
   IFDSIDESolverConfig SolverConfig;
-  const ProjectIRDB *IRDB;
+  const db_t *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
   const i_t *ICF;
   PointsToInfo<v_t, n_t> *PT;
@@ -75,9 +79,8 @@ protected:
 public:
   using ConfigurationTy = HasNoConfigurationType;
 
-  IFDSTabulationProblem(const ProjectIRDB *IRDB,
-                        const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                        PointsToInfo<v_t, n_t> *PT,
+  IFDSTabulationProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+                        const i_t *ICF, PointsToInfo<v_t, n_t> *PT,
                         std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
@@ -104,7 +107,7 @@ public:
   }
 
   /// Returns the underlying IR.
-  [[nodiscard]] const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const db_t *getProjectIRDB() const { return IRDB; }
 
   /// Returns the underlying type hierarchy.
   [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {

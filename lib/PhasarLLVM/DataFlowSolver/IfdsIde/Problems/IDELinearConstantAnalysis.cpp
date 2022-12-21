@@ -8,12 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -38,6 +38,21 @@
 #include <memory>
 #include <utility>
 
+#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/MathExtras.h"
+
+#include <limits>
+#include <memory>
+#include <utility>
+
 namespace psr {
 // Initialize debug counter for edge functions
 unsigned IDELinearConstantAnalysis::CurrGenConstantId = 0; // NOLINT
@@ -50,7 +65,7 @@ const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
     Bottom{};
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
@@ -190,15 +205,14 @@ IDELinearConstantAnalysis::initialSeeds() {
     Seeds.addSeed(&EntryPointFun->front().front(), getZeroValue(),
                   bottomElement());
     // Generate global integer-typed variables using generalized initial seeds
-    for (const auto *M : IRDB->getAllModules()) {
-      for (const auto &G : M->globals()) {
-        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-          if (GV->hasInitializer()) {
-            if (const auto *ConstInt =
-                    llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
-              Seeds.addSeed(&EntryPointFun->front().front(), GV,
-                            ConstInt->getSExtValue());
-            }
+
+    for (const auto &G : IRDB->getModule()->globals()) {
+      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+        if (GV->hasInitializer()) {
+          if (const auto *ConstInt =
+                  llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
+            Seeds.addSeed(&EntryPointFun->front().front(), GV,
+                          ConstInt->getSExtValue());
           }
         }
       }

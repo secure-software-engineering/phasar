@@ -23,18 +23,24 @@ namespace llvm {
 class CallBase;
 class StructType;
 class Function;
+class StructType;
 } // namespace llvm
 
 namespace psr {
 class RTAResolver : public CHAResolver {
 public:
-  RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  RTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
 
   ~RTAResolver() override = default;
 
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
+
+private:
+  void resolveAllocatedStructTypes();
+
+  std::vector<const llvm::StructType *> AllocatedStructTypes;
 };
 } // namespace psr
 

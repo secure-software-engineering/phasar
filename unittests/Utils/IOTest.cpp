@@ -3,6 +3,8 @@
 #include "../TestUtils/TestConfig.h"
 #include "phasar/Utils/IO.h"
 
+#include "llvm/ADT/Twine.h"
+
 //===----------------------------------------------------------------------===//
 // Unit tests for the IO functionalities
 

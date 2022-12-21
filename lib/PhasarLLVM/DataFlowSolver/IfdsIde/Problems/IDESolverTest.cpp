@@ -29,7 +29,7 @@
 
 namespace psr {
 
-IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
+IDESolverTest::IDESolverTest(const LLVMProjectIRDB *IRDB,
                              const LLVMTypeHierarchy *TH,
                              const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
