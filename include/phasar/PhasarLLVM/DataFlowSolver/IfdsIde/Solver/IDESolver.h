@@ -17,22 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 
-#include <fstream>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
-#include <type_traits>
-#include <unordered_set>
-#include <utility>
-
-#include "nlohmann/json.hpp"
-
-#include "boost/algorithm/string/trim.hpp"
-
-#include "llvm/Support/raw_ostream.h"
-
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowEdgeFunctionCache.h"
@@ -45,12 +29,28 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/DOTGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
+
+#include "nlohmann/json.hpp"
+
+#include "boost/algorithm/string/trim.hpp"
+
+#include "llvm/Support/raw_ostream.h"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_set>
+#include <utility>
 
 namespace psr {
 

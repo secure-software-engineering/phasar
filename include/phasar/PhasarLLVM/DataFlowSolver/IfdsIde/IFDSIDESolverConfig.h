@@ -17,13 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/Utils/EnumFlags.h"
-#include "phasar/Utils/Logger.h"
+
+#include <cstdint>
 
 namespace llvm {
 class raw_ostream;
-}
+} // namespace llvm
 
 namespace psr {
 

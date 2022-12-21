@@ -10,13 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/Utils/TypeTraits.h"
 
-#include <iosfwd>
 #include <memory>
 #include <set>
 #include <string>
@@ -42,7 +40,7 @@ private:
   using CallGraphAnalysisTy = typename Setup::CallGraphAnalysisTy;
   using ConfigurationTy = typename ProblemDescription::ConfigurationTy;
 
-  ProjectIRDB &IRDB;
+  LLVMProjectIRDB &IRDB;
   std::unique_ptr<TypeHierarchyTy> TypeHierarchy;
   std::unique_ptr<PointerAnalysisTy> PointerInfo;
   std::unique_ptr<CallGraphAnalysisTy> CallGraph;
@@ -54,7 +52,7 @@ private:
   Solver DataFlowSolver;
 
 public:
-  WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, ProjectIRDB &IRDB,
+  WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, LLVMProjectIRDB &IRDB,
                        llvm::ArrayRef<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
                        CallGraphAnalysisTy *CallGraph = nullptr,
@@ -83,7 +81,7 @@ public:
   template <typename T = ProblemDescription,
             typename = typename std::enable_if_t<!std::is_same_v<
                 typename T::ConfigurationTy, HasNoConfigurationType>>>
-  WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, ProjectIRDB &IRDB,
+  WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, LLVMProjectIRDB &IRDB,
                        ConfigurationTy *Config,
                        llvm::ArrayRef<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
@@ -113,7 +111,7 @@ public:
   template <typename T = ProblemDescription,
             typename = typename std::enable_if_t<!std::is_same_v<
                 typename T::ConfigurationTy, HasNoConfigurationType>>>
-  WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, ProjectIRDB &IRDB,
+  WholeProgramAnalysis(IFDSIDESolverConfig SolverConfig, LLVMProjectIRDB &IRDB,
                        std::string ConfigPath,
                        llvm::ArrayRef<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,

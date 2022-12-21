@@ -17,7 +17,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -205,7 +205,7 @@ public:
       std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
 
   IDEInstInteractionAnalysisT(
-      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+      const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
       const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
       std::set<std::string> EntryPoints = {"main"},
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
@@ -906,19 +906,18 @@ public:
         Seeds.addSeed(&EntryPointFun->front().front(), &Arg, BottomElement);
       }
       // Generate all global variables using generalized initial seeds
-      for (const auto *M : this->IRDB->getAllModules()) {
-        for (const auto &G : M->globals()) {
-          if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-            l_t InitialValues = BitVectorSet<e_t>();
-            std::set<e_t> EdgeFacts;
-            if (EdgeFactGen) {
-              EdgeFacts = EdgeFactGen(GV);
-              // fill BitVectorSet
-              InitialValues =
-                  BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-            }
-            Seeds.addSeed(&EntryPointFun->front().front(), GV, InitialValues);
+
+      for (const auto &G : this->IRDB->getModule()->globals()) {
+        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+          l_t InitialValues = BitVectorSet<e_t>();
+          std::set<e_t> EdgeFacts;
+          if (EdgeFactGen) {
+            EdgeFacts = EdgeFactGen(GV);
+            // fill BitVectorSet
+            InitialValues =
+                BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
           }
+          Seeds.addSeed(&EntryPointFun->front().front(), GV, InitialValues);
         }
       }
     }

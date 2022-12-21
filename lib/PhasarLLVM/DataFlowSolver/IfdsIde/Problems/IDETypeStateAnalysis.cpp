@@ -8,13 +8,13 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -33,12 +33,9 @@
 #include <algorithm>
 #include <utility>
 
-using namespace std;
-using namespace psr;
-
 namespace psr {
 
-IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
+IDETypeStateAnalysis::IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB,
                                            const LLVMTypeHierarchy *TH,
                                            const LLVMBasedICFG *ICF,
                                            LLVMPointsToInfo *PT,
@@ -58,8 +55,8 @@ IDETypeStateAnalysis::getNormalFlowFunction(
   // value.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
-      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
-                                                         getZeroValue());
+      return std::make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
+                                                              getZeroValue());
     }
   }
   // Check load instructions for target type. Generate from the loaded value and
@@ -71,7 +68,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
 
         TSFlowFunction(const llvm::LoadInst *L) : Load(L) {}
         ~TSFlowFunction() override = default;
-        set<IDETypeStateAnalysis::d_t>
+        std::set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t Source) override {
           if (Source == Load) {
             return {};
@@ -82,12 +79,12 @@ IDETypeStateAnalysis::getNormalFlowFunction(
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(Load);
+      return std::make_shared<TSFlowFunction>(Load);
     }
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return makeLambdaFlow<d_t>([=](d_t Source) -> set<d_t> {
+      return makeLambdaFlow<d_t>([=](d_t Source) -> std::set<d_t> {
         // if (Source == Gep->getPointerOperand()) {
         //  return {Source, Gep};
         //}
@@ -112,7 +109,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
                        std::set<IDETypeStateAnalysis::d_t> AA)
             : Store(S), AliasesAndAllocas(std::move(AA)) {}
         ~TSFlowFunction() override = default;
-        set<IDETypeStateAnalysis::d_t>
+        std::set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t Source) override {
           // We kill all relevant loacal aliases and alloca's
           if (Source != Store->getValueOperand() &&
@@ -130,7 +127,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(Store, RelevantAliasesAndAllocas);
+      return std::make_shared<TSFlowFunction>(Store, RelevantAliasesAndAllocas);
     }
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
@@ -148,8 +145,8 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallSite,
   // standard mapping.
   if (llvm::isa<llvm::CallInst>(CallSite) ||
       llvm::isa<llvm::InvokeInst>(CallSite)) {
-    return make_shared<MapFactsToCallee<>>(llvm::cast<llvm::CallBase>(CallSite),
-                                           DestFun);
+    return std::make_shared<MapFactsToCallee<>>(
+        llvm::cast<llvm::CallBase>(CallSite), DestFun);
   }
   llvm::report_fatal_error("callSite not a CallInst nor a InvokeInst");
 }
@@ -187,10 +184,10 @@ IDETypeStateAnalysis::getRetFlowFunction(
 
     ~TSFlowFunction() override = default;
 
-    set<IDETypeStateAnalysis::d_t>
+    std::set<IDETypeStateAnalysis::d_t>
     computeTargets(IDETypeStateAnalysis::d_t Source) override {
       if (!LLVMZeroValue::isLLVMZeroValue(Source)) {
-        set<const llvm::Value *> Res;
+        std::set<const llvm::Value *> Res;
         // Handle C-style varargs functions
         if (CalleeFun->isVarArg() && !CalleeFun->isDeclaration()) {
           const llvm::Instruction *AllocVarArg;
@@ -242,8 +239,8 @@ IDETypeStateAnalysis::getRetFlowFunction(
       return {Source};
     }
   };
-  return make_shared<TSFlowFunction>(llvm::cast<llvm::CallBase>(CallSite),
-                                     CalleeFun, ExitStmt, this);
+  return std::make_shared<TSFlowFunction>(llvm::cast<llvm::CallBase>(CallSite),
+                                          CalleeFun, ExitStmt, this);
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
@@ -262,7 +259,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
                        IDETypeStateAnalysis::d_t Z)
             : CS(CS), ZeroValue(Z) {}
         ~TSFlowFunction() override = default;
-        set<IDETypeStateAnalysis::d_t>
+        std::set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t Source) override {
           if (Source == CS) {
             return {};
@@ -273,7 +270,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
           return {Source};
         }
       };
-      return make_shared<TSFlowFunction>(CS, getZeroValue());
+      return std::make_shared<TSFlowFunction>(CS, getZeroValue());
     }
 
     // Handle all functions that are not modeld with special semantics.
@@ -291,7 +288,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
         if (hasMatchingType(Arg)) {
           std::set<IDETypeStateAnalysis::d_t> FactsToKill =
               getWMAliasesAndAllocas(Arg.get());
-          return make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
+          return std::make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
               FactsToKill);
         }
       }
@@ -332,10 +329,10 @@ bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t Fact) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getNormalEdgeFunction(
+auto IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t Curr, IDETypeStateAnalysis::d_t CurrNode,
-    IDETypeStateAnalysis::n_t /*Succ*/, IDETypeStateAnalysis::d_t SuccNode) {
+    IDETypeStateAnalysis::n_t /*Succ*/, IDETypeStateAnalysis::d_t SuccNode)
+    -> EdgeFunctionPtrType {
   // Set alloca instructions of target type to uninitialized.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
@@ -351,38 +348,36 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
             OS << "Alloca(" << llvmIRToShortString(Alloca) << ")";
           }
         };
-        return make_shared<TSAllocaEF>(TSD, Alloca);
+        return std::make_shared<TSAllocaEF>(TSD, Alloca);
       }
     }
   }
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getCallEdgeFunction(
+auto IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::d_t /*SrcNode*/,
     IDETypeStateAnalysis::f_t /*DestinationFunction*/,
-    IDETypeStateAnalysis::d_t /*DestNode*/) {
+    IDETypeStateAnalysis::d_t /*DestNode*/) -> EdgeFunctionPtrType {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getReturnEdgeFunction(
+auto IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::f_t /*CalleeFunction*/,
     IDETypeStateAnalysis::n_t /*ExitSite*/,
     IDETypeStateAnalysis::d_t /*ExitNode*/,
-    IDETypeStateAnalysis::n_t /*ReSite*/,
-    IDETypeStateAnalysis::d_t /*RetNode*/) {
+    IDETypeStateAnalysis::n_t /*ReSite*/, IDETypeStateAnalysis::d_t /*RetNode*/)
+    -> EdgeFunctionPtrType {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getCallToRetEdgeFunction(
+auto IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t /*RetSite*/,
-    IDETypeStateAnalysis::d_t RetSiteNode, llvm::ArrayRef<f_t> Callees) {
+    IDETypeStateAnalysis::d_t RetSiteNode, llvm::ArrayRef<f_t> Callees)
+    -> EdgeFunctionPtrType {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
@@ -396,7 +391,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
           TSFactoryEF(const TypeStateDescription &Tsd, l_t State)
               : TSConstant(Tsd, State) {}
         };
-        return make_shared<TSFactoryEF>(
+        return std::make_shared<TSFactoryEF>(
             TSD, TSD.getNextState(DemangledFname, TSD.uninit(), CS));
       }
     }
@@ -411,7 +406,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
         if (CallNode == RetSiteNode &&
             PointsToAndAllocas.find(CallNode) != PointsToAndAllocas.end()) {
-          return make_shared<TSEdgeFunction>(TSD, DemangledFname, CS);
+          return std::make_shared<TSEdgeFunction>(TSD, DemangledFname, CS);
         }
       }
     }
@@ -419,12 +414,11 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::getSummaryEdgeFunction(
+auto IDETypeStateAnalysis::getSummaryEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::d_t /*CallNode*/,
     IDETypeStateAnalysis::n_t /*RetSite*/,
-    IDETypeStateAnalysis::d_t /*RetSiteNode*/) {
+    IDETypeStateAnalysis::d_t /*RetSiteNode*/) -> EdgeFunctionPtrType {
   return nullptr;
 }
 
@@ -449,9 +443,8 @@ IDETypeStateAnalysis::join(IDETypeStateAnalysis::l_t Lhs,
   return BOTTOM;
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::allTopFunction() {
-  return make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TOP);
+auto IDETypeStateAnalysis::allTopFunction() -> EdgeFunctionPtrType {
+  return std::make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TOP);
 }
 
 void IDETypeStateAnalysis::printNode(llvm::raw_ostream &OS, n_t Stmt) const {
@@ -473,9 +466,8 @@ void IDETypeStateAnalysis::printEdgeFact(llvm::raw_ostream &OS,
   OS << TSD.stateToString(L);
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
-    shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> OtherFunction) {
+auto IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
+    EdgeFunctionPtrType OtherFunction) -> EdgeFunctionPtrType {
   if (OtherFunction.get() == this ||
       OtherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
@@ -484,7 +476,7 @@ IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
           OtherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(BotElement);
+  return std::make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(BotElement);
 }
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
@@ -500,9 +492,8 @@ IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
   return CurrentState;
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::TSEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> SecondFunction) {
+auto IDETypeStateAnalysis::TSEdgeFunction::composeWith(
+    EdgeFunctionPtrType SecondFunction) -> EdgeFunctionPtrType {
 
   if (auto *AB = dynamic_cast<AllBottom<IDETypeStateAnalysis::l_t> *>(
           SecondFunction.get())) {
@@ -512,13 +503,12 @@ IDETypeStateAnalysis::TSEdgeFunction::composeWith(
           SecondFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
-                                             SecondFunction, TSD.bottom());
+  return std::make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
+                                                  SecondFunction, TSD.bottom());
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::TSEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> OtherFunction) {
+auto IDETypeStateAnalysis::TSEdgeFunction::joinWith(
+    EdgeFunctionPtrType OtherFunction) -> EdgeFunctionPtrType {
   if (OtherFunction.get() == this ||
       OtherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
@@ -531,11 +521,11 @@ IDETypeStateAnalysis::TSEdgeFunction::joinWith(
           OtherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSD.bottom());
+  return std::make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSD.bottom());
 }
 
 bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> Other) const {
+    EdgeFunctionPtrType Other) const {
   /*if (auto *TSEF =
           dynamic_cast<IDETypeStateAnalysis::TSEdgeFunction *>(Other.get())) {
     return this->CurrentState == TSEF->CurrentState;
@@ -557,8 +547,7 @@ auto IDETypeStateAnalysis::TSConstant::computeTarget(l_t /*Source*/) -> l_t {
 }
 
 auto IDETypeStateAnalysis::TSConstant::composeWith(
-    std::shared_ptr<EdgeFunction<l_t>> SecondFunction)
-    -> std::shared_ptr<EdgeFunction<l_t>> {
+    EdgeFunctionPtrType SecondFunction) -> EdgeFunctionPtrType {
   auto Ret = SecondFunction->computeTarget(State);
   if (Ret == State) {
     return shared_from_this();
@@ -571,8 +560,7 @@ auto IDETypeStateAnalysis::TSConstant::composeWith(
 }
 
 auto IDETypeStateAnalysis::TSConstant::joinWith(
-    std::shared_ptr<EdgeFunction<l_t>> OtherFunction)
-    -> std::shared_ptr<EdgeFunction<l_t>> {
+    EdgeFunctionPtrType OtherFunction) -> EdgeFunctionPtrType {
   if (&*OtherFunction == this ||
       OtherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
@@ -591,11 +579,11 @@ auto IDETypeStateAnalysis::TSConstant::joinWith(
       return OtherFunction;
     }
   }
-  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSD.bottom());
+  return std::make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSD.bottom());
 }
 
 bool IDETypeStateAnalysis::TSConstant::equal_to(
-    std::shared_ptr<EdgeFunction<l_t>> Other) const {
+    EdgeFunctionPtrType Other) const {
   if (this == &*Other) {
     return true;
   }

@@ -10,9 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
+
+namespace llvm {
+class raw_ostream;
+} // namespace llvm
 
 namespace psr {
 
@@ -25,9 +30,9 @@ enum class AnalysisStrategy {
 
 std::string toString(const AnalysisStrategy &S);
 
-AnalysisStrategy toAnalysisStrategy(const std::string &S);
+AnalysisStrategy toAnalysisStrategy(llvm::StringRef S);
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const AnalysisStrategy &S);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AnalysisStrategy S);
 
 } // namespace psr
 

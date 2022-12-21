@@ -15,6 +15,10 @@
 #include "nlohmann/json.hpp"
 #include "llvm/Support/raw_ostream.h"
 
+namespace llvm {
+class raw_ostream;
+} // namespace llvm
+
 namespace psr {
 
 template <typename F> class VFTable {

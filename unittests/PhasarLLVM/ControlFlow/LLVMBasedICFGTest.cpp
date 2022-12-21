@@ -1,12 +1,7 @@
 #include "gtest/gtest.h"
 
-#include <string>
-#include <vector>
-
-#include "llvm/Support/raw_ostream.h"
-
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
@@ -14,6 +9,11 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/Support/raw_ostream.h"
+
+#include <string>
+#include <vector>
 
 #include "TestConfig.h"
 
@@ -26,9 +26,8 @@ template <typename T> static auto makeSet(T &&Vec) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_1) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_1_c.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_1_c.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -48,9 +47,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_1) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_2a) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_2_c.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_2_c.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
@@ -76,9 +74,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2a) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_2_c.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_2_c.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -111,9 +108,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
 }
 
 TEST(LLVMBasedICFGTest, VirtualCallSite_1) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_1_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/virtual_call_1_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -132,9 +128,8 @@ TEST(LLVMBasedICFGTest, VirtualCallSite_1) {
 }
 
 TEST(LLVMBasedICFGTest, FunctionPointer_1) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/function_pointer_1_c.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/function_pointer_1_c.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -152,9 +147,8 @@ TEST(LLVMBasedICFGTest, FunctionPointer_1) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_3) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_3_c.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_3_c.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -173,9 +167,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_3) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_4) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_4_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_4_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -207,9 +200,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_4) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_5) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_5_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_5_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -231,9 +223,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_5) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_6) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_6_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_6_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -258,9 +249,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_6) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_7) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_7_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_7_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -283,9 +273,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_7) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_8) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_8_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_8_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
@@ -308,9 +297,8 @@ TEST(LLVMBasedICFGTest, StaticCallSite_8) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_1) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/global_ctor_dtor_1_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/global_ctor_dtor_1_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
@@ -336,9 +324,8 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_1) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_2) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/global_ctor_dtor_2_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/global_ctor_dtor_2_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
@@ -361,9 +348,8 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_2) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_3) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/global_ctor_dtor_3_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/global_ctor_dtor_3_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
@@ -383,9 +369,8 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_3) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_4) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/global_ctor_dtor_4_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/global_ctor_dtor_4_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,

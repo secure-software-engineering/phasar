@@ -7,21 +7,21 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/Controller/AnalysisController.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/ErrorHandling.h"
+
 #include <cassert>
 #include <filesystem>
 #include <functional>
 #include <set>
 #include <utility>
-
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/ErrorHandling.h"
-
-#include "phasar/Controller/AnalysisController.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
-#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
@@ -49,13 +49,13 @@ bool needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
 }
 
 AnalysisController::AnalysisController(
-    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+    LLVMProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
     CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
     bool AutoGlobalSupport, std::vector<std::string> EntryPoints,
     AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
     IFDSIDESolverConfig SolverConfig, const std::string &ProjectID,
-    const std::string &OutDirectory,
+    std::filesystem::path OutDirectory,
     const nlohmann::json &PrecomputedPointsToInfo)
     : IRDB(IRDB), TH(IRDB),
       PT(PrecomputedPointsToInfo.empty()
@@ -64,16 +64,12 @@ AnalysisController::AnalysisController(
       ICF(&IRDB, CGTy, EntryPoints, &TH, &PT, SoundnessLevel,
           AutoGlobalSupport),
       DataFlowAnalyses(std::move(DataFlowAnalyses)),
-      AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
-      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
-      OutDirectory(OutDirectory), SolverConfig(SolverConfig),
+      AnalysisConfigs(std::move(AnalysisConfigs)),
+      EntryPoints(std::move(EntryPoints)), Strategy(Strategy),
+      EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      ResultDirectory(std::move(OutDirectory)), SolverConfig(SolverConfig),
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {
-  if (!OutDirectory.empty()) {
-    // create directory for results
-    ResultDirectory = OutDirectory;
-    ResultDirectory /= ProjectID + "-" + createTimeStamp();
-    std::filesystem::create_directory(ResultDirectory);
-  }
+
   emitRequestedHelperAnalysisResults();
   executeAs(Strategy);
 }
@@ -169,16 +165,17 @@ void AnalysisController::executeWholeProgram() {
 void AnalysisController::emitRequestedHelperAnalysisResults() {
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-preprocess-ir.ll")) {
-        IRDB.emitPreprocessedIR(*OFS);
+      if (auto OFS = openFileStream(ResultDirectory.string() +
+                                    "/psr-preprocess-ir.ll")) {
+        *OFS << *IRDB.getModule();
       }
     } else {
-      IRDB.emitPreprocessedIR();
+      IRDB.dump();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-th.txt")) {
+      if (auto OFS = openFileStream(ResultDirectory.string() + "/psr-th.txt")) {
         TH.print(*OFS);
       }
     } else {
@@ -187,7 +184,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsDot) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-th.dot")) {
+      if (auto OFS = openFileStream(ResultDirectory.string() + "/psr-th.dot")) {
         TH.printAsDot(*OFS);
       }
     } else {
@@ -196,7 +193,8 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsJson) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-th.json")) {
+      if (auto OFS =
+              openFileStream(ResultDirectory.string() + "/psr-th.json")) {
         TH.printAsJson(*OFS);
       }
     } else {
@@ -205,7 +203,8 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-pta.txt")) {
+      if (auto OFS =
+              openFileStream(ResultDirectory.string() + "/psr-pta.txt")) {
         PT.print(*OFS);
       }
     } else {
@@ -214,7 +213,8 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-pta.dot")) {
+      if (auto OFS =
+              openFileStream(ResultDirectory.string() + "/psr-pta.dot")) {
         PT.print(*OFS);
       }
     } else {
@@ -223,7 +223,8 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-pta.json")) {
+      if (auto OFS =
+              openFileStream(ResultDirectory.string() + "/psr-pta.json")) {
         PT.printAsJson(*OFS);
       }
     } else {
@@ -233,38 +234,13 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-cg.dot")) {
+      if (auto OFS = openFileStream(ResultDirectory.string() + "/psr-cg.dot")) {
         ICF.print(*OFS);
       }
     } else {
       ICF.print();
     }
   }
-
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
-    const auto &Stats = IRDB.getStatistics();
-    if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream("/psr-IrStatistics.json")) {
-        Stats.printAsJson(*OFS);
-      }
-    } else {
-      Stats.printAsJson();
-    }
-  }
-}
-
-std::unique_ptr<llvm::raw_fd_ostream>
-AnalysisController::openFileStream(llvm::StringRef FilePathSuffix) {
-  std::error_code EC;
-  auto OFS = std::make_unique<llvm::raw_fd_ostream>(
-      ResultDirectory.string() + FilePathSuffix.str(), EC);
-  if (EC) {
-    OFS = nullptr;
-    llvm::errs() << "Failed to open file: "
-                 << ResultDirectory.string() + FilePathSuffix << '\n';
-    llvm::errs() << EC.message() << '\n';
-  }
-  return OFS;
 }
 
 } // namespace psr

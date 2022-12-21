@@ -35,7 +35,6 @@ class Value;
 
 namespace psr {
 
-class ProjectIRDB;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
@@ -45,7 +44,7 @@ protected:
   LLVMPointsToInfo &PT;
 
 public:
-  OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
+  OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
               LLVMPointsToInfo &PT);
 
   ~OTFResolver() override = default;

@@ -10,11 +10,7 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
-#include <set>
-#include <string>
-#include <vector>
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -30,7 +26,12 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/Soundness.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace psr {
 
@@ -55,7 +56,7 @@ enum class AnalysisControllerEmitterOptions : uint32_t {
 
 class AnalysisController {
 private:
-  ProjectIRDB &IRDB;
+  LLVMProjectIRDB &IRDB;
   LLVMTypeHierarchy TH;
   LLVMPointsToSet PT;
   LLVMBasedICFG ICF;
@@ -66,7 +67,6 @@ private:
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::None;
   std::string ProjectID;
-  std::string OutDirectory;
   std::filesystem::path ResultDirectory;
   IFDSIDESolverConfig SolverConfig;
   [[maybe_unused]] Soundness SoundnessLevel;
@@ -149,13 +149,11 @@ private:
     }
   }
 
-  std::unique_ptr<llvm::raw_fd_ostream>
-  openFileStream(llvm::StringRef Filename);
-
   template <typename T> void emitRequestedDataFlowResults(T &WPA) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
       if (!ResultDirectory.empty()) {
-        if (auto OFS = openFileStream("/psr-report.txt")) {
+        if (auto OFS =
+                openFileStream(ResultDirectory.string() + "/psr-report.txt")) {
           WPA.emitTextReport(*OFS);
         }
       } else {
@@ -165,7 +163,8 @@ private:
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
       if (!ResultDirectory.empty()) {
-        if (auto OFS = openFileStream("/psr-report.html")) {
+        if (auto OFS =
+                openFileStream(ResultDirectory.string() + "/psr-report.html")) {
           WPA.emitGraphicalReport(*OFS);
         }
       } else {
@@ -174,7 +173,8 @@ private:
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
       if (!ResultDirectory.empty()) {
-        if (auto OFS = openFileStream("/psr-raw-results.txt")) {
+        if (auto OFS = openFileStream(ResultDirectory.string() +
+                                      "/psr-raw-results.txt")) {
           WPA.dumpResults(*OFS);
         }
       } else {
@@ -188,7 +188,7 @@ private:
   }
 
 public:
-  AnalysisController(ProjectIRDB &IRDB,
+  AnalysisController(LLVMProjectIRDB &IRDB,
                      std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
@@ -198,7 +198,7 @@ public:
                      AnalysisControllerEmitterOptions EmitterOptions,
                      IFDSIDESolverConfig SolverConfig,
                      const std::string &ProjectID = "default-phasar-project",
-                     const std::string &OutDirectory = "",
+                     std::filesystem::path OutDirectory = {},
                      const nlohmann::json &PrecomputedPointsToInfo = {});
 
   ~AnalysisController() = default;

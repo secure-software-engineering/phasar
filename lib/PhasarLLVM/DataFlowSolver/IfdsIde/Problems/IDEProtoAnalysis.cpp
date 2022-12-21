@@ -32,7 +32,7 @@ using namespace std;
 
 namespace psr {
 
-IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
+IDEProtoAnalysis::IDEProtoAnalysis(const LLVMProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
                                    LLVMPointsToInfo *PT,
