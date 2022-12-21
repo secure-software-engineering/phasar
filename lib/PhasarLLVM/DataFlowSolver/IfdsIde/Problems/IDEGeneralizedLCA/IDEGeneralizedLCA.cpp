@@ -24,7 +24,6 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
 
-
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
