@@ -47,54 +47,54 @@ public:
 
   EdgeFunctionPtrType getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
                                             n_t /*Succ*/,
-                                            d_t /*SuccNode*/) override {
+                                            d_t /*SuccNode*/) final {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   EdgeFunctionPtrType getCallEdgeFunction(n_t /*CallInst*/, d_t /*SrcNode*/,
                                           f_t /*CalleeFun*/,
-                                          d_t /*DestNode*/) override {
+                                          d_t /*DestNode*/) final {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   EdgeFunctionPtrType getReturnEdgeFunction(n_t /*CallSite*/, f_t /*CalleeFun*/,
                                             n_t /*ExitInst*/, d_t /*ExitNode*/,
                                             n_t /*RetSite*/,
-                                            d_t /*RetNode*/) override {
+                                            d_t /*RetNode*/) final {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/,
                            d_t /*RetSiteNode*/,
-                           llvm::ArrayRef<f_t> /*Callees*/) override {
+                           llvm::ArrayRef<f_t> /*Callees*/) final {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   EdgeFunctionPtrType getSummaryEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
                                              n_t /*Succ*/,
-                                             d_t /*SuccNode*/) override {
+                                             d_t /*SuccNode*/) final {
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  BinaryDomain topElement() override { return BinaryDomain::TOP; }
+  BinaryDomain topElement() final { return BinaryDomain::TOP; }
 
-  BinaryDomain bottomElement() override { return BinaryDomain::BOTTOM; }
+  BinaryDomain bottomElement() final { return BinaryDomain::BOTTOM; }
 
-  BinaryDomain join(BinaryDomain Lhs, BinaryDomain Rhs) override {
+  BinaryDomain join(BinaryDomain Lhs, BinaryDomain Rhs) final {
     if (Lhs == BinaryDomain::TOP && Rhs == BinaryDomain::TOP) {
       return BinaryDomain::TOP;
     }
     return BinaryDomain::BOTTOM;
   }
 
-  EdgeFunctionPtrType allTopFunction() override {
+  EdgeFunctionPtrType allTopFunction() final {
     static EdgeFunctionPtrType AllTopFn =
         std::make_shared<AllTop<BinaryDomain>>(BinaryDomain::TOP);
     return AllTopFn;
   }
 
-  void printEdgeFact(llvm::raw_ostream &OS, BinaryDomain Val) const override {
+  void printEdgeFact(llvm::raw_ostream &OS, BinaryDomain Val) const final {
     OS << Val;
   }
 };
