@@ -40,3 +40,4 @@ D: HexaStore implementation
 N: Richard Leer
 E: rleer@mail.upb.de
 D: Serialization, various fixes and data-flow analyses
+
