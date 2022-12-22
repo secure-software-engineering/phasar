@@ -15,7 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 #include "phasar/Utils/Logger.h"
 
-namespace psr {
+namespace psr::glca {
 
 JoinEdgeFunction::JoinEdgeFunction(
     const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &First,
@@ -120,4 +120,4 @@ JoinEdgeFunction::getSecond() const {
   return Second;
 }
 
-} // namespace psr
+} // namespace psr::glca

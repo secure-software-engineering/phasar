@@ -13,7 +13,9 @@
 namespace psr {
 
 void AnalysisController::executeIDEIIA() {
-  executeIDEAnalysis<IDEInstInteractionAnalysis>();
+  IDEInstInteractionAnalysis IIA(&HA.getProjectIRDB(), &HA.getICFG(),
+                                 &HA.getPointsToInfo(), EntryPoints);
+  executeIDEAnalysis(IIA);
 }
 
 } // namespace psr

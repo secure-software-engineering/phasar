@@ -38,7 +38,7 @@ namespace psr {
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
-class OTFResolver : public CHAResolver {
+class OTFResolver : public Resolver {
 protected:
   LLVMBasedICFG &ICF;
   LLVMPointsToInfo &PT;

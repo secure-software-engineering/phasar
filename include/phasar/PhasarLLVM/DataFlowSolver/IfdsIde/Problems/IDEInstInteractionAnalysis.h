@@ -19,8 +19,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
@@ -208,16 +208,14 @@ public:
       std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
 
   IDEInstInteractionAnalysisT(
-      const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-      const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-      std::set<std::string> EntryPoints = {"main"},
+      const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+      LLVMPointsToInfo *PT, std::vector<std::string> EntryPoints = {"main"},
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
-            IRDB, TH, ICF, PT, std::move(EntryPoints)),
-        EdgeFactGen(std::move(EdgeFactGenerator)) {
-    this->ZeroValue =
-        IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
-                                    EnableIndirectTaints>::createZeroValue();
+            IRDB, std::move(EntryPoints), createZeroValue()),
+        ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
+    assert(ICF != nullptr);
+    assert(PT != nullptr);
     IIAAAddLabelsEF::initEdgeFunctionCleaner();
     IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
@@ -925,7 +923,7 @@ public:
     return Seeds;
   }
 
-  [[nodiscard]] inline d_t createZeroValue() const override {
+  [[nodiscard]] inline d_t createZeroValue() const {
     // Create a special value to represent the zero value!
     return LLVMZeroValue::getInstance();
   }
@@ -1692,8 +1690,7 @@ public:
 
 protected:
   static inline bool isZeroValueImpl(d_t d) {
-    // NOLINTNEXTLINE(readability-static-accessed-through-instance)
-    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+    return LLVMZeroValue::isLLVMZeroValue(d);
   }
 
   static void printEdgeFactImpl(llvm::raw_ostream &OS, l_t EdgeFact) {
@@ -1766,6 +1763,8 @@ private:
     return Variables;
   }
 
+  const LLVMBasedICFG *ICF{};
+  LLVMPointsToInfo *PT{};
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   static inline const l_t BottomElement = Bottom{};
   static inline const l_t TopElement = Top{};

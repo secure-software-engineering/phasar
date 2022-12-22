@@ -15,7 +15,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
@@ -50,7 +49,7 @@ IDEExtendedTaintAnalysis::initialSeeds() {
   }
 
   for (const auto &Ep : base_t::EntryPoints) {
-    const auto *EntryFn = base_t::ICF->getFunction(Ep);
+    const auto *EntryFn = ICF->getFunction(Ep);
 
     if (!EntryFn) {
       llvm::errs() << "WARNING: Entry-Function \"" << Ep
@@ -602,10 +601,10 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
     return getGenEdgeFunction(BBO);
   }
 
-  if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
-      Curr == &Curr->getFunction()->front().front()) {
-    return getGenEdgeFunction(BBO);
-  }
+  // if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
+  //     Curr == &Curr->getFunction()->front().front()) {
+  //   return getGenEdgeFunction(BBO);
+  // }
 
   auto [PointerOp, ValueOp] =
       [&]() -> std::tuple<const llvm::Value *, const llvm::Value *> {

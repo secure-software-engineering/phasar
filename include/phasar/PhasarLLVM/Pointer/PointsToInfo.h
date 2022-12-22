@@ -20,14 +20,6 @@
 
 namespace psr {
 
-enum class AliasResult { NoAlias, MayAlias, PartialAlias, MustAlias };
-
-std::string toString(AliasResult AR);
-
-AliasResult toAliasResult(const std::string &S);
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const AliasResult &AR);
-
 template <typename V, typename N> class PointsToInfo {
 public:
   using PointsToSetTy = llvm::DenseSet<V>;

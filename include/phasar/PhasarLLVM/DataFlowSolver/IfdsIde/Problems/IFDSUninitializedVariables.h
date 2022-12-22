@@ -18,22 +18,10 @@
 #include <set>
 #include <string>
 
-namespace llvm {
-class Instruction;
-class Function;
-class StructType;
-class Value;
-} // namespace llvm
-
 namespace psr {
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 
 class IFDSUninitializedVariables
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
-private:
   struct UninitResult {
     UninitResult() = default;
     unsigned int Line = 0;
@@ -47,13 +35,10 @@ private:
     [[nodiscard]] bool empty() const;
     void print(llvm::raw_ostream &OS);
   };
-  std::map<n_t, std::set<d_t>> UndefValueUses;
 
 public:
   IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
-                             const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                             std::set<std::string> EntryPoints = {"main"});
+                             std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSUninitializedVariables() override = default;
 
@@ -73,7 +58,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -89,6 +74,9 @@ public:
   [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
 
   std::vector<UninitResult> aggregateResults();
+
+private:
+  std::map<n_t, std::set<d_t>> UndefValueUses;
 };
 
 } // namespace psr

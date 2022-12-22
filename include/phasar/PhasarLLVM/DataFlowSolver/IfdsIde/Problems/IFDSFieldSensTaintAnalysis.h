@@ -29,10 +29,6 @@ class StructType;
 
 namespace psr {
 
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
-
 struct IFDSFieldSensTaintAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
   using d_t = ExtendedValue;
 };
@@ -43,10 +39,9 @@ public:
   using ConfigurationTy = TaintConfig;
 
   IFDSFieldSensTaintAnalysis(const LLVMProjectIRDB *IRDB,
-                             const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                             const TaintConfig &TaintConfig,
-                             std::set<std::string> EntryPoints = {"main"});
+                             const TaintConfig *TaintConfig,
+                             std::vector<std::string> EntryPoints = {"main"});
+
   ~IFDSFieldSensTaintAnalysis() override = default;
 
   FlowFunctionPtrType
@@ -80,13 +75,13 @@ public:
                                      BinaryDomain> &SolverResults,
                  llvm::raw_ostream &OS = llvm::outs()) override;
 
-  [[nodiscard]] ExtendedValue createZeroValue() const override {
+  [[nodiscard]] ExtendedValue createZeroValue() const {
     // create a special value to represent the zero value!
     return ExtendedValue(LLVMZeroValue::getInstance());
   }
 
   [[nodiscard]] bool isZeroValue(ExtendedValue EV) const override {
-    return LLVMZeroValue::getInstance()->isLLVMZeroValue(EV.getValue());
+    return LLVMZeroValue::isLLVMZeroValue(EV.getValue());
   }
 
   void printNode(llvm::raw_ostream &OS,
@@ -119,9 +114,9 @@ public:
   }
 
 private:
-  const TaintConfig &Config;
+  const TaintConfig *Config{};
 
-  TraceStats Stats;
+  TraceStats Stats{};
 };
 
 } // namespace psr

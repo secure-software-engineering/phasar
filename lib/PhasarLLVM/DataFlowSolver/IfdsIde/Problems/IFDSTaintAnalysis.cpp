@@ -8,14 +8,11 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -31,24 +28,23 @@
 namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
-                                     const LLVMTypeHierarchy *TH,
-                                     const LLVMBasedICFG *ICF,
                                      LLVMPointsToInfo *PT,
-                                     const TaintConfig &Config,
-                                     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
-      Config(Config) {
-  IFDSTaintAnalysis::ZeroValue = IFDSTaintAnalysis::createZeroValue();
+                                     const TaintConfig *Config,
+                                     std::vector<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
+      Config(Config), PT(PT) {
+  assert(Config != nullptr);
+  assert(PT != nullptr);
 }
 
 bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
                                      const llvm::Function *Callee) const {
   for (const auto &Arg : Callee->args()) {
-    if (Config.isSource(&Arg)) {
+    if (Config->isSource(&Arg)) {
       return true;
     }
   }
-  auto Callback = Config.getRegisteredSourceCallBack();
+  auto Callback = Config->getRegisteredSourceCallBack();
   if (!Callback) {
     return false;
   }
@@ -72,11 +68,11 @@ bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
 bool IFDSTaintAnalysis::isSinkCall(const llvm::CallBase *CB,
                                    const llvm::Function *Callee) const {
   for (const auto &Arg : Callee->args()) {
-    if (Config.isSink(&Arg)) {
+    if (Config->isSink(&Arg)) {
       return true;
     }
   }
-  auto Callback = Config.getRegisteredSinkCallBack();
+  auto Callback = Config->getRegisteredSinkCallBack();
   if (!Callback) {
     return false;
   }
@@ -101,7 +97,7 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
                                         const llvm::Function *Callee) const {
   return std::any_of(
       Callee->arg_begin(), Callee->arg_end(),
-      [this](const auto &Arg) { return Config.isSanitizer(&Arg); });
+      [this](const auto &Arg) { return Config->isSanitizer(&Arg); });
 }
 
 void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
@@ -201,9 +197,9 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     if (!Callee->isDeclaration()) {
       HasBody = true;
     }
-    collectGeneratedFacts(Gen, Config, CS, Callee);
-    collectLeakedFacts(Leak, Config, CS, Callee);
-    collectSanitizedFacts(Kill, Config, CS, Callee);
+    collectGeneratedFacts(Gen, *Config, CS, Callee);
+    collectLeakedFacts(Leak, *Config, CS, Callee);
+    collectSanitizedFacts(Kill, *Config, CS, Callee);
   }
 
   if (HasBody && Gen.empty() && Leak.empty() && Kill.empty()) {
@@ -291,12 +287,12 @@ IFDSTaintAnalysis::initialSeeds() {
                IFDSTaintAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
     if (EntryPoint == "main") {
       std::set<IFDSTaintAnalysis::d_t> CmdArgs;
-      for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
-        Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), &Arg);
+      for (const auto &Arg : IRDB->getFunction(EntryPoint)->args()) {
+        Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(), &Arg);
       }
     }
   }

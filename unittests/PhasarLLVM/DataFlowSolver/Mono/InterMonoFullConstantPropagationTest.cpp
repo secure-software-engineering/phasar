@@ -37,7 +37,7 @@ class InterMonoFullConstantPropagationTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "full_constant/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   using IMFCPCompactResult_t =
       std::tuple<std::string, std::size_t, std::string,

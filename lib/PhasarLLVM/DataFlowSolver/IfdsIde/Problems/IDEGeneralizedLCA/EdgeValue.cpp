@@ -17,7 +17,7 @@
 
 #include <cassert>
 
-namespace psr {
+namespace psr::glca {
 
 llvm::raw_ostream &printSemantics(const llvm::APFloat &Fl) {
   if (&Fl.getSemantics() == &llvm::APFloat::IEEEdouble()) {
@@ -693,4 +693,4 @@ std::string EdgeValue::typeToString(Type Ty) {
   }
 }
 
-} // namespace psr
+} // namespace psr::glca

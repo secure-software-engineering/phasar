@@ -58,7 +58,7 @@ public:
   InterMonoTaintAnalysis(const LLVMProjectIRDB *IRDB,
                          const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
                          const LLVMPointsToInfo *PT, const TaintConfig &Config,
-                         std::set<std::string> EntryPoints = {});
+                         std::vector<std::string> EntryPoints = {});
 
   ~InterMonoTaintAnalysis() override = default;
 

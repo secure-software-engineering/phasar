@@ -43,20 +43,20 @@ public:
   using db_t = typename AnalysisDomainTy::db_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
-  static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
-                "Type parameter i_t must implement the ICFG interface!");
-  static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
-                "db_t must implement the ProjectIRDBBase interface!");
-
 protected:
   const i_t *ICF;
 
 public:
   InterMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
                    const i_t *ICF, const PointsToInfo<v_t, n_t> *PT,
-                   std::set<std::string> EntryPoints = {})
+                   std::vector<std::string> EntryPoints = {})
       : IntraMonoProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints),
-        ICF(ICF) {}
+        ICF(ICF) {
+    static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
+                  "Type parameter i_t must implement the ICFG interface!");
+    static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                  "db_t must implement the ProjectIRDBBase interface!");
+  }
 
   ~InterMonoProblem() override = default;
   InterMonoProblem(const InterMonoProblem &Other) = delete;

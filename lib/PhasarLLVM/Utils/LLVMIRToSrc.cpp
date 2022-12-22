@@ -12,8 +12,6 @@
 #include <limits>
 #include <string>
 
-#include "boost/algorithm/string/trim.hpp"
-
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
@@ -230,8 +228,7 @@ std::string getSrcCodeFromIR(const llvm::Value *V) {
           Ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         std::getline(Ifs, SrcLine);
-        boost::algorithm::trim(SrcLine);
-        return SrcLine;
+        return llvm::StringRef(SrcLine).trim().str();
       }
     }
   }

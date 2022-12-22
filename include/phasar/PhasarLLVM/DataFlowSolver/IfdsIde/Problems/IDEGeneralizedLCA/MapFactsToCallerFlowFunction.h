@@ -30,7 +30,7 @@ class Instruction;
 class ReturnInst;
 class Value;
 } // namespace llvm
-namespace psr {
+namespace psr::glca {
 
 class MapFactsToCallerFlowFunction : public FlowFunction<const llvm::Value *> {
   std::vector<const llvm::Value *> Actuals;
@@ -47,6 +47,6 @@ public:
   computeTargets(const llvm::Value *Source) override;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

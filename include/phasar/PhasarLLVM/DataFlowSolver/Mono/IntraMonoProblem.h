@@ -51,11 +51,6 @@ public:
   using db_t = typename AnalysisDomainTy::db_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
 
-  static_assert(is_cfg_v<c_t, AnalysisDomainTy>,
-                "c_t must implement the CFG interface!");
-  static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
-                "db_t must implement the ProjectIRDBBase interface!");
-
   using ProblemAnalysisDomain = AnalysisDomainTy;
 
 protected:
@@ -63,7 +58,7 @@ protected:
   const TypeHierarchy<t_t, f_t> *TH;
   const c_t *CF;
   const PointsToInfo<v_t, n_t> *PT;
-  std::set<std::string> EntryPoints;
+  std::vector<std::string> EntryPoints;
   [[maybe_unused]] Soundness S = Soundness::Soundy;
 
 public:
@@ -73,9 +68,14 @@ public:
 
   IntraMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
                    const c_t *CF, const PointsToInfo<v_t, n_t> *PT,
-                   std::set<std::string> EntryPoints = {})
+                   std::vector<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
-        EntryPoints(std::move(EntryPoints)) {}
+        EntryPoints(std::move(EntryPoints)) {
+    static_assert(is_cfg_v<c_t, AnalysisDomainTy>,
+                  "c_t must implement the CFG interface!");
+    static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                  "db_t must implement the ProjectIRDBBase interface!");
+  }
 
   ~IntraMonoProblem() override = default;
 
@@ -91,7 +91,7 @@ public:
 
   virtual std::unordered_map<n_t, mono_container_t> initialSeeds() = 0;
 
-  [[nodiscard]] std::set<std::string> getEntryPoints() const {
+  [[nodiscard]] const std::vector<std::string> &getEntryPoints() const {
     return EntryPoints;
   }
 

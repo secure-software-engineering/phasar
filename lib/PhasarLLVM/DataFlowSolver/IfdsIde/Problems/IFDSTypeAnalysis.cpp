@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
@@ -25,13 +26,8 @@ using namespace psr;
 namespace psr {
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(const LLVMProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF,
-                                   LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IFDSTypeAnalysis::ZeroValue = IFDSTypeAnalysis::createZeroValue();
-}
+                                   std::vector<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSTypeAnalysis::FlowFunctionPtrType
 IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t /*Curr*/,
@@ -95,7 +91,7 @@ IFDSTypeAnalysis::initialSeeds() {
                IFDSTypeAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
   }
   return Seeds;
