@@ -10,6 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 
+#include <type_traits>
+
 namespace psr {
 
 // AnalysisDomain - This class should be specialized by different static
@@ -57,6 +59,28 @@ struct AnalysisDomain {
   // Container type to be used for analyses run in the monotone framework.
   using mono_container_t = void;
 };
+
+enum class BinaryDomain;
+
+namespace detail {
+template <typename AnalysisDomainTy, typename ValueTy = BinaryDomain>
+struct HasBinaryValueDomain : std::false_type {};
+template <typename AnalysisDomainTy>
+struct HasBinaryValueDomain<AnalysisDomainTy, typename AnalysisDomainTy::l_t>
+    : std::true_type {};
+
+template <typename AnalysisDomainTy>
+struct WithBinaryValueDomainExtender : AnalysisDomainTy {
+  using l_t = BinaryDomain;
+};
+
+} // namespace detail
+
+template <typename AnalysisDomainTy>
+using WithBinaryValueDomain =
+    std::conditional_t<detail::HasBinaryValueDomain<AnalysisDomainTy>::value,
+                       AnalysisDomainTy,
+                       detail::WithBinaryValueDomainExtender<AnalysisDomainTy>>;
 
 } // namespace psr
 

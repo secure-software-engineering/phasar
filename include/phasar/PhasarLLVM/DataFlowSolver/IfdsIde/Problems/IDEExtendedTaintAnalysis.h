@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
@@ -178,19 +179,20 @@ public:
   /// analysis or the results from a LLVM pass computing dominator trees
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const LLVMProjectIRDB *IRDB,
-                           const LLVMTypeHierarchy *TH,
                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            const TaintConfig *TSF,
-                           std::set<std::string> EntryPoints, unsigned Bound,
+                           std::vector<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
-      : base_t(IRDB, TH, ICF, PT, std::move(EntryPoints)), AnalysisBase(TSF),
-        BBO(std::forward<GetDomTree>(GDT)),
+      : base_t(IRDB, std::move(EntryPoints), std::nullopt), AnalysisBase(TSF),
+        PT(PT), ICF(ICF), BBO(std::forward<GetDomTree>(GDT)),
         FactFactory(IRDB->getNumInstructions()),
         DL(IRDB->getModule()->getDataLayout()), Bound(Bound),
         PostProcessed(DisableStrongUpdates),
         DisableStrongUpdates(DisableStrongUpdates) {
-    base_t::ZeroValue = IDEExtendedTaintAnalysis::createZeroValue();
+    assert(PT != nullptr);
+    assert(ICF != nullptr);
+    initializeZeroValue(createZeroValue());
 
     FactFactory.setDataLayout(DL);
 
@@ -242,7 +244,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -270,6 +272,9 @@ public:
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:
+  LLVMPointsToInfo *PT{};
+  const LLVMBasedICFG *ICF{};
+
   /// Save all leaks here that were found using the IFDS part if the analysis.
   /// Hence, this map may contain sanitized facts.
   XTaint::LeakMap_t Leaks;
@@ -336,14 +341,13 @@ class IDEExtendedTaintAnalysis : public XTaint::IDEExtendedTaintAnalysis {
 public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const LLVMProjectIRDB *IRDB,
-                           const LLVMTypeHierarchy *TH,
                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
                            const TaintConfig &TSF,
-                           std::set<std::string> EntryPoints = {},
+                           std::vector<std::string> EntryPoints = {},
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
-      : XTaint::IDEExtendedTaintAnalysis(IRDB, TH, ICF, PT, &TSF, EntryPoints,
-                                         BOUND, !USE_STRONG_UPDATES,
-                                         std::forward<GetDomTree>(GDT)) {}
+      : XTaint::IDEExtendedTaintAnalysis(
+            IRDB, ICF, PT, &TSF, std::move(EntryPoints), BOUND,
+            !USE_STRONG_UPDATES, std::forward<GetDomTree>(GDT)) {}
 
   using ConfigurationTy = TaintConfig;
 };

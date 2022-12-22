@@ -25,15 +25,11 @@ class Value;
 
 namespace psr {
 
-class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
-
 class IFDSSolverTest
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
-  IFDSSolverTest(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                 const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                 std::set<std::string> EntryPoints = {"main"});
+  IFDSSolverTest(const LLVMProjectIRDB *IRDB,
+                 std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSSolverTest() override = default;
 
@@ -53,7 +49,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 

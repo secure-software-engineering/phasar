@@ -25,6 +25,7 @@
 #include "TestConfig.h"
 
 using namespace psr;
+using namespace psr::glca;
 
 using groundTruth_t =
     std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>;
@@ -45,7 +46,6 @@ protected:
   std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
   IDEGeneralizedLCATest() = default;
-  ~IDEGeneralizedLCATest() override = default;
 
   void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {
     IRDB = std::make_unique<LLVMProjectIRDB>(PathToLLFiles + LLFile);
@@ -55,10 +55,9 @@ protected:
         IRDB.get(), CallGraphAnalysisType::RTA,
         std::vector<std::string>{"main"}, TH.get(), PT.get());
     LCAProblem = std::make_unique<IDEGeneralizedLCA>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(),
-        std::set<std::string>{"main"}, MaxSetSize);
-    LCASolver =
-        std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(*LCAProblem);
+        IRDB.get(), ICFG.get(), std::vector<std::string>{"main"}, MaxSetSize);
+    LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(
+        *LCAProblem, ICFG.get());
 
     LCASolver->solve();
   }

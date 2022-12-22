@@ -171,9 +171,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -206,9 +206,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -248,9 +248,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -293,9 +293,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
                                 // just keep the flag IncludeGlobals=true
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -326,9 +326,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
                                 // just keep the flag IncludeGlobals=true
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -358,9 +358,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
                      Soundness::Soundy,
                      /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   // const auto *GlobalDtor =
   //     ICFG.getRegisteredDtorsCallerOrNull(IRDB.getModule());

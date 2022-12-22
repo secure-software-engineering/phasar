@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
-namespace psr {
+namespace psr::glca {
 
 struct AllBot {
   using type = AllBottom<IDEGeneralizedLCA::l_t>;
@@ -25,6 +25,6 @@ struct AllBot {
         bool NonRec = false);
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

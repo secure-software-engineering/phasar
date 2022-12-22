@@ -10,8 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_LLVMANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_LLVMANALYSISDOMAIN_H
 
-#include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
@@ -22,7 +20,9 @@ class Function;
 } // namespace llvm
 
 namespace psr {
-enum class BinaryDomain;
+class LLVMProjectIRDB;
+class LLVMBasedICFG;
+class LLVMBasedCFG;
 
 struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using d_t = const llvm::Value *;
@@ -35,9 +35,9 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using db_t = LLVMProjectIRDB;
 };
 
-struct LLVMIFDSAnalysisDomainDefault : LLVMAnalysisDomainDefault {
-  using l_t = BinaryDomain;
-};
+using LLVMIFDSAnalysisDomainDefault =
+    WithBinaryValueDomain<LLVMAnalysisDomainDefault>;
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DOMAIN_LLVMANALYSISDOMAIN_H

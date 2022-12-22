@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -41,7 +42,7 @@ namespace psr {
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints)
+    std::vector<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 

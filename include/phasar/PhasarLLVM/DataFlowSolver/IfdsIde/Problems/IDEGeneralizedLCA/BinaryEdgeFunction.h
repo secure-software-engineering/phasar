@@ -14,7 +14,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
-namespace psr {
+namespace psr::glca {
 
 class BinaryEdgeFunction
     : public EdgeFunction<IDEGeneralizedLCA::l_t>,
@@ -46,6 +46,6 @@ public:
   void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

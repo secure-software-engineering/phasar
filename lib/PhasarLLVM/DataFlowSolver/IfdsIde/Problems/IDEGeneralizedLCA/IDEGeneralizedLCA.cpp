@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -20,8 +21,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
 
@@ -34,21 +33,21 @@
 
 namespace psr {
 
+using namespace glca;
+
 template <typename Fn, typename = std::enable_if_t<
                            std::is_invocable_v<Fn, IDEGeneralizedLCA::d_t>>>
 inline std::shared_ptr<FlowFunction<IDEGeneralizedLCA::d_t>> flow(Fn Func) {
   return makeLambdaFlow<IDEGeneralizedLCA::d_t>(std::forward<Fn>(Func));
 }
 
-IDEGeneralizedLCA::IDEGeneralizedLCA(
-    const LLVMProjectIRDB *IRDB,
-    const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
-    const LLVMBasedICFG *ICF,
-    PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
-    std::set<std::string> EntryPoints, size_t MaxSetSize)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
-      MaxSetSize(MaxSetSize) {
-  this->ZeroValue = IDEGeneralizedLCA::createZeroValue();
+IDEGeneralizedLCA::IDEGeneralizedLCA(const LLVMProjectIRDB *IRDB,
+                                     const LLVMBasedICFG *ICF,
+                                     std::vector<std::string> EntryPoints,
+                                     size_t MaxSetSize)
+    : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
+      ICF(ICF), MaxSetSize(MaxSetSize) {
+  assert(ICF != nullptr);
 }
 
 // flow functions

@@ -21,7 +21,7 @@ protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "linear_constant/";
 
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
@@ -41,9 +41,8 @@ protected:
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
         &PT);
-    IDELinearConstantAnalysis LCAProblem(IRDB.get(), &TH, &ICFG, &PT,
-                                         EntryPoints);
-    IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
+    IDELinearConstantAnalysis LCAProblem(IRDB.get(), &ICFG, EntryPoints);
+    IDESolver LCASolver(LCAProblem, &ICFG);
     LCASolver.solve();
     if (EmitESG) {
       Logger::enable();

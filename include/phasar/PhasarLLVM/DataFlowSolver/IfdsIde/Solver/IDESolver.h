@@ -25,8 +25,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
@@ -39,8 +37,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include "boost/algorithm/string/trim.hpp"
-
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <map>
@@ -54,35 +51,12 @@
 
 namespace psr {
 
-// Forward declare the Transformation
-template <typename AnalysisDomainTy, typename Container>
-class IFDSToIDETabulationProblem;
-
-struct NoIFDSExtension {};
-
-template <typename AnalysisDomainTy, typename Container> struct IFDSExtension {
-  using BaseAnalysisDomain = typename AnalysisDomainTy::BaseAnalysisDomain;
-
-  IFDSExtension(IFDSTabulationProblem<BaseAnalysisDomain, Container> &Problem)
-      : TransformedProblem(
-            std::make_unique<
-                IFDSToIDETabulationProblem<BaseAnalysisDomain, Container>>(
-                Problem)) {}
-
-  std::unique_ptr<IFDSToIDETabulationProblem<BaseAnalysisDomain, Container>>
-      TransformedProblem;
-};
-
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
 /// can then be queried by using resultAt() and resultsAt().
 template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>,
-          bool = is_analysis_domain_extensions<AnalysisDomainTy>::value>
-class IDESolver
-    : protected std::conditional_t<
-          is_analysis_domain_extensions<AnalysisDomainTy>::value,
-          IFDSExtension<AnalysisDomainTy, Container>, NoIFDSExtension> {
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class IDESolver {
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;
   using container_type = typename ProblemTy::container_type;
@@ -97,13 +71,16 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
-  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
-      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
-        ICF(Problem.getICFG()), SolverConfig(Problem.getIFDSIDESolverConfig()),
+  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
+            const i_t *ICF)
+      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
+        SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
         JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
             AllTop, IDEProblem)),
-        Seeds(Problem.initialSeeds()) {}
+        Seeds(Problem.initialSeeds()) {
+    assert(ICF != nullptr);
+  }
 
   IDESolver(const IDESolver &) = delete;
   IDESolver &operator=(const IDESolver &) = delete;
@@ -127,15 +104,21 @@ public:
       n_t Curr;
       for (unsigned I = 0; I < Cells.size(); ++I) {
         Curr = Cells[I].getRowKey();
-        std::string NStr = IDEProblem.NtoString(Cells[I].getRowKey());
-        boost::algorithm::trim(NStr);
+        auto NStr = llvm::StringRef(IDEProblem.NtoString(Cells[I].getRowKey()))
+                        .trim()
+                        .str();
+
         std::string NodeStr =
             ICF->getFunctionName(ICF->getFunctionOf(Curr)) + "::" + NStr;
         J[DataFlowID][NodeStr];
-        std::string FactStr = IDEProblem.DtoString(Cells[I].getColumnKey());
-        boost::algorithm::trim(FactStr);
-        std::string ValueStr = IDEProblem.LtoString(Cells[I].getValue());
-        boost::algorithm::trim(ValueStr);
+        std::string FactStr =
+            llvm::StringRef(IDEProblem.DtoString(Cells[I].getColumnKey()))
+                .trim()
+                .str();
+        std::string ValueStr =
+            llvm::StringRef(IDEProblem.LtoString(Cells[I].getValue()))
+                .trim()
+                .str();
         J[DataFlowID][NodeStr]["Facts"] += {FactStr, ValueStr};
       }
     }
@@ -415,27 +398,6 @@ protected:
   Table<n_t, d_t, l_t> ValTab;
 
   std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
-
-  // When transforming an IFDSTabulationProblem into an IDETabulationProblem,
-  // we need to allocate dynamically, otherwise the objects lifetime runs out
-  // - as a modifiable r-value reference created here that should be stored in
-  // a modifiable l-value reference within the IDESolver implementation leads
-  // to (massive) undefined behavior (and nightmares):
-  // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
-  template <typename IFDSAnalysisDomainTy,
-            typename = std::enable_if_t<
-                is_analysis_domain_extensions<AnalysisDomainTy>::value,
-                IFDSAnalysisDomainTy>>
-  IDESolver(IFDSTabulationProblem<IFDSAnalysisDomainTy, Container> &Problem)
-      : IFDSExtension<AnalysisDomainTy, Container>(Problem),
-        IDEProblem(*this->TransformedProblem),
-        ZeroValue(IDEProblem.getZeroValue()), ICF(IDEProblem.getICFG()),
-        SolverConfig(IDEProblem.getIFDSIDESolverConfig()),
-        CachedFlowEdgeFunctions(IDEProblem),
-        AllTop(IDEProblem.allTopFunction()),
-        JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
-            AllTop, IDEProblem)),
-        Seeds(IDEProblem.initialSeeds()) {}
 
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
@@ -1858,9 +1820,10 @@ operator<<(llvm::raw_ostream &OS,
   return OS;
 }
 
-template <typename Problem>
-IDESolver(Problem &) -> IDESolver<typename Problem::ProblemAnalysisDomain,
-                                  typename Problem::container_type>;
+template <typename Problem, typename ICF>
+IDESolver(Problem &, ICF *)
+    -> IDESolver<typename Problem::ProblemAnalysisDomain,
+                 typename Problem::container_type>;
 
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,

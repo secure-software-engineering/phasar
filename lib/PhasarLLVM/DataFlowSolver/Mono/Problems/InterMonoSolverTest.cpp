@@ -14,6 +14,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -27,7 +28,7 @@ InterMonoSolverTest::InterMonoSolverTest(const LLVMProjectIRDB *IRDB,
                                          const LLVMTypeHierarchy *TH,
                                          const LLVMBasedICFG *ICF,
                                          const LLVMPointsToInfo *PT,
-                                         std::set<std::string> EntryPoints)
+                                         std::vector<std::string> EntryPoints)
     : InterMonoProblem<InterMonoSolverTestDomain>(IRDB, TH, ICF, PT,
                                                   std::move(EntryPoints)) {}
 

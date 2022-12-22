@@ -44,7 +44,7 @@ using namespace psr;
 
 OTFResolver::OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
                          LLVMBasedICFG &ICF, LLVMPointsToInfo &PT)
-    : CHAResolver(IRDB, TH), ICF(ICF), PT(PT) {}
+    : Resolver(IRDB, TH), ICF(ICF), PT(PT) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 

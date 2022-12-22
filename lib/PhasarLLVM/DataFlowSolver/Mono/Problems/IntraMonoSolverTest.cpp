@@ -15,6 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -35,7 +36,7 @@ IntraMonoSolverTest::IntraMonoSolverTest(const LLVMProjectIRDB *IRDB,
                                          const LLVMTypeHierarchy *TH,
                                          const LLVMBasedCFG *CF,
                                          const LLVMPointsToInfo *PT,
-                                         std::set<std::string> EntryPoints)
+                                         std::vector<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoSolverTestAnalysisDomain>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 

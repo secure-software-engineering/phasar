@@ -10,15 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
 
-#include <algorithm>
-#include <iterator>
-#include <type_traits>
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <algorithm>
+#include <iterator>
+#include <type_traits>
 
 namespace psr {
 template <typename ContainerTy,

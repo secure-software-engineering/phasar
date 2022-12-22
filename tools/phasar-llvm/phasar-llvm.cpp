@@ -9,6 +9,9 @@
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
+#include "phasar/Controller/AnalysisControllerEmitterOptions.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
@@ -323,23 +326,6 @@ int main(int Argc, const char **Argv) {
   validateParamAnalysisConfig();
   validatePTAJsonFile();
 
-  // setup IRDB as source code manager
-  LLVMProjectIRDB IRDB(ModuleOpt);
-  if (StatisticsOpt || EmitStatsAsJsonOpt) {
-    GeneralStatisticsAnalysis GSA;
-    auto Stats = GSA.runOnModule(*IRDB.getModule());
-    if (StatisticsOpt) {
-      llvm::outs() << Stats;
-    }
-    if (!OutDirOpt.empty()) {
-      if (auto OFS = openFileStream(OutDirOpt + "/psr-IrStatistics.json")) {
-        Stats.printAsJson(*OFS);
-      }
-    } else {
-      Stats.printAsJson();
-    }
-  }
-
   // setup the emitter options to display the computed analysis results
   auto EmitterOptions = AnalysisControllerEmitterOptions::None;
 
@@ -388,6 +374,13 @@ int main(int Argc, const char **Argv) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
 
+  if (StatisticsOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsText;
+  }
+  if (EmitStatsAsJsonOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsJson;
+  }
+
   SolverConfig.setFollowReturnsPastSeeds(FollowReturnPastSeedsOpt);
   SolverConfig.setAutoAddZero(AutoAddZeroOpt);
   SolverConfig.setComputeValues(ComputeValuesOpt);
@@ -403,11 +396,20 @@ int main(int Argc, const char **Argv) {
     EntryOpt.push_back("main");
   }
 
+  // setup IRDB as source code manager
+  HelperAnalyses HA(
+      std::move(ModuleOpt.getValue()),
+      PrecomputedPointsToSet.empty()
+          ? std::optional<nlohmann::json>()
+          : std::optional<nlohmann::json>(std::move(PrecomputedPointsToSet)),
+      PTATypeOpt, !AnalysisController::needsToEmitPTA(EmitterOptions),
+      std::vector(EntryOpt.begin(), EntryOpt.end()), CGTypeOpt, SoundnessOpt,
+      AutoGlobalsOpt);
+
   AnalysisController Controller(
-      IRDB, std::vector(DataFlowAnalysisOpt.begin(), DataFlowAnalysisOpt.end()),
-      {AnalysisConfigOpt.getValue()}, PTATypeOpt, CGTypeOpt, SoundnessOpt,
-      AutoGlobalsOpt, std::vector(EntryOpt.begin(), EntryOpt.end()),
-      StrategyOpt, EmitterOptions, SolverConfig, ProjectIdOpt,
-      OutDirOpt.getValue(), PrecomputedPointsToSet);
+      HA, std::vector(DataFlowAnalysisOpt.begin(), DataFlowAnalysisOpt.end()),
+      {AnalysisConfigOpt.getValue()},
+      std::vector(EntryOpt.begin(), EntryOpt.end()), StrategyOpt,
+      EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt);
   return 0;
 }
