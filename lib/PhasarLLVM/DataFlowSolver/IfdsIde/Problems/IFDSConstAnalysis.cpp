@@ -73,12 +73,9 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information for the pointer operand.");
-        return std::make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
-                                            getContextRelevantPointsToSet(
-                                                PointsToSet,
-                                                Curr->getFunction()),
-                                            getZeroValue());
+        return generateManyFlows(
+            getContextRelevantPointsToSet(PointsToSet, Curr->getFunction()),
+            getZeroValue());
       }
     }
     // If neither the pointer operand nor one of its alias is initialized,
@@ -100,20 +97,17 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
   // memset)
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     PHASAR_LOG_LEVEL(DEBUG, "Call statement is a LLVM MemIntrinsic!");
-    return KillAll<IFDSConstAnalysis::d_t>::getInstance();
+    return killAllFlows<d_t>();
   }
   // Check if its a Call Instruction or an Invoke Instruction. If so, we
   // need to map all actual parameters into formal parameters.
-  if (llvm::isa<llvm::CallInst>(CallSite) ||
-      llvm::isa<llvm::InvokeInst>(CallSite)) {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
     // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
     PHASAR_LOG_LEVEL(DEBUG, "Call statement: " << llvmIRToString(CallSite));
     PHASAR_LOG_LEVEL(DEBUG, "Destination method: " << DestFun->getName());
-    return std::make_shared<MapFactsToCallee<>>(
-        llvm::cast<llvm::CallBase>(CallSite), DestFun,
-        [](IFDSConstAnalysis::d_t Actual) {
-          return Actual->getType()->isPointerTy();
-        });
+    return mapFactsToCallee(Call, DestFun, [](d_t Actual, d_t Source) {
+      return Actual == Source && Actual->getType()->isPointerTy();
+    });
   } /* end call/invoke instruction */
 
   // Pass everything else as identity
@@ -121,20 +115,17 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
-    IFDSConstAnalysis::n_t CallSite, IFDSConstAnalysis::f_t CalleeFun,
+    IFDSConstAnalysis::n_t CallSite, IFDSConstAnalysis::f_t /*CalleeFun*/,
     IFDSConstAnalysis::n_t ExitStmt, IFDSConstAnalysis::n_t /*RetSite*/) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
-  return std::make_shared<MapFactsToCaller<>>(
-      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt, true,
-      [](IFDSConstAnalysis::d_t Formal) {
-        return Formal->getType()->isPointerTy();
-      },
-      [](IFDSConstAnalysis::f_t Cmthd) {
-        return Cmthd->getReturnType()->isPointerTy();
-      });
-  // All other data-flow facts of the callee function are killed at this
-  // point
+
+  return mapFactsToCaller(llvm::cast<llvm::CallBase>(CallSite), ExitStmt,
+                          [](d_t Param, d_t Source) {
+                            return Param == Source &&
+                                   Param->getType()->isPointerTy();
+                          });
+  // All other data-flow facts of the callee function are killed at this point
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -151,12 +142,9 @@ IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information of the pointer operand.");
-        return std::make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
-                                            getContextRelevantPointsToSet(
-                                                PointsToSet,
-                                                CallSite->getFunction()),
-                                            getZeroValue());
+        return generateManyFlows(
+            getContextRelevantPointsToSet(PointsToSet, CallSite->getFunction()),
+            getZeroValue());
       }
     }
     markAsInitialized(PointerOp);

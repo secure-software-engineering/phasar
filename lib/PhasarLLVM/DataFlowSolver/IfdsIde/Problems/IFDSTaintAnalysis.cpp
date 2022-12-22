@@ -139,18 +139,12 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return std::make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        Load, [Load](IFDSTaintAnalysis::d_t Source) {
-          return Source == Load->getPointerOperand();
-        });
+    return generateFlow(Load, Load->getPointerOperand());
   }
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return std::make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        GEP, [GEP](IFDSTaintAnalysis::d_t Source) {
-          return Source == GEP->getPointerOperand();
-        });
+    return generateFlow(GEP, GEP->getPointerOperand());
   }
   // Otherwise we do not care and leave everything as it is
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
@@ -165,24 +159,26 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallSite,
   // The respective taints or leaks are then generated in the corresponding
   // call to return flow function.
   if (isSourceCall(CS, DestFun) || isSinkCall(CS, DestFun)) {
-    return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
+    return killAllFlows<d_t>();
   }
+
   // Map the actual into the formal parameters
-  return std::make_shared<MapFactsToCallee<>>(CS, DestFun);
+  return mapFactsToCallee(CS, DestFun);
 }
 
 IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
-    IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t CalleeFun,
+    IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t /*CalleeFun*/,
     IFDSTaintAnalysis::n_t ExitStmt,
     [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
-  return std::make_shared<MapFactsToCaller<>>(
-      llvm::cast<llvm::CallBase>(CallSite), CalleeFun, ExitStmt, true,
-      [](IFDSTaintAnalysis::d_t Formal) {
-        return Formal->getType()->isPointerTy();
-      });
+  return mapFactsToCaller(
+      llvm::cast<llvm::CallBase>(CallSite), ExitStmt,
+      [](d_t Formal, d_t Source) {
+        return Formal == Source && Formal->getType()->isPointerTy();
+      },
+      [](d_t RetVal, d_t Source) { return RetVal == Source; });
   // All other stuff is killed at this point
 }
 
@@ -224,8 +220,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   populateWithMustAliases(Kill);
 
   if (Gen.empty() && (!Leak.empty() || !Kill.empty())) {
-    return makeLambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)},
-                                this, CallSite](d_t Source) -> std::set<d_t> {
+    return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
+                            CallSite](d_t Source) -> std::set<d_t> {
       if (Leak.count(Source)) {
         Leaks[CallSite].insert(Source);
       }
@@ -238,8 +234,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     });
   }
   if (Kill.empty()) {
-    return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
-                                this, CallSite](d_t Source) -> std::set<d_t> {
+    return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
+                            CallSite](d_t Source) -> std::set<d_t> {
       if (LLVMZeroValue::isLLVMZeroValue(Source)) {
         return Gen;
       }
@@ -251,9 +247,9 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       return {Source};
     });
   }
-  return makeLambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
-                              Kill{std::move(Kill)}, this,
-                              CallSite](d_t Source) -> std::set<d_t> {
+  return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
+                          Kill{std::move(Kill)}, this,
+                          CallSite](d_t Source) -> std::set<d_t> {
     if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return Gen;
     }

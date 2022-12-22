@@ -184,6 +184,9 @@ template <typename EdgeFactType = std::string,
 class IDEInstInteractionAnalysisT
     : public IDETabulationProblem<
           IDEInstInteractionAnalysisDomain<EdgeFactType>> {
+  using IDETabulationProblem<
+      IDEInstInteractionAnalysisDomain<EdgeFactType>>::generateFromZero;
+
 public:
   using AnalysisDomainTy = IDEInstInteractionAnalysisDomain<EdgeFactType>;
 
@@ -242,7 +245,7 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
+      return generateFromZero(Alloca);
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -414,7 +417,7 @@ public:
     //              0  y  x
     //
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      return std::make_shared<Gen<d_t>>(Load, Load->getPointerOperand());
+      return generateFlow<d_t>(Load, Load->getPointerOperand());
     }
     // Handle store instructions
     //
@@ -564,11 +567,11 @@ public:
                                                  f_t DestFun) override {
     if (this->ICF->isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
-      return KillAll<d_t>::getInstance();
+      return killAllFlows<d_t>();
     }
     if (DestFun->isDeclaration()) {
       // We don't have anything that we could analyze, kill all facts.
-      return KillAll<d_t>::getInstance();
+      return killAllFlows<d_t>();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
     // Map actual to formal parameters.
@@ -609,7 +612,7 @@ public:
           return {};
         }
         // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+        if (LLVMZeroValue::isLLVMZeroValue(Source)) {
           return {Source};
         }
         container_type Res;
@@ -678,10 +681,10 @@ public:
         SRetFormals.insert(DestFun->getArg(Idx));
       }
     }
-    auto GenSRetFormals = std::make_shared<GenAllAndKillAllOthers<d_t>>(
-        SRetFormals, this->getZeroValue());
-    return std::make_shared<Union<d_t>>(
-        std::vector<FlowFunctionPtrType>({MapFactsToCalleeFF, GenSRetFormals}));
+
+    return unionFlows(std::move(MapFactsToCalleeFF),
+                      generateManyFlowsAndKillAllOthers(std::move(SRetFormals),
+                                                        this->getZeroValue()));
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
@@ -712,7 +715,7 @@ public:
 
       std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
         // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source.getBase())) {
+        if (LLVMZeroValue::isLLVMZeroValue(Source.getBase())) {
           return {Source};
         }
         // Pass global variables as is, if desired
@@ -778,11 +781,9 @@ public:
             // Generate the respective callsite. The callsite will receive its
             // value from this very return instruction cf.
             // getReturnEdgeFunction().
-            auto ConstantRetGen = std::make_shared<GenAndKillAllOthers<d_t>>(
-                CallSite, this->getZeroValue());
-            return std::make_shared<Union<d_t>>(
-                std::vector<FlowFunctionPtrType>(
-                    {MapFactsToCallerFF, ConstantRetGen}));
+            return unionFlows(std::move(MapFactsToCallerFF),
+                              generateFlowAndKillAllOthers<d_t>(
+                                  CallSite, this->getZeroValue()));
           }
         }
       }
@@ -811,7 +812,7 @@ public:
           //              v  v
           //              0  x
           //
-          return std::make_shared<Gen<d_t>>(CallSite, this->getZeroValue());
+          return generateFromZero(CallSite);
         }
       }
     }

@@ -165,7 +165,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
+    return lambdaFlow<IFDSUninitializedVariables::d_t>(
         [Alloc, this](IFDSUninitializedVariables::d_t Source)
             -> std::set<IFDSUninitializedVariables::d_t> {
           if (isZeroValue(Source)) {
@@ -346,7 +346,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
     return std::make_shared<UVFF>(CS, ExitStmt);
   }
   // kill everything else
-  return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
+  return killAllFlows<d_t>();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -358,7 +358,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
-    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
+    return lambdaFlow<IFDSUninitializedVariables::d_t>(
         [CS](IFDSUninitializedVariables::d_t Source)
             -> std::set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {

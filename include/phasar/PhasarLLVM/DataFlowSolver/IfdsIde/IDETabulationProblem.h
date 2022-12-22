@@ -123,6 +123,11 @@ public:
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
 protected:
+  typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
+  generateFromZero(d_t FactToGenerate) {
+    return generateFlow(std::move(FactToGenerate), getZeroValue());
+  }
+
   const db_t *IRDB{};
   std::vector<std::string> EntryPoints;
   std::optional<d_t> ZeroValue;

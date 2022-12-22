@@ -11,6 +11,7 @@
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
@@ -25,6 +26,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -224,8 +226,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
   // value.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
-      return std::make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
-                                                              getZeroValue());
+      return generateFromZero(Alloca);
     }
   }
   // Check load instructions for target type. Generate from the loaded value and
@@ -253,7 +254,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return makeLambdaFlow<d_t>([=](d_t Source) -> std::set<d_t> {
+      return lambdaFlow<d_t>([=](d_t Source) -> std::set<d_t> {
         // if (Source == Gep->getPointerOperand()) {
         //  return {Source, Gep};
         //}
@@ -308,14 +309,12 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallSite,
   // Kill all data-flow facts if we hit a function of the target API.
   // Those functions are modled within Call-To-Return.
   if (TSD->isAPIFunction(llvm::demangle(DestFun->getName().str()))) {
-    return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
+    return killAllFlows<d_t>();
   }
   // Otherwise, if we have an ordinary function call, we can just use the
   // standard mapping.
-  if (llvm::isa<llvm::CallInst>(CallSite) ||
-      llvm::isa<llvm::InvokeInst>(CallSite)) {
-    return std::make_shared<MapFactsToCallee<>>(
-        llvm::cast<llvm::CallBase>(CallSite), DestFun);
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+    return mapFactsToCallee(Call, DestFun);
   }
   llvm::report_fatal_error("callSite not a CallInst nor a InvokeInst");
 }
@@ -455,10 +454,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     if (!TSD->isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
       for (const auto &Arg : CS->args()) {
         if (hasMatchingType(Arg)) {
-          std::set<IDETypeStateAnalysis::d_t> FactsToKill =
-              getWMAliasesAndAllocas(Arg.get());
-          return std::make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
-              FactsToKill);
+          return killManyFlows<d_t>(getWMAliasesAndAllocas(Arg.get()));
         }
       }
     }
