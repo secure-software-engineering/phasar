@@ -28,7 +28,7 @@
 using namespace std;
 using namespace psr;
 
-CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+CHAResolver::CHAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : Resolver(IRDB, TH) {}
 
 auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
@@ -70,3 +70,5 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   }
   return PossibleCallees;
 }
+
+std::string CHAResolver::str() const { return "CHA"; }

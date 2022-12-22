@@ -7,6 +7,15 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
+
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/Constants.h"
@@ -20,17 +29,6 @@
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/GraphExtensions.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
@@ -138,7 +136,8 @@ std::string LLVMPointsToGraph::EdgeProperties::getValueAsString() const {
 
 // points-to graph stuff
 
-LLVMPointsToGraph::LLVMPointsToGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation,
+LLVMPointsToGraph::LLVMPointsToGraph(LLVMProjectIRDB &IRDB,
+                                     bool UseLazyEvaluation,
                                      PointerAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy) {}
 

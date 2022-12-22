@@ -7,9 +7,13 @@
  *     Philipp Schubert, Linus Jungemann and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <unordered_map>
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
@@ -18,13 +22,9 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/BitVectorSet.h"
+#include <algorithm>
+#include <unordered_map>
+#include <utility>
 
 using namespace std;
 using namespace psr;
@@ -32,9 +32,9 @@ using namespace psr;
 namespace psr {
 
 InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints)
+    std::vector<std::string> EntryPoints)
     : IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT, EntryPoints),
       InterMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain>(
           IRDB, TH, ICF, PT, EntryPoints) {}
@@ -147,7 +147,7 @@ InterMonoFullConstantPropagation::mono_container_t
 InterMonoFullConstantPropagation::callToRetFlow(
     InterMonoFullConstantPropagation::n_t /*CallSite*/,
     InterMonoFullConstantPropagation::n_t /*RetSite*/,
-    std::set<InterMonoFullConstantPropagation::f_t> /*Callees*/,
+    llvm::ArrayRef<f_t> /*Callees*/,
     const InterMonoFullConstantPropagation::mono_container_t &In) {
   return In;
 }

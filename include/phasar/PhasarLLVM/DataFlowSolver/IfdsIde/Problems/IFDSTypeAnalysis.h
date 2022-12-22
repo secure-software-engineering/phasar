@@ -10,33 +10,20 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTYPEANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTYPEANALYSIS_H
 
-#include <map>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
 #include <memory>
 #include <set>
 #include <string>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-
-namespace llvm {
-class Instruction;
-class Function;
-class StructType;
-class Value;
-} // namespace llvm
-
 namespace psr {
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 
 class IFDSTypeAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
-  IFDSTypeAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                   std::set<std::string> EntryPoints = {"main"});
+  IFDSTypeAnalysis(const LLVMProjectIRDB *IRDB,
+                   std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSTypeAnalysis() override = default;
 
@@ -47,14 +34,15 @@ public:
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitStmt, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t DestFun) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 

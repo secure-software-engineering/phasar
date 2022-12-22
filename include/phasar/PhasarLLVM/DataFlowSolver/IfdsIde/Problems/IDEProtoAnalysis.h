@@ -10,14 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
 
-#include <map>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
 #include <memory>
 #include <set>
 #include <string>
-#include <vector>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -27,10 +25,6 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 
 struct IDEProtoAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = const llvm::Value *;
@@ -47,9 +41,8 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDEProtoAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                   std::set<std::string> EntryPoints = {"main"});
+  IDEProtoAnalysis(const LLVMProjectIRDB *IRDB,
+                   std::vector<std::string> EntryPoints = {"main"});
 
   ~IDEProtoAnalysis() override = default;
 
@@ -62,15 +55,16 @@ public:
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitInst, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                              f_t DestFun) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   bool isZeroValue(d_t Fact) const override;
 
@@ -90,7 +84,8 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode, std::set<f_t> Callees) override;
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,

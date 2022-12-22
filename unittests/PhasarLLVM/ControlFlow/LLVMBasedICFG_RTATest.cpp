@@ -1,8 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -13,12 +14,11 @@ using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_9_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/virtual_call_9_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooD = IRDB.getFunctionDefinition("_ZN1D3fooEv");
   ASSERT_TRUE(FooD);
@@ -26,7 +26,7 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
 
   const llvm::Instruction *I = getNthInstruction(F, 11);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
     set<string> CalleeNames;
     for (const llvm::Function *F : Callees) {
       CalleeNames.insert(F->getName().str());
@@ -35,17 +35,16 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
     ASSERT_TRUE(CalleeNames.count("_ZN1B3fooEv"));
     ASSERT_TRUE(CalleeNames.count("_ZN1D3fooEv"));
     ASSERT_TRUE(CalleeNames.count("_ZN1C3fooEv"));
-    ASSERT_TRUE(ICFG.getCallersOf(FooD).count(I));
+    ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(FooD), I));
   }
 }
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_3_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/virtual_call_3_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *AptrFoo = IRDB.getFunctionDefinition("_ZN5AImpl3fooEv");
   ASSERT_TRUE(F);
@@ -54,19 +53,18 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
   const llvm::Instruction *I = getNthInstruction(F, 14);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
     ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
-    std::set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
     ASSERT_EQ(Callees.size(), 1U);
-    ASSERT_TRUE(Callees.count(AptrFoo));
+    ASSERT_TRUE(llvm::is_contained(Callees, AptrFoo));
   }
 }
 
 TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_13_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_13_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
-  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
+  LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Vfunc = IRDB.getFunctionDefinition("_Z5VfuncP1A");
   const llvm::Function *VfuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
@@ -76,7 +74,7 @@ TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
 
   const llvm::Instruction *I = getNthInstruction(F, 15);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
+    const auto &Callees = ICFG.getCalleesOfCallAt(I);
     ASSERT_EQ(Callees.size(), 1U);
   }
 }

@@ -17,14 +17,13 @@
 #ifndef PHASAR_CONFIG_CONFIGURATION_H_
 #define PHASAR_CONFIG_CONFIGURATION_H_
 
-#include <filesystem>
-#include <string>
-
-#include "boost/program_options.hpp"
+#include "phasar/Config/Version.h"
 
 #include "llvm/ADT/iterator_range.h"
 
-#include "phasar/Config/Version.h"
+#include <filesystem>
+#include <set>
+#include <string>
 
 #define XSTR(S) STR(S)
 #define STR(S) #S
@@ -103,13 +102,6 @@ public:
   /// the analysis.
   void addSpecialFunctionName(std::string SFName) {
     SpecialFuncNames.insert(std::move(SFName));
-  }
-
-  /// Variables map of the parsed command-line parameters
-  // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static boost::program_options::variables_map &VariablesMap() {
-    static boost::program_options::variables_map VMap;
-    return VMap;
   }
 
   ~PhasarConfig() = default;

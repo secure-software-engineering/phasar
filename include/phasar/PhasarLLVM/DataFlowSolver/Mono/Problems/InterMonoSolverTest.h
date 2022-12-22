@@ -17,15 +17,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOSOLVERTEST_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOSOLVERTEST_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/Utils/BitVectorSet.h"
+
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Instruction;
@@ -53,9 +52,9 @@ public:
   using i_t = InterMonoSolverTestDomain::i_t;
   using mono_container_t = InterMonoSolverTestDomain::mono_container_t;
 
-  InterMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+  InterMonoSolverTest(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                       const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                      std::set<std::string> EntryPoints = {});
+                      std::vector<std::string> EntryPoints = {});
 
   ~InterMonoSolverTest() override = default;
 
@@ -74,7 +73,7 @@ public:
                               n_t RetSite, const mono_container_t &In) override;
 
   mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
-                                 std::set<f_t> Callees,
+                                 llvm::ArrayRef<f_t> Callees,
                                  const mono_container_t &In) override;
 
   std::unordered_map<n_t, mono_container_t> initialSeeds() override;

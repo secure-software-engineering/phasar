@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
@@ -45,29 +45,32 @@ protected:
       std::tuple<std::string, std::size_t, std::string,
                  IDEInstInteractionAnalysisT<std::string, true>::l_t>;
 
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
 
   void initializeIR(const std::string &LlvmFilePath) {
     ValueAnnotationPass::resetValueID();
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
   }
 
-  void doAnalysisAndCompareResults(
-      const std::string &LlvmFilePath, const std::set<std::string> EntryPoints,
-      const std::set<IIACompactResult_t> &GroundTruth, bool PrintDump = false) {
+  void
+  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+                              const std::vector<std::string> EntryPoints,
+                              const std::set<IIACompactResult_t> &GroundTruth,
+                              bool PrintDump = false) {
     initializeIR(LlvmFilePath);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(llvm::outs(), false);
+      IRDB->dump();
     }
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
-                       &PT);
-    IDEInstInteractionAnalysisT<std::string, true> IIAProblem(
-        IRDB.get(), &TH, &ICFG, &PT, EntryPoints);
+    LLVMBasedICFG ICFG(
+        IRDB.get(), CallGraphAnalysisType::CHA,
+        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
+        &PT);
+    IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB.get(), &ICFG,
+                                                              &PT, EntryPoints);
     // use Phasar's instruction ids as testing labels
     auto Generator =
         [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
@@ -108,8 +111,7 @@ protected:
     };
     // register the above generator function
     IIAProblem.registerEdgeFactGenerator(Generator);
-    IDESolver_P<IDEInstInteractionAnalysisT<std::string, true>> IIASolver(
-        IIAProblem);
+    IDESolver IIASolver(IIAProblem, &ICFG);
     IIASolver.solve();
     if (PrintDump) {
       IIASolver.dumpResults();
@@ -126,15 +128,8 @@ protected:
         llvm::raw_string_ostream RSO(FactStr);
         RSO << *Fact.getBase();
         llvm::StringRef FactRef(FactStr);
-        // llvm::outs() << "Iterating result map entry: " << Fact << ", " <<
-        // Value
-        //              << " with FactRef: " << FactRef
-        //              << " and VarName: " << VarName << '\n';
         if (FactRef.ltrim().startswith("%" + VarName + " ") ||
             FactRef.ltrim().startswith("@" + VarName + " ")) {
-          //   llvm::outs() << "Found fact: " << FactRef.ltrim() << '\n';
-          //   llvm::outs() << "Compare Value: " << Value
-          //                << " and LatticeVal: " << LatticeVal << '\n';
           PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
           EXPECT_EQ(LatticeVal, Value);
           FactFound = true;
@@ -144,8 +139,6 @@ protected:
         PHASAR_LOG_LEVEL(DFADEBUG, "Variable '" << VarName << "' missing at '"
                                                 << llvmIRToString(IRLine)
                                                 << "'.");
-        // llvm::outs() << "Variable '" << VarName << "' missing at '"
-        //              << llvmIRToString(IRLine) << "'.";
       }
       EXPECT_TRUE(FactFound);
     }
@@ -503,16 +496,16 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
           "main", 23, "argc.addr", {"14", "21"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argv.addr", {"9", "15"}));
+          "main", 23, "argv.addr", {"15"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "i", {"10", "16", "17"}));
+          "main", 23, "i", {"16", "17"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "j", {"10", "11", "16", "19", "24"}));
+          "main", 23, "j", {"16", "17", "19", "18", "24"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "k", {"10", "11", "12", "16", "19", "20", "25", "27"}));
+          "main", 23, "k", {"16", "17", "18", "19", "20", "24", "25", "27"}));
   doAnalysisAndCompareResults("basic_04_cpp.ll", {"main"}, GroundTruth, false);
 })
 
@@ -871,7 +864,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "retval", {"23", "35", "37"}));
+          "main", 16, "retval", {"75", "76", "78"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 16, "str", {"70", "65", "72", "74", "77"}));

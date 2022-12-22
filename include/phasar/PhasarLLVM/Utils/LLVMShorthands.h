@@ -17,18 +17,28 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/DenseMap.h"
+
 #include <string>
 #include <vector>
 
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/ModuleSlotTracker.h"
-#include "llvm/IR/Value.h"
-#include "llvm/Support/Compiler.h"
-
-#include "phasar/Utils/Utilities.h"
+namespace llvm {
+class Value;
+class Function;
+class FunctionType;
+class ModuleSlotTracker;
+class Argument;
+class Instruction;
+class StoreInst;
+class BranchInst;
+class Module;
+class CallInst;
+} // namespace llvm
 
 namespace psr {
+class LLVMProjectIRDB;
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -164,10 +174,11 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo);
 
-std::vector<const llvm::Instruction *>
+llvm::SmallVector<const llvm::Instruction *, 2>
 getAllExitPoints(const llvm::Function *F);
-void appendAllExitPoints(const llvm::Function *F,
-                         std::vector<const llvm::Instruction *> &ExitPoints);
+void appendAllExitPoints(
+    const llvm::Function *F,
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints);
 
 /**
  * @brief Returns the LLVM Module to which the given LLVM Value belongs to.
@@ -230,15 +241,12 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F);
 llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
 
 class ModulesToSlotTracker {
-  friend class ProjectIRDB;
+  friend class LLVMProjectIRDB;
   friend class LLVMBasedICFG;
   friend class LLVMZeroValue;
 
 private:
-  static inline llvm::SmallDenseMap<const llvm::Module *,
-                                    std::unique_ptr<llvm::ModuleSlotTracker>, 2>
-      MToST{};
-
+  static void setMSTForModule(const llvm::Module *Module);
   static void updateMSTForModule(const llvm::Module *Module);
   static void deleteMSTForModule(const llvm::Module *Module);
 

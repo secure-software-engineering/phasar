@@ -7,22 +7,19 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <filesystem>
-#include <fstream>
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
-namespace llvm {
-class Value;
-} // namespace llvm
+#include <filesystem>
 
 using namespace psr;
 
@@ -34,27 +31,27 @@ int main(int Argc, const char **Argv) {
                     "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
-  ProjectIRDB DB({Argv[1]});
-  if (const auto *F = DB.getFunctionDefinition("main")) {
-    LLVMTypeHierarchy H(DB);
+
+  HelperAnalyses HA({Argv[1]}, {"main"});
+
+  if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy
-    H.print();
-    LLVMPointsToSet P(DB);
+    HA.getTypeHierarchy().print();
     // print points-to information
-    P.print();
-    LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
+    HA.getPointsToInfo().print();
     // print inter-procedural control-flow graph
-    I.print();
+    HA.getICFG().print();
+
     // IFDS template parametrization test
     llvm::outs() << "Testing IFDS:\n";
-    IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver S(L);
+    IFDSSolverTest L(&HA.getProjectIRDB(), {"main"});
+    IFDSSolver S(L, &HA.getICFG());
     S.solve();
     S.dumpResults();
     // IDE template parametrization test
     llvm::outs() << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
-    IDESolver T(M);
+    IDELinearConstantAnalysis M(&HA.getProjectIRDB(), &HA.getICFG(), {"main"});
+    IDESolver T(M, &HA.getICFG());
     T.solve();
     T.dumpResults();
   } else {

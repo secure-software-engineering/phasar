@@ -1,19 +1,19 @@
-#include <memory>
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "gtest/gtest.h"
 
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include <memory>
 
 using namespace std;
 using namespace psr;
@@ -25,7 +25,7 @@ protected:
   const std::string PathToLlFiles = PhasarConfig::PhasarDirectory() +
                                     "build/test/llvm_test_code/llvmIRtoSrc/";
 
-  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMPointsToSet> PT;
   unique_ptr<LLVMBasedICFG> ICFG;
@@ -33,12 +33,12 @@ protected:
   LLVMIRToSrcTest() = default;
   ~LLVMIRToSrcTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  void initialize(const llvm::Twine &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
-    set<string> EntryPoints = {"main"};
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+    auto EntryPoints = {"main"s};
+    ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
                                       EntryPoints, TH.get(), PT.get());
   }
 

@@ -7,7 +7,17 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -16,27 +26,13 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultSeeds.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
+#include <utility>
 
 namespace psr {
 
-IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
-                             const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                             std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IDETabulationProblem::ZeroValue = IDESolverTest::createZeroValue();
-}
+IDESolverTest::IDESolverTest(const LLVMProjectIRDB *IRDB,
+                             std::vector<std::string> EntryPoints)
+    : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 // start formulating our analysis by specifying the parts required for IFDS
 
@@ -58,9 +54,10 @@ IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
-IDESolverTest::FlowFunctionPtrType IDESolverTest::getCallToRetFlowFunction(
-    IDESolverTest::n_t /*CallSite*/, IDESolverTest::n_t /*RetSite*/,
-    std::set<IDESolverTest::f_t> /*Callees*/) {
+IDESolverTest::FlowFunctionPtrType
+IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t /*CallSite*/,
+                                        IDESolverTest::n_t /*RetSite*/,
+                                        llvm::ArrayRef<f_t> /*Callees*/) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
@@ -76,7 +73,7 @@ IDESolverTest::initialSeeds() {
   InitialSeeds<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::l_t>
       Seeds;
   for (auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue(), topElement());
   }
   return Seeds;
@@ -89,7 +86,7 @@ IDESolverTest::d_t IDESolverTest::createZeroValue() const {
 }
 
 bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 // in addition provide specifications for the IDE parts
@@ -121,10 +118,11 @@ IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t /*CallSite*/,
 }
 
 std::shared_ptr<EdgeFunction<IDESolverTest::l_t>>
-IDESolverTest::getCallToRetEdgeFunction(
-    IDESolverTest::n_t /*CallSite*/, IDESolverTest::d_t /*CallNode*/,
-    IDESolverTest::n_t /*RetSite*/, IDESolverTest::d_t /*RetSiteNode*/,
-    std::set<IDESolverTest::f_t> /*Callees*/) {
+IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t /*CallSite*/,
+                                        IDESolverTest::d_t /*CallNode*/,
+                                        IDESolverTest::n_t /*RetSite*/,
+                                        IDESolverTest::d_t /*RetSiteNode*/,
+                                        llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 

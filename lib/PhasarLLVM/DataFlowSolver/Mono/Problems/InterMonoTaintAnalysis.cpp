@@ -16,6 +16,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -30,9 +31,9 @@
 namespace psr {
 
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    const TaintConfig &Config, std::set<std::string> EntryPoints)
+    const TaintConfig &Config, std::vector<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, TH, ICF, PT,
                                                      std::move(EntryPoints)),
       Config(Config) {}
@@ -123,8 +124,7 @@ InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::returnFlow(
 
 InterMonoTaintAnalysis::mono_container_t InterMonoTaintAnalysis::callToRetFlow(
     InterMonoTaintAnalysis::n_t CallSite,
-    InterMonoTaintAnalysis::n_t /*RetSite*/,
-    std::set<const llvm::Function *> Callees,
+    InterMonoTaintAnalysis::n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees,
     const InterMonoTaintAnalysis::mono_container_t &In) {
   PHASAR_LOG_LEVEL(DEBUG, "InterMonoTaintAnalysis::callToRetFlow()");
   InterMonoTaintAnalysis::mono_container_t Out(In);

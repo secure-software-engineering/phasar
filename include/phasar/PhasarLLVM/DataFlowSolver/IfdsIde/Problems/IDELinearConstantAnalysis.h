@@ -12,7 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -42,11 +42,6 @@ class LLVMPointsToInfo;
 
 class IDELinearConstantAnalysis
     : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
-private:
-  // For debug purpose only
-  static unsigned CurrGenConstantId; // NOLINT
-  static unsigned CurrLCAIDId;       // NOLINT
-  static unsigned CurrBinaryId;      // NOLINT
 
 public:
   using IDETabProblemType =
@@ -59,13 +54,9 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  static const l_t TOP;
-  static const l_t BOTTOM;
-
-  IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
-                            const LLVMTypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                            std::set<std::string> EntryPoints = {"main"});
+  IDELinearConstantAnalysis(const LLVMProjectIRDB *IRDB,
+                            const LLVMBasedICFG *ICF,
+                            std::vector<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
 
@@ -85,24 +76,7 @@ public:
              IRTrace == Rhs.IRTrace;
     }
 
-    operator std::string() const {
-      std::string Buffer;
-      llvm::raw_string_ostream OS(Buffer);
-      OS << "Line " << LineNr << ": " << SrcNode << '\n';
-      OS << "Var(s): ";
-      for (auto It = VariableToValue.begin(); It != VariableToValue.end();
-           ++It) {
-        if (It != VariableToValue.begin()) {
-          OS << ", ";
-        }
-        OS << It->first << " = " << It->second;
-      }
-      OS << "\nCorresponding IR Instructions:\n";
-      for (const auto *Ir : IRTrace) {
-        OS << "  " << llvmIRToString(Ir) << '\n';
-      }
-      return OS.str();
-    }
+    operator std::string() const;
   };
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
@@ -118,15 +92,16 @@ public:
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitInst, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                              f_t DestFun) override;
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -146,7 +121,8 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode, std::set<f_t> Callees) override;
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
@@ -160,107 +136,7 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  // Custom EdgeFunction declarations
-
-  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
-  public:
-    LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                            std::shared_ptr<EdgeFunction<l_t>> G)
-        : EdgeFunctionComposer<l_t>(F, G){};
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-  };
-
-  class GenConstant : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<GenConstant> {
-  private:
-    const unsigned GenConstantId;
-    const int64_t IntConst;
-
-  public:
-    explicit GenConstant(int64_t IntConst);
-
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
-
-  class LCAIdentity : public EdgeFunction<l_t>,
-                      public std::enable_shared_from_this<LCAIdentity> {
-  private:
-    const unsigned LCAIDId;
-
-  public:
-    explicit LCAIdentity();
-
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
-
-  class BinOp : public EdgeFunction<l_t>,
-                public std::enable_shared_from_this<BinOp> {
-  private:
-    const unsigned EdgeFunctionID, Op;
-    d_t Lop, Rop, CurrNode;
-
-  public:
-    BinOp(unsigned Op, d_t Lop, d_t Rop, d_t CurrNode);
-
-    l_t computeTarget(l_t Source) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-  };
-
   // Helper functions
-
-  /**
-   * The following binary operations are computed:
-   *  - addition
-   *  - subtraction
-   *  - multiplication
-   *  - division (signed/unsinged)
-   *  - remainder (signed/unsinged)
-   *
-   * @brief Computes the result of a binary operation.
-   * @param op operator
-   * @param lop left operand
-   * @param rop right operand
-   * @return Result of binary operation
-   */
-  static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal);
-
-  static char opToChar(unsigned Op);
-
-  [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
 
   void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
@@ -274,6 +150,9 @@ public:
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
+
+private:
+  const LLVMBasedICFG *ICF{};
 };
 
 } // namespace psr

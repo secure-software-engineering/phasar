@@ -10,16 +10,16 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+
 #include <cstdint>
 #include <map>
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 namespace llvm {
 class Value;
@@ -30,7 +30,6 @@ class StructType;
 
 namespace psr {
 
-class ProjectIRDB;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
@@ -48,11 +47,11 @@ public:
   using i_t = IntraMonoFullConstantPropagation::i_t;
   using mono_container_t = IntraMonoFullConstantPropagation::mono_container_t;
 
-  InterMonoFullConstantPropagation(const ProjectIRDB *IRDB,
+  InterMonoFullConstantPropagation(const LLVMProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
                                    const LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints = {});
+                                   std::vector<std::string> EntryPoints = {});
 
   ~InterMonoFullConstantPropagation() override = default;
 
@@ -65,7 +64,7 @@ public:
                               n_t RetSite, const mono_container_t &In) override;
 
   mono_container_t callToRetFlow(n_t CallSite, n_t RetSite,
-                                 std::set<f_t> Callees,
+                                 llvm::ArrayRef<f_t> Callees,
                                  const mono_container_t &In) override;
 
   mono_container_t merge(const mono_container_t &Lhs,

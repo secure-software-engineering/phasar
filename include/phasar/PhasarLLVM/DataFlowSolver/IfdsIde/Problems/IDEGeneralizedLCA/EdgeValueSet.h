@@ -15,7 +15,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValue.h"
 
-namespace psr {
+namespace psr::glca {
 
 class EdgeValueSet {
   std::unordered_set<EdgeValue> Underlying;
@@ -41,6 +41,6 @@ public:
   bool operator!=(const EdgeValueSet &Other) const;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

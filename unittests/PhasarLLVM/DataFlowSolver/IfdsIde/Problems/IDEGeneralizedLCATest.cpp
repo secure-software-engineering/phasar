@@ -7,24 +7,25 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "gtest/gtest.h"
-
-#include "TestConfig.h"
-
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
+#include "gtest/gtest.h"
+
 #include "llvm/Support/raw_ostream.h"
 
 #include <unordered_set>
 #include <vector>
 
+#include "TestConfig.h"
+
 using namespace psr;
+using namespace psr::glca;
 
 using groundTruth_t =
     std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>;
@@ -37,7 +38,7 @@ protected:
   const std::string PathToLLFiles =
       unittest::PathToLLTestFiles + "general_linear_constant/";
 
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
   std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
   std::unique_ptr<LLVMTypeHierarchy> TH;
   std::unique_ptr<LLVMPointsToSet> PT;
@@ -45,21 +46,18 @@ protected:
   std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
   IDEGeneralizedLCATest() = default;
-  ~IDEGeneralizedLCATest() override = default;
 
-  void initialize(const std::string &LLFile, size_t MaxSetSize = 2) {
-    IRDB = std::make_unique<ProjectIRDB>(
-        std::vector<std::string>{PathToLLFiles + LLFile}, IRDBOptions::WPA);
+  void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLLFiles + LLFile);
     TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = std::make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = std::make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::RTA,
-                                           std::set<std::string>{"main"},
-                                           TH.get(), PT.get());
+    ICFG = std::make_unique<LLVMBasedICFG>(
+        IRDB.get(), CallGraphAnalysisType::RTA,
+        std::vector<std::string>{"main"}, TH.get(), PT.get());
     LCAProblem = std::make_unique<IDEGeneralizedLCA>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(),
-        std::set<std::string>{"main"}, MaxSetSize);
-    LCASolver =
-        std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(*LCAProblem);
+        IRDB.get(), ICFG.get(), std::vector<std::string>{"main"}, MaxSetSize);
+    LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(
+        *LCAProblem, ICFG.get());
 
     LCASolver->solve();
   }

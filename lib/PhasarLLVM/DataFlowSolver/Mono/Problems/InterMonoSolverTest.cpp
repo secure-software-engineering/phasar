@@ -14,6 +14,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -23,11 +24,11 @@
 
 namespace psr {
 
-InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
+InterMonoSolverTest::InterMonoSolverTest(const LLVMProjectIRDB *IRDB,
                                          const LLVMTypeHierarchy *TH,
                                          const LLVMBasedICFG *ICF,
                                          const LLVMPointsToInfo *PT,
-                                         std::set<std::string> EntryPoints)
+                                         std::vector<std::string> EntryPoints)
     : InterMonoProblem<InterMonoSolverTestDomain>(IRDB, TH, ICF, PT,
                                                   std::move(EntryPoints)) {}
 
@@ -80,7 +81,7 @@ InterMonoSolverTest::mono_container_t InterMonoSolverTest::returnFlow(
 
 InterMonoSolverTest::mono_container_t InterMonoSolverTest::callToRetFlow(
     InterMonoSolverTest::n_t /*CallSite*/, InterMonoSolverTest::n_t /*RetSite*/,
-    std::set<InterMonoSolverTest::f_t> /*Callees*/,
+    llvm::ArrayRef<f_t> /*Callees*/,
     const InterMonoSolverTest::mono_container_t &In) {
   llvm::outs() << "InterMonoSolverTest::callToRetFlow()\n";
   return In;

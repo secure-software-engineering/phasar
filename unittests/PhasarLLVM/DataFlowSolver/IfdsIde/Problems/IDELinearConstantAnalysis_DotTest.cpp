@@ -1,4 +1,4 @@
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
@@ -21,28 +21,28 @@ protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "linear_constant/";
 
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
 
   IDELinearConstantAnalysis::lca_results_t
-  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false,
+  doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false,
              bool EmitESG = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToSet PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
-                       &PT);
-    IDELinearConstantAnalysis LCAProblem(IRDB.get(), &TH, &ICFG, &PT,
-                                         EntryPoints);
-    IDESolver_P<IDELinearConstantAnalysis> LCASolver(LCAProblem);
+    LLVMBasedICFG ICFG(
+        IRDB.get(), CallGraphAnalysisType::OTF,
+        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
+        &PT);
+    IDELinearConstantAnalysis LCAProblem(IRDB.get(), &ICFG, EntryPoints);
+    IDESolver LCASolver(LCAProblem, &ICFG);
     LCASolver.solve();
     if (EmitESG) {
       Logger::enable();

@@ -17,17 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 
-#include <set>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/TinyPtrVector.h"
+
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace llvm {
 class Instruction;
@@ -39,17 +35,16 @@ class Value;
 
 namespace psr {
 
-class ProjectIRDB;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
-class OTFResolver : public CHAResolver {
+class OTFResolver : public Resolver {
 protected:
   LLVMBasedICFG &ICF;
   LLVMPointsToInfo &PT;
 
 public:
-  OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
+  OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
               LLVMPointsToInfo &PT);
 
   ~OTFResolver() override = default;
@@ -71,6 +66,8 @@ public:
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
   getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                               const llvm::Function *CalleeTarget);
+
+  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

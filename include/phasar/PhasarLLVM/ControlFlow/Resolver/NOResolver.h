@@ -10,8 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_NORESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_NORESOLVER_H_
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 namespace llvm {
@@ -30,7 +28,7 @@ protected:
                             const llvm::CallBase *CallSite);
 
 public:
-  NOResolver(ProjectIRDB &IRDB);
+  NOResolver(LLVMProjectIRDB &IRDB);
 
   ~NOResolver() override = default;
 
@@ -46,6 +44,8 @@ public:
   FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
+
+  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

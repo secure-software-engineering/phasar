@@ -36,9 +36,7 @@ using namespace psr;
 namespace psr {
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
-GeneralStatistics
-GeneralStatisticsAnalysis::run(llvm::Module &M,
-                               llvm::ModuleAnalysisManager & /*AM*/) {
+GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   PHASAR_LOG_LEVEL(INFO, "Running GeneralStatisticsAnalysis");
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
@@ -58,14 +56,15 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           // do not add allocas from llvm internal functions
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;
-        } // check bitcast instructions for possible types
-        else {
-          for (auto *User : I.users()) {
-            if (const llvm::BitCastInst *Cast =
-                    llvm::dyn_cast<llvm::BitCastInst>(User)) {
-              // types.insert(cast->getDestTy());
-            }
-          }
+        }
+        if (llvm::isa<llvm::PHINode>(I)) {
+          ++Stats.PhiNodes;
+        }
+        if (llvm::isa<llvm::BranchInst>(I)) {
+          ++Stats.Branches;
+        }
+        if (llvm::isa<llvm::GetElementPtrInst>(I)) {
+          ++Stats.GetElementPtrs;
         }
         // check for return or resume instructions
         if (llvm::isa<llvm::ReturnInst>(I) || llvm::isa<llvm::ResumeInst>(I)) {
@@ -125,7 +124,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
     }
   }
   // check for global pointers
-  for (auto &Global : M.globals()) {
+  for (auto const &Global : M.globals()) {
     if (Global.getType()->isPointerTy()) {
       ++Stats.GlobalPointers;
     }
@@ -203,18 +202,22 @@ size_t GeneralStatistics::getStoreInstructions() const {
   return StoreInstructions;
 }
 
-set<const llvm::Type *> GeneralStatistics::getAllocatedTypes() const {
+const set<const llvm::Type *> &GeneralStatistics::getAllocatedTypes() const {
   return AllocatedTypes;
 }
 
-set<const llvm::Instruction *>
+const set<const llvm::Instruction *> &
 GeneralStatistics::getAllocaInstructions() const {
   return AllocaInstructions;
 }
 
-set<const llvm::Instruction *>
+const set<const llvm::Instruction *> &
 GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
+}
+
+void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
+  OS << getAsJson().dump(4) << '\n';
 }
 
 nlohmann::json GeneralStatistics::getAsJson() const {
@@ -225,7 +228,28 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   J["AllocaInstructions"] = AllocaInstructions.size();
   J["CallSites"] = CallSites;
   J["GlobalVariables"] = Globals;
+  J["Branches"] = Branches;
+  J["GetElementPtrs"] = GetElementPtrs;
+  J["BasicBlocks"] = BasicBlocks;
+  J["PhiNodes"] = PhiNodes;
   return J;
+}
+
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const GeneralStatistics &Statistics) {
+  return OS << "General LLVM IR Statistics"
+            << "\n"
+            << "Module " << Statistics.ModuleName << ":\n"
+            << "LLVM IR instructions:\t" << Statistics.Instructions << "\n"
+            << "Functions:\t" << Statistics.Functions << "\n"
+            << "Global Variables:\t" << Statistics.Globals << "\n"
+            << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
+            << "\n"
+            << "Call Sites:\t" << Statistics.CallSites << "\n"
+            << "Branches:\t" << Statistics.Branches << "\n"
+            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << "\n"
+            << "Phi Nodes:\t" << Statistics.PhiNodes << "\n"
+            << "Basic Blocks:\t" << Statistics.BasicBlocks << "\n";
 }
 
 } // namespace psr

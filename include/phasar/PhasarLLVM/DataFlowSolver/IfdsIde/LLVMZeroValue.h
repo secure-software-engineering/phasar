@@ -20,11 +20,7 @@
 #include <memory>
 
 #include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Support/Alignment.h"
 
 namespace llvm {
 class Value;
@@ -32,30 +28,14 @@ class Value;
 
 namespace psr {
 
-// do not touch, its only purpose is to make ZeroValue working
-inline const std::unique_ptr<llvm::LLVMContext>
-    LLVMZeroValueCTX(new llvm::LLVMContext);
-inline const std::unique_ptr<llvm::Module>
-    LLVMZeroValueMod(new llvm::Module("zero_module", *LLVMZeroValueCTX));
-
 /**
  * This class may be used to represent the special zero value for IFDS
  * and IDE problems. The LLVMZeroValue is implemented as a singleton.
  */
 class LLVMZeroValue : public llvm::GlobalVariable {
 private:
-  LLVMZeroValue()
-      : llvm::GlobalVariable(
-            *LLVMZeroValueMod, llvm::Type::getIntNTy(*LLVMZeroValueCTX, 2),
-            true, llvm::GlobalValue::LinkageTypes::ExternalLinkage,
-            llvm::ConstantInt::get(*LLVMZeroValueCTX,
-                                   llvm::APInt(/*nbits*/ 2,
-                                               /*value*/ 0,
-                                               /*signed*/ true)),
-            LLVMZeroValueInternalName) {
-    setAlignment(llvm::MaybeAlign(4));
-  }
-  ~LLVMZeroValue() = default;
+  LLVMZeroValue(llvm::Module &Mod); // NOLINT(modernize-use-equals-delete)
+
   static constexpr auto LLVMZeroValueInternalName = "zero_value";
 
 public:
@@ -63,6 +43,7 @@ public:
   LLVMZeroValue &operator=(const LLVMZeroValue &Z) = delete;
   LLVMZeroValue(LLVMZeroValue &&Z) = delete;
   LLVMZeroValue &operator=(LLVMZeroValue &&Z) = delete;
+  ~LLVMZeroValue() = default;
 
   [[nodiscard]] llvm::StringRef getName() const {
     return LLVMZeroValueInternalName;
@@ -73,10 +54,7 @@ public:
   }
 
   // Do not specify a destructor (at all)!
-  static const LLVMZeroValue *getInstance() {
-    static const auto *ZV = new LLVMZeroValue;
-    return ZV;
-  }
+  static const LLVMZeroValue *getInstance();
 };
 } // namespace psr
 

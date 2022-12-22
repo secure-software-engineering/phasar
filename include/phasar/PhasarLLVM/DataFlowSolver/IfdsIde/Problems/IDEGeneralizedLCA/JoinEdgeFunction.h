@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
-namespace psr {
+namespace psr::glca {
 
 class JoinEdgeFunction : public EdgeFunction<IDEGeneralizedLCA::l_t>,
                          public std::enable_shared_from_this<JoinEdgeFunction> {
@@ -44,6 +44,6 @@ public:
   getSecond() const;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

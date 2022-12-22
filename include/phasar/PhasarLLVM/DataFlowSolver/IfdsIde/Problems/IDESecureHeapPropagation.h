@@ -10,22 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
-#include "llvm/ADT/StringRef.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
-namespace llvm {
-class Instruction;
-class Value;
-class StructType;
-class Function;
-} // namespace llvm
+#include "llvm/ADT/StringRef.h"
 
 namespace psr {
 enum class SecureHeapFact { ZERO, INITIALIZED };
@@ -53,9 +41,9 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDESecureHeapPropagation(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                           std::set<std::string> EntryPoints = {"main"});
+  IDESecureHeapPropagation(const LLVMProjectIRDB *IRDB,
+                           std::vector<std::string> EntryPoints = {"main"});
+
   ~IDESecureHeapPropagation() override = default;
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
@@ -65,15 +53,16 @@ public:
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
                                          n_t ExitInst, n_t RetSite) override;
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               std::set<f_t> Callees) override;
+  FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                              f_t DestMthd) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -100,7 +89,8 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode, std::set<f_t> Callees) override;
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
@@ -118,50 +108,6 @@ public:
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS) override;
-
-  struct SHPEdgeFn : public EdgeFunction<l_t>,
-                     public std::enable_shared_from_this<SHPEdgeFn> {
-    ~SHPEdgeFn() override = default;
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-  };
-
-  struct SHPEdgeFunctionComposer
-      : public EdgeFunctionComposer<l_t>,
-        public std::enable_shared_from_this<SHPEdgeFn> {
-    ~SHPEdgeFunctionComposer() override = default;
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override;
-  };
-  struct SHPGenEdgeFn : public SHPEdgeFn {
-    SHPGenEdgeFn(l_t Val);
-    ~SHPGenEdgeFn() override = default;
-
-    l_t computeTarget(l_t Source) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-    static std::shared_ptr<SHPGenEdgeFn> getInstance(l_t Val);
-
-  private:
-    l_t Value;
-  };
-
-  struct IdentityEdgeFunction : public SHPEdgeFn {
-    ~IdentityEdgeFunction() override = default;
-
-    l_t computeTarget(l_t Source) override;
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override;
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override;
-
-    void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-
-    static std::shared_ptr<IdentityEdgeFunction> getInstance();
-  };
 };
 } // namespace psr
 

@@ -1,7 +1,5 @@
 file(GLOB_RECURSE IFDSIDE_SRC *.h *.cpp)
 
-find_package(Boost COMPONENTS program_options REQUIRED)
-
 set(PHASAR_LINK_LIBS
   phasar_config
   phasar_utils

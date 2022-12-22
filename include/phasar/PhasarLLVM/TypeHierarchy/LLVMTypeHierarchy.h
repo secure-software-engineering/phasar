@@ -17,12 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
-#include <optional>
-#include <set>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
@@ -33,8 +29,12 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
+#include <optional>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace llvm {
 class Module;
@@ -45,7 +45,7 @@ class GlobalVariable;
 
 namespace psr {
 
-class ProjectIRDB;
+class LLVMProjectIRDB;
 /**
  * 	@brief Owns the class hierarchy of the analyzed program.
  *
@@ -147,7 +147,7 @@ public:
    *         given ProjectIRCompiledDB.
    *  @param IRDB ProjectIRCompiledDB object.
    */
-  LLVMTypeHierarchy(ProjectIRDB &IRDB);
+  LLVMTypeHierarchy(LLVMProjectIRDB &IRDB);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the

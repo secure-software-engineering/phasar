@@ -10,11 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_EDGEDOMAIN_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_EDGEDOMAIN_H
 
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/IR/Instruction.h" // Need a complete type llvm::Instruction for llvm::PointerIntPair
 #include "llvm/Support/raw_ostream.h"
-
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 namespace psr {
 class BasicBlockOrdering;

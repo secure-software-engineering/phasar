@@ -11,7 +11,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 
-namespace psr {
+namespace psr::glca {
 
 IDEGeneralizedLCA::l_t
 BinaryEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
@@ -66,4 +66,4 @@ void BinaryEdgeFunction::print(llvm::raw_ostream &OS,
   OS << "Binary_" << Op;
 }
 
-} // namespace psr
+} // namespace psr::glca
