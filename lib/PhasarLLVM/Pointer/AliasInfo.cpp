@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
 
 #include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
+#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 
 namespace psr {
 static_assert(
