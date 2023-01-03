@@ -10,18 +10,20 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
 
-#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
+#include "phasar/PhasarLLVM/Pointer/AliasResult.h"
+#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/AnalysisProperties.h"
 
-#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/TypeName.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
-#include <cstddef>
 #include <memory>
 #include <type_traits>
 
@@ -31,27 +33,17 @@ class Instruction;
 } // namespace llvm
 
 namespace psr {
+enum class AliasAnalysisType;
 
 template <typename V, typename N> class AliasInfoRef;
-
 template <typename V, typename N> class AliasInfo;
+
 template <typename V, typename N>
 struct AliasInfoTraits<AliasInfoRef<V, N>> : DefaultAATraits<V, N> {};
 template <typename V, typename N>
 struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 
-namespace detail {
-template <typename ConcreteAA, typename = void>
-struct CanMergeWithAARef : std::false_type {};
-template <typename ConcreteAA>
-struct CanMergeWithAARef<
-    ConcreteAA, std::void_t<decltype(std::declval<ConcreteAA &>().mergeWith(
-                    std::declval<AliasInfoRef<typename ConcreteAA::v_t,
-                                              typename ConcreteAA::n_t>>()))>>
-    : std::true_type {};
-} // namespace detail
-
-/// A type-erased reference to any object implementing the AliasInfoBase
+/// A type-erased reference to any object implementing the IsAliasInfo
 /// interface. Use this, if your analysis is not tied to a specific alias info
 /// implementation.
 ///
@@ -64,20 +56,19 @@ struct CanMergeWithAARef<
 /// AliasInfoRef AA = &ASet;
 /// \endcode
 ///
-/// NOTE: AliasInfoRef::mergeWith() only works if the held concrete
-/// implementation supports merging with a generic AliasInfoRef.
+/// NOTE: AliasInfoRef::mergeWith() only works if supplied with a compatible
+/// other AliasInfo. Otherwise, it asserts out
 template <typename V, typename N>
-class AliasInfoRef : public AliasInfoBase<AliasInfoRef<V, N>> {
-  friend AliasInfoBase<AliasInfoRef<V, N>>;
+class AliasInfoRef : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
   friend class AliasInfo<V, N>;
-  using base_t = AliasInfoBase<AliasInfoRef<V, N>>;
+  using traits_t = AliasInfoTraits<AliasInfoRef<V, N>>;
 
 public:
-  using typename base_t::AliasSetPtrTy;
-  using typename base_t::AliasSetTy;
-  using typename base_t::AllocationSiteSetPtrTy;
-  using typename base_t::n_t;
-  using typename base_t::v_t;
+  using AliasSetPtrTy = typename traits_t::AliasSetPtrTy;
+  using AliasSetTy = typename traits_t::AliasSetTy;
+  using AllocationSiteSetPtrTy = typename traits_t::AllocationSiteSetPtrTy;
+  using n_t = typename traits_t::n_t;
+  using v_t = typename traits_t::v_t;
 
   AliasInfoRef() noexcept = default;
   AliasInfoRef(std::nullptr_t) noexcept : AliasInfoRef() {}
@@ -86,11 +77,9 @@ public:
                 !std::is_base_of_v<AliasInfoRef, ConcreteAA> &&
                 std::is_same_v<v_t, typename ConcreteAA::v_t> &&
                 std::is_same_v<n_t, typename ConcreteAA::n_t>>>
-  AliasInfoRef(ConcreteAA *AA) noexcept : AA(AA), VT(&VTableFor<ConcreteAA>) {
-    if constexpr (!std::is_empty_v<ConcreteAA>) {
-      assert(AA != nullptr);
-    }
-  }
+  AliasInfoRef(ConcreteAA *AA) noexcept
+      : AA(AA), VT((std::is_empty_v<ConcreteAA> || AA) ? &VTableFor<ConcreteAA>
+                                                       : nullptr) {}
 
   /// Prevent dangling references by disallowing implicit conversion of a
   /// temporary AliasInfo to AliasInfoRef.
@@ -102,6 +91,101 @@ public:
   ~AliasInfoRef() noexcept = default;
 
   explicit operator bool() const noexcept { return VT != nullptr; }
+
+  // -- Impl for IsAliasInfo:
+
+  [[nodiscard]] bool isInterProcedural() const noexcept {
+    assert(VT != nullptr);
+    return VT->IsInterProcedural(AA);
+  }
+  [[nodiscard]] AliasAnalysisType getAliasAnalysisType() const noexcept {
+    assert(VT != nullptr);
+    return VT->GetAliasAnalysisType(AA);
+  }
+
+  [[nodiscard]] AliasResult alias(ByConstRef<v_t> Pointer1,
+                                  ByConstRef<v_t> Pointer2,
+                                  ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->Alias(AA, Pointer1, Pointer2, AtInstruction);
+  }
+
+  [[nodiscard]] AliasSetPtrTy
+  getAliasSet(ByConstRef<v_t> Pointer,
+              ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->GetAliasSet(AA, Pointer, AtInstruction);
+  }
+
+  [[nodiscard]] AllocationSiteSetPtrTy
+  getReachableAllocationSites(ByConstRef<v_t> Pointer,
+                              bool IntraProcOnly = false,
+                              ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->GetReachableAllocationSites(AA, Pointer, IntraProcOnly,
+                                           AtInstruction);
+  }
+
+  // Checks if Pointer2 is a reachable allocation in the alias set of
+  // Pointer1.
+  [[nodiscard]] bool isInReachableAllocationSites(
+      ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+      bool IntraProcOnly = false, ByConstRef<n_t> AtInstruction = {}) const {
+    assert(VT != nullptr);
+    return VT->IsInReachableAllocationSites(AA, Pointer1, Pointer2,
+                                            IntraProcOnly, AtInstruction);
+  }
+
+  void print(llvm::raw_ostream &OS = llvm::outs()) const {
+    assert(VT != nullptr);
+    VT->Print(AA, OS);
+  }
+
+  [[nodiscard]] nlohmann::json getAsJson() const {
+    assert(VT != nullptr);
+    return VT->GetAsJson(AA);
+  }
+
+  void printAsJson(llvm::raw_ostream &OS) const {
+    assert(VT != nullptr);
+    VT->PrintAsJson(AA, OS);
+  }
+
+  void mergeWith(AliasInfoRef Other) {
+    assert(VT != nullptr);
+    assert(Other.VT != nullptr);
+    if (VT != Other.VT) {
+      llvm::report_fatal_error(
+          "Can only merge AliasInfos with same concrete type: " +
+          VT->TypeName() + " vs " + Other.VT->TypeName());
+    }
+    VT->MergeWith(AA, Other.AA);
+  }
+
+  void introduceAlias(ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+                      ByConstRef<n_t> AtInstruction = {},
+                      AliasResult Kind = AliasResult::MustAlias) {
+    assert(VT != nullptr);
+    VT->IntroduceAlias(AA, Pointer1, Pointer2, AtInstruction, Kind);
+  }
+
+  [[nodiscard]] AnalysisProperties getAnalysisProperties() const noexcept {
+    assert(VT != nullptr);
+    return VT->GetAnalysisProperties(AA);
+  }
+
+  template <typename T> [[nodiscard]] bool isa() const noexcept {
+    return VT == &VTableFor<T>;
+  }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  template <typename T> [[nodiscard]] T *dyn_cast() const noexcept {
+    return isa<T>() ? static_cast<T *>(AA) : nullptr;
+  }
+
+  template <typename T> [[nodiscard]] T *cast() const noexcept {
+    assert(isa<T>() && "Invalid AliasInfo cast!");
+    return static_cast<T *>(AA);
+  }
 
 private:
   struct VTable {
@@ -119,10 +203,11 @@ private:
     void (*Print)(const void *, llvm::raw_ostream &);
     nlohmann::json (*GetAsJson)(const void *);
     void (*PrintAsJson)(const void *, llvm::raw_ostream &);
-    void (*MergeWith)(void *, AliasInfoRef<v_t, n_t>);
+    void (*MergeWith)(void *, void *);
     void (*IntroduceAlias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
                            ByConstRef<n_t>, AliasResult);
     AnalysisProperties (*GetAnalysisProperties)(const void *) noexcept;
+    llvm::StringRef (*TypeName)() noexcept;
     void (*Destroy)(const void *) noexcept;
   };
 
@@ -162,14 +247,9 @@ private:
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);
       },
-      [](void *AA, AliasInfoRef<v_t, n_t> Other) {
-        if constexpr (detail::CanMergeWithAARef<ConcreteAA>::value) {
-          static_cast<ConcreteAA *>(AA)->mergeWith(Other);
-        } else {
-          llvm::report_fatal_error("Cannot merge alias-info of type " +
-                                   llvm::getTypeName<ConcreteAA>() +
-                                   " with type-erased alias-info");
-        }
+      [](void *AA, void *Other) {
+        static_cast<ConcreteAA *>(AA)->mergeWith(
+            *static_cast<ConcreteAA *>(Other));
       },
       [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
          ByConstRef<n_t> AtInstruction, AliasResult Kind) {
@@ -179,88 +259,11 @@ private:
       [](const void *AA) noexcept {
         return static_cast<const ConcreteAA *>(AA)->getAnalysisProperties();
       },
+      []() noexcept { return llvm::getTypeName<ConcreteAA>(); },
       [](const void *AA) noexcept {
         delete static_cast<const ConcreteAA *>(AA);
       },
   };
-
-  // -- Impl for AliasInfoBase:
-  [[nodiscard]] bool isInterProceduralImpl() const noexcept {
-    assert(VT != nullptr);
-    return VT->IsInterProcedural(AA);
-  }
-  [[nodiscard]] AliasAnalysisType getAliasAnalysisTypeImpl() const noexcept {
-    assert(VT != nullptr);
-    return VT->GetAliasAnalysisType(AA);
-  }
-
-  [[nodiscard]] AliasResult
-  aliasImpl(ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
-            ByConstRef<n_t> AtInstruction = {}) const {
-    assert(VT != nullptr);
-    return VT->Alias(AA, Pointer1, Pointer2, AtInstruction);
-  }
-
-  [[nodiscard]] AliasSetPtrTy
-  getAliasSetImpl(ByConstRef<v_t> Pointer,
-                  ByConstRef<n_t> AtInstruction = {}) const {
-    assert(VT != nullptr);
-    return VT->GetAliasSet(AA, Pointer, AtInstruction);
-  }
-
-  [[nodiscard]] AllocationSiteSetPtrTy
-  getReachableAllocationSitesImpl(ByConstRef<v_t> Pointer,
-                                  bool IntraProcOnly = false,
-                                  ByConstRef<n_t> AtInstruction = {}) const {
-    assert(VT != nullptr);
-    return VT->GetReachableAllocationSites(AA, Pointer, IntraProcOnly,
-                                           AtInstruction);
-  }
-
-  // Checks if Pointer2 is a reachable allocation in the alias set of
-  // Pointer1.
-  [[nodiscard]] bool isInReachableAllocationSitesImpl(
-      ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
-      bool IntraProcOnly = false, ByConstRef<n_t> AtInstruction = {}) const {
-    assert(VT != nullptr);
-    return VT->IsInReachableAllocationSites(AA, Pointer1, Pointer2,
-                                            IntraProcOnly, AtInstruction);
-  }
-
-  void printImpl(llvm::raw_ostream &OS = llvm::outs()) const {
-    assert(VT != nullptr);
-    VT->Print(AA, OS);
-  }
-
-  [[nodiscard]] nlohmann::json getAsJsonImpl() const {
-    assert(VT != nullptr);
-    return VT->GetAsJson(AA);
-  }
-
-  void printAsJsonImpl(llvm::raw_ostream &OS) const {
-    assert(VT != nullptr);
-    VT->PrintAsJson(AA, OS);
-  }
-
-  template <typename AI,
-            typename = std::enable_if_t<std::is_same_v<typename AI::n_t, n_t> &&
-                                        std::is_same_v<typename AI::v_t, v_t>>>
-  void mergeWithImpl(const AliasInfoBase<AI> &Other) {
-    assert(VT != nullptr);
-    VT->MergeWith(AA, &Other);
-  }
-
-  void introduceAliasImpl(ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
-                          ByConstRef<n_t> AtInstruction = {},
-                          AliasResult Kind = AliasResult::MustAlias) {
-    assert(VT != nullptr);
-    VT->IntroduceAlias(AA, Pointer1, Pointer2, AtInstruction, Kind);
-  }
-
-  [[nodiscard]] AnalysisProperties getAnalysisPropertiesImpl() const noexcept {
-    assert(VT != nullptr);
-    return VT->GetAnalysisProperties(AA);
-  }
 
   // --
 
@@ -332,8 +335,6 @@ public:
   [[nodiscard]] AliasInfoRef<V, N> get() && = delete;
 };
 
-extern template class AliasInfoBase<
-    AliasInfoRef<const llvm::Value *, const llvm::Instruction *>>;
 extern template class AliasInfoRef<const llvm::Value *,
                                    const llvm::Instruction *>;
 extern template class AliasInfo<const llvm::Value *, const llvm::Instruction *>;

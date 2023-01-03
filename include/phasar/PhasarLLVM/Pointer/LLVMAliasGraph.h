@@ -11,9 +11,12 @@
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASGRAPH_H_
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
+#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
 #include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+#include "phasar/Utils/AnalysisProperties.h"
 
 #include "llvm/IR/AbstractCallSite.h"
 
@@ -52,11 +55,18 @@ struct AliasInfoTraits<LLVMAliasGraph>
  *
  *	@brief Represents the points-to graph of a function.
  */
-class LLVMAliasGraph : public AliasInfoBase<LLVMAliasGraph> {
-  friend AliasInfoBase;
+class LLVMAliasGraph : public AnalysisPropertiesMixin<LLVMAliasGraph>,
+                       AliasInfoBaseUtils {
+  using traits_t = AliasInfoTraits<LLVMAliasGraph>;
 
 public:
-  // Call-graph firends
+  using n_t = traits_t::n_t;
+  using v_t = traits_t::v_t;
+  using AliasSetTy = traits_t::AliasSetTy;
+  using AliasSetPtrTy = traits_t::AliasSetPtrTy;
+  using AllocationSiteSetPtrTy = traits_t::AllocationSiteSetPtrTy;
+
+  // Call-graph friends
   friend class LLVMBasedICFG;
   /**
    * 	@brief Holds the information of a vertex in the points-to graph.
@@ -195,42 +205,43 @@ public:
 
   size_t getNumEdges() const;
 
-private:
-  [[nodiscard]] bool isInterProceduralImpl() const noexcept;
+  // --- IsAliasInfo impl
 
-  [[nodiscard]] AliasAnalysisType getAliasAnalysisTypeImpl() const noexcept;
+  [[nodiscard]] bool isInterProcedural() const noexcept;
 
-  AliasResult aliasImpl(const llvm::Value *V1, const llvm::Value *V2,
-                        const llvm::Instruction *I = nullptr);
+  [[nodiscard]] AliasAnalysisType getAliasAnalysisType() const noexcept;
 
-  AliasSetPtrTy getAliasSetImpl(const llvm::Value *V,
-                                const llvm::Instruction *I = nullptr);
+  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
+                    const llvm::Instruction *I = nullptr);
+
+  AliasSetPtrTy getAliasSet(const llvm::Value *V,
+                            const llvm::Instruction *I = nullptr);
 
   AllocationSiteSetPtrTy
-  getReachableAllocationSitesImpl(const llvm::Value *V,
-                                  bool IntraProcOnly = false,
-                                  const llvm::Instruction *I = nullptr);
+  getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
+                              const llvm::Instruction *I = nullptr);
 
-  [[nodiscard]] bool isInReachableAllocationSitesImpl(
+  [[nodiscard]] bool isInReachableAllocationSites(
       const llvm::Value *V, const llvm::Value *PotentialValue,
       bool IntraProcOnly = false, const llvm::Instruction *I = nullptr);
 
-  void mergeWithImpl(const LLVMAliasGraph &OtherPTI);
+  void mergeWith(const LLVMAliasGraph &OtherPTI);
 
-  void introduceAliasImpl(const llvm::Value *V1, const llvm::Value *V2,
-                          const llvm::Instruction *I = nullptr,
-                          AliasResult Kind = AliasResult::MustAlias);
+  void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
+                      const llvm::Instruction *I = nullptr,
+                      AliasResult Kind = AliasResult::MustAlias);
 
-  void printImpl(llvm::raw_ostream &OS = llvm::outs()) const;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] nlohmann::json getAsJsonImpl() const;
+  [[nodiscard]] nlohmann::json getAsJson() const;
 
-  void printAsJsonImpl(llvm::raw_ostream &OS = llvm::outs()) const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] AnalysisProperties getAnalysisPropertiesImpl() const noexcept {
+  [[nodiscard]] AnalysisProperties getAnalysisProperties() const noexcept {
     return AnalysisProperties::None;
   }
 
+private:
   // ---
 
   // void mergeGraph(const LLVMAliasGraph &Other);
@@ -254,8 +265,6 @@ private:
   AliasSetOwner<AliasSetTy> Owner{&MRes};
   std::unordered_map<const llvm::Value *, DynamicAliasSetPtr<AliasSetTy>> Cache;
 };
-
-extern template class AliasInfoBase<LLVMAliasGraph>;
 
 } // namespace psr
 

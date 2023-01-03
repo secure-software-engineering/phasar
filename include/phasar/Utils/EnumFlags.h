@@ -20,64 +20,64 @@ class EnumFlagAutoBool {
   T Val;
 
 public:
-  constexpr EnumFlagAutoBool(T Val) : Val(Val) {}
-  constexpr operator T() const { return Val; }
-  constexpr explicit operator bool() const {
+  constexpr EnumFlagAutoBool(T Val) noexcept : Val(Val) {}
+  constexpr operator T() const noexcept { return Val; }
+  constexpr explicit operator bool() const noexcept {
     return static_cast<std::underlying_type_t<T>>(Val) != 0;
   }
 };
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr EnumFlagAutoBool<T> operator&(T Lhs, T Rhs) {
+constexpr EnumFlagAutoBool<T> operator&(T Lhs, T Rhs) noexcept {
   return static_cast<T>(static_cast<typename std::underlying_type_t<T>>(Lhs) &
                         static_cast<typename std::underlying_type_t<T>>(Rhs));
 }
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr void operator&=(T &Lhs, T Rhs) {
+constexpr void operator&=(T &Lhs, T Rhs) noexcept {
   Lhs = static_cast<T>(static_cast<typename std::underlying_type_t<T>>(Lhs) &
                        static_cast<typename std::underlying_type_t<T>>(Rhs));
 }
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr T operator|(T Lhs, T Rhs) {
+constexpr T operator|(T Lhs, T Rhs) noexcept {
   return static_cast<T>(static_cast<typename std::underlying_type_t<T>>(Lhs) |
                         static_cast<typename std::underlying_type_t<T>>(Rhs));
 }
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr void operator|=(T &Lhs, T Rhs) {
+constexpr void operator|=(T &Lhs, T Rhs) noexcept {
   Lhs = static_cast<T>(static_cast<typename std::underlying_type_t<T>>(Lhs) |
                        static_cast<typename std::underlying_type_t<T>>(Rhs));
 }
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr T operator^(T Lhs, T Rhs) {
+constexpr T operator^(T Lhs, T Rhs) noexcept {
   return static_cast<T>(static_cast<typename std::underlying_type_t<T>>(Lhs) ^
                         static_cast<typename std::underlying_type_t<T>>(Rhs));
 }
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr void operator^=(T &Lhs, T Rhs) {
+constexpr void operator^=(T &Lhs, T Rhs) noexcept {
   Lhs = static_cast<T>(static_cast<typename std::underlying_type_t<T>>(Lhs) ^
                        static_cast<typename std::underlying_type_t<T>>(Rhs));
 }
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr T operator~(T Rhs) {
+constexpr T operator~(T Rhs) noexcept {
   return static_cast<T>(~static_cast<typename std::underlying_type_t<T>>(Rhs));
 }
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr void setFlag(T &This, T Flag, bool Set = true) {
+constexpr void setFlag(T &This, T Flag, bool Set = true) noexcept {
   if (Set) {
     This |= Flag;
   } else {
@@ -86,7 +86,7 @@ constexpr void setFlag(T &This, T Flag, bool Set = true) {
 }
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
-constexpr bool hasFlag(T This, T Flag) {
+constexpr bool hasFlag(T This, T Flag) noexcept {
   return static_cast<bool>(This & Flag);
 }
 } // namespace psr

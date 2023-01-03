@@ -10,11 +10,10 @@
 #ifndef PHASAR_UTILS_ANALYSISPROPERTIES_H
 #define PHASAR_UTILS_ANALYSISPROPERTIES_H
 
-#include "phasar/Utils/EnumFlags.h"
-
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
+#include <type_traits>
 
 namespace psr {
 enum class AnalysisProperties {
@@ -30,6 +29,30 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                      AnalysisProperties Prop) {
   return OS << to_string(Prop);
 }
+
+template <typename Derived> class AnalysisPropertiesMixin {
+public:
+  [[nodiscard]] bool isFieldSensitive() const noexcept {
+    return hasFlag(AnalysisProperties::FieldSensitive);
+  }
+
+  [[nodiscard]] bool isContextSensitive() const noexcept {
+    return hasFlag(AnalysisProperties::ContextSensitive);
+  }
+
+  [[nodiscard]] bool isFlowSensitive() const noexcept {
+    return hasFlag(AnalysisProperties::FlowSensitive);
+  }
+
+private:
+  [[nodiscard]] bool hasFlag(AnalysisProperties Prop) const noexcept {
+    static_assert(std::is_base_of_v<AnalysisPropertiesMixin<Derived>, Derived>,
+                  "Invalid CRTP instantiation! Derived must inherit from "
+                  "AnalysisPropertiesMixin<Derived>");
+    return int(static_cast<const Derived *>(this)->getAnalysisProperties()) &
+           int(Prop);
+  }
+};
 
 } // namespace psr
 

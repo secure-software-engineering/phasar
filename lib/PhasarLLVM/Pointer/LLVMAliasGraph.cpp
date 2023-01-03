@@ -242,15 +242,14 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
   }
 }
 
-bool LLVMAliasGraph::isInterProceduralImpl() const noexcept { return false; }
+bool LLVMAliasGraph::isInterProcedural() const noexcept { return false; }
 
-AliasAnalysisType LLVMAliasGraph::getAliasAnalysisTypeImpl() const noexcept {
+AliasAnalysisType LLVMAliasGraph::getAliasAnalysisType() const noexcept {
   return PTA.getPointerAnalysisType();
 }
 
-AliasResult LLVMAliasGraph::aliasImpl(const llvm::Value *V1,
-                                      const llvm::Value *V2,
-                                      const llvm::Instruction * /*I*/) {
+AliasResult LLVMAliasGraph::alias(const llvm::Value *V1, const llvm::Value *V2,
+                                  const llvm::Instruction * /*I*/) {
   computeAliasGraph(V1);
   computeAliasGraph(V2);
   auto PTS = getAliasSet(V1);
@@ -260,7 +259,7 @@ AliasResult LLVMAliasGraph::aliasImpl(const llvm::Value *V1,
   return AliasResult::NoAlias;
 }
 
-auto LLVMAliasGraph::getReachableAllocationSitesImpl(
+auto LLVMAliasGraph::getReachableAllocationSites(
     const llvm::Value *V, bool /*IntraProcOnly*/,
     const llvm::Instruction * /*I*/) -> AllocationSiteSetPtrTy {
   computeAliasGraph(V);
@@ -274,14 +273,14 @@ auto LLVMAliasGraph::getReachableAllocationSitesImpl(
   return AllocSites;
 }
 
-[[nodiscard]] bool LLVMAliasGraph::isInReachableAllocationSitesImpl(
+[[nodiscard]] bool LLVMAliasGraph::isInReachableAllocationSites(
     const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
     const llvm::Instruction *I) {
   return getReachableAllocationSites(V, IntraProcOnly, I)
       ->count(PotentialValue);
 }
 
-void LLVMAliasGraph::mergeWithImpl(const LLVMAliasGraph &OtherPTI) {
+void LLVMAliasGraph::mergeWith(const LLVMAliasGraph &OtherPTI) {
   AnalyzedFunctions.insert(OtherPTI.AnalyzedFunctions.begin(),
                            OtherPTI.AnalyzedFunctions.end());
   using vertex_t = graph_t::vertex_descriptor;
@@ -298,10 +297,10 @@ void LLVMAliasGraph::mergeWithImpl(const LLVMAliasGraph &OtherPTI) {
   }
 }
 
-void LLVMAliasGraph::introduceAliasImpl(const llvm::Value *V1,
-                                        const llvm::Value *V2,
-                                        const llvm::Instruction *I,
-                                        AliasResult /*Kind*/) {
+void LLVMAliasGraph::introduceAlias(const llvm::Value *V1,
+                                    const llvm::Value *V2,
+                                    const llvm::Instruction *I,
+                                    AliasResult /*Kind*/) {
   computeAliasGraph(V1);
   computeAliasGraph(V2);
   auto Vert1 = ValueVertexMap[V1];
@@ -360,8 +359,8 @@ bool LLVMAliasGraph::containsValue(llvm::Value *V) {
   return false;
 }
 
-auto LLVMAliasGraph::getAliasSetImpl(const llvm::Value *V,
-                                     const llvm::Instruction * /*I*/)
+auto LLVMAliasGraph::getAliasSet(const llvm::Value *V,
+                                 const llvm::Instruction * /*I*/)
     -> AliasSetPtrTy {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getAliasSet", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -395,7 +394,7 @@ auto LLVMAliasGraph::getAliasSetImpl(const llvm::Value *V,
   return ResultSet;
 }
 
-void LLVMAliasGraph::printImpl(llvm::raw_ostream &OS) const {
+void LLVMAliasGraph::print(llvm::raw_ostream &OS) const {
   for (const auto &Fn : AnalyzedFunctions) {
     llvm::outs() << "LLVMAliasGraph for " << Fn->getName() << ":\n";
     vertex_iterator UI;
@@ -422,7 +421,7 @@ void LLVMAliasGraph::printAsDot(llvm::raw_ostream &OS) const {
   OS << S.str();
 }
 
-nlohmann::json LLVMAliasGraph::getAsJsonImpl() const {
+nlohmann::json LLVMAliasGraph::getAsJson() const {
   nlohmann::json J;
   vertex_iterator VIv;
 
@@ -459,11 +458,9 @@ size_t LLVMAliasGraph::getNumVertices() const {
 
 size_t LLVMAliasGraph::getNumEdges() const { return boost::num_edges(PAG); }
 
-void LLVMAliasGraph::printAsJsonImpl(llvm::raw_ostream &OS) const {
+void LLVMAliasGraph::printAsJson(llvm::raw_ostream &OS) const {
   nlohmann::json J = getAsJson();
   OS << J;
 }
-
-template class AliasInfoBase<LLVMAliasGraph>;
 
 } // namespace psr
