@@ -10,8 +10,11 @@
 #include <memory>
 
 #include "gtest/gtest.h"
+#include <optional>
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
@@ -32,16 +35,14 @@ protected:
       "build/test/llvm_test_code/openssl/secure_heap/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<ProjectIRDB> IRDB;
-  unique_ptr<LLVMTypeHierarchy> TH;
-  unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
-  unique_ptr<OpenSSLSecureHeapDescription> Desc;
-  unique_ptr<IDETypeStateAnalysis> TSProblem;
+  std::optional<HelperAnalyses> HA;
+
+  std::optional<OpenSSLSecureHeapDescription> Desc;
+  std::optional<IDETypeStateAnalysis> TSProblem;
+  std::optional<IDESecureHeapPropagation> SecureHeapPropagationProblem;
   unique_ptr<IDESolver<IDETypeStateAnalysisDomain>> Llvmtssolver;
   unique_ptr<IDESolver<IDESecureHeapPropagationAnalysisDomain>>
       SecureHeapPropagationResults;
-  unique_ptr<IDESecureHeapPropagation> SecureHeapPropagationProblem;
   enum OpenSSLSecureHeapState {
     TOP = 42,
     BOT = 0,
@@ -54,25 +55,20 @@ protected:
   IDETSAnalysisOpenSSLSecureHeapTest() = default;
   ~IDETSAnalysisOpenSSLSecureHeapTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
-    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
-                                      EntryPoints, TH.get(), PT.get());
+  void initialize(const std::string &IRFile) {
+    HA.emplace(IRFile, EntryPoints);
 
-    SecureHeapPropagationProblem = make_unique<IDESecureHeapPropagation>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
+    SecureHeapPropagationProblem.emplace(
+        createAnalysisProblem<IDESecureHeapPropagation>(*HA, EntryPoints));
     SecureHeapPropagationResults =
         make_unique<IDESolver<IDESecureHeapPropagationAnalysisDomain>>(
-            *SecureHeapPropagationProblem);
+            *SecureHeapPropagationProblem, &HA->getICFG());
 
-    Desc = make_unique<OpenSSLSecureHeapDescription>(
-        *SecureHeapPropagationResults);
-    TSProblem = make_unique<IDETypeStateAnalysis>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *Desc, EntryPoints);
-    Llvmtssolver =
-        make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSProblem);
+    Desc.emplace(*SecureHeapPropagationResults);
+    TSProblem.emplace(
+        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &*Desc, EntryPoints));
+    Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
+        *TSProblem, &HA->getICFG());
 
     SecureHeapPropagationResults->solve();
     Llvmtssolver->solve();
@@ -92,7 +88,7 @@ protected:
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth) {
     for (const auto &InstToGroundTruth : GroundTruth) {
-      auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      auto *Inst = HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> Results;
       for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {

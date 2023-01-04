@@ -32,7 +32,7 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 
-  HelperAnalyses HA({Argv[1]}, {"main"});
+  HelperAnalyses HA(Argv[1], {"main"});
 
   if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy

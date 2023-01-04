@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalysisConfig.h"
 
 #include "nlohmann/json.hpp"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 
 #include <memory>
 #include <optional>
@@ -37,12 +38,24 @@ public:
   explicit HelperAnalyses(std::string IRFile,
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
+  explicit HelperAnalyses(const llvm::Twine &IRFile,
+                          std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
+  explicit HelperAnalyses(const char *IRFile,
+                          std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
   ~HelperAnalyses();
 
   LLVMProjectIRDB &getProjectIRDB();
   LLVMPointsToInfo &getPointsToInfo();
   LLVMTypeHierarchy &getTypeHierarchy();
   LLVMBasedICFG &getICFG();
+
+  void setCGTy(CallGraphAnalysisType CGTy) noexcept {
+    assert(ICF == nullptr && "The ICFG has already been constructed. CGTy "
+                             "change does not take effect");
+    this->CGTy = CGTy;
+  }
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;

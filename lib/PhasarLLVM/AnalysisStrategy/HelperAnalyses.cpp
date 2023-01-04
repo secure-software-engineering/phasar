@@ -5,6 +5,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include <memory>
+#include <string>
 
 namespace psr {
 HelperAnalyses::HelperAnalyses(std::string IRFile,
@@ -26,6 +27,16 @@ HelperAnalyses::HelperAnalyses(std::string IRFile,
       AllowLazyPTS(Config.AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
       CGTy(Config.CGTy), SoundnessLevel(Config.SoundnessLevel),
       AutoGlobalSupport(Config.AutoGlobalSupport) {}
+
+HelperAnalyses::HelperAnalyses(const llvm::Twine &IRFile,
+                               std::vector<std::string> EntryPoints,
+                               HelperAnalysisConfig Config)
+    : HelperAnalyses(IRFile.str(), std::move(EntryPoints), std::move(Config)) {}
+HelperAnalyses::HelperAnalyses(const char *IRFile,
+                               std::vector<std::string> EntryPoints,
+                               HelperAnalysisConfig Config)
+    : HelperAnalyses(std::string(IRFile), std::move(EntryPoints),
+                     std::move(Config)) {}
 
 HelperAnalyses::~HelperAnalyses() = default;
 

@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
 
 #include <memory>
+#include <ostream>
 #include <unordered_set>
 #include <variant>
 
@@ -95,6 +96,7 @@ ev_t join(const ev_t &Lhs, const ev_t &Rhs, size_t MaxSize);
 bool operator<(const ev_t &Lhs, const ev_t &Rhs);
 bool isTopValue(const ev_t &Val);
 llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &Val);
+std::ostream &operator<<(std::ostream &OS, const ev_t &Val);
 
 } // namespace psr::glca
 

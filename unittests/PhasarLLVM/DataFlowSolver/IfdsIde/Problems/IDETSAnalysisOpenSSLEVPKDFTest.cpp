@@ -9,7 +9,9 @@
 
 #include <memory>
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
@@ -32,13 +34,10 @@ protected:
       "build/test/llvm_test_code/openssl/key_derivation/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<ProjectIRDB> IRDB;
-  unique_ptr<LLVMTypeHierarchy> TH;
-  unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
-  unique_ptr<OpenSSLEVPKDFCTXDescription> OpenSSLEVPKeyDerivationDesc;
-  unique_ptr<OpenSSLEVPKDFDescription> OpenSSLEVPKDFDesc;
-  unique_ptr<IDETypeStateAnalysis> TSProblem, TSKDFProblem;
+  std::optional<HelperAnalyses> HA;
+  std::optional<OpenSSLEVPKDFCTXDescription> OpenSSLEVPKeyDerivationDesc;
+  OpenSSLEVPKDFDescription OpenSSLEVPKDFDesc{};
+  std::optional<IDETypeStateAnalysis> TSProblem, TSKDFProblem;
   unique_ptr<IDESolver<IDETypeStateAnalysisDomain>> Llvmtssolver, KdfSolver;
 
   enum OpenSSLEVPKeyDerivationState {
@@ -53,28 +52,22 @@ protected:
   IDETSAnalysisOpenSSLEVPKDFTest() = default;
   ~IDETSAnalysisOpenSSLEVPKDFTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
-    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
-                                      EntryPoints, TH.get(), PT.get());
+  void initialize(const std::string &IRFile) {
+    HA.emplace(IRFile, EntryPoints);
 
-    OpenSSLEVPKDFDesc = make_unique<OpenSSLEVPKDFDescription>();
-    TSKDFProblem = make_unique<IDETypeStateAnalysis>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *OpenSSLEVPKDFDesc,
-        EntryPoints);
-    KdfSolver =
-        make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSKDFProblem);
+    TSKDFProblem.emplace(createAnalysisProblem<IDETypeStateAnalysis>(
+        *HA, &OpenSSLEVPKDFDesc, EntryPoints));
 
-    OpenSSLEVPKeyDerivationDesc =
-        make_unique<OpenSSLEVPKDFCTXDescription>(*KdfSolver);
-    TSProblem = make_unique<IDETypeStateAnalysis>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(),
-        *OpenSSLEVPKeyDerivationDesc, EntryPoints);
+    KdfSolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
+        *TSKDFProblem, &HA->getICFG());
 
-    Llvmtssolver =
-        make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSProblem);
+    OpenSSLEVPKeyDerivationDesc.emplace(*KdfSolver);
+
+    TSProblem.emplace(createAnalysisProblem<IDETypeStateAnalysis>(
+        *HA, &*OpenSSLEVPKeyDerivationDesc, EntryPoints));
+
+    Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
+        *TSProblem, &HA->getICFG());
     KdfSolver->solve();
     Llvmtssolver->solve();
   }
@@ -93,7 +86,7 @@ protected:
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth) {
     for (const auto &InstToGroundTruth : GroundTruth) {
-      auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      auto *Inst = HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> Results;
       for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {
