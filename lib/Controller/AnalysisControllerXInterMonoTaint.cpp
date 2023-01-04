@@ -14,11 +14,7 @@ namespace psr {
 
 void AnalysisController::executeInterMonoTaint() {
   auto Config = makeTaintConfig();
-  InterMonoTaintAnalysis TA(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
-                            &HA.getICFG(), &HA.getPointsToInfo(), Config,
-                            EntryPoints);
-
-  executeInterMonoAnalysis(TA);
+  executeInterMonoAnalysis<InterMonoTaintAnalysis>(Config, EntryPoints);
 }
 
 } // namespace psr

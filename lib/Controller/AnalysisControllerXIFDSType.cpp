@@ -13,8 +13,7 @@
 namespace psr {
 
 void AnalysisController::executeIFDSType() {
-  IFDSTypeAnalysis TA(&HA.getProjectIRDB(), EntryPoints);
-  executeIFDSAnalysis(TA);
+  executeIFDSAnalysis<IFDSTypeAnalysis>(EntryPoints);
 }
 
 } // namespace psr

@@ -13,9 +13,7 @@
 namespace psr {
 
 void AnalysisController::executeIFDSConst() {
-  IFDSConstAnalysis CA(&HA.getProjectIRDB(), &HA.getPointsToInfo(),
-                       EntryPoints);
-  executeIFDSAnalysis(CA);
+  executeIFDSAnalysis<IFDSConstAnalysis>(EntryPoints);
 }
 
 } // namespace psr
