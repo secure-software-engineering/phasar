@@ -230,8 +230,7 @@ std::string getSrcCodeFromIR(const llvm::Value *V) {
           Ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         std::getline(Ifs, SrcLine);
-        boost::algorithm::trim(SrcLine);
-        return SrcLine;
+        return llvm::StringRef(SrcLine).trim().str();
       }
     }
   }

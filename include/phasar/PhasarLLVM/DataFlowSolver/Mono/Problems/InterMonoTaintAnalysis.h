@@ -19,7 +19,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -55,10 +55,10 @@ public:
   using mono_container_t = InterMonoTaintAnalysisDomain::mono_container_t;
   using ConfigurationTy = TaintConfig;
 
-  InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                         const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                         const TaintConfig &Config,
-                         std::set<std::string> EntryPoints = {});
+  InterMonoTaintAnalysis(const LLVMProjectIRDB *IRDB,
+                         const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
+                         LLVMAliasInfoRef PT, const TaintConfig &Config,
+                         std::vector<std::string> EntryPoints = {});
 
   ~InterMonoTaintAnalysis() override = default;
 

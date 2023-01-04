@@ -36,7 +36,7 @@ class Function;
 namespace psr {
 
 class LLVMAliasSet;
-class ProjectIRDB;
+class LLVMProjectIRDB;
 
 template <>
 struct AliasInfoTraits<LLVMAliasSet>
@@ -60,10 +60,11 @@ public:
    * UseLazyEvaluation is true, computes points-to-sets for functions that do
    * not use global variables on the fly
    */
-  explicit LLVMAliasSet(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+  explicit LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation = true,
                         AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
-  explicit LLVMAliasSet(ProjectIRDB &IRDB, const nlohmann::json &SerializedPTS);
+  explicit LLVMAliasSet(LLVMProjectIRDB *IRDB,
+                        const nlohmann::json &SerializedPTS);
 
   [[nodiscard]] inline bool isInterProcedural() const noexcept {
     return false;

@@ -12,6 +12,8 @@
 
 #include "phasar/PhasarLLVM/TypeHierarchy/VFTable.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include "nlohmann/json.hpp"
 
 #include <set>

@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/SpecialMemberFunctionType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringSwitch.h"

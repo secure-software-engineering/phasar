@@ -43,7 +43,7 @@ class GlobalVariable;
 
 namespace psr {
 
-class ProjectIRDB;
+class LLVMProjectIRDB;
 /**
  * 	@brief Owns the class hierarchy of the analyzed program.
  *
@@ -145,7 +145,7 @@ public:
    *         given ProjectIRCompiledDB.
    *  @param IRDB ProjectIRCompiledDB object.
    */
-  LLVMTypeHierarchy(ProjectIRDB &IRDB);
+  LLVMTypeHierarchy(LLVMProjectIRDB &IRDB);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the

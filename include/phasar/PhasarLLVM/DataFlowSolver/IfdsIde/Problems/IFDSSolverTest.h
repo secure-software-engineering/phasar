@@ -11,12 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSSOLVERTEST_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
-#include <initializer_list>
-#include <map>
-#include <memory>
 #include <set>
 #include <string>
 
@@ -29,15 +25,11 @@ class Value;
 
 namespace psr {
 
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-
 class IFDSSolverTest
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 public:
-  IFDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                 const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                 std::set<std::string> EntryPoints = {"main"});
+  IFDSSolverTest(const LLVMProjectIRDB *IRDB,
+                 std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSSolverTest() override = default;
 
@@ -57,7 +49,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 

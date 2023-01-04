@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
@@ -55,11 +55,12 @@ template class DynamicAliasSetConstPtr<>;
 template class AliasSetOwner<DefaultAATraits<
     const llvm::Value *, const llvm::Instruction *>::AliasSetTy>;
 
-LLVMAliasSet::LLVMAliasSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
+LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
                            AliasAnalysisType PATy)
-    : PTA(IRDB, UseLazyEvaluation, PATy) {
+    : PTA(*IRDB, UseLazyEvaluation, PATy) {
+  assert(IRDB != nullptr);
 
-  auto NumGlobals = IRDB.getNumGlobals();
+  auto NumGlobals = IRDB->getNumGlobals();
   AliasSets.reserve(NumGlobals);
   Owner.reserve(NumGlobals);
 
@@ -67,36 +68,37 @@ LLVMAliasSet::LLVMAliasSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
       INFO, "LLVMAliasSet",
       "Start constructing LLVMAliasSet "
           << std::chrono::steady_clock::now().time_since_epoch().count());
+  auto *M = IRDB->getModule();
 
-  for (llvm::Module *M : IRDB.getAllModules()) {
-    // compute points-to information for all globals
+  // compute points-to information for all globals
 
-    for (const auto &G : M->globals()) {
-      computeValuesAliasSet(&G);
-    }
+  for (const auto &G : M->globals()) {
+    computeValuesAliasSet(&G);
+  }
 
-    for (const auto &F : M->functions()) {
-      computeValuesAliasSet(&F);
-    }
+  for (const auto &F : M->functions()) {
+    computeValuesAliasSet(&F);
+  }
 
-    if (!UseLazyEvaluation) {
-      // compute points-to information for all functions
-      for (auto &F : *M) {
-        if (!F.isDeclaration()) {
-          computeFunctionsAliasSet(&F);
-        }
+  if (!UseLazyEvaluation) {
+    // compute points-to information for all functions
+    for (auto &F : *M) {
+      if (!F.isDeclaration()) {
+        computeFunctionsAliasSet(&F);
       }
     }
   }
+
   PHASAR_LOG_LEVEL_CAT(
       INFO, "LLVMAliasSet",
       "LLVMAliasSet completed "
           << std::chrono::steady_clock::now().time_since_epoch().count());
 }
 
-LLVMAliasSet::LLVMAliasSet(ProjectIRDB &IRDB,
+LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
                            const nlohmann::json &SerializedPTS)
-    : PTA(IRDB) {
+    : PTA(*IRDB) {
+  assert(IRDB != nullptr);
   // Assume, we already have validated the json schema
 
   llvm::outs() << "Load precomputed points-to info from JSON\n";
@@ -113,9 +115,9 @@ LLVMAliasSet::LLVMAliasSet(ProjectIRDB &IRDB,
   for (const auto &PtsJson : Sets) {
     assert(PtsJson.is_array());
     auto PTS = Owner.acquire();
-    for (auto Alias : PtsJson) {
+    for (const auto &Alias : PtsJson) {
       const auto AliasStr = Alias.get<std::string>();
-      const auto *Inst = fromMetaDataId(IRDB, AliasStr);
+      const auto *Inst = fromMetaDataId(*IRDB, AliasStr);
       if (!Inst) {
         PHASAR_LOG_LEVEL(WARNING, "Invalid Value-Id: " << AliasStr);
         continue;
@@ -136,7 +138,7 @@ LLVMAliasSet::LLVMAliasSet(ProjectIRDB &IRDB,
       continue;
     }
 
-    const auto *IRFn = IRDB.getFunction(F.get<std::string>());
+    const auto *IRFn = IRDB->getFunction(F.get<std::string>());
 
     if (!IRFn) {
       PHASAR_LOG_LEVEL(WARNING, "Function: " << F << " not in the IRDB");

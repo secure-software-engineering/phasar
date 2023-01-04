@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 
-namespace psr {
+namespace psr::glca {
 
 IDEGeneralizedLCA::l_t
 TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
@@ -54,4 +54,4 @@ void TypecastEdgeFunction::print(llvm::raw_ostream &OS,
      << "; bits=" << Bits << "]";
 }
 
-} // namespace psr
+} // namespace psr::glca

@@ -24,7 +24,7 @@ class Instruction;
 
 namespace psr {
 
-class ProjectIRDB;
+class LLVMProjectIRDB;
 
 class LLVMBasedAliasAnalysis {
 private:
@@ -40,7 +40,7 @@ private:
   void computeAliasInfo(llvm::Function &Fun);
 
 public:
-  LLVMBasedAliasAnalysis(ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+  LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
                          AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
   ~LLVMBasedAliasAnalysis() = default;

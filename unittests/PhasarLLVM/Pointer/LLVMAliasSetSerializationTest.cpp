@@ -1,9 +1,8 @@
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
@@ -76,11 +75,11 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
                     llvm::StringRef EntryPoint = "main") {
   Logger::disable();
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + File.str()});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + File);
 
   // llvm::outs() << *IRDB.getWPAModule() << '\n';
 
-  LLVMAliasSet PTS(IRDB, false);
+  LLVMAliasSet PTS(&IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
                     &PTS);
@@ -88,8 +87,8 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
   auto Ser = PTS.getAsJson();
   checkSer(Ser, Gt);
 
-  LLVMAliasSet Deser(IRDB, Ser);
-  checkDeser(*IRDB.getWPAModule(), PTS, Deser);
+  LLVMAliasSet Deser(&IRDB, Ser);
+  checkDeser(*IRDB.getModule(), PTS, Deser);
 }
 
 TEST(LLVMAliasSetSerializationTest, Ser_Intra01) {

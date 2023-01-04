@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
@@ -32,7 +33,6 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
-class ProjectIRDB;
 template <typename T, typename F> class TypeHierarchy;
 template <typename N, typename F> class CFG;
 
@@ -48,19 +48,17 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
   using i_t = typename AnalysisDomainTy::i_t;
   using c_t = typename AnalysisDomainTy::c_t;
+  using db_t = typename AnalysisDomainTy::db_t;
   using mono_container_t = typename AnalysisDomainTy::mono_container_t;
-
-  static_assert(is_cfg_v<c_t, AnalysisDomainTy>,
-                "c_t must implement the CFG interface!");
 
   using ProblemAnalysisDomain = AnalysisDomainTy;
 
 protected:
-  const ProjectIRDB *IRDB;
+  const db_t *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
   const c_t *CF;
   AliasInfoRef<v_t, n_t> PT;
-  std::set<std::string> EntryPoints;
+  std::vector<std::string> EntryPoints;
   [[maybe_unused]] Soundness S = Soundness::Soundy;
 
 public:
@@ -68,11 +66,16 @@ public:
   // a user problem can override the type of configuration to be used, if any
   using ConfigurationTy = HasNoConfigurationType;
 
-  IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+  IntraMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
                    const c_t *CF, AliasInfoRef<v_t, n_t> PT,
-                   std::set<std::string> EntryPoints = {})
+                   std::vector<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
-        EntryPoints(std::move(EntryPoints)) {}
+        EntryPoints(std::move(EntryPoints)) {
+    static_assert(is_cfg_v<c_t, AnalysisDomainTy>,
+                  "c_t must implement the CFG interface!");
+    static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
+                  "db_t must implement the ProjectIRDBBase interface!");
+  }
 
   ~IntraMonoProblem() override = default;
 
@@ -88,11 +91,11 @@ public:
 
   virtual std::unordered_map<n_t, mono_container_t> initialSeeds() = 0;
 
-  [[nodiscard]] std::set<std::string> getEntryPoints() const {
+  [[nodiscard]] const std::vector<std::string> &getEntryPoints() const {
     return EntryPoints;
   }
 
-  [[nodiscard]] const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const db_t *getProjectIRDB() const { return IRDB; }
 
   [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
     return TH;

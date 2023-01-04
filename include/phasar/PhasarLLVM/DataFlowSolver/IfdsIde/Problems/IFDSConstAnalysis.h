@@ -11,7 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <map>
@@ -44,16 +44,10 @@ class LLVMTypeHierarchy;
  */
 class IFDSConstAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
-private:
-  // Holds all allocated memory locations, including global variables
-  std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
-  // Holds all initialized variables and objects.
-  std::set<d_t> Initialized;
 
 public:
-  IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                    std::set<std::string> EntryPoints = {"main"});
+  IFDSConstAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
+                    std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;
 
@@ -146,7 +140,7 @@ public:
   /**
    * @brief Returns appropriate zero value.
    */
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -214,6 +208,13 @@ public:
    */ // clang-format on
   static std::set<d_t> getContextRelevantAliasSet(std::set<d_t> &AliasSet,
                                                   f_t Context);
+
+private:
+  LLVMAliasInfoRef PT{};
+  // Holds all allocated memory locations, including global variables
+  std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
+  // Holds all initialized variables and objects.
+  std::set<d_t> Initialized;
 };
 
 } // namespace psr

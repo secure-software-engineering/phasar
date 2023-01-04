@@ -1,7 +1,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -26,7 +26,7 @@ protected:
   const std::string PathToLlFiles = PhasarConfig::PhasarDirectory() +
                                     "build/test/llvm_test_code/llvmIRtoSrc/";
 
-  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMAliasSet> PT;
   unique_ptr<LLVMBasedICFG> ICFG;
@@ -34,10 +34,10 @@ protected:
   LLVMIRToSrcTest() = default;
   ~LLVMIRToSrcTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  void initialize(const llvm::Twine &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMAliasSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(IRDB.get());
     auto EntryPoints = {"main"s};
     ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
                                       EntryPoints, TH.get(), PT.get());

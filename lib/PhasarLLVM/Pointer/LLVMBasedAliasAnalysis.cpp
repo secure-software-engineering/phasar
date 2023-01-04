@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 
 #include "llvm/ADT/SetVector.h"
@@ -28,7 +28,6 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
-#include "llvm/Support/raw_ostream.h"
 
 using namespace psr;
 
@@ -106,7 +105,7 @@ void LLVMBasedAliasAnalysis::clear() {
   FAM.clear();
 }
 
-LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(ProjectIRDB &IRDB,
+LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
                                                bool UseLazyEvaluation,
                                                AliasAnalysisType PATy)
     : PATy(PATy) {
@@ -128,11 +127,9 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(ProjectIRDB &IRDB,
   // Always verify the input.
   FPM.addPass(llvm::VerifierPass());
   if (!UseLazyEvaluation) {
-    for (llvm::Module *M : IRDB.getAllModules()) {
-      for (auto &F : *M) {
-        if (!F.isDeclaration()) {
-          computeAliasInfo(F);
-        }
+    for (auto &F : *IRDB.getModule()) {
+      if (!F.isDeclaration()) {
+        computeAliasInfo(F);
       }
     }
   }

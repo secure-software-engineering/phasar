@@ -5,13 +5,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSFIELDSENSTAINTANALYSIS_H
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -32,9 +30,6 @@ class StructType;
 
 namespace psr {
 
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-
 struct IFDSFieldSensTaintAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
   using d_t = ExtendedValue;
 };
@@ -44,11 +39,10 @@ class IFDSFieldSensTaintAnalysis
 public:
   using ConfigurationTy = TaintConfig;
 
-  IFDSFieldSensTaintAnalysis(const ProjectIRDB *IRDB,
-                             const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                             const TaintConfig &TaintConfig,
-                             std::set<std::string> EntryPoints = {"main"});
+  IFDSFieldSensTaintAnalysis(const LLVMProjectIRDB *IRDB,
+                             const TaintConfig *TaintConfig,
+                             std::vector<std::string> EntryPoints = {"main"});
+
   ~IFDSFieldSensTaintAnalysis() override = default;
 
   FlowFunctionPtrType
@@ -82,13 +76,13 @@ public:
                                      BinaryDomain> &SolverResults,
                  llvm::raw_ostream &OS = llvm::outs()) override;
 
-  [[nodiscard]] ExtendedValue createZeroValue() const override {
+  [[nodiscard]] ExtendedValue createZeroValue() const {
     // create a special value to represent the zero value!
     return ExtendedValue(LLVMZeroValue::getInstance());
   }
 
   [[nodiscard]] bool isZeroValue(ExtendedValue EV) const override {
-    return LLVMZeroValue::getInstance()->isLLVMZeroValue(EV.getValue());
+    return LLVMZeroValue::isLLVMZeroValue(EV.getValue());
   }
 
   void printNode(llvm::raw_ostream &OS,
@@ -121,9 +115,9 @@ public:
   }
 
 private:
-  const TaintConfig &Config;
+  const TaintConfig *Config{};
 
-  TraceStats Stats;
+  TraceStats Stats{};
 };
 
 } // namespace psr

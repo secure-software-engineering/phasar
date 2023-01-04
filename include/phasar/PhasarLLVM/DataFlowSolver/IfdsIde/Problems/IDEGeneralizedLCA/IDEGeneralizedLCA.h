@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/Printer.h"
 
 #include <map>
@@ -28,16 +28,10 @@ namespace psr {
 /// increase precision.
 
 struct IDEGeneralizedLCADomain : LLVMAnalysisDomainDefault {
-  using l_t = EdgeValueSet;
+  using l_t = glca::EdgeValueSet;
 };
 
-// Forward declare the IDETabulationProblem as we require its toString
-// functionality.
-template <typename AnalysisDomainTy, typename Container>
-class IDETabulationProblem;
-
 class IDEGeneralizedLCA : public IDETabulationProblem<IDEGeneralizedLCADomain> {
-  size_t MaxSetSize;
 
 public:
   using d_t = typename IDEGeneralizedLCADomain::d_t;
@@ -59,12 +53,8 @@ public:
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
 
-  IDEGeneralizedLCA(
-      const ProjectIRDB *IRDB,
-      const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
-      const LLVMBasedICFG *ICF,
-      AliasInfoRef<const llvm::Value *, const llvm::Instruction *> PT,
-      std::set<std::string> EntryPoints, size_t MaxSetSize);
+  IDEGeneralizedLCA(const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+                    std::vector<std::string> EntryPoints, size_t MaxSetSize);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t Curr,
                                                            n_t Succ) override;
@@ -86,7 +76,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -138,6 +128,9 @@ public:
   lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
 private:
+  const LLVMBasedICFG *ICF{};
+  size_t MaxSetSize;
+
   void stripBottomResults(std::unordered_map<d_t, l_t> &Res);
   [[nodiscard]] bool isEntryPoint(const std::string &Name) const;
   template <typename V> std::string VtoString(V Val); // NOLINT

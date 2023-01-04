@@ -1,5 +1,7 @@
 #include "phasar/Utils/IO.h"
 
+#include "llvm/ADT/Twine.h"
+
 #include "../TestUtils/TestConfig.h"
 #include "gtest/gtest.h"
 

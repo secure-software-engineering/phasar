@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
@@ -47,20 +47,20 @@ using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
 class IDETaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLLFiles = unittest::PathToLLTestFiles + "xtaint/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   IDETaintAnalysisTest() = default;
   ~IDETaintAnalysisTest() override = default;
 
-  void doAnalysis(const std::vector<std::string> &IRFiles,
+  void doAnalysis(const llvm::Twine &IRFile,
                   const map<int, set<string>> &GroundTruth,
                   std::variant<std::monostate, json *, CallBackPairTy> Config,
                   bool DumpResults = false) {
-    ProjectIRDB IRDB(IRFiles, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(IRFile);
 
     LLVMTypeHierarchy TH(IRDB);
     // llvm::errs() << "TH: " << TH << '\n';
-    LLVMAliasSet PT(IRDB);
+    LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(
         &IRDB, CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
@@ -79,10 +79,9 @@ protected:
                               }},
                    Config);
 
-    IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &TH, &ICFG, &PT, TC,
-                                            EntryPoints);
+    IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &ICFG, &PT, TC, EntryPoints);
 
-    IDESolver_P<IDEExtendedTaintAnalysis<>> Solver(TaintProblem);
+    IDESolver Solver(TaintProblem, &ICFG);
     Solver.solve();
     // Solver.printAnnotatedIR();
     if (DumpResults) {
@@ -103,7 +102,8 @@ protected:
                       const map<int, set<string>> &GroundTruth) {
 
     map<int, set<string>> FoundLeaks;
-    for (const auto &Leak : TaintProblem.getAllLeaks(Solver)) {
+    for (const auto &Leak :
+         TaintProblem.getAllLeaks(Solver.getSolverResults())) {
       llvm::errs() << "Leak: " << PrettyPrinter{Leak} << '\n';
       int SinkId = stoi(getMetaDataID(Leak.first));
       set<string> LeakedValueIds;

@@ -12,8 +12,6 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <string>
-
 namespace psr {
 
 std::string toString(const AnalysisStrategy &S) {
@@ -29,7 +27,7 @@ std::string toString(const AnalysisStrategy &S) {
   }
 }
 
-AnalysisStrategy toAnalysisStrategy(const std::string &S) {
+AnalysisStrategy toAnalysisStrategy(llvm::StringRef S) {
   AnalysisStrategy Type = llvm::StringSwitch<AnalysisStrategy>(S)
 #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, DESC)                           \
   .Case(#NAME, AnalysisStrategy::NAME)
@@ -45,8 +43,7 @@ AnalysisStrategy toAnalysisStrategy(const std::string &S) {
   return Type;
 }
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const AnalysisStrategy &S) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AnalysisStrategy S) {
   return OS << toString(S);
 }
 

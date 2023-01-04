@@ -10,7 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
@@ -38,24 +38,24 @@ protected:
 
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB = nullptr;
+  LLVMProjectIRDB *IRDB = nullptr;
 
   void SetUp() override {}
 
   void TearDown() override { delete IRDB; }
 
-  void doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+  void doAnalysisAndCompareResults(llvm::StringRef LlvmFilePath,
                                    const CompactResults_t & /*GroundTruth*/,
                                    bool PrintDump = false) {
-    IRDB = new ProjectIRDB({PathToLLFiles + LlvmFilePath});
+    IRDB = new LLVMProjectIRDB(PathToLLFiles + LlvmFilePath);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR();
+      IRDB->dump();
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto PT = LLVMAliasSet(*IRDB);
+    auto PT = LLVMAliasSet(IRDB);
     LLVMBasedCFG CFG;
     IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, &PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);

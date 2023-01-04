@@ -10,7 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
@@ -37,28 +37,27 @@ class InterMonoFullConstantPropagationTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
       unittest::PathToLLTestFiles + "full_constant/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   using IMFCPCompactResult_t =
       std::tuple<std::string, std::size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>;
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
   void TearDown() override {}
 
   void
-  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+  doAnalysisAndCompareResults(llvm::StringRef LlvmFilePath,
                               const std::set<IMFCPCompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(llvm::outs(), false);
+      IRDB->dump();
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMAliasSet PT(*IRDB);
+    LLVMAliasSet PT(IRDB.get());
     LLVMBasedICFG ICFG(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,

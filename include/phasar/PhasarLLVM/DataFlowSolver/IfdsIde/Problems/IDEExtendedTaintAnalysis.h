@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
@@ -18,16 +18,12 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
@@ -37,19 +33,16 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
-#include <algorithm>
 #include <functional>
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
-#include <unordered_map>
 
 namespace psr {
 
-class ProjectIRDB;
 class LLVMBasedICFG;
+template <typename N, typename D, typename L> class SolverResults;
 
 struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
   using d_t = AbstractMemoryLocation;
@@ -186,19 +179,21 @@ public:
   /// The GetDomTree parameter can be used to inject a custom DominatorTree
   /// analysis or the results from a LLVM pass computing dominator trees
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
-  IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+  IDEExtendedTaintAnalysis(const LLVMProjectIRDB *IRDB,
                            const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                            const TaintConfig *TSF,
-                           std::set<std::string> EntryPoints, unsigned Bound,
+                           std::vector<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
-      : base_t(IRDB, TH, ICF, PT, std::move(EntryPoints)), AnalysisBase(TSF),
-        BBO(std::forward<GetDomTree>(GDT)),
+      : base_t(IRDB, std::move(EntryPoints), std::nullopt), AnalysisBase(TSF),
+        PT(PT), ICF(ICF), BBO(std::forward<GetDomTree>(GDT)),
         FactFactory(IRDB->getNumInstructions()),
-        DL((*IRDB->getAllModules().begin())->getDataLayout()), Bound(Bound),
+        DL(IRDB->getModule()->getDataLayout()), Bound(Bound),
         PostProcessed(DisableStrongUpdates),
         DisableStrongUpdates(DisableStrongUpdates) {
-    base_t::ZeroValue = IDEExtendedTaintAnalysis::createZeroValue();
+    assert(PT);
+    assert(ICF != nullptr);
+    initializeZeroValue(createZeroValue());
 
     FactFactory.setDataLayout(DL);
 
@@ -250,7 +245,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -278,6 +273,9 @@ public:
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:
+  LLVMAliasInfoRef PT{};
+  const LLVMBasedICFG *ICF{};
+
   /// Save all leaks here that were found using the IFDS part if the analysis.
   /// Hence, this map may contain sanitized facts.
   XTaint::LeakMap_t Leaks;
@@ -310,14 +308,13 @@ public:
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  const LeakMap_t &
-  getAllLeaks(IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) &;
+  const LeakMap_t &getAllLeaks(const SolverResults<n_t, d_t, l_t> &SR) &;
 
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  LeakMap_t getAllLeaks(IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) &&;
+  LeakMap_t getAllLeaks(const SolverResults<n_t, d_t, l_t> &SR) &&;
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may or may not be sanitized.
   ///
@@ -344,14 +341,14 @@ template <unsigned BOUND = 3, bool USE_STRONG_UPDATES = true>
 class IDEExtendedTaintAnalysis : public XTaint::IDEExtendedTaintAnalysis {
 public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
-  IDEExtendedTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+  IDEExtendedTaintAnalysis(const LLVMProjectIRDB *IRDB,
                            const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
                            const TaintConfig &TSF,
-                           std::set<std::string> EntryPoints = {},
+                           std::vector<std::string> EntryPoints = {},
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
-      : XTaint::IDEExtendedTaintAnalysis(IRDB, TH, ICF, PT, &TSF, EntryPoints,
-                                         BOUND, !USE_STRONG_UPDATES,
-                                         std::forward<GetDomTree>(GDT)) {}
+      : XTaint::IDEExtendedTaintAnalysis(
+            IRDB, ICF, PT, &TSF, std::move(EntryPoints), BOUND,
+            !USE_STRONG_UPDATES, std::forward<GetDomTree>(GDT)) {}
 
   using ConfigurationTy = TaintConfig;
 };

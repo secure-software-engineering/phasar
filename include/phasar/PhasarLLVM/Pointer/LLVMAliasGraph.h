@@ -124,7 +124,7 @@ public:
    * considered.
    */
   explicit LLVMAliasGraph(
-      ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+      LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
       AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
   /**

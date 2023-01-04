@@ -9,9 +9,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -35,9 +33,9 @@
 
 using namespace psr;
 
-OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
+OTFResolver::OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
                          LLVMBasedICFG &ICF, LLVMAliasInfoRef PT)
-    : CHAResolver(IRDB, TH), ICF(ICF), PT(PT) {}
+    : Resolver(IRDB, TH), ICF(ICF), PT(PT) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 

@@ -9,11 +9,8 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
@@ -23,18 +20,11 @@
 
 #include <utility>
 
-using namespace std;
-using namespace psr;
-
 namespace psr {
 
-IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB,
-                               const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                               std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IFDSSolverTest::ZeroValue = IFDSSolverTest::createZeroValue();
-}
+IFDSSolverTest::IFDSSolverTest(const LLVMProjectIRDB *IRDB,
+                               std::vector<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t /*Curr*/,
@@ -73,7 +63,7 @@ IFDSSolverTest::initialSeeds() {
   InitialSeeds<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
   }
   return Seeds;

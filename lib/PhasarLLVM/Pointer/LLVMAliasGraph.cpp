@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasGraph.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -134,7 +134,7 @@ std::string LLVMAliasGraph::EdgeProperties::getValueAsString() const {
 
 // points-to graph stuff
 
-LLVMAliasGraph::LLVMAliasGraph(ProjectIRDB &IRDB, bool UseLazyEvaluation,
+LLVMAliasGraph::LLVMAliasGraph(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
                                AliasAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy) {}
 

@@ -9,13 +9,9 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -30,19 +26,11 @@
 
 #include <utility>
 
-using namespace std;
-using namespace psr;
-
 namespace psr {
 
 IFDSUninitializedVariables::IFDSUninitializedVariables(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-    std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IFDSUninitializedVariables::ZeroValue =
-      IFDSUninitializedVariables::createZeroValue();
-}
+    const LLVMProjectIRDB *IRDB, std::vector<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSUninitializedVariables::FlowFunctionPtrType
 IFDSUninitializedVariables::getNormalFlowFunction(
@@ -110,14 +98,14 @@ IFDSUninitializedVariables::getNormalFlowFunction(
       // const llvm::Value *pointerop;
       const llvm::StoreInst *Store;
       const llvm::Value *Zero;
-      map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
-          &UndefValueUses;
+      std::map<IFDSUninitializedVariables::n_t,
+               std::set<IFDSUninitializedVariables::d_t>> &UndefValueUses;
       UVFF(const llvm::StoreInst *S,
-           map<IFDSUninitializedVariables::n_t,
-               set<IFDSUninitializedVariables::d_t>> &UVU,
+           std::map<IFDSUninitializedVariables::n_t,
+                    std::set<IFDSUninitializedVariables::d_t>> &UVU,
            const llvm::Value *Zero)
           : Store(S), Zero(Zero), UndefValueUses(UVU) {}
-      set<IFDSUninitializedVariables::d_t>
+      std::set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
 
         //----------------------------------------------------------------------
@@ -174,13 +162,13 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {Source};
       }
     };
-    return make_shared<UVFF>(Store, UndefValueUses, ZeroValue);
+    return std::make_shared<UVFF>(Store, UndefValueUses, getZeroValue());
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
+    return lambdaFlow<IFDSUninitializedVariables::d_t>(
         [Alloc, this](IFDSUninitializedVariables::d_t Source)
-            -> set<IFDSUninitializedVariables::d_t> {
+            -> std::set<IFDSUninitializedVariables::d_t> {
           if (isZeroValue(Source)) {
             if (Alloc->getAllocatedType()->isIntegerTy() ||
                 Alloc->getAllocatedType()->isFloatingPointTy() ||
@@ -202,13 +190,13 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   // check if some instruction is using an undefined value (in)directly
   struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
     const llvm::Instruction *Inst;
-    map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
-        &UndefValueUses;
+    std::map<IFDSUninitializedVariables::n_t,
+             std::set<IFDSUninitializedVariables::d_t>> &UndefValueUses;
     UVFF(const llvm::Instruction *Inst,
-         map<IFDSUninitializedVariables::n_t,
-             set<IFDSUninitializedVariables::d_t>> &UVU)
+         std::map<IFDSUninitializedVariables::n_t,
+                  std::set<IFDSUninitializedVariables::d_t>> &UVU)
         : Inst(Inst), UndefValueUses(UVU) {}
-    set<IFDSUninitializedVariables::d_t>
+    std::set<IFDSUninitializedVariables::d_t>
     computeTargets(IFDSUninitializedVariables::d_t Source) override {
       for (const auto &Operand : Inst->operands()) {
         const llvm::UndefValue *Undef =
@@ -231,7 +219,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
       return {Source};
     }
   };
-  return make_shared<UVFF>(Curr, UndefValueUses);
+  return std::make_shared<UVFF>(Curr, UndefValueUses);
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -245,8 +233,8 @@ IFDSUninitializedVariables::getCallFlowFunction(
       const llvm::Function *DestFun;
       const llvm::CallBase *CallSite;
       const llvm::Value *Zerovalue;
-      vector<const llvm::Value *> Actuals;
-      vector<const llvm::Value *> Formals;
+      std::vector<const llvm::Value *> Actuals;
+      std::vector<const llvm::Value *> Formals;
       UVFF(const llvm::Function *DM, const llvm::CallBase *CallSite,
            const llvm::Value *ZV)
           : DestFun(DM), CallSite(CallSite), Zerovalue(ZV) {
@@ -263,11 +251,11 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
 
-      set<IFDSUninitializedVariables::d_t>
+      std::set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
         // perform parameter passing
         if (Source != Zerovalue) {
-          set<const llvm::Value *> Res;
+          std::set<const llvm::Value *> Res;
           // do the mapping from actual to formal parameters
           // caution: the loop iterates from 0 to formals.size(),
           // rather than actuals.size() as we may have more actual
@@ -312,7 +300,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         return {Source};
       }
     };
-    return make_shared<UVFF>(DestFun, CS, ZeroValue);
+    return std::make_shared<UVFF>(DestFun, CS, getZeroValue());
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -331,10 +319,10 @@ IFDSUninitializedVariables::getRetFlowFunction(
       const llvm::Instruction *Exit;
       UVFF(const llvm::CallBase *C, const llvm::Instruction *E)
           : Call(C), Exit(E) {}
-      set<IFDSUninitializedVariables::d_t>
+      std::set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
         // check if we return an uninitialized value
-        set<IFDSUninitializedVariables::d_t> Ret;
+        std::set<IFDSUninitializedVariables::d_t> Ret;
         if (Exit->getNumOperands() > 0 && Exit->getOperand(0) == Source) {
           Ret.insert(Call);
         }
@@ -356,10 +344,10 @@ IFDSUninitializedVariables::getRetFlowFunction(
         return Ret;
       }
     };
-    return make_shared<UVFF>(CS, ExitStmt);
+    return std::make_shared<UVFF>(CS, ExitStmt);
   }
   // kill everything else
-  return KillAll<IFDSUninitializedVariables::d_t>::getInstance();
+  return killAllFlows<d_t>();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -371,9 +359,9 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
-    return makeLambdaFlow<IFDSUninitializedVariables::d_t>(
+    return lambdaFlow<IFDSUninitializedVariables::d_t>(
         [CS](IFDSUninitializedVariables::d_t Source)
-            -> set<IFDSUninitializedVariables::d_t> {
+            -> std::set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
             for (const auto &Arg : CS->args()) {
               if (Arg.get() == Source) {
@@ -405,7 +393,7 @@ IFDSUninitializedVariables::initialSeeds() {
                IFDSUninitializedVariables::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
   }
   return Seeds;
@@ -420,7 +408,7 @@ IFDSUninitializedVariables::createZeroValue() const {
 
 bool IFDSUninitializedVariables::isZeroValue(
     IFDSUninitializedVariables::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSUninitializedVariables::printNode(

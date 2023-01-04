@@ -1,5 +1,5 @@
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -13,11 +13,10 @@ using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_9_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/virtual_call_9_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
-  LLVMAliasSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooD = IRDB.getFunctionDefinition("_ZN1D3fooEv");
@@ -40,11 +39,10 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
 }
 
 TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/virtual_call_3_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/virtual_call_3_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
-  LLVMAliasSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *AptrFoo = IRDB.getFunctionDefinition("_ZN5AImpl3fooEv");
@@ -61,11 +59,10 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
 }
 
 TEST(LLVMBasedICFG_RTATest, StaticCallSite_13) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "call_graphs/static_callsite_13_cpp.ll"},
-      IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/static_callsite_13_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
-  LLVMAliasSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Vfunc = IRDB.getFunctionDefinition("_Z5VfuncP1A");

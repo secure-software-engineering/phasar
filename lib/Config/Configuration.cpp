@@ -19,10 +19,10 @@
 #include "phasar/Config/Version.h"
 #include "phasar/Utils/IO.h"
 
+#include "llvm/ADT/Twine.h"
+
 #include "boost/algorithm/string/classification.hpp"
 #include "boost/algorithm/string/split.hpp"
-
-#include <fstream>
 
 using namespace psr;
 

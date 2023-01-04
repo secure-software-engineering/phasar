@@ -13,9 +13,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Value.h"
 
-namespace psr {
-
-bool isConstant(const llvm::Value *Val) {
+bool psr::glca::isConstant(const llvm::Value *Val) {
   // is constantInt, constantFP or constant string
   if (llvm::isa<llvm::ConstantInt>(Val)) { // const int
     return true;
@@ -42,5 +40,3 @@ bool isConstant(const llvm::Value *Val) {
   }
   return false;
 }
-
-} // namespace psr

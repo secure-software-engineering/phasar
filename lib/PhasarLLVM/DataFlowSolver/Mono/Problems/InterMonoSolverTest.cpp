@@ -24,11 +24,11 @@
 
 namespace psr {
 
-InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
+InterMonoSolverTest::InterMonoSolverTest(const LLVMProjectIRDB *IRDB,
                                          const LLVMTypeHierarchy *TH,
                                          const LLVMBasedICFG *ICF,
                                          LLVMAliasInfoRef PT,
-                                         std::set<std::string> EntryPoints)
+                                         std::vector<std::string> EntryPoints)
     : InterMonoProblem<InterMonoSolverTestDomain>(IRDB, TH, ICF, PT,
                                                   std::move(EntryPoints)) {}
 

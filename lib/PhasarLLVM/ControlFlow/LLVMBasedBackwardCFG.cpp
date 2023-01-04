@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 
 #include "llvm/IR/Instructions.h"
 
@@ -17,7 +17,7 @@ namespace psr {
 
 LLVMBasedBackwardCFG::LLVMBasedBackwardCFG(bool IgnoreDbgInstructions) noexcept
     : detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG>(IgnoreDbgInstructions) {}
-LLVMBasedBackwardCFG::LLVMBasedBackwardCFG(const ProjectIRDB &IRDB,
+LLVMBasedBackwardCFG::LLVMBasedBackwardCFG(const LLVMProjectIRDB &IRDB,
                                            bool IgnoreDbgInstructions)
     : LLVMBasedBackwardCFG(IgnoreDbgInstructions) {
   /// Initialize BackwardRets

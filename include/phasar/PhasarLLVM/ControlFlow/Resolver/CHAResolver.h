@@ -27,7 +27,7 @@ class Function;
 namespace psr {
 class CHAResolver : public Resolver {
 public:
-  CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  CHAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
 
   ~CHAResolver() override = default;
 

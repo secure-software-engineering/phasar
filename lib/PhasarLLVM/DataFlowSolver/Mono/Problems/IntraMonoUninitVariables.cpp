@@ -9,9 +9,8 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -22,7 +21,6 @@
 #include "llvm/IR/Value.h"
 
 #include <algorithm>
-#include <ostream>
 #include <utility>
 
 using namespace std;
@@ -30,9 +28,9 @@ using namespace psr;
 namespace psr {
 
 IntraMonoUninitVariables::IntraMonoUninitVariables(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
-    std::set<std::string> EntryPoints)
+    std::vector<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoUninitVariablesDomain>(IRDB, TH, CF, PT,
                                                        std::move(EntryPoints)) {
 }

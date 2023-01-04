@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
@@ -46,8 +45,9 @@
 #endif
 
 namespace psr {
-class ProjectIRDB;
 class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
+class LLVMProjectIRDB;
 
 class LLVMBasedICFG;
 template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
@@ -82,7 +82,7 @@ public:
   /// \param IncludeGlobals Properly include global constructors/destructors
   /// into the ICFG, if true. Requires to generate artificial functions into the
   /// IRDB. True by default
-  explicit LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
                          LLVMAliasInfoRef PT = nullptr,
@@ -113,7 +113,7 @@ public:
   [[nodiscard]] llvm::ArrayRef<f_t> getAllVertexFunctions() const noexcept;
 
   /// Gets the underlying IRDB
-  [[nodiscard]] ProjectIRDB *getIRDB() const noexcept { return IRDB; }
+  [[nodiscard]] LLVMProjectIRDB *getIRDB() const noexcept { return IRDB; }
 
   using CFGBase::print;
   using ICFGBase::print;
@@ -169,7 +169,7 @@ private:
 
   llvm::SmallVector<const llvm::Function *, 0> VertexFunctions;
 
-  ProjectIRDB *IRDB = nullptr;
+  LLVMProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
 };
 } // namespace psr

@@ -1,7 +1,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
@@ -16,8 +16,8 @@ using namespace psr;
 
 TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "control_flow/branch_cpp.ll");
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Term = getNthTermInstruction(F, 1);
   const auto *A = getNthInstruction(F, 10);
@@ -31,7 +31,7 @@ TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
@@ -58,7 +58,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
@@ -81,7 +81,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
@@ -99,7 +99,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 

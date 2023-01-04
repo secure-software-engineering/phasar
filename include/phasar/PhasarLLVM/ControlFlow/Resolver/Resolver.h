@@ -33,10 +33,11 @@ class StructType;
 } // namespace llvm
 
 namespace psr {
-class ProjectIRDB;
+class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 enum class CallGraphAnalysisType;
 class LLVMBasedICFG;
+class LLVMPointsToInfo;
 
 std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite);
 
@@ -46,10 +47,10 @@ std::string getReceiverTypeName(const llvm::CallBase &CallSite);
 
 class Resolver {
 protected:
-  ProjectIRDB &IRDB;
+  LLVMProjectIRDB &IRDB;
   LLVMTypeHierarchy *TH;
 
-  Resolver(ProjectIRDB &IRDB);
+  Resolver(LLVMProjectIRDB &IRDB);
 
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
@@ -58,7 +59,7 @@ protected:
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
 
-  Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  Resolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
 
   virtual ~Resolver() = default;
 
@@ -78,7 +79,7 @@ public:
   [[nodiscard]] virtual std::string str() const = 0;
 
   static std::unique_ptr<Resolver>
-  create(CallGraphAnalysisType Ty, ProjectIRDB *IRDB, LLVMTypeHierarchy *TH,
+  create(CallGraphAnalysisType Ty, LLVMProjectIRDB *IRDB, LLVMTypeHierarchy *TH,
          LLVMBasedICFG *ICF = nullptr, LLVMAliasInfoRef PT = nullptr);
 };
 } // namespace psr

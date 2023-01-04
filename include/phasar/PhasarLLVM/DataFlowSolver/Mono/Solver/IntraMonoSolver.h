@@ -46,7 +46,7 @@ protected:
   const c_t *CFG;
 
   void initialize() {
-    auto EntryPoints = IMProblem.getEntryPoints();
+    const auto &EntryPoints = IMProblem.getEntryPoints();
     for (const auto &EntryPoint : EntryPoints) {
       auto Function =
           IMProblem.getProjectIRDB()->getFunctionDefinition(EntryPoint);

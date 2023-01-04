@@ -37,9 +37,7 @@ using namespace psr;
 namespace psr {
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
-GeneralStatistics
-GeneralStatisticsAnalysis::run(llvm::Module &M,
-                               llvm::ModuleAnalysisManager & /*AM*/) {
+GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   PHASAR_LOG_LEVEL(INFO, "Running GeneralStatisticsAnalysis");
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
@@ -205,16 +203,16 @@ size_t GeneralStatistics::getStoreInstructions() const {
   return StoreInstructions;
 }
 
-set<const llvm::Type *> GeneralStatistics::getAllocatedTypes() const {
+const set<const llvm::Type *> &GeneralStatistics::getAllocatedTypes() const {
   return AllocatedTypes;
 }
 
-set<const llvm::Instruction *>
+const set<const llvm::Instruction *> &
 GeneralStatistics::getAllocaInstructions() const {
   return AllocaInstructions;
 }
 
-set<const llvm::Instruction *>
+const set<const llvm::Instruction *> &
 GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
 }

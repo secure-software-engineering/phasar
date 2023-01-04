@@ -35,17 +35,16 @@ class Value;
 
 namespace psr {
 
-class ProjectIRDB;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
-class OTFResolver : public CHAResolver {
+class OTFResolver : public Resolver {
 protected:
   LLVMBasedICFG &ICF;
   LLVMAliasInfoRef PT;
 
 public:
-  OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
+  OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
               LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;

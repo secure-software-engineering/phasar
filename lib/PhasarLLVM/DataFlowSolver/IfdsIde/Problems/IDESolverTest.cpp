@@ -9,13 +9,10 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -31,13 +28,9 @@
 
 namespace psr {
 
-IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
-                             const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                             std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IDETabulationProblem::ZeroValue = IDESolverTest::createZeroValue();
-}
+IDESolverTest::IDESolverTest(const LLVMProjectIRDB *IRDB,
+                             std::vector<std::string> EntryPoints)
+    : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 // start formulating our analysis by specifying the parts required for IFDS
 
@@ -78,7 +71,7 @@ IDESolverTest::initialSeeds() {
   InitialSeeds<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::l_t>
       Seeds;
   for (auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue(), topElement());
   }
   return Seeds;
