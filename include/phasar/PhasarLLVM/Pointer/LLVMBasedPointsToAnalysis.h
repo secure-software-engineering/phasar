@@ -16,7 +16,7 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
 
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+#include "phasar/Pointer/PointsToInfo.h"
 
 namespace llvm {
 class Value;

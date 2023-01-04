@@ -1,6 +1,6 @@
 
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 

@@ -26,16 +26,17 @@ target_link_libraries(phasar-llvm
   LINK_PUBLIC
   phasar_config
   phasar_controller
-  phasar_controlflow
+  phasar_llvm_controlflow
   phasar_phasarllvm_utils
   phasar_analysis_strategy
-  phasar_ifdside
+  phasar_llvm_ifdside
   phasar_utils
   phasar_mono
-  phasar_db
+  phasar_llvm_db
   phasar_passes
-  phasar_pointer
-  phasar_typehierarchy
+  phasar_llvm_pointer
+  phasar_llvm
+  phasar_llvm_typehierarchy
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}

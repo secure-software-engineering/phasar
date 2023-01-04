@@ -17,7 +17,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Domain/BinaryDomain.h"
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, BinaryDomain B) {
   switch (B) {

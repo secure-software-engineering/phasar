@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H
 
-#include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
+#include "phasar/Pointer/PointsToSetOwner.h"
+#include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -34,11 +34,14 @@ class Type;
 namespace psr {
 
 class LLVMProjectIRDB;
+extern template class BoxedPtr<LLVMPointsToInfo::PointsToSetTy>;
+extern template class BoxedConstPtr<LLVMPointsToInfo::PointsToSetTy>;
+extern template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
   using PointsToSetMap =
-      llvm::DenseMap<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>;
+      llvm::DenseMap<const llvm::Value *, BoxedPtr<PointsToSetTy>>;
 
   LLVMBasedPointsToAnalysis PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
@@ -56,8 +59,8 @@ private:
 
   void mergePointsToSets(const llvm::Value *V1, const llvm::Value *V2);
 
-  void mergePointsToSets(DynamicPointsToSetPtr<PointsToSetTy> PTS1,
-                         DynamicPointsToSetPtr<PointsToSetTy> PTS2);
+  void mergePointsToSets(BoxedPtr<PointsToSetTy> PTS1,
+                         BoxedPtr<PointsToSetTy> PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P);
@@ -71,8 +74,7 @@ private:
   void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
                   const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
 
-  [[nodiscard]] static DynamicPointsToSetPtr<PointsToSetTy>
-  getEmptyPointsToSet();
+  [[nodiscard]] static BoxedPtr<PointsToSetTy> getEmptyPointsToSet();
 
 public:
   /**

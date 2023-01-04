@@ -7,16 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/Config/Configuration.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Pointer/PointerAnalysisType.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
@@ -87,7 +87,7 @@ cl::opt<AnalysisStrategy>
                 cl::values(
 #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, DESC)                           \
   clEnumValN(AnalysisStrategy::NAME, CMDFLAG, DESC),
-#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.def"
+#include "phasar/AnalysisStrategy/Strategies.def"
                     clEnumValN(AnalysisStrategy::None, "none", "none")),
                 cl::init(AnalysisStrategy::WholeProgram), cl::cat(PsrCat),
                 cl::Hidden);
@@ -105,7 +105,7 @@ cl::opt<PointerAnalysisType> PTATypeOpt(
     cl::values(
 #define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                             \
   clEnumValN(PointerAnalysisType::NAME, CMDFLAG, DESC),
-#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.def"
+#include "phasar/Pointer/PointerAnalysisType.def"
         clEnumValN(PointerAnalysisType::Invalid, "invalid", "invalid")),
     cl::init(PointerAnalysisType::CFLAnders), cl::cat(PsrCat));
 cl::alias PTATypeAlias("P", cl::aliasopt(PTATypeOpt),

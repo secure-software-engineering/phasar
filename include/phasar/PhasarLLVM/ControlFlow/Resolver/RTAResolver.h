@@ -19,6 +19,8 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
+#include <vector>
+
 namespace llvm {
 class CallBase;
 class StructType;

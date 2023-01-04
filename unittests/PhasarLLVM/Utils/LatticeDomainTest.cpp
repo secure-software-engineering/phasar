@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include "phasar/Domain/LatticeDomain.h"
 
 using namespace psr;
 

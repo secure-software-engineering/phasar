@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 
 #include <chrono>
 #include <thread>

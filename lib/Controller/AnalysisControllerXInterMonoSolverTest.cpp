@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/InterMonoSolverTest.h"
 
 namespace psr {
 

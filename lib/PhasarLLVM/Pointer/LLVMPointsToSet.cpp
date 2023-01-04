@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
@@ -49,8 +49,8 @@ using namespace std;
 
 namespace psr {
 
-template class DynamicPointsToSetPtr<>;
-template class DynamicPointsToSetConstPtr<>;
+template class BoxedPtr<LLVMPointsToInfo::PointsToSetTy>;
+template class BoxedConstPtr<LLVMPointsToInfo::PointsToSetTy>;
 template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 
 LLVMPointsToSet::LLVMPointsToSet(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
@@ -213,9 +213,8 @@ void LLVMPointsToSet::mergePointsToSets(const llvm::Value *V1,
   mergePointsToSets(SearchV1->second, SearchV2->second);
 }
 
-void LLVMPointsToSet::mergePointsToSets(
-    DynamicPointsToSetPtr<PointsToSetTy> PTS1,
-    DynamicPointsToSetPtr<PointsToSetTy> PTS2) {
+void LLVMPointsToSet::mergePointsToSets(BoxedPtr<PointsToSetTy> PTS1,
+                                        BoxedPtr<PointsToSetTy> PTS2) {
   if (PTS1 == PTS2 || PTS1.get() == PTS2.get()) {
     return;
   }
@@ -548,8 +547,7 @@ LLVMPointsToSet::alias(const llvm::Value *V1, const llvm::Value *V2,
                                      : AliasResult::NoAlias;
 }
 
-auto LLVMPointsToSet::getEmptyPointsToSet()
-    -> DynamicPointsToSetPtr<PointsToSetTy> {
+auto LLVMPointsToSet::getEmptyPointsToSet() -> BoxedPtr<PointsToSetTy> {
   static PointsToSetTy EmptySet{};
   static PointsToSetTy *EmptySetPtr = &EmptySet;
   return &EmptySetPtr;

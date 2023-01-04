@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOINFO_H_
 
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+#include "phasar/Pointer/PointsToInfo.h"
 
 namespace llvm {
 class Function;

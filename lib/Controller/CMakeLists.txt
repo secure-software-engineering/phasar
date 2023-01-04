@@ -1,12 +1,12 @@
 file(GLOB_RECURSE CONTROLLER_SRC *.h *.cpp)
 
 set(PHASAR_LINK_LIBS
-  phasar_ifdside
+  phasar_llvm_ifdside
   phasar_mono
-  phasar_db
-  phasar_pointer
-  phasar_typehierarchy
-  phasar_controlflow
+  phasar_llvm_db
+  phasar_llvm_pointer
+  phasar_llvm_typehierarchy
+  phasar_llvm_controlflow
   phasar_phasarllvm_utils
   phasar_utils
   phasar_analysis_strategy

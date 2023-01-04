@@ -14,7 +14,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/PhasarLLVM/TypeHierarchy/VFTable.h"
+#include "phasar/TypeHierarchy/VFTable.h"
 
 namespace llvm {
 class Function;

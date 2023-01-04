@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_LLVMANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_LLVMANALYSISDOMAIN_H
 
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
+#include "phasar/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Value;

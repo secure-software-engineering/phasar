@@ -12,11 +12,11 @@
 
 /img @pdschubert
 
-/include/phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h @pdschubert @vulder
-/include/phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/ @fabianbs96
-/include/phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h @fabianbs96
-/lib/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.cpp @fabianbs96
-/lib/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/ @fabianbs96
+/include/phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEInstInteractionAnalysis.h @pdschubert @vulder
+/include/phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/ @fabianbs96
+/include/phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h @fabianbs96
+/lib/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.cpp @fabianbs96
+/lib/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/ @fabianbs96
 
 /include/phasar/PhasarLLVM/AnalysisStrategy/ @pdschubert
 

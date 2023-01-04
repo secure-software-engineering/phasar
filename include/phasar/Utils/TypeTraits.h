@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <variant>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 
 #include "llvm/Support/raw_ostream.h"
 
@@ -176,7 +176,9 @@ constexpr bool is_crtp_base_of_v = // NOLINT
     detail::is_crtp_base_of<Base, Derived>::value;
 
 #if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; }; // NOLINT
+template <typename T> struct type_identity {
+  using type = T;
+}; // NOLINT
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif

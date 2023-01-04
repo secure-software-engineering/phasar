@@ -24,7 +24,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/PointsToSetOwner.h"
+#include "phasar/Pointer/PointsToSetOwner.h"
 
 namespace llvm {
 class Value;
@@ -36,6 +36,9 @@ class Type;
 } // namespace llvm
 
 namespace psr {
+extern template class BoxedPtr<LLVMPointsToInfo::PointsToSetTy>;
+extern template class BoxedConstPtr<LLVMPointsToInfo::PointsToSetTy>;
+extern template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 
 /**
  * 	This class is a representation of a points-to graph. It is possible to
@@ -110,8 +113,7 @@ private:
 
   PointsToSetOwner<PointsToSetTy>::memory_resource_type MRes;
   PointsToSetOwner<PointsToSetTy> Owner{&MRes};
-  std::unordered_map<const llvm::Value *, DynamicPointsToSetPtr<PointsToSetTy>>
-      Cache;
+  std::unordered_map<const llvm::Value *, BoxedPtr<PointsToSetTy>> Cache;
 
   // void mergeGraph(const LLVMPointsToGraph &Other);
 
