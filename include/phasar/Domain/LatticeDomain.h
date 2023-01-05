@@ -101,7 +101,7 @@ inline bool operator==(const LatticeDomain<L> &Lhs, psr::Top /*Rhs*/) noexcept {
 template <
     typename L, typename LL,
     typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
-inline bool operator==(const LL &Lhs, const LatticeDomain<L> Rhs) {
+inline bool operator==(const LL &Lhs, const LatticeDomain<L> &Rhs) {
   if (auto RVal = Rhs.getValueOrNull()) {
     return Lhs == *RVal;
   }
@@ -111,7 +111,7 @@ inline bool operator==(const LL &Lhs, const LatticeDomain<L> Rhs) {
 template <
     typename L, typename LL,
     typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
-inline bool operator==(const LatticeDomain<L> Lhs, const LL &Rhs) {
+inline bool operator==(const LatticeDomain<L> &Lhs, const LL &Rhs) {
   return Rhs == Lhs;
 }
 
@@ -135,8 +135,7 @@ inline bool operator<(const LatticeDomain<L> &Lhs,
     if (auto RhsPtr = Rhs.getValueOrNull()) {
       return *LhsPtr < *RhsPtr;
     }
-  }
-  if (Lhs.isBottom()) {
+  } else if (Lhs.isBottom()) {
     return false;
   }
   if (Rhs.isBottom()) {

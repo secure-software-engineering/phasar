@@ -54,9 +54,9 @@ public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
 
 protected:
-  const db_t *IRDB;
+  const ProjectIRDBBase<db_t> *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
-  const c_t *CF;
+  const CFGBase<c_t> *CF;
   const PointsToInfo<v_t, n_t> *PT;
   std::vector<std::string> EntryPoints;
   [[maybe_unused]] Soundness S = Soundness::Soundy;
@@ -66,16 +66,12 @@ public:
   // a user problem can override the type of configuration to be used, if any
   using ConfigurationTy = HasNoConfigurationType;
 
-  IntraMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
-                   const c_t *CF, const PointsToInfo<v_t, n_t> *PT,
+  IntraMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
+                   const TypeHierarchy<t_t, f_t> *TH, const CFGBase<c_t> *CF,
+                   const PointsToInfo<v_t, n_t> *PT,
                    std::vector<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
-        EntryPoints(std::move(EntryPoints)) {
-    static_assert(is_cfg_v<c_t, AnalysisDomainTy>,
-                  "c_t must implement the CFG interface!");
-    static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
-                  "db_t must implement the ProjectIRDBBase interface!");
-  }
+        EntryPoints(std::move(EntryPoints)) {}
 
   virtual ~IntraMonoProblem() = default;
 
@@ -95,13 +91,15 @@ public:
     return EntryPoints;
   }
 
-  [[nodiscard]] const db_t *getProjectIRDB() const { return IRDB; }
+  [[nodiscard]] const ProjectIRDBBase<db_t> *getProjectIRDB() const {
+    return IRDB;
+  }
 
   [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
     return TH;
   }
 
-  [[nodiscard]] const c_t *getCFG() const { return CF; }
+  [[nodiscard]] const CFGBase<c_t> *getCFG() const { return CF; }
 
   [[nodiscard]] const PointsToInfo<v_t, n_t> *getPointstoInfo() const {
     return PT;

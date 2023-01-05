@@ -23,9 +23,8 @@
 #include <utility>
 #include <vector>
 
-#include "phasar/PhasarLLVM/DataFlow/Mono/Contexts/CallStringCTX.h"
-#include "phasar/PhasarLLVM/DataFlow/Mono/InterMonoProblem.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/DataFlow/Mono/Contexts/CallStringCTX.h"
+#include "phasar/DataFlow/Mono/InterMonoProblem.h"
 
 namespace psr {
 
@@ -86,8 +85,8 @@ protected:
   void printWorkList() {
     llvm::outs() << "CURRENT WORKLIST:\n";
     for (auto &[Src, Dst] : Worklist) {
-      llvm::outs() << llvmIRToString(Src) << " --> " << llvmIRToString(Dst)
-                   << '\n';
+      llvm::outs() << IMProblem.NtoString(Src) << " --> "
+                   << IMProblem.NtoString(Dst) << '\n';
     }
     llvm::outs() << "-----------------\n";
   }
@@ -179,8 +178,8 @@ public:
     llvm::outs() << "Handle normal flow\n";
     auto Src = Edge.first;
     auto Dst = Edge.second;
-    llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
-    llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
+    llvm::outs() << "Src: " << IMProblem.NtoString(Src) << '\n';
+    llvm::outs() << "Dst: " << IMProblem.NtoString(Dst) << '\n';
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
     for (auto &[Ctx, Facts] : Analysis[Src]) {
       Out[Ctx] = IMProblem.normalFlow(Src, Analysis[Src][Ctx]);
@@ -225,8 +224,8 @@ public:
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
     if (!isIntraEdge(Edge)) {
       llvm::outs() << "Handle call flow\n";
-      llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
-      llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
+      llvm::outs() << "Src: " << IMProblem.NtoString(Src) << '\n';
+      llvm::outs() << "Dst: " << IMProblem.NtoString(Dst) << '\n';
       for (auto &[Ctx, Facts] : Analysis[Src]) {
         auto CTXAdd(Ctx);
         CTXAdd.push_back(Src);
@@ -254,8 +253,8 @@ public:
     } else {
       // Handle call-to-ret flow
       llvm::outs() << "Handle call to ret flow\n";
-      llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
-      llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
+      llvm::outs() << "Src: " << IMProblem.NtoString(Src) << '\n';
+      llvm::outs() << "Dst: " << IMProblem.NtoString(Dst) << '\n';
       for (auto &[Ctx, Facts] : Analysis[Src]) {
         // call-to-ret flow does not modify contexts
         Out[Ctx] = IMProblem.callToRetFlow(
@@ -289,11 +288,11 @@ public:
     std::unordered_map<CallStringCTX<n_t, K>, mono_container_t> Out;
     llvm::outs() << "\nHandle ret flow in: "
                  << ICF->getFunctionName(ICF->getFunctionOf(Src)) << '\n';
-    llvm::outs() << "Src: " << llvmIRToString(Src) << '\n';
-    llvm::outs() << "Dst: " << llvmIRToString(Dst) << '\n';
+    llvm::outs() << "Src: " << IMProblem.NtoString(Src) << '\n';
+    llvm::outs() << "Dst: " << IMProblem.NtoString(Dst) << '\n';
     for (auto &[Ctx, Facts] : Analysis[Src]) {
       auto CTXRm(Ctx);
-      llvm::outs() << "CTXRm: " << CTXRm << '\n';
+      CTXRm.print(llvm::outs() << "CTXRm: ", IMProblem) << '\n';
       // we need to use several call- and retsites if the context is empty
       llvm::SmallVector<n_t> CallSites;
 
@@ -320,7 +319,7 @@ public:
       // TODO!
       llvm::outs() << "ResSites.size(): " << RetSites.size() << '\n';
       for (auto RetSite : RetSites) {
-        llvm::outs() << "RetSite: " << llvmIRToString(RetSite) << '\n';
+        llvm::outs() << "RetSite: " << IMProblem.NtoString(RetSite) << '\n';
         llvm::outs() << "Return facts: ";
         IMProblem.printContainer(llvm::outs(), Out[CTXRm]);
         llvm::outs() << '\n';
@@ -403,18 +402,18 @@ public:
   virtual void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
     OS << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
     for (auto &[Node, ContextMap] : this->Analysis) {
-      OS << "Instruction:\n" << this->IMProblem.NtoString(Node);
+      OS << "Instruction:\n" << IMProblem.NtoString(Node);
       OS << "\nFacts:\n";
       if (ContextMap.empty()) {
         OS << "\tEMPTY\n";
       } else {
         for (auto &[Context, FlowFacts] : ContextMap) {
-          OS << Context << '\n';
+          Context.print(OS, IMProblem) << '\n';
           if (FlowFacts.empty()) {
             OS << "\tEMPTY\n";
           } else {
             for (auto FlowFact : FlowFacts) {
-              OS << this->IMProblem.DtoString(FlowFact);
+              OS << IMProblem.DtoString(FlowFact);
             }
           }
         }

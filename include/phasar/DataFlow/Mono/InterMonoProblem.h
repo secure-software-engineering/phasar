@@ -18,7 +18,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTERMONOPROBLEM_H
 
 #include "phasar/ControlFlow/ICFGBase.h"
-#include "phasar/PhasarLLVM/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 #include <set>
@@ -47,15 +47,14 @@ protected:
   const i_t *ICF;
 
 public:
-  InterMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
-                   const i_t *ICF, const PointsToInfo<v_t, n_t> *PT,
+  InterMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
+                   const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
+                   const PointsToInfo<v_t, n_t> *PT,
                    std::vector<std::string> EntryPoints = {})
       : IntraMonoProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints),
         ICF(ICF) {
     static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
                   "Type parameter i_t must implement the ICFG interface!");
-    static_assert(std::is_base_of_v<ProjectIRDBBase<db_t>, db_t>,
-                  "db_t must implement the ProjectIRDBBase interface!");
   }
 
   ~InterMonoProblem() override = default;

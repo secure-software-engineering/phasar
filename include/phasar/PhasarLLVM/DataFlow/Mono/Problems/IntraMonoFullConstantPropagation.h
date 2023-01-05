@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
 
+#include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
-#include "phasar/PhasarLLVM/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 

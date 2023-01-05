@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOSOLVERTEST_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOSOLVERTEST_H
 
-#include "phasar/PhasarLLVM/DataFlow/Mono/InterMonoProblem.h"
+#include "phasar/DataFlow/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 

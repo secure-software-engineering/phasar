@@ -9,9 +9,9 @@
 
 #include <memory>
 
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
@@ -32,7 +32,7 @@ protected:
       "build/test/llvm_test_code/openssl/key_derivation/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
   unique_ptr<LLVMPointsToInfo> PT;
@@ -53,28 +53,26 @@ protected:
   IDETSAnalysisOpenSSLEVPKDFTest() = default;
   ~IDETSAnalysisOpenSSLEVPKDFTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  void initialize(const std::string &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
+    ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
                                       EntryPoints, TH.get(), PT.get());
 
     OpenSSLEVPKDFDesc = make_unique<OpenSSLEVPKDFDescription>();
     TSKDFProblem = make_unique<IDETypeStateAnalysis>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *OpenSSLEVPKDFDesc,
-        EntryPoints);
-    KdfSolver =
-        make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSKDFProblem);
+        IRDB.get(), PT.get(), OpenSSLEVPKDFDesc.get(), EntryPoints);
+    KdfSolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
+        *TSKDFProblem, ICFG.get());
 
     OpenSSLEVPKeyDerivationDesc =
         make_unique<OpenSSLEVPKDFCTXDescription>(*KdfSolver);
     TSProblem = make_unique<IDETypeStateAnalysis>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(),
-        *OpenSSLEVPKeyDerivationDesc, EntryPoints);
+        IRDB.get(), PT.get(), OpenSSLEVPKeyDerivationDesc.get(), EntryPoints);
 
-    Llvmtssolver =
-        make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSProblem);
+    Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
+        *TSProblem, ICFG.get());
     KdfSolver->solve();
     Llvmtssolver->solve();
   }

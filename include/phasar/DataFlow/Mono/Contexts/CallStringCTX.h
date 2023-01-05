@@ -6,14 +6,17 @@
 #include <initializer_list>
 
 #include "boost/functional/hash.hpp"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "phasar/Utils/Printer.h"
+
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 
 template <typename N, unsigned K> class CallStringCTX {
 protected:
   std::deque<N> CallString;
-  static const unsigned KLimit = K;
+  static constexpr unsigned KLimit = K;
   friend struct std::hash<psr::CallStringCTX<N, K>>;
 
 public:
@@ -65,21 +68,16 @@ public:
     return Lhs.cs < Rhs.cs;
   }
 
-  void print(llvm::raw_ostream &OS) const {
+  llvm::raw_ostream &print(llvm::raw_ostream &OS,
+                           const NodePrinterBase<N> &NP) const {
     OS << "Call string: [ ";
     for (auto C : CallString) {
-      OS << llvmIRToString(C);
+      NP.printNode(OS, C);
       if (C != CallString.back()) {
         OS << " * ";
       }
     }
-    OS << " ]";
-  }
-
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const CallStringCTX<N, K> &C) {
-    C.print(OS);
-    return OS;
+    return OS << " ]";
   }
 
   [[nodiscard]] bool empty() const { return CallString.empty(); }

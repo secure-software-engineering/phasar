@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include "phasar/PhasarLLVM/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 namespace psr {
@@ -43,7 +43,7 @@ protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<n_t, n_t>> Worklist;
   std::unordered_map<n_t, mono_container_t> Analysis;
-  const c_t *CFG;
+  const CFGBase<c_t> *CFG;
 
   void initialize() {
     const auto &EntryPoints = IMProblem.getEntryPoints();

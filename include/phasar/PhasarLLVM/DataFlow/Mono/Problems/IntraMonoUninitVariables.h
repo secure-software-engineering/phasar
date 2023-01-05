@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOUNINITVARIABLES_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOUNINITVARIABLES_H
 
-#include "phasar/PhasarLLVM/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include <set>

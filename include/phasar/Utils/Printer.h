@@ -26,25 +26,28 @@ std::string toStringBuilder(void (P::*Printer)(llvm::raw_ostream &, T) const,
   return Buffer;
 }
 
-template <typename AnalysisDomainTy> struct NodePrinter {
-  using n_t = typename AnalysisDomainTy::n_t;
+template <typename N> struct NodePrinterBase {
 
-  virtual void printNode(llvm::raw_ostream &OS, n_t Stmt) const = 0;
+  virtual void printNode(llvm::raw_ostream &OS, N Stmt) const = 0;
 
-  [[nodiscard]] std::string NtoString(n_t Stmt) const { // NOLINT
-    return toStringBuilder(&NodePrinter::printNode, this, Stmt);
+  [[nodiscard]] std::string NtoString(N Stmt) const { // NOLINT
+    return toStringBuilder(&NodePrinterBase::printNode, this, Stmt);
   }
 };
+template <typename AnalysisDomainTy>
+using NodePrinter = NodePrinterBase<typename AnalysisDomainTy::n_t>;
 
-template <typename AnalysisDomainTy> struct DataFlowFactPrinter {
-  using d_t = typename AnalysisDomainTy::d_t;
+template <typename D> struct DataFlowFactPrinterBase {
+  virtual void printDataFlowFact(llvm::raw_ostream &OS, D Fact) const = 0;
 
-  virtual void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const = 0;
-
-  [[nodiscard]] std::string DtoString(d_t Fact) const { // NOLINT
-    return toStringBuilder(&DataFlowFactPrinter::printDataFlowFact, this, Fact);
+  [[nodiscard]] std::string DtoString(D Fact) const { // NOLINT
+    return toStringBuilder(&DataFlowFactPrinterBase::printDataFlowFact, this,
+                           Fact);
   }
 };
+template <typename AnalysisDomainTy>
+using DataFlowFactPrinter =
+    DataFlowFactPrinterBase<typename AnalysisDomainTy::d_t>;
 
 template <typename V> struct ValuePrinter {
   virtual void printValue(llvm::raw_ostream &OS, V Val) const = 0;

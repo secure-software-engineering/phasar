@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
 
+#include "phasar/DataFlow/Mono/InterMonoProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
-#include "phasar/PhasarLLVM/DataFlow/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
