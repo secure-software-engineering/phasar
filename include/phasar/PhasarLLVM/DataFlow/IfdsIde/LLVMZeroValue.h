@@ -34,9 +34,9 @@ namespace psr {
  */
 class LLVMZeroValue : public llvm::GlobalVariable {
 private:
-  LLVMZeroValue(llvm::Module &Mod); // NOLINT(modernize-use-equals-delete)
+  LLVMZeroValue(llvm::Module &Mod);
 
-  static constexpr auto LLVMZeroValueInternalName = "zero_value";
+  static constexpr llvm::StringLiteral LLVMZeroValueInternalName = "zero_value";
 
 public:
   LLVMZeroValue(const LLVMZeroValue &Z) = delete;
@@ -45,7 +45,7 @@ public:
   LLVMZeroValue &operator=(LLVMZeroValue &&Z) = delete;
   ~LLVMZeroValue() = default;
 
-  [[nodiscard]] llvm::StringRef getName() const {
+  [[nodiscard]] llvm::StringRef getName() const noexcept {
     return LLVMZeroValueInternalName;
   }
 

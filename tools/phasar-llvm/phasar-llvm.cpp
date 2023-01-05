@@ -9,9 +9,9 @@
 
 #include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/Config/Configuration.h"
+#include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/Controller/AnalysisController.h"
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
@@ -117,7 +117,7 @@ cl::opt<CallGraphAnalysisType> CGTypeOpt(
     cl::values(
 #define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                          \
   clEnumValN(CallGraphAnalysisType::NAME, CMDFLAG, DESC),
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.def"
+#include "phasar/ControlFlow/CallGraphAnalysisType.def"
         clEnumValN(CallGraphAnalysisType::Invalid, "invalid", "invalid")),
     cl::init(CallGraphAnalysisType::OTF), cl::cat(PsrCat));
 cl::alias CGTypeAlias("C", cl::aliasopt(CGTypeOpt),

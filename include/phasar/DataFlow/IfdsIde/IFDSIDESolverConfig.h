@@ -42,12 +42,6 @@ enum class SolverConfigOptions : uint32_t {
 struct IFDSIDESolverConfig {
   IFDSIDESolverConfig() noexcept = default;
   IFDSIDESolverConfig(SolverConfigOptions Options) noexcept;
-  ~IFDSIDESolverConfig() = default;
-  IFDSIDESolverConfig(const IFDSIDESolverConfig &) noexcept = default;
-  IFDSIDESolverConfig &
-  operator=(const IFDSIDESolverConfig &) noexcept = default;
-  IFDSIDESolverConfig(IFDSIDESolverConfig &&) noexcept = default;
-  IFDSIDESolverConfig &operator=(IFDSIDESolverConfig &&) noexcept = default;
 
   [[nodiscard]] bool followReturnsPastSeeds() const;
   [[nodiscard]] bool autoAddZero() const;

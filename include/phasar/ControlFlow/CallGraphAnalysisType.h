@@ -18,7 +18,7 @@
 namespace psr {
 enum class CallGraphAnalysisType {
 #define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC) NAME,
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.def"
+#include "phasar/ControlFlow/CallGraphAnalysisType.def"
   Invalid
 };
 
