@@ -38,7 +38,7 @@ int main(int Argc, const char **Argv) {
     // print type hierarchy
     HA.getTypeHierarchy().print();
     // print points-to information
-    HA.getPointsToInfo().print();
+    HA.getAliasInfo().print();
     // print inter-procedural control-flow graph
     HA.getICFG().print();
 

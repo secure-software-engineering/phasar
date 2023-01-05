@@ -37,7 +37,7 @@ LLVMProjectIRDB &HelperAnalyses::getProjectIRDB() {
   return *IRDB;
 }
 
-LLVMAliasSet &HelperAnalyses::getPointsToInfo() {
+LLVMAliasSet &HelperAnalyses::getAliasInfo() {
   if (!PT) {
     if (PrecomputedPTS.has_value()) {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), *PrecomputedPTS);
@@ -60,7 +60,7 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
   if (!ICF) {
     ICF = std::make_unique<LLVMBasedICFG>(
         &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
-        CGTy == CallGraphAnalysisType::OTF ? &getPointsToInfo() : nullptr,
+        CGTy == CallGraphAnalysisType::OTF ? &getAliasInfo() : nullptr,
         SoundnessLevel, AutoGlobalSupport);
   }
 

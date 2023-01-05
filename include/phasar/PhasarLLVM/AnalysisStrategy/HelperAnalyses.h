@@ -40,7 +40,7 @@ public:
   ~HelperAnalyses();
 
   LLVMProjectIRDB &getProjectIRDB();
-  LLVMAliasSet &getPointsToInfo();
+  LLVMAliasSet &getAliasInfo();
   LLVMTypeHierarchy &getTypeHierarchy();
   LLVMBasedICFG &getICFG();
 
