@@ -141,7 +141,7 @@ template <typename GraphTy>
       bool Eq = true;
       for (auto [LSucc, RSucc] :
            llvm::zip(traits_t::outEdges(G, LHS), traits_t::outEdges(G, RHS))) {
-        if (!isEquivalent(traits_t::target(LSucc), traits_t::target(RSucc))) {
+        if (!isEquivalent(LSucc, RSucc)) {
           Eq = false;
           break;
         }
