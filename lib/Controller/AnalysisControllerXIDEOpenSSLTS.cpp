@@ -15,11 +15,9 @@ namespace psr {
 
 void AnalysisController::executeIDEOpenSSLTS() {
   OpenSSLEVPKDFDescription TSDesc;
-  WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>, IDETypeStateAnalysis>
-      WPA(SolverConfig, IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
-  WPA.solve();
-  emitRequestedDataFlowResults(WPA);
-  WPA.releaseAllHelperAnalyses();
+  IDETypeStateAnalysis TSA(&HA.getProjectIRDB(), &HA.getPointsToInfo(), &TSDesc,
+                           EntryPoints);
+  executeIDEAnalysis(TSA);
 }
 
 } // namespace psr

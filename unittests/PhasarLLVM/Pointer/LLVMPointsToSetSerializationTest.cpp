@@ -1,13 +1,5 @@
-#include <cstdlib>
-
-#include "llvm/ADT/StringRef.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "gtest/gtest.h"
-
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -15,7 +7,15 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "gtest/gtest.h"
+
 #include "nlohmann/json.hpp"
+
+#include <cstdlib>
 
 #include "TestConfig.h"
 
@@ -78,7 +78,7 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
                     llvm::StringRef EntryPoint = "main") {
   Logger::disable();
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + File.str()});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + File);
 
   // llvm::outs() << *IRDB.getWPAModule() << '\n';
 
@@ -91,7 +91,7 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
   checkSer(Ser, Gt);
 
   LLVMPointsToSet Deser(IRDB, Ser);
-  checkDeser(*IRDB.getWPAModule(), PTS, Deser);
+  checkDeser(*IRDB.getModule(), PTS, Deser);
 }
 
 TEST(LLVMPointsToSetSerializationTest, Ser_Intra01) {

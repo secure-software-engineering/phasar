@@ -12,9 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -49,9 +47,9 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class IDELinearConstantAnalysis
     : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
-private:
 public:
   using IDETabProblemType =
       IDETabulationProblem<IDELinearConstantAnalysisDomain>;
@@ -63,10 +61,11 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
-                            const LLVMTypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                            std::set<std::string> EntryPoints = {"main"});
+  IDELinearConstantAnalysis(const LLVMProjectIRDB *IRDB,
+                            const LLVMBasedICFG *ICF,
+                            std::vector<std::string> EntryPoints = {"main"});
+
+  ~IDELinearConstantAnalysis() override;
 
   struct LCAResult {
     LCAResult() = default;
@@ -105,7 +104,7 @@ public:
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -136,8 +135,6 @@ public:
 
   // Helper functions
 
-  [[nodiscard]] bool isEntryPoint(const std::string &FunctionName) const;
-
   void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
   void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
@@ -150,6 +147,9 @@ public:
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
+
+private:
+  const LLVMBasedICFG *ICF{};
 };
 
 } // namespace psr

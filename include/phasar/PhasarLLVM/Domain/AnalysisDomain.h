@@ -10,14 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 #define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
 
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include <type_traits>
 
 namespace psr {
 
@@ -57,6 +50,9 @@ struct AnalysisDomain {
   // Inter-procedural control flow --- Specifies the type of the
   // inter-procedural control-flow graph to be used.
   using i_t = void;
+  // The ProjectIRDB type to use. Must inherit from the ProjectIRDBBase CRTP
+  // template
+  using db_t = void;
   // Lattice element --- Specifies the type of the underlying lattice; the value
   // computation domain IDE's edge functions or WPDS's weights operate on.
   using l_t = void;
@@ -64,19 +60,27 @@ struct AnalysisDomain {
   using mono_container_t = void;
 };
 
-struct LLVMAnalysisDomainDefault : public AnalysisDomain {
-  using d_t = const llvm::Value *;
-  using n_t = const llvm::Instruction *;
-  using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
-  using v_t = const llvm::Value *;
-  using c_t = LLVMBasedCFG;
-  using i_t = LLVMBasedICFG;
-};
+enum class BinaryDomain;
 
-struct LLVMIFDSAnalysisDomainDefault : LLVMAnalysisDomainDefault {
+namespace detail {
+template <typename AnalysisDomainTy, typename ValueTy = BinaryDomain>
+struct HasBinaryValueDomain : std::false_type {};
+template <typename AnalysisDomainTy>
+struct HasBinaryValueDomain<AnalysisDomainTy, typename AnalysisDomainTy::l_t>
+    : std::true_type {};
+
+template <typename AnalysisDomainTy>
+struct WithBinaryValueDomainExtender : AnalysisDomainTy {
   using l_t = BinaryDomain;
 };
+
+} // namespace detail
+
+template <typename AnalysisDomainTy>
+using WithBinaryValueDomain =
+    std::conditional_t<detail::HasBinaryValueDomain<AnalysisDomainTy>::value,
+                       AnalysisDomainTy,
+                       detail::WithBinaryValueDomainExtender<AnalysisDomainTy>>;
 
 } // namespace psr
 

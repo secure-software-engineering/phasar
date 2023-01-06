@@ -10,30 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-
-namespace llvm {
-class Instruction;
-class Function;
-class StructType;
-class Value;
-} // namespace llvm
-
 namespace psr {
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 
 class IFDSUninitializedVariables
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
-private:
   struct UninitResult {
     UninitResult() = default;
     unsigned int Line = 0;
@@ -47,13 +35,10 @@ private:
     [[nodiscard]] bool empty() const;
     void print(llvm::raw_ostream &OS);
   };
-  std::map<n_t, std::set<d_t>> UndefValueUses;
 
 public:
-  IFDSUninitializedVariables(const ProjectIRDB *IRDB,
-                             const LLVMTypeHierarchy *TH,
-                             const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                             std::set<std::string> EntryPoints = {"main"});
+  IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
+                             std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSUninitializedVariables() override = default;
 
@@ -73,7 +58,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
@@ -89,6 +74,9 @@ public:
   [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
 
   std::vector<UninitResult> aggregateResults();
+
+private:
+  std::map<n_t, std::set<d_t>> UndefValueUses;
 };
 
 } // namespace psr

@@ -7,13 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Pass.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarPass/PhasarPass.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
@@ -39,8 +34,13 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarPass/Options.h"
-#include "phasar/PhasarPass/PhasarPass.h"
 #include "phasar/Utils/EnumFlags.h"
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Pass.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 
@@ -50,15 +50,14 @@ llvm::StringRef PhasarPass::getPassName() const { return "PhasarPass"; }
 
 bool PhasarPass::runOnModule(llvm::Module &M) {
   // set up the IRDB
-  ProjectIRDB DB({&M}, IRDBOptions::WPA);
-  std::set<std::string> EntryPointsSet;
+  LLVMProjectIRDB DB(&M);
+
   // check if the requested entry points exist
   for (const std::string &EP : EntryPoints) {
     if (!DB.getFunctionDefinition(EP)) {
       llvm::report_fatal_error(
           ("psr error: entry point does not exist '" + EP + "'").c_str());
     }
-    EntryPointsSet.insert(EP);
   }
   // set up the call-graph algorithm to be used
   CallGraphAnalysisType CGTy = toCallGraphAnalysisType(CallGraphAnalysis);
@@ -67,84 +66,81 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   LLVMBasedCFG CFG;
   LLVMBasedICFG I(&DB, CGTy, EntryPoints, &H, &PT);
   if (DataFlowAnalysis == "ifds-solvertest") {
-    IFDSSolverTest IFDSTest(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver LLVMIFDSTestSolver(IFDSTest);
+    IFDSSolverTest IFDSTest(&DB, EntryPoints);
+
+    IFDSSolver LLVMIFDSTestSolver(IFDSTest, &I);
     LLVMIFDSTestSolver.solve();
     if (DumpResults) {
       LLVMIFDSTestSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-solvertest") {
-    IDESolverTest IDETest(&DB, &H, &I, &PT, EntryPointsSet);
-    IDESolver LLVMIDETestSolver(IDETest);
+    IDESolverTest IDETest(&DB, EntryPoints);
+    IDESolver LLVMIDETestSolver(IDETest, &I);
     LLVMIDETestSolver.solve();
     if (DumpResults) {
       LLVMIDETestSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "intra-mono-solvertest") {
-    IntraMonoSolverTest Intra(&DB, &H, &I, &PT, EntryPointsSet);
+    IntraMonoSolverTest Intra(&DB, &H, &I, &PT, EntryPoints);
     IntraMonoSolver Solver(Intra);
     Solver.solve();
     if (DumpResults) {
       Solver.dumpResults();
     }
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
-    InterMonoSolverTest Inter(&DB, &H, &I, &PT, EntryPointsSet);
+    InterMonoSolverTest Inter(&DB, &H, &I, &PT, EntryPoints);
     InterMonoSolver_P<InterMonoSolverTest, 3> Solver(Inter);
     Solver.solve();
     if (DumpResults) {
       Solver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-const") {
-    IFDSConstAnalysis ConstProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver LLVMConstSolver(ConstProblem);
+    IFDSConstAnalysis ConstProblem(&DB, &PT, EntryPoints);
+    IFDSSolver LLVMConstSolver(ConstProblem, &I);
     LLVMConstSolver.solve();
     if (DumpResults) {
       LLVMConstSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-taint") {
     TaintConfig Config(DB);
-    IFDSTaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, Config,
-                                           EntryPointsSet);
-    IFDSSolver LLVMTaintSolver(TaintAnalysisProblem);
+    IFDSTaintAnalysis TaintAnalysisProblem(&DB, &PT, &Config, EntryPoints);
+    IFDSSolver LLVMTaintSolver(TaintAnalysisProblem, &I);
     LLVMTaintSolver.solve();
     if (DumpResults) {
       LLVMTaintSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-type") {
-    IFDSTypeAnalysis TypeAnalysisProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver LLVMTypeSolver(TypeAnalysisProblem);
+    IFDSTypeAnalysis TypeAnalysisProblem(&DB, EntryPoints);
+    IFDSSolver LLVMTypeSolver(TypeAnalysisProblem, &I);
     LLVMTypeSolver.solve();
     if (DumpResults) {
       LLVMTypeSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-uninit") {
-    IFDSUninitializedVariables UninitializedVarProblem(&DB, &H, &I, &PT,
-                                                       EntryPointsSet);
-    IFDSSolver LLVMUnivSolver(UninitializedVarProblem);
+    IFDSUninitializedVariables UninitializedVarProblem(&DB, EntryPoints);
+    IFDSSolver LLVMUnivSolver(UninitializedVarProblem, &I);
     LLVMUnivSolver.solve();
     if (DumpResults) {
       LLVMUnivSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-lca") {
-    IDELinearConstantAnalysis LcaProblem(&DB, &H, &I, &PT, EntryPointsSet);
-    IDESolver LLVMLcaSolver(LcaProblem);
+    IDELinearConstantAnalysis LcaProblem(&DB, &I, EntryPoints);
+    IDESolver LLVMLcaSolver(LcaProblem, &I);
     LLVMLcaSolver.solve();
     if (DumpResults) {
       LLVMLcaSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-typestate") {
     CSTDFILEIOTypeStateDescription FileIODesc;
-    IDETypeStateAnalysis TypeStateProblem(&DB, &H, &I, &PT, FileIODesc,
-                                          EntryPointsSet);
-    IDESolver LLVMTypeStateSolver(TypeStateProblem);
+    IDETypeStateAnalysis TypeStateProblem(&DB, &PT, &FileIODesc, EntryPoints);
+    IDESolver LLVMTypeStateSolver(TypeStateProblem, &I);
     LLVMTypeStateSolver.solve();
     if (DumpResults) {
       LLVMTypeStateSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-instinteract") {
-    IDEInstInteractionAnalysis InstInteraction(&DB, &H, &I, &PT,
-                                               EntryPointsSet);
-    IDESolver LLVMInstInteractionSolver(InstInteraction);
+    IDEInstInteractionAnalysis InstInteraction(&DB, &I, &PT, EntryPoints);
+    IDESolver LLVMInstInteractionSolver(InstInteraction, &I);
     LLVMInstInteractionSolver.solve();
     if (DumpResults) {
       LLVMInstInteractionSolver.dumpResults();

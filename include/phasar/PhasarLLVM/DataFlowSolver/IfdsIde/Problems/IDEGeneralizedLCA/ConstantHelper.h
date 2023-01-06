@@ -14,8 +14,8 @@ namespace llvm {
 class Value;
 } // namespace llvm
 
-namespace psr {
+namespace psr::glca {
 bool isConstant(const llvm::Value *Val);
-} // namespace psr
+} // namespace psr::glca
 
 #endif

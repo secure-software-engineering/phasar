@@ -13,7 +13,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
 
-namespace psr {
+namespace psr::glca {
 
 bool isConstant(const llvm::Value *Val) {
   // is constantInt, constantFP or constant string
@@ -43,4 +43,4 @@ bool isConstant(const llvm::Value *Val) {
   return false;
 }
 
-} // namespace psr
+} // namespace psr::glca

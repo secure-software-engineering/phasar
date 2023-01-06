@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOSET_H
 
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/DynamicPointsToSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -33,6 +32,8 @@ class Type;
 } // namespace llvm
 
 namespace psr {
+
+class LLVMProjectIRDB;
 
 class LLVMPointsToSet : public LLVMPointsToInfo {
 private:
@@ -80,10 +81,10 @@ public:
    * not use global variables on the fly
    */
   explicit LLVMPointsToSet(
-      ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+      LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
       PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
 
-  explicit LLVMPointsToSet(ProjectIRDB &IRDB,
+  explicit LLVMPointsToSet(LLVMProjectIRDB &IRDB,
                            const nlohmann::json &SerializedPTS);
 
   ~LLVMPointsToSet() override = default;

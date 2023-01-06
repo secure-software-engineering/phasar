@@ -11,8 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include <map>
 #include <memory>
@@ -21,18 +20,13 @@
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
-class Instruction;
 class Function;
-class StructType;
-class Value;
+class CallBase;
 } // namespace llvm
 
 namespace psr {
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
-struct HasNoConfigurationType;
+class TaintConfig;
 
 /**
  * This analysis tracks data-flows through a program. Data flows from
@@ -45,17 +39,6 @@ struct HasNoConfigurationType;
  */
 class IFDSTaintAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
-private:
-  const TaintConfig &Config;
-
-  bool isSourceCall(const llvm::CallBase *CB,
-                    const llvm::Function *Callee) const;
-  bool isSinkCall(const llvm::CallBase *CB, const llvm::Function *Callee) const;
-  bool isSanitizerCall(const llvm::CallBase *CB,
-                       const llvm::Function *Callee) const;
-
-  void populateWithMayAliases(std::set<d_t> &Facts) const;
-  void populateWithMustAliases(std::set<d_t> &Facts) const;
 
 public:
   // Setup the configuration type
@@ -70,10 +53,9 @@ public:
    * @param TSF
    * @param EntryPoints
    */
-  IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                    const TaintConfig &Config,
-                    std::set<std::string> EntryPoints = {"main"});
+  IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+                    const TaintConfig *Config,
+                    std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSTaintAnalysis() override = default;
 
@@ -93,7 +75,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   bool isZeroValue(d_t FlowFact) const override;
 
@@ -105,6 +87,19 @@ public:
 
   void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
+
+private:
+  const TaintConfig *Config{};
+  LLVMPointsToInfo *PT{};
+
+  bool isSourceCall(const llvm::CallBase *CB,
+                    const llvm::Function *Callee) const;
+  bool isSinkCall(const llvm::CallBase *CB, const llvm::Function *Callee) const;
+  bool isSanitizerCall(const llvm::CallBase *CB,
+                       const llvm::Function *Callee) const;
+
+  void populateWithMayAliases(std::set<d_t> &Facts) const;
+  void populateWithMustAliases(std::set<d_t> &Facts) const;
 };
 } // namespace psr
 

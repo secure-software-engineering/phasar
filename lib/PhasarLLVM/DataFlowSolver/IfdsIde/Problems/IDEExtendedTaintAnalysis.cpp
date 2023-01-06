@@ -7,15 +7,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <type_traits>
-
-#include "llvm/ADT/SmallSet.h"
-#include "llvm/IR/GlobalValue.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/Support/Casting.h"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
@@ -23,7 +15,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
@@ -32,6 +23,14 @@
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/SmallSet.h"
+#include "llvm/IR/GlobalValue.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/Casting.h"
+
+#include <algorithm>
+#include <type_traits>
 
 namespace psr::XTaint {
 
@@ -50,7 +49,7 @@ IDEExtendedTaintAnalysis::initialSeeds() {
   }
 
   for (const auto &Ep : base_t::EntryPoints) {
-    const auto *EntryFn = base_t::ICF->getFunction(Ep);
+    const auto *EntryFn = ICF->getFunction(Ep);
 
     if (!EntryFn) {
       llvm::errs() << "WARNING: Entry-Function \"" << Ep
@@ -110,7 +109,7 @@ IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
   }
 
   if (const auto *Phi = llvm::dyn_cast<llvm::PHINode>(Curr)) {
-    return makeLambdaFlow<d_t>([this, Phi](d_t Source) -> std::set<d_t> {
+    return lambdaFlow<d_t>([this, Phi](d_t Source) -> std::set<d_t> {
       auto NumOps = Phi->getNumIncomingValues();
       for (unsigned I = 0; I < NumOps; ++I) {
         if (equivalent(Source, makeFlowFact(Phi->getIncomingValue(I)))) {
@@ -137,8 +136,8 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
   PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS = nullptr;
 
   auto Mem = makeFlowFact(PointerOp);
-  return makeLambdaFlow<d_t>([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
-                              PALevel](d_t Source) mutable -> std::set<d_t> {
+  return lambdaFlow<d_t>([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
+                          PALevel](d_t Source) mutable -> std::set<d_t> {
     if (Source->isZero()) {
       std::set<d_t> Ret = {Source};
       generateFromZero(Ret, Store, PointerOp, ValueOp,
@@ -283,8 +282,8 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
     populateWithMayAliases(SourceConfig);
   }
 
-  return makeLambdaFlow<d_t>([Inst, this, SourceConfig{std::move(SourceConfig)},
-                              SinkConfig{std::move(SinkConfig)}](d_t Source) {
+  return lambdaFlow<d_t>([Inst, this, SourceConfig{std::move(SourceConfig)},
+                          SinkConfig{std::move(SinkConfig)}](d_t Source) {
     std::set<d_t> Ret = {Source};
 
     if (Source->isZero()) {
@@ -315,8 +314,8 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
   bool HasVarargs = Call->arg_size() > DestFun->arg_size();
   const auto *const VA = HasVarargs ? getVAListTagOrNull(DestFun) : nullptr;
 
-  return makeLambdaFlow<d_t>([this, Call, DestFun,
-                              VA](d_t Source) -> std::set<d_t> {
+  return lambdaFlow<d_t>([this, Call, DestFun,
+                          VA](d_t Source) -> std::set<d_t> {
     if (isZeroValue(Source)) {
       return {Source};
     }
@@ -404,7 +403,7 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   if (!CallSite) {
     /// In case of unbalanced return, we may reach the artificial Global Ctor
     /// caller that has no caller
-    return makeEF<KillIf<d_t>>([](d_t Source) {
+    return killFlowIf<d_t>([](d_t Source) {
       return !llvm::isa_and_nonnull<llvm::GlobalValue>(Source->base());
     });
   }
@@ -431,11 +430,11 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   };
 
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
-  return makeLambdaFlow<d_t>([this, Call, CalleeFun,
-                              ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
-                              PTC{ArgPointsToCache(PT, Call->arg_size(),
-                                                   HasPrecisePointsToInfo)}](
-                                 d_t Source) -> std::set<d_t> {
+  return lambdaFlow<d_t>([this, Call, CalleeFun,
+                          ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
+                          PTC{ArgPointsToCache(PT, Call->arg_size(),
+                                               HasPrecisePointsToInfo)}](
+                             d_t Source) -> std::set<d_t> {
     if (isZeroValue(Source)) {
       return {Source};
     }
@@ -507,7 +506,7 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
   //   into
   //   // that function
 
-  //   return makeLambdaFlow<d_t>([CallSite, this](d_t Source) -> std::set<d_t>
+  //   return lambdaFlow<d_t>([CallSite, this](d_t Source) -> std::set<d_t>
   //   {
   //     if (isZeroValue(Source)) {
   //       return {};
@@ -551,7 +550,7 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
     return Identity<d_t>::getInstance();
   }
 
-  return makeFF<Kill<d_t>>(getZeroValue());
+  return killFlow(getZeroValue());
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
@@ -602,10 +601,10 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
     return getGenEdgeFunction(BBO);
   }
 
-  if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
-      Curr == &Curr->getFunction()->front().front()) {
-    return getGenEdgeFunction(BBO);
-  }
+  // if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
+  //     Curr == &Curr->getFunction()->front().front()) {
+  //   return getGenEdgeFunction(BBO);
+  // }
 
   auto [PointerOp, ValueOp] =
       [&]() -> std::tuple<const llvm::Value *, const llvm::Value *> {
@@ -938,17 +937,17 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
 }
 
 const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
-    IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) & {
+    const SolverResults<n_t, d_t, l_t> &SR) & {
   if (!PostProcessed) {
-    doPostProcessing(Solver.getSolverResults());
+    doPostProcessing(SR);
   }
   return Leaks;
 }
 
 LeakMap_t IDEExtendedTaintAnalysis::getAllLeaks(
-    IDESolver<IDEExtendedTaintAnalysisDomain> &Solver) && {
+    const SolverResults<n_t, d_t, l_t> &SR) && {
   if (!PostProcessed) {
-    doPostProcessing(Solver.getSolverResults());
+    doPostProcessing(SR);
   }
   return std::move(Leaks);
 }
