@@ -9,19 +9,14 @@
 
 #include <algorithm>
 #include <chrono>
-#include <iterator>
-#include <ostream>
 
-#include "boost/algorithm/string/classification.hpp"
-#include "boost/algorithm/string/find.hpp"
-#include "boost/algorithm/string/predicate.hpp"
-#include "boost/algorithm/string/split.hpp"
-
+#include "llvm/ADT/StringExtras.h"
 #include "llvm/Demangle/Demangle.h"
+#include "llvm/Demangle/ItaniumDemangle.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/Support/Allocator.h"
 
-#include "cxxabi.h"
-
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
 using namespace std;
@@ -39,32 +34,72 @@ std::string createTimeStamp() {
   return TimeStr;
 }
 
-bool isConstructor(const string &MangledName) {
-  // WARNING: Doesn't work for templated classes, should
-  // the best way to do it I can think of is to use a lexer
-  // on the name to detect the constructor point explained
-  // in the Itanium C++ ABI:
-  // see https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling
+namespace {
+// See llvm/Demangle/ItaniumDemangle.cpp
+class DefaultAllocator {
+  llvm::BumpPtrAllocator Alloc;
 
-  // This version will not work in some edge cases
-  auto Constructor = boost::algorithm::find_last(MangledName, "C2E");
+public:
+  void reset() { Alloc.Reset(); }
 
-  if (Constructor.begin() != Constructor.end()) {
-    return true;
+  template <typename T, typename... ArgTys> T *makeNode(ArgTys &&...Args) {
+    return new (Alloc.Allocate<T>()) T(std::forward<ArgTys>(Args)...);
   }
 
-  Constructor = boost::algorithm::find_last(MangledName, "C1E");
+  void *allocateNodeArray(size_t Sz) {
+    return Alloc.Allocate(sizeof(llvm::itanium_demangle::Node *) * Sz,
+                          alignof(llvm::itanium_demangle::Node *));
+  }
+};
+} // namespace
 
-  if (Constructor.begin() != Constructor.end()) {
-    return true;
+bool isConstructor(llvm::StringRef MangledName) {
+  // See llvm/Demangle/ItaniumDemangle.cpp
+
+  using namespace llvm::itanium_demangle;
+
+  ManglingParser<DefaultAllocator> Parser{nullptr, nullptr};
+  Parser.reset(MangledName.begin(), MangledName.end());
+  const auto *N = Parser.parse();
+  if (!N) {
+    PHASAR_LOG_LEVEL(WARNING,
+                     "Attempting to demangle a non-itanium ABI mangled name");
+    return false;
   }
 
-  Constructor = boost::algorithm::find_last(MangledName, "C2E");
-
-  if (Constructor.begin() != Constructor.end()) {
-    return true;
+  // See llvm::ItaniumPartialDemangler::isCtorDtor()
+  while (N) {
+    switch (N->getKind()) {
+    default:
+      return false;
+    case Node::KCtorDtorName: {
+      bool Ret;
+      static_cast<const CtorDtorName *>(N)->match( // NOLINT
+          [&Ret](const Node * /*N*/, bool IsDtor, int /*Variant*/) {
+            Ret = !IsDtor;
+          });
+      return Ret;
+    }
+    case Node::KAbiTagAttr:
+      N = static_cast<const AbiTagAttr *>(N)->Base; // NOLINT
+      break;
+    case Node::KFunctionEncoding:
+      N = static_cast<const FunctionEncoding *>(N)->getName(); // NOLINT
+      break;
+    case Node::KLocalName:
+      N = static_cast<const LocalName *>(N)->Entity; // NOLINT
+      break;
+    case Node::KNameWithTemplateArgs:
+      N = static_cast<const NameWithTemplateArgs *>(N)->Name; // NOLINT
+      break;
+    case Node::KNestedName:
+      N = static_cast<const NestedName *>(N)->Name; // NOLINT
+      break;
+      // case Node::KModuleEntity:
+      //   N = static_cast<const ModuleEntity *>(N)->Name; // NOLINT
+      //   break;
+    }
   }
-
   return false;
 }
 
@@ -78,20 +113,22 @@ const llvm::Type *stripPointer(const llvm::Type *Pointer) {
   return Pointer;
 }
 
-bool isMangled(const string &Name) { return Name != llvm::demangle(Name); }
-
-vector<string> splitString(const string &Str, const string &Delimiter) {
-  vector<string> SplitStrings;
-  boost::split(SplitStrings, Str, boost::is_any_of(Delimiter),
-               boost::token_compress_on);
-  return SplitStrings;
-}
-
-ostream &operator<<(ostream &OS, const vector<bool> &Bits) {
-  for (auto Bit : Bits) {
-    OS << Bit;
+bool isMangled(llvm::StringRef Name) {
+  // See llvm/Demangle/Demangle.cpp
+  if (Name.startswith("_Z") || Name.startswith("___Z")) {
+    // Itanium ABI
+    return true;
   }
-  return OS;
+  if (Name.startswith("_R")) {
+    // Rust ABI
+    return true;
+  }
+  if (Name.startswith("_D")) {
+    // D ABI
+    return true;
+  }
+  // Microsoft ABI is a bit more complicated...
+  return Name != llvm::demangle(Name.str());
 }
 
 bool StringIDLess::operator()(const std::string &Lhs,
