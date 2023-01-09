@@ -13,7 +13,8 @@
 namespace psr {
 
 void AnalysisController::executeIFDSUninitVar() {
-  executeIFDSAnalysis<IFDSUninitializedVariables>();
+  IFDSUninitializedVariables UV(&HA.getProjectIRDB(), EntryPoints);
+  executeIFDSAnalysis(UV);
 }
 
 } // namespace psr

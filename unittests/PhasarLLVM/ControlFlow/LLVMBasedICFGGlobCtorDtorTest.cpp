@@ -9,23 +9,8 @@
 
 #include "gtest/gtest.h"
 
-#include <algorithm>
-#include <array>
-#include <initializer_list>
-#include <string>
-#include <vector>
-
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/StringMap.h"
-#include "llvm/ADT/TinyPtrVector.h"
-#include "llvm/IR/Dominators.h"
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
-
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
@@ -35,6 +20,23 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/TinyPtrVector.h"
+#include "llvm/IR/Dominators.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/Linker/Linker.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <algorithm>
+#include <array>
+#include <initializer_list>
+#include <string>
+#include <vector>
 
 #include "TestConfig.h"
 
@@ -81,7 +83,7 @@ protected:
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_1_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_ctor_1_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -99,9 +101,19 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_ctor_2_1_cpp.ll",
-                    PathToLLFiles + "globals_ctor_2_2_cpp.ll"},
-                   IRDBOptions::WPA);
+  llvm::LLVMContext Ctx;
+  auto M1 = LLVMProjectIRDB::getParsedIRModuleOrNull(
+      PathToLLFiles + "globals_ctor_2_1_cpp.ll", Ctx);
+  auto M2 = LLVMProjectIRDB::getParsedIRModuleOrNull(
+      PathToLLFiles + "globals_ctor_2_2_cpp.ll", Ctx);
+
+  ASSERT_NE(nullptr, M1);
+  ASSERT_NE(nullptr, M2);
+
+  auto LinkerError = llvm::Linker::linkModules(*M1, std::move(M2));
+  ASSERT_FALSE(LinkerError);
+
+  LLVMProjectIRDB IRDB(std::move(M1), /*DoPreprocessing*/ true);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -119,7 +131,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_dtor_1_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_dtor_1_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -152,16 +164,16 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_1_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_1_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -188,15 +200,15 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_2_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_2_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -229,16 +241,16 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_3_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_3_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
 
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -273,7 +285,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 // Fails due to exception handling
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_4_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(
@@ -281,9 +293,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
                                 // just keep the flag IncludeGlobals=true
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -306,7 +318,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_4_1_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_4_1_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(
@@ -314,9 +326,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
       /*IncludeGlobals*/ true); // We have no real global initializers here, but
                                 // just keep the flag IncludeGlobals=true
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   Solver.solve();
 
@@ -339,19 +351,19 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
-  ProjectIRDB IRDB({PathToLLFiles + "globals_lca_5_cpp.ll"});
+  LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_5_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToSet PT(IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy,
                      /*IncludeGlobals*/ true);
   IDELinearConstantAnalysis Problem(
-      &IRDB, &TH, &ICFG, &PT, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
+      &IRDB, &ICFG, {LLVMBasedICFG::GlobalCRuntimeModelName.str()});
 
-  IDESolver Solver(Problem);
+  IDESolver Solver(Problem, &ICFG);
 
   // const auto *GlobalDtor =
-  //     ICFG.getRegisteredDtorsCallerOrNull(IRDB.getWPAModule());
+  //     ICFG.getRegisteredDtorsCallerOrNull(IRDB.getModule());
 
   // ASSERT_NE(nullptr, GlobalDtor);
 

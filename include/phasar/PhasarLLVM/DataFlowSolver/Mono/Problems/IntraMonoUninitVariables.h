@@ -10,13 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOUNINITVARIABLES_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOUNINITVARIABLES_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Value;
@@ -47,9 +47,10 @@ public:
   using i_t = IntraMonoUninitVariablesDomain::i_t;
   using mono_container_t = IntraMonoUninitVariablesDomain::mono_container_t;
 
-  IntraMonoUninitVariables(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                           const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
-                           std::set<std::string> EntryPoints = {});
+  IntraMonoUninitVariables(const LLVMProjectIRDB *IRDB,
+                           const LLVMTypeHierarchy *TH, const LLVMBasedCFG *CF,
+                           const LLVMPointsToInfo *PT,
+                           std::vector<std::string> EntryPoints = {});
 
   ~IntraMonoUninitVariables() override = default;
 

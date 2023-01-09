@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 
-namespace psr {
+namespace psr::glca {
 
 EdgeValueSet::EdgeValueSet() : Underlying({EdgeValue(nullptr)}) {}
 
@@ -54,4 +54,4 @@ bool EdgeValueSet::operator!=(const EdgeValueSet &Other) const {
   return Underlying != Other.Underlying;
 }
 
-} // namespace psr
+} // namespace psr::glca

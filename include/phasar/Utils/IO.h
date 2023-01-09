@@ -23,7 +23,13 @@
 
 #include "nlohmann/json.hpp"
 
-#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/ADT/StringRef.h"
+
+namespace llvm {
+class MemoryBuffer;
+class raw_fd_ostream;
+class Twine;
+} // namespace llvm
 
 namespace psr {
 
@@ -34,6 +40,9 @@ std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path);
 nlohmann::json readJsonFile(const llvm::Twine &Path);
 
 void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content);
+
+std::unique_ptr<llvm::raw_fd_ostream>
+openFileStream(const llvm::Twine &Filename);
 
 } // namespace psr
 

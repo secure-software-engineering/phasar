@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
@@ -14,7 +14,8 @@ using namespace psr;
 
 TEST(LLVMPointsToSet, Intra_01) {
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/basic_01_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "pointers/basic_01_cpp.ll");
 
   LLVMPointsToSet PTS(IRDB, false);
   const auto *Main = IRDB.getFunctionDefinition("main");
@@ -29,7 +30,7 @@ TEST(LLVMPointsToSet, Intra_01) {
 
 TEST(LLVMPointsToSet, Inter_01) {
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/call_01_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + "pointers/call_01_cpp.ll");
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
@@ -45,7 +46,8 @@ TEST(LLVMPointsToSet, Inter_01) {
 
 TEST(LLVMPointsToSet, Global_01) {
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles + "pointers/global_01_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "pointers/global_01_cpp.ll");
   LLVMPointsToSet PTS(IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);

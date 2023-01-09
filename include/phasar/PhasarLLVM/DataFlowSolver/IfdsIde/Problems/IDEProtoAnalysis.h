@@ -10,14 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
 
-#include <map>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+
 #include <memory>
 #include <set>
 #include <string>
-#include <vector>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 
 namespace llvm {
 class Instruction;
@@ -27,10 +25,6 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 
 struct IDEProtoAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = const llvm::Value *;
@@ -47,9 +41,8 @@ public:
   using typename IDETabProblemType::t_t;
   using typename IDETabProblemType::v_t;
 
-  IDEProtoAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                   const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-                   std::set<std::string> EntryPoints = {"main"});
+  IDEProtoAnalysis(const LLVMProjectIRDB *IRDB,
+                   std::vector<std::string> EntryPoints = {"main"});
 
   ~IDEProtoAnalysis() override = default;
 
@@ -71,7 +64,7 @@ public:
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
-  [[nodiscard]] d_t createZeroValue() const override;
+  [[nodiscard]] d_t createZeroValue() const;
 
   bool isZeroValue(d_t Fact) const override;
 

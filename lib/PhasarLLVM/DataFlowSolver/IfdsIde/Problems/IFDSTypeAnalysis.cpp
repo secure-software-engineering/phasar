@@ -7,31 +7,27 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include <utility>
+
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedICFG *ICF,
-                                   LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IFDSTypeAnalysis::ZeroValue = IFDSTypeAnalysis::createZeroValue();
-}
+IFDSTypeAnalysis::IFDSTypeAnalysis(const LLVMProjectIRDB *IRDB,
+                                   std::vector<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSTypeAnalysis::FlowFunctionPtrType
 IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t /*Curr*/,
@@ -95,7 +91,7 @@ IFDSTypeAnalysis::initialSeeds() {
                IFDSTypeAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
   }
   return Seeds;
@@ -106,7 +102,7 @@ IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() const {
 }
 
 bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSTypeAnalysis::printNode(llvm::raw_ostream &OS,

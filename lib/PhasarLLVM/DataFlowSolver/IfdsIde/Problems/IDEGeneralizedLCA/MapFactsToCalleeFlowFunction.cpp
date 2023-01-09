@@ -18,7 +18,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
-namespace psr {
+namespace psr::glca {
 
 MapFactsToCalleeFlowFunction::MapFactsToCalleeFlowFunction(
     const llvm::CallBase *CallSite, const llvm::Function *Callee)
@@ -89,4 +89,4 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *Source) {
   return Res;
 }
 
-} // namespace psr
+} // namespace psr::glca

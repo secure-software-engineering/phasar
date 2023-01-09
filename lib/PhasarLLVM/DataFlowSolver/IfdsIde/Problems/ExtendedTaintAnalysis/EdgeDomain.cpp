@@ -14,6 +14,11 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/Support/raw_os_ostream.h"
 
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/IR/CFG.h"
+#include "llvm/IR/Type.h"
+#include "llvm/Support/raw_os_ostream.h"
+
 namespace psr::XTaint {
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const EdgeDomain &ED) {

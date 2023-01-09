@@ -28,7 +28,7 @@ protected:
                             const llvm::CallBase *CallSite);
 
 public:
-  NOResolver(ProjectIRDB &IRDB);
+  NOResolver(LLVMProjectIRDB &IRDB);
 
   ~NOResolver() override = default;
 

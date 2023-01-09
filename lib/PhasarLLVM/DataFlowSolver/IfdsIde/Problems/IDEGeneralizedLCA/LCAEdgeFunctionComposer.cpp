@@ -14,15 +14,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 
-namespace psr {
-
-/*IDEGeneralizedLCA::l_t
-EdgeFunctionComposer::computeTarget(IDEGeneralizedLCA::l_t source) {
-  auto ret = this->EdgeFunctionComposer<
-      IDEGeneralizedLCA::l_t>::computeTarget(source);
-  std::cout << "Compose(" << source << ") = " << ret << std::endl;
-  return ret;
-}*/
+namespace psr::glca {
 
 LCAEdgeFunctionComposer::LCAEdgeFunctionComposer(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> F,
@@ -78,4 +70,4 @@ LCAEdgeFunctionComposer::getSecond() const {
   return G;
 }
 
-} // namespace psr
+} // namespace psr::glca
