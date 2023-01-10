@@ -48,7 +48,6 @@ jobs:
               ${{ matrix.compiler[1] }} \
               llvm-14-dev \
               libllvm14 \
-              libclang-common-14-dev \
               libclang-14-dev \
               libclang-cpp14-dev \
               libclang-rt-14-dev \
