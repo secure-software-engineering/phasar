@@ -15,6 +15,7 @@
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/IntEqClasses.h"
+#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace psr {
@@ -23,7 +24,7 @@ template <typename GraphTy>
 [[nodiscard]] std::decay_t<GraphTy>
 createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
 #if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
+  requires is_graph<GraphTy>
 #endif
 {
   using traits_t = GraphTraits<GraphTy>;
@@ -31,42 +32,52 @@ createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
 
   std::decay_t<GraphTy> Ret;
 
-  llvm::SmallVector<std::pair<vertex_t, vertex_t>, 0> Cache(
-      Eq.getNumClasses(), {traits_t::Invalid, traits_t::Invalid});
+  llvm::SmallBitVector Handled(traits_t::size(G));
+  llvm::SmallVector<vertex_t> Eq2Vtx(Eq.getNumClasses(), traits_t::Invalid);
+  llvm::SmallVector<vertex_t> WorkList;
 
   if constexpr (is_reservable_graph_trait_v<traits_t>) {
     traits_t::reserve(Ret, Eq.getNumClasses());
   }
 
   for (auto Rt : traits_t::roots(G)) {
-    size_t EqVtx = Eq[Rt];
-    if (Cache[EqVtx].second != traits_t::Invalid) {
-      continue;
-    }
-    auto EqRt =
-        traits_t::addNode(Ret, forward_like<GraphTy>(traits_t::node(G, Rt)));
+    auto EqRt = Eq[Rt];
 
-    Cache[EqVtx] = {Rt, EqRt};
-    traits_t::addRoot(Ret, EqRt);
-  }
-  for (auto Vtx : traits_t::vertices(G)) {
-    size_t EqVtx = Eq[Vtx];
-    if (Cache[EqVtx].second != traits_t::Invalid) {
-      continue;
+    if (Eq2Vtx[EqRt] == traits_t::Invalid) {
+      auto NwRt =
+          traits_t::addNode(Ret, forward_like<GraphTy>(traits_t::node(G, Rt)));
+      Eq2Vtx[EqRt] = NwRt;
+      traits_t::addRoot(Ret, NwRt);
     }
-    Cache[EqVtx] = {Vtx, traits_t::addNode(Ret, forward_like<GraphTy>(
-                                                    traits_t::node(G, Vtx)))};
+    WorkList.push_back(Rt);
   }
 
-  for (auto [Vtx, EqVtx] : Cache) {
-    assert(Vtx != traits_t::Invalid);
-    assert(EqVtx != traits_t::Invalid);
-    for (auto Succ : traits_t::outEdges(G, Vtx)) {
-      auto EqSucc = Eq[traits_t::target(Succ)];
-      traits_t::addEdge(Ret, EqVtx,
-                        traits_t::withEdgeTarget(Succ, Cache[EqSucc].second));
+  while (!WorkList.empty()) {
+    auto Vtx = WorkList.pop_back_val();
+    auto EqVtx = Eq[Vtx];
+
+    auto NwVtx = Eq2Vtx[EqVtx];
+    assert(NwVtx != traits_t::Invalid);
+
+    Handled.set(Vtx);
+
+    for (const auto &Edge : traits_t::outEdges(G, Vtx)) {
+      auto Target = traits_t::target(Edge);
+      auto EqTarget = Eq[Target];
+      if (Eq2Vtx[EqTarget] == traits_t::Invalid) {
+        Eq2Vtx[EqTarget] = traits_t::addNode(
+            Ret, forward_like<GraphTy>(traits_t::node(G, Target)));
+      }
+      if (!Handled.test(Target)) {
+        WorkList.push_back(Target);
+      }
+      auto NwTarget = Eq2Vtx[EqTarget];
+      traits_t::addEdge(Ret, NwVtx, traits_t::withEdgeTarget(Edge, NwTarget));
     }
-    traits_t::dedupOutEdges(Ret, EqVtx);
+  }
+
+  for (auto Vtx : traits_t::vertices(Ret)) {
+    traits_t::dedupOutEdges(Ret, Vtx);
   }
 
   return Ret;
@@ -75,7 +86,7 @@ createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
 template <typename GraphTy>
 [[nodiscard]] llvm::IntEqClasses minimizeGraph(const GraphTy &G)
 #if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
+  requires is_graph<GraphTy>
 #endif
 {
 
