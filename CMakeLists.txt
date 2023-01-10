@@ -223,6 +223,7 @@ if(PHASAR_USE_Z3)
     include_directories(external/z3/src/api/)
     include_directories(external/z3/src/api/c++/)
     link_directories(${Z3_BINARY_DIR})
+    link_directories(${Z3_BINARY_DIR}/src)
 
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
   endif()
