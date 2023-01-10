@@ -51,6 +51,7 @@ jobs:
               libclang-common-14-dev \
               libclang-14-dev \
               libclang-cpp14-dev \
+              libclang-rt-14-dev \
               clang-tidy-14
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
