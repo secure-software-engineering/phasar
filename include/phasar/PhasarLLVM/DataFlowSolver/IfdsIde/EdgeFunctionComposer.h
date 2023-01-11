@@ -50,7 +50,7 @@ protected:
   EdgeFunctionPtrType G;
 
 public:
-  EdgeFunctionComposer(EdgeFunctionPtrType F, EdgeFunctionPtrType G)
+  EdgeFunctionComposer(EdgeFunctionPtrType F, EdgeFunctionPtrType G) noexcept
       : EFComposerId(++CurrEFComposerId), F(std::move(F)), G(std::move(G)) {}
 
   ~EdgeFunctionComposer() override = default;
@@ -86,15 +86,15 @@ public:
   bool equal_to // NOLINT - would break too many client analyses
       (EdgeFunctionPtrType Other) const override {
     if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(Other.get())) {
-      return F->equal_to(EFC->F) && G->equal_to(EFC->G);
+      return (F == EFC->F || F->equal_to(EFC->F)) &&
+             (G == EFC->G || G->equal_to(EFC->G));
     }
     return false;
   }
 
   void print(llvm::raw_ostream &OS,
              bool /*IsForDebug = false*/) const override {
-    OS << "COMP[ " << F.get()->str() << " , " << G.get()->str()
-       << " ] (EF:" << EFComposerId << ')';
+    OS << "COMP[ " << *F << " , " << *G << " ] (EF:" << EFComposerId << ')';
   }
 };
 

@@ -56,9 +56,7 @@ static unsigned CurrBinaryId = 0;      // NOLINT
 
 class LCAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
 public:
-  LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                          std::shared_ptr<EdgeFunction<l_t>> G)
-      : EdgeFunctionComposer<l_t>(std::move(F), std::move(G)){};
+  using EdgeFunctionComposer<l_t>::EdgeFunctionComposer;
 
   std::shared_ptr<EdgeFunction<l_t>>
   joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
