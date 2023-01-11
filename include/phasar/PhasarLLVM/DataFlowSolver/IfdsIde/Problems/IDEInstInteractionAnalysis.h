@@ -1660,13 +1660,11 @@ public:
     for (const auto &G : M->globals()) {
       Variables.insert(&G);
     }
-    for (const auto &F : *M) {
-      for (const auto &BB : F) {
-        for (const auto &I : BB) {
-          if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-            Variables.insert(A);
-          }
-          if (const auto *H = llvm::dyn_cast<llvm::CallBase>(&I)) {
+    for (const auto *I : this->IRDB->getAllInstructions()) {
+      if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(I)) {
+        Variables.insert(A);
+      }
+      if (const auto *H = llvm::dyn_cast<llvm::CallBase>(I)) {
             if (!H->isIndirectCall() && H->getCalledFunction() &&
                 this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
               Variables.insert(H);
