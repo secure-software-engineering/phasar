@@ -7,15 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <cassert>
-#include <chrono>
-#include <cstdlib>
-#include <iomanip>
-#include <iterator>
-#include <memory>
-#include <type_traits>
-#include <utility>
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseSet.h"
@@ -37,14 +36,14 @@
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
+#include <algorithm>
+#include <cassert>
+#include <cstdlib>
+#include <iomanip>
+#include <iterator>
+#include <memory>
+#include <type_traits>
+#include <utility>
 
 using namespace std;
 
@@ -54,7 +53,7 @@ template class DynamicPointsToSetPtr<>;
 template class DynamicPointsToSetConstPtr<>;
 template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
 
-LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
+LLVMPointsToSet::LLVMPointsToSet(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
                                  PointerAnalysisType PATy)
     : PTA(IRDB, UseLazyEvaluation, PATy) {
 
@@ -62,28 +61,23 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
   PointsToSets.reserve(NumGlobals);
   Owner.reserve(NumGlobals);
 
-  PHASAR_LOG_LEVEL_CAT(
-      INFO, "LLVMPointsToSet",
-      "Start constructing LLVMPointsToSet "
-          << std::chrono::steady_clock::now().time_since_epoch().count());
+  auto *M = IRDB.getModule();
 
-  for (llvm::Module *M : IRDB.getAllModules()) {
-    // compute points-to information for all globals
+  // compute points-to information for all globals
 
-    for (const auto &G : M->globals()) {
-      computeValuesPointsToSet(&G);
-    }
+  for (const auto &G : M->globals()) {
+    computeValuesPointsToSet(&G);
+  }
 
-    for (const auto &F : M->functions()) {
-      computeValuesPointsToSet(&F);
-    }
+  for (const auto &F : M->functions()) {
+    computeValuesPointsToSet(&F);
+  }
 
-    if (!UseLazyEvaluation) {
-      // compute points-to information for all functions
-      for (auto &F : *M) {
-        if (!F.isDeclaration()) {
-          computeFunctionsPointsToSet(&F);
-        }
+  if (!UseLazyEvaluation) {
+    // compute points-to information for all functions
+    for (auto &F : *M) {
+      if (!F.isDeclaration()) {
+        computeFunctionsPointsToSet(&F);
       }
     }
   }
@@ -93,7 +87,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB, bool UseLazyEvaluation,
           << std::chrono::steady_clock::now().time_since_epoch().count());
 }
 
-LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
+LLVMPointsToSet::LLVMPointsToSet(LLVMProjectIRDB &IRDB,
                                  const nlohmann::json &SerializedPTS)
     : PTA(IRDB) {
   // Assume, we already have validated the json schema
@@ -112,7 +106,7 @@ LLVMPointsToSet::LLVMPointsToSet(ProjectIRDB &IRDB,
   for (const auto &PtsJson : Sets) {
     assert(PtsJson.is_array());
     auto PTS = Owner.acquire();
-    for (auto Alias : PtsJson) {
+    for (const auto &Alias : PtsJson) {
       const auto AliasStr = Alias.get<std::string>();
       const auto *Inst = fromMetaDataId(IRDB, AliasStr);
       if (!Inst) {

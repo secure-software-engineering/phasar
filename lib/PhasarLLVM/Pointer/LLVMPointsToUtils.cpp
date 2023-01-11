@@ -11,6 +11,7 @@
 
 namespace psr {
 
+/// XXX Duplication: this set is also present in LLVMShorthands and RTAResolver
 const std::set<llvm::StringRef> HeapAllocatingFunctions{
     "malloc", "calloc", "realloc", "_Znwm", "_Znam"};
 

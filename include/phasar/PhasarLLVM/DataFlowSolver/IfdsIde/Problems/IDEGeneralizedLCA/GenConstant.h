@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
-namespace psr {
+namespace psr::glca {
 
 class GenConstant : public EdgeFunction<IDEGeneralizedLCA::l_t>,
                     public std::enable_shared_from_this<GenConstant> {
@@ -37,6 +37,6 @@ public:
   void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

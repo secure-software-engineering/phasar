@@ -14,9 +14,17 @@
  *      Author: nicolas bellec
  */
 
-#include <memory>
-#include <optional>
-#include <set>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -25,17 +33,9 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include <memory>
+#include <optional>
+#include <set>
 
 using namespace psr;
 
@@ -97,9 +97,9 @@ std::string getReceiverTypeName(const llvm::CallBase *CallSite) {
   return "";
 }
 
-Resolver::Resolver(ProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
+Resolver::Resolver(LLVMProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
 
-Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+Resolver::Resolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : IRDB(IRDB), TH(&TH) {}
 
 const llvm::Function *
@@ -143,7 +143,7 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
 
 std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
-                                           ProjectIRDB *IRDB,
+                                           LLVMProjectIRDB *IRDB,
                                            LLVMTypeHierarchy *TH,
                                            LLVMBasedICFG *ICF,
                                            LLVMPointsToInfo *PT) {

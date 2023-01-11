@@ -15,10 +15,6 @@
 
 #include "nlohmann/json.hpp"
 
-namespace llvm {
-class raw_ostream;
-}
-
 namespace nlohmann::detail {
 class llvm_output_stream_adapter : public output_adapter_protocol<char> {
 public:
@@ -52,6 +48,6 @@ private:
 
 namespace psr {
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const nlohmann::json &J);
-};
+} // namespace psr
 
 #endif /* PHASAR_UTILS_NLOHMANNLOGGING_H */

@@ -7,41 +7,30 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <utility>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-
-using namespace psr;
-using namespace std;
+#include <utility>
 
 namespace psr {
 
-IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
-                                     const LLVMTypeHierarchy *TH,
-                                     const LLVMBasedICFG *ICF,
-                                     LLVMPointsToInfo *PT,
-                                     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
-  IFDSProtoAnalysis::ZeroValue = IFDSProtoAnalysis::createZeroValue();
-}
+IFDSProtoAnalysis::IFDSProtoAnalysis(const LLVMProjectIRDB *IRDB,
+                                     std::vector<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()) {}
 
 IFDSProtoAnalysis::FlowFunctionPtrType
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
                                          IFDSProtoAnalysis::n_t /*Succ*/) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    return make_shared<Gen<IFDSProtoAnalysis::d_t>>(Store->getPointerOperand(),
-                                                    getZeroValue());
+    return generateFromZero(Store->getPointerOperand());
   }
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
@@ -79,7 +68,7 @@ IFDSProtoAnalysis::initialSeeds() {
                IFDSProtoAnalysis::l_t>
       Seeds;
   for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
+    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
                   getZeroValue());
   }
   return Seeds;
@@ -91,7 +80,7 @@ IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() const {
 }
 
 bool IFDSProtoAnalysis::isZeroValue(IFDSProtoAnalysis::d_t Fact) const {
-  return LLVMZeroValue::getInstance()->isLLVMZeroValue(Fact);
+  return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
 void IFDSProtoAnalysis::printNode(llvm::raw_ostream &OS,

@@ -11,17 +11,14 @@
 #define PHASAR_PHASARLLVM_CALLGRAPHANALYSISTYPE_H
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <string>
 
-namespace llvm {
-class raw_ostream;
-} // namespace llvm
-
 namespace psr {
 enum class CallGraphAnalysisType {
-#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
+#define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC) NAME,
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.def"
   Invalid
 };
 

@@ -10,31 +10,23 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 #define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
-#include <set>
-#include <string>
+#include "llvm/Support/raw_ostream.h"
 
-namespace llvm {
-class raw_ostream;
-}
+#include <string>
 
 namespace psr {
 
 enum class DataFlowAnalysisType {
-#define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE) TYPE,
+  None,
+#define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, DESC) NAME,
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
 };
 
-class ProjectIRDB;
-class LLVMTypeHierarchy;
-class LLVMBasedICFG;
-class LLVMPointsToInfo;
+std::string toString(DataFlowAnalysisType D);
 
-std::string toString(const DataFlowAnalysisType &D);
+DataFlowAnalysisType toDataFlowAnalysisType(llvm::StringRef S);
 
-DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const DataFlowAnalysisType &D);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, DataFlowAnalysisType D);
 
 } // namespace psr
 

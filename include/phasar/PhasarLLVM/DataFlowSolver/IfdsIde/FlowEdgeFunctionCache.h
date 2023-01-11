@@ -20,7 +20,6 @@
 
 #include "llvm/ADT/DenseMap.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFact.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Utils/EquivalenceClassMap.h"
@@ -283,7 +282,7 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
                                                           : Callees) {
           PHASAR_LOG_LEVEL(DEBUG, "  " << Problem.FtoString(callee));
-        };)
+        };);
     auto Key = std::tie(CallSite, RetSite);
     auto SearchCallToRetFlowFunction = CallToRetFlowFunctionCache.find(Key);
     if (SearchCallToRetFlowFunction != CallToRetFlowFunctionCache.end()) {

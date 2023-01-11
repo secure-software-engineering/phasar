@@ -15,7 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 
-namespace psr {
+namespace psr::glca {
 
 MapFactsToCallerFlowFunction::MapFactsToCallerFlowFunction(
     const llvm::CallBase *CallSite, const llvm::Instruction *ExitStmt,
@@ -77,4 +77,4 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *Source) {
   return Res;
 }
 
-} // namespace psr
+} // namespace psr::glca

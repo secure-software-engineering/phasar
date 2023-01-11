@@ -19,7 +19,7 @@
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Instructions.h"
 
-namespace psr {
+namespace psr::glca {
 
 enum class Ordering { Less, Greater, Equal, Incomparable };
 
@@ -96,13 +96,13 @@ bool operator<(const ev_t &Lhs, const ev_t &Rhs);
 bool isTopValue(const ev_t &Val);
 llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &Val);
 
-} // namespace psr
+} // namespace psr::glca
 
 namespace std {
 
-template <> struct hash<psr::EdgeValue> {
+template <> struct hash<psr::glca::EdgeValue> {
   hash() = default;
-  size_t operator()(const psr::EdgeValue &Val) const {
+  size_t operator()(const psr::glca::EdgeValue &Val) const {
     auto Hash = hash<int>()(Val.getKind());
     uint64_t AsInt;
     double AsFloat;
