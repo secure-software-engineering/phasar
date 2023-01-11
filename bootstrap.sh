@@ -135,15 +135,12 @@ tmp_dir=$(mktemp -d "llvm-build.XXXXXXXX" --tmpdir)
 rm -rf "${tmp_dir}"
 echo "dependencies successfully installed"
 
+echo "Updating the submodules..."
+git submodule update --init
+echo "Submodules successfully updated"
 
 echo "Building PhASAR..."
 ${DO_UNIT_TEST} && echo "with unit tests."
-
-echo "Updating the submodules..."
-git submodule init
-git submodule update
-echo "Submodules successfully updated"
-
 
 export CC=${LLVM_INSTALL_DIR}/bin/clang
 export CXX=${LLVM_INSTALL_DIR}/bin/clang++

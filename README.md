@@ -84,7 +84,7 @@ directory of PhASAR and use the following command:
 $ ./bootstrap.sh --install
 ```
 
-The bootstrap script may ask for superuser permissions (to install the dependencies).
+The bootstrap script may ask for superuser permissions.
 
 Done!
 
@@ -103,8 +103,7 @@ $ export CXX=/usr/local/bin/clang++
 You may need to adjust the paths according to your system. When you cloned PhASAR from Github you need to initialize PhASAR's submodules before building it:
 
 ```
-$ git submodule init
-$ git submodule update
+$ git submodule update --init
 ```
 
 If you downloaded PhASAR as a compressed release (e.g. .zip or .tar.gz) you can use the `init-submodules-release.sh` script that manually clones the required submodules:
