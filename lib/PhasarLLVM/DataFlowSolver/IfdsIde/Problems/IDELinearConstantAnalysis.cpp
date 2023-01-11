@@ -43,16 +43,7 @@
 #include <utility>
 
 namespace psr {
-auto JoinLatticeTraits<IDELinearConstantAnalysisDomain::l_t>::join(
-    ByConstRef<l_t> Lhs, ByConstRef<l_t> Rhs) noexcept -> l_t {
-  if (Lhs == Rhs || Lhs.isTop()) {
-    return Rhs;
-  }
-  if (Rhs.isTop()) {
-    return Lhs;
-  }
-  return bottom();
-}
+
 namespace lca {
 // Custom EdgeFunction declarations
 
@@ -70,18 +61,6 @@ public:
       : EdgeFunctionComposer<l_t>(std::move(F), std::move(G)){};
 
   std::shared_ptr<EdgeFunction<l_t>>
-  composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-    if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-      return SecondFunction;
-    }
-    if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-      return shared_from_this();
-    }
-
-    return F->composeWith(G->composeWith(SecondFunction));
-  }
-
-  std::shared_ptr<EdgeFunction<l_t>>
   joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
     if (OtherFunction.get() == this ||
         OtherFunction->equal_to(this->shared_from_this())) {
@@ -94,58 +73,7 @@ public:
   }
 };
 
-class GenConstant : public EdgeFunction<l_t>,
-                    public std::enable_shared_from_this<GenConstant> {
-private:
-  const unsigned GenConstantId;
-  const int64_t IntConst;
-
-public:
-  explicit GenConstant(int64_t IntConst)
-      : GenConstantId(++CurrGenConstantId), IntConst(IntConst) {}
-
-  l_t computeTarget(l_t /*Source*/) override { return IntConst; }
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-
-    if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-      return shared_from_this();
-    }
-
-    auto Res = SecondFunction->computeTarget(IntConst);
-
-    if (Res.isBottom()) {
-      return AllBottom<l_t>::getInstance();
-    }
-
-    return std::make_shared<GenConstant>(std::get<int64_t>(Res));
-  }
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
-    if (OtherFunction.get() == this ||
-        OtherFunction->equal_to(shared_from_this())) {
-      return shared_from_this();
-    }
-    if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
-      return shared_from_this();
-    }
-    return AllBottom<l_t>::getInstance();
-  }
-
-  bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
-    if (auto *GC = dynamic_cast<GenConstant *>(Other.get())) {
-      return (GC->IntConst == this->IntConst);
-    }
-    return this == Other.get();
-  }
-
-  void print(llvm::raw_ostream &OS,
-             bool /*IsForDebug*/ = false) const override {
-    OS << IntConst << " (EF:" << GenConstantId << ')';
-  }
-};
+using GenConstant = ConstantEdgeFunction<l_t>;
 
 /**
  * The following binary operations are computed:
@@ -293,8 +221,7 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-    if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get()) ||
-        dynamic_cast<GenConstant *>(SecondFunction.get())) {
+    if (SecondFunction->isConstant()) {
       return SecondFunction;
     }
     if (SecondFunction == EdgeIdentity<l_t>::getInstance()) {

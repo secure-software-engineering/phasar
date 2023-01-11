@@ -19,6 +19,7 @@
 
 #include <type_traits>
 #include <utility>
+
 namespace psr {
 
 template <typename L> struct JoinLatticeTraits {
@@ -67,6 +68,15 @@ public:
     return JoinLatticeTraits<l_t>::join(std::move(Lhs), std::move(Rhs));
   };
 };
+
+template <typename L, typename = void> struct NonTopBotValue {
+  using type = L;
+
+  static L unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v<L>) {
+    return Value;
+  }
+};
+
 } // namespace psr
 
 #endif

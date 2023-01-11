@@ -36,13 +36,6 @@ struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
   using l_t = LatticeDomain<int64_t>;
 };
 
-template <> struct JoinLatticeTraits<IDELinearConstantAnalysisDomain::l_t> {
-  using l_t = IDELinearConstantAnalysisDomain::l_t;
-  static constexpr l_t bottom() noexcept { return Bottom{}; }
-  static constexpr l_t top() noexcept { return Top{}; }
-  static l_t join(ByConstRef<l_t> Lhs, ByConstRef<l_t> Rhs) noexcept;
-};
-
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;

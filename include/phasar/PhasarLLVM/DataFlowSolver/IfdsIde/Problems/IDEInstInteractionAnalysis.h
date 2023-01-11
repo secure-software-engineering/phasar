@@ -1382,7 +1382,7 @@ public:
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
   inline std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
-    return std::make_shared<AllTop<l_t>>(topElement());
+    return std::make_shared<AllTop<l_t>>();
   }
 
   // Provide some handy helper edge functions to improve reuse.

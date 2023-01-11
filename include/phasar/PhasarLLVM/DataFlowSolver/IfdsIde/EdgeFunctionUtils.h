@@ -60,10 +60,11 @@ class ConstantEdgeFunction
     : public EdgeFunction<L>,
       public std::enable_shared_from_this<ConstantEdgeFunction<L>> {
 public:
+  using StoredType = typename NonTopBotValue<L>::type;
   using typename EdgeFunction<L>::EdgeFunctionPtrType;
 
-  explicit ConstantEdgeFunction(L Value) noexcept(
-      std::is_nothrow_move_constructible_v<L>)
+  explicit ConstantEdgeFunction(StoredType Value) noexcept(
+      std::is_nothrow_move_constructible_v<StoredType>)
       : Value(std::move(Value)) {}
 
   L computeTarget(L /*Source*/) override { return Value; }
@@ -91,7 +92,7 @@ public:
   }
 
 protected:
-  L Value;
+  StoredType Value;
 };
 
 namespace detail {
@@ -255,7 +256,7 @@ auto EdgeIdentity<L>::joinWith(EdgeFunctionPtrType OtherFunction)
 template <typename L, typename Enable>
 auto ConstantEdgeFunction<L, Enable>::joinWith(
     EdgeFunctionPtrType OtherFunction) -> EdgeFunctionPtrType {
-  if (this == OtherFunction.get()) {
+  if (this == OtherFunction.get() || equal_to(OtherFunction)) {
     return OtherFunction;
   }
 
@@ -270,6 +271,11 @@ auto ConstantEdgeFunction<L, Enable>::joinWith(
     return AllBottom<L>::getInstance();
   }
 
+  if (JoinLatticeTraits<L>::top() == JoinedVal) [[unlikely]] {
+    // XXX: Can this ever happen?
+    return std::make_shared<AllTop<L>>();
+  }
+
   if (JoinedVal == OtherVal) {
     return OtherFunction;
   }
@@ -277,7 +283,8 @@ auto ConstantEdgeFunction<L, Enable>::joinWith(
     return this->shared_from_this();
   }
 
-  return std::make_shared<ConstantEdgeFunction<L>>(std::move(JoinedVal));
+  return std::make_shared<ConstantEdgeFunction<L>>(
+      NonTopBotValue<L>::unwrap(std::move(JoinedVal)));
 }
 
 template <typename L, typename Enable>
@@ -299,8 +306,13 @@ auto ConstantEdgeFunction<L, Enable>::composeWith(
   if (NextVal == JoinLatticeTraits<L>::bottom()) {
     return AllBottom<L>::getInstance();
   }
+  if (NextVal == JoinLatticeTraits<L>::top()) [[unlikely]] {
+    // XXX: Can this ever happen?
+    return std::make_shared<AllTop<L>>();
+  }
 
-  return std::make_shared<ConstantEdgeFunction<L>>(std::move(NextVal));
+  return std::make_shared<ConstantEdgeFunction<L>>(
+      NonTopBotValue<L>::unwrap(std::move(NextVal)));
 }
 
 } // namespace psr
