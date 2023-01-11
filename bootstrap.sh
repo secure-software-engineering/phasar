@@ -107,25 +107,25 @@ else
         fi
 	else
         echo "Already installed boost version ${BOOST_VERSION//_/.}"
-        # if [ -x "$(command -v apt)" ]; then
-        #     DESIRED_BOOST_VERSION=${BOOST_VERSION//_/.}
-        #     # install missing packages if necessary
-        #     boostlibnames=("libboost-system" "libboost-filesystem"
-        #             "libboost-graph" "libboost-program-options"
-        #             "libboost-thread")
-        #     additional_boost_libs=()
-        #     for boost_lib in ${boostlibnames[@]}; do
-        #         dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||
-        #         dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}.0" >/dev/null 2>&1 ||
-        #         additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}") ||
-        #         additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}.0")
-        #         dpkg -s "${boost_lib}-dev" >/dev/null 2>&1 || additional_boost_libs+=("${boost_lib}-dev")
-        #     done
-        #     if [ ${#additional_boost_libs[@]} -gt 0 ] ;then
-        #         echo "Installing additional ${#additional_boost_libs[@]} boost packages: ${additional_boost_libs[*]}"
-        #         sudo apt install "${additional_boost_libs[@]}" -y
-        #     fi
-        # fi
+        if [ -x "$(command -v apt)" ]; then
+            DESIRED_BOOST_VERSION=${BOOST_VERSION//_/.}
+            # install missing packages if necessary
+            boostlibnames=("libboost-system" "libboost-filesystem"
+                    "libboost-graph" "libboost-program-options"
+                    "libboost-thread")
+            additional_boost_libs=()
+            for boost_lib in ${boostlibnames[@]}; do
+                dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||
+                dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}.0" >/dev/null 2>&1 ||
+                additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}") ||
+                additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}.0")
+                dpkg -s "${boost_lib}-dev" >/dev/null 2>&1 || additional_boost_libs+=("${boost_lib}-dev")
+            done
+            if [ ${#additional_boost_libs[@]} -gt 0 ] ;then
+                echo "Installing additional ${#additional_boost_libs[@]} boost packages: ${additional_boost_libs[*]}"
+                sudo apt install "${additional_boost_libs[@]}" -y || true
+            fi
+        fi
 	fi
 fi
 

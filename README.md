@@ -32,7 +32,7 @@ what matters.
 
 How do I get started with PhASAR?
 ---------------------------------
-We have some documentation on PhASAR in our [_**wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
+We have some documentation on PhASAR in our [_**Wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
 this README first and then have a look on the material provided on https://phasar.org/
 as well. Please also have a look on PhASAR's project directory and notice the project directory
 examples/ as well as the custom tool tools/myphasartool.cpp.
