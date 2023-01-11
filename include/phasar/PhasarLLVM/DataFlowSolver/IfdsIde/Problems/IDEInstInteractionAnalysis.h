@@ -1665,11 +1665,9 @@ public:
         Variables.insert(A);
       }
       if (const auto *H = llvm::dyn_cast<llvm::CallBase>(I)) {
-            if (!H->isIndirectCall() && H->getCalledFunction() &&
-                this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
-              Variables.insert(H);
-            }
-          }
+        if (!H->isIndirectCall() && H->getCalledFunction() &&
+            this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
+          Variables.insert(H);
         }
       }
     }
