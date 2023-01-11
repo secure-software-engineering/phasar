@@ -80,11 +80,15 @@ public:
     OS << "EdgeFunction";
   }
 
+  /// True, iff the return value of computeTarget(Src) does not depend on the
+  /// Src parameter.
+  [[nodiscard]] virtual bool isConstant() const noexcept { return false; }
+
   [[nodiscard]] std::string str() {
     std::string Buffer;
     llvm::raw_string_ostream OSS(Buffer);
     print(OSS);
-    return OSS.str();
+    return Buffer;
   }
 };
 

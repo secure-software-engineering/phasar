@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONUTILS_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include <memory>
 
@@ -77,6 +78,8 @@ public:
     }
     return false;
   }
+
+  [[nodiscard]] bool isConstant() const noexcept override { return true; }
 
   void print(llvm::raw_ostream &OS,
              [[maybe_unused]] bool IsForDebug = false) const override {
@@ -179,9 +182,9 @@ public:
 
   ~AllBottom() override = default;
 
-  EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
-    return this->shared_from_this();
+  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
+    return SecondFunction->isConstant() ? SecondFunction
+                                        : this->shared_from_this();
   }
 
   EdgeFunctionPtrType joinWith(EdgeFunctionPtrType /*OtherFunction*/) override {
@@ -192,6 +195,8 @@ public:
              bool /*IsForDebug = false*/) const override {
     OS << "AllBottom";
   }
+
+  [[nodiscard]] bool isConstant() const noexcept override { return true; }
 
   template <typename LL = L,
             typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
@@ -212,6 +217,9 @@ public:
   ~AllTop() override = default;
 
   EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
+    if (SecondFunction == EdgeIdentity<L>::getInstance()) {
+      return this->shared_from_this();
+    }
     return SecondFunction;
   }
 
@@ -223,6 +231,8 @@ public:
              [[maybe_unused]] bool IsForDebug = false) const override {
     OS << "AllTop";
   }
+
+  [[nodiscard]] bool isConstant() const noexcept override { return true; }
 };
 
 template <typename L>
@@ -249,22 +259,25 @@ auto ConstantEdgeFunction<L, Enable>::joinWith(
     return OtherFunction;
   }
 
-  if (auto *OtherConst =
-          dynamic_cast<ConstantEdgeFunction<L> *>(OtherFunction.get())) {
-    ByConstRef<L> JoinedVal =
-        JoinLatticeTraits<L>::join(Value, OtherConst->Value);
-    if (JoinedVal == Value) {
-      return this->shared_from_this();
-    }
-    if (JoinedVal == OtherConst->Value) {
-      return OtherFunction;
-    }
-    if (JoinedVal != JoinLatticeTraits<L>::bottom()) {
-      return std::make_shared<ConstantEdgeFunction<L>>(std::move(JoinedVal));
-    }
-    // fallthrough
+  if (!OtherFunction->isConstant()) {
+    return AllBottom<L>::getInstance();
   }
-  return AllBottom<L>::getInstance();
+
+  auto OtherVal = OtherFunction->computeTarget(JoinLatticeTraits<L>::top());
+  auto JoinedVal = JoinLatticeTraits<L>::join(Value, OtherVal);
+
+  if (JoinLatticeTraits<L>::bottom() == JoinedVal) {
+    return AllBottom<L>::getInstance();
+  }
+
+  if (JoinedVal == OtherVal) {
+    return OtherFunction;
+  }
+  if (JoinedVal == Value) {
+    return this->shared_from_this();
+  }
+
+  return std::make_shared<ConstantEdgeFunction<L>>(std::move(JoinedVal));
 }
 
 template <typename L, typename Enable>
@@ -274,8 +287,7 @@ auto ConstantEdgeFunction<L, Enable>::composeWith(
     return this->shared_from_this();
   }
 
-  if (SecondFunction == AllBottom<L>::getInstance() ||
-      dynamic_cast<ConstantEdgeFunction<L> *>(SecondFunction.get())) {
+  if (SecondFunction->isConstant()) {
     return SecondFunction;
   }
 
