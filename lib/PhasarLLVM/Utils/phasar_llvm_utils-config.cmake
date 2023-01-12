@@ -3,7 +3,10 @@ set(PHASAR_phasarllvm_utils_COMPONENT_FOUND 1)
 list(APPEND
   PHASAR_LLVM_DEPS
   Support
-  Core)
+  Core
+  BitWriter
+  Demangle
+)
 
 list(APPEND
   PHASAR_PHASARLLVM_UTILS_DEPS
@@ -23,5 +26,5 @@ endforeach()
 
 list(APPEND
   PHASAR_NEEDED_LIBS
-  phasar::phasar_phasarllvm_utils
+  phasar::phasar_llvm_utils
 )

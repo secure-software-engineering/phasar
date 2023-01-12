@@ -3,7 +3,7 @@ file(GLOB_RECURSE MONO_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
   phasar_config
   phasar_utils
-  phasar_phasarllvm_utils
+  phasar_llvm_utils
   phasar_llvm_controlflow
   phasar_db
   phasar_taintconfig

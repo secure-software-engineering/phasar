@@ -58,4 +58,4 @@ RUN mkdir -p build && cd build && \
             -G Ninja && \
           cmake --build .
 
-ENTRYPOINT [ "./build/tools/phasar-llvm/phasar-llvm" ]
+ENTRYPOINT [ "./build/tools/phasar-cli/phasar-cli" ]

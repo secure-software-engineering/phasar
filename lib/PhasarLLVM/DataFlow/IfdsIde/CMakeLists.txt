@@ -7,7 +7,7 @@ set(PHASAR_LINK_LIBS
   phasar_llvm
   phasar_llvm_typehierarchy
   phasar_llvm_controlflow
-  phasar_phasarllvm_utils
+  phasar_llvm_utils
   phasar_db
   phasar_taintconfig
   ${Boost_LIBRARIES}

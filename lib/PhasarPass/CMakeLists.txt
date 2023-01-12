@@ -7,7 +7,7 @@ set(PHASAR_LINK_LIBS
   phasar_llvm_ifdside
   phasar_mono
   phasar_passes
-  phasar_phasarllvm_utils
+  phasar_llvm_utils
   phasar_llvm_pointer
   phasar_llvm_typehierarchy
   phasar_utils

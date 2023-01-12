@@ -111,12 +111,12 @@ Use them as a reference if you wish to modify PhASAR and recompile it.
 
 After compilation using cmake the following two binaries can be found in the build/ directory:
 
-+ phasar-llvm - the actual PhASAR command-line tool
++ phasar-cli - the actual PhASAR command-line tool (previously called `phasar-llvm`)
 + myphasartool - an example tool that shows how tools can be build on top of PhASAR
 
 Use the command:
 
-`$ ./phasar-llvm --help`
+`$ ./phasar-cli --help`
 
 in order to display the manual and help message.
 
@@ -148,7 +148,7 @@ C++'s long compile times are always a pain. As shown in the above, when using cm
 ### Running a test solver
 To test if everything works as expected please run the following command:
 
-`$ phasar-llvm --module test/build_systems_tests/installation_tests/module.ll -D ifds-solvertest`
+`$ phasar-cli -m test/build_systems_tests/installation_tests/module.ll -D ifds-solvertest`
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 

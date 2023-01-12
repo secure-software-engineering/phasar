@@ -7,7 +7,7 @@ set(PHASAR_LINK_LIBS
   phasar_llvm_pointer
   phasar_llvm_typehierarchy
   phasar_llvm_controlflow
-  phasar_phasarllvm_utils
+  phasar_llvm_utils
   phasar_utils
   phasar_analysis_strategy
   phasar_taintconfig

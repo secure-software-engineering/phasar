@@ -11,23 +11,23 @@ set(LLVM_LINK_COMPONENTS
 
 # Build a stand-alone executable
 if(PHASAR_IN_TREE)
-  add_phasar_executable(phasar-llvm
-    phasar-llvm.cpp
+  add_phasar_executable(phasar-cli
+    phasar-cli.cpp
   )
 else()
-  add_executable(phasar-llvm
-    phasar-llvm.cpp
+  add_executable(phasar-cli
+    phasar-cli.cpp
   )
 endif()
 
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
-target_link_libraries(phasar-llvm
+target_link_libraries(phasar-cli
   LINK_PUBLIC
   phasar_config
   phasar_controller
   phasar_llvm_controlflow
-  phasar_phasarllvm_utils
+  phasar_llvm_utils
   phasar_analysis_strategy
   phasar_llvm_ifdside
   phasar_utils
@@ -47,12 +47,12 @@ target_link_libraries(phasar-llvm
 
 if (NOT PHASAR_IN_TREE)
   if(USE_LLVM_FAT_LIB)
-    llvm_config(phasar-llvm USE_SHARED ${LLVM_LINK_COMPONENTS})
+    llvm_config(phasar-cli USE_SHARED ${LLVM_LINK_COMPONENTS})
   else()
-    llvm_config(phasar-llvm ${LLVM_LINK_COMPONENTS})
+    llvm_config(phasar-cli ${LLVM_LINK_COMPONENTS})
   endif()
 
-  install(TARGETS phasar-llvm
+  install(TARGETS phasar-cli
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
