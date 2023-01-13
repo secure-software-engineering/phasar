@@ -1,3 +1,16 @@
-* development HEAD:
+# Breaking Changes
 
-* v1222
+## development HEAD
+
+- Nothing until now
+
+## v1222
+
+- Removed virtual interfaces `CFG<N,F>` and `ICFG<N,F>` and replaced by CRTP interfaces `CFGBase` and `ICFGBase`. Use the concrete types `LLVMBasedICFG` and `LLVMBasedCFG` instead. In template code you can use the type traits `is_crtp_base_of_v` and `is_icfg_v` to check for conformance to the interfaces.
+- Renamed `ProjectIRDB` to `LLVMProjectIRDB` and added a generic CRTP interface `ProjectIRDBBase` that does not depend on LLVM
+- Changed the API of `LLVMProjectIRDB`: The IRDB does no longer link multiple LLVM modules together, i.e. the ctor that reads a module from a file now takes a single filename instead of a vector. `ProjecIRDB::getAllModules()` has been removed and `ProjectIRDB::getWPAModule()` has been renamed to `LLVMProjectIRDB::getModule()`.
+- The `LLVMProjectIRDB` ctor that takes a raw-pointer to `llvm::Module` does no longer preprocess the module (i.e. attaching metadata IDs to it). You can still explicitly use the `ValueAnnotationPass` to do so manually.
+- The type `WholeProgramAnalysis` has been removed. Use `AnalysisController` instead.
+- The IFDS and IDE TabulationProblems no longer take all of `LLVMProjectIRDB*`, `LLVMTypeHierarchy*`, `LLVMPointsToInfo*` and `LLVMBasedICFG*`. Instead, they only get what they need.
+- The `IFDSSolver` and `IDESolver` now take an instance of the `ICFGBase` interface as additional argument to their ctor (because the analysis problems now not necessarily store a reference to it anymore)
+- The `IDETabulationProblem` is now a base class of `IFDSTabulationProblem` (and not vice versa as it was previously). In their ctors they only take the bare minimum of arguments: The IRDB, the entrypoints and optionally the special zero-value. If the zero-value is not passed in the ctor (as it was previously), it has to be set from within the client analysis' ctor. You may use te new function `initializeZeroValue(d_t)` for this.

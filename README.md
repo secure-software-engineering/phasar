@@ -30,6 +30,10 @@ fully-automated manner on the specified LLVM IR target code. Computing points-to
 information, call-graph(s), etc. is done by the framework, thus you can focus on
 what matters.
 
+Breaking Changes
+----------------
+To keep PhASAR in a state that it is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate. 
+
 How do I get started with PhASAR?
 ---------------------------------
 We have some documentation on PhASAR in our [_**wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
