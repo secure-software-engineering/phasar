@@ -58,15 +58,15 @@ protected:
   void initialize(const std::string &IRFile) {
     HA.emplace(IRFile, EntryPoints);
 
-    SecureHeapPropagationProblem.emplace(
-        createAnalysisProblem<IDESecureHeapPropagation>(*HA, EntryPoints));
+    SecureHeapPropagationProblem =
+        createAnalysisProblem<IDESecureHeapPropagation>(*HA, EntryPoints);
     SecureHeapPropagationResults =
         make_unique<IDESolver<IDESecureHeapPropagationAnalysisDomain>>(
             *SecureHeapPropagationProblem, &HA->getICFG());
 
     Desc.emplace(*SecureHeapPropagationResults);
-    TSProblem.emplace(
-        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &*Desc, EntryPoints));
+    TSProblem =
+        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &*Desc, EntryPoints);
     Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
         *TSProblem, &HA->getICFG());
 

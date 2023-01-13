@@ -11,9 +11,9 @@
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
 
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalysisConfig.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 
 #include "nlohmann/json.hpp"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 
 #include <memory>
 #include <optional>
@@ -24,6 +24,7 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMBasedICFG;
+class LLVMBasedCFG;
 class LLVMPointsToInfo;
 
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
@@ -33,23 +34,24 @@ public:
                           PointerAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
-                          bool AutoGlobalSupport);
+                          bool AutoGlobalSupport) noexcept;
 
   explicit HelperAnalyses(std::string IRFile,
                           std::vector<std::string> EntryPoints,
-                          HelperAnalysisConfig Config = {});
+                          HelperAnalysisConfig Config = {}) noexcept;
   explicit HelperAnalyses(const llvm::Twine &IRFile,
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
   explicit HelperAnalyses(const char *IRFile,
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
-  ~HelperAnalyses();
+  ~HelperAnalyses() noexcept;
 
-  LLVMProjectIRDB &getProjectIRDB();
-  LLVMPointsToInfo &getPointsToInfo();
-  LLVMTypeHierarchy &getTypeHierarchy();
-  LLVMBasedICFG &getICFG();
+  [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
+  [[nodiscard]] LLVMPointsToInfo &getPointsToInfo();
+  [[nodiscard]] LLVMTypeHierarchy &getTypeHierarchy();
+  [[nodiscard]] LLVMBasedICFG &getICFG();
+  [[nodiscard]] LLVMBasedCFG &getCFG();
 
   void setCGTy(CallGraphAnalysisType CGTy) noexcept {
     assert(ICF == nullptr && "The ICFG has already been constructed. CGTy "
@@ -62,6 +64,7 @@ private:
   std::unique_ptr<LLVMPointsToInfo> PT;
   std::unique_ptr<LLVMTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
+  std::unique_ptr<LLVMBasedCFG> CFG;
 
   // IRDB
   std::string IRFile;

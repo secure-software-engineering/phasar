@@ -10,6 +10,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoFullConstantPropagation.h"
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
@@ -24,6 +26,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <tuple>
@@ -42,28 +45,21 @@ protected:
   using IMFCPCompactResult_t =
       std::tuple<std::string, std::size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>;
-  std::unique_ptr<LLVMProjectIRDB> IRDB;
-
-  void SetUp() override {}
-  void TearDown() override {}
+  std::optional<HelperAnalyses> HA;
 
   void
   doAnalysisAndCompareResults(llvm::StringRef LlvmFilePath,
                               const std::set<IMFCPCompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
+    HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints);
+
     if (PrintDump) {
-      IRDB->dump();
+      HA->getProjectIRDB().dump();
     }
     ValueAnnotationPass::resetValueID();
-    LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToSet PT(*IRDB);
-    LLVMBasedICFG ICFG(
-        IRDB.get(), CallGraphAnalysisType::OTF,
-        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
-        &PT);
-    InterMonoFullConstantPropagation FCP(IRDB.get(), &TH, &ICFG, &PT,
-                                         EntryPoints);
+    auto FCP = createAnalysisProblem<InterMonoFullConstantPropagation>(
+        *HA, EntryPoints);
+
     InterMonoSolver_P<InterMonoFullConstantPropagation, 3> IMSolver(FCP);
     IMSolver.solve();
     if (PrintDump) {
@@ -73,7 +69,8 @@ protected:
     // do the comparison
     bool ResultNotEmpty = false;
     for (const auto &Truth : GroundTruth) {
-      const auto *Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
+      const auto *Fun =
+          HA->getProjectIRDB().getFunctionDefinition(std::get<0>(Truth));
       const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultSet = IMSolver.getResultsAt(Line);
       for (const auto &[Fact, Value] : ResultSet) {

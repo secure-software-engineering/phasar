@@ -52,8 +52,8 @@ protected:
   void initialize(const std::string &IRFile) {
     HA.emplace(IRFile, EntryPoints);
 
-    TSProblem.emplace(
-        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &Desc, EntryPoints));
+    TSProblem =
+        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &Desc, EntryPoints);
     Llvmtssolver = make_unique<IDESolver_P<IDETypeStateAnalysis>>(
         *TSProblem, &HA->getICFG());
 

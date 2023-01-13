@@ -59,7 +59,7 @@ protected:
                   const map<int, set<string>> &GroundTruth,
                   std::variant<std::monostate, json *, CallBackPairTy> Config,
                   bool DumpResults = false) {
-    HelperAnalyses HA(IRFile.str(), EntryPoints);
+    HelperAnalyses HA(IRFile, EntryPoints);
 
     auto TC = std::visit(Overloaded{[&](std::monostate) {
                                       return TaintConfig(HA.getProjectIRDB());

@@ -42,17 +42,16 @@ protected:
       unittest::PathToLLTestFiles + "general_linear_constant/";
 
   std::optional<HelperAnalyses> HA;
-  std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
-
   std::optional<IDEGeneralizedLCA> LCAProblem;
+  std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
 
   IDEGeneralizedLCATest() = default;
 
   void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {
     using namespace std::literals;
-    HA.emplace(PathToLLFiles + LLFile.str(), std::vector{"main"s});
-    LCAProblem.emplace(createAnalysisProblem<IDEGeneralizedLCA>(
-        *HA, std::vector{"main"s}, MaxSetSize));
+    HA.emplace(PathToLLFiles + LLFile, std::vector{"main"s});
+    LCAProblem = createAnalysisProblem<IDEGeneralizedLCA>(
+        *HA, std::vector{"main"s}, MaxSetSize);
     LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(
         *LCAProblem, &HA->getICFG());
 

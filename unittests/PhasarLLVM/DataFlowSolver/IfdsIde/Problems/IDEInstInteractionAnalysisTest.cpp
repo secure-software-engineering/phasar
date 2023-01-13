@@ -73,6 +73,7 @@ protected:
     // IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &ICFG,
     // &PT,
     //                                                           EntryPoints);
+    assert(HA);
     auto IIAProblem =
         createAnalysisProblem<IDEInstInteractionAnalysisT<std::string, true>>(
             *HA, EntryPoints);

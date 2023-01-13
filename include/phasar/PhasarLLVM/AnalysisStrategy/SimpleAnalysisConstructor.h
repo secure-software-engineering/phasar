@@ -14,94 +14,55 @@
 
 #include <type_traits>
 #include <utility>
+
 namespace psr {
 class LLVMProjectIRDB;
 class LLVMPointsToInfo;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
-namespace detail {
-template <typename ProblemTy, typename Enable, typename... ArgTys>
-struct HelperAnalysesSelector {};
-
 template <typename ProblemTy, typename... ArgTys>
-struct HelperAnalysesSelector<ProblemTy,
-                              std::enable_if_t<std::is_constructible_v<
-                                  ProblemTy, HelperAnalyses &, ArgTys...>>,
-                              ArgTys...> {
-  [[nodiscard]] static ProblemTy create(HelperAnalyses &HA, ArgTys... Args) {
+ProblemTy createAnalysisProblem(HelperAnalyses &HA, ArgTys &&...Args) {
+  if constexpr (std::is_constructible_v<ProblemTy, HelperAnalyses &,
+                                        ArgTys...>) {
     return ProblemTy(HA, std::forward<ArgTys>(Args)...);
-  }
-};
-
-template <typename ProblemTy, typename... ArgTys>
-struct HelperAnalysesSelector<
-    ProblemTy,
-    std::enable_if_t<
-        std::is_constructible_v<ProblemTy, const LLVMProjectIRDB *, ArgTys...>>,
-    ArgTys...> {
-  [[nodiscard]] static ProblemTy create(HelperAnalyses &HA, ArgTys... Args) {
+  } else if constexpr (std::is_constructible_v<
+                           ProblemTy, const LLVMProjectIRDB *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), std::forward<ArgTys>(Args)...);
-  }
-};
-
-template <typename ProblemTy, typename... ArgTys>
-struct HelperAnalysesSelector<
-    ProblemTy,
-    std::enable_if_t<std::is_constructible_v<ProblemTy, const LLVMProjectIRDB *,
-                                             const LLVMBasedICFG *, ArgTys...>>,
-    ArgTys...> {
-  [[nodiscard]] static ProblemTy create(HelperAnalyses &HA, ArgTys... Args) {
+  } else if constexpr (std::is_constructible_v<
+                           ProblemTy, const LLVMProjectIRDB *,
+                           const LLVMBasedICFG *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getICFG(),
                      std::forward<ArgTys>(Args)...);
-  }
-};
-
-template <typename ProblemTy, typename... ArgTys>
-struct HelperAnalysesSelector<
-    ProblemTy,
-    std::enable_if_t<std::is_constructible_v<ProblemTy, const LLVMProjectIRDB *,
-                                             LLVMPointsToInfo *, ArgTys...>>,
-    ArgTys...> {
-  [[nodiscard]] static ProblemTy create(HelperAnalyses &HA, ArgTys... Args) {
+  } else if constexpr (std::is_constructible_v<ProblemTy,
+                                               const LLVMProjectIRDB *,
+                                               LLVMPointsToInfo *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getPointsToInfo(),
                      std::forward<ArgTys>(Args)...);
-  }
-};
-
-template <typename ProblemTy, typename... ArgTys>
-struct HelperAnalysesSelector<
-    ProblemTy,
-    std::enable_if_t<std::is_constructible_v<ProblemTy, const LLVMProjectIRDB *,
-                                             const LLVMBasedICFG *,
-                                             LLVMPointsToInfo *, ArgTys...>>,
-    ArgTys...> {
-  [[nodiscard]] static ProblemTy create(HelperAnalyses &HA, ArgTys... Args) {
+  } else if constexpr (std::is_constructible_v<ProblemTy,
+                                               const LLVMProjectIRDB *,
+                                               const LLVMBasedICFG *,
+                                               LLVMPointsToInfo *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getICFG(), &HA.getPointsToInfo(),
                      std::forward<ArgTys>(Args)...);
-  }
-};
-
-template <typename ProblemTy, typename... ArgTys>
-struct HelperAnalysesSelector<
-    ProblemTy,
-    std::enable_if_t<std::is_constructible_v<
-        ProblemTy, const LLVMProjectIRDB *, const LLVMTypeHierarchy *,
-        const LLVMBasedICFG *, LLVMPointsToInfo *, ArgTys...>>,
-    ArgTys...> {
-  [[nodiscard]] static ProblemTy create(HelperAnalyses &HA, ArgTys... Args) {
+  } else if constexpr (std::is_constructible_v<
+                           ProblemTy, const LLVMProjectIRDB *,
+                           const LLVMTypeHierarchy *, const LLVMBasedCFG *,
+                           LLVMPointsToInfo *, ArgTys...>) {
+    return ProblemTy(&HA.getProjectIRDB(), &HA.getTypeHierarchy(), &HA.getCFG(),
+                     &HA.getPointsToInfo(), std::forward<ArgTys>(Args)...);
+  } else if constexpr (std::is_constructible_v<
+                           ProblemTy, const LLVMProjectIRDB *,
+                           const LLVMTypeHierarchy *, const LLVMBasedICFG *,
+                           LLVMPointsToInfo *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
                      &HA.getICFG(), &HA.getPointsToInfo(),
                      std::forward<ArgTys>(Args)...);
+  } else {
+    static_assert(
+        std::is_constructible_v<ProblemTy, HelperAnalyses &, ArgTys...>,
+        "Cannot construct analysis problem from HelperAnalyses");
   }
-};
-
-} // namespace detail
-
-template <typename ProblemTy, typename... ArgTys>
-ProblemTy createAnalysisProblem(HelperAnalyses &HA, ArgTys &&...Args) {
-  return detail::HelperAnalysesSelector<ProblemTy, void, ArgTys...>::create(
-      HA, std::forward<ArgTys>(Args)...);
 }
 
 } // namespace psr

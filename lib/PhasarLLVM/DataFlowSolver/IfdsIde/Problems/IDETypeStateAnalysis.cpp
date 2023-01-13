@@ -212,7 +212,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB,
                                            const TypeStateDescription *TSD,
                                            std::vector<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
-      TOP(TSD->top()), BOTTOM(TSD->bottom()), TSD(TSD), PT(PT) {
+      TSD(TSD), PT(PT) {
   assert(TSD != nullptr);
   assert(PT != nullptr);
 }
@@ -587,10 +587,12 @@ auto IDETypeStateAnalysis::getSummaryEdgeFunction(
   return nullptr;
 }
 
-IDETypeStateAnalysis::l_t IDETypeStateAnalysis::topElement() { return TOP; }
+IDETypeStateAnalysis::l_t IDETypeStateAnalysis::topElement() {
+  return TSD->top();
+}
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::bottomElement() {
-  return BOTTOM;
+  return TSD->bottom();
 }
 
 IDETypeStateAnalysis::l_t
@@ -599,18 +601,18 @@ IDETypeStateAnalysis::join(IDETypeStateAnalysis::l_t Lhs,
   if (Lhs == Rhs) {
     return Lhs;
   }
-  if (Lhs == TOP) {
+  if (Lhs == TSD->top()) {
     return Rhs;
   }
-  if (Rhs == TOP) {
+  if (Rhs == TSD->top()) {
     return Lhs;
   }
-  return BOTTOM;
+  return TSD->bottom();
 }
 
 std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::allTopFunction() {
-  return std::make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TOP);
+  return std::make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TSD->top());
 }
 
 void IDETypeStateAnalysis::printNode(llvm::raw_ostream &OS, n_t Stmt) const {

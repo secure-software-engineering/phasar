@@ -39,8 +39,7 @@ protected:
 
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
-    Constproblem.emplace(
-        createAnalysisProblem<IFDSConstAnalysis>(*HA, EntryPoints));
+    Constproblem = createAnalysisProblem<IFDSConstAnalysis>(*HA, EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }

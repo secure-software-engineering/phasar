@@ -35,8 +35,8 @@ protected:
 
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
-    UninitProblem.emplace(
-        createAnalysisProblem<IFDSUninitializedVariables>(*HA, EntryPoints));
+    UninitProblem =
+        createAnalysisProblem<IFDSUninitializedVariables>(*HA, EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }

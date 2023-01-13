@@ -55,16 +55,16 @@ protected:
   void initialize(const std::string &IRFile) {
     HA.emplace(IRFile, EntryPoints);
 
-    TSKDFProblem.emplace(createAnalysisProblem<IDETypeStateAnalysis>(
-        *HA, &OpenSSLEVPKDFDesc, EntryPoints));
+    TSKDFProblem = createAnalysisProblem<IDETypeStateAnalysis>(
+        *HA, &OpenSSLEVPKDFDesc, EntryPoints);
 
     KdfSolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
         *TSKDFProblem, &HA->getICFG());
 
     OpenSSLEVPKeyDerivationDesc.emplace(*KdfSolver);
 
-    TSProblem.emplace(createAnalysisProblem<IDETypeStateAnalysis>(
-        *HA, &*OpenSSLEVPKeyDerivationDesc, EntryPoints));
+    TSProblem = createAnalysisProblem<IDETypeStateAnalysis>(
+        *HA, &*OpenSSLEVPKeyDerivationDesc, EntryPoints);
 
     Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
         *TSProblem, &HA->getICFG());
@@ -86,7 +86,8 @@ protected:
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth) {
     for (const auto &InstToGroundTruth : GroundTruth) {
-      auto *Inst = HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
+      const auto *Inst =
+          HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> Results;
       for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {

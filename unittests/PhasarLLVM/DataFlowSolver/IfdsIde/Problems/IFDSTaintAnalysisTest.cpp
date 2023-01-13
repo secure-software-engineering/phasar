@@ -57,8 +57,8 @@ protected:
           return Ret;
         };
     TSF.emplace(std::move(SourceCB), std::move(SinkCB));
-    TaintProblem.emplace(
-        createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints));
+    TaintProblem =
+        createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }

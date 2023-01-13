@@ -53,8 +53,8 @@ protected:
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
 
-    TSProblem.emplace(createAnalysisProblem<IDETypeStateAnalysis>(
-        *HA, &CSTDFILEIODesc, EntryPoints));
+    TSProblem = createAnalysisProblem<IDETypeStateAnalysis>(
+        *HA, &CSTDFILEIODesc, EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
@@ -71,7 +71,8 @@ protected:
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth,
       IDESolver_P<IDETypeStateAnalysis> &Solver) {
     for (const auto &InstToGroundTruth : GroundTruth) {
-      auto *Inst = HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
+      const auto *Inst =
+          HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
       // std::cout << "Handle results at " << InstToGroundTruth.first <<
       // std::endl;
       auto GT = InstToGroundTruth.second;

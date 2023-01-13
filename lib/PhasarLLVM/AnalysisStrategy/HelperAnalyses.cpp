@@ -13,7 +13,8 @@ HelperAnalyses::HelperAnalyses(std::string IRFile,
                                PointerAnalysisType PTATy, bool AllowLazyPTS,
                                std::vector<std::string> EntryPoints,
                                CallGraphAnalysisType CGTy,
-                               Soundness SoundnessLevel, bool AutoGlobalSupport)
+                               Soundness SoundnessLevel,
+                               bool AutoGlobalSupport) noexcept
     : IRFile(std::move(IRFile)), PrecomputedPTS(std::move(PrecomputedPTS)),
       PTATy(PTATy), AllowLazyPTS(AllowLazyPTS),
       EntryPoints(std::move(EntryPoints)), CGTy(CGTy),
@@ -21,7 +22,7 @@ HelperAnalyses::HelperAnalyses(std::string IRFile,
 
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::vector<std::string> EntryPoints,
-                               HelperAnalysisConfig Config)
+                               HelperAnalysisConfig Config) noexcept
     : IRFile(std::move(IRFile)),
       PrecomputedPTS(std::move(Config.PrecomputedPTS)), PTATy(Config.PTATy),
       AllowLazyPTS(Config.AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
@@ -38,7 +39,7 @@ HelperAnalyses::HelperAnalyses(const char *IRFile,
     : HelperAnalyses(std::string(IRFile), std::move(EntryPoints),
                      std::move(Config)) {}
 
-HelperAnalyses::~HelperAnalyses() = default;
+HelperAnalyses::~HelperAnalyses() noexcept = default;
 
 LLVMProjectIRDB &HelperAnalyses::getProjectIRDB() {
   if (!IRDB) {
@@ -75,6 +76,16 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
   }
 
   return *ICF;
+}
+
+LLVMBasedCFG &HelperAnalyses::getCFG() {
+  if (!CFG) {
+    if (ICF) {
+      return *ICF;
+    }
+    CFG = std::make_unique<LLVMBasedCFG>();
+  }
+  return *CFG;
 }
 
 } // namespace psr
