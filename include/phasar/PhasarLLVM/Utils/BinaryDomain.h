@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+
 #include <string>
 
 namespace llvm {

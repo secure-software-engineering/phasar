@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
+
 #include <memory>
 
 namespace psr {
@@ -261,7 +262,8 @@ auto ConstantEdgeFunction<L, Enable>::joinWith(
   }
 
   if (!OtherFunction->isConstant()) {
-    return AllBottom<L>::getInstance();
+    // do not know how to join; hence ask other function to decide on this
+    return OtherFunction->joinWith(this->shared_from_this());
   }
 
   auto OtherVal = OtherFunction->computeTarget(JoinLatticeTraits<L>::top());
@@ -271,10 +273,9 @@ auto ConstantEdgeFunction<L, Enable>::joinWith(
     return AllBottom<L>::getInstance();
   }
 
-  if (JoinLatticeTraits<L>::top() == JoinedVal) [[unlikely]] {
-    // XXX: Can this ever happen?
-    return std::make_shared<AllTop<L>>();
-  }
+  assert(JoinLatticeTraits<L>::top() != JoinedVal &&
+         "By definition join() must not go down the lattice and this->Value is "
+         "already non-top");
 
   if (JoinedVal == OtherVal) {
     return OtherFunction;
@@ -307,7 +308,7 @@ auto ConstantEdgeFunction<L, Enable>::composeWith(
     return AllBottom<L>::getInstance();
   }
   if (NextVal == JoinLatticeTraits<L>::top()) [[unlikely]] {
-    // XXX: Can this ever happen?
+    // Should not happen; however, we don't control user-code
     return std::make_shared<AllTop<L>>();
   }
 

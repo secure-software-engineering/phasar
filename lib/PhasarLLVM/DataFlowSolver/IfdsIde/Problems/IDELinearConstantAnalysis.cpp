@@ -92,7 +92,7 @@ static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal) {
   auto *RopPtr = std::get_if<int64_t>(&RVal);
 
   if (!LopPtr || !RopPtr) {
-    return JoinLatticeTraits<l_t>::bottom();
+    return Bottom{};
   }
 
   auto Lop = *LopPtr;
@@ -103,19 +103,19 @@ static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal) {
   switch (Op) {
   case llvm::Instruction::Add:
     if (llvm::AddOverflow(Lop, Rop, Res)) {
-      return JoinLatticeTraits<l_t>::bottom();
+      return Bottom{};
     }
     return Res;
 
   case llvm::Instruction::Sub:
     if (llvm::SubOverflow(Lop, Rop, Res)) {
-      return JoinLatticeTraits<l_t>::bottom();
+      return Bottom{};
     }
     return Res;
 
   case llvm::Instruction::Mul:
     if (llvm::MulOverflow(Lop, Rop, Res)) {
-      return JoinLatticeTraits<l_t>::bottom();
+      return Bottom{};
     }
     return Res;
 
@@ -124,17 +124,17 @@ static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal) {
     if (Lop == std::numeric_limits<int64_t>::min() &&
         Rop == -1) { // Would produce and overflow, as the complement of min is
                      // not representable in a signed type.
-      return JoinLatticeTraits<l_t>::bottom();
+      return Bottom{};
     }
     if (Rop == 0) { // Division by zero is UB, so we return Bot
-      return JoinLatticeTraits<l_t>::bottom();
+      return Bottom{};
     }
     return Lop / Rop;
 
   case llvm::Instruction::URem:
   case llvm::Instruction::SRem:
     if (Rop == 0) { // Division by zero is UB, so we return Bot
-      return JoinLatticeTraits<l_t>::bottom();
+      return Bottom{};
     }
     return Lop % Rop;
 
@@ -148,7 +148,7 @@ static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal) {
     PHASAR_LOG_LEVEL(DEBUG, "Operation not supported by "
                             "IDELinearConstantAnalysis::"
                             "executeBinOperation()");
-    return JoinLatticeTraits<l_t>::bottom();
+    return Bottom{};
   }
 }
 
@@ -201,7 +201,7 @@ public:
       const auto *Ric = llvm::cast<llvm::ConstantInt>(Rop);
       return executeBinOperation(Op, Lic->getSExtValue(), Ric->getSExtValue());
     }
-    if (Source == JoinLatticeTraits<l_t>::bottom()) {
+    if (Source == Bottom{}) {
       return Source;
     }
     if (Lop == CurrNode && llvm::isa<llvm::ConstantInt>(Rop)) {
