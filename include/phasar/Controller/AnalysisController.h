@@ -173,8 +173,8 @@ public:
       std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
       AnalysisControllerEmitterOptions EmitterOptions,
       IFDSIDESolverConfig SolverConfig,
-      const std::string &ProjectID = "default-phasar-project",
-      const std::string &OutDirectory = "");
+      std::string ProjectID = "default-phasar-project",
+      std::string OutDirectory = "");
 
   ~AnalysisController() = default;
 
