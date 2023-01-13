@@ -55,14 +55,6 @@ namespace psr {
 const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
                                              "calloc", "realloc"};
 
-bool isFunctionPointer(const llvm::Value *V) noexcept {
-  if (V) {
-    return V->getType()->isPointerTy() &&
-           V->getType()->getPointerElementType()->isFunctionTy();
-  }
-  return false;
-}
-
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {
@@ -220,22 +212,6 @@ void dumpIRValue(const llvm::Instruction *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
 
-std::vector<const llvm::Value *>
-globalValuesUsedinFunction(const llvm::Function *F) {
-  std::vector<const llvm::Value *> GlobalsUsed;
-  for (const auto &BB : *F) {
-    for (const auto &I : BB) {
-      for (const auto &Op : I.operands()) {
-        if (const llvm::GlobalValue *G =
-                llvm::dyn_cast<llvm::GlobalValue>(Op)) {
-          GlobalsUsed.push_back(G);
-        }
-      }
-    }
-  }
-  return GlobalsUsed;
-}
-
 std::string getMetaDataID(const llvm::Value *V) {
   if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     if (auto *Metadata = Inst->getMetadata(PhasarConfig::MetaDataKind())) {
@@ -262,7 +238,7 @@ bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,
                                  const llvm::Value *Rhs) const {
   std::string LhsId = getMetaDataID(Lhs);
   std::string RhsId = getMetaDataID(Rhs);
-  return Sless(LhsId, RhsId);
+  return StringIDLess{}(LhsId, RhsId);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
@@ -354,31 +330,6 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V) {
 std::string getModuleNameFromVal(const llvm::Value *V) {
   const llvm::Module *M = getModuleFromVal(V);
   return M ? M->getModuleIdentifier() : " ";
-}
-
-std::size_t computeModuleHash(llvm::Module *M, bool ConsiderIdentifier) {
-  std::string SourceCode;
-  if (ConsiderIdentifier) {
-    llvm::raw_string_ostream RSO(SourceCode);
-    llvm::WriteBitcodeToFile(*M, RSO);
-    RSO.flush();
-  } else {
-    std::string Identifier = M->getModuleIdentifier();
-    M->setModuleIdentifier("");
-    llvm::raw_string_ostream RSO(SourceCode);
-    llvm::WriteBitcodeToFile(*M, RSO);
-    RSO.flush();
-    M->setModuleIdentifier(Identifier);
-  }
-  return std::hash<std::string>{}(SourceCode);
-}
-
-std::size_t computeModuleHash(const llvm::Module *M) {
-  std::string SourceCode;
-  llvm::raw_string_ostream RSO(SourceCode);
-  llvm::WriteBitcodeToFile(*M, RSO);
-  RSO.flush();
-  return std::hash<std::string>{}(SourceCode);
 }
 
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,

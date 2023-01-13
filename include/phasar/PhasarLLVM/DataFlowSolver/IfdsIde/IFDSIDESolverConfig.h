@@ -74,6 +74,19 @@ private:
                                 SolverConfigOptions::RecordEdges;
 };
 
+namespace detail {
+template <typename T, typename = void>
+struct has_setIFDSIDESolverConfig : std::false_type {};
+template <typename T>
+struct has_setIFDSIDESolverConfig<
+    T, decltype(std::declval<T>().setIFDSIDESolverConfig(
+           std::declval<IFDSIDESolverConfig>()))> : std::true_type {};
+} // namespace detail
+
+template <typename T>
+static constexpr bool has_setIFDSIDESolverConfig_v = // NOLINT
+    detail::has_setIFDSIDESolverConfig<T>::value;
+
 } // namespace psr
 
 #endif

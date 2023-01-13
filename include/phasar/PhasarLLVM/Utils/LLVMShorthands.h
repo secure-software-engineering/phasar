@@ -41,14 +41,6 @@ namespace psr {
 class LLVMProjectIRDB;
 
 /**
- * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
- * @param V LLVM Value.
- * @return True, if given LLVM Value is a LLVM Function Pointer. False,
- * otherwise.
- */
-bool isFunctionPointer(const llvm::Value *V) noexcept;
-
-/**
  * @brief Checks if the given LLVM Value is either a alloca instruction or a
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
  */
@@ -86,13 +78,6 @@ LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
 
 /**
- * @brief Returns all LLVM Global Values that are used in the given LLVM
- * Function.
- */
-std::vector<const llvm::Value *>
-globalValuesUsedinFunction(const llvm::Function *F);
-
-/**
  * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta
  * data. Formal arguments cannot be annotated with metadata in LLVM. Therefore,
  * a formal arguments ID will look like this:
@@ -113,8 +98,6 @@ std::string getMetaDataID(const llvm::Value *V);
  * underlying types for their ID's, size_t and string respectively.
  */
 struct LLVMValueIDLess {
-  StringIDLess Sless;
-  LLVMValueIDLess() : Sless(StringIDLess()) {}
   bool operator()(const llvm::Value *Lhs, const llvm::Value *Rhs) const;
 };
 
@@ -194,23 +177,6 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V);
  * @return Module name or empty string.
  */
 std::string getModuleNameFromVal(const llvm::Value *V);
-
-/**
- * @brief Computes a hash value for a given LLVM Module.
- * @param M LLVM Module.
- * @param considerIdentifier If true, module identifier will be considered for
- * hash computation.
- * @return Hash value.
- */
-std::size_t computeModuleHash(llvm::Module *M, bool ConsiderIdentifier);
-
-/**
- * @brief Computes a hash value for a given LLVM Module.
- * @note Hash computation will consider the module identifier.
- * @param M
- * @return
- */
-std::size_t computeModuleHash(const llvm::Module *M);
 
 /**
  * @brief True, iff V is the compiler-generated guard variable for the
