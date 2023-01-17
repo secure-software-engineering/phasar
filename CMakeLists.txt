@@ -341,8 +341,6 @@ install(DIRECTORY utils/
 )
 
 # Install the Phasar config files into ~/.config/phasar/
-message(STATUS "PHASAR_CONFIG_INSTALL_DIR: ${PHASAR_CONFIG_INSTALL_DIR}")
-
 install(DIRECTORY config/
   DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"
