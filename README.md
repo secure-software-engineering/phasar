@@ -32,7 +32,7 @@ what matters.
 
 Breaking Changes
 ----------------
-To keep PhASAR in a state that it is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate. 
+To keep PhASAR in a state that it is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate.
 
 How do I get started with PhASAR?
 ---------------------------------
