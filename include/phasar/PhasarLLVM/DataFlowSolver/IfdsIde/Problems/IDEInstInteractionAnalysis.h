@@ -25,9 +25,11 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
@@ -40,6 +42,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <functional>
@@ -132,10 +135,9 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
 
 inline std::ostream &operator<<(std::ostream &OS,
                                 const IDEIIAFlowFact &FlowFact) {
-  std::string Buf;
-  llvm::raw_string_ostream Rso(Buf);
+  llvm::raw_os_ostream Rso(OS);
   FlowFact.print(Rso);
-  return OS << Buf;
+  return OS;
 }
 
 } // namespace psr
@@ -147,21 +149,18 @@ template <> struct hash<psr::IDEIIAFlowFact> {
     return std::hash<const llvm::Value *>()(FlowFact.getBase());
   }
 };
-
-template <> struct less<psr::IDEIIAFlowFact> {
-  bool operator()(const psr::IDEIIAFlowFact &Lhs,
-                  const psr::IDEIIAFlowFact &Rhs) const {
-    return Lhs < Rhs;
-  }
-};
-
-template <> struct equal_to<psr::IDEIIAFlowFact> {
-  bool operator()(const psr::IDEIIAFlowFact &Lhs,
-                  const psr::IDEIIAFlowFact &Rhs) const {
-    return Lhs == Rhs;
-  }
-};
 } // namespace std
+
+// Compatibility with LLVM Casting
+namespace llvm {
+template <> struct simplify_type<psr::IDEIIAFlowFact> {
+  using SimpleType = const llvm::Value *;
+
+  static SimpleType getSimplifiedValue(const psr::IDEIIAFlowFact &FF) noexcept {
+    return FF.getBase();
+  }
+};
+} // namespace llvm
 
 namespace psr {
 
@@ -268,26 +267,20 @@ public:
         //                                          v  v  v  v
         //                                          0  c  x  I
         //
-        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          const llvm::BranchInst *Br;
 
-          IIAFlowFunction(const llvm::BranchInst *Br) : Br(Br) {}
-
-          container_type computeTargets(d_t Src) override {
-            container_type Facts;
-            Facts.insert(Src);
-            if (Src == Br->getCondition()) {
-              Facts.insert(Br);
-              for (const auto *Succs : Br->successors()) {
-                for (const auto &Inst : Succs->instructionsWithoutDebug()) {
-                  Facts.insert(&Inst);
-                }
+        return lambdaFlow<d_t>([Br](d_t Src) {
+          container_type Facts;
+          Facts.insert(Src);
+          if (Src == Br->getCondition()) {
+            Facts.insert(Br);
+            for (const auto *Succs : Br->successors()) {
+              for (const auto &Inst : Succs->instructionsWithoutDebug()) {
+                Facts.insert(&Inst);
               }
             }
-            return Facts;
           }
-        };
-        return std::make_shared<IIAFlowFunction>(Br);
+          return Facts;
+        });
       }
     }
 
@@ -311,28 +304,11 @@ public:
         //              v  v  v
         //              0  Y  x
         //
-        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          const llvm::LoadInst *Load;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy PTS;
-
-          IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
-                          const llvm::LoadInst *Load)
-              : Load(Load), PTS(Problem.PT->getReachableAllocationSites(
-                                Load->getPointerOperand(),
-                                Problem.OnlyConsiderLocalAliases)) {}
-
-          container_type computeTargets(d_t Src) override {
-            container_type Facts;
-            Facts.insert(Src);
-
-            // Handle global variables which behave a bit special.
-            if (Src == Load->getPointerOperand() || PTS->count(Src)) {
-              Facts.insert(Load);
-            }
-            return Facts;
-          }
-        };
-        return std::make_shared<IIAFlowFunction>(*this, Load);
+        return generateFlowIf<d_t>(
+            Load, [PointerOp = Load->getPointerOperand(),
+                   PTS = PT->getReachableAllocationSites(
+                       Load->getPointerOperand(), OnlyConsiderLocalAliases)](
+                      d_t Src) { return Src == PointerOp || PTS->count(Src); });
       }
 
       // (ii) Handle semantic propagation (pointers) for store instructions.
@@ -354,53 +330,41 @@ public:
         //             v  v  v
         //             0  x  Y
         //
-        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          const llvm::StoreInst *Store;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy ValuePTS;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy PointerPTS;
-
-          IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
-                          const llvm::StoreInst *Store)
-              : Store(Store), ValuePTS([&]() {
-                  if (isInterestingPointer(Store->getValueOperand())) {
-                    return Problem.PT->getReachableAllocationSites(
-                        Store->getValueOperand(),
-                        Problem.OnlyConsiderLocalAliases);
-                  }
-                  return std::make_unique<LLVMPointsToInfo::PointsToSetTy>(
-                      LLVMPointsToInfo::PointsToSetTy{
-                          Store->getValueOperand()});
-                }()),
-                PointerPTS(Problem.PT->getReachableAllocationSites(
-                    Store->getPointerOperand(),
-                    Problem.OnlyConsiderLocalAliases)) {}
-
-          container_type computeTargets(d_t Src) override {
-            // Override old value(s), i.e., kill value(s) that is written to and
-            // generate from value that is stored.
-            if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
-              return {};
-            }
-            container_type Facts;
-            Facts.insert(Src);
-            // y/Y now obtains its new value(s) from x/X
-            // If a value is stored that holds we must generate all potential
-            // memory locations the store might write to.
-            if (Store->getValueOperand() == Src || ValuePTS->count(Src)) {
-              Facts.insert(Store->getValueOperand());
-              Facts.insert(Store->getPointerOperand());
-              Facts.insert(PointerPTS->begin(), PointerPTS->end());
-            }
-            // ... or from zero, if a constant literal is stored to y
-            if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-                IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-              Facts.insert(Store->getPointerOperand());
-              Facts.insert(PointerPTS->begin(), PointerPTS->end());
-            }
-            return Facts;
+        /// TODO: Do we really need ValuePTS here?
+        auto ValuePTS = [&]() {
+          if (isInterestingPointer(Store->getValueOperand())) {
+            return PT->getReachableAllocationSites(Store->getValueOperand(),
+                                                   OnlyConsiderLocalAliases);
           }
-        };
-        return std::make_shared<IIAFlowFunction>(*this, Store);
+          return std::make_unique<LLVMPointsToInfo::PointsToSetTy>(
+              LLVMPointsToInfo::PointsToSetTy{Store->getValueOperand()});
+        }();
+        return lambdaFlow<d_t>(
+            [Store, ValuePTS{std::move(ValuePTS)},
+             PointerPTS = PT->getReachableAllocationSites(
+                 Store->getPointerOperand(), OnlyConsiderLocalAliases)](
+                d_t Src) -> container_type {
+              if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
+                return {};
+              }
+              container_type Facts;
+              Facts.insert(Src);
+              // y/Y now obtains its new value(s) from x/X
+              // If a value is stored that holds we must generate all potential
+              // memory locations the store might write to.
+              if (Store->getValueOperand() == Src || ValuePTS->count(Src)) {
+                Facts.insert(Store->getValueOperand());
+                Facts.insert(Store->getPointerOperand());
+                Facts.insert(PointerPTS->begin(), PointerPTS->end());
+              }
+              // ... or from zero, if a constant literal is stored to y
+              if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+                  IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+                Facts.insert(Store->getPointerOperand());
+                Facts.insert(PointerPTS->begin(), PointerPTS->end());
+              }
+              return Facts;
+            });
       }
     }
 
@@ -433,65 +397,17 @@ public:
       // Case x is a load instruction
       if (const auto *Load =
               llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
-        struct IIAAFlowFunction : FlowFunction<d_t> {
-          const llvm::StoreInst *Store;
-          const llvm::LoadInst *Load;
 
-          IIAAFlowFunction(const llvm::StoreInst *S, const llvm::LoadInst *L)
-              : Store(S), Load(L) {}
-          ~IIAAFlowFunction() override = default;
-
-          container_type computeTargets(d_t Src) override {
-            // Override old value, i.e., kill value that is written to and
-            // generate from value that is stored.
-            if (Store->getPointerOperand() == Src) {
-              return {};
-            }
-            container_type Facts;
-            // y now obtains its new value from x
-            if (Load == Src || Load->getPointerOperand() == Src) {
-              Facts.insert(Src);
-              Facts.insert(Load->getPointerOperand());
-              Facts.insert(Store->getPointerOperand());
-            } else {
-              Facts.insert(Src);
-            }
-            IF_LOG_ENABLED({
-              for (const auto Fact : Facts) {
-                PHASAR_LOG_LEVEL(DFADEBUG,
-                                 "Create edge: " << llvmIRToShortString(Src)
-                                                 << " --"
-                                                 << llvmIRToShortString(Store)
-                                                 << "--> " << Fact);
-              }
-            });
-            return Facts;
-          }
-        };
-        return std::make_shared<IIAAFlowFunction>(Store, Load);
-      }
-      // Otherwise
-      struct IIAAFlowFunction : FlowFunction<d_t> {
-        const llvm::StoreInst *Store;
-
-        IIAAFlowFunction(const llvm::StoreInst *S) : Store(S) {}
-        ~IIAAFlowFunction() override = default;
-
-        container_type computeTargets(d_t Src) override {
+        return lambdaFlow<d_t>([Store, Load](d_t Src) -> container_type {
           // Override old value, i.e., kill value that is written to and
           // generate from value that is stored.
           if (Store->getPointerOperand() == Src) {
             return {};
           }
-          container_type Facts;
-          Facts.insert(Src);
+          container_type Facts = {Src};
           // y now obtains its new value from x
-          if (Store->getValueOperand() == Src) {
-            Facts.insert(Store->getPointerOperand());
-          }
-          // ... or from zero, if a constant literal is stored to y
-          if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-              IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+          if (Load == Src || Load->getPointerOperand() == Src) {
+            Facts.insert(Load->getPointerOperand());
             Facts.insert(Store->getPointerOperand());
           }
           IF_LOG_ENABLED({
@@ -503,9 +419,36 @@ public:
             }
           });
           return Facts;
+        });
+      }
+      // Otherwise
+
+      return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
+        // Override old value, i.e., kill value that is written to and
+        // generate from value that is stored.
+        if (Store->getPointerOperand() == Src) {
+          return {};
         }
-      };
-      return std::make_shared<IIAAFlowFunction>(Store);
+        container_type Facts = {Src};
+        // y now obtains its new value from x
+        if (Store->getValueOperand() == Src) {
+          Facts.insert(Store->getPointerOperand());
+        }
+        // ... or from zero, if a constant literal is stored to y
+        if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+            IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+          Facts.insert(Store->getPointerOperand());
+        }
+        IF_LOG_ENABLED({
+          for (const auto Fact : Facts) {
+            PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
+                                           << llvmIRToShortString(Src) << " --"
+                                           << llvmIRToShortString(Store)
+                                           << "--> " << Fact);
+          }
+        });
+        return Facts;
+      });
     }
     // At last, we can handle all other (unary/binary) instructions.
     //
@@ -519,48 +462,39 @@ public:
     //                       v  v  v  v
     //                       0  x  o  p
     //
-    struct IIAFlowFunction : FlowFunction<d_t> {
-      n_t Inst;
 
-      IIAFlowFunction(n_t Inst) : Inst(Inst) {}
-
-      ~IIAFlowFunction() override = default;
-
-      container_type computeTargets(d_t Src) override {
-        container_type Facts;
-        if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-          // keep the zero flow fact
-          Facts.insert(Src);
-          return Facts;
-        }
-        // (i) syntactic propagation
-        if (Inst == Src) {
-          Facts.insert(Inst);
-        }
-        // continue syntactic propagation: populate and propagate other existing
-        // facts
-        for (auto &Op : Inst->operands()) {
-          // if one of the operands holds, also generate the instruction using
-          // it
-          if (Op == Src) {
-            Facts.insert(Inst);
-            Facts.insert(Src);
-          }
-        }
-        // pass everything that already holds as identity
+    return lambdaFlow<d_t>([Inst = Curr](d_t Src) {
+      container_type Facts;
+      if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+        // keep the zero flow fact
         Facts.insert(Src);
-        IF_LOG_ENABLED({
-          for (const auto Fact : Facts) {
-            PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
-                                           << llvmIRToShortString(Src) << " --"
-                                           << llvmIRToShortString(Inst)
-                                           << "--> " << Fact);
-          }
-        });
         return Facts;
       }
-    };
-    return std::make_shared<IIAFlowFunction>(Curr);
+      // (i) syntactic propagation
+      if (Inst == Src) {
+        Facts.insert(Inst);
+      }
+      // continue syntactic propagation: populate and propagate other existing
+      // facts
+      for (auto &Op : Inst->operands()) {
+        // if one of the operands holds, also generate the instruction using
+        // it
+        if (Op == Src) {
+          Facts.insert(Inst);
+        }
+      }
+      // pass everything that already holds as identity
+      Facts.insert(Src);
+      IF_LOG_ENABLED({
+        for (const auto Fact : Facts) {
+          PHASAR_LOG_LEVEL(DFADEBUG,
+                           "Create edge: " << llvmIRToShortString(Src) << " --"
+                                           << llvmIRToShortString(Inst)
+                                           << "--> " << Fact);
+        }
+      });
+      return Facts;
+    });
   }
 
   inline FlowFunctionPtrType getCallFlowFunction(n_t CallSite,
@@ -574,117 +508,33 @@ public:
       return killAllFlows<d_t>();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+
     // Map actual to formal parameters.
-    struct MapFactsToCallee : public FlowFunction<IDEIIAFlowFact> {
-      const llvm::CallBase *CallSite;
-      const llvm::Function *DestFun;
-      std::vector<const llvm::Value *> Actuals;
-      std::vector<const llvm::Argument *> Formals;
-      // Predicate for handling actual parameters
-      std::function<bool(const llvm::CallBase *, const llvm::Value *)>
-          ActualPredicate = [](const llvm::CallBase *CS, const llvm::Value *V) {
-            bool PassParameter = true;
-            for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
-              if (V == CS->getArgOperand(Idx)) {
-                return !CS->paramHasAttr(Idx, llvm::Attribute::StructRet);
-              }
-            }
-            return PassParameter;
-          };
 
-      MapFactsToCallee(const llvm::CallBase *CallSite,
-                       const llvm::Function *DestFun)
-          : CallSite(CallSite), DestFun(DestFun) {
-        // Set up the actual parameters
-        for (const auto &Actual : CallSite->args()) {
-          Actuals.push_back(Actual);
-        }
-        // Set up the formal parameters
-        for (const auto &Formal : DestFun->args()) {
-          Formals.push_back(&Formal);
-        }
-      }
+    auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
+        CS, DestFun, [](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
+          if (d_t(ActualArg) != Src) {
+            return false;
+          }
 
-      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
-        // If DestFun is a declaration we cannot follow this call, we thus need
-        // to kill everything
-        if (DestFun->isDeclaration()) {
-          return {};
-        }
-        // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::isLLVMZeroValue(Source)) {
-          return {Source};
-        }
-        container_type Res;
-        // Pass global variables as is, if desired Globals could also be actual
-        // arguments, then the formal argument needs to be generated below. Need
-        // llvm::Constant here to cover also ConstantExpr and ConstantAggregate
-        if (llvm::isa<llvm::Constant>(Source.getBase())) {
-          Res.insert(Source);
-        }
-        // Handle C-style varargs functions
-        if (DestFun->isVarArg()) {
-          // Map actual parameters to corresponding formal parameters.
-          for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-            if (Source == Actuals[Idx] &&
-                ActualPredicate(CallSite, Actuals[Idx])) {
-              if (Idx >= DestFun->arg_size()) {
-                // Over-approximate by trying to add the
-                //   alloca [1 x %struct.__va_list_tag], align 16
-                // to the results
-                // find the allocated %struct.__va_list_tag and generate it
-                for (const auto &BB : *DestFun) {
-                  for (const auto &I : BB) {
-                    if (const auto *Alloc =
-                            llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                      if (Alloc->getAllocatedType()->isArrayTy() &&
-                          Alloc->getAllocatedType()->getArrayNumElements() >
-                              0 &&
-                          Alloc->getAllocatedType()
-                              ->getArrayElementType()
-                              ->isStructTy() &&
-                          Alloc->getAllocatedType()
-                                  ->getArrayElementType()
-                                  ->getStructName() == "struct.__va_list_tag") {
-                        Res.insert(Alloc);
-                      }
-                    }
-                  }
-                }
-              } else {
-                assert(Idx < Formals.size() &&
-                       "Out of bound access to formal parameters!");
-                Res.insert(Formals[Idx]); // corresponding formal
-              }
-            }
+          if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(ActualArg);
+              Arg && Arg->hasStructRetAttr()) {
+            return false;
           }
-        }
-        // Handle ordinary case
-        // Map actual parameters to corresponding formal parameters.
-        for (unsigned Idx = 0;
-             Idx < Actuals.size() && Idx < DestFun->arg_size(); ++Idx) {
-          if (Source == Actuals[Idx] &&
-              ActualPredicate(CallSite, Actuals[Idx])) {
-            assert(Idx < Formals.size() &&
-                   "Out of bound access to formal parameters!");
-            Res.insert(Formals[Idx]); // corresponding formal
-          }
-        }
-        return Res;
-      }
-    };
-    auto MapFactsToCalleeFF = std::make_shared<MapFactsToCallee>(CS, DestFun);
+
+          return true;
+        });
     // Generate the artificially introduced RVO parameters from zero value.
-    std::set<d_t> SRetFormals;
-    for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
-      if (CS->paramHasAttr(Idx, llvm::Attribute::StructRet)) {
-        SRetFormals.insert(DestFun->getArg(Idx));
-      }
+
+    auto SRetFormal = CS->hasStructRetAttr() ? CS->getArgOperand(0) : nullptr;
+
+    if (SRetFormal) {
+      return unionFlows(
+          std::move(MapFactsToCalleeFF),
+          generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
     }
 
-    return unionFlows(std::move(MapFactsToCalleeFF),
-                      generateManyFlowsAndKillAllOthers(std::move(SRetFormals),
-                                                        this->getZeroValue()));
+    return MapFactsToCalleeFF;
   }
 
   inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,

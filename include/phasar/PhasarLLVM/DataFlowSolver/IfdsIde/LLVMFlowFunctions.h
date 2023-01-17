@@ -29,6 +29,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/TypeTraits.h"
 
 namespace psr {
 
@@ -122,24 +123,26 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
 ///   f(x)  = {px} if PropagateArgumentWithSource(ax, x) else {}.
 ///
 /// \note Unlike the old version, this one is only meant for forward-analyses
-template <typename Fn = std::equal_to<const llvm::Value *>,
-          typename Container = std::set<const llvm::Value *>,
-          typename = std::enable_if_t<std::is_invocable_r_v<
-              bool, Fn, const llvm::Value *, const llvm::Value *>>>
-FlowFunctionPtrType<const llvm::Value *, Container>
+template <typename D = const llvm::Value *, typename Container = std::set<D>,
+          typename Fn = std::equal_to<D>, typename DCtor = DefaultConstruct<D>,
+          typename = std::enable_if_t<
+              std::is_invocable_r_v<bool, Fn, const llvm::Value *, D>>>
+FlowFunctionPtrType<D, Container>
 mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
                  Fn &&PropagateArgumentWithSource = {},
-                 bool PropagateGlobals = true,
+                 DCtor &&FactConstructor = {}, bool PropagateGlobals = true,
                  bool PropagateZeroToCallee = true) {
-  struct Mapper : public FlowFunction<const llvm::Value *, Container> {
+  struct Mapper : public FlowFunction<D, Container> {
 
     Mapper(const llvm::CallBase *CS, const llvm::Function *DestFun,
-           bool PropagateGlobals, bool PropagateZeroToCallee, Fn &&PropArg)
+           bool PropagateGlobals, bool PropagateZeroToCallee, Fn &&PropArg,
+           DCtor &&FactConstructor)
         : CSAndPropGlob(CS, PropagateGlobals),
           DestFunAndPropZero(DestFun, PropagateZeroToCallee),
-          PropArg(std::forward<Fn>(PropArg)) {}
+          PropArg(std::forward<Fn>(PropArg)),
+          FactConstructor(std::forward<DCtor>(FactConstructor)) {}
 
-    Container computeTargets(const llvm::Value *Source) override {
+    Container computeTargets(D Source) override {
       // If DestFun is a declaration we cannot follow this call, we thus need to
       // kill everything
       if (DestFunAndPropZero.getPointer()->isDeclaration()) {
@@ -149,7 +152,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       Container Res;
       if (DestFunAndPropZero.getInt() &&
           LLVMZeroValue::isLLVMZeroValue(Source)) {
-        Res.insert(Source);
+        Res.insert(std::move(Source));
       } else if (CSAndPropGlob.getInt() &&
                  !LLVMZeroValue::isLLVMZeroValue(Source) &&
                  llvm::isa<llvm::Constant>(Source)) {
@@ -157,7 +160,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
         // Globals could also be actual arguments, then the formal argument
         // needs to be generated below. Need llvm::Constant here to cover also
         // ConstantExpr and ConstantAggregate
-        Res.insert(Source);
+        Res.insert(std::move(Source));
       }
 
       const auto *CS = CSAndPropGlob.getPointer();
@@ -172,7 +175,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, ArgIt->get(), Source)) {
-          Res.insert(&*ParamIt);
+          Res.insert(FactConstructor(&*ParamIt));
         }
       }
 
@@ -196,7 +199,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
                   Alloc->getAllocatedType()
                           ->getArrayElementType()
                           ->getStructName() == "struct.__va_list_tag") {
-                Res.insert(Alloc);
+                Res.insert(FactConstructor(Alloc));
               }
             }
           }
@@ -209,11 +212,13 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
     llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
     llvm::PointerIntPair<const llvm::Function *, 1, bool> DestFunAndPropZero;
     [[no_unique_address]] std::decay_t<Fn> PropArg;
+    [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
   };
 
-  return std::make_shared<Mapper>(
-      CallSite, DestFun, PropagateGlobals, PropagateZeroToCallee,
-      std::forward<Fn>(PropagateArgumentWithSource));
+  return std::make_shared<Mapper>(CallSite, DestFun, PropagateGlobals,
+                                  PropagateZeroToCallee,
+                                  std::forward<Fn>(PropagateArgumentWithSource),
+                                  std::forward<DCtor>(FactConstructor));
 }
 
 /// A flow function that serves as default-implementation of the return flow

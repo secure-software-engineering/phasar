@@ -13,6 +13,7 @@
 #include <string_view>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
@@ -194,6 +195,14 @@ struct FalseFn {
   template <typename... Args>
   [[nodiscard]] bool operator()(const Args &.../*unused*/) const noexcept {
     return false;
+  }
+};
+
+/// Delegates to the ctor of T that takes an U
+template <typename T> struct DefaultConstruct {
+  template <typename U>
+  T operator()(U &&Val) noexcept(std::is_nothrow_constructible_v<T, U>) {
+    return T(std::forward<U>(Val));
   }
 };
 
