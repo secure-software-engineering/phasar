@@ -334,7 +334,9 @@ install(DIRECTORY external/googletest/googletest/include/gtest/
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/
   DESTINATION bin
-  FILES_MATCHING PATTERN "phasar-*"
+  FILES_MATCHING
+  PATTERN "CodeGen" EXCLUDE # CodeGen does not contain files to install
+  PATTERN "phasar-*"
   PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
               GROUP_EXECUTE GROUP_READ
               WORLD_EXECUTE WORLD_READ
