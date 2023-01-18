@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
@@ -77,20 +78,9 @@ public:
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  BinaryDomain topElement() final { return BinaryDomain::TOP; }
-
-  BinaryDomain bottomElement() final { return BinaryDomain::BOTTOM; }
-
-  BinaryDomain join(BinaryDomain Lhs, BinaryDomain Rhs) final {
-    if (Lhs == BinaryDomain::TOP && Rhs == BinaryDomain::TOP) {
-      return BinaryDomain::TOP;
-    }
-    return BinaryDomain::BOTTOM;
-  }
-
   EdgeFunctionPtrType allTopFunction() final {
     static EdgeFunctionPtrType AllTopFn =
-        std::make_shared<AllTop<BinaryDomain>>(BinaryDomain::TOP);
+        std::make_shared<AllTop<BinaryDomain>>();
     return AllTopFn;
   }
 

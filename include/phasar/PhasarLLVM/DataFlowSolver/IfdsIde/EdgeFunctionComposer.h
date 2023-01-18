@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 
 #include <memory>
@@ -49,8 +50,8 @@ protected:
   EdgeFunctionPtrType G;
 
 public:
-  EdgeFunctionComposer(EdgeFunctionPtrType &F, EdgeFunctionPtrType &G)
-      : EFComposerId(++CurrEFComposerId), F(F), G(G) {}
+  EdgeFunctionComposer(EdgeFunctionPtrType F, EdgeFunctionPtrType G) noexcept
+      : EFComposerId(++CurrEFComposerId), F(std::move(F)), G(std::move(G)) {}
 
   ~EdgeFunctionComposer() override = default;
 
@@ -73,8 +74,8 @@ public:
     if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(SecondFunction.get())) {
       return this->shared_from_this();
     }
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(SecondFunction.get())) {
-      return this->shared_from_this();
+    if (SecondFunction->isConstant()) {
+      return SecondFunction;
     }
     return F->composeWith(G->composeWith(SecondFunction));
   }
@@ -85,15 +86,15 @@ public:
   bool equal_to // NOLINT - would break too many client analyses
       (EdgeFunctionPtrType Other) const override {
     if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(Other.get())) {
-      return F->equal_to(EFC->F) && G->equal_to(EFC->G);
+      return (F == EFC->F || F->equal_to(EFC->F)) &&
+             (G == EFC->G || G->equal_to(EFC->G));
     }
     return false;
   }
 
   void print(llvm::raw_ostream &OS,
              bool /*IsForDebug = false*/) const override {
-    OS << "COMP[ " << F.get()->str() << " , " << G.get()->str()
-       << " ] (EF:" << EFComposerId << ')';
+    OS << "COMP[ " << *F << " , " << *G << " ] (EF:" << EFComposerId << ')';
   }
 };
 
