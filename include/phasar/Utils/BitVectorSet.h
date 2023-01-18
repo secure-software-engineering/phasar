@@ -10,16 +10,16 @@
 #ifndef PHASAR_UTILS_BITVECTORSET_H_
 #define PHASAR_UTILS_BITVECTORSET_H_
 
-#include <algorithm>
-#include <cassert>
-#include <initializer_list>
+#include "llvm/ADT/BitVector.h"
+#include "llvm/Support/Compiler.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "boost/bimap.hpp"
 #include "boost/bimap/unordered_set_of.hpp"
 
-#include "llvm/ADT/BitVector.h"
-#include "llvm/Support/Compiler.h"
-#include "llvm/Support/raw_ostream.h"
+#include <algorithm>
+#include <cassert>
+#include <initializer_list>
 
 namespace psr {
 namespace internal {

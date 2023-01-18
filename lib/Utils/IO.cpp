@@ -14,22 +14,16 @@
  *      Author: philipp
  */
 
-#include <cstdio>
-#include <filesystem>
-#include <fstream>
-#include <ios>
-#include <string>
-#include <system_error>
+#include "phasar/Utils/IO.h"
+
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
-
-#include "phasar/Utils/IO.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
 
 std::string psr::readTextFile(const llvm::Twine &Path) {
   auto Buffer = readFile(Path);

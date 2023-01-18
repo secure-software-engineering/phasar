@@ -15,15 +15,14 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
+#include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <memory>
 #include <optional>
-
-#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
@@ -450,8 +449,8 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   Llvmtssolver.solve();
   // Llvmtssolver.dumpResults();
 
-  // auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
-  // std::cout << "PointsTo(2) = {";
+  // auto Pts = PT->getAliasSet(IRDB->getInstruction(2));
+  // std::cout << "Alias(2) = {";
   // bool Frst = true;
   // for (const auto *P : *Pts) {
   //   if (Frst) {

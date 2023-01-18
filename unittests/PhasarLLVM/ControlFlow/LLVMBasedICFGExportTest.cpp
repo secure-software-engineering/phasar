@@ -1,12 +1,8 @@
-#include "gtest/gtest.h"
-
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -21,6 +17,8 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
 
 #include <algorithm>
@@ -28,8 +26,6 @@
 #include <iomanip>
 #include <string>
 #include <vector>
-
-#include "TestConfig.h"
 
 namespace psr {
 using MapTy = llvm::DenseMap<const llvm::Function *,

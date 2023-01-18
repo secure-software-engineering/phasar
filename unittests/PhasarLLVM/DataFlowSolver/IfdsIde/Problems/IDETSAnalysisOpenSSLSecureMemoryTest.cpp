@@ -7,10 +7,6 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <memory>
-
-#include "gtest/gtest.h"
-
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
@@ -19,8 +15,13 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
+#include "gtest/gtest.h"
+
+#include <memory>
+#include <optional>
 
 using namespace std;
 using namespace psr;
@@ -29,7 +30,7 @@ using namespace psr;
 class IDETSAnalysisOpenSSLSecureMemoryTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      PhasarConfig::PhasarDirectory() +
       "build/test/llvm_test_code/openssl/secure_memory/";
   const std::vector<std::string> EntryPoints = {"main"};
 

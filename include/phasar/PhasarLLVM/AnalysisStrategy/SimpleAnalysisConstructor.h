@@ -17,7 +17,7 @@
 
 namespace psr {
 class LLVMProjectIRDB;
-class LLVMPointsToInfo;
+class LLVMAliasSet;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
@@ -36,27 +36,26 @@ ProblemTy createAnalysisProblem(HelperAnalyses &HA, ArgTys &&...Args) {
                      std::forward<ArgTys>(Args)...);
   } else if constexpr (std::is_constructible_v<ProblemTy,
                                                const LLVMProjectIRDB *,
-                                               LLVMPointsToInfo *, ArgTys...>) {
-    return ProblemTy(&HA.getProjectIRDB(), &HA.getPointsToInfo(),
+                                               LLVMAliasSet *, ArgTys...>) {
+    return ProblemTy(&HA.getProjectIRDB(), &HA.getAliasInfo(),
                      std::forward<ArgTys>(Args)...);
-  } else if constexpr (std::is_constructible_v<ProblemTy,
-                                               const LLVMProjectIRDB *,
-                                               const LLVMBasedICFG *,
-                                               LLVMPointsToInfo *, ArgTys...>) {
-    return ProblemTy(&HA.getProjectIRDB(), &HA.getICFG(), &HA.getPointsToInfo(),
+  } else if constexpr (std::is_constructible_v<
+                           ProblemTy, const LLVMProjectIRDB *,
+                           const LLVMBasedICFG *, LLVMAliasSet *, ArgTys...>) {
+    return ProblemTy(&HA.getProjectIRDB(), &HA.getICFG(), &HA.getAliasInfo(),
                      std::forward<ArgTys>(Args)...);
   } else if constexpr (std::is_constructible_v<
                            ProblemTy, const LLVMProjectIRDB *,
                            const LLVMTypeHierarchy *, const LLVMBasedCFG *,
-                           LLVMPointsToInfo *, ArgTys...>) {
+                           LLVMAliasSet *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getTypeHierarchy(), &HA.getCFG(),
-                     &HA.getPointsToInfo(), std::forward<ArgTys>(Args)...);
+                     &HA.getAliasInfo(), std::forward<ArgTys>(Args)...);
   } else if constexpr (std::is_constructible_v<
                            ProblemTy, const LLVMProjectIRDB *,
                            const LLVMTypeHierarchy *, const LLVMBasedICFG *,
-                           LLVMPointsToInfo *, ArgTys...>) {
+                           LLVMAliasSet *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
-                     &HA.getICFG(), &HA.getPointsToInfo(),
+                     &HA.getICFG(), &HA.getAliasInfo(),
                      std::forward<ArgTys>(Args)...);
   } else {
     static_assert(

@@ -25,13 +25,13 @@ class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMBasedCFG;
-class LLVMPointsToInfo;
+class LLVMAliasSet;
 
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   explicit HelperAnalyses(std::string IRFile,
                           std::optional<nlohmann::json> PrecomputedPTS,
-                          PointerAnalysisType PTATy, bool AllowLazyPTS,
+                          AliasAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport) noexcept;
@@ -48,20 +48,14 @@ public:
   ~HelperAnalyses() noexcept;
 
   [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
-  [[nodiscard]] LLVMPointsToInfo &getPointsToInfo();
+  [[nodiscard]] LLVMAliasSet &getAliasInfo();
   [[nodiscard]] LLVMTypeHierarchy &getTypeHierarchy();
   [[nodiscard]] LLVMBasedICFG &getICFG();
   [[nodiscard]] LLVMBasedCFG &getCFG();
 
-  void setCGTy(CallGraphAnalysisType CGTy) noexcept {
-    assert(ICF == nullptr && "The ICFG has already been constructed. CGTy "
-                             "change does not take effect");
-    this->CGTy = CGTy;
-  }
-
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
-  std::unique_ptr<LLVMPointsToInfo> PT;
+  std::unique_ptr<LLVMAliasSet> PT;
   std::unique_ptr<LLVMTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
   std::unique_ptr<LLVMBasedCFG> CFG;
@@ -71,7 +65,7 @@ private:
 
   // PTS
   std::optional<nlohmann::json> PrecomputedPTS;
-  PointerAnalysisType PTATy{};
+  AliasAnalysisType PTATy{};
   bool AllowLazyPTS{};
 
   // ICF

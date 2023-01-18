@@ -7,25 +7,22 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * BinaryDomain.cpp
- *
- *  Created on: 07.06.2017
- *      Author: philipp
- */
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-
-llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, BinaryDomain B) {
+std::string psr::to_string(BinaryDomain B) {
   switch (B) {
   case BinaryDomain::BOTTOM:
-    return OS << "BOTTOM";
+    return "BOTTOM";
   case BinaryDomain::TOP:
-    return OS << "TOP";
+    return "TOP";
   }
   llvm_unreachable(
-      "Both TOP and BOTTOM should already be handled in the swith above!");
+      "Both TOP and BOTTOM Should already ba handled in the switch above");
+}
+
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, BinaryDomain B) {
+  return OS << to_string(B);
 }

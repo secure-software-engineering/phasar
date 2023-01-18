@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
+
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
@@ -166,16 +167,16 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
-    WithResultFileOrStdout(
-        "/psr-pta.txt", [this](auto &OS) { HA.getPointsToInfo().print(OS); });
+    WithResultFileOrStdout("/psr-pta.txt",
+                           [this](auto &OS) { HA.getAliasInfo().print(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
-    WithResultFileOrStdout(
-        "/psr-pta.dot", [this](auto &OS) { HA.getPointsToInfo().print(OS); });
+    WithResultFileOrStdout("/psr-pta.dot",
+                           [this](auto &OS) { HA.getAliasInfo().print(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
     WithResultFileOrStdout("/psr-pta.json", [this](auto &OS) {
-      HA.getPointsToInfo().printAsJson(OS);
+      HA.getAliasInfo().printAsJson(OS);
     });
   }
 

@@ -15,7 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include <filesystem>
@@ -42,7 +42,7 @@ int main(int Argc, const char **Argv) {
     // print type hierarchy
     HA.getTypeHierarchy().print();
     // print points-to information
-    HA.getPointsToInfo().print();
+    HA.getAliasInfo().print();
     // print inter-procedural control-flow graph
     HA.getICFG().print();
 

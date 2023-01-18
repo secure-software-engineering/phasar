@@ -8,26 +8,27 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalysisConfig.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Logger.h"
 
-#include "TestConfig.h"
-
-#include "gtest/gtest.h"
-
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include <memory>
 #include <set>
@@ -55,8 +56,8 @@ protected:
 
   void initializeIR(const std::string &LlvmFilePath,
                     const std::vector<std::string> &EntryPoints = {"main"}) {
-    HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints);
-    HA->setCGTy(CallGraphAnalysisType::CHA);
+    HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints,
+               HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
     IRDB = &HA->getProjectIRDB();
   }
 
