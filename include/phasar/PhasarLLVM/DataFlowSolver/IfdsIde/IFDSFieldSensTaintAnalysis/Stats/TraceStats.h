@@ -5,12 +5,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_TRACESTATS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_STATS_TRACESTATS_H
 
+#include "llvm/IR/Instruction.h"
+
 #include "LineNumberEntry.h"
 
 #include <map>
 #include <set>
-
-#include "llvm/IR/Instruction.h"
 
 namespace psr {
 

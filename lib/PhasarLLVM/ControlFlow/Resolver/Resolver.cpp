@@ -15,6 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
@@ -36,8 +37,6 @@
 #include <memory>
 #include <optional>
 #include <set>
-
-using namespace psr;
 
 namespace psr {
 
@@ -149,7 +148,7 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
                                            LLVMProjectIRDB *IRDB,
                                            LLVMTypeHierarchy *TH,
                                            LLVMBasedICFG *ICF,
-                                           LLVMPointsToInfo *PT) {
+                                           LLVMAliasInfoRef PT) {
   assert(IRDB != nullptr);
 
   switch (Ty) {
@@ -170,8 +169,8 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
   case CallGraphAnalysisType::OTF:
     assert(TH != nullptr);
     assert(ICF != nullptr);
-    assert(PT != nullptr);
-    return std::make_unique<OTFResolver>(*IRDB, *TH, *ICF, *PT);
+    assert(PT);
+    return std::make_unique<OTFResolver>(*IRDB, *TH, *ICF, PT);
   case CallGraphAnalysisType::Invalid:
     llvm::report_fatal_error("Invalid callgraph algorithm specified");
   }

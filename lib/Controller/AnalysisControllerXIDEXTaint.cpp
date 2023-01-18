@@ -15,7 +15,7 @@ namespace psr {
 void AnalysisController::executeIDEXTaint() {
   auto Config = makeTaintConfig();
   IDEExtendedTaintAnalysis<> XTA(&HA.getProjectIRDB(), &HA.getICFG(),
-                                 &HA.getPointsToInfo(), Config, EntryPoints);
+                                 &HA.getAliasInfo(), Config, EntryPoints);
   executeIDEAnalysis(XTA);
 }
 

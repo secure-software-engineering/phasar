@@ -1,4 +1,4 @@
-#include <array>
+#include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/BasicBlock.h"
@@ -6,7 +6,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 
-#include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
+#include <array>
 
 namespace psr {
 

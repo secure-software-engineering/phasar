@@ -7,13 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "clang/Tooling/CommonOptionsParser.h"
-#include "clang/Tooling/Tooling.h" // clang::tooling::ClangTool, clang::tooling::newFrontendActionFactory
+#include "phasar/PhasarClang/ClangController.h"
 
 #include "phasar/PhasarClang/RandomChangeFrontendAction.h"
-
-#include "phasar/PhasarClang/ClangController.h"
 #include "phasar/Utils/Logger.h"
+
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Tooling/Tooling.h" // clang::tooling::ClangTool, clang::tooling::newFrontendActionFactory
 
 using namespace std;
 using namespace psr;

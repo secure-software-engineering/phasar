@@ -14,7 +14,7 @@ namespace psr {
 
 void AnalysisController::executeIFDSTaint() {
   auto Config = makeTaintConfig();
-  IFDSTaintAnalysis TA(&HA.getProjectIRDB(), &HA.getPointsToInfo(), &Config,
+  IFDSTaintAnalysis TA(&HA.getProjectIRDB(), &HA.getAliasInfo(), &Config,
                        EntryPoints);
   executeIFDSAnalysis(TA);
 }

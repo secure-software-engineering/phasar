@@ -14,7 +14,10 @@
  *      Author: pdschbrt
  */
 
-#include <string>
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/IR/Function.h"
@@ -25,9 +28,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_os_ostream.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/Utils/Logger.h"
+#include <string>
 
 using namespace std;
 using namespace psr;

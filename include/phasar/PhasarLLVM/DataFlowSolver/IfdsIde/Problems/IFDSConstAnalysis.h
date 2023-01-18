@@ -12,7 +12,9 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -27,7 +29,9 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-class LLVMPointsToInfo;
+
+class LLVMBasedICFG;
+class LLVMTypeHierarchy;
 
 /**
  * This IFDS analysis will compute possibly mutable memory
@@ -42,7 +46,7 @@ class IFDSConstAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
 
 public:
-  IFDSConstAnalysis(const LLVMProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+  IFDSConstAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;
@@ -53,7 +57,7 @@ public:
    * initialized, i.e. at least one write access occurred, the
    * pointer operand is generated as a data-flow fact. Also all aliases that
    * meet the 'context-relevant' requirements (see {@link
-   * getContextRelevantPointsToSet}) will be generated!
+   * getContextRelevantAliasSet}) will be generated!
    *
    * Otherwise, the memory location (i.e. memory location's pointer operand) is
    * marked as initialized.
@@ -199,14 +203,14 @@ public:
    * new data-flow facts will be generated.
    * @brief Refines the given points-to information to only context-relevant
    * points-to information.
-   * @param PointsToSet that is refined.
+   * @param AliasSet that is refined.
    * @param Context dictates which points-to information is relevant.
    */ // clang-format on
-  static std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
-                                                     f_t Context);
+  static std::set<d_t> getContextRelevantAliasSet(std::set<d_t> &AliasSet,
+                                                  f_t Context);
 
 private:
-  LLVMPointsToInfo *PT{};
+  LLVMAliasInfoRef PT{};
   // Holds all allocated memory locations, including global variables
   std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
   // Holds all initialized variables and objects.

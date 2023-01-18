@@ -10,14 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H
 
-#include <memory>
-#include <unordered_set>
-#include <variant>
-
 #include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Instructions.h"
+
+#include <variant>
 
 namespace psr::glca {
 

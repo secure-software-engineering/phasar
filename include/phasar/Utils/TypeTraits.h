@@ -10,15 +10,15 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+
+#include "llvm/Support/raw_ostream.h"
+
 #include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 #include <variant>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
-
-#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 // NOLINTBEGIN(readability-identifier-naming)

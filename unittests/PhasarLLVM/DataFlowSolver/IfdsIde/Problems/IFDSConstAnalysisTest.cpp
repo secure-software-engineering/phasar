@@ -1,19 +1,18 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Instructions.h"
 
-#include "gtest/gtest.h"
-
 #include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include <memory>
 
@@ -30,7 +29,7 @@ protected:
   unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<IFDSConstAnalysis> Constproblem;
   std::vector<const llvm::Instruction *> RetOrResInstructions;
 
@@ -40,7 +39,7 @@ protected:
   void initialize(const llvm::Twine &IRFile) {
     IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(IRDB.get());
     ICFG = make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
@@ -343,7 +342,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
   initialize({PathToLlFiles + "array/array_06_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, ICFG.get());
   Llvmconstsolver.solve();
-  PT->print(llvm::errs());
+  PT.print(llvm::errs());
   compareResults({1}, Llvmconstsolver);
 }
 

@@ -7,8 +7,6 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <memory>
-
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
@@ -16,10 +14,12 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "gtest/gtest.h"
+
+#include <memory>
 
 using namespace std;
 using namespace psr;
@@ -28,14 +28,14 @@ using namespace psr;
 class IDETSAnalysisOpenSSLEVPKDFTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      PhasarConfig::PhasarDirectory() +
       "build/test/llvm_test_code/openssl/key_derivation/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   unique_ptr<ProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<OpenSSLEVPKDFCTXDescription> OpenSSLEVPKeyDerivationDesc;
   unique_ptr<OpenSSLEVPKDFDescription> OpenSSLEVPKDFDesc;
   unique_ptr<IDETypeStateAnalysis> TSProblem, TSKDFProblem;
@@ -56,9 +56,9 @@ protected:
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
-    ICFG = make_unique<LLVMBasedICFG>(*IRDB, CallGraphAnalysisType::OTF,
-                                      EntryPoints, TH.get(), PT.get());
+    PT = make_unique<LLVMAliasSet>(*IRDB);
+    ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
+                                      std::vector{"main"s}, TH.get(), PT.get());
 
     OpenSSLEVPKDFDesc = make_unique<OpenSSLEVPKDFDescription>();
     TSKDFProblem = make_unique<IDETypeStateAnalysis>(

@@ -8,21 +8,21 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
-#include "gtest/gtest.h"
-
 #include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include <unordered_set>
 #include <vector>
-
-#include "TestConfig.h"
 
 using namespace psr;
 using namespace psr::glca;
@@ -41,7 +41,7 @@ protected:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
   std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
   std::unique_ptr<LLVMTypeHierarchy> TH;
-  std::unique_ptr<LLVMPointsToSet> PT;
+  std::unique_ptr<LLVMAliasSet> PT;
   std::unique_ptr<LLVMBasedICFG> ICFG;
   std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
@@ -50,7 +50,7 @@ protected:
   void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {
     IRDB = std::make_unique<LLVMProjectIRDB>(PathToLLFiles + LLFile);
     TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    PT = std::make_unique<LLVMAliasSet>(IRDB.get());
     ICFG = std::make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::RTA,
         std::vector<std::string>{"main"}, TH.get(), PT.get());

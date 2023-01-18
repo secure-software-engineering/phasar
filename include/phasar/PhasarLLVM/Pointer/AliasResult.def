@@ -4,14 +4,16 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef POINTER_ANALYSIS_TYPE
-#define POINTER_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)
+#ifndef ALIAS_RESULT_TYPE
+#define ALIAS_RESULT_TYPE(NAME)
 #endif
 
-POINTER_ANALYSIS_TYPE(CFLSteens, "cflsteens", "Steensgaard-style alias analysis (equality-based)")
-POINTER_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based)")
+ALIAS_RESULT_TYPE(NoAlias)
+ALIAS_RESULT_TYPE(MayAlias)
+ALIAS_RESULT_TYPE(PartialAlias)
+ALIAS_RESULT_TYPE(MustAlias)
 
-#undef POINTER_ANALYSIS_TYPE
+#undef ALIAS_RESULT_TYPE
