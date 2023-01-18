@@ -267,7 +267,6 @@ public:
         //                                          v  v  v  v
         //                                          0  c  x  I
         //
-
         return lambdaFlow<d_t>([Br](d_t Src) {
           container_type Facts;
           Facts.insert(Src);
@@ -330,21 +329,12 @@ public:
         //             v  v  v
         //             0  x  Y
         //
-        /// TODO: Do we really need ValuePTS here?
-        auto ValuePTS = [&]() {
-          if (isInterestingPointer(Store->getValueOperand())) {
-            return PT->getReachableAllocationSites(Store->getValueOperand(),
-                                                   OnlyConsiderLocalAliases);
-          }
-          return std::make_unique<LLVMPointsToInfo::PointsToSetTy>(
-              LLVMPointsToInfo::PointsToSetTy{Store->getValueOperand()});
-        }();
         return lambdaFlow<d_t>(
-            [Store, ValuePTS{std::move(ValuePTS)},
-             PointerPTS = PT->getReachableAllocationSites(
-                 Store->getPointerOperand(), OnlyConsiderLocalAliases)](
+            [Store, PointerPTS = PT->getReachableAllocationSites(
+                        Store->getPointerOperand(), OnlyConsiderLocalAliases)](
                 d_t Src) -> container_type {
               if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
+                // Here, we are unsound!
                 return {};
               }
               container_type Facts;
@@ -352,8 +342,7 @@ public:
               // y/Y now obtains its new value(s) from x/X
               // If a value is stored that holds we must generate all potential
               // memory locations the store might write to.
-              if (Store->getValueOperand() == Src || ValuePTS->count(Src)) {
-                Facts.insert(Store->getValueOperand());
+              if (Store->getValueOperand() == Src) {
                 Facts.insert(Store->getPointerOperand());
                 Facts.insert(PointerPTS->begin(), PointerPTS->end());
               }
@@ -421,8 +410,8 @@ public:
           return Facts;
         });
       }
-      // Otherwise
 
+      // Otherwise
       return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
         // Override old value, i.e., kill value that is written to and
         // generate from value that is stored.
@@ -462,7 +451,6 @@ public:
     //                       v  v  v  v
     //                       0  x  o  p
     //
-
     return lambdaFlow<d_t>([Inst = Curr](d_t Src) {
       container_type Facts;
       if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
@@ -470,10 +458,7 @@ public:
         Facts.insert(Src);
         return Facts;
       }
-      // (i) syntactic propagation
-      if (Inst == Src) {
-        Facts.insert(Inst);
-      }
+
       // continue syntactic propagation: populate and propagate other existing
       // facts
       for (auto &Op : Inst->operands()) {
@@ -510,7 +495,6 @@ public:
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
     // Map actual to formal parameters.
-
     auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
         CS, DestFun, [](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
           if (d_t(ActualArg) != Src) {
@@ -524,8 +508,8 @@ public:
 
           return true;
         });
-    // Generate the artificially introduced RVO parameters from zero value.
 
+    // Generate the artificially introduced RVO parameters from zero value.
     auto SRetFormal = CS->hasStructRetAttr() ? CS->getArgOperand(0) : nullptr;
 
     if (SRetFormal) {
@@ -542,102 +526,21 @@ public:
                                                 n_t /* RetSite */) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
-    struct MapFactsToCaller : public FlowFunction<IDEIIAFlowFact> {
-      const llvm::CallBase *CallSite;
-      const llvm::Function *CalleeFun;
-      const llvm::ReturnInst *ExitInst;
-      std::vector<const llvm::Value *> Actuals;
-      std::vector<const llvm::Value *> Formals;
 
-      MapFactsToCaller(const llvm::CallBase *CallSite,
-                       const llvm::Function *CalleeFun,
-                       const llvm::ReturnInst *ExitInst)
-          : CallSite(CallSite), CalleeFun(CalleeFun), ExitInst(ExitInst) {
-        // Set up the actual parameters
-        for (const auto &Actual : CallSite->args()) {
-          Actuals.push_back(Actual);
-        }
-        // Set up the formal parameters
-        for (const auto &Formal : CalleeFun->args()) {
-          Formals.push_back(&Formal);
-        }
-      }
+    auto MapFactsToCallerFF =
+        mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
+                              {}, [](const llvm::Value *RetVal, d_t Src) {
+                                if (Src == RetVal) {
+                                  return true;
+                                }
+                                if (isZeroValueImpl(Src)) {
+                                  if (llvm::isa<llvm::ConstantData>(RetVal)) {
+                                    return true;
+                                  }
+                                }
+                                return false;
+                              });
 
-      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
-        // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::isLLVMZeroValue(Source.getBase())) {
-          return {Source};
-        }
-        // Pass global variables as is, if desired
-        // Need llvm::Constant here to cover also ConstantExpr and
-        // ConstantAggregate
-        if (llvm::isa<llvm::Constant>(Source.getBase())) {
-          return {Source};
-        }
-        // Do the parameter mapping
-        container_type Res;
-        // Handle C-style varargs functions
-        if (CalleeFun->isVarArg()) {
-          const llvm::Instruction *AllocVarArg;
-          // Find the allocation of %struct.__va_list_tag
-          for (const auto &BB : *CalleeFun) {
-            for (const auto &I : BB) {
-              if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                if (Alloc->getAllocatedType()->isArrayTy() &&
-                    Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                    Alloc->getAllocatedType()
-                        ->getArrayElementType()
-                        ->isStructTy() &&
-                    Alloc->getAllocatedType()
-                            ->getArrayElementType()
-                            ->getStructName() == "struct.__va_list_tag") {
-                  AllocVarArg = Alloc;
-                  // TODO break out this nested loop earlier (without goto ;-)
-                }
-              }
-            }
-          }
-          // Generate the varargs things by using an over-approximation
-          if (Source == AllocVarArg) {
-            for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
-              Res.insert(Actuals[Idx]);
-            }
-          }
-        }
-        // Handle ordinary case
-        // Map formal parameter into corresponding actual parameter.
-        for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
-          if (Source == Formals[Idx]) {
-            Res.insert(Actuals[Idx]); // corresponding actual
-          }
-        }
-        // Collect return value facts
-        if (ExitInst != nullptr && Source == ExitInst->getReturnValue()) {
-          Res.insert(CallSite);
-        }
-        return Res;
-      }
-    };
-    auto MapFactsToCallerFF = std::make_shared<MapFactsToCaller>(
-        llvm::dyn_cast<llvm::CallBase>(CallSite), CalleeFun,
-        llvm::dyn_cast<llvm::ReturnInst>(ExitInst));
-    // We must also handle the special case if the returned value is a constant
-    // literal, e.g. ret i32 42.
-    if (ExitInst) {
-      if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitInst)) {
-        const auto *RetVal = Ret->getReturnValue();
-        if (RetVal) {
-          if (const auto *CD = llvm::dyn_cast<llvm::ConstantData>(RetVal)) {
-            // Generate the respective callsite. The callsite will receive its
-            // value from this very return instruction cf.
-            // getReturnEdgeFunction().
-            return unionFlows(std::move(MapFactsToCallerFF),
-                              generateFlowAndKillAllOthers<d_t>(
-                                  CallSite, this->getZeroValue()));
-          }
-        }
-      }
-    }
     return MapFactsToCallerFF;
   }
 
@@ -647,23 +550,22 @@ public:
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
-      for (const auto *Callee : Callees) {
-        if (this->ICF->isHeapAllocatingFunction(Callee)) {
-          // In case a heap allocating function is called, generate the pointer
-          // that is returned.
-          //
-          // Flow function:
-          //
-          // Let H be a heap allocating function.
-          //
-          //              0
-          //              |\
-          // x = call H   | \
-          //              v  v
-          //              0  x
-          //
-          return generateFromZero(CallSite);
-        }
+      const auto *Callee = Callees.front();
+      if (this->ICF->isHeapAllocatingFunction(Callee)) {
+        // In case a heap allocating function is called, generate the pointer
+        // that is returned.
+        //
+        // Flow function:
+        //
+        // Let H be a heap allocating function.
+        //
+        //              0
+        //              |\
+        // x = call H   | \
+        //              v  v
+        //              0  x
+        //
+        return generateFromZero(CallSite);
       }
     }
     // Just use the auto mapping for values; pointer parameters and global
@@ -684,50 +586,35 @@ public:
       }
     }
 
-    struct MapFactsAlongsideCallSite : public FlowFunction<IDEIIAFlowFact> {
-      bool OnlyDecls;
-      bool AllVoidRetTys;
-      const llvm::CallBase *CallSite;
-      d_t ZeroValue;
-
-      MapFactsAlongsideCallSite(bool OnlyDecls, bool AllVoidRetTys,
-                                const llvm::CallBase *CallSite, d_t ZeroValue)
-          : OnlyDecls(OnlyDecls), AllVoidRetTys(AllVoidRetTys),
-            CallSite(CallSite), ZeroValue(ZeroValue) {}
-
-      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
-        // There are a few things to consider, in case only declarations of
-        // callee targets are available.
-        if (OnlyDecls) {
-
-          if (!AllVoidRetTys) {
-            // If one or more of the declaration-only targets return a value, it
-            // must be generated from zero!
-            if (Source == ZeroValue) {
-              return {Source, CallSite};
-            }
-          } else {
-            // If all declaration-only callee targets return void, just pass
-            // everything as identity.
-            return {Source};
+    return lambdaFlow<d_t>([CallSite = llvm::cast<llvm::CallBase>(CallSite),
+                            OnlyDecls,
+                            AllVoidRetTys](d_t Source) -> container_type {
+      // There are a few things to consider, in case only declarations of
+      // callee targets are available.
+      if (OnlyDecls) {
+        if (!AllVoidRetTys) {
+          // If one or more of the declaration-only targets return a value, it
+          // must be generated from zero!
+          if (isZeroValueImpl(Source)) {
+            return {Source, CallSite};
           }
         }
-        // Do not pass global variables if definitions of the callee
-        // function(s) are available, since the effect of the callee on these
-        // values will be modelled using combined getCallFlowFunction and
-        // getReturnFlowFunction.
-        if (llvm::isa<llvm::Constant>(Source.getBase())) {
-          return {};
-        }
-        // Pass everything else as identity. In particular, also do not kill
-        // pointer or reference parameters since this then also captures usages
-        // oft he parameters, which we wish to compute using this analysis.
+        // If all declaration-only callee targets return void, just pass
+        // everything as identity.
         return {Source};
       }
-    };
-    return std::make_shared<MapFactsAlongsideCallSite>(
-        OnlyDecls, AllVoidRetTys, llvm::dyn_cast<llvm::CallBase>(CallSite),
-        this->getZeroValue());
+      // Do not pass global variables if definitions of the callee
+      // function(s) are available, since the effect of the callee on these
+      // values will be modelled using combined getCallFlowFunction and
+      // getReturnFlowFunction.
+      if (llvm::isa<llvm::Constant>(Source.getBase())) {
+        return {};
+      }
+      // Pass everything else as identity. In particular, also do not kill
+      // pointer or reference parameters since this then also captures usages
+      // oft the parameters, which we wish to compute using this analysis.
+      return {Source};
+    });
   }
 
   inline FlowFunctionPtrType

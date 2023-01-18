@@ -198,11 +198,12 @@ struct FalseFn {
   }
 };
 
-/// Delegates to the ctor of T that takes an U
+/// Delegates to the ctor of T
 template <typename T> struct DefaultConstruct {
-  template <typename U>
-  T operator()(U &&Val) noexcept(std::is_nothrow_constructible_v<T, U>) {
-    return T(std::forward<U>(Val));
+  template <typename... U>
+  [[nodiscard]] inline T
+  operator()(U &&...Val) noexcept(std::is_nothrow_constructible_v<T, U...>) {
+    return T(std::forward<U>(Val)...);
   }
 };
 

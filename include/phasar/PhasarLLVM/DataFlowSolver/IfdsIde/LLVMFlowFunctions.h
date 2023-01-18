@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <set>
 #include <type_traits>
@@ -53,20 +54,23 @@ namespace psr {
 /// return flow function, it is useful to kill the respective arguments here to
 /// enable strong updates.
 ///
-template <
-    typename Fn = TrueFn, typename Container = std::set<const llvm::Value *>,
-    typename =
-        std::enable_if_t<std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
+template <typename D = const llvm::Value *, typename Container = std::set<D>,
+          typename Fn = TrueFn, typename DCtor = DefaultConstruct<D>,
+          typename = std::enable_if_t<
+              std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
 auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
                                Fn &&PropagateArgs = {},
-                               bool PropagateGlobals = true) {
-  struct Mapper : public FlowFunction<const llvm::Value *, Container> {
+                               bool PropagateGlobals = true,
+                               DCtor &&FactConstructor = {}) {
+  struct Mapper : public FlowFunction<D, Container> {
 
-    Mapper(const llvm::CallBase *CS, bool PropagateGlobals, Fn &&PropArgs)
+    Mapper(const llvm::CallBase *CS, bool PropagateGlobals, Fn &&PropArgs,
+           DCtor &&FactConstructor)
         : CSAndPropGlob(CS, PropagateGlobals),
-          PropArgs(std::forward<Fn>(PropArgs)) {}
+          PropArgs(std::forward<Fn>(PropArgs)),
+          FactConstructor(std::forward<DCtor>(FactConstructor)) {}
 
-    Container computeTargets(const llvm::Value *Source) override {
+    Container computeTargets(D Source) override {
       // Pass ZeroValue as is
       if (LLVMZeroValue::isLLVMZeroValue(Source)) {
         return {Source};
@@ -84,7 +88,7 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
       for (const auto &Arg : CSAndPropGlob.getPointer()->args()) {
         if (Arg.get() == Source) {
           if (std::invoke(PropArgs, Arg.get())) {
-            return {Arg.get()};
+            return {std::invoke(FactConstructor, Arg.get())};
           }
           return {};
         }
@@ -95,10 +99,12 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
 
     llvm::PointerIntPair<const llvm::CallBase *, 1, bool> CSAndPropGlob;
     [[no_unique_address]] std::decay_t<Fn> PropArgs;
+    [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
   };
 
   return std::make_shared<Mapper>(CallSite, PropagateGlobals,
-                                  std::forward<Fn>(PropagateArgs));
+                                  std::forward<Fn>(PropagateArgs),
+                                  std::forward<DCtor>(FactConstructor));
 }
 
 /// A flow function that serves as default implementation of the
@@ -175,7 +181,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, ArgIt->get(), Source)) {
-          Res.insert(FactConstructor(&*ParamIt));
+          Res.insert(std::invoke(FactConstructor, &*ParamIt));
         }
       }
 
@@ -199,7 +205,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
                   Alloc->getAllocatedType()
                           ->getArrayElementType()
                           ->getStructName() == "struct.__va_list_tag") {
-                Res.insert(FactConstructor(Alloc));
+                Res.insert(std::invoke(FactConstructor, Alloc));
               }
             }
           }
@@ -240,28 +246,32 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 ///   f(x)  = ({ax} if PropagateParameter(ax, x) else {}) union ({r} if
 ///                    PropagateRet(rv, x) else {}).
 ///
-template <typename FnParam = std::equal_to<const llvm::Value *>,
-          typename FnRet = std::equal_to<const llvm::Value *>,
-          typename Container = std::set<const llvm::Value *>,
+template <typename D = const llvm::Value *, typename Container = std::set<D>,
+          typename FnParam = std::equal_to<D>,
+          typename FnRet = std::equal_to<D>,
+          typename DCtor = DefaultConstruct<D>,
           typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, FnParam, const llvm::Value *,
-                                    const llvm::Value *> &&
-              std::is_invocable_r_v<bool, FnRet, const llvm::Value *,
-                                    const llvm::Value *>>>
-FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
-    const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
-    FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
-    bool PropagateGlobals = true, bool PropagateZeroToCaller = true) {
-  struct Mapper : public FlowFunction<const llvm::Value *, Container> {
+              std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
+              std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>>>
+FlowFunctionPtrType<D, Container>
+mapFactsToCaller(const llvm::CallBase *CallSite,
+                 const llvm::Instruction *ExitInst,
+                 FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
+                 DCtor &&FactConstructor = {}, bool PropagateGlobals = true,
+                 bool PropagateZeroToCaller = true) {
+
+  struct Mapper : public FlowFunction<D, Container> {
     Mapper(const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
            bool PropagateGlobals, FnParam &&PropagateParameter,
-           FnRet &&PropagateRet, bool PropagateZeroToCaller)
+           FnRet &&PropagateRet, DCtor &&FactConstructor,
+           bool PropagateZeroToCaller)
         : CSAndPropGlob(CallSite, PropagateGlobals),
           ExitInstAndPropZero(ExitInst, PropagateZeroToCaller),
           PropArg(std::forward<FnParam>(PropagateParameter)),
-          PropRet(std::forward<FnRet>(PropagateRet)) {}
+          PropRet(std::forward<FnRet>(PropagateRet)),
+          FactConstructor(std::forward<DCtor>(FactConstructor)) {}
 
-    Container computeTargets(const llvm::Value *Source) override {
+    Container computeTargets(D Source) override {
       Container Res;
       if (ExitInstAndPropZero.getInt() &&
           LLVMZeroValue::isLLVMZeroValue(Source)) {
@@ -286,7 +296,7 @@ FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
 
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, &*ParamIt, Source)) {
-          Res.insert(ArgIt->get());
+          Res.insert(std::invoke(FactConstructor, ArgIt->get()));
         }
       }
 
@@ -304,7 +314,8 @@ FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
                 AllocTy->getArrayElementType()->getStructName() ==
                     "struct.__va_list_tag") {
               if (std::invoke(PropArg, Alloc, Source)) {
-                Res.insert(ArgIt, ArgEnd);
+                std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
+                               FactConstructor);
                 break;
               }
             }
@@ -316,7 +327,7 @@ FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
               ExitInstAndPropZero.getPointer());
           RetInst && RetInst->getReturnValue()) {
         if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
-          Res.insert(CS);
+          Res.insert(std::invoke(FactConstructor, CS));
         }
       }
 
@@ -328,11 +339,13 @@ FlowFunctionPtrType<const llvm::Value *, Container> mapFactsToCaller(
         ExitInstAndPropZero;
     [[no_unique_address]] std::decay_t<FnParam> PropArg;
     [[no_unique_address]] std::decay_t<FnRet> PropRet;
+    [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
   };
 
   return std::make_shared<Mapper>(CallSite, ExitInst, PropagateGlobals,
                                   std::forward<FnParam>(PropagateParameter),
                                   std::forward<FnRet>(PropagateRet),
+                                  std::forward<DCtor>(FactConstructor),
                                   PropagateZeroToCaller);
 }
 
