@@ -10,33 +10,47 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 #define PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include <type_traits>
-#include <variant>
 
 namespace psr {
 
 /// Represents the infimum of the lattice:
 /// Top is the greatest element that is less than or equal to all elements of
 /// the lattice.
-struct Top {};
-
-inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Top /*unused*/) {
-  return OS << "Top";
-}
+struct Top {
+  friend constexpr bool operator==(Top /*unused*/, Top /*unused*/) noexcept {
+    return true;
+  }
+  friend constexpr bool operator!=(Top /*unused*/, Top /*unused*/) noexcept {
+    return false;
+  }
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Top /*unused*/) {
+    return OS << "Top";
+  }
+};
 
 /// Represents the supremum of the lattice:
 /// Bottom is the least element that is greater than or equal to all elements
 /// of the lattice.
-struct Bottom {};
-
-inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Bottom /*unused*/) {
-  return OS << "Bottom";
-}
+struct Bottom {
+  friend constexpr bool operator==(Bottom /*unused*/,
+                                   Bottom /*unused*/) noexcept {
+    return true;
+  }
+  friend constexpr bool operator!=(Bottom /*unused*/,
+                                   Bottom /*unused*/) noexcept {
+    return false;
+  }
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       Bottom /*unused*/) {
+    return OS << "Bottom";
+  }
+};
 
 /// A easy shorthand to construct a complete lattice of L.
 template <typename L>
@@ -105,10 +119,70 @@ inline bool operator==(const LatticeDomain<L> Lhs, const LL &Rhs) {
 }
 
 template <typename L>
+inline bool operator==(const LatticeDomain<L> &Lhs, Bottom /*Rhs*/) noexcept {
+  return Lhs.isBottom();
+}
+
+template <typename L>
+inline bool operator==(const LatticeDomain<L> &Lhs, Top /*Rhs*/) noexcept {
+  return Lhs.isTop();
+}
+
+template <typename L>
+inline bool operator==(Bottom /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
+  return Rhs.isBottom();
+}
+
+template <typename L>
+inline bool operator==(Top /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
+  return Rhs.isTop();
+}
+
+#if __cplusplus < 202002L
+
+// With C++20 inequality is defaulted if equality is provided
+
+template <typename L>
 inline bool operator!=(const LatticeDomain<L> &Lhs,
                        const LatticeDomain<L> &Rhs) {
   return !(Lhs == Rhs);
 }
+
+template <
+    typename L, typename LL,
+    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
+inline bool operator!=(const LL &Lhs, const LatticeDomain<L> Rhs) {
+  return !(Lhs == Rhs);
+}
+
+template <
+    typename L, typename LL,
+    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
+inline bool operator!=(const LatticeDomain<L> Lhs, const LL &Rhs) {
+  return !(Rhs == Lhs);
+}
+
+template <typename L>
+inline bool operator!=(const LatticeDomain<L> &Lhs, Bottom /*Rhs*/) noexcept {
+  return !(Lhs == Bottom{});
+}
+
+template <typename L>
+inline bool operator!=(const LatticeDomain<L> &Lhs, Top /*Rhs*/) noexcept {
+  return !(Lhs == Top{});
+}
+
+template <typename L>
+inline bool operator!=(Bottom /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
+  return !(Bottom{} == Rhs);
+}
+
+template <typename L>
+inline bool operator!=(Top /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
+  return !(Top{} == Rhs);
+}
+
+#endif
 
 template <typename L>
 inline bool operator<(const LatticeDomain<L> &Lhs,
@@ -131,8 +205,43 @@ inline bool operator<(const LatticeDomain<L> &Lhs,
   if (Rhs.isBottom()) {
     return true;
   }
-  llvm_unreachable("All comparision cases should be handled above.");
+  llvm_unreachable("All comparison cases should be handled above.");
 }
+
+template <typename L> struct JoinLatticeTraits<LatticeDomain<L>> {
+  using l_t = L;
+  static constexpr Bottom bottom() noexcept { return {}; }
+  static constexpr Top top() noexcept { return {}; }
+  static LatticeDomain<L> join(ByConstRef<LatticeDomain<l_t>> LHS,
+                               ByConstRef<LatticeDomain<l_t>> RHS) {
+    // Top < (Lhs::l_t < Rhs::l_t) < Bottom
+    if (LHS.isTop() || LHS == RHS) {
+      return RHS;
+    }
+
+    if (RHS.isTop()) {
+      return LHS;
+    }
+
+    return Bottom{};
+  }
+};
+
+/// If we know that a stored L value is never Top or Bottom, we don't need to
+/// store the discriminator of the std::variant.
+template <typename L>
+struct NonTopBotValue<
+    LatticeDomain<L>,
+    std::enable_if_t<
+        std::is_nothrow_constructible_v<LatticeDomain<L>, const L &> ||
+        !std::is_nothrow_copy_constructible_v<LatticeDomain<L>>>> {
+  using type = L;
+
+  static L unwrap(LatticeDomain<L> Value) noexcept(
+      std::is_nothrow_move_constructible_v<L>) {
+    return std::get<L>(std::move(Value));
+  }
+};
 
 } // namespace psr
 
