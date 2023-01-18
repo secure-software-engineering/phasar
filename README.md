@@ -30,6 +30,10 @@ fully-automated manner on the specified LLVM IR target code. Computing points-to
 information, call-graph(s), etc. is done by the framework, thus you can focus on
 what matters.
 
+Breaking Changes
+----------------
+To keep PhASAR in a state that it is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate.
+
 How do I get started with PhASAR?
 ---------------------------------
 We have some documentation on PhASAR in our [_**Wiki**_](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
@@ -143,8 +147,9 @@ When using CMake to compile PhASAR the following optional parameters can be used
 | Parameter : Type|  Effect |
 |-----------|--------|
 | <b>BUILD_SHARED_LIBS</b> : BOOL | Build shared libraries (default is ON) |
-| <b>CMAKE_BUILD_TYPE</b> : STRING | Build PhASAR in 'Debug', 'RelWithDebInfo' or 'Release' mode <br> (default is 'Debug') |
-| <b>CMAKE_INSTALL_PREFIX</b> : PATH | Path where PhASAR will be installed if <br> “ninja install” is invoked or the “install” <br> target is built (default is /usr/local/phasar) |
+| <b>CMAKE_BUILD_TYPE</b> : STRING | Build PhASAR in 'Debug' or 'Release' mode <br> (default is 'Debug') |
+| <b>CMAKE_INSTALL_PREFIX</b> : PATH | Path where PhASAR will be installed if <br> "ninja install” is invoked or the “install” <br> target is built (default is /usr/local/phasar) |
+| <b>PHASAR_CONFIG_INSTALL_PREFIX</b> : PATH | Path where PhASAR's configuration files will be installed if <br> ninja install” is invoked or the “install” <br> target is built. Expression will be evaluated within CMAKE_INSTALL_PREFIX, so prefer absolute paths (default is $(HOME)/.config/) |
 | <b>PHASAR_BUILD_DOC</b> : BOOL | Build PhASAR documentation (default is OFF) |
 | <b>PHASAR_BUILD_UNITTESTS</b> : BOOL | Build PhASAR unit tests (default is ON) |
 | <b>PHASAR_BUILD_IR</b> : BOOL | Build PhASAR IR (required for running the unit tests) (default is ON) |

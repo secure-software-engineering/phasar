@@ -120,6 +120,14 @@ else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
+option(PHASAR_CONFIG_INSTALL_PREFIX "Customizes the directory, where configuration files for PhASAR are installed (default is $(HOME)/.config)")
+
+if(${PHASAR_CONFIG_INSTALL_PREFIX} STREQUAL "")
+  set(PHASAR_CONFIG_INSTALL_DIR "$ENV{HOME}/.config/phasar")
+else()
+  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CONFIG_INSTALL_PREFIX}/phasar")
+endif()
+
 ### Adding external libraries
 # Threads
 find_package(Threads)
@@ -336,7 +344,7 @@ install(DIRECTORY utils/
 
 # Install the Phasar config files into ~/.config/phasar/
 install(DIRECTORY config/
-  DESTINATION $ENV{HOME}/.config/phasar
+  DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"
   PERMISSIONS OWNER_WRITE OWNER_READ
               GROUP_WRITE GROUP_READ
