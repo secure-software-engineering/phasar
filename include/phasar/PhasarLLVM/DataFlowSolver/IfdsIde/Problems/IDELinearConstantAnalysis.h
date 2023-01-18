@@ -40,9 +40,9 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class IDELinearConstantAnalysis
     : public IDETabulationProblem<IDELinearConstantAnalysisDomain> {
-
 public:
   using IDETabProblemType =
       IDETabulationProblem<IDELinearConstantAnalysisDomain>;
@@ -59,10 +59,6 @@ public:
                             std::vector<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
-
-  IDELinearConstantAnalysis(const IDELinearConstantAnalysis &) = delete;
-  IDELinearConstantAnalysis &
-  operator=(const IDELinearConstantAnalysis &) = delete;
 
   struct LCAResult {
     LCAResult() = default;
@@ -127,12 +123,6 @@ public:
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                          d_t RetSiteNode) override;
-
-  l_t topElement() override;
-
-  l_t bottomElement() override;
-
-  l_t join(l_t Lhs, l_t Rhs) override;
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 

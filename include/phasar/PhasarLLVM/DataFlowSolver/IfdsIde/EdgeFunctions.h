@@ -17,26 +17,17 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/TypeTraits.h"
+
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <atomic>
-#include <iosfwd>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <ostream>
-#include <set>
-#include <sstream>
-#include <string>
-#include <thread>
+#include <type_traits>
 #include <utility>
 
 namespace psr {
-namespace internal {
-struct TestEdgeFunction;
-} // namespace internal
 
 //
 // This class models an edge function for distributive data-flow problems.
@@ -89,11 +80,15 @@ public:
     OS << "EdgeFunction";
   }
 
+  /// True, iff the return value of computeTarget(Src) does not depend on the
+  /// Src parameter.
+  [[nodiscard]] virtual bool isConstant() const noexcept { return false; }
+
   [[nodiscard]] std::string str() {
     std::string Buffer;
     llvm::raw_string_ostream OSS(Buffer);
     print(OSS);
-    return OSS.str();
+    return Buffer;
   }
 };
 
@@ -109,140 +104,6 @@ static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   F.print(OS);
   return OS;
 }
-
-template <typename L>
-class AllTop : public EdgeFunction<L>,
-               public std::enable_shared_from_this<AllTop<L>> {
-public:
-  using typename EdgeFunction<L>::EdgeFunctionPtrType;
-
-private:
-  const L TopElement;
-
-public:
-  AllTop(L TopElement) : TopElement(std::move(TopElement)) {}
-
-  ~AllTop() override = default;
-
-  L computeTarget(L /*Source*/) override { return TopElement; }
-
-  EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
-    return this->shared_from_this();
-  }
-
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
-    return OtherFunction;
-  }
-
-  [[nodiscard]] bool equal_to // NOLINT - would break too many client analyses
-      (EdgeFunctionPtrType Other) const override {
-    if (auto *Alltop = dynamic_cast<AllTop<L> *>(Other.get())) {
-      return (Alltop->TopElement == TopElement);
-    }
-    return false;
-  }
-
-  void print(llvm::raw_ostream &OS,
-             [[maybe_unused]] bool IsForDebug = false) const override {
-    OS << "AllTop";
-  }
-};
-
-template <typename L> class EdgeIdentity;
-
-template <typename L>
-class AllBottom : public EdgeFunction<L>,
-                  public std::enable_shared_from_this<AllBottom<L>> {
-public:
-  using typename EdgeFunction<L>::EdgeFunctionPtrType;
-
-private:
-  const L BottomElement;
-
-public:
-  AllBottom(L BottomElement) : BottomElement(std::move(BottomElement)) {}
-
-  ~AllBottom() override = default;
-
-  L computeTarget(L /*Source*/) override { return BottomElement; }
-
-  EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
-    return this->shared_from_this();
-  }
-
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType /*OtherFunction*/) override {
-    return this->shared_from_this();
-  }
-
-  [[nodiscard]] bool equal_to // NOLINT - would break too many client analyses
-      (EdgeFunctionPtrType Other) const override {
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(Other.get())) {
-      return (AB->BottomElement == BottomElement);
-    }
-    return false;
-  }
-
-  void print(llvm::raw_ostream &OS,
-             bool /*IsForDebug = false*/) const override {
-    OS << "AllBottom";
-  }
-};
-
-template <typename L>
-class EdgeIdentity : public EdgeFunction<L>,
-                     public std::enable_shared_from_this<EdgeIdentity<L>> {
-public:
-  using typename EdgeFunction<L>::EdgeFunctionPtrType;
-
-private:
-  EdgeIdentity() = default;
-
-public:
-  EdgeIdentity(const EdgeIdentity &EI) = delete;
-
-  EdgeIdentity &operator=(const EdgeIdentity &EI) = delete;
-
-  ~EdgeIdentity() override = default;
-
-  L computeTarget(L Source) override { return Source; }
-
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override {
-    return SecondFunction;
-  }
-
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
-    if ((OtherFunction.get() == this) ||
-        OtherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
-    }
-    if (auto *AB = dynamic_cast<AllBottom<L> *>(OtherFunction.get())) {
-      return OtherFunction;
-    }
-    if (auto *AT = dynamic_cast<AllTop<L> *>(OtherFunction.get())) {
-      return this->shared_from_this();
-    }
-    // do not know how to join; hence ask other function to decide on this
-    return OtherFunction->joinWith(this->shared_from_this());
-  }
-
-  [[nodiscard]] bool equal_to // NOLINT - would break too many client analyses
-      (EdgeFunctionPtrType Other) const override {
-    return this == Other.get();
-  }
-
-  static EdgeFunctionPtrType getInstance() {
-    // implement singleton C++11 thread-safe (see Scott Meyers)
-    static EdgeFunctionPtrType Instance(new EdgeIdentity<L>());
-    return Instance;
-  }
-
-  void print(llvm::raw_ostream &OS,
-             bool /*IsForDebug = false*/) const override {
-    OS << "EdgeIdentity";
-  }
-};
 
 //===----------------------------------------------------------------------===//
 // EdgeFunctions interface
@@ -478,150 +339,6 @@ public:
   //
   virtual EdgeFunctionPtrType
   getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) = 0;
-};
-
-// This class can be used as a singleton factory for EdgeFunctions that only
-// have constant data.
-//
-// EdgeFunction that have constant data only need to be allocated once and can
-// be turned into a singleton, which save large amounts of memory. The
-// automatic singleton creation can be enabled for a EdgeFunction class by
-// inheriting from EdgeFunctionSingletonFactory and only allocating
-// EdgeFunction throught the provided createEdgeFunction method.
-//
-// Old unused EdgeFunction that were deallocated need to/should be clean from
-// the factory by either calling cleanExpiredEdgeFunctions or initializing the
-// automatic cleaner thread with initEdgeFunctionCleaner.
-template <typename EdgeFunctionType, typename CtorArgT>
-class EdgeFunctionSingletonFactory {
-public:
-  EdgeFunctionSingletonFactory() = default;
-  EdgeFunctionSingletonFactory(const EdgeFunctionSingletonFactory &) = default;
-  EdgeFunctionSingletonFactory &
-  operator=(const EdgeFunctionSingletonFactory &) = default;
-  EdgeFunctionSingletonFactory(EdgeFunctionSingletonFactory &&) noexcept =
-      default;
-  EdgeFunctionSingletonFactory &
-  operator=(EdgeFunctionSingletonFactory &&) noexcept = default;
-
-  virtual ~EdgeFunctionSingletonFactory() {
-    std::lock_guard<std::mutex> DataLock(getCacheData().DataMutex);
-  }
-
-  // Creates a new EdgeFunction of type EdgeFunctionType, reusing the previous
-  // allocation if an EdgeFunction with the same values was already created.
-  static inline std::shared_ptr<EdgeFunctionType>
-  createEdgeFunction(CtorArgT K) {
-    std::lock_guard<std::mutex> DataLock(getCacheData().DataMutex);
-
-    auto &Storage = getCacheData().Storage;
-    auto SearchVal = Storage.find(K);
-    if (SearchVal != Storage.end() && !SearchVal->second.expired()) {
-      return SearchVal->second.lock();
-    }
-    auto NewEdgeFunc = std::make_shared<EdgeFunctionType>(K);
-    Storage[K] = NewEdgeFunc;
-    return NewEdgeFunc;
-  }
-
-  // Initialize a cleaner thread to automatically remove unused/expired
-  // EdgeFunctions. The thread is only started the first time this function is
-  // called.
-  static inline void initEdgeFunctionCleaner() { getCleaner(); }
-
-  static inline void stopEdgeFunctionCleaner() { getCleaner().stop(); }
-
-  // Clean all unused/expired EdgeFunctions from the internal storage.
-  static inline void cleanExpiredEdgeFunctions() {
-    cleanExpiredMapEntries(getCacheData());
-  }
-
-  LLVM_DUMP_METHOD
-  static void dump(bool PrintElements = false) {
-    std::lock_guard<std::mutex> DataLock(getCacheData().DataMutex);
-
-    llvm::outs() << "Elements in cache: " << getCacheData().Storage.size();
-
-    if (PrintElements) {
-      llvm::outs() << "\n";
-      for (auto &KVPair : getCacheData().Storage) {
-        llvm::outs() << "(" << KVPair.first << ") -> "
-                     << KVPair.second.expired() << '\n';
-      }
-    }
-    llvm::outs() << '\n';
-  }
-
-private:
-  struct EFStorageData {
-    std::map<CtorArgT, std::weak_ptr<EdgeFunctionType>> Storage{};
-    std::mutex DataMutex;
-  };
-
-  static inline EFStorageData &getCacheData() {
-    static EFStorageData StoredData{};
-    return StoredData;
-  }
-
-  static void cleanExpiredMapEntries(EFStorageData &CData) {
-    std::lock_guard<std::mutex> DataLock(CData.DataMutex);
-
-    auto &Storage = CData.Storage;
-    for (auto Iter = Storage.begin(); Iter != Storage.end();) {
-      if (Iter->second.expired()) {
-        Iter = Storage.erase(Iter);
-      } else {
-        ++Iter;
-      }
-    }
-  }
-
-  class EdgeFactoryStorageCleaner {
-  public:
-    EdgeFactoryStorageCleaner()
-        : CleanerThread(&EdgeFactoryStorageCleaner::runCleaner, this,
-                        std::reference_wrapper<EFStorageData>(
-                            EdgeFunctionSingletonFactory::getCacheData())) {
-#ifdef __linux__
-      pthread_setname_np(CleanerThread.native_handle(),
-                         "EdgeFactoryStorageCleanerThread");
-#endif
-    }
-    EdgeFactoryStorageCleaner(const EdgeFactoryStorageCleaner &) = delete;
-    EdgeFactoryStorageCleaner &
-    operator=(const EdgeFactoryStorageCleaner &) = delete;
-    EdgeFactoryStorageCleaner(EdgeFactoryStorageCleaner &&) = delete;
-    EdgeFactoryStorageCleaner &operator=(EdgeFactoryStorageCleaner &&) = delete;
-    ~EdgeFactoryStorageCleaner() { stop(); }
-
-    // Stops the cleaning thread running in the background.
-    void stop() {
-      KeepRunning = false;
-      if (CleanerThread.joinable()) {
-        CleanerThread.join();
-      }
-    }
-
-  private:
-    void runCleaner(EFStorageData &CData) {
-      while (KeepRunning) {
-        std::this_thread::sleep_for(CleaningPauseTime);
-        cleanExpiredMapEntries(CData);
-      }
-    }
-
-    static constexpr auto CleaningPauseTime = std::chrono::seconds(2);
-
-    std::atomic_bool KeepRunning{true};
-    std::thread CleanerThread;
-  };
-
-  static inline EdgeFactoryStorageCleaner &getCleaner() {
-    static EdgeFactoryStorageCleaner EdgeFunctionCleaner{};
-    return EdgeFunctionCleaner;
-  }
-
-  friend internal::TestEdgeFunction;
 };
 
 } // namespace psr
