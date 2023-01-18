@@ -20,8 +20,8 @@ using namespace psr;
 
 class IFDSTaintAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "taint_analysis/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("taint_analysis/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   unique_ptr<LLVMProjectIRDB> IRDB;

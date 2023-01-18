@@ -36,37 +36,9 @@ PhasarConfig::PhasarConfig() {
   SpecialFuncNames.insert({"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
 }
 
-const std::string &PhasarConfig::ConfigurationDirectory() {
-  static const std::string ConfigDir = [] {
-    auto *EnvHome = std::getenv("HOME");
-    std::string ConfigFolder = "config/";
-    if (EnvHome) { // Check if HOME was defined in the environment
-      std::string PhasarConfDir = std::string(EnvHome) + "/.config/phasar/";
-      if (std::filesystem::exists(PhasarConfDir) &&
-          std::filesystem::is_directory(PhasarConfDir)) {
-        ConfigFolder = PhasarConfDir;
-      }
-    }
-    return ConfigFolder;
-  }();
-
-  return ConfigDir;
-}
-
-/// Specifies the directory in which Phasar is located.
-const std::string &PhasarConfig::PhasarDirectory() {
-  static const std::string PhasarDir = [] {
-    std::string CurrPath = std::filesystem::current_path().string();
-    size_t I = CurrPath.rfind("build", CurrPath.length());
-    return CurrPath.substr(0, I);
-  }();
-
-  return PhasarDir;
-}
-
 void PhasarConfig::loadGlibcSpecialFunctionNames() {
   const std::string GLIBCFunctionListFilePath =
-      ConfigurationDirectory() + GLIBCFunctionListFileName;
+      (ConfigurationDirectory() + GLIBCFunctionListFileName).str();
 
   if (std::filesystem::exists(GLIBCFunctionListFilePath)) {
     // Load glibc function names specified in the config file
@@ -85,7 +57,7 @@ void PhasarConfig::loadGlibcSpecialFunctionNames() {
 
 void PhasarConfig::loadLLVMSpecialFunctionNames() {
   const std::string LLVMFunctionListFilePath =
-      ConfigurationDirectory() + LLVMIntrinsicFunctionListFileName;
+      (ConfigurationDirectory() + LLVMIntrinsicFunctionListFileName).str();
   if (std::filesystem::exists(LLVMFunctionListFilePath)) {
     // Load LLVM function names specified in the config file
     std::string LLVMIntrinsics = readTextFile(LLVMFunctionListFilePath);

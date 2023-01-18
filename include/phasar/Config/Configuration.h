@@ -19,6 +19,7 @@
 
 #include "phasar/Config/Version.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/iterator_range.h"
 
 #include <filesystem>
@@ -34,58 +35,77 @@ class PhasarConfig {
 public:
   /// Current Phasar version
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string PhasarVersion() {
+  [[nodiscard]] static constexpr llvm::StringRef PhasarVersion() noexcept {
     return XSTR(PHASAR_VERSION);
   }
 
   /// Stores the label/ tag with which we annotate the LLVM IR.
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string MetaDataKind() { return "psr.id"; }
+  [[nodiscard]] static constexpr llvm::StringRef MetaDataKind() noexcept {
+    return "psr.id";
+  }
 
   /// Specifies the directory in which important configuration files are
   /// located.
+  [[nodiscard]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static const std::string &ConfigurationDirectory();
+  ConfigurationDirectory() noexcept {
+    return PHASAR_CONFIG_DIR;
+  }
 
   /// Specifies the directory in which Phasar is located.
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static const std::string &PhasarDirectory();
+  [[nodiscard]] static constexpr llvm::StringRef PhasarDirectory() noexcept {
+    return PHASAR_DIR;
+  }
 
   /// Name of the file storing all standard header search paths used for
   /// compilation.
+  [[nodiscard]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string HeaderSearchPathsFileName() {
+  HeaderSearchPathsFileName() noexcept {
     return "standard_header_paths.conf";
   }
 
   /// Name of the compile_commands.json file (in case we wish to rename)
+  [[nodiscard]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string CompileCommandsJson() {
+  CompileCommandsJson() noexcept {
     return "compile_commands.json";
   }
 
   /// Default Source- and Sink-Functions path
+  [[nodiscard]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string DefaultSourceSinkFunctionsPath() {
-    return PhasarDirectory() + "config/phasar-source-sink-function.json";
+  DefaultSourceSinkFunctionsPath() noexcept {
+    return PHASAR_DIR "/config/phasar-source-sink-function.json";
   }
 
   // Variables to be used in JSON export format
   /// Identifier for call graph export
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string JsonCallGraphID() { return "psr.cg"; }
+  [[nodiscard]] static constexpr llvm::StringRef JsonCallGraphID() noexcept {
+    return "psr.cg";
+  }
 
   /// Identifier for type hierarchy graph export
+  [[nodiscard]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string JsonTypeHierarchyID() { return "psr.th"; }
+  JsonTypeHierarchyID() noexcept {
+    return "psr.th";
+  }
 
   /// Identifier for points-to graph export
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string JsonAliasGraphID() { return "psr.pt"; }
+  [[nodiscard]] static constexpr llvm::StringRef JsonAliasGraphID() noexcept {
+    return "psr.pt";
+  }
 
   /// Identifier for data-flow results export
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static std::string JsonDataFlowID() { return "psr.df"; }
+  [[nodiscard]] static constexpr llvm::StringRef JsonDataFlowID() noexcept {
+    return "psr.df";
+  }
 
   [[nodiscard]] static PhasarConfig &getPhasarConfig();
 
@@ -119,15 +139,15 @@ private:
   std::set<std::string> SpecialFuncNames;
 
   /// Name of the file storing all glibc function names.
-  static inline auto GLIBCFunctionListFileName =
+  static constexpr llvm::StringLiteral GLIBCFunctionListFileName =
       "glibc_function_list_v1-04.05.17.conf";
 
   /// Name of the file storing all LLVM intrinsic function names.
-  static inline auto LLVMIntrinsicFunctionListFileName =
+  static constexpr llvm::StringLiteral LLVMIntrinsicFunctionListFileName =
       "llvm_intrinsics_function_list_v1-04.05.17.conf";
 
   /// Log file directory
-  static inline auto LogFileDirectory = "log/";
+  static constexpr llvm::StringLiteral LogFileDirectory = "log/";
 };
 
 } // namespace psr

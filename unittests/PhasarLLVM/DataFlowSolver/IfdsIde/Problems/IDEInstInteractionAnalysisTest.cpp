@@ -37,8 +37,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDEInstInteractionAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "inst_interaction/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("inst_interaction/");
 
   // Function - Line Nr - Variable - Values
   using IIACompactResult_t =

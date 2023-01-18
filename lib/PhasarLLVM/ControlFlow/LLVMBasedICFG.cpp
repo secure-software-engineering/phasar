@@ -506,7 +506,8 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 
   for (size_t Vtx = 0, VtxEnd = VertexFunctions.size(); Vtx != VtxEnd; ++Vtx) {
     auto VtxFunName = VertexFunctions[Vtx]->getName().str();
-    J[PhasarConfig::JsonCallGraphID()][VtxFunName] = nlohmann::json::array();
+    J[PhasarConfig::JsonCallGraphID().str()][VtxFunName] =
+        nlohmann::json::array();
 
     for (const auto &Inst : llvm::instructions(VertexFunctions[Vtx])) {
       if (!llvm::isa<llvm::CallBase>(Inst)) {
@@ -515,7 +516,7 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 
       if (auto It = CalleesAt.find(&Inst); It != CalleesAt.end()) {
         for (const auto *Succ : *It->second) {
-          J[PhasarConfig::JsonCallGraphID()][VtxFunName].push_back(
+          J[PhasarConfig::JsonCallGraphID().str()][VtxFunName].push_back(
               Succ->getName().str());
         }
       }

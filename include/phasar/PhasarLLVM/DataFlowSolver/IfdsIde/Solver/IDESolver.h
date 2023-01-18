@@ -1588,12 +1588,12 @@ public:
 
   void
   emitESGAsDot(llvm::raw_ostream &OS = llvm::outs(),
-               std::string DotConfigDir = PhasarConfig::PhasarDirectory()) {
+               llvm::StringRef DotConfigDir = PhasarConfig::PhasarDirectory()) {
     PHASAR_LOG_LEVEL(DEBUG, "Emit Exploded super-graph (ESG) as DOT graph");
     PHASAR_LOG_LEVEL(DEBUG, "Process intra-procedural path egdes");
     PHASAR_LOG_LEVEL(DEBUG, "=============================================");
     DOTGraph<d_t> G;
-    DOTConfig::importDOTConfig(std::move(DotConfigDir));
+    DOTConfig::importDOTConfig(DotConfigDir);
     DOTFunctionSubGraph *FG = nullptr;
 
     // Sort intra-procedural path edges

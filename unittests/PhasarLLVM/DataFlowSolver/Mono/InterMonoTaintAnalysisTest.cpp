@@ -22,8 +22,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "taint_analysis/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("taint_analysis/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   std::unique_ptr<LLVMProjectIRDB> IRDB;
@@ -41,7 +41,7 @@ protected:
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
         PT.get());
-    auto ConfigPath = PathToLlFiles + "config.json";
+    auto ConfigPath = (PathToLlFiles + "config.json").str();
     auto BuildPos = ConfigPath.rfind("/build/") + 1;
     ConfigPath.erase(BuildPos, 6);
     TaintConfig TC(*IRDB, parseTaintConfig(ConfigPath));
