@@ -191,6 +191,7 @@ public:
 
   using IDETabProblemType = IDETabulationProblem<AnalysisDomainTy>;
   using typename IDETabProblemType::container_type;
+  using typename IDETabProblemType::EdgeFunctionPtrType;
   using typename IDETabProblemType::FlowFunctionPtrType;
 
   using d_t = typename AnalysisDomainTy::d_t;
@@ -521,7 +522,7 @@ public:
     return MapFactsToCalleeFF;
   }
 
-  inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+  inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                                 n_t ExitInst,
                                                 n_t /* RetSite */) override {
     // Map return value back to the caller. If pointer parameters hold at the
@@ -669,9 +670,9 @@ public:
 
   // In addition provide specifications for the IDE parts.
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t /* Succ */,
-                        d_t SuccNode) override {
+  inline EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode,
+                                                   n_t /* Succ */,
+                                                   d_t SuccNode) override {
     PHASAR_LOG_LEVEL(DFADEBUG,
                      "Process edge: " << llvmIRToShortString(CurrNode) << " --"
                                       << llvmIRToString(Curr) << "--> "
@@ -977,9 +978,9 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t CallSite, d_t SrcNode, f_t /* DestinationMethod */,
-                      d_t DestNode) override {
+  inline EdgeFunctionPtrType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                                 f_t /* DestinationMethod */,
+                                                 d_t DestNode) override {
     // Handle the case in which a parameter that has been artificially
     // introduced by the compiler is passed. Such a value must be generated from
     // the zero value, to reflact the fact that the data flows from the callee
@@ -1011,7 +1012,7 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionPtrType
   getReturnEdgeFunction(n_t CallSite, f_t /* CalleeMethod */, n_t ExitInst,
                         d_t ExitNode, n_t /* RetSite */, d_t RetNode) override {
     // Handle the case in which constant data is returned, e.g. ret i32 42.
@@ -1047,7 +1048,7 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /* RetSite */,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override {
@@ -1104,7 +1105,7 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionPtrType
   getSummaryEdgeFunction(n_t /* CallSite */, d_t /* CallNode */,
                          n_t /* RetSite */, d_t /* RetSiteNode */) override {
     // Do not use user-crafted summaries.
@@ -1117,7 +1118,7 @@ public:
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
-  inline std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
+  inline EdgeFunctionPtrType allTopFunction() override {
     return std::make_shared<AllTop<l_t>>(topElement());
   }
 
@@ -1130,14 +1131,15 @@ public:
         public std::enable_shared_from_this<IIAAKillOrReplaceEF>,
         public EdgeFunctionSingletonFactory<IIAAKillOrReplaceEF, l_t> {
   public:
-    l_t Replacement;
+    const l_t Replacement;
 
-    explicit IIAAKillOrReplaceEF() : Replacement(BitVectorSet<e_t>()) {
+    explicit IIAAKillOrReplaceEF() noexcept : Replacement(BitVectorSet<e_t>()) {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF");
     }
 
-    explicit IIAAKillOrReplaceEF(l_t Replacement) : Replacement(Replacement) {
+    explicit IIAAKillOrReplaceEF(l_t Replacement) noexcept
+        : Replacement(std::move(Replacement)) {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF");
     }
@@ -1146,18 +1148,19 @@ public:
 
     l_t computeTarget(l_t /* Src */) override { return Replacement; }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
+    EdgeFunctionPtrType
+    composeWith(EdgeFunctionPtrType SecondFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
       //               << " * " << SecondFunction->str());
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+        /// XXX: No!
         return this->shared_from_this();
       }
-      if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(SecondFunction.get())) {
@@ -1184,8 +1187,7 @@ public:
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
+    EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAKillOrReplaceEF::joinWith");
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
@@ -1211,7 +1213,7 @@ public:
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
+    bool equal_to(EdgeFunctionPtrType Other) const override {
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(Other.get())) {
         return Replacement == KR->Replacement;
       }
@@ -1230,7 +1232,7 @@ public:
     }
 
     [[nodiscard]] bool isKillAll() const {
-      if (auto *RSet = std::get_if<BitVectorSet<e_t>>(&Replacement)) {
+      if (auto *RSet = Replacement.getValueOrNull()) {
         return RSet->empty();
       }
       return false;
@@ -1246,7 +1248,7 @@ public:
   public:
     const l_t Data;
 
-    explicit IIAAAddLabelsEF(l_t Data) : Data(Data) {
+    explicit IIAAAddLabelsEF(l_t Data) noexcept : Data(std::move(Data)) {
       // PHASAR_LOG_LEVEL(DFADEBUG,  << "IIAAAddLabelsEF");
     }
 
@@ -1256,24 +1258,25 @@ public:
       return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
+    EdgeFunctionPtrType
+    composeWith(EdgeFunctionPtrType SecondFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAAddLabelEF::composeWith(): " << this->str() << "
       //               * "
       //               << SecondFunction->str());
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+        /// XXX: Really?
         return this->shared_from_this();
       }
-      if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(SecondFunction.get())) {
         auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       if (auto *KR =
               dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
@@ -1283,38 +1286,38 @@ public:
           "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
+    EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAAddLabelsEF::joinWith");
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
+        /// XXX: No!
         return this->shared_from_this();
       }
-      if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+        /// XXX: Check for plausability
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(OtherFunction.get())) {
         auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction.get())) {
         auto Union =
             IDEInstInteractionAnalysisT::joinImpl(Data, KR->Replacement);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    [[nodiscard]] bool
-    equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
+    [[nodiscard]] bool equal_to(EdgeFunctionPtrType Other) const override {
       if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(Other.get())) {
         return (Data == AS->Data);
       }
-      return this == Other.get();
+      return false;
     }
 
     void print(llvm::raw_ostream &OS,
