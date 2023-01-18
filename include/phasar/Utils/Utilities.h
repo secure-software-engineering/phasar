@@ -10,18 +10,17 @@
 #ifndef PHASAR_UTILS_UTILITIES_H_
 #define PHASAR_UTILS_UTILITIES_H_
 
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/SmallVector.h"
+
 #include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include "llvm/ADT/Hashing.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/StringRef.h"
-
-#include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/TypeTraits.h"
 
 namespace llvm {
 class Type;
@@ -176,9 +175,7 @@ private:
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
 // Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct Overloaded : Ts... {
-  using Ts::operator()...;
-};
+template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
 // explicit deduction guide (not needed as of C++20)
 template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;

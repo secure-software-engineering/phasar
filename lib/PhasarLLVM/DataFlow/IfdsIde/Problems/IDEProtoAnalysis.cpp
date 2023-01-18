@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEProtoAnalysis.h"
+
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"

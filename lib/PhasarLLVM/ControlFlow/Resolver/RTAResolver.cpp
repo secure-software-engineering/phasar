@@ -15,6 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"

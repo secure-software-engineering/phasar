@@ -1,20 +1,19 @@
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/Support/ManagedStatic.h"
+
+#include "TestConfig.h"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 #include "boost/graph/isomorphism.hpp"
-
 #include "gtest/gtest.h"
-
-#include "TestConfig.h"
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/Support/ManagedStatic.h"
 
 using namespace std;
 using namespace psr;

@@ -17,13 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
 
+#include "phasar/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
+
 #include <deque>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include "phasar/DataFlow/Mono/IntraMonoProblem.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace psr {
 

@@ -1,16 +1,19 @@
-#include <memory>
+
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
 #include "llvm/IR/Module.h"
-#include "gtest/gtest.h"
 
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <memory>
 
 using namespace std;
 using namespace psr;
@@ -26,7 +29,7 @@ protected:
   unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<IFDSUninitializedVariables> UninitProblem;
 
   IFDSUninitializedVariablesTest() = default;
@@ -35,12 +38,11 @@ protected:
   void initialize(const llvm::Twine &IRFile) {
     IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(IRDB.get());
     ICFG = make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
         TH.get(), PT.get());
-    // TSF = new TaintSensitiveFunctions(true);
     UninitProblem =
         make_unique<IFDSUninitializedVariables>(IRDB.get(), EntryPoints);
   }

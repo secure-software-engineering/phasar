@@ -1,6 +1,8 @@
-#include "gtest/gtest.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonFactory.h"
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
+
+#include "gtest/gtest.h"
 
 #include <chrono>
 #include <thread>

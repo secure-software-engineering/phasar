@@ -10,12 +10,12 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include "llvm/Support/raw_ostream.h"
+
 #include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <variant>
-
-#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 // NOLINTBEGIN(readability-identifier-naming)
@@ -163,9 +163,7 @@ constexpr bool is_crtp_base_of_v = // NOLINT
     detail::is_crtp_base_of<Base, Derived>::value;
 
 #if __cplusplus < 202002L
-template <typename T> struct type_identity {
-  using type = T;
-};
+template <typename T> struct type_identity { using type = T; };
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif

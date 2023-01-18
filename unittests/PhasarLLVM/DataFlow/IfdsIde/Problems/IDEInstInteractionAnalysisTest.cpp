@@ -8,23 +8,23 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Logger.h"
 
-#include "TestConfig.h"
-
-#include "gtest/gtest.h"
-
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include <memory>
 #include <set>
@@ -64,7 +64,7 @@ protected:
       IRDB->dump();
     }
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToSet PT(*IRDB);
+    LLVMAliasSet PT(IRDB.get());
     LLVMBasedICFG ICFG(
         IRDB.get(), CallGraphAnalysisType::CHA,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,

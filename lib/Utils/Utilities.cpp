@@ -7,8 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <chrono>
+#include "phasar/Utils/Utilities.h"
+
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Demangle/Demangle.h"
@@ -16,8 +17,8 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/Support/Allocator.h"
 
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
+#include <algorithm>
+#include <chrono>
 
 using namespace std;
 using namespace psr;

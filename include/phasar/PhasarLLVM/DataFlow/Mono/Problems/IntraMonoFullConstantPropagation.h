@@ -20,6 +20,7 @@
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 #include <cstdint>
@@ -41,7 +42,6 @@ namespace psr {
 class LLVMBasedCFG;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 class InterMonoFullConstantPropagation;
 
 struct IntraMonoFullConstantPropagationAnalysisDomain
@@ -76,8 +76,7 @@ private:
 public:
   IntraMonoFullConstantPropagation(const LLVMProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedCFG *CF,
-                                   const LLVMPointsToInfo *PT,
+                                   const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
                                    std::vector<std::string> EntryPoints = {});
 
   ~IntraMonoFullConstantPropagation() override = default;

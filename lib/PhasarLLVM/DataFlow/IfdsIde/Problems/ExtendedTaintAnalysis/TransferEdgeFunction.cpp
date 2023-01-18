@@ -7,12 +7,13 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "llvm/IR/Instruction.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/IR/Instruction.h"
 
 namespace psr::XTaint {
 TransferEdgeFunction::TransferEdgeFunction(BasicBlockOrdering &BBO,

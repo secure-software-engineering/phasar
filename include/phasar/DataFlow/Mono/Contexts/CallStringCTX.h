@@ -1,15 +1,15 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
 
-#include <deque>
-#include <functional>
-#include <initializer_list>
-
-#include "boost/functional/hash.hpp"
-
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/Support/raw_ostream.h"
+
+#include "boost/functional/hash.hpp"
+
+#include <deque>
+#include <functional>
+#include <initializer_list>
 
 namespace psr {
 

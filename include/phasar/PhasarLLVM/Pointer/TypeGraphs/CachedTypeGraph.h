@@ -17,17 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_CACHEDTYPEGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_TYPEGRAPHS_CACHEDTYPEGRAPH_H_
 
-#include <set>
-#include <string>
-#include <unordered_map>
-
-#include "gtest/gtest_prod.h"
+#include "phasar/PhasarLLVM/Pointer/TypeGraphs/TypeGraph.h"
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/reverse_graph.hpp"
+#include "gtest/gtest_prod.h"
 
-#include "phasar/PhasarLLVM/Pointer/TypeGraphs/TypeGraph.h"
+#include <set>
+#include <string>
+#include <unordered_map>
 
 namespace llvm {
 class StructType;

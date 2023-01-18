@@ -34,10 +34,10 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
 
-#include "nlohmann/json.hpp"
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "nlohmann/json.hpp"
 
 #include <map>
 #include <memory>
@@ -142,7 +142,7 @@ public:
     REG_COUNTER("Process Call", 0, PAMM_SEVERITY_LEVEL::Full);
     REG_COUNTER("Process Normal", 0, PAMM_SEVERITY_LEVEL::Full);
     REG_COUNTER("Process Exit", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("[Calls] getPointsToSet", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("[Calls] getAliasSet", 0, PAMM_SEVERITY_LEVEL::Full);
     REG_HISTOGRAM("Data-flow facts", PAMM_SEVERITY_LEVEL::Full);
     REG_HISTOGRAM("Points-to", PAMM_SEVERITY_LEVEL::Full);
 

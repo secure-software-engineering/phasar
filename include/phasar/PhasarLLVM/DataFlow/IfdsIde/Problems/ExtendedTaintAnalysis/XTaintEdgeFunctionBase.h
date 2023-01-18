@@ -10,12 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTEDGEFUNCTIONBASE_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_XTAINTEDGEFUNCTIONBASE_H_
 
-#include <memory>
+#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 
 #include "llvm/ADT/Hashing.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
+#include <memory>
 
 namespace psr::XTaint {
 /// A common baseclass for all EdgeFunctions used for the

@@ -4,6 +4,10 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/GEPInstFlowFunction.h"
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
+
+#include "llvm/IR/Instructions.h"
+
 namespace psr {
 
 std::set<ExtendedValue>

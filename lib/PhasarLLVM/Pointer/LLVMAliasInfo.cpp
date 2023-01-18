@@ -7,17 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/Pointer/AliasInfoBase.h"
+
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
-
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 using namespace psr;
 
 namespace psr {
 
-const llvm::Function *LLVMPointsToInfo::retrieveFunction(const llvm::Value *V) {
-  if (V) [[likely]] {
+const llvm::Function *
+AliasInfoBaseUtils::retrieveFunction(const llvm::Value *V) {
+  if (LLVM_LIKELY(V)) {
     if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
       return Inst->getFunction();
     }

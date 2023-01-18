@@ -4,6 +4,8 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/MemSetInstFlowFunction.h"
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
+
 #include "llvm/IR/IntrinsicInst.h"
 
 namespace psr {

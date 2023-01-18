@@ -10,13 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
 
-#include <algorithm>
-#include <functional>
-#include <memory>
-#include <set>
-#include <type_traits>
-#include <utility>
-#include <vector>
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/IR/Constant.h"
@@ -26,9 +22,10 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <functional>
+#include <memory>
+#include <set>
+#include <vector>
 
 namespace psr {
 

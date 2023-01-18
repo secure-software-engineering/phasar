@@ -15,12 +15,11 @@
  */
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
-
-#include "boost/algorithm/string/trim.hpp"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -38,6 +37,8 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "boost/algorithm/string/trim.hpp"
 
 #include <cctype>
 #include <charconv>

@@ -7,10 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ios>
-#include <ostream>
-
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
+
+#include <ostream>
 
 using namespace std;
 using namespace psr;

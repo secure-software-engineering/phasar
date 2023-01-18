@@ -19,6 +19,7 @@
 
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/Pointer/AliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 #include <set>
@@ -28,7 +29,6 @@
 namespace psr {
 
 template <typename T, typename F> class TypeHierarchy;
-template <typename V, typename N> class PointsToInfo;
 template <typename N, typename F> class ICFG;
 
 template <typename AnalysisDomainTy>
@@ -49,7 +49,7 @@ protected:
 public:
   InterMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
                    const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                   const PointsToInfo<v_t, n_t> *PT,
+                   AliasInfoRef<v_t, n_t> PT,
                    std::vector<std::string> EntryPoints = {})
       : IntraMonoProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints),
         ICF(ICF) {

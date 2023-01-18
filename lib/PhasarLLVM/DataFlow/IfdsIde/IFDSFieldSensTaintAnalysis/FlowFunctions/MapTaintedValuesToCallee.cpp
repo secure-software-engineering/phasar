@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <tuple>
 
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-
 namespace psr {
 
 std::set<ExtendedValue>

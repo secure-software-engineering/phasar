@@ -7,24 +7,25 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
-#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASGRAPH_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMALIASGRAPH_H_
 
-#include <ostream>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-#include "boost/graph/adjacency_list.hpp"
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+#include "phasar/Pointer/AliasInfoBase.h"
+#include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Pointer/AliasSetOwner.h"
+#include "phasar/Utils/AnalysisProperties.h"
 
 #include "llvm/IR/AbstractCallSite.h"
 
+#include "boost/graph/adjacency_list.hpp"
 #include "nlohmann/json.hpp"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/Pointer/PointsToSetOwner.h"
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace llvm {
 class Value;
@@ -36,11 +37,18 @@ class Type;
 } // namespace llvm
 
 namespace psr {
-extern template class BoxedPtr<LLVMPointsToInfo::PointsToSetTy>;
-extern template class BoxedConstPtr<LLVMPointsToInfo::PointsToSetTy>;
-extern template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
+extern template class BoxedPtr<LLVMAliasInfo::AliasSetTy>;
+extern template class BoxedConstPtr<LLVMAliasInfo::AliasSetTy>;
+extern template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
+
+class LLVMAliasGraph;
+template <>
+struct AliasInfoTraits<LLVMAliasGraph>
+    : DefaultAATraits<const llvm::Value *, const llvm::Instruction *> {};
 
 /**
+ *  TODO: Is this impl legacy code? Can it be removed?
+ *
  * 	This class is a representation of a points-to graph. It is possible to
  * 	construct a points-to graph for a single function using the results of
  *  the llvm alias analysis or merge several points-to graphs into a single
@@ -50,9 +58,18 @@ extern template class PointsToSetOwner<LLVMPointsToInfo::PointsToSetTy>;
  *
  *	@brief Represents the points-to graph of a function.
  */
-class LLVMPointsToGraph : public LLVMPointsToInfo {
+class LLVMAliasGraph : public AnalysisPropertiesMixin<LLVMAliasGraph>,
+                       AliasInfoBaseUtils {
+  using traits_t = AliasInfoTraits<LLVMAliasGraph>;
+
 public:
-  // Call-graph firends
+  using n_t = traits_t::n_t;
+  using v_t = traits_t::v_t;
+  using AliasSetTy = traits_t::AliasSetTy;
+  using AliasSetPtrTy = traits_t::AliasSetPtrTy;
+  using AllocationSiteSetPtrTy = traits_t::AllocationSiteSetPtrTy;
+
+  // Call-graph friends
   friend class LLVMBasedICFG;
   /**
    * 	@brief Holds the information of a vertex in the points-to graph.
@@ -99,29 +116,6 @@ public:
   using out_edge_iterator = boost::graph_traits<graph_t>::out_edge_iterator;
   using in_edge_iterator = boost::graph_traits<graph_t>::in_edge_iterator;
 
-private:
-  struct AllocationSiteDFSVisitor;
-  struct ReachabilityDFSVisitor;
-
-  /// The points to graph.
-  graph_t PAG;
-  using ValueVertexMapT = std::unordered_map<const llvm::Value *, vertex_t>;
-  ValueVertexMapT ValueVertexMap;
-  /// Keep track of what has already been merged into this points-to graph.
-  std::unordered_set<const llvm::Function *> AnalyzedFunctions;
-  LLVMBasedPointsToAnalysis PTA;
-
-  PointsToSetOwner<PointsToSetTy>::memory_resource_type MRes;
-  PointsToSetOwner<PointsToSetTy> Owner{&MRes};
-  std::unordered_map<const llvm::Value *, BoxedPtr<PointsToSetTy>> Cache;
-
-  // void mergeGraph(const LLVMPointsToGraph &Other);
-
-  void computePointsToGraph(const llvm::Value *V);
-
-  void computePointsToGraph(llvm::Function *F);
-
-public:
   /**
    * Creates a points-to graph based on the computed Alias results.
    *
@@ -132,44 +126,9 @@ public:
    * considered. False, if May and Must Aliases should be
    * considered.
    */
-  LLVMPointsToGraph(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-                    PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
-
-  ~LLVMPointsToGraph() override = default;
-
-  bool isInterProcedural() const override;
-
-  PointerAnalysisType getPointerAnalysistype() const override;
-
-  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
-                    const llvm::Instruction *I = nullptr) override;
-
-  PointsToSetPtrTy
-  getPointsToSet(const llvm::Value *V,
-                 const llvm::Instruction *I = nullptr) override;
-
-  AllocationSiteSetPtrTy
-  getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
-                              const llvm::Instruction *I = nullptr) override;
-
-  [[nodiscard]] bool
-  isInReachableAllocationSites(const llvm::Value *V,
-                               const llvm::Value *PotentialValue,
-                               bool IntraProcOnly = false,
-                               const llvm::Instruction *I = nullptr) override;
-
-  void mergeWith(const PointsToInfo<const llvm::Value *,
-                                    const llvm::Instruction *> &PTI) override;
-
-  void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
-                      const llvm::Instruction *I = nullptr,
-                      AliasResult Kind = AliasResult::MustAlias) override;
-
-  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
-
-  nlohmann::json getAsJson() const override;
-
-  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
+  explicit LLVMAliasGraph(
+      LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+      AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
   /**
    * @brief Returns true if graph contains 0 nodes.
@@ -248,6 +207,66 @@ public:
   size_t getNumVertices() const;
 
   size_t getNumEdges() const;
+
+  // --- IsAliasInfo impl
+
+  [[nodiscard]] bool isInterProcedural() const noexcept;
+
+  [[nodiscard]] AliasAnalysisType getAliasAnalysisType() const noexcept;
+
+  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
+                    const llvm::Instruction *I = nullptr);
+
+  AliasSetPtrTy getAliasSet(const llvm::Value *V,
+                            const llvm::Instruction *I = nullptr);
+
+  AllocationSiteSetPtrTy
+  getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
+                              const llvm::Instruction *I = nullptr);
+
+  [[nodiscard]] bool isInReachableAllocationSites(
+      const llvm::Value *V, const llvm::Value *PotentialValue,
+      bool IntraProcOnly = false, const llvm::Instruction *I = nullptr);
+
+  void mergeWith(const LLVMAliasGraph &OtherPTI);
+
+  void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
+                      const llvm::Instruction *I = nullptr,
+                      AliasResult Kind = AliasResult::MustAlias);
+
+  void print(llvm::raw_ostream &OS = llvm::outs()) const;
+
+  [[nodiscard]] nlohmann::json getAsJson() const;
+
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
+
+  [[nodiscard]] AnalysisProperties getAnalysisProperties() const noexcept {
+    return AnalysisProperties::None;
+  }
+
+private:
+  // ---
+
+  // void mergeGraph(const LLVMAliasGraph &Other);
+
+  void computeAliasGraph(const llvm::Value *V);
+
+  void computeAliasGraph(llvm::Function *F);
+
+  struct AllocationSiteDFSVisitor;
+  struct ReachabilityDFSVisitor;
+
+  /// The points to graph.
+  graph_t PAG;
+  using ValueVertexMapT = std::unordered_map<const llvm::Value *, vertex_t>;
+  ValueVertexMapT ValueVertexMap;
+  /// Keep track of what has already been merged into this points-to graph.
+  std::unordered_set<const llvm::Function *> AnalyzedFunctions;
+  LLVMBasedAliasAnalysis PTA;
+
+  AliasSetOwner<AliasSetTy>::memory_resource_type MRes;
+  AliasSetOwner<AliasSetTy> Owner{&MRes};
+  std::unordered_map<const llvm::Value *, BoxedPtr<AliasSetTy>> Cache;
 };
 
 } // namespace psr

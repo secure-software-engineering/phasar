@@ -13,14 +13,13 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
+#include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <memory>
-
-#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
@@ -35,7 +34,7 @@ protected:
   unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<CSTDFILEIOTypeStateDescription> CSTDFILEIODesc;
   unique_ptr<IDETypeStateAnalysis> TSProblem;
   enum IOSTATE {
@@ -53,7 +52,7 @@ protected:
   void initialize(const llvm::Twine &IRFile) {
     IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(IRDB.get());
     ICFG = make_unique<LLVMBasedICFG>(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
@@ -455,8 +454,8 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   Llvmtssolver.solve();
   // Llvmtssolver.dumpResults();
 
-  // auto Pts = PT->getPointsToSet(IRDB->getInstruction(2));
-  // std::cout << "PointsTo(2) = {";
+  // auto Pts = PT->getAliasSet(IRDB->getInstruction(2));
+  // std::cout << "Alias(2) = {";
   // bool Frst = true;
   // for (const auto *P : *Pts) {
   //   if (Frst) {

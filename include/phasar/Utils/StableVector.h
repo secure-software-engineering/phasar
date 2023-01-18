@@ -10,16 +10,16 @@
 #ifndef PHASAR_UTILS_STABLEVECTOR_H_
 #define PHASAR_UTILS_STABLEVECTOR_H_
 
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/MathExtras.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <memory>
 #include <type_traits>
-
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/Support/MathExtras.h"
-#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 

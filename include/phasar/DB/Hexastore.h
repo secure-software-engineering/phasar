@@ -10,17 +10,16 @@
 #ifndef PHASAR_DB_HEXASTORE_H_
 #define PHASAR_DB_HEXASTORE_H_
 
-#include <array>
-#include <string>
-#include <vector>
+#include "phasar/DB/Queries.h"
 
 #include "llvm/Support/raw_ostream.h"
 
 #include "boost/format.hpp"
-
 #include "sqlite3.h"
 
-#include "phasar/DB/Queries.h"
+#include <array>
+#include <string>
+#include <vector>
 
 namespace psr {
 /**

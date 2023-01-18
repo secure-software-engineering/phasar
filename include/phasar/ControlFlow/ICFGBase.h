@@ -13,10 +13,10 @@
 #include "phasar/ControlFlow/CFGBase.h"
 #include "phasar/Utils/TypeTraits.h"
 
-#include "nlohmann/json.hpp"
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "nlohmann/json.hpp"
 
 #include <type_traits>
 
@@ -124,10 +124,9 @@ private:
 /// from the given analysis-Domain
 template <typename ICF, typename Domain>
 // NOLINTNEXTLINE(readability-identifier-naming)
-constexpr bool is_icfg_v =
-    is_crtp_base_of_v<ICFGBase, ICF> &&
-    std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
-    std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
+constexpr bool is_icfg_v = is_crtp_base_of_v<ICFGBase, ICF>
+    &&std::is_same_v<typename ICF::n_t, typename Domain::n_t>
+        &&std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
 
 } // namespace psr
 

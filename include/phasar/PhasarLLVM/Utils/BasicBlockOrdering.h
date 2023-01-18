@@ -10,11 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_BASICBLOCKORDERING_H_
 #define PHASAR_PHASARLLVM_UTILS_BASICBLOCKORDERING_H_
 
-#include <memory>
-#include <type_traits>
-
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FunctionExtras.h"
+
+#include <memory>
+#include <type_traits>
 
 namespace llvm {
 class Function;

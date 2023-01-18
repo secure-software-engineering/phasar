@@ -20,11 +20,11 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/MemoryResource.h"
 #include "phasar/Utils/Soundness.h"
-
-#include "nlohmann/json.hpp"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
@@ -33,21 +33,18 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <memory>
+#include "nlohmann/json.hpp"
 
-#include "phasar/Utils/MemoryResource.h"
+#include <memory>
 
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here
 
-#if HAS_MEMORY_RESOURCE
-#include <memory_resource>
-#else
+#if !HAS_MEMORY_RESOURCE
 #include "llvm/Support/Allocator.h"
 #endif
 
 namespace psr {
-class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 class LLVMProjectIRDB;
@@ -88,7 +85,7 @@ public:
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
-                         LLVMPointsToInfo *PT = nullptr,
+                         LLVMAliasInfoRef PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
 

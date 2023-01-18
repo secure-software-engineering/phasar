@@ -7,13 +7,14 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
+
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
-
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 
 namespace psr::glca {
 
@@ -70,8 +71,8 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *Source) {
   }
   // Collect return value facts
   if (Source == ExitStmt->getReturnValue() ||
-      (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
-       ExitStmt->getReturnValue() && isConstant(ExitStmt->getReturnValue()))) {
+      (LLVMZeroValue::isLLVMZeroValue(Source) && ExitStmt->getReturnValue() &&
+       isConstant(ExitStmt->getReturnValue()))) {
     Res.insert(CallSite);
   }
   return Res;

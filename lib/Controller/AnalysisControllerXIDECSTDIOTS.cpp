@@ -15,7 +15,7 @@ namespace psr {
 
 void AnalysisController::executeIDECSTDIOTS() {
   CSTDFILEIOTypeStateDescription TSDesc;
-  IDETypeStateAnalysis TSA(&HA.getProjectIRDB(), &HA.getPointsToInfo(), &TSDesc,
+  IDETypeStateAnalysis TSA(&HA.getProjectIRDB(), &HA.getAliasInfo(), &TSDesc,
                            EntryPoints);
 
   executeIDEAnalysis(TSA);

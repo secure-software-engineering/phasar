@@ -7,7 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedPointsToAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 
@@ -82,39 +83,38 @@ static inline void printLoadStoreResults(llvm::AliasResult AR, bool P,
   }
 }
 
-bool LLVMBasedPointsToAnalysis::hasPointsToInfo(
-    const llvm::Function &Fun) const {
+bool LLVMBasedAliasAnalysis::hasAliasInfo(const llvm::Function &Fun) const {
   return AAInfos.find(&Fun) != AAInfos.end();
 }
 
-void LLVMBasedPointsToAnalysis::computePointsToInfo(llvm::Function &Fun) {
+void LLVMBasedAliasAnalysis::computeAliasInfo(llvm::Function &Fun) {
   llvm::PreservedAnalyses PA = FPM.run(Fun, FAM);
   llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(Fun);
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
 
-void LLVMBasedPointsToAnalysis::erase(llvm::Function *F) {
+void LLVMBasedAliasAnalysis::erase(llvm::Function *F) {
   // after we clear all stuff, we need to set it up for the next function-wise
   // analysis
   AAInfos.erase(F);
   FAM.clear(*F, F->getName());
 }
 
-void LLVMBasedPointsToAnalysis::clear() {
+void LLVMBasedAliasAnalysis::clear() {
   AAInfos.clear();
   FAM.clear();
 }
 
-LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(LLVMProjectIRDB &IRDB,
-                                                     bool UseLazyEvaluation,
-                                                     PointerAnalysisType PATy)
+LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
+                                               bool UseLazyEvaluation,
+                                               AliasAnalysisType PATy)
     : PATy(PATy) {
   AA.registerFunctionAnalysis<llvm::BasicAA>();
   switch (PATy) {
-  case PointerAnalysisType::CFLAnders:
+  case AliasAnalysisType::CFLAnders:
     AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
     break;
-  case PointerAnalysisType::CFLSteens:
+  case AliasAnalysisType::CFLSteens:
     AA.registerFunctionAnalysis<llvm::CFLSteensAA>();
     break;
   default:
@@ -127,18 +127,17 @@ LLVMBasedPointsToAnalysis::LLVMBasedPointsToAnalysis(LLVMProjectIRDB &IRDB,
   // Always verify the input.
   FPM.addPass(llvm::VerifierPass());
   if (!UseLazyEvaluation) {
-
     for (auto &F : *IRDB.getModule()) {
       if (!F.isDeclaration()) {
-        computePointsToInfo(F);
+        computeAliasInfo(F);
       }
     }
   }
 }
 
-void LLVMBasedPointsToAnalysis::print(llvm::raw_ostream &OS) const {
+void LLVMBasedAliasAnalysis::print(llvm::raw_ostream &OS) const {
   OS << "Points-to Info:\n";
-  for (auto &[Fn, AA] : AAInfos) {
+  for (const auto &[Fn, AA] : AAInfos) {
     bool PrintAll = true;
     bool PrintNoAlias = true;
     bool PrintMayAlias = true;

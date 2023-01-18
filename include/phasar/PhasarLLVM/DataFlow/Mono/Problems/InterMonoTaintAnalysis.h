@@ -20,6 +20,7 @@
 #include "phasar/DataFlow/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/Utils/BitVectorSet.h"
 
@@ -36,7 +37,6 @@ class StructType;
 
 namespace psr {
 
-class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 
 struct InterMonoTaintAnalysisDomain : LLVMAnalysisDomainDefault {
@@ -57,7 +57,7 @@ public:
 
   InterMonoTaintAnalysis(const LLVMProjectIRDB *IRDB,
                          const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
-                         const LLVMPointsToInfo *PT, const TaintConfig &Config,
+                         LLVMAliasInfoRef PT, const TaintConfig &Config,
                          std::vector<std::string> EntryPoints = {});
 
   ~InterMonoTaintAnalysis() override = default;

@@ -12,7 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include "llvm/IR/InstrTypes.h"
 
@@ -30,7 +30,8 @@ class Value;
 
 namespace psr {
 
-class LLVMPointsToInfo;
+class LLVMBasedICFG;
+class LLVMTypeHierarchy;
 struct TypeStateDescription;
 
 struct IDETypeStateAnalysisDomain : public LLVMAnalysisDomainDefault {
@@ -54,7 +55,7 @@ public:
   const l_t TOP;
   const l_t BOTTOM;
 
-  IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+  IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                        const TypeStateDescription *TSD,
                        std::vector<std::string> EntryPoints = {"main"});
 
@@ -133,8 +134,8 @@ public:
 
 private:
   const TypeStateDescription *TSD{};
-  LLVMPointsToInfo *PT{};
-  std::map<const llvm::Value *, LLVMPointsToInfo::PointsToSetTy> PointsToCache;
+  std::map<const llvm::Value *, LLVMAliasInfo::AliasSetTy> AliasCache;
+  LLVMAliasInfoRef PT{};
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
       RelevantAllocaCache;
 
@@ -155,10 +156,10 @@ private:
    * This function retrieves whole-module points-to information. We store
    * already computed points-to information in a cache to prevent expensive
    * recomputation since the whole module points-to graph can be huge. This
-   * might become unnecessary once PhASAR's PointsToGraph starts using a cache
+   * might become unnecessary once PhASAR's AliasGraph starts using a cache
    * itself.
    */
-  std::set<d_t> getWMPointsToSet(d_t V);
+  std::set<d_t> getWMAliasSet(d_t V);
 
   /**
    * @brief Provides whole module aliases and relevant alloca's of V.

@@ -23,13 +23,13 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMBasedICFG;
-class LLVMPointsToInfo;
+class LLVMAliasSet;
 
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   explicit HelperAnalyses(std::string IRFile,
                           std::optional<nlohmann::json> PrecomputedPTS,
-                          PointerAnalysisType PTATy, bool AllowLazyPTS,
+                          AliasAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport);
@@ -40,13 +40,13 @@ public:
   ~HelperAnalyses();
 
   LLVMProjectIRDB &getProjectIRDB();
-  LLVMPointsToInfo &getPointsToInfo();
+  LLVMAliasSet &getAliasInfo();
   LLVMTypeHierarchy &getTypeHierarchy();
   LLVMBasedICFG &getICFG();
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
-  std::unique_ptr<LLVMPointsToInfo> PT;
+  std::unique_ptr<LLVMAliasSet> PT;
   std::unique_ptr<LLVMTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
 
@@ -55,7 +55,7 @@ private:
 
   // PTS
   std::optional<nlohmann::json> PrecomputedPTS;
-  PointerAnalysisType PTATy{};
+  AliasAnalysisType PTATy{};
   bool AllowLazyPTS{};
 
   // ICF

@@ -10,9 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H_
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H_
 
-#include <type_traits>
-
 #include "phasar/AnalysisStrategy/AnalysisSetup.h"
+
+#include <type_traits>
 
 namespace psr {
 

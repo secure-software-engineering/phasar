@@ -7,16 +7,17 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/IR/CFG.h"
-#include "llvm/IR/Instruction.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/ComposeEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/JoinConstEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
+
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/IR/CFG.h"
+#include "llvm/IR/Instruction.h"
 
 namespace psr::XTaint {
 

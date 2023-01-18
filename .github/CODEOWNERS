@@ -7,6 +7,8 @@
 /include/phasar/PhasarLLVM/DataflowSolver/IfdsIde/Solver/IDESolver.h @pdschubert
 
 /include/phasar/PhasarLLVM/DataflowSolver/IfdsIde/FlowEdgeFunctionCache.h @vulder
+/include/phasar/PhasarLLVM/DataflowSolver/IfdsIde/EdgeFunctionSingletonFactory.h @vulder
+/unittests/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactoryTest.cpp @vulder
 
 /include/phasar/PhasarLLVM/DataflowSolver/Mono @pdschubert
 

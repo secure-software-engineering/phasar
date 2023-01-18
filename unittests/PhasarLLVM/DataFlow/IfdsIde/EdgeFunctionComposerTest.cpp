@@ -1,4 +1,5 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionComposer.h"
+
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 
 #include "gtest/gtest.h"

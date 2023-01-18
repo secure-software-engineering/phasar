@@ -18,8 +18,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
 
 #include "phasar/ControlFlow/CFGBase.h"
-#include "phasar/DB/ProjectIRDBBase.h"
-#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/Pointer/AliasInfo.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -33,7 +33,6 @@ namespace psr {
 struct HasNoConfigurationType;
 
 template <typename T, typename F> class TypeHierarchy;
-template <typename V, typename N> class PointsToInfo;
 template <typename N, typename F> class CFG;
 
 template <typename AnalysisDomainTy>
@@ -57,7 +56,7 @@ protected:
   const ProjectIRDBBase<db_t> *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
   const CFGBase<c_t> *CF;
-  const PointsToInfo<v_t, n_t> *PT;
+  AliasInfoRef<v_t, n_t> PT;
   std::vector<std::string> EntryPoints;
   [[maybe_unused]] Soundness S = Soundness::Soundy;
 
@@ -68,7 +67,7 @@ public:
 
   IntraMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
                    const TypeHierarchy<t_t, f_t> *TH, const CFGBase<c_t> *CF,
-                   const PointsToInfo<v_t, n_t> *PT,
+                   AliasInfoRef<v_t, n_t> PT,
                    std::vector<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
@@ -101,9 +100,7 @@ public:
 
   [[nodiscard]] const CFGBase<c_t> *getCFG() const { return CF; }
 
-  [[nodiscard]] const PointsToInfo<v_t, n_t> *getPointstoInfo() const {
-    return PT;
-  }
+  [[nodiscard]] AliasInfoRef<v_t, n_t> getPointstoInfo() const { return PT; }
 
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 

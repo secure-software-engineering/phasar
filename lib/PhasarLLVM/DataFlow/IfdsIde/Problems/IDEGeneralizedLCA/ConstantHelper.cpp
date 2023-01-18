@@ -7,15 +7,13 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
+
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
-
-namespace psr::glca {
-
-bool isConstant(const llvm::Value *Val) {
+bool psr::glca::isConstant(const llvm::Value *Val) {
   // is constantInt, constantFP or constant string
   if (llvm::isa<llvm::ConstantInt>(Val)) { // const int
     return true;
@@ -42,5 +40,3 @@ bool isConstant(const llvm::Value *Val) {
   }
   return false;
 }
-
-} // namespace psr::glca

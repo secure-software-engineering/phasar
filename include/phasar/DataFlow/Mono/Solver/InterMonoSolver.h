@@ -17,14 +17,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTERMONOSOLVER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTERMONOSOLVER_H
 
+#include "phasar/DataFlow/Mono/Contexts/CallStringCTX.h"
+#include "phasar/DataFlow/Mono/InterMonoProblem.h"
+
 #include <deque>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
-#include "phasar/DataFlow/Mono/Contexts/CallStringCTX.h"
-#include "phasar/DataFlow/Mono/InterMonoProblem.h"
 
 namespace psr {
 

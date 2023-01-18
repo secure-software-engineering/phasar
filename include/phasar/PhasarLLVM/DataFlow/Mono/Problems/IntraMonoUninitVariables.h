@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <set>
 #include <string>
@@ -28,7 +29,6 @@ class StructType;
 namespace psr {
 
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 class LLVMBasedCFG;
 class LLVMBasedICFG;
 
@@ -49,7 +49,7 @@ public:
 
   IntraMonoUninitVariables(const LLVMProjectIRDB *IRDB,
                            const LLVMTypeHierarchy *TH, const LLVMBasedCFG *CF,
-                           const LLVMPointsToInfo *PT,
+                           LLVMAliasInfoRef PT,
                            std::vector<std::string> EntryPoints = {});
 
   ~IntraMonoUninitVariables() override = default;

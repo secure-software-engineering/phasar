@@ -10,10 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATION_H
 
-#include <cstdint>
-#include <memory>
-#include <optional>
-#include <string>
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMapInfo.h"
@@ -26,9 +25,10 @@
 #include "llvm/Support/TrailingObjects.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <string>
 
 namespace psr {
 
@@ -113,9 +113,8 @@ public:
   /// implement the GEP-FF
   [[nodiscard]] bool
   isProperPrefixOf(const AbstractMemoryLocationImpl &Larger) const;
-  [[nodiscard]] bool isProperPrefixOf(
-      const AbstractMemoryLocationImpl &Larger,
-      PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
+  [[nodiscard]] bool isProperPrefixOf(const AbstractMemoryLocationImpl &Larger,
+                                      LLVMAliasInfoRef PT) const;
 
   /// Are *this and TV equivalent?
   [[nodiscard]] bool equivalent(const AbstractMemoryLocationImpl &TV) const;
@@ -125,9 +124,8 @@ public:
                                      unsigned PALevel = 1) const;
 
   /// Are *this and TV equivalent wrt aliasing?
-  bool mustAlias(
-      const AbstractMemoryLocationImpl &TV,
-      PointsToInfo<const llvm::Value *, const llvm::Instruction *> &PT) const;
+  [[nodiscard]] bool mustAlias(const AbstractMemoryLocationImpl &TV,
+                               LLVMAliasInfoRef PT) const;
 
   /// Provide an arbitrary partial order for being able to store TaintedValues
   /// in std::set or as key in std::map

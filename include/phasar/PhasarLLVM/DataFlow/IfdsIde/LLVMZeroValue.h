@@ -17,10 +17,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMZEROVALUE_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMZEROVALUE_H
 
-#include <memory>
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/GlobalVariable.h"
+
+#include <memory>
 
 namespace llvm {
 class Value;

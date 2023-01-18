@@ -14,7 +14,7 @@ namespace psr {
 
 void AnalysisController::executeInterMonoSolverTest() {
   InterMonoSolverTest ST(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
-                         &HA.getICFG(), &HA.getPointsToInfo(), EntryPoints);
+                         &HA.getICFG(), &HA.getAliasInfo(), EntryPoints);
 
   executeInterMonoAnalysis(ST);
 }

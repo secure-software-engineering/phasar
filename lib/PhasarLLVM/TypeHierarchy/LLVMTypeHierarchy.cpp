@@ -15,6 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -22,12 +23,6 @@
 #include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
-
-#include "boost/graph/depth_first_search.hpp"
-#include "boost/graph/graph_utility.hpp"
-#include "boost/graph/graphviz.hpp"
-#include "boost/graph/transitive_closure.hpp"
-#include "boost/property_map/dynamic_property_map.hpp"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
@@ -39,12 +34,14 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/Format.h"
 
+#include "boost/graph/graphviz.hpp"
+#include "boost/graph/transitive_closure.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <memory>
 #include <ostream>
 
-using namespace psr;
 using namespace std;
 
 namespace psr {

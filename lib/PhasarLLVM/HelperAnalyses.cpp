@@ -1,7 +1,8 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include <memory>
@@ -9,7 +10,7 @@
 namespace psr {
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::optional<nlohmann::json> PrecomputedPTS,
-                               PointerAnalysisType PTATy, bool AllowLazyPTS,
+                               AliasAnalysisType PTATy, bool AllowLazyPTS,
                                std::vector<std::string> EntryPoints,
                                CallGraphAnalysisType CGTy,
                                Soundness SoundnessLevel, bool AutoGlobalSupport)
@@ -36,13 +37,13 @@ LLVMProjectIRDB &HelperAnalyses::getProjectIRDB() {
   return *IRDB;
 }
 
-LLVMPointsToInfo &HelperAnalyses::getPointsToInfo() {
+LLVMAliasSet &HelperAnalyses::getAliasInfo() {
   if (!PT) {
     if (PrecomputedPTS.has_value()) {
-      PT = std::make_unique<LLVMPointsToSet>(getProjectIRDB(), *PrecomputedPTS);
+      PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), *PrecomputedPTS);
     } else {
-      PT = std::make_unique<LLVMPointsToSet>(getProjectIRDB(), AllowLazyPTS,
-                                             PTATy);
+      PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS,
+                                          PTATy);
     }
   }
   return *PT;
@@ -59,7 +60,7 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
   if (!ICF) {
     ICF = std::make_unique<LLVMBasedICFG>(
         &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
-        CGTy == CallGraphAnalysisType::OTF ? &getPointsToInfo() : nullptr,
+        CGTy == CallGraphAnalysisType::OTF ? &getAliasInfo() : nullptr,
         SoundnessLevel, AutoGlobalSupport);
   }
 
