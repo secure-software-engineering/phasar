@@ -19,8 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -210,13 +209,13 @@ public:
 
   IDEInstInteractionAnalysisT(
       const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
-      LLVMPointsToInfo *PT, std::vector<std::string> EntryPoints = {"main"},
+      LLVMAliasInfoRef PT, std::vector<std::string> EntryPoints = {"main"},
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
             IRDB, std::move(EntryPoints), createZeroValue()),
         ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
     assert(ICF != nullptr);
-    assert(PT != nullptr);
+    assert(PT);
     IIAAAddLabelsEF::initEdgeFunctionCleaner();
     IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
@@ -314,11 +313,11 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::LoadInst *Load;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy PTS;
+          LLVMAliasInfo::AllocationSiteSetPtrTy PTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::LoadInst *Load)
-              : Load(Load), PTS(Problem.PT->getReachableAllocationSites(
+              : Load(Load), PTS(Problem.PT.getReachableAllocationSites(
                                 Load->getPointerOperand(),
                                 Problem.OnlyConsiderLocalAliases)) {}
 
@@ -357,22 +356,21 @@ public:
         //
         struct IIAFlowFunction : FlowFunction<d_t, container_type> {
           const llvm::StoreInst *Store;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy ValuePTS;
-          LLVMPointsToInfo::AllocationSiteSetPtrTy PointerPTS;
+          LLVMAliasInfo::AllocationSiteSetPtrTy ValuePTS;
+          LLVMAliasInfo::AllocationSiteSetPtrTy PointerPTS;
 
           IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
                           const llvm::StoreInst *Store)
               : Store(Store), ValuePTS([&]() {
                   if (isInterestingPointer(Store->getValueOperand())) {
-                    return Problem.PT->getReachableAllocationSites(
+                    return Problem.PT.getReachableAllocationSites(
                         Store->getValueOperand(),
                         Problem.OnlyConsiderLocalAliases);
                   }
-                  return std::make_unique<LLVMPointsToInfo::PointsToSetTy>(
-                      LLVMPointsToInfo::PointsToSetTy{
-                          Store->getValueOperand()});
+                  return std::make_unique<LLVMAliasInfo::AliasSetTy>(
+                      LLVMAliasInfo::AliasSetTy{Store->getValueOperand()});
                 }()),
-                PointerPTS(Problem.PT->getReachableAllocationSites(
+                PointerPTS(Problem.PT.getReachableAllocationSites(
                     Store->getPointerOperand(),
                     Problem.OnlyConsiderLocalAliases)) {}
 
@@ -1007,9 +1005,9 @@ public:
         //                x
         //
         if ((CurrNode == Load->getPointerOperand() ||
-             this->PT->isInReachableAllocationSites(
-                 Load->getPointerOperand(), CurrNode,
-                 OnlyConsiderLocalAliases)) &&
+             this->PT.isInReachableAllocationSites(Load->getPointerOperand(),
+                                                   CurrNode,
+                                                   OnlyConsiderLocalAliases)) &&
             Load == SuccNode) {
           IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         } else {
@@ -1117,9 +1115,9 @@ public:
         //
         if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
             CurrNode == SuccNode &&
-            (this->PT->isInReachableAllocationSites(Store->getPointerOperand(),
-                                                    CurrNode,
-                                                    OnlyConsiderLocalAliases) ||
+            (this->PT.isInReachableAllocationSites(Store->getPointerOperand(),
+                                                   CurrNode,
+                                                   OnlyConsiderLocalAliases) ||
              Store->getPointerOperand() == CurrNode)) {
           // Add the original variable, i.e., memory location.
           return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
@@ -1137,7 +1135,7 @@ public:
         //            v
         //            y
         //
-        if (CurrNode == SuccNode && this->PT->isInReachableAllocationSites(
+        if (CurrNode == SuccNode && this->PT.isInReachableAllocationSites(
                                         Store->getPointerOperand(), CurrNode,
                                         OnlyConsiderLocalAliases)) {
           return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
@@ -1159,12 +1157,12 @@ public:
             Store->getValueOperand()->getType()->isPointerTy();
         if ((CurrNode == Store->getValueOperand() ||
              (StoreValOpIsPointerTy &&
-              this->PT->isInReachableAllocationSites(
+              this->PT.isInReachableAllocationSites(
                   Store->getValueOperand(), Store->getValueOperand(),
                   OnlyConsiderLocalAliases))) &&
-            this->PT->isInReachableAllocationSites(Store->getPointerOperand(),
-                                                   Store->getPointerOperand(),
-                                                   OnlyConsiderLocalAliases)) {
+            this->PT.isInReachableAllocationSites(Store->getPointerOperand(),
+                                                  Store->getPointerOperand(),
+                                                  OnlyConsiderLocalAliases)) {
           return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
         }
       }
@@ -1760,7 +1758,7 @@ private:
   }
 
   const LLVMBasedICFG *ICF{};
-  LLVMPointsToInfo *PT{};
+  LLVMAliasInfoRef PT{};
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   static inline const l_t BottomElement = Bottom{};
   static inline const l_t TopElement = Top{};

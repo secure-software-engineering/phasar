@@ -6,10 +6,9 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include <algorithm>
-
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 

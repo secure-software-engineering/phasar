@@ -7,15 +7,11 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "llvm/IR/Function.h"
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Value.h"
-#include "llvm/Support/raw_ostream.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr::glca {
@@ -40,9 +36,8 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *Source) {
   if (Callee->isVarArg()) {
     // Map actual parameter into corresponding formal parameter.
     for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-      if (Source == Actuals[Idx] ||
-          (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
-           isConstant(Actuals[Idx]))) {
+      if (Source == Actuals[Idx] || (LLVMZeroValue::isLLVMZeroValue(Source) &&
+                                     isConstant(Actuals[Idx]))) {
         if (Idx >= Callee->arg_size() && !Callee->isDeclaration()) {
           // Over-approximate by trying to add the
           //   alloca [1 x %struct.__va_list_tag], align 16
@@ -69,7 +64,7 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *Source) {
         }
       }
     }
-    if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+    if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       Res.insert(Source);
     }
     return Res;
@@ -78,12 +73,11 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *Source) {
   // Map actual parameter into corresponding formal parameter.
   for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
     if (Source == Actuals[Idx] ||
-        (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source) &&
-         isConstant(Actuals[Idx]))) {
+        (LLVMZeroValue::isLLVMZeroValue(Source) && isConstant(Actuals[Idx]))) {
       Res.insert(Formals[Idx]); // corresponding formal
     }
   }
-  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+  if (LLVMZeroValue::isLLVMZeroValue(Source)) {
     Res.insert(Source);
   }
   return Res;

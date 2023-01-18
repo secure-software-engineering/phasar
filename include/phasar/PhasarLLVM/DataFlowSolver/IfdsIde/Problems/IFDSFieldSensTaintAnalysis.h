@@ -17,6 +17,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
+#include <map>
 #include <memory>
 #include <set>
 #include <string>

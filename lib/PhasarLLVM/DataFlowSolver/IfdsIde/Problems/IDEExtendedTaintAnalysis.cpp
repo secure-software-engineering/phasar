@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
@@ -15,8 +16,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -131,9 +131,9 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
                                      unsigned PALevel) {
 
   auto TV = makeFlowFact(ValueOp);
-  /// Defer computing the PointsToSet; this may an expensive operation that
+  /// Defer computing the AliasSet; this may an expensive operation that
   /// should only be done, if necessary
-  PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS = nullptr;
+  AliasInfoRef<v_t, n_t>::AliasSetPtrTy PTS = nullptr;
 
   auto Mem = makeFlowFact(PointerOp);
   return lambdaFlow<d_t>([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
@@ -144,7 +144,7 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
                        /*IncludeActualArg*/ false);
       if (Ret.size() > 1) {
         if (!PTS) {
-          PTS = PT->getPointsToSet(PointerOp, Store);
+          PTS = PT.getAliasSet(PointerOp, Store);
         }
 
         reportLeakIfNecessary(Store, PointerOp, ValueOp);
@@ -163,9 +163,9 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
     /// Hence, when loading the value of TV back from Mem this still holds and
     /// must be preserved by the analysis.
     if (TV->equivalentExceptPointerArithmetics(Source, PALevel)) {
-      return propagateAtStore(
-          PTS ? PTS : (PTS = PT->getPointsToSet(PointerOp, Store)), Source, TV,
-          Mem, PointerOp, ValueOp, Store);
+      return propagateAtStore(PTS ? PTS
+                                  : (PTS = PT.getAliasSet(PointerOp, Store)),
+                              Source, TV, Mem, PointerOp, ValueOp, Store);
     }
     // Sanitizing is handled in the edge function
 
@@ -174,7 +174,7 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
 }
 
 auto IDEExtendedTaintAnalysis::propagateAtStore(
-    PointsToInfo<v_t, n_t>::PointsToSetPtrTy PTS, d_t Source, d_t Val, d_t Mem,
+    AliasInfoRef<v_t, n_t>::AliasSetPtrTy PTS, d_t Source, d_t Val, d_t Mem,
     const llvm::Value *PointerOp, const llvm::Value *ValueOp,
     const llvm::Instruction *Store) -> std::set<d_t> {
   assert(PTS && "The points-to-set must not be null!");
@@ -185,7 +185,7 @@ auto IDEExtendedTaintAnalysis::propagateAtStore(
   std::set<d_t> Ret = {Source, FactFactory.withIndirectionOf(Mem, Offset)};
 
   if (!PTS) {
-    PTS = PT->getPointsToSet(PointerOp, Store);
+    PTS = PT.getAliasSet(PointerOp, Store);
   }
 
   forEachAliasOf(
@@ -243,16 +243,15 @@ void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
   }
 }
 
-void IDEExtendedTaintAnalysis::populateWithMayAliases(
-    SourceConfigTy &Facts) const {
+void IDEExtendedTaintAnalysis::populateWithMayAliases(SourceConfigTy &Facts) {
 
-  assert(HasPrecisePointsToInfo &&
+  assert(HasPreciseAliasInfo &&
          "Invalid Logic: populateWithMayAliases should only be called, if we "
          "have precise points-to-info");
 
   SourceConfigTy Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT->getPointsToSet(Fact);
+    auto Aliases = PT.getAliasSet(Fact);
 
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
@@ -278,7 +277,7 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
   allTaintedValues.insert(SourceConfig.begin(), SourceConfig.end());
 #endif
 
-  if (HasPrecisePointsToInfo) {
+  if (HasPreciseAliasInfo) {
     populateWithMayAliases(SourceConfig);
   }
 
@@ -411,30 +410,30 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   /// Cache points-to-sets for the arguments of the CallSite for the case that
   /// computing points-to-info is expensive (e.g. a demand-driven
   /// pointer-analysis)
-  class ArgPointsToCache {
+  class ArgAliasCache {
   public:
-    explicit ArgPointsToCache(PointsToInfo<v_t, n_t> *PT, size_t NumArgs,
-                              bool HasPrecisePointsToInfo)
-        : Vec(NumArgs * !!HasPrecisePointsToInfo, nullptr), PT(PT) {}
+    explicit ArgAliasCache(AliasInfoRef<v_t, n_t> PT, size_t NumArgs,
+                           bool HasPreciseAliasInfo)
+        : Vec(NumArgs * !!HasPreciseAliasInfo, nullptr), PT(PT) {}
 
-    const PointsToInfo<v_t, n_t>::PointsToSetTy &
+    AliasInfoRef<v_t, n_t>::AliasSetTy
     getOrCreatePts(size_t Idx, const llvm::Value *Ptr,
-                   const llvm::Instruction *Call) const {
+                   const llvm::Instruction *Call) {
       auto &PSet = Vec[Idx];
-      return PSet ? *PSet : *(PSet = PT->getPointsToSet(Ptr, Call));
+      return PSet ? *PSet : *(PSet = PT.getAliasSet(Ptr, Call));
     }
 
   private:
-    mutable std::vector<PointsToInfo<v_t, n_t>::PointsToSetPtrTy> Vec;
-    PointsToInfo<v_t, n_t> *PT;
+    mutable std::vector<AliasInfoRef<v_t, n_t>::AliasSetPtrTy> Vec;
+    AliasInfoRef<v_t, n_t> PT;
   };
 
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
   return lambdaFlow<d_t>([this, Call, CalleeFun,
                           ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
-                          PTC{ArgPointsToCache(PT, Call->arg_size(),
-                                               HasPrecisePointsToInfo)}](
-                             d_t Source) -> std::set<d_t> {
+                          PTC{ArgAliasCache(PT, Call->arg_size(),
+                                            HasPreciseAliasInfo)}](
+                             d_t Source) mutable -> std::set<d_t> {
     if (isZeroValue(Source)) {
       return {Source};
     }
@@ -459,7 +458,7 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
 
       Ret.insert(FactFactory.withTransferFrom(Source, makeFlowFact(It->get())));
 
-      if (!HasPrecisePointsToInfo) {
+      if (!HasPreciseAliasInfo) {
         continue;
       }
 
@@ -624,7 +623,7 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   if (!DisableStrongUpdates) {
 
     /// Kill the PointerOp, if we store into it
-    if (CurrNode->mustAlias(makeFlowFact(PointerOp), *PT)) {
+    if (CurrNode->mustAlias(makeFlowFact(PointerOp), PT)) {
       return makeEF<GenEdgeFunction>(BBO, Curr);
     }
 
@@ -747,7 +746,7 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 
   // MemIntrinsic covers memset, memcpy and memmove
   if (const auto *MemSet = llvm::dyn_cast<llvm::MemIntrinsic>(Curr);
-      MemSet && CurrNode->mustAlias(makeFlowFact(MemSet->getRawDest()), *PT)) {
+      MemSet && CurrNode->mustAlias(makeFlowFact(MemSet->getRawDest()), PT)) {
     return makeEF<GenEdgeFunction>(BBO, Curr);
   }
 

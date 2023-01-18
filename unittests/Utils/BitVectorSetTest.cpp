@@ -1,8 +1,8 @@
-#include "gtest/gtest.h"
-
 #include "phasar/Utils/BitVectorSet.h"
 
 #include "llvm/ADT/BitVector.h"
+
+#include "gtest/gtest.h"
 
 #include <set>
 #include <utility>

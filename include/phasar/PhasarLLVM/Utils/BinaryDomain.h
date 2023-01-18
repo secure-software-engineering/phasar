@@ -29,6 +29,8 @@ namespace psr {
 
 enum class BinaryDomain { BOTTOM = 0, TOP = 1 };
 
+[[nodiscard]] std::string to_string(BinaryDomain B);
+
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, BinaryDomain B);
 
 template <> struct JoinLatticeTraits<BinaryDomain> {

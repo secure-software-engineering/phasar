@@ -5,13 +5,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_MAPTAINTEDVALUESTOCALLER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSFIELDSENSTAINTANALYSIS_FLOWFUNCTIONS_MAPTAINTEDVALUESTOCALLER_H
 
-#include "../Stats/TraceStats.h"
-
-#include "llvm/IR/Instructions.h"
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
+
+#include "llvm/IR/Instructions.h"
+
+#include "../Stats/TraceStats.h"
 
 namespace psr {
 
