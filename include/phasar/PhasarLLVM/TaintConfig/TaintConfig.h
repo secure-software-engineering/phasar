@@ -10,18 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
 
-#include <filesystem>
-#include <functional>
-#include <set>
-#include <string>
-#include <unordered_set>
-
-#include "nlohmann/json.hpp"
-
 #include "llvm/ADT/STLExtras.h" // function_ref
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+
+#include "nlohmann/json.hpp"
+
+#include <set>
+#include <unordered_set>
 
 namespace psr {
 class LLVMProjectIRDB;

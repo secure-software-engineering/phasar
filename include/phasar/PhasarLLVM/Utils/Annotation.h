@@ -1,12 +1,12 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_ANNOTATION_H
 #define PHASAR_PHASARLLVM_UTILS_ANNOTATION_H
 
-#include <string>
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Value.h"
+
+#include <string>
 
 namespace psr {
 

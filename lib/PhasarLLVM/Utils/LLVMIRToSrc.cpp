@@ -7,10 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <filesystem>
-#include <fstream>
-#include <limits>
-#include <string>
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"
@@ -24,7 +21,12 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "boost/algorithm/string/trim.hpp"
+
+#include <filesystem>
+#include <fstream>
+#include <limits>
+#include <string>
 
 using namespace psr;
 

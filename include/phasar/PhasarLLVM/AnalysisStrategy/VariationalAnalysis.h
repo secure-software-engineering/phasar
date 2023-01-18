@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H_
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H_
 
-#include <type_traits>
-
 #include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
+
+#include <type_traits>
 
 namespace psr {
 

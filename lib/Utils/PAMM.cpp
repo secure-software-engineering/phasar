@@ -14,17 +14,17 @@
  *      Author: rleer
  */
 
-#include <cassert>
-#include <filesystem>
-#include <fstream>
-#include <iomanip>
-#include <sstream>
+#include "phasar/Utils/PAMM.h"
 
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/Utils/PAMM.h"
+#include <cassert>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 using namespace psr;
 using json = nlohmann::json;

@@ -10,15 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 #define PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 
-#include <type_traits>
-#include <variant>
-
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
-
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 

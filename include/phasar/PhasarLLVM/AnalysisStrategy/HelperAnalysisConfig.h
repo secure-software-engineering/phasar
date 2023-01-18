@@ -11,17 +11,17 @@
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/PointerAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
+#include "phasar/Utils/Soundness.h"
 
 #include "nlohmann/json.hpp"
-#include "phasar/Utils/Soundness.h"
 
 #include <optional>
 
 namespace psr {
 struct HelperAnalysisConfig {
   std::optional<nlohmann::json> PrecomputedPTS = std::nullopt;
-  PointerAnalysisType PTATy = PointerAnalysisType::CFLAnders;
+  AliasAnalysisType PTATy = AliasAnalysisType::CFLAnders;
   CallGraphAnalysisType CGTy = CallGraphAnalysisType::OTF;
   Soundness SoundnessLevel = Soundness::Soundy;
   bool AutoGlobalSupport = true;

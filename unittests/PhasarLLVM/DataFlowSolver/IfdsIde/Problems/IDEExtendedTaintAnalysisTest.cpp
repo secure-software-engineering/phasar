@@ -8,17 +8,16 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
-
-#include "gtest/gtest.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
@@ -27,14 +26,14 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
 
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
 
 #include <tuple>
 #include <type_traits>
 #include <utility>
 #include <variant>
-
-#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
@@ -61,7 +60,7 @@ protected:
 
     LLVMTypeHierarchy TH(IRDB);
     // llvm::errs() << "TH: " << TH << '\n';
-    LLVMPointsToSet PT(IRDB);
+    LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(
         &IRDB, CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
