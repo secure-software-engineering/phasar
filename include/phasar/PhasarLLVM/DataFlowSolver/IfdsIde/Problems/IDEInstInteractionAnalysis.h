@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -640,7 +641,7 @@ public:
       // parameters will otherwise cause trouble by overriding alloca
       // instructions without being valid data-flow facts themselves.
       for (const auto &Arg : EntryPointFun->args()) {
-        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, BottomElement);
+        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, Bottom{});
       }
       // Generate all global variables using generalized initial seeds
 
@@ -1112,9 +1113,9 @@ public:
     return nullptr;
   }
 
-  inline l_t topElement() override { return TopElement; }
+  inline l_t topElement() override { return Top{}; }
 
-  inline l_t bottomElement() override { return BottomElement; }
+  inline l_t bottomElement() override { return Bottom{}; }
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
@@ -1154,11 +1155,10 @@ public:
       //               << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
       //               << " * " << SecondFunction->str());
       if (dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+        llvm::report_fatal_error("AllTop should not be composed with");
       }
       if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-        /// XXX: No!
-        return this->shared_from_this();
+        return SecondFunction;
       }
       if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
@@ -1167,21 +1167,12 @@ public:
         if (isKillAll()) {
           return IIAAAddLabelsEF::createEdgeFunction(AD->Data);
         }
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Replacement, AD->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
-      if (auto *KR =
-              dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
-        if (isKillAll()) {
-          return IIAAKillOrReplaceEF::createEdgeFunction(KR->Replacement);
-        }
-        if (KR->isKillAll()) {
-          return SecondFunction;
-        }
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
-        return IIAAKillOrReplaceEF::createEdgeFunction(Union);
+      if (dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
+        // IIAAKillOrReplaceEF ignores its input
+        return SecondFunction;
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
@@ -1190,24 +1181,23 @@ public:
     EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAKillOrReplaceEF::joinWith");
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
+      if (dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
+        return OtherFunction;
       }
-      if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+        /// XXX: Check for plausability
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(OtherFunction.get())) {
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Replacement, AD->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction.get())) {
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
-        return IIAAKillOrReplaceEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Replacement, KR->Replacement);
+        return IIAAKillOrReplaceEF::createEdgeFunction(std::move(Union));
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
@@ -1217,7 +1207,7 @@ public:
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(Other.get())) {
         return Replacement == KR->Replacement;
       }
-      return this == Other.get();
+      return false;
     }
 
     void print(llvm::raw_ostream &OS,
@@ -1254,9 +1244,7 @@ public:
 
     ~IIAAAddLabelsEF() override = default;
 
-    l_t computeTarget(l_t Src) override {
-      return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
-    }
+    l_t computeTarget(l_t Src) override { return joinImpl(Src, Data); }
 
     EdgeFunctionPtrType
     composeWith(EdgeFunctionPtrType SecondFunction) override {
@@ -1265,22 +1253,20 @@ public:
       //               * "
       //               << SecondFunction->str());
       if (dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+        llvm::report_fatal_error("AllTop should not be composed with");
       }
       if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-        /// XXX: Really?
-        return this->shared_from_this();
+        return SecondFunction;
       }
       if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(SecondFunction.get())) {
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
+        auto Union = joinImpl(Data, AD->Data);
         return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
-      if (auto *KR =
-              dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
-        return IIAAAddLabelsEF::createEdgeFunction(KR->Replacement);
+      if (dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
+        return SecondFunction;
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
@@ -1293,20 +1279,18 @@ public:
         return this->shared_from_this();
       }
       if (dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
-        /// XXX: No!
-        return this->shared_from_this();
+        return OtherFunction;
       }
       if (dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
         /// XXX: Check for plausability
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(OtherFunction.get())) {
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
+        auto Union = joinImpl(Data, AD->Data);
         return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction.get())) {
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Data, KR->Replacement);
+        auto Union = joinImpl(Data, KR->Replacement);
         return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       llvm::report_fatal_error(
@@ -1347,9 +1331,9 @@ public:
     printEdgeFactImpl(OS, EdgeFact);
   }
 
-  void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
+  static void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
     for (auto It = Res.begin(); It != Res.end();) {
-      if (It->second == BottomElement) {
+      if (It->second.isBottom()) {
         It = Res.erase(It);
       } else {
         ++It;
@@ -1375,7 +1359,7 @@ public:
         if (!Results.empty()) {
           OS << "At IR statement: " << this->NtoString(Inst) << '\n';
           for (auto Result : Results) {
-            if (Result.second != BottomElement) {
+            if (!Result.second.isBottom()) {
               OS << "   Fact: " << this->DtoString(Result.first)
                  << "\n  Value: " << this->LtoString(Result.second) << '\n';
             }
@@ -1433,7 +1417,7 @@ protected:
     return LLVMZeroValue::isLLVMZeroValue(d);
   }
 
-  static void printEdgeFactImpl(llvm::raw_ostream &OS, l_t EdgeFact) {
+  static void printEdgeFactImpl(llvm::raw_ostream &OS, const l_t &EdgeFact) {
     if (std::holds_alternative<Top>(EdgeFact)) {
       OS << std::get<Top>(EdgeFact);
     } else if (std::holds_alternative<Bottom>(EdgeFact)) {
@@ -1457,15 +1441,16 @@ protected:
     }
   }
 
-  static inline l_t joinImpl(l_t Lhs, l_t Rhs) {
-    if (Lhs == TopElement || Lhs == BottomElement) {
+  static inline l_t joinImpl(const l_t &Lhs, const l_t &Rhs) {
+    /// XXX: Check for plausability
+    if (Lhs.isTop() || Lhs.isBottom()) {
       return Rhs;
     }
-    if (Rhs == TopElement || Rhs == BottomElement) {
+    if (Rhs.isTop() || Rhs.isBottom()) {
       return Lhs;
     }
-    auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
-    auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
+    const auto &LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
+    const auto &RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
     return LhsSet.setUnion(RhsSet);
   }
 
@@ -1506,9 +1491,7 @@ private:
   const LLVMBasedICFG *ICF{};
   LLVMPointsToInfo *PT{};
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
-  static inline const l_t BottomElement = Bottom{};
-  static inline const l_t TopElement = Top{};
-  const bool OnlyConsiderLocalAliases = true;
+  static inline const bool OnlyConsiderLocalAliases = true;
 
   inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
     if (EdgeFactGen) {

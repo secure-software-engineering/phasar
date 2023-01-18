@@ -505,22 +505,22 @@ public:
   operator=(EdgeFunctionSingletonFactory &&) noexcept = default;
 
   virtual ~EdgeFunctionSingletonFactory() {
-    std::lock_guard<std::mutex> DataLock(getCacheData().DataMutex);
+    std::lock_guard DataLock(getCacheData().DataMutex);
   }
 
   // Creates a new EdgeFunction of type EdgeFunctionType, reusing the previous
   // allocation if an EdgeFunction with the same values was already created.
   static inline std::shared_ptr<EdgeFunctionType>
   createEdgeFunction(CtorArgT K) {
-    std::lock_guard<std::mutex> DataLock(getCacheData().DataMutex);
+    std::lock_guard DataLock(getCacheData().DataMutex);
 
     auto &Storage = getCacheData().Storage;
-    auto SearchVal = Storage.find(K);
-    if (SearchVal != Storage.end() && !SearchVal->second.expired()) {
-      return SearchVal->second.lock();
+    auto &SearchVal = Storage[K];
+    if (auto EF = SearchVal.lock()) {
+      return EF;
     }
-    auto NewEdgeFunc = std::make_shared<EdgeFunctionType>(K);
-    Storage[K] = NewEdgeFunc;
+    auto NewEdgeFunc = std::make_shared<EdgeFunctionType>(std::move(K));
+    SearchVal = NewEdgeFunc;
     return NewEdgeFunc;
   }
 
@@ -538,7 +538,7 @@ public:
 
   LLVM_DUMP_METHOD
   static void dump(bool PrintElements = false) {
-    std::lock_guard<std::mutex> DataLock(getCacheData().DataMutex);
+    std::lock_guard DataLock(getCacheData().DataMutex);
 
     llvm::outs() << "Elements in cache: " << getCacheData().Storage.size();
 
@@ -564,7 +564,7 @@ private:
   }
 
   static void cleanExpiredMapEntries(EFStorageData &CData) {
-    std::lock_guard<std::mutex> DataLock(CData.DataMutex);
+    std::lock_guard DataLock(CData.DataMutex);
 
     auto &Storage = CData.Storage;
     for (auto Iter = Storage.begin(); Iter != Storage.end();) {
