@@ -17,6 +17,8 @@
 
 #include "llvm/ADT/ArrayRef.h"
 
+#include <type_traits>
+
 namespace psr {
 template <typename L> struct EdgeIdentity {
   using l_t = L;
@@ -42,11 +44,19 @@ template <typename L> struct AllBottom {
   using l_t = L;
   using JLattice = JoinLatticeTraits<L>;
 
+  [[no_unique_address]] std::conditional_t<HasJoinLatticeTraits<l_t>, EmptyType,
+                                           l_t>
+      BottomValue;
+
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const
       noexcept(noexcept(JLattice::bottom())) {
     static_assert(std::is_trivially_copyable_v<AllBottom>);
     static_assert(IsEdgeFunction<AllBottom>);
-    return JLattice::bottom();
+    if constexpr (HasJoinLatticeTraits<l_t>) {
+      return JLattice::bottom();
+    } else {
+      return BottomValue;
+    }
   }
 
   [[nodiscard]] static EdgeFunction<l_t>
@@ -68,11 +78,19 @@ template <typename L> struct AllTop {
   using l_t = L;
   using JLattice = JoinLatticeTraits<L>;
 
+  [[no_unique_address]] std::conditional_t<HasJoinLatticeTraits<l_t>, EmptyType,
+                                           l_t>
+      TopValue;
+
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const
       noexcept(noexcept(JLattice::top())) {
     static_assert(std::is_trivially_copyable_v<AllTop>);
     static_assert(IsEdgeFunction<AllTop>);
-    return JLattice::top();
+    if constexpr (HasJoinLatticeTraits<l_t>) {
+      return JLattice::top();
+    } else {
+      return TopValue;
+    }
   }
 
   [[nodiscard]] static EdgeFunction<l_t>

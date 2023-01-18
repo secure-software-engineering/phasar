@@ -216,6 +216,15 @@ struct FalseFn {
   }
 };
 
+struct EmptyType {
+  friend constexpr bool operator==(EmptyType /*L*/, EmptyType /*R*/) noexcept {
+    return true;
+  }
+  friend constexpr bool operator!=(EmptyType /*L*/, EmptyType /*R*/) noexcept {
+    return false;
+  }
+};
+
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr
 
