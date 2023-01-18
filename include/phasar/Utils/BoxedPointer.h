@@ -10,11 +10,11 @@
 #ifndef PHASAR_UTILS_BOXEDPOINTER_H
 #define PHASAR_UTILS_BOXEDPOINTER_H
 
-#include <cstddef>
-
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/Hashing.h"
+
+#include <cstddef>
 
 namespace llvm {
 class Value;

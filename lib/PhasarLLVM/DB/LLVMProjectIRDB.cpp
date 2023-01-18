@@ -1,4 +1,5 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"

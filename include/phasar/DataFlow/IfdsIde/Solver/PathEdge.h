@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
 
 #include "llvm/Support/raw_ostream.h"
+
 #include <type_traits>
 
 namespace psr {
