@@ -498,13 +498,12 @@ public:
 
     // Map actual to formal parameters.
     auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
-        CS, DestFun, [](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
+        CS, DestFun, [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
           if (d_t(ActualArg) != Src) {
             return false;
           }
 
-          if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(ActualArg);
-              Arg && Arg->hasStructRetAttr()) {
+          if (CS->hasStructRetAttr() && ActualArg == CS->getArgOperand(0)) {
             return false;
           }
 
@@ -512,7 +511,7 @@ public:
         });
 
     // Generate the artificially introduced RVO parameters from zero value.
-    auto SRetFormal = CS->hasStructRetAttr() ? CS->getArgOperand(0) : nullptr;
+    auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
 
     if (SRetFormal) {
       return unionFlows(
