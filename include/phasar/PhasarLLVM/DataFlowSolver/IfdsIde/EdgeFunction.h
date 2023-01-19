@@ -352,6 +352,12 @@ public:
     return this->template isa<ConcreteEF>() ? getPtr<ConcreteEF>(EF) : nullptr;
   }
 
+  // -- misc
+
+  [[nodiscard]] bool isRefCounted() const noexcept {
+    return VTAndHeapAlloc.getInt();
+  }
+
 private:
   struct VTable {
     // NOLINTBEGIN(readability-identifier-naming)

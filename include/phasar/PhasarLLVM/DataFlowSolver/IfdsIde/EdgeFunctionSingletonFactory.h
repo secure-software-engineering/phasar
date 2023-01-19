@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <type_traits>
 
 namespace psr {
 

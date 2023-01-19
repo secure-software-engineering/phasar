@@ -46,43 +46,39 @@ public:
       : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}
   ~IFDSTabulationProblem() override = default;
 
-  EdgeFunctionPtrType getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
-                                            n_t /*Succ*/,
-                                            d_t /*SuccNode*/) final {
-    return EdgeIdentity<BinaryDomain>::getInstance();
+  EdgeFunction<l_t> getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
+                                          n_t /*Succ*/,
+                                          d_t /*SuccNode*/) final {
+    return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunctionPtrType getCallEdgeFunction(n_t /*CallInst*/, d_t /*SrcNode*/,
-                                          f_t /*CalleeFun*/,
-                                          d_t /*DestNode*/) final {
-    return EdgeIdentity<BinaryDomain>::getInstance();
+  EdgeFunction<l_t> getCallEdgeFunction(n_t /*CallInst*/, d_t /*SrcNode*/,
+                                        f_t /*CalleeFun*/,
+                                        d_t /*DestNode*/) final {
+    return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunctionPtrType getReturnEdgeFunction(n_t /*CallSite*/, f_t /*CalleeFun*/,
-                                            n_t /*ExitInst*/, d_t /*ExitNode*/,
-                                            n_t /*RetSite*/,
-                                            d_t /*RetNode*/) final {
-    return EdgeIdentity<BinaryDomain>::getInstance();
+  EdgeFunction<l_t> getReturnEdgeFunction(n_t /*CallSite*/, f_t /*CalleeFun*/,
+                                          n_t /*ExitInst*/, d_t /*ExitNode*/,
+                                          n_t /*RetSite*/,
+                                          d_t /*RetNode*/) final {
+    return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunctionPtrType
+  EdgeFunction<l_t>
   getCallToRetEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/,
                            d_t /*RetSiteNode*/,
                            llvm::ArrayRef<f_t> /*Callees*/) final {
-    return EdgeIdentity<BinaryDomain>::getInstance();
+    return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunctionPtrType getSummaryEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
-                                             n_t /*Succ*/,
-                                             d_t /*SuccNode*/) final {
-    return EdgeIdentity<BinaryDomain>::getInstance();
+  EdgeFunction<l_t> getSummaryEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
+                                           n_t /*Succ*/,
+                                           d_t /*SuccNode*/) final {
+    return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunctionPtrType allTopFunction() final {
-    static EdgeFunctionPtrType AllTopFn =
-        std::make_shared<AllTop<BinaryDomain>>();
-    return AllTopFn;
-  }
+  EdgeFunction<l_t> allTopFunction() final { return AllTop<l_t>{}; }
 
   void printEdgeFact(llvm::raw_ostream &OS, BinaryDomain Val) const final {
     OS << Val;

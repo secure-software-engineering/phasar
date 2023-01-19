@@ -68,12 +68,12 @@ template <typename AnalysisDomainTy,
 class FlowEdgeFunctionCache {
   using IDEProblemType = IDETabulationProblem<AnalysisDomainTy, Container>;
   using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
-  using EdgeFunctionPtrType = typename IDEProblemType::EdgeFunctionPtrType;
 
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
   using f_t = typename AnalysisDomainTy::f_t;
   using t_t = typename AnalysisDomainTy::t_t;
+  using l_t = typename AnalysisDomainTy::l_t;
 
   using DTKeyCompressorType = std::conditional_t<
       std::is_base_of_v<llvm::Value, std::remove_pointer_t<d_t>>,
@@ -95,7 +95,7 @@ private:
       std::is_base_of_v<llvm::Value, std::remove_pointer_t<d_t>>, uint64_t,
       std::pair<d_t, d_t>>;
   using InnerEdgeFunctionMapType =
-      EquivalenceClassMap<EdgeFuncNodeKey, EdgeFunctionPtrType>;
+      EquivalenceClassMap<EdgeFuncNodeKey, EdgeFunction<l_t>>;
 
   IDETabulationProblem<AnalysisDomainTy, Container> &Problem;
   // Auto add zero
@@ -122,13 +122,13 @@ private:
   std::map<std::tuple<n_t, n_t>, FlowFunctionPtrType>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
-  std::map<std::tuple<n_t, d_t, f_t, d_t>, EdgeFunctionPtrType>
+  std::map<std::tuple<n_t, d_t, f_t, d_t>, EdgeFunction<l_t>>
       CallEdgeFunctionCache;
-  std::map<std::tuple<n_t, f_t, n_t, d_t, n_t, d_t>, EdgeFunctionPtrType>
+  std::map<std::tuple<n_t, f_t, n_t, d_t, n_t, d_t>, EdgeFunction<l_t>>
       ReturnEdgeFunctionCache;
   std::map<EdgeFuncInstKey, InnerEdgeFunctionMapType>
       CallToRetEdgeFunctionCache;
-  std::map<std::tuple<n_t, d_t, n_t, d_t>, EdgeFunctionPtrType>
+  std::map<std::tuple<n_t, d_t, n_t, d_t>, EdgeFunction<l_t>>
       SummaryEdgeFunctionCache;
 
 public:
@@ -316,8 +316,8 @@ public:
     return FF;
   }
 
-  EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                            d_t SuccNode) {
+  EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                          d_t SuccNode) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Normal edge function factory call");
@@ -362,9 +362,8 @@ public:
     return EF;
   }
 
-  EdgeFunctionPtrType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                          f_t DestinationFunction,
-                                          d_t DestNode) {
+  EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                        f_t DestinationFunction, d_t DestNode) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call edge function factory call");
@@ -395,9 +394,9 @@ public:
     return EF;
   }
 
-  EdgeFunctionPtrType getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
-                                            n_t ExitInst, d_t ExitNode,
-                                            n_t RetSite, d_t RetNode) {
+  EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
+                                          n_t ExitInst, d_t ExitNode,
+                                          n_t RetSite, d_t RetNode) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Return edge function factory call");
@@ -432,9 +431,9 @@ public:
     return EF;
   }
 
-  EdgeFunctionPtrType getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
-                                               n_t RetSite, d_t RetSiteNode,
-                                               llvm::ArrayRef<f_t> Callees) {
+  EdgeFunction<l_t> getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                             n_t RetSite, d_t RetSiteNode,
+                                             llvm::ArrayRef<f_t> Callees) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return edge function factory call");
@@ -490,8 +489,8 @@ public:
     return EF;
   }
 
-  EdgeFunctionPtrType getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
-                                             n_t RetSite, d_t RetSiteNode) {
+  EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
+                                           n_t RetSite, d_t RetSiteNode) {
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Summary edge function factory call");

@@ -37,19 +37,16 @@ namespace psr::XTaint {
 using LeakMap_t = std::unordered_map<const llvm::Instruction *,
                                      llvm::SmallSet<const llvm::Value *, 1>>;
 
-EdgeFunction<EdgeDomain>::EdgeFunctionPtrType
-getGenEdgeFunction(BasicBlockOrdering &BBO);
+EdgeFunction<EdgeDomain> getGenEdgeFunction(BasicBlockOrdering &BBO);
 
-EdgeFunction<EdgeDomain>::EdgeFunctionPtrType
-getEdgeIdentity(const llvm::Instruction *Inst);
+EdgeFunction<EdgeDomain> getEdgeIdentity(const llvm::Instruction *Inst);
 bool isEdgeIdentity(EdgeFunction<EdgeDomain> *EF);
 
-llvm::hash_code
-getHashCode(const EdgeFunction<EdgeDomain>::EdgeFunctionPtrType &EF);
+llvm::hash_code getHashCode(const EdgeFunction<EdgeDomain> &EF);
 
-EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllTop();
-EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllBot();
-EdgeFunction<EdgeDomain>::EdgeFunctionPtrType getAllSanitized();
+EdgeFunction<EdgeDomain> getAllTop();
+EdgeFunction<EdgeDomain> getAllBot();
+EdgeFunction<EdgeDomain> getAllSanitized();
 
 /// Have an own function for creating a flow/edge-function instance to allow
 /// fast migration to memory-management schemes other than std::shared_ptr

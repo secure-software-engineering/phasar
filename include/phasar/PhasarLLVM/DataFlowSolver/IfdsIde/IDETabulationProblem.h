@@ -51,8 +51,6 @@ public:
   using i_t = typename AnalysisDomainTy::i_t;
   using db_t = typename AnalysisDomainTy::db_t;
 
-  using typename EdgeFunctions<AnalysisDomainTy>::EdgeFunctionPtrType;
-
   using ConfigurationTy = HasNoConfigurationType;
 
   explicit IDETabulationProblem(const db_t *IRDB,
@@ -68,7 +66,7 @@ public:
   virtual ~IDETabulationProblem() = default;
 
   /// Returns an edge function that represents the top element of the analysis.
-  virtual EdgeFunctionPtrType allTopFunction() = 0;
+  virtual EdgeFunction<l_t> allTopFunction() = 0;
 
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.

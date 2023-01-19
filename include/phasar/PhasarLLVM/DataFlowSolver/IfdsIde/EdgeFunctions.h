@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONS_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -29,82 +30,6 @@
 
 namespace psr {
 
-//
-// This class models an edge function for distributive data-flow problems.
-//
-// An edge function describes a value computation problem along an exploded
-// supergraph edge.
-//
-template <typename L> class EdgeFunction {
-public:
-  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunction<L>>;
-
-  virtual ~EdgeFunction() = default;
-
-  //
-  // This function describes the concrete value computation for its respective
-  // exploded supergraph edge. The function(s) will be evaluated once the
-  // exploded supergraph has been constructed and the concrete values of the
-  // various value computation problems along the supergraph edges are
-  // evaluated.
-  //
-  // Please also refer to the various edge function factories of the
-  // EdgeFunctions interface: EdgeFunctions::get*EdgeFunction() for more
-  // details.
-  //
-  [[nodiscard]] virtual L computeTarget(L Source) = 0;
-
-  //
-  // This function composes the two edge functions this and SecondFunction. This
-  // function is used to extend an edge function in order to construct so-called
-  // jump functions that describe the effects of everlonger sequences of code.
-  //
-  [[nodiscard]] virtual EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType SecondFunction) = 0;
-
-  //
-  // This function describes the join of the two edge functions this and
-  // OtherFunction. The function is called whenever two edge functions need to
-  // be joined, for instance, when two branches lead to a common successor
-  // instruction.
-  //
-  [[nodiscard]] virtual EdgeFunctionPtrType
-  joinWith(EdgeFunctionPtrType OtherFunction) = 0;
-
-  [[nodiscard]] virtual bool
-      equal_to // NOLINT - would break too many client analyses
-      (EdgeFunctionPtrType OtherFunction) const = 0;
-
-  virtual void print(llvm::raw_ostream &OS,
-                     [[maybe_unused]] bool IsForDebug = false) const {
-    OS << "EdgeFunction";
-  }
-
-  /// True, iff the return value of computeTarget(Src) does not depend on the
-  /// Src parameter.
-  [[nodiscard]] virtual bool isConstant() const noexcept { return false; }
-
-  [[nodiscard]] std::string str() {
-    std::string Buffer;
-    llvm::raw_string_ostream OSS(Buffer);
-    print(OSS);
-    return Buffer;
-  }
-};
-
-template <typename L>
-static inline bool operator==(const EdgeFunction<L> &F,
-                              const EdgeFunction<L> &G) {
-  return F.equal_to(G);
-}
-
-template <typename L>
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const EdgeFunction<L> &F) {
-  F.print(OS);
-  return OS;
-}
-
 //===----------------------------------------------------------------------===//
 // EdgeFunctions interface
 
@@ -114,9 +39,6 @@ public:
   using d_t = typename AnalysisDomainTy::d_t;
   using f_t = typename AnalysisDomainTy::f_t;
   using l_t = typename AnalysisDomainTy::l_t;
-
-  using EdgeFunctionType = EdgeFunction<l_t>;
-  using EdgeFunctionPtrType = typename EdgeFunctionType::EdgeFunctionPtrType;
 
   virtual ~EdgeFunctions() = default;
 
@@ -164,8 +86,8 @@ public:
   // getNormalEdgeFunction(o, Curr, o Succ);
   // getNormalEdgeFunction(o, Curr, x Succ);
   //
-  virtual EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode,
-                                                    n_t Succ, d_t SuccNode) = 0;
+  virtual EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode,
+                                                  n_t Succ, d_t SuccNode) = 0;
 
   //
   // Also refer to FlowFunctions::getCallFlowFunction()
@@ -216,9 +138,9 @@ public:
   // getCallEdgeFunction(CallInst, o, CalleeFun, q);
   // getCallEdgeFunction(CallInst, p, CalleeFun, r);
   //
-  virtual EdgeFunctionPtrType getCallEdgeFunction(n_t CallInst, d_t SrcNode,
-                                                  f_t CalleeFun,
-                                                  d_t DestNode) = 0;
+  virtual EdgeFunction<l_t> getCallEdgeFunction(n_t CallInst, d_t SrcNode,
+                                                f_t CalleeFun,
+                                                d_t DestNode) = 0;
 
   //
   // Also refer to FlowFunction::getRetFlowFunction()
@@ -269,10 +191,9 @@ public:
   // getReturnEdgeFunction(CallSite, CalleeFun, ExitInst, q, RetSite, o);
   // getReturnEdgeFunction(CallSite, CalleeFun, ExitInst, r, RetSite, x);
   //
-  virtual EdgeFunctionPtrType getReturnEdgeFunction(n_t CallSite, f_t CalleeFun,
-                                                    n_t ExitInst, d_t ExitNode,
-                                                    n_t RetSite,
-                                                    d_t RetNode) = 0;
+  virtual EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFun,
+                                                  n_t ExitInst, d_t ExitNode,
+                                                  n_t RetSite, d_t RetNode) = 0;
 
   //
   // Also refer to FlowFunctions::getCallToRetFlowFunction()
@@ -321,7 +242,7 @@ public:
   // getCallToRetEdgeFunction(CallSite, 0, RetSite, 0, {CalleeFun});
   // getCallToRetEdgeFunction(CallSite, o, RetSite, o, {CalleeFun});
   //
-  virtual EdgeFunctionPtrType
+  virtual EdgeFunction<l_t>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode, llvm::ArrayRef<f_t> Callees) = 0;
 
@@ -337,8 +258,8 @@ public:
   // The default implementation returns a nullptr to indicate that the mechanism
   // should not be used.
   //
-  virtual EdgeFunctionPtrType
-  getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) = 0;
+  virtual EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
+                                                   n_t Succ, d_t SuccNode) = 0;
 };
 
 } // namespace psr
