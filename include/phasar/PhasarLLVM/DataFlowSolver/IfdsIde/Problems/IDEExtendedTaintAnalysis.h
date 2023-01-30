@@ -64,8 +64,7 @@ public:
   using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::l_t;
   using typename IDETabulationProblem<
       IDEExtendedTaintAnalysisDomain>::FlowFunctionPtrType;
-  using typename IDETabulationProblem<
-      IDEExtendedTaintAnalysisDomain>::EdgeFunctionPtrType;
+  using EdgeFunctionType = EdgeFunction<l_t>;
 
   using config_callback_t = TaintConfig::TaintDescriptionCallBackTy;
 
@@ -223,23 +222,23 @@ public:
 
   // Edge functions
 
-  EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                            d_t SuccNode) override;
+  EdgeFunctionType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                         d_t SuccNode) override;
 
-  EdgeFunctionPtrType getCallEdgeFunction(n_t CallInst, d_t SrcNode,
-                                          f_t CalleeFun, d_t DestNode) override;
+  EdgeFunctionType getCallEdgeFunction(n_t CallInst, d_t SrcNode, f_t CalleeFun,
+                                       d_t DestNode) override;
 
-  EdgeFunctionPtrType getReturnEdgeFunction(n_t CallSite, f_t CalleeFun,
-                                            n_t ExitInst, d_t ExitNode,
-                                            n_t RetSite, d_t RetNode) override;
+  EdgeFunctionType getReturnEdgeFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitInst, d_t ExitNode,
+                                         n_t RetSite, d_t RetNode) override;
 
-  EdgeFunctionPtrType
+  EdgeFunctionType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  EdgeFunctionPtrType getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                             d_t SuccNode) override;
+  EdgeFunctionType getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                          d_t SuccNode) override;
 
   // Misc
 
@@ -249,7 +248,7 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
-  EdgeFunctionPtrType allTopFunction() override;
+  EdgeFunctionType allTopFunction() override;
 
   // JoinLattice
 

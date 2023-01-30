@@ -10,24 +10,26 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_TRANSFEREDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_TRANSFEREDGEFUNCTION_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintEdgeFunctionBase.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
 
 namespace psr::XTaint {
-class TransferEdgeFunction : public EdgeFunctionBase {
-  const llvm::Instruction *Load;
-  const llvm::Instruction *To;
+struct TransferEdgeFunction : EdgeFunctionBase<TransferEdgeFunction> {
+  using l_t = EdgeDomain;
 
-public:
-  TransferEdgeFunction(BasicBlockOrdering &BBO, const llvm::Instruction *Load,
-                       const llvm::Instruction *To);
+  BasicBlockOrdering *BBO{};
+  const llvm::Instruction *Load{};
+  const llvm::Instruction *To{};
 
-  l_t computeTarget(l_t Source) override;
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const;
 
-  llvm::hash_code getHashCode() const override;
+  friend bool operator==(const TransferEdgeFunction &LHS,
+                         const TransferEdgeFunction &RHS) noexcept;
 
-  bool equal_to(EdgeFunctionPtrType Other) const override;
-
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const TransferEdgeFunction &TRE);
 };
 } // namespace psr::XTaint
 

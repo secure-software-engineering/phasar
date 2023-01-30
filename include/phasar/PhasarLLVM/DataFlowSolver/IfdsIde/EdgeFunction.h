@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
 
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/PointerIntPair.h"
@@ -60,16 +61,18 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
 class EdgeFunctionBase {
 public:
   template <typename ConcreteEF>
-  static constexpr bool
-      IsSOOCandidate = sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
-                       alignof(ConcreteEF) <= alignof(void *) &&
-                       std::is_trivially_copyable_v<ConcreteEF>;
+  static constexpr bool IsSOOCandidate =
+      sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
+      alignof(ConcreteEF) <= alignof(void *) &&
+      std::is_trivially_copyable_v<ConcreteEF>;
 
 protected:
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
-  template <typename T> struct RefCounted : RefCountedBase { T Value; };
+  template <typename T> struct RefCounted : RefCountedBase {
+    T Value;
+  };
 
   template <typename ConcreteEF>
   constexpr static inline const ConcreteEF *
@@ -195,9 +198,9 @@ public:
 
   // ---  API functions
 
-  [[nodiscard]] l_t computeTarget(l_t Source) const {
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const {
     assert(!!*this && "computeTarget() called on nullptr!");
-    return VTAndHeapAlloc.getPointer()->computeTarget(EF, std::move(Source));
+    return VTAndHeapAlloc.getPointer()->computeTarget(EF, Source);
   }
 
   [[nodiscard]] EdgeFunction composeWith(const EdgeFunction &SecondEF) const {
@@ -361,7 +364,7 @@ public:
 private:
   struct VTable {
     // NOLINTBEGIN(readability-identifier-naming)
-    l_t (*computeTarget)(const void *, l_t);
+    l_t (*computeTarget)(const void *, ByConstRef<l_t>);
     EdgeFunction (*compose)(const void *, const EdgeFunction &);
     EdgeFunction (*join)(const void *, const EdgeFunction &);
     bool (*equals)(const void *, const void *) noexcept;
@@ -373,8 +376,8 @@ private:
 
   template <typename ConcreteEF>
   static constexpr VTable VTableFor = {
-      [](const void *EF, l_t Source) {
-        return getPtr<ConcreteEF>(EF)->computeTarget(std::move(Source));
+      [](const void *EF, ByConstRef<l_t> Source) {
+        return getPtr<ConcreteEF>(EF)->computeTarget(Source);
       },
       [](const void *EF, const EdgeFunction &SecondEF) {
         return ConcreteEF::compose(EdgeFunctionRef<ConcreteEF>(EF), SecondEF);

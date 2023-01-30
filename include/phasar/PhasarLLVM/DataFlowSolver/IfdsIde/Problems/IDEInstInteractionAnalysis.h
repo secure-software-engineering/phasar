@@ -11,8 +11,8 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 
 #include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactory.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
@@ -204,6 +204,7 @@ public:
   using e_t = typename AnalysisDomainTy::e_t;
   using l_t = typename AnalysisDomainTy::l_t;
   using i_t = typename AnalysisDomainTy::i_t;
+  using EdgeFunctionType = EdgeFunction<l_t>;
 
   using EdgeFactGeneratorTy = std::set<e_t>(
       std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
@@ -932,9 +933,9 @@ public:
 
   // In addition provide specifications for the IDE parts.
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t /* Succ */,
-                        d_t SuccNode) override {
+  inline EdgeFunctionType getNormalEdgeFunction(n_t Curr, d_t CurrNode,
+                                                n_t /* Succ */,
+                                                d_t SuccNode) override {
     PHASAR_LOG_LEVEL(DFADEBUG,
                      "Process edge: " << llvmIRToShortString(CurrNode) << " --"
                                       << llvmIRToString(Curr) << "--> "
@@ -951,7 +952,7 @@ public:
     //                     0
     //
     if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
-      return EdgeIdentity<l_t>::getInstance();
+      return EdgeIdentity<l_t>{};
     }
     // check if the user has registered a fact generator function
     l_t UserEdgeFacts = BitVectorSet<e_t>();
@@ -1024,7 +1025,7 @@ public:
           //             v
           //             y
           //
-          return EdgeIdentity<l_t>::getInstance();
+          return EdgeIdentity<l_t>{};
         }
       }
     }
@@ -1237,12 +1238,12 @@ public:
       }
     }
     // Otherwise stick to identity.
-    return EdgeIdentity<l_t>::getInstance();
+    return EdgeIdentity<l_t>{};
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t CallSite, d_t SrcNode, f_t /* DestinationMethod */,
-                      d_t DestNode) override {
+  inline EdgeFunctionType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                              f_t /* DestinationMethod */,
+                                              d_t DestNode) override {
     // Handle the case in which a parameter that has been artificially
     // introduced by the compiler is passed. Such a value must be generated from
     // the zero value, to reflact the fact that the data flows from the callee
@@ -1271,10 +1272,10 @@ public:
       return IIAAAddLabelsEF::createEdgeFunction(BitVectorSet<e_t>());
     }
     // Everything else can be passed as identity.
-    return EdgeIdentity<l_t>::getInstance();
+    return EdgeIdentity<l_t>{};
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionType
   getReturnEdgeFunction(n_t CallSite, f_t /* CalleeMethod */, n_t ExitInst,
                         d_t ExitNode, n_t /* RetSite */, d_t RetNode) override {
     // Handle the case in which constant data is returned, e.g. ret i32 42.
@@ -1307,10 +1308,10 @@ public:
       }
     }
     // Everything else can be passed as identity.
-    return EdgeIdentity<l_t>::getInstance();
+    return EdgeIdentity<l_t>{};
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /* RetSite */,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override {
@@ -1364,10 +1365,10 @@ public:
       }
     }
     // Otherwise stick to identity
-    return EdgeIdentity<l_t>::getInstance();
+    return EdgeIdentity<l_t>{};
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionType
   getSummaryEdgeFunction(n_t /* CallSite */, d_t /* CallNode */,
                          n_t /* RetSite */, d_t /* RetSiteNode */) override {
     // Do not use user-crafted summaries.
@@ -1380,7 +1381,7 @@ public:
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
-  inline std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
+  inline EdgeFunctionType allTopFunction() override {
     return std::make_shared<AllTop<l_t>>();
   }
 
@@ -1409,8 +1410,7 @@ public:
 
     l_t computeTarget(l_t /* Src */) override { return Replacement; }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
+    EdgeFunctionType composeWith(EdgeFunctionType SecondFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
       //               << " * " << SecondFunction->str());
@@ -1447,8 +1447,7 @@ public:
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
+    EdgeFunctionType joinWith(EdgeFunctionType OtherFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAKillOrReplaceEF::joinWith");
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
@@ -1474,7 +1473,7 @@ public:
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
+    bool equal_to(EdgeFunctionType Other) const override {
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(Other.get())) {
         return Replacement == KR->Replacement;
       }
@@ -1519,8 +1518,7 @@ public:
       return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
+    EdgeFunctionType composeWith(EdgeFunctionType SecondFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAAddLabelEF::composeWith(): " << this->str() << "
       //               * "
@@ -1546,8 +1544,7 @@ public:
           "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
+    EdgeFunctionType joinWith(EdgeFunctionType OtherFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAAddLabelsEF::joinWith");
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
@@ -1572,8 +1569,7 @@ public:
           "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    [[nodiscard]] bool
-    equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
+    [[nodiscard]] bool equal_to(EdgeFunctionType Other) const override {
       if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(Other.get())) {
         return (Data == AS->Data);
       }

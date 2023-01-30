@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
 
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/Table.h"
 
 #include <set>
@@ -35,9 +36,12 @@ private:
 public:
   SolverResults(Table<N, D, L> &ResTab, D ZV) : Results(ResTab), ZV(ZV) {}
 
-  L resultAt(N Stmt, D Node) const { return Results.get(Stmt, Node); }
+  ByConstRef<L> resultAt(ByConstRef<N> Stmt, ByConstRef<D> Node) const {
+    return Results.get(Stmt, Node);
+  }
 
-  std::unordered_map<D, L> resultsAt(N Stmt, bool StripZero = false) const {
+  std::unordered_map<D, L> resultsAt(ByConstRef<N> Stmt,
+                                     bool StripZero = false) const {
     std::unordered_map<D, L> Result = Results.row(Stmt);
     if (StripZero) {
       for (auto It = Result.begin(); It != Result.end();) {
@@ -56,7 +60,7 @@ public:
   template <typename ValueDomain = L,
             typename = typename std::enable_if_t<
                 std::is_same_v<ValueDomain, BinaryDomain>>>
-  std::set<D> ifdsResultsAt(N Stmt) const {
+  std::set<D> ifdsResultsAt(ByConstRef<N> Stmt) const {
     std::set<D> KeySet;
     std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(Stmt);
     for (auto FlowFact : ResultMap) {

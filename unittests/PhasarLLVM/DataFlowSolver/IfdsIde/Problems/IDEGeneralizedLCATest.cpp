@@ -45,9 +45,11 @@ protected:
   std::unique_ptr<LLVMBasedICFG> ICFG;
   std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
+  static constexpr size_t MaxSetSize = 2;
+
   IDEGeneralizedLCATest() = default;
 
-  void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {
+  void initialize(llvm::StringRef LLFile) {
     IRDB = std::make_unique<LLVMProjectIRDB>(PathToLLFiles + LLFile);
     TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = std::make_unique<LLVMAliasSet>(IRDB.get());
@@ -164,7 +166,7 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
-  initialize("Imprecision_c.ll", 2);
+  initialize("Imprecision_c.ll");
   //   auto xInst = IRDB->getInstruction(0); // foo.x
   //   auto yInst = IRDB->getInstruction(1); // foo.y
   //  auto barInst = IRDB->getInstruction(7);

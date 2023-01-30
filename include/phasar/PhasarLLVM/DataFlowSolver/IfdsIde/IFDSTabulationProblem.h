@@ -31,7 +31,6 @@ class IFDSTabulationProblem
 public:
   using typename Base::d_t;
   using typename Base::db_t;
-  using typename Base::EdgeFunctionPtrType;
   using typename Base::f_t;
   using typename Base::i_t;
   using typename Base::l_t;

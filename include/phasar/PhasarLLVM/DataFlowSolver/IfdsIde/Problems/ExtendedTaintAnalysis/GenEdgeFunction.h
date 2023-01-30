@@ -10,37 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_GENEDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_GENEDGEFUNCTION_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintEdgeFunctionBase.h"
 
-namespace llvm {
-class Instruction;
-} // namespace llvm
-
 namespace psr::XTaint {
-class GenEdgeFunction : public EdgeFunctionBase {
-  const llvm::Instruction *Sani;
-
-public:
-  GenEdgeFunction(BasicBlockOrdering &BBO, const llvm::Instruction *Sani);
-
-  l_t computeTarget(l_t Source) override;
-
-  EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction) override;
-
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override;
-
-  bool equal_to(EdgeFunctionPtrType OtherFunction) const override;
-
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-
-  inline const llvm::Instruction *getSanitizer() const { return Sani; }
-
-  static inline bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == EFKind::Gen;
-  }
-
-  llvm::hash_code getHashCode() const override;
-};
+using GenEdgeFunction = ConstantEdgeFunction<EdgeDomain>;
 } // namespace psr::XTaint
 
 #endif

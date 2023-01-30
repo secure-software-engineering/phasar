@@ -9,22 +9,20 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Instruction.h"
 
 namespace psr::XTaint {
-TransferEdgeFunction::TransferEdgeFunction(BasicBlockOrdering &BBO,
-                                           const llvm::Instruction *Load,
-                                           const llvm::Instruction *To)
-    : EdgeFunctionBase(EFKind::Transfer, BBO), Load(Load), To(To) {}
 
-auto TransferEdgeFunction::computeTarget(l_t Source) -> l_t {
-
+auto TransferEdgeFunction::computeTarget(ByConstRef<l_t> Source) const -> l_t {
+  static_assert(IsEdgeFunction<TransferEdgeFunction>);
+  assert(BBO != nullptr);
   if (const auto *Sani = Source.getSanitizer()) {
-    if (!Load || BBO.mustComeBefore(Sani, Load)) {
+    if (!Load || BBO->mustComeBefore(Sani, Load)) {
       return To;
     }
   }
@@ -35,19 +33,14 @@ auto TransferEdgeFunction::computeTarget(l_t Source) -> l_t {
   return nullptr;
 }
 
-llvm::hash_code TransferEdgeFunction::getHashCode() const {
-  return llvm::hash_combine(To);
+bool operator==(const TransferEdgeFunction &LHS,
+                const TransferEdgeFunction &RHS) noexcept {
+  return LHS.To == RHS.To;
 }
 
-bool TransferEdgeFunction::equal_to(EdgeFunctionPtrType Other) const {
-  if (auto *OtherTransfer = dynamic_cast<TransferEdgeFunction *>(&*Other)) {
-    return To == OtherTransfer->To;
-  }
-  return false;
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const TransferEdgeFunction &TRE) {
+  return OS << "Transfer[To: " << llvmIRToShortString(TRE.To) << "]";
 }
 
-void TransferEdgeFunction::print(llvm::raw_ostream &OS,
-                                 [[maybe_unused]] bool IsForDebug) const {
-  OS << "Transfer[To: " << llvmIRToShortString(To) << "]";
-}
 } // namespace psr::XTaint

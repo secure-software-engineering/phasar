@@ -127,6 +127,13 @@ template <typename T>
 struct IsEqualityComparable<T, decltype(std::declval<T>() == std::declval<T>())>
     : std::true_type {};
 
+template <typename T, typename U, typename = bool>
+struct AreEqualityComparable : std::false_type {};
+template <typename T, typename U>
+struct AreEqualityComparable<T, U,
+                             decltype(std::declval<T>() == std::declval<U>())>
+    : std::true_type {};
+
 } // namespace detail
 
 template <typename T>
@@ -194,8 +201,14 @@ template <typename T>
 static inline constexpr bool IsEqualityComparable =
     detail::IsEqualityComparable<T>::value;
 
+template <typename T, typename U>
+static inline constexpr bool AreEqualityComparable =
+    detail::AreEqualityComparable<T, U>::value;
+
 #if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; }; // NOLINT
+template <typename T> struct type_identity {
+  using type = T;
+}; // NOLINT
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif

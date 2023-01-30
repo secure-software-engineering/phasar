@@ -9,28 +9,26 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/ComposeEdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinConstEdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 
 #include "llvm/IR/Instruction.h"
 
 namespace psr::XTaint {
-KillIfSanitizedEdgeFunction::KillIfSanitizedEdgeFunction(
-    BasicBlockOrdering &BBO, const llvm::Instruction *Load)
-    : EdgeFunctionBase(EFKind::KillIfSani, BBO), Load(Load) {}
 
-KillIfSanitizedEdgeFunction::l_t
-KillIfSanitizedEdgeFunction::computeTarget(l_t Source) {
-
+EdgeDomain
+KillIfSanitizedEdgeFunction::computeTarget(ByConstRef<l_t> Source) const {
+  static_assert(IsEdgeFunction<KillIfSanitizedEdgeFunction>);
+  assert(BBO != nullptr);
   if (const auto *Sani = Source.getSanitizer()) {
     if (!Load) {
       return Sanitized{};
     }
     if (Sani->getFunction() == Load->getFunction() &&
-        BBO.mustComeBefore(Sani, Load)) {
+        BBO->mustComeBefore(Sani, Load)) {
       return Sanitized{};
     }
 
@@ -40,22 +38,16 @@ KillIfSanitizedEdgeFunction::computeTarget(l_t Source) {
   return Source;
 }
 
-bool KillIfSanitizedEdgeFunction::equal_to(
-    EdgeFunctionPtrType OtherFunction) const {
-  if (auto *OtherKill =
-          dynamic_cast<KillIfSanitizedEdgeFunction *>(&*OtherFunction)) {
-    return Load == OtherKill->Load; // Assume, the Analysis to be the same
-  }
-  return false;
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              ByConstRef<KillIfSanitizedEdgeFunction> KEF) {
+  return OS << "KillIfSani[" << &KEF << "]";
 }
 
-llvm::hash_code KillIfSanitizedEdgeFunction::getHashCode() const {
-  return llvm::hash_combine(Load);
-}
-
-void KillIfSanitizedEdgeFunction::print(
-    llvm::raw_ostream &OS, [[maybe_unused]] bool IsForDebug) const {
-  OS << "KillIfSani[" << this << "]";
+[[nodiscard]] bool
+operator==(ByConstRef<KillIfSanitizedEdgeFunction> LHS,
+           ByConstRef<KillIfSanitizedEdgeFunction> RHS) noexcept {
+  // Assume, the Analysis to be the same
+  return LHS.Load == RHS.Load;
 }
 
 } // namespace psr::XTaint

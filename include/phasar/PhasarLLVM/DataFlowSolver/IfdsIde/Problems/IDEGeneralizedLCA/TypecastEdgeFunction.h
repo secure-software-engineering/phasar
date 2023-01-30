@@ -10,38 +10,36 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_TYPECASTEDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_TYPECASTEDGEFUNCTION_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCADomain.h"
+#include "phasar/PhasarLLVM/Utils/ByRef.h"
+
+#include "llvm/Support/raw_ostream.h"
+
 
 namespace psr::glca {
 
-class TypecastEdgeFunction
-    : public EdgeFunction<IDEGeneralizedLCA::l_t>,
-      public std::enable_shared_from_this<TypecastEdgeFunction> {
-  unsigned Bits;
-  EdgeValue::Type Dest;
-  size_t MaxSize;
+struct TypecastEdgeFunction {
+  using l_t = IDEGeneralizedLCADomain::l_t;
 
-public:
-  TypecastEdgeFunction(unsigned Bits, EdgeValue::Type Dest, size_t MaxSize)
-      : Bits(Bits), Dest(Dest), MaxSize(MaxSize) {}
+  unsigned Bits{};
+  EdgeValue::Type Dest{};
 
-  IDEGeneralizedLCA::l_t computeTarget(IDEGeneralizedLCA::l_t Source) override;
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction)
-      override;
+  static EdgeFunction<l_t> compose(EdgeFunctionRef<TypecastEdgeFunction> This,
+                                   const EdgeFunction<l_t> &SecondFunction);
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction)
-      override;
-
-  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other)
-      const override;
-
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
+  static EdgeFunction<l_t> join(EdgeFunctionRef<TypecastEdgeFunction> This,
+                                const EdgeFunction<l_t> &OtherFunction);
 };
+
+[[nodiscard]] bool operator==(ByConstRef<TypecastEdgeFunction> LHS,
+                              ByConstRef<TypecastEdgeFunction> RHS) noexcept;
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              ByConstRef<TypecastEdgeFunction> EF);
 
 } // namespace psr::glca
 

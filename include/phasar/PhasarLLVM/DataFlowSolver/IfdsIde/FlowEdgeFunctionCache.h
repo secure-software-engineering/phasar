@@ -336,8 +336,8 @@ public:
       if (SearchEdgeFunc != SearchInnerMap->second.EdgeFunctionMap.end()) {
         INC_COUNTER("Normal-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
         PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
-        PHASAR_LOG_LEVEL(
-            DEBUG, "Provide Edge Function: " << SearchEdgeFunc->second->str());
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "Provide Edge Function: " << SearchEdgeFunc->second);
         return SearchEdgeFunc->second;
       }
       INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -347,7 +347,7 @@ public:
           createEdgeFunctionNodeKey(CurrNode, SuccNode), EF);
 
       PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
+      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF);
       return EF;
     }
     INC_COUNTER("Normal-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -358,7 +358,7 @@ public:
                          createEdgeFunctionNodeKey(CurrNode, SuccNode), EF)}));
 
     PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF);
     return EF;
   }
 
@@ -381,8 +381,8 @@ public:
     if (SearchCallEdgeFunction != CallEdgeFunctionCache.end()) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
-      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: "
-                                  << SearchCallEdgeFunction->second->str());
+      PHASAR_LOG_LEVEL(
+          DEBUG, "Provide Edge Function: " << SearchCallEdgeFunction->second);
       return SearchCallEdgeFunction->second;
     }
     INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -390,7 +390,7 @@ public:
                                           DestinationFunction, DestNode);
     CallEdgeFunctionCache.insert(std::make_pair(Key, EF));
     PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF);
     return EF;
   }
 
@@ -418,8 +418,8 @@ public:
     if (SearchReturnEdgeFunction != ReturnEdgeFunctionCache.end()) {
       INC_COUNTER("Return-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
-      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: "
-                                  << SearchReturnEdgeFunction->second->str());
+      PHASAR_LOG_LEVEL(
+          DEBUG, "Provide Edge Function: " << SearchReturnEdgeFunction->second);
       return SearchReturnEdgeFunction->second;
     }
     INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -427,7 +427,7 @@ public:
                                             ExitNode, RetSite, RetNode);
     ReturnEdgeFunctionCache.insert(std::make_pair(Key, EF));
     PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF);
     return EF;
   }
 
@@ -460,8 +460,8 @@ public:
       if (SearchEdgeFunc != SearchInnerMap->second.end()) {
         INC_COUNTER("CallToRet-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
         PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
-        PHASAR_LOG_LEVEL(
-            DEBUG, "Provide Edge Function: " << SearchEdgeFunc->second->str());
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "Provide Edge Function: " << SearchEdgeFunc->second);
         return SearchEdgeFunc->second;
       }
       INC_COUNTER("CallToRet-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -472,7 +472,7 @@ public:
           createEdgeFunctionNodeKey(CallNode, RetSiteNode), EF);
 
       PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
+      PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF);
       return EF;
     }
 
@@ -485,7 +485,7 @@ public:
         InnerEdgeFunctionMapType{std::make_pair(
             createEdgeFunctionNodeKey(CallNode, RetSiteNode), EF)});
     PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF);
     return EF;
   }
 
@@ -509,7 +509,7 @@ public:
       INC_COUNTER("Summary-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
       PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: "
-                                  << SearchSummaryEdgeFunction->second->str());
+                                  << SearchSummaryEdgeFunction->second);
       return SearchSummaryEdgeFunction->second;
     }
     INC_COUNTER("Summary-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -517,7 +517,7 @@ public:
                                              RetSiteNode);
     SummaryEdgeFunctionCache.insert(std::make_pair(Key, EF));
     PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
-    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << EF);
     return EF;
   }
 

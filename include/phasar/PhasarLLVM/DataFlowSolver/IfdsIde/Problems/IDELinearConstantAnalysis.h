@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
@@ -102,28 +101,27 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                        d_t SuccNode) override;
+  EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                          d_t SuccNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t CallSite, d_t SrcNode, f_t DestinationFunction,
-                      d_t DestNode) override;
+  EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                        f_t DestinationFunction,
+                                        d_t DestNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction, n_t ExitStmt,
-                        d_t ExitNode, n_t RetSite, d_t RetNode) override;
+  EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
+                                          n_t ExitStmt, d_t ExitNode,
+                                          n_t RetSite, d_t RetNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunction<l_t>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                         d_t RetSiteNode) override;
+  EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
+                                           n_t RetSite,
+                                           d_t RetSiteNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
+  EdgeFunction<l_t> allTopFunction() override;
 
   // Helper functions
 

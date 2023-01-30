@@ -20,10 +20,10 @@
 #include <type_traits>
 
 namespace psr {
-template <typename L> struct EdgeIdentity {
+template <typename L> struct EdgeIdentity final {
   using l_t = L;
 
-  [[nodiscard]] l_t computeTarget(l_t Source) const
+  [[nodiscard]] ByConstRef<l_t> computeTarget(ByConstRef<l_t> Source) const
       noexcept(std::is_nothrow_move_constructible_v<l_t>) {
     static_assert(std::is_trivially_copyable_v<EdgeIdentity>);
     static_assert(IsEdgeFunction<EdgeIdentity>);
@@ -40,7 +40,7 @@ template <typename L> struct EdgeIdentity {
        const EdgeFunction<l_t> &OtherFunction);
 };
 
-template <typename L> struct AllBottom {
+template <typename L> struct AllBottom final {
   using l_t = L;
   using JLattice = JoinLatticeTraits<L>;
 
@@ -48,8 +48,7 @@ template <typename L> struct AllBottom {
                                            l_t>
       BottomValue;
 
-  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const
-      noexcept(noexcept(JLattice::bottom())) {
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const noexcept {
     static_assert(std::is_trivially_copyable_v<AllBottom>);
     static_assert(IsEdgeFunction<AllBottom>);
     if constexpr (HasJoinLatticeTraits<l_t>) {
@@ -72,9 +71,16 @@ template <typename L> struct AllBottom {
   }
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
+
+  template <typename LL = L,
+            typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
+  friend bool operator==(const AllBottom<LL> &LHS,
+                         const AllBottom<LL> &RHS) noexcept {
+    return LHS.BottomValue == RHS.BottomValue;
+  }
 };
 
-template <typename L> struct AllTop {
+template <typename L> struct AllTop final {
   using l_t = L;
   using JLattice = JoinLatticeTraits<L>;
 
@@ -82,8 +88,7 @@ template <typename L> struct AllTop {
                                            l_t>
       TopValue;
 
-  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const
-      noexcept(noexcept(JLattice::top())) {
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const noexcept {
     static_assert(std::is_trivially_copyable_v<AllTop>);
     static_assert(IsEdgeFunction<AllTop>);
     if constexpr (HasJoinLatticeTraits<l_t>) {
@@ -106,6 +111,13 @@ template <typename L> struct AllTop {
   }
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
+
+  template <typename LL = L,
+            typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
+  friend bool operator==(const AllTop<LL> &LHS,
+                         const AllTop<LL> &RHS) noexcept {
+    return LHS.TopValue == RHS.TopValue;
+  }
 };
 
 template <typename L, typename ConcreteEF>
@@ -132,8 +144,10 @@ template <typename L> struct ConstantEdgeFunction {
     return Value;
   }
 
+  template <typename ConcreteEF, typename = std::enable_if_t<std::is_base_of_v<
+                                     ConstantEdgeFunction, ConcreteEF>>>
   [[nodiscard]] static EdgeFunction<l_t>
-  compose(EdgeFunctionRef<ConstantEdgeFunction> This,
+  compose(EdgeFunctionRef<ConcreteEF> This,
           const EdgeFunction<l_t> &SecondFunction) {
     if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
       return Default;
@@ -146,37 +160,37 @@ template <typename L> struct ConstantEdgeFunction {
       }
     }
 
-    if (JLattice::bottom() == ConstVal) {
-      return AllBottom<l_t>{};
+    if constexpr (AreEqualityComparable<decltype(JLattice::bottom()), l_t>) {
+      if (JLattice::bottom() == ConstVal) {
+        return AllBottom<l_t>{};
+      }
+    } else {
+      if (l_t(JLattice::bottom()) == ConstVal) {
+        return AllBottom<l_t>{};
+      }
     }
 
-    if (JLattice::top() == ConstVal) {
-      /// TODO: Can this ever happen?
-      return AllTop<l_t>{};
+    if constexpr (AreEqualityComparable<decltype(JLattice::top()), l_t>) {
+      if (JLattice::top() == ConstVal) {
+        /// TODO: Can this ever happen?
+        return AllTop<l_t>{};
+      }
+    } else {
+      if (l_t(JLattice::top()) == ConstVal) {
+        /// TODO: Can this ever happen?
+        return AllTop<l_t>{};
+      }
     }
 
     return ConstantEdgeFunction{
         NonTopBotValue<l_t>::unwrap(std::move(ConstVal))};
   }
 
+  template <typename ConcreteEF, typename = std::enable_if_t<std::is_base_of_v<
+                                     ConstantEdgeFunction, ConcreteEF>>>
   [[nodiscard]] static EdgeFunction<l_t>
-  join(EdgeFunctionRef<ConstantEdgeFunction> This,
+  join(EdgeFunctionRef<ConcreteEF> This,
        const EdgeFunction<l_t> &OtherFunction);
-
-  [[nodiscard]] friend llvm::raw_ostream &
-  operator<<(llvm::raw_ostream &OS, ByConstRef<ConstantEdgeFunction> Id) {
-    OS << "ConstantEF";
-    if constexpr (is_llvm_printable_v<value_type>) {
-      OS << '[' << Id.Value << ']';
-    }
-    return OS;
-  }
-
-  [[nodiscard]] friend bool
-  operator==(ByConstRef<ConstantEdgeFunction> LHS,
-             ByConstRef<ConstantEdgeFunction> RHS) noexcept {
-    return LHS.Value == RHS.Value;
-  }
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
 
@@ -185,12 +199,36 @@ template <typename L> struct ConstantEdgeFunction {
   value_type Value{};
 };
 
+template <typename L, typename = std::enable_if_t<
+                          CanEfficientlyPassByValue<ConstantEdgeFunction<L>>>>
+[[nodiscard]] bool operator==(ConstantEdgeFunction<L> LHS,
+                              ConstantEdgeFunction<L> RHS) noexcept {
+  return LHS.Value == RHS.Value;
+}
+
+template <typename L, typename = std::enable_if_t<
+                          !CanEfficientlyPassByValue<ConstantEdgeFunction<L>>>>
+[[nodiscard]] bool operator==(const ConstantEdgeFunction<L> &LHS,
+                              const ConstantEdgeFunction<L> &RHS) noexcept {
+  return LHS.Value == RHS.Value;
+}
+
+template <typename L>
+[[nodiscard]] llvm::raw_ostream &
+operator<<(llvm::raw_ostream &OS, ByConstRef<ConstantEdgeFunction<L>> Id) {
+  OS << "ConstantEF";
+  if constexpr (is_llvm_printable_v<
+                    typename ConstantEdgeFunction<L>::value_type>) {
+    OS << '[' << Id.Value << ']';
+  }
+  return OS;
+}
+
 template <typename L> struct EdgeFunctionComposer {
   using l_t = L;
 
-  [[nodiscard]] l_t computeTarget(l_t Source) const {
-    static_assert(IsEdgeFunction<EdgeFunctionComposer>);
-    return Second.computeTarget(First.computeTarget(std::move(Source)));
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const {
+    return Second.computeTarget(First.computeTarget(Source));
   }
 
   /**
@@ -200,9 +238,12 @@ template <typename L> struct EdgeFunctionComposer {
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
+  template <typename ConcreteEF, typename = std::enable_if_t<std::is_base_of_v<
+                                     EdgeFunctionComposer, ConcreteEF>>>
   [[nodiscard]] static EdgeFunction<l_t>
-  compose(EdgeFunctionRef<EdgeFunctionComposer> This,
+  compose(EdgeFunctionRef<ConcreteEF> This,
           const EdgeFunction<l_t> &SecondFunction) {
+    static_assert(IsEdgeFunction<ConcreteEF>);
     if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
       return Default;
     }
@@ -232,10 +273,11 @@ template <typename L> struct EdgeFunctionComposer {
   EdgeFunction<l_t> Second{};
 };
 
-template <typename L, uint8_t N, typename JLattice> struct JoinEdgeFunction {
+template <typename L, uint8_t N> struct JoinEdgeFunction {
   using l_t = L;
+  using JLattice = JoinLatticeTraits<L>;
 
-  [[nodiscard]] l_t computeTarget(l_t Source) const {
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const {
     static_assert(IsEdgeFunction<JoinEdgeFunction>);
     auto Val = Seed;
     for (const auto &EF : OtherEF) {
@@ -254,7 +296,23 @@ template <typename L, uint8_t N, typename JLattice> struct JoinEdgeFunction {
       return Default;
     }
 
-    return EdgeFunctionComposer<l_t>{This, SecondFunction};
+    struct DefaultJoinEdgeFunctionComposer : EdgeFunctionComposer<l_t> {
+      static EdgeFunction<l_t>
+      join(EdgeFunctionRef<DefaultJoinEdgeFunctionComposer> This,
+           const EdgeFunction<l_t> &OtherFunction) {
+        // Copied from defaultJoinOrNull()
+        if (llvm::isa<AllBottom<L>>(OtherFunction)) {
+          return OtherFunction;
+        }
+        if (llvm::isa<AllTop<L>>(OtherFunction) || OtherFunction == This) {
+          return This;
+        }
+
+        return JoinEdgeFunction<L, N>::create(This, OtherFunction);
+      }
+    };
+
+    return DefaultJoinEdgeFunctionComposer{This, SecondFunction};
   }
 
   [[nodiscard]] static EdgeFunction<l_t>
@@ -287,7 +345,7 @@ template <typename L, uint8_t N, typename JLattice> struct JoinEdgeFunction {
   [[nodiscard]] static EdgeFunction<l_t> create(EdgeFunction<l_t> LHS,
                                                 EdgeFunction<l_t> RHS) {
 
-    auto GetEfArrayAndSeed = [](const EdgeFunction<l_t> &EF)
+    auto GetEFArrayAndSeed = [](const EdgeFunction<l_t> &EF)
         -> std::pair<llvm::ArrayRef<EdgeFunction<l_t>>, l_t> {
       if (const auto *Join = llvm::dyn_cast<JoinEdgeFunction>(EF)) {
         return {Join->OtherEF, Join->Seed};
@@ -295,8 +353,8 @@ template <typename L, uint8_t N, typename JLattice> struct JoinEdgeFunction {
       return {llvm::makeArrayRef(EF), JLattice::top()};
     };
 
-    auto [LVec, LSeed] = getEFArray(LHS);
-    auto [RVec, RSeed] = getEFArray(RHS);
+    auto [LVec, LSeed] = GetEFArrayAndSeed(LHS);
+    auto [RVec, RSeed] = GetEFArrayAndSeed(RHS);
 
     auto JoinSeed = JLattice::join(std::move(LSeed), std::move(RSeed));
     if (JoinSeed == JLattice::bottom()) {
@@ -305,7 +363,7 @@ template <typename L, uint8_t N, typename JLattice> struct JoinEdgeFunction {
 
     llvm::SmallVector<EdgeFunction<l_t>, N> JoinVec;
 
-    std::set_union(LVec.begin(), LVec.end(), RVec->begin(), RVec->end(),
+    std::set_union(LVec.begin(), LVec.end(), RVec.begin(), RVec.end(),
                    std::back_inserter(JoinVec));
     if (JoinVec.size() > N) {
       return AllBottom<l_t>{};
@@ -327,8 +385,7 @@ template <typename L, uint8_t N, typename JLattice> struct JoinEdgeFunction {
 /// and EdgeIdentity for OtherFunction as well as This==OtherFunction.
 /// Joining with EdgeIdentity will overapproximate to (AllBottom if N==0, else
 /// JoinEdgeFunction).
-template <typename L, typename JLattice = JoinLatticeTraits<L>, uint8_t N = 0,
-          typename ConcreteEF>
+template <typename L, uint8_t N = 0, typename ConcreteEF>
 EdgeFunction<L> defaultJoinOrNull(EdgeFunctionRef<ConcreteEF> This,
                                   const EdgeFunction<L> &OtherFunction) {
   if (llvm::isa<AllBottom<L>>(OtherFunction)) {
@@ -339,8 +396,8 @@ EdgeFunction<L> defaultJoinOrNull(EdgeFunctionRef<ConcreteEF> This,
   }
   if (llvm::isa<EdgeIdentity<L>>(OtherFunction)) {
     if constexpr (N > 0) {
-      return JoinEdgeFunction<L, N, JLattice>::create(This, OtherFunction);
-    } else {
+      return JoinEdgeFunction<L, N>::create(This, OtherFunction);
+    } else if constexpr (HasJoinLatticeTraits<L>) {
       return AllBottom<L>{};
     }
   }
@@ -363,10 +420,11 @@ EdgeFunction<L> EdgeIdentity<L>::join(EdgeFunctionRef<EdgeIdentity> This,
 }
 
 template <typename L>
+template <typename ConcreteEF, typename>
 EdgeFunction<L>
-ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConstantEdgeFunction> This,
+ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConcreteEF> This,
                               const EdgeFunction<l_t> &OtherFunction) {
-  if (auto Default = defaultJoinOrNull<l_t, JLattice>(This, OtherFunction)) {
+  if (auto Default = defaultJoinOrNull<l_t>(This, OtherFunction)) {
     return Default;
   }
   if (!OtherFunction.isConstant()) {
@@ -377,8 +435,14 @@ ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConstantEdgeFunction> This,
   auto OtherVal = OtherFunction.computeTarget(JLattice::top());
   auto JoinedVal = JLattice::join(This->Value, OtherVal);
 
-  if (JLattice::bottom() == JoinedVal) {
-    return AllBottom<l_t>{};
+  if constexpr (AreEqualityComparable<decltype(JLattice::bottom()), l_t>) {
+    if (JLattice::bottom() == JoinedVal) {
+      return AllBottom<l_t>{};
+    }
+  } else {
+    if (l_t(JLattice::bottom()) == JoinedVal) {
+      return AllBottom<l_t>{};
+    }
   }
   if constexpr (!EdgeFunctionBase::IsSOOCandidate<ConstantEdgeFunction>) {
     if (JoinedVal == OtherVal) {
@@ -392,11 +456,11 @@ ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConstantEdgeFunction> This,
       NonTopBotValue<l_t>::unwrap(std::move(JoinedVal))};
 }
 
-template <typename L, uint8_t N, typename JLattice>
+template <typename L, uint8_t N>
 EdgeFunction<L>
-JoinEdgeFunction<L, N, JLattice>::join(EdgeFunctionRef<JoinEdgeFunction> This,
-                                       const EdgeFunction<l_t> &OtherFunction) {
-  if (auto Default = defaultJoinOrNull<L, JLattice, N>(This, OtherFunction)) {
+JoinEdgeFunction<L, N>::join(EdgeFunctionRef<JoinEdgeFunction> This,
+                             const EdgeFunction<l_t> &OtherFunction) {
+  if (auto Default = defaultJoinOrNull<L, N>(This, OtherFunction)) {
     return Default;
   }
 
