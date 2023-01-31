@@ -373,12 +373,6 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
       /*PropagateGlobals*/ false);
 }
 
-IDELinearConstantAnalysis::FlowFunctionPtrType
-IDELinearConstantAnalysis::getSummaryFlowFunction(n_t /*CallSite*/,
-                                                  f_t /*DestFun*/) {
-  return nullptr;
-}
-
 InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
              IDELinearConstantAnalysis::l_t>
 IDELinearConstantAnalysis::initialSeeds() {
@@ -543,14 +537,6 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/,
     llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<l_t>::getInstance();
-}
-
-std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
-IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t /*CallSite*/,
-                                                  d_t /*CallNode*/,
-                                                  n_t /*RetSite*/,
-                                                  d_t /*RetSiteNode*/) {
-  return nullptr;
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
