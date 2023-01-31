@@ -12,13 +12,13 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 
-#include "nlohmann/json.hpp"
-
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+
+#include "nlohmann/json.hpp"
 
 namespace llvm {
 class Function;

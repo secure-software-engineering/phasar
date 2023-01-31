@@ -855,8 +855,9 @@ public:
   // The default implementation returns a nullptr to indicate that the mechanism
   // should not be used.
   //
-  virtual FlowFunctionPtrType getSummaryFlowFunction(n_t Curr,
-                                                     f_t CalleeFun) = 0;
+  virtual FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t CalleeFun) {
+    return nullptr;
+  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

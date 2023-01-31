@@ -17,19 +17,20 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SPECIALSUMMARIES_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SPECIALSUMMARIES_H
 
-#include <map>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <vector>
-
 #include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 #include "phasar/Utils/IO.h" // readFile
 
 #include "llvm/IR/Function.h"
+
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace psr {
 

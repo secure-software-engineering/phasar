@@ -14,17 +14,17 @@
  *      Author: nicolas bellec
  */
 
-#include "boost/graph/depth_first_search.hpp"
-#include "boost/graph/graph_utility.hpp"
-#include "boost/graph/graphviz.hpp"
-#include "boost/property_map/dynamic_property_map.hpp"
-
-#include "llvm/IR/DerivedTypes.h"
-
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
 
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "llvm/IR/DerivedTypes.h"
+
+#include "boost/graph/depth_first_search.hpp"
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
+#include "boost/property_map/dynamic_property_map.hpp"
 
 using namespace std;
 using namespace psr;

@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
+
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
@@ -198,30 +199,30 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     if (!ResultDirectory.empty()) {
       if (auto OFS =
               openFileStream(ResultDirectory.string() + "/psr-pta.txt")) {
-        HA.getPointsToInfo().print(*OFS);
+        HA.getAliasInfo().print(*OFS);
       }
     } else {
-      HA.getPointsToInfo().print();
+      HA.getAliasInfo().print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
     if (!ResultDirectory.empty()) {
       if (auto OFS =
               openFileStream(ResultDirectory.string() + "/psr-pta.dot")) {
-        HA.getPointsToInfo().print(*OFS);
+        HA.getAliasInfo().print(*OFS);
       }
     } else {
-      HA.getPointsToInfo().print();
+      HA.getAliasInfo().print();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
     if (!ResultDirectory.empty()) {
       if (auto OFS =
               openFileStream(ResultDirectory.string() + "/psr-pta.json")) {
-        HA.getPointsToInfo().printAsJson(*OFS);
+        HA.getAliasInfo().printAsJson(*OFS);
       }
     } else {
-      HA.getPointsToInfo().printAsJson(llvm::outs());
+      HA.getAliasInfo().printAsJson(llvm::outs());
     }
   }
 

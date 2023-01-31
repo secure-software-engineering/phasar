@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <map>
 #include <memory>
@@ -25,7 +26,6 @@ class CallBase;
 } // namespace llvm
 
 namespace psr {
-class LLVMPointsToInfo;
 class TaintConfig;
 
 /**
@@ -53,7 +53,7 @@ public:
    * @param TSF
    * @param EntryPoints
    */
-  IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMPointsToInfo *PT,
+  IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     const TaintConfig *Config,
                     std::vector<std::string> EntryPoints = {"main"});
 
@@ -90,7 +90,7 @@ public:
 
 private:
   const TaintConfig *Config{};
-  LLVMPointsToInfo *PT{};
+  LLVMAliasInfoRef PT{};
 
   bool isSourceCall(const llvm::CallBase *CB,
                     const llvm::Function *Callee) const;

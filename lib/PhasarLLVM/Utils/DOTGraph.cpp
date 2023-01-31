@@ -14,16 +14,16 @@
  *      Author: rleer
  */
 
+#include "phasar/PhasarLLVM/Utils/DOTGraph.h"
+
+#include "nlohmann/json.hpp"
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <ostream>
 #include <utility>
-
-#include "nlohmann/json.hpp"
-
-#include "phasar/PhasarLLVM/Utils/DOTGraph.h"
 
 namespace psr {
 

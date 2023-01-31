@@ -7,22 +7,21 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <chrono>
-#include <iterator>
-#include <ostream>
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/DerivedTypes.h"
 
 #include "boost/algorithm/string/classification.hpp"
 #include "boost/algorithm/string/find.hpp"
 #include "boost/algorithm/string/predicate.hpp"
 #include "boost/algorithm/string/split.hpp"
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/DerivedTypes.h"
-
 #include "cxxabi.h"
 
-#include "phasar/Utils/Utilities.h"
+#include <algorithm>
+#include <chrono>
+#include <iterator>
+#include <ostream>
 
 using namespace std;
 using namespace psr;
