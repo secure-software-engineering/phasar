@@ -337,8 +337,10 @@ public:
   // The default implementation returns a nullptr to indicate that the mechanism
   // should not be used.
   //
-  virtual EdgeFunctionPtrType
-  getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) = 0;
+  virtual EdgeFunctionPtrType getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
+                                                     n_t Succ, d_t SuccNode) {
+    return nullptr;
+  }
 };
 
 } // namespace psr

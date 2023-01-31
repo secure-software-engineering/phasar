@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactory.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -854,6 +855,8 @@ public:
             // must be generated from zero!
             if (Source == ZeroValue) {
               return {Source, CallSite};
+            } else {
+              return {Source};
             }
           } else {
             // If all declaration-only callee targets return void, just pass
@@ -1181,15 +1184,6 @@ public:
       //                           o_i
       //
       if (isZeroValue(CurrNode) && Op == SuccNode) {
-        // Constant variables should retain their own label
-        if (llvm::isa<llvm::Constant>(SuccNode.getBase())) {
-          if (llvm::isa_and_nonnull<llvm::GlobalVariable>(SuccNode.getBase())) {
-            if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
-              UEF->insert(edgeFactGenForGlobalVarToBitVectorSet(
-                  llvm::dyn_cast<llvm::GlobalVariable>(SuccNode.getBase())));
-            }
-          }
-        }
         return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
       //
@@ -1655,23 +1649,18 @@ public:
   getAllVariables(const SolverResults<n_t, d_t, l_t> & /* Solution */) const {
     std::unordered_set<d_t> Variables;
     // collect all variables that are available
-    for (const auto *M : this->IRDB->getAllModules()) {
-      for (const auto &G : M->globals()) {
-        Variables.insert(&G);
+    const llvm::Module *M = this->IRDB->getModule();
+    for (const auto &G : M->globals()) {
+      Variables.insert(&G);
+    }
+    for (const auto *I : this->IRDB->getAllInstructions()) {
+      if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(I)) {
+        Variables.insert(A);
       }
-      for (const auto &F : *M) {
-        for (const auto &BB : F) {
-          for (const auto &I : BB) {
-            if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-              Variables.insert(A);
-            }
-            if (const auto *H = llvm::dyn_cast<llvm::CallBase>(&I)) {
-              if (!H->isIndirectCall() && H->getCalledFunction() &&
-                  this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
-                Variables.insert(H);
-              }
-            }
-          }
+      if (const auto *H = llvm::dyn_cast<llvm::CallBase>(I)) {
+        if (!H->isIndirectCall() && H->getCalledFunction() &&
+            this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
+          Variables.insert(H);
         }
       }
     }
