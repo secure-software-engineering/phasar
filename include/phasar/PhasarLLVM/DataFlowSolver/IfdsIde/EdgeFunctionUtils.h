@@ -74,8 +74,8 @@ template <typename L> struct AllBottom final {
 
   template <typename LL = L,
             typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
-  friend bool operator==(const AllBottom<LL> &LHS,
-                         const AllBottom<LL> &RHS) noexcept {
+  friend bool operator==(const AllBottom<L> &LHS,
+                         const AllBottom<L> &RHS) noexcept {
     return LHS.BottomValue == RHS.BottomValue;
   }
 };
@@ -114,8 +114,7 @@ template <typename L> struct AllTop final {
 
   template <typename LL = L,
             typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
-  friend bool operator==(const AllTop<LL> &LHS,
-                         const AllTop<LL> &RHS) noexcept {
+  friend bool operator==(const AllTop<L> &LHS, const AllTop<L> &RHS) noexcept {
     return LHS.TopValue == RHS.TopValue;
   }
 };

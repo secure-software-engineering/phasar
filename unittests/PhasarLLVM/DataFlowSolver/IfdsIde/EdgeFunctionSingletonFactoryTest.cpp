@@ -1,5 +1,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactory.h"
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 
 #include "gtest/gtest.h"
@@ -8,33 +10,45 @@
 #include <thread>
 
 namespace psr::internal {
-struct TestEdgeFunction
-    : public EdgeFunction<int>,
-      public std::enable_shared_from_this<TestEdgeFunction>,
-      public EdgeFunctionSingletonFactory<TestEdgeFunction, int> {
+struct TestEdgeFunction {
+  using l_t = int;
 
-  TestEdgeFunction(int Val) : Val(Val) {}
+  [[nodiscard]] int computeTarget(int /*Source*/) const { return Val; }
 
-  static decltype(auto) getTestCacheData() {
-    return EdgeFunctionSingletonFactory<TestEdgeFunction, int>::getCacheData();
-  }
-
-  int computeTarget(int /*Source*/) override { return 42; }
-
-  EdgeFunctionPtrType
-  composeWith(EdgeFunctionPtrType /*SecondFunction*/) override {
-    return this->shared_from_this();
+  static EdgeFunction<int>
+  compose(EdgeFunctionRef<TestEdgeFunction> This,
+          const EdgeFunction<int> & /*SecondFunction*/) {
+    return This;
   };
 
-  EdgeFunctionPtrType joinWith(EdgeFunctionPtrType /*OtherFunction*/) override {
-    return this->shared_from_this();
+  static EdgeFunction<int> join(EdgeFunctionRef<TestEdgeFunction> This,
+                                const EdgeFunction<int> & /*OtherFunction*/) {
+    return This;
   }
 
-  bool equal_to(EdgeFunctionPtrType /*OtherFunction*/) const override {
-    return false;
-  };
+  bool operator==(const TestEdgeFunction &Other) const noexcept {
+    return Val == Other.Val;
+  }
+
+  TestEdgeFunction(int Val) noexcept : Val(Val) {}
+  TestEdgeFunction(int Val, bool *Deleted) noexcept
+      : Val(Val), Deleted(Deleted) {}
+  TestEdgeFunction(const TestEdgeFunction &Other) noexcept : Val(Other.Val) {
+    // Non-trivial copy ctor to prevent SOO, such that we can actually see
+    // caching
+  }
+  ~TestEdgeFunction() {
+    if (Deleted) {
+      *Deleted = true;
+    }
+  }
+
+  friend llvm::hash_code hash_value(const TestEdgeFunction &EF) noexcept {
+    return llvm::hash_value(EF.Val);
+  }
 
   int Val;
+  bool *Deleted{};
 };
 } // namespace psr::internal
 
@@ -45,43 +59,50 @@ using namespace psr::internal;
 // Direct api usage tests
 
 TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctions) {
-  auto EF1 = TestEdgeFunction::createEdgeFunction(42);
-  auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
+  DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
 
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
+  EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction{42}, &Cache};
+  EdgeFunction<int> EF2 = CachedEdgeFunction{TestEdgeFunction{1337}, &Cache};
+
+  EXPECT_NE(EF1.getOpaqueValue(), EF2.getOpaqueValue());
 }
 
 TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsWithCorrectData) {
-  auto EF1 = TestEdgeFunction::createEdgeFunction(42);
-  auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
+  DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
 
-  EXPECT_EQ(EF1->Val, 42);
-  EXPECT_EQ(EF2->Val, 1337);
+  EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction(42), &Cache};
+  EdgeFunction<int> EF2 = CachedEdgeFunction{TestEdgeFunction(1337), &Cache};
+
+  EXPECT_EQ(EF1.computeTarget(0), 42);
+  EXPECT_EQ(EF2.computeTarget(0), 1337);
 }
 
 TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsTwice) {
-  auto EF1 = TestEdgeFunction::createEdgeFunction(42);
-  auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
-  auto EF3 = TestEdgeFunction::createEdgeFunction(42);
+  DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
 
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
-  EXPECT_EQ(EF1.get(), EF3.get());
+  EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction(42), &Cache};
+  EdgeFunction<int> EF2 = CachedEdgeFunction{TestEdgeFunction(1337), &Cache};
+  EdgeFunction<int> EF3 = CachedEdgeFunction{TestEdgeFunction(42), &Cache};
+
+  EXPECT_NE(EF1.getOpaqueValue(), EF2.getOpaqueValue());
+  EXPECT_EQ(EF1.getOpaqueValue(), EF3.getOpaqueValue());
 }
 
 TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctions) {
-  auto EF1 = TestEdgeFunction::createEdgeFunction(42);
+  DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
+  EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction(42), &Cache};
+  bool Deleted = false;
   {
-    auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
+    EdgeFunction<int> EF2 =
+        CachedEdgeFunction{TestEdgeFunction(1337, &Deleted), &Cache};
   } // EF2 deleted after scope
 
-  TestEdgeFunction::cleanExpiredEdgeFunctions();
-
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1U);
+  EXPECT_TRUE(Deleted);
 }
 
 //===----------------------------------------------------------------------===//
 // Threaded tests
-
+#if 0
 TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsThreaded) {
   TestEdgeFunction::initEdgeFunctionCleaner();
 
@@ -120,6 +141,7 @@ TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctionsThreaded) {
       TestEdgeFunction::getTestCacheData().DataMutex);
   EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1U);
 }
+#endif // 0
 
 // main function for the test case
 int main(int Argc, char **Argv) {

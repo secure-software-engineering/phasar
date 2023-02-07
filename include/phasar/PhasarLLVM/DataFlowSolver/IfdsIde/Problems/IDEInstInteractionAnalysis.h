@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactory.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
@@ -149,19 +151,6 @@ template <> struct hash<psr::IDEIIAFlowFact> {
   }
 };
 
-template <> struct less<psr::IDEIIAFlowFact> {
-  bool operator()(const psr::IDEIIAFlowFact &Lhs,
-                  const psr::IDEIIAFlowFact &Rhs) const {
-    return Lhs < Rhs;
-  }
-};
-
-template <> struct equal_to<psr::IDEIIAFlowFact> {
-  bool operator()(const psr::IDEIIAFlowFact &Lhs,
-                  const psr::IDEIIAFlowFact &Rhs) const {
-    return Lhs == Rhs;
-  }
-};
 } // namespace std
 
 namespace psr {
@@ -218,8 +207,8 @@ public:
         ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
     assert(ICF != nullptr);
     assert(PT);
-    IIAAAddLabelsEF::initEdgeFunctionCleaner();
-    IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
+    // IIAAAddLabelsEF::initEdgeFunctionCleaner();
+    // IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
 
   ~IDEInstInteractionAnalysisT() override = default;
@@ -975,7 +964,8 @@ public:
     //
     if (isZeroValue(CurrNode) && Curr == SuccNode) {
       if (llvm::isa<llvm::AllocaInst>(Curr)) {
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                  &IIAAAddLabelsEFCache};
       }
     }
     //
@@ -990,7 +980,8 @@ public:
     //                    i
     //
     if (Curr == CurrNode && CurrNode == SuccNode) {
-      return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                &IIAAAddLabelsEFCache};
     }
     // Handle loads in non-syntax only analysis
     if constexpr (!SyntacticAnalysisOnly) {
@@ -1011,7 +1002,8 @@ public:
                                                    CurrNode,
                                                    OnlyConsiderLocalAliases)) &&
             Load == SuccNode) {
-          IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+          return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                    &IIAAAddLabelsEFCache};
         } else {
           //
           // y --> y
@@ -1073,7 +1065,9 @@ public:
               UEF->insert(edgeFactGenForInstToBitVectorSet(OrigAlloca));
             }
           }
-          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
+          return CachedEdgeFunction{
+              IIAAKillOrReplaceEF{std::move(UserEdgeFacts)},
+              &IIAAKillOrReplaceEFCache};
         }
         //
         // x --> y
@@ -1095,7 +1089,8 @@ public:
             }
             PHASAR_LOG_LEVEL(DFADEBUG, "at '" << llvmIRToString(Curr) << "'\n");
           });
-          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+          return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                    &IIAAAddLabelsEFCache};
         }
       } else {
         // Use points-to information to find all possible overriding edges.
@@ -1122,7 +1117,9 @@ public:
                                                    OnlyConsiderLocalAliases) ||
              Store->getPointerOperand() == CurrNode)) {
           // Add the original variable, i.e., memory location.
-          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
+          return CachedEdgeFunction{
+              IIAAKillOrReplaceEF{std::move(UserEdgeFacts)},
+              &IIAAKillOrReplaceEFCache};
         }
         // Kill all labels that are propagated along the edge of the
         // value/values that is/are overridden.
@@ -1140,7 +1137,8 @@ public:
         if (CurrNode == SuccNode && this->PT.isInReachableAllocationSites(
                                         Store->getPointerOperand(), CurrNode,
                                         OnlyConsiderLocalAliases)) {
-          return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
+          return CachedEdgeFunction{IIAAKillOrReplaceEF{},
+                                    &IIAAKillOrReplaceEFCache};
         }
         // Overriding edge: obtain labels from value to be stored (and may add
         // UserEdgeFacts, if any).
@@ -1165,7 +1163,8 @@ public:
             this->PT.isInReachableAllocationSites(Store->getPointerOperand(),
                                                   Store->getPointerOperand(),
                                                   OnlyConsiderLocalAliases)) {
-          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+          return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                    &IIAAAddLabelsEFCache};
         }
       }
     }
@@ -1192,7 +1191,8 @@ public:
             }
           }
         }
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                  &IIAAAddLabelsEFCache};
       }
       //
       // o_i --> o_i
@@ -1213,7 +1213,8 @@ public:
           }
           PHASAR_LOG_LEVEL(DFADEBUG, '\n');
         });
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                  &IIAAAddLabelsEFCache};
       }
       //
       // o_i --> i
@@ -1234,7 +1235,8 @@ public:
           }
           PHASAR_LOG_LEVEL(DFADEBUG, '\n');
         });
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                  &IIAAAddLabelsEFCache};
       }
     }
     // Otherwise stick to identity.
@@ -1269,7 +1271,7 @@ public:
       }
     }
     if (isZeroValue(SrcNode) && SRetParams.count(DestNode)) {
-      return IIAAAddLabelsEF::createEdgeFunction(BitVectorSet<e_t>());
+      return CachedEdgeFunction{IIAAAddLabelsEF{}, &IIAAAddLabelsEFCache};
     }
     // Everything else can be passed as identity.
     return EdgeIdentity<l_t>{};
@@ -1304,7 +1306,8 @@ public:
           // fill BitVectorSet
           UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
         }
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                  &IIAAAddLabelsEFCache};
       }
     }
     // Everything else can be passed as identity.
@@ -1341,7 +1344,8 @@ public:
           //                  i
           //
           if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
-            return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+            return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                      &IIAAAddLabelsEFCache};
           }
         }
       }
@@ -1361,7 +1365,8 @@ public:
       //                 o_i
       //
       if (CallNode == Arg && CallNode == RetSiteNode) {
-        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
+                                  &IIAAAddLabelsEFCache};
       }
     }
     // Otherwise stick to identity
@@ -1381,206 +1386,196 @@ public:
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
-  inline EdgeFunctionType allTopFunction() override {
-    return std::make_shared<AllTop<l_t>>();
-  }
+  inline EdgeFunctionType allTopFunction() override { return AllTop<l_t>(); }
 
   // Provide some handy helper edge functions to improve reuse.
 
   // Edge function that kills all labels in a set (and may replaces them with
   // others).
-  class IIAAKillOrReplaceEF
-      : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IIAAKillOrReplaceEF>,
-        public EdgeFunctionSingletonFactory<IIAAKillOrReplaceEF, l_t> {
-  public:
-    l_t Replacement;
+  struct IIAAKillOrReplaceEF {
+    using l_t = l_t;
+    l_t Replacement{};
 
-    explicit IIAAKillOrReplaceEF() : Replacement(BitVectorSet<e_t>()) {
-      // PHASAR_LOG_LEVEL(DFADEBUG,
-      //               << "IIAAKillOrReplaceEF");
-    }
+    l_t computeTarget(ByConstRef<l_t> /* Src */) const { return Replacement; }
 
-    explicit IIAAKillOrReplaceEF(l_t Replacement) : Replacement(Replacement) {
-      // PHASAR_LOG_LEVEL(DFADEBUG,
-      //               << "IIAAKillOrReplaceEF");
-    }
+    static EdgeFunction<l_t> compose(EdgeFunctionRef<IIAAKillOrReplaceEF> This,
+                                     const EdgeFunction<l_t> SecondFunction) {
 
-    ~IIAAKillOrReplaceEF() override = default;
-
-    l_t computeTarget(l_t /* Src */) override { return Replacement; }
-
-    EdgeFunctionType composeWith(EdgeFunctionType SecondFunction) override {
-      // PHASAR_LOG_LEVEL(DFADEBUG,
-      //               << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
-      //               << " * " << SecondFunction->str());
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+      if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
+        return Default;
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(SecondFunction.get())) {
-        if (isKillAll()) {
-          return IIAAAddLabelsEF::createEdgeFunction(AD->Data);
+
+      auto Cache = This.getCacheOrNull();
+      assert(Cache != nullptr && "We expect a cache, because "
+                                 "IIAAKillOrReplaceEF is too large for SOO");
+
+      if (auto *AD = llvm::dyn_cast<IIAAAddLabelsEF>(SecondFunction)) {
+        auto ADCache =
+            SecondFunction.template getCacheOrNull<IIAAAddLabelsEF>();
+        assert(ADCache != nullptr);
+        if (This->isKillAll()) {
+          return CachedEdgeFunction{*AD, ADCache};
         }
         auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+            IDEInstInteractionAnalysisT::joinImpl(This->Replacement, AD->Data);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(Union)}, ADCache};
       }
-      if (auto *KR =
-              dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
-        if (isKillAll()) {
-          return IIAAKillOrReplaceEF::createEdgeFunction(KR->Replacement);
+
+      if (auto *KR = llvm::dyn_cast<IIAAKillOrReplaceEF>(SecondFunction)) {
+        if (This->isKillAll()) {
+          return CachedEdgeFunction{*KR, Cache};
         }
         if (KR->isKillAll()) {
           return SecondFunction;
         }
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
-        return IIAAKillOrReplaceEF::createEdgeFunction(Union);
+        auto Union = IDEInstInteractionAnalysisT::joinImpl(This->Replacement,
+                                                           KR->Replacement);
+        return CachedEdgeFunction{IIAAKillOrReplaceEF{std::move(Union)}, Cache};
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    EdgeFunctionType joinWith(EdgeFunctionType OtherFunction) override {
-      // PHASAR_LOG_LEVEL(DFADEBUG,  <<
-      // "IIAAKillOrReplaceEF::joinWith");
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
+    static EdgeFunction<l_t> join(EdgeFunctionRef<IIAAKillOrReplaceEF> This,
+                                  const EdgeFunction<l_t> &OtherFunction) {
+      /// XXX: Here, we overapproximate joins with EdgeIdentity. Previously, we
+      /// just ignored OtherFunction
+      /// ---> previous code:
+      // if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get()))
+      // {
+      //   return this->shared_from_this();
+      // }
+      /// <--- previous code
+      if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
+        return Default;
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(OtherFunction.get())) {
+
+      auto Cache = This.getCacheOrNull();
+      assert(Cache != nullptr && "We expect a cache, because "
+                                 "IIAAKillOrReplaceEF is too large for SOO");
+
+      if (auto *AD = llvm::dyn_cast<IIAAAddLabelsEF>(OtherFunction)) {
+        auto ADCache = OtherFunction.template getCacheOrNull<IIAAAddLabelsEF>();
+        assert(ADCache);
         auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+            IDEInstInteractionAnalysisT::joinImpl(This->Replacement, AD->Data);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(Union)}, ADCache};
       }
-      if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction.get())) {
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
-        return IIAAKillOrReplaceEF::createEdgeFunction(Union);
+      if (auto *KR = llvm::dyn_cast<IIAAKillOrReplaceEF>(OtherFunction)) {
+        auto Union = IDEInstInteractionAnalysisT::joinImpl(This->Replacement,
+                                                           KR->Replacement);
+        return CachedEdgeFunction{IIAAKillOrReplaceEF{std::move(Union)}, Cache};
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    bool equal_to(EdgeFunctionType Other) const override {
-      if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(Other.get())) {
-        return Replacement == KR->Replacement;
-      }
-      return this == Other.get();
+    bool operator==(const IIAAKillOrReplaceEF &Other) const noexcept {
+      return Replacement == Other.Replacement;
     }
 
-    void print(llvm::raw_ostream &OS,
-               bool /* IsForDebug */ = false) const override {
+    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                         const IIAAKillOrReplaceEF &EF) {
       OS << "EF: (IIAAKillOrReplaceEF)<->";
-      if (isKillAll()) {
+      if (EF.isKillAll()) {
         OS << "(KillAll";
       } else {
-        IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, Replacement);
+        IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Replacement);
       }
-      OS << ")";
+      return OS << ")";
     }
 
-    [[nodiscard]] bool isKillAll() const {
+    [[nodiscard]] bool isKillAll() const noexcept {
       if (auto *RSet = std::get_if<BitVectorSet<e_t>>(&Replacement)) {
         return RSet->empty();
       }
       return false;
     }
+
+    // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
+    friend llvm::hash_code hash_value(const IIAAKillOrReplaceEF &EF) {
+      return hash_value(EF.Replacement);
+    }
   };
 
   // Edge function that adds the given labels to existing labels
   // add all labels provided by Data.
-  class IIAAAddLabelsEF
-      : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IIAAAddLabelsEF>,
-        public EdgeFunctionSingletonFactory<IIAAAddLabelsEF, l_t> {
-  public:
-    const l_t Data;
+  struct IIAAAddLabelsEF {
+    using l_t = l_t;
+    l_t Data{};
 
-    explicit IIAAAddLabelsEF(l_t Data) : Data(Data) {
-      // PHASAR_LOG_LEVEL(DFADEBUG,  << "IIAAAddLabelsEF");
-    }
-
-    ~IIAAAddLabelsEF() override = default;
-
-    l_t computeTarget(l_t Src) override {
+    l_t computeTarget(ByConstRef<l_t> Src) const {
       return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
     }
 
-    EdgeFunctionType composeWith(EdgeFunctionType SecondFunction) override {
-      // PHASAR_LOG_LEVEL(DFADEBUG,
-      //               << "IIAAAddLabelEF::composeWith(): " << this->str() << "
-      //               * "
-      //               << SecondFunction->str());
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+    static EdgeFunction<l_t> compose(EdgeFunctionRef<IIAAAddLabelsEF> This,
+                                     const EdgeFunction<l_t> &SecondFunction) {
+      if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
+        return Default;
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(SecondFunction.get())) {
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
-      }
-      if (auto *KR =
-              dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
-        return IIAAAddLabelsEF::createEdgeFunction(KR->Replacement);
-      }
-      llvm::report_fatal_error(
-          "found unexpected edge function in 'IIAAAddLabelsEF'");
-    }
 
-    EdgeFunctionType joinWith(EdgeFunctionType OtherFunction) override {
-      // PHASAR_LOG_LEVEL(DFADEBUG,  <<
-      // "IIAAAddLabelsEF::joinWith");
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(OtherFunction.get())) {
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
-      }
-      if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction.get())) {
+      auto Cache = This.getCacheOrNull();
+      assert(Cache != nullptr && "We expect a cache, because "
+                                 "IIAAAddLabelsEF is too large for SOO");
+
+      if (auto *AD = llvm::dyn_cast<IIAAAddLabelsEF>(SecondFunction)) {
         auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Data, KR->Replacement);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+            IDEInstInteractionAnalysisT::joinImpl(This->Data, AD->Data);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(Union)}, Cache};
+      }
+      if (auto *KR = llvm::dyn_cast<IIAAKillOrReplaceEF>(SecondFunction)) {
+        return CachedEdgeFunction{IIAAAddLabelsEF{KR->Replacement}, Cache};
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    [[nodiscard]] bool equal_to(EdgeFunctionType Other) const override {
-      if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(Other.get())) {
-        return (Data == AS->Data);
+    static EdgeFunction<l_t> join(EdgeFunctionRef<IIAAAddLabelsEF> This,
+                                  const EdgeFunction<l_t> &OtherFunction) {
+      /// XXX: Here, we overapproximate joins with EdgeIdentity. Previously, we
+      /// just ignored OtherFunction
+      /// ---> previous code:
+      // if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get()))
+      // {
+      //   return this->shared_from_this();
+      // }
+      /// <--- previous code
+      if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
+        return Default;
       }
-      return this == Other.get();
+
+      auto Cache = This.getCacheOrNull();
+      assert(Cache != nullptr && "We expect a cache, because "
+                                 "IIAAAddLabelsEF is too large for SOO");
+
+      if (auto *AD = llvm::dyn_cast<IIAAAddLabelsEF>(OtherFunction)) {
+        auto Union =
+            IDEInstInteractionAnalysisT::joinImpl(This->Data, AD->Data);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(Union)}, Cache};
+      }
+      if (auto *KR = llvm::dyn_cast<IIAAKillOrReplaceEF>(OtherFunction)) {
+        auto Union =
+            IDEInstInteractionAnalysisT::joinImpl(This->Data, KR->Replacement);
+        return CachedEdgeFunction{IIAAAddLabelsEF{std::move(Union)}, Cache};
+      }
+      llvm::report_fatal_error(
+          "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    void print(llvm::raw_ostream &OS,
-               bool /* IsForDebug */ = false) const override {
+    bool operator==(const IIAAAddLabelsEF &Other) const noexcept {
+      return Data == Other.Data;
+    }
+
+    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                         const IIAAAddLabelsEF &EF) {
       OS << "EF: (IIAAAddLabelsEF: ";
-      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, Data);
-      OS << ")";
+      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Data);
+      return OS << ")";
+    }
+
+    // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
+    friend llvm::hash_code hash_value(const IIAAAddLabelsEF &EF) {
+      return hash_value(EF.Data);
     }
   };
 
@@ -1684,7 +1679,8 @@ protected:
     return LLVMZeroValue::isLLVMZeroValue(d);
   }
 
-  static void printEdgeFactImpl(llvm::raw_ostream &OS, l_t EdgeFact) {
+  static void printEdgeFactImpl(llvm::raw_ostream &OS,
+                                ByConstRef<l_t> EdgeFact) {
     if (std::holds_alternative<Top>(EdgeFact)) {
       OS << std::get<Top>(EdgeFact);
     } else if (std::holds_alternative<Bottom>(EdgeFact)) {
@@ -1708,7 +1704,7 @@ protected:
     }
   }
 
-  static inline l_t joinImpl(l_t Lhs, l_t Rhs) {
+  static inline l_t joinImpl(ByConstRef<l_t> Lhs, ByConstRef<l_t> Rhs) {
     if (Lhs == TopElement || Lhs == BottomElement) {
       return Rhs;
     }
@@ -1753,6 +1749,10 @@ private:
     }
     return Variables;
   }
+
+  DefaultEdgeFunctionSingletonCache<IIAAAddLabelsEF> IIAAAddLabelsEFCache;
+  DefaultEdgeFunctionSingletonCache<IIAAKillOrReplaceEF>
+      IIAAKillOrReplaceEFCache;
 
   const LLVMBasedICFG *ICF{};
   LLVMAliasInfoRef PT{};

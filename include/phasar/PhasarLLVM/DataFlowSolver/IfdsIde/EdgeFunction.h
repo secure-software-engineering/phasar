@@ -10,12 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/TypeName.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <atomic>
 #include <tuple>
@@ -31,7 +33,6 @@ template <typename EF> class EdgeFunctionRef;
 namespace detail {
 template <typename T, typename = void>
 struct IsEdgeFunction : std::false_type {};
-
 template <typename T>
 struct IsEdgeFunction<
     T, std::void_t<
@@ -43,9 +44,11 @@ struct IsEdgeFunction<
            decltype(T::join(std::declval<EdgeFunctionRef<T>>(),
                             std::declval<EdgeFunction<typename T::l_t>>()))>>
     : std::true_type {};
+
 } // namespace detail
 template <typename T>
 static inline constexpr bool IsEdgeFunction = detail::IsEdgeFunction<T>::value;
+
 #else
 // clang-format off
 template <typename T>
@@ -56,6 +59,7 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
   {T::join(CEF, TEEF)}     -> std::convertible_to<EdgeFunction<typename T::l_t>>;
 };
 // clang-format on
+
 #endif
 
 class EdgeFunctionBase {
@@ -67,11 +71,20 @@ public:
       std::is_trivially_copyable_v<ConcreteEF>;
 
 protected:
+  enum class AllocationPolicy {
+    SmallObjectOptimized,
+    DefaultHeapAllocated,
+    CustomHeapAllocated,
+  };
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
   template <typename T> struct RefCounted : RefCountedBase {
     T Value;
+  };
+
+  template <typename T> struct CachedRefCounted : RefCounted<T> {
+    EdgeFunctionSingletonCache<T> *Cache{};
   };
 
   template <typename ConcreteEF>
@@ -86,6 +99,15 @@ protected:
   template <typename ConcreteEF>
   constexpr static inline const ConcreteEF *
   getPtr(const void *const &&EF) = delete; // NOLINT
+
+  template <typename ConcreteEF>
+  static constexpr AllocationPolicy DefaultAllocPolicy =
+      IsSOOCandidate<ConcreteEF> ? AllocationPolicy::SmallObjectOptimized
+                                 : AllocationPolicy::DefaultHeapAllocated;
+  template <typename ConcreteEF>
+  static constexpr AllocationPolicy CustomAllocPolicy =
+      IsSOOCandidate<ConcreteEF> ? AllocationPolicy::SmallObjectOptimized
+                                 : AllocationPolicy::CustomHeapAllocated;
 };
 
 /// Non-null reference to an edge function that is guarenteed to be managed by a
@@ -105,10 +127,33 @@ public:
   const EF *get() const noexcept { return getPtr<EF>(Instance); }
   const EF &operator*() const noexcept { return *getPtr<EF>(Instance); }
 
+  [[nodiscard]] bool isCached() const noexcept {
+    if constexpr (IsSOOCandidate<EF>) {
+      return false;
+    } else {
+      return IsCached;
+    }
+  }
+
+  [[nodiscard]] EdgeFunctionSingletonCache<EF> *
+  getCacheOrNull() const noexcept {
+    if (isCached()) {
+      return static_cast<const CachedRefCounted<EF> *>(Instance)->Cache;
+    }
+
+    return nullptr;
+  }
+
 private:
-  explicit EdgeFunctionRef(const void *Instance) noexcept
-      : Instance(Instance) {}
+  explicit EdgeFunctionRef(const void *Instance, bool IsCached) noexcept
+      : Instance(Instance) {
+    if constexpr (!IsSOOCandidate<EF>) {
+      this->IsCached = IsCached;
+    }
+  }
   const void *Instance{};
+  [[no_unique_address]] std::conditional_t<IsSOOCandidate<EF>, EmptyType, bool>
+      IsCached{};
 };
 
 /// Ref-counted and type-erased edge function with small-object optimization
@@ -146,12 +191,13 @@ public:
   }
 
   ~EdgeFunction() noexcept {
-    if (VTAndHeapAlloc.getInt()) {
+    AllocationPolicy Policy = VTAndHeapAlloc.getInt();
+    if (Policy != AllocationPolicy::SmallObjectOptimized) {
       assert(VTAndHeapAlloc.getPointer() != nullptr && "Heap-alloc'd nullptr?");
       // Note: Memory-order taken from llvm::ThreadSafeRefCountedBase
       if (static_cast<const RefCountedBase *>(EF)->Rc.fetch_sub(
               1, std::memory_order_acq_rel) == 1) {
-        VTAndHeapAlloc.getPointer()->destroy(EF);
+        VTAndHeapAlloc.getPointer()->destroy(EF, Policy);
       }
     }
   }
@@ -162,7 +208,16 @@ public:
                 IsEdgeFunction<ConcreteEF>>>
   EdgeFunction(EdgeFunctionRef<ConcreteEF> CEF) noexcept
       : EdgeFunction(CEF.Instance,
-                     {&VTableFor<ConcreteEF>, !IsSOOCandidate<ConcreteEF>}) {}
+                     {&VTableFor<ConcreteEF>, [CEF] {
+                        if constexpr (IsSOOCandidate<ConcreteEF>) {
+                          (void)CEF;
+                          return AllocationPolicy::SmallObjectOptimized;
+                        } else {
+                          return CEF.IsCached
+                                     ? AllocationPolicy::CustomHeapAllocated
+                                     : AllocationPolicy::DefaultHeapAllocated;
+                        }
+                      }()}) {}
 
   template <typename ConcreteEF,
             typename = std::enable_if_t<
@@ -190,12 +245,35 @@ public:
                     {}, {std::forward<ArgTys>(Args)...}};
               }
             }(std::forward<ArgTys>(Args)...),
-            {&VTableFor<ConcreteEF>, !IsSOOCandidate<ConcreteEF>}) {
+            {&VTableFor<ConcreteEF>, DefaultAllocPolicy<ConcreteEF>}) {
     static_assert(std::is_same_v<l_t, typename ConcreteEF::l_t>,
                   "Cannot construct EdgeFunction with incompatible "
                   "lattice domain");
   }
 
+  template <typename ConcreteEF, typename = std::enable_if_t<
+                                     IsEdgeFunction<ConcreteEF> &&
+                                     std::is_move_constructible_v<ConcreteEF>>>
+  EdgeFunction(CachedEdgeFunction<ConcreteEF> EF)
+      : EdgeFunction(
+            [&EF] {
+              assert(EF.Cache != nullptr);
+              if constexpr (IsSOOCandidate<std::decay_t<ConcreteEF>>) {
+                void *Ret;
+                new (&Ret) ConcreteEF(std::move(EF.CtorArg));
+                return Ret;
+              } else {
+                if (auto Mem = EF.Cache->lookup(EF.EF)) {
+                  return static_cast<const RefCounted<ConcreteEF> *>(Mem);
+                }
+
+                auto Ret = new CachedRefCounted<ConcreteEF>{
+                    {{}, {std::move(EF.EF)}}, EF.Cache};
+                EF.Cache->insert(&Ret->Value, Ret);
+                return static_cast<const RefCounted<ConcreteEF> *>(Ret);
+              }
+            }(),
+            {&VTableFor<ConcreteEF>, CustomAllocPolicy<ConcreteEF>}) {}
   // ---  API functions
 
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const {
@@ -211,7 +289,8 @@ public:
                                             const EdgeFunction &SecondEF) {
     assert(!!FirstEF && "compose() called on LHS nullptr!");
     assert(!!SecondEF && "compose() called on RHS nullptr!");
-    return FirstEF.VTAndHeapAlloc.getPointer()->compose(FirstEF.EF, SecondEF);
+    return FirstEF.VTAndHeapAlloc.getPointer()->compose(
+        FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
 
   [[nodiscard]] EdgeFunction joinWith(const EdgeFunction &OtherEF) const {
@@ -222,12 +301,13 @@ public:
                                          const EdgeFunction &SecondEF) {
     assert(!!FirstEF && "join() called on LHS nullptr!");
     assert(!!SecondEF && "join() called on RHS nullptr!");
-    return FirstEF.VTAndHeapAlloc.getPointer()->join(FirstEF.EF, SecondEF);
+    return FirstEF.VTAndHeapAlloc.getPointer()->join(
+        FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
 
   [[nodiscard]] friend bool operator==(const EdgeFunction &LHS,
                                        const EdgeFunction &RHS) noexcept {
-    if (LHS.VTAndHeapAlloc != RHS.VTAndHeapAlloc) {
+    if (LHS.VTAndHeapAlloc.getPointer() != RHS.VTAndHeapAlloc.getPointer()) {
       return false;
     }
     if (LHS.VTAndHeapAlloc.getOpaqueValue() == nullptr) {
@@ -314,6 +394,13 @@ public:
     return OS;
   }
 
+  friend std::string to_string(const EdgeFunction &EF) {
+    std::string Ret;
+    llvm::raw_string_ostream ROS(Ret);
+    ROS << EF;
+    return Ret;
+  }
+
   /// Arbitrary partial ordering for being able to sort edge
   /// functions.
   [[nodiscard]] friend bool operator<(const EdgeFunction &LHS,
@@ -358,19 +445,37 @@ public:
   // -- misc
 
   [[nodiscard]] bool isRefCounted() const noexcept {
-    return VTAndHeapAlloc.getInt();
+    return VTAndHeapAlloc.getInt() != AllocationPolicy::SmallObjectOptimized;
+  }
+
+  [[nodiscard]] bool isCached() const noexcept {
+    return VTAndHeapAlloc.getInt() == AllocationPolicy::CustomHeapAllocated;
+  }
+
+  [[nodiscard]] const void *getOpaqueValue() const noexcept { return EF; }
+
+  template <typename ConcreteEF>
+  [[nodiscard]] EdgeFunctionSingletonCache<ConcreteEF> *
+  getCacheOrNull() const noexcept {
+    assert(isa<ConcreteEF>());
+    if (IsSOOCandidate<ConcreteEF> ||
+        VTAndHeapAlloc.getInt() == AllocationPolicy::DefaultHeapAllocated) {
+      return nullptr;
+    }
+    return static_cast<const CachedRefCounted<ConcreteEF> *>(EF)->Cache;
   }
 
 private:
   struct VTable {
     // NOLINTBEGIN(readability-identifier-naming)
     l_t (*computeTarget)(const void *, ByConstRef<l_t>);
-    EdgeFunction (*compose)(const void *, const EdgeFunction &);
-    EdgeFunction (*join)(const void *, const EdgeFunction &);
+    EdgeFunction (*compose)(const void *, const EdgeFunction &,
+                            AllocationPolicy);
+    EdgeFunction (*join)(const void *, const EdgeFunction &, AllocationPolicy);
     bool (*equals)(const void *, const void *) noexcept;
     void (*print)(const void *, llvm::raw_ostream &);
     bool (*isConstant)(const void *) noexcept;
-    void (*destroy)(const void *) noexcept;
+    void (*destroy)(const void *, AllocationPolicy) noexcept;
     // NOLINTEND(readability-identifier-naming)
   };
 
@@ -379,11 +484,18 @@ private:
       [](const void *EF, ByConstRef<l_t> Source) {
         return getPtr<ConcreteEF>(EF)->computeTarget(Source);
       },
-      [](const void *EF, const EdgeFunction &SecondEF) {
-        return ConcreteEF::compose(EdgeFunctionRef<ConcreteEF>(EF), SecondEF);
+      [](const void *EF, const EdgeFunction &SecondEF,
+         AllocationPolicy Policy) {
+        return ConcreteEF::compose(
+            EdgeFunctionRef<ConcreteEF>(
+                EF, Policy == AllocationPolicy::CustomHeapAllocated),
+            SecondEF);
       },
-      [](const void *EF, const EdgeFunction &OtherEF) {
-        return ConcreteEF::join(EdgeFunctionRef<ConcreteEF>(EF), OtherEF);
+      [](const void *EF, const EdgeFunction &OtherEF, AllocationPolicy Policy) {
+        return ConcreteEF::join(
+            EdgeFunctionRef<ConcreteEF>(
+                EF, Policy == AllocationPolicy::CustomHeapAllocated),
+            OtherEF);
       },
       [](const void *EF1, const void *EF2) noexcept {
         static_assert(IsEqualityComparable<ConcreteEF> ||
@@ -415,9 +527,16 @@ private:
           return false;
         }
       },
-      [](const void *EF) noexcept {
+      [](const void *EF, AllocationPolicy Policy) noexcept {
         if constexpr (!IsSOOCandidate<ConcreteEF>) {
-          delete static_cast<const RefCounted<ConcreteEF> *>(EF);
+          if (Policy != AllocationPolicy::CustomHeapAllocated) {
+            assert(Policy == AllocationPolicy::DefaultHeapAllocated);
+            delete static_cast<const RefCounted<ConcreteEF> *>(EF);
+          } else {
+            auto CEF = static_cast<const CachedRefCounted<ConcreteEF> *>(EF);
+            CEF->Cache->erase(CEF->Value);
+            delete CEF;
+          }
         }
       },
   };
@@ -425,10 +544,10 @@ private:
   // Utility ctor for (copy) construction. Increments the ref-count if
   // necessary
   explicit EdgeFunction(
-      const void *EF,
-      llvm::PointerIntPair<const VTable *, 1, bool> VTAndHeapAlloc) noexcept
+      const void *EF, llvm::PointerIntPair<const VTable *, 2, AllocationPolicy>
+                          VTAndHeapAlloc) noexcept
       : EF(EF), VTAndHeapAlloc(VTAndHeapAlloc) {
-    if (VTAndHeapAlloc.getInt()) {
+    if (VTAndHeapAlloc.getInt() != AllocationPolicy::SmallObjectOptimized) {
       // Note: Memory-order taken from llvm::ThreadSafeRefCountedBase
       static_cast<const RefCountedBase *>(EF)->Rc.fetch_add(
           1, std::memory_order_relaxed);
@@ -438,7 +557,7 @@ private:
   // -- data members
 
   const void *EF{};
-  llvm::PointerIntPair<const VTable *, 1, bool> VTAndHeapAlloc{};
+  llvm::PointerIntPair<const VTable *, 2, AllocationPolicy> VTAndHeapAlloc{};
 };
 
 } // namespace psr

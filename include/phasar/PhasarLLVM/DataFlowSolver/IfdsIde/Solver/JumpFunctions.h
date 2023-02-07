@@ -89,7 +89,7 @@ public:
     PHASAR_LOG_LEVEL(DEBUG,
                      "Fact at target : " << Problem.DtoString(TargetVal));
     PHASAR_LOG_LEVEL(DEBUG, "Destination    : " << Problem.NtoString(Target));
-    PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EdgeFunc->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EdgeFunc);
     // we do not store the default function (all-top)
     if (llvm::isa<AllTop<l_t>>(EdgeFunc)) {
       return;
@@ -215,7 +215,7 @@ public:
       for (auto Cell : Entry.second.cellSet()) {
         OS << "D1: " << Problem.DtoString(Cell.r) << '\n'
            << "\tD2: " << Problem.DtoString(Cell.c) << '\n'
-           << "\tEF: " << Cell.v->str() << "\n\n";
+           << "\tEF: " << Cell.v << "\n\n";
       }
     }
   }
@@ -229,7 +229,7 @@ public:
          << "\nD1: " << Problem.DtoString(Cell.c) << '\n';
       for (auto D2ToEF : Cell.v) {
         OS << "D2: " << Problem.DtoString(D2ToEF.first)
-           << "\nEF: " << D2ToEF.second->str() << '\n';
+           << "\nEF: " << D2ToEF.second << '\n';
       }
       OS << '\n';
     }
@@ -244,7 +244,7 @@ public:
          << "\nN : " << Problem.NtoString(Cell.c) << '\n';
       for (auto D2ToEF : Cell.v) {
         OS << "D2: " << Problem.DtoString(D2ToEF.first)
-           << "\nEF: " << D2ToEF.second->str() << '\n';
+           << "\nEF: " << D2ToEF.second << '\n';
       }
       OS << '\n';
     }
@@ -259,7 +259,7 @@ public:
       auto CellVec = Table.cellVec();
       for (auto Cell : CellVec) {
         OS << "D1: " << Problem.DtoString(Cell.r)
-           << "\nD2: " << Problem.DtoString(Cell.c) << "\nEF: " << Cell.v->str()
+           << "\nD2: " << Problem.DtoString(Cell.c) << "\nEF: " << Cell.v
            << '\n';
       }
       OS << '\n';
