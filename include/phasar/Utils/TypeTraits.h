@@ -206,9 +206,7 @@ static inline constexpr bool AreEqualityComparable =
     detail::AreEqualityComparable<T, U>::value;
 
 #if __cplusplus < 202002L
-template <typename T> struct type_identity {
-  using type = T;
-}; // NOLINT
+template <typename T> struct type_identity { using type = T; }; // NOLINT
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif

@@ -18,7 +18,6 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-
 namespace psr::glca {
 
 struct TypecastEdgeFunction {
