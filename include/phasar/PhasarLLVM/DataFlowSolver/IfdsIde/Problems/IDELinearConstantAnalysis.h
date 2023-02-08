@@ -90,9 +90,6 @@ public:
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
-                                             f_t DestFun) override;
-
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   [[nodiscard]] d_t createZeroValue() const;
@@ -116,10 +113,6 @@ public:
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
-
-  EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
-                                           n_t RetSite,
-                                           d_t RetSiteNode) override;
 
   EdgeFunction<l_t> allTopFunction() override;
 

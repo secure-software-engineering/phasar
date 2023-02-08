@@ -359,12 +359,6 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
       /*PropagateGlobals*/ false);
 }
 
-IDELinearConstantAnalysis::FlowFunctionPtrType
-IDELinearConstantAnalysis::getSummaryFlowFunction(n_t /*CallSite*/,
-                                                  f_t /*DestFun*/) {
-  return nullptr;
-}
-
 InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
              IDELinearConstantAnalysis::l_t>
 IDELinearConstantAnalysis::initialSeeds() {
@@ -524,11 +518,6 @@ EdgeFunction<lca::l_t> IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/,
     llvm::ArrayRef<f_t> /*Callees*/) {
   return EdgeIdentity<l_t>{};
-}
-
-EdgeFunction<lca::l_t> IDELinearConstantAnalysis::getSummaryEdgeFunction(
-    n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/) {
-  return nullptr;
 }
 
 EdgeFunction<lca::l_t> IDELinearConstantAnalysis::allTopFunction() {

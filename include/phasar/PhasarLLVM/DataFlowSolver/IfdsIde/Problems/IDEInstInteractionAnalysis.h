@@ -844,6 +844,8 @@ public:
             // must be generated from zero!
             if (Source == ZeroValue) {
               return {Source, CallSite};
+            } else {
+              return {Source};
             }
           } else {
             // If all declaration-only callee targets return void, just pass
@@ -1181,15 +1183,6 @@ public:
       //                           o_i
       //
       if (isZeroValue(CurrNode) && Op == SuccNode) {
-        // Constant variables should retain their own label
-        if (llvm::isa<llvm::Constant>(SuccNode.getBase())) {
-          if (llvm::isa_and_nonnull<llvm::GlobalVariable>(SuccNode.getBase())) {
-            if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
-              UEF->insert(edgeFactGenForGlobalVarToBitVectorSet(
-                  llvm::dyn_cast<llvm::GlobalVariable>(SuccNode.getBase())));
-            }
-          }
-        }
         return CachedEdgeFunction{IIAAAddLabelsEF{std::move(UserEdgeFacts)},
                                   &IIAAAddLabelsEFCache};
       }
