@@ -14,6 +14,14 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonCache.h"
 
 namespace psr {
+
+/// Default implementation of EdgeFunctionSingletonCache.
+///
+/// For an edge function EdgeFunctionTy to be cached, it must be hashable, i.e.
+/// it must implement the friend- or nonmember function llvm::hash_code
+/// hash_value(const EdgeFunctionTy&).
+///
+/// This cache is *not* thread-safe.
 template <typename EdgeFunctionTy, typename = void>
 class DefaultEdgeFunctionSingletonCache
     : public EdgeFunctionSingletonCache<EdgeFunctionTy> {

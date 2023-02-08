@@ -20,8 +20,8 @@
 
 namespace psr {
 
-/// Base-class for edge function caches. Compatible with the caching mechanigm
-/// built in EdgeFunction
+/// Base-class for edge function caches. Compatible with the caching mechanism
+/// built in EdgeFunction.
 template <typename EdgeFunctionTy> class EdgeFunctionSingletonCache {
 public:
   virtual ~EdgeFunctionSingletonCache() = default;

@@ -56,7 +56,7 @@ using namespace psr::internal;
 //===----------------------------------------------------------------------===//
 // Direct api usage tests
 
-TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctions) {
+TEST(EdgeFunctionSingletonCacheTest, createEdgeFunctions) {
   DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
 
   EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction{42}, &Cache};
@@ -65,7 +65,7 @@ TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctions) {
   EXPECT_NE(EF1.getOpaqueValue(), EF2.getOpaqueValue());
 }
 
-TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsWithCorrectData) {
+TEST(EdgeFunctionSingletonCacheTest, createEdgeFunctionsWithCorrectData) {
   DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
 
   EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction(42), &Cache};
@@ -75,7 +75,7 @@ TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsWithCorrectData) {
   EXPECT_EQ(EF2.computeTarget(0), 1337);
 }
 
-TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsTwice) {
+TEST(EdgeFunctionSingletonCacheTest, createEdgeFunctionsTwice) {
   DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
 
   EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction(42), &Cache};
@@ -86,7 +86,7 @@ TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsTwice) {
   EXPECT_EQ(EF1.getOpaqueValue(), EF3.getOpaqueValue());
 }
 
-TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctions) {
+TEST(EdgeFunctionSingletonCacheTest, selfCleanExpiredEdgeFunctions) {
   DefaultEdgeFunctionSingletonCache<TestEdgeFunction> Cache;
   EdgeFunction<int> EF1 = CachedEdgeFunction{TestEdgeFunction(42), &Cache};
   bool Deleted = false;
@@ -97,49 +97,6 @@ TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctions) {
 
   EXPECT_TRUE(Deleted);
 }
-
-//===----------------------------------------------------------------------===//
-// Threaded tests
-#if 0
-TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsThreaded) {
-  TestEdgeFunction::initEdgeFunctionCleaner();
-
-  auto EF1 = TestEdgeFunction::createEdgeFunction(42);
-  auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
-
-  std::lock_guard<std::mutex> DataLock(
-      TestEdgeFunction::getTestCacheData().DataMutex);
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
-}
-
-TEST(EdgeFunctionSingletonFactoryTest, createEdgeFunctionsTwiceThreaded) {
-  TestEdgeFunction::initEdgeFunctionCleaner();
-
-  auto EF1 = TestEdgeFunction::createEdgeFunction(42);
-  auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
-  auto EF3 = TestEdgeFunction::createEdgeFunction(42);
-
-  std::lock_guard<std::mutex> DataLock(
-      TestEdgeFunction::getTestCacheData().DataMutex);
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 2U);
-  EXPECT_EQ(EF1.get(), EF3.get());
-}
-
-TEST(EdgeFunctionSingletonFactoryTest, selfCleanExpiredEdgeFunctionsThreaded) {
-  TestEdgeFunction::initEdgeFunctionCleaner();
-
-  auto EF1 = TestEdgeFunction::createEdgeFunction(42);
-  {
-    auto EF2 = TestEdgeFunction::createEdgeFunction(1337);
-  } // EF2 deleted after scope
-
-  std::this_thread::sleep_for(std::chrono::seconds{3});
-
-  std::lock_guard<std::mutex> DataLock(
-      TestEdgeFunction::getTestCacheData().DataMutex);
-  EXPECT_EQ(TestEdgeFunction::getTestCacheData().Storage.size(), 1U);
-}
-#endif // 0
 
 // main function for the test case
 int main(int Argc, char **Argv) {
