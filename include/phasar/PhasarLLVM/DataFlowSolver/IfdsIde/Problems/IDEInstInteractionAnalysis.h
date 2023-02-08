@@ -11,9 +11,8 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
 
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonCache.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactory.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
@@ -1393,7 +1392,7 @@ public:
   // Edge function that kills all labels in a set (and may replaces them with
   // others).
   struct IIAAKillOrReplaceEF {
-    using l_t = l_t;
+    using l_t = typename AnalysisDomainTy::l_t;
     l_t Replacement{};
 
     l_t computeTarget(ByConstRef<l_t> /* Src */) const { return Replacement; }
@@ -1501,7 +1500,7 @@ public:
   // Edge function that adds the given labels to existing labels
   // add all labels provided by Data.
   struct IIAAAddLabelsEF {
-    using l_t = l_t;
+    using l_t = typename AnalysisDomainTy::l_t;
     l_t Data{};
 
     l_t computeTarget(ByConstRef<l_t> Src) const {

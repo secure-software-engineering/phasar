@@ -1,7 +1,5 @@
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactory.h"
-
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 
 #include "gtest/gtest.h"

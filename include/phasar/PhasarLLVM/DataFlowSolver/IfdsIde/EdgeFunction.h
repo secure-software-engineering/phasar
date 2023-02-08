@@ -17,11 +17,14 @@
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/TypeName.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <atomic>
+#include <ostream>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 namespace psr {
 
@@ -58,17 +61,17 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
   {T::compose(CEF, TEEF)}  -> std::convertible_to<EdgeFunction<typename T::l_t>>;
   {T::join(CEF, TEEF)}     -> std::convertible_to<EdgeFunction<typename T::l_t>>;
 };
-// clang-format on
+  // clang-format on
 
 #endif
 
 class EdgeFunctionBase {
 public:
   template <typename ConcreteEF>
-  static constexpr bool IsSOOCandidate =
-      sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
-      alignof(ConcreteEF) <= alignof(void *) &&
-      std::is_trivially_copyable_v<ConcreteEF>;
+  static constexpr bool
+      IsSOOCandidate = sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
+                       alignof(ConcreteEF) <= alignof(void *) &&
+                       std::is_trivially_copyable_v<ConcreteEF>;
 
 protected:
   enum class AllocationPolicy {
@@ -79,9 +82,7 @@ protected:
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
-  template <typename T> struct RefCounted : RefCountedBase {
-    T Value;
-  };
+  template <typename T> struct RefCounted : RefCountedBase { T Value; };
 
   template <typename T> struct CachedRefCounted : RefCounted<T> {
     EdgeFunctionSingletonCache<T> *Cache{};
@@ -110,8 +111,8 @@ protected:
                                  : AllocationPolicy::CustomHeapAllocated;
 };
 
-/// Non-null reference to an edge function that is guarenteed to be managed by a
-/// EdgeFunction object.
+/// Non-null reference to an edge function that is guarenteed to be managed by
+/// an EdgeFunction object.
 template <typename EF>
 class [[clang::trivial_abi]] EdgeFunctionRef final : EdgeFunctionBase {
   template <typename L> friend class EdgeFunction;
@@ -156,7 +157,8 @@ private:
       IsCached{};
 };
 
-/// Ref-counted and type-erased edge function with small-object optimization
+/// Ref-counted and type-erased edge function with small-object optimization.
+/// Supports caching.
 template <typename L>
 // -- combined copy and move assignment
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
@@ -165,31 +167,47 @@ public:
   using l_t = L;
 
   // --- Constructors
+
+  /// Default-initializes the edge-function with nullptr
   EdgeFunction() noexcept = default;
+  /// Default-initializes the edge-function with nullptr
   EdgeFunction(std::nullptr_t) noexcept : EdgeFunction() {}
+  /// Copy constructor. Increments the ref-count, if not small-object-optimized.
   EdgeFunction(const EdgeFunction &Other) noexcept
       : EdgeFunction(Other.EF, Other.VTAndHeapAlloc) {}
+  /// Move constructor. Does not increment the ref-count, but instead leaves the
+  /// moved-from edge function in the nullptr state.
   EdgeFunction(EdgeFunction &&Other) noexcept
       : EF(std::exchange(Other.EF, nullptr)),
         VTAndHeapAlloc(
             std::exchange(Other.VTAndHeapAlloc, decltype(VTAndHeapAlloc){})) {}
+
+  /// Standard swap; does not affect ref-counts
   void swap(EdgeFunction &Other) noexcept {
     std::swap(EF, Other.EF);
     std::swap(VTAndHeapAlloc, Other.VTAndHeapAlloc);
   }
+  /// Standard swap; does not affect ref-counts
   friend void swap(EdgeFunction &LHS, EdgeFunction &RHS) noexcept {
     LHS.swap(RHS);
   }
 
+  /// Combined copy- and move assignment. If the assigned-to edge function is
+  /// not null, invokes the destructor on it, before overwriting its content.
   EdgeFunction &operator=(EdgeFunction Other) noexcept {
     std::destroy_at(this);
     return *new (this) EdgeFunction(std::move(Other)); // NOLINT
   }
+  /// Null-assignment operator. Decrements the ref-count if not
+  /// small-object-optimized or already null. Leaves the assigned-to edge
+  /// function in the nullptr state.
   EdgeFunction &operator=(std::nullptr_t) noexcept {
     std::destroy_at(this);
     return *new (this) EdgeFunction(); // NOLINT
   }
 
+  /// Destructor. Decrements the ref-count if not small-object-optimized and
+  /// destroyes the held edge function once the ref-count reaches 0.
   ~EdgeFunction() noexcept {
     AllocationPolicy Policy = VTAndHeapAlloc.getInt();
     if (Policy != AllocationPolicy::SmallObjectOptimized) {
@@ -202,6 +220,8 @@ public:
     }
   }
 
+  /// Implicit-conversion constructor from EdgeFunctionRef. Increments the
+  /// ref-count if not small-object optimized
   template <typename ConcreteEF,
             typename = std::enable_if_t<
                 !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
@@ -219,6 +239,9 @@ public:
                         }
                       }()}) {}
 
+  /// Conversion-constructor from any edge function (that satisfies the
+  /// IsEdgeFunction trait). Stores a type-erased copy of CEF and allocates
+  /// space for it on the heap if small-object-optimization cannot be applied.
   template <typename ConcreteEF,
             typename = std::enable_if_t<
                 !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
@@ -228,6 +251,11 @@ public:
       : EdgeFunction(std::in_place_type<std::decay_t<ConcreteEF>>,
                      std::forward<ConcreteEF>(CEF)) {}
 
+  /// Emplacement-constructor for any edge function. Constructs a new object of
+  /// type ConcreteEF with the given constructor arguments and allocates space
+  /// for it on the heap if small-object-optimization cannot be applied.
+  /// No extra copy- or move construction/assignment is performed. Use this ctor
+  /// if even moving is expensive.
   template <typename ConcreteEF, typename... ArgTys>
   explicit EdgeFunction(
       std::in_place_type_t<ConcreteEF> /*unused*/,
@@ -251,6 +279,17 @@ public:
                   "lattice domain");
   }
 
+  /// Conversion-constructor for any edge function with enabled caching.  Stores
+  /// a type-erased copy of EF.EF and allocates space for it on the heap if
+  /// small-object-optimization cannot be applied. If a heap allocation is
+  /// requires, first consults the EF.Cache to check whether an equivalent edge
+  /// function is already allocated. If so, takes the one from the cache and
+  /// increases its ref-count. Otherwise, performs a fresh allocation and
+  /// inserts the edge function into EF.Cache.
+  /// When all references to this edge function are out-of-scope, the destructor
+  /// automatically removes the edge function from EF.Cache. Hence, make sure
+  /// that EF.Cache lives at least as long as the last edge function cached in
+  /// it.
   template <typename ConcreteEF, typename = std::enable_if_t<
                                      IsEdgeFunction<ConcreteEF> &&
                                      std::is_move_constructible_v<ConcreteEF>>>
@@ -260,7 +299,7 @@ public:
               assert(EF.Cache != nullptr);
               if constexpr (IsSOOCandidate<std::decay_t<ConcreteEF>>) {
                 void *Ret;
-                new (&Ret) ConcreteEF(std::move(EF.CtorArg));
+                new (&Ret) ConcreteEF(std::move(EF.EF));
                 return Ret;
               } else {
                 if (auto Mem = EF.Cache->lookup(EF.EF)) {
@@ -274,17 +313,50 @@ public:
               }
             }(),
             {&VTableFor<ConcreteEF>, CustomAllocPolicy<ConcreteEF>}) {}
+
   // ---  API functions
 
+  ///
+  /// This function describes the concrete value computation for its respective
+  /// exploded supergraph edge. The function(s) will be evaluated once the
+  /// exploded supergraph has been constructed and the concrete values of the
+  /// various value computation problems along the supergraph edges are
+  /// evaluated.
+  ///
+  /// Please also refer to the various edge function factories of the
+  /// EdgeFunctions interface: EdgeFunctions::get*EdgeFunction() for more
+  /// details.
+  ///
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const {
     assert(!!*this && "computeTarget() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->computeTarget(EF, Source);
   }
 
+  ///
+  /// This function composes the two edge functions this and SecondEF. This
+  /// function is used to extend an edge function in order to construct
+  /// so-called jump functions that describe the effects of everlonger sequences
+  /// of code.
+  ///
+  /// Calls the static function EF::compose(*this, SecondEF) for your concrete
+  /// edge function EF.
+  ///
+  /// For semantic correctness, please make sure that for all inputs x in l_t,
+  /// it holds: this->composeWith(SecondEF).computeTarget(x) ==
+  /// SecondEF.computeTarget(this->computeTarget(x)).
   [[nodiscard]] EdgeFunction composeWith(const EdgeFunction &SecondEF) const {
     return compose(*this, SecondEF);
   }
 
+  ///
+  /// This function composes the two edge functions this and SecondEF. This
+  /// function is used to extend an edge function in order to construct
+  /// so-called jump functions that describe the effects of everlonger sequences
+  /// of code.
+  ///
+  /// For semantic correctness, please make sure that for all inputs x in l_t,
+  /// it holds: compose(FirstEF, SecondEF).computeTarget(x) ==
+  /// SecondEF.computeTarget(FirstEF.computeTarget(x)).
   [[nodiscard]] static EdgeFunction compose(const EdgeFunction &FirstEF,
                                             const EdgeFunction &SecondEF) {
     assert(!!FirstEF && "compose() called on LHS nullptr!");
@@ -293,10 +365,39 @@ public:
         FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
 
+  ///
+  /// This function describes the join of the two edge functions this and
+  /// OtherEF. The function is called whenever two edge functions need to
+  /// be joined, for instance, when two branches lead to a common successor
+  /// instruction.
+  ///
+  /// Calls the static function EF::join(*this, OtherEF) for your concrete
+  /// edge function EF.
+  ///
+  /// For semantic correctness, please make sure that for all inputs x in l_t,
+  /// it holds (with join = JoinLatticeTraits<l_t>::join):
+  /// join(this->joinWith(OtherEF).computeTarget(x)),
+  ///      join(this->computeTarget(x), OtherEF.computeTarget(x))) ==
+  /// this->joinWith(OtherEF).computeTarget(x)
+  /// i.e. that joining on edge functions only goes up the lattice that is
+  /// connected with the value-lattice on l_t
   [[nodiscard]] EdgeFunction joinWith(const EdgeFunction &OtherEF) const {
     return join(*this, OtherEF);
   }
 
+  ///
+  /// This function describes the join of the two edge functions this and
+  /// OtherEF. The function is called whenever two edge functions need to
+  /// be joined, for instance, when two branches lead to a common successor
+  /// instruction.
+  ///
+  /// For semantic correctness, please make sure that for all inputs x in l_t,
+  /// it holds (with joinl = JoinLatticeTraits<l_t>::join):
+  /// joinl(join(FirstEF, SecondEF).computeTarget(x)),
+  ///       joinl(FirstEF.computeTarget(x), SecondEF.computeTarget(x))) ==
+  /// this->joinWith(OtherEF).computeTarget(x)
+  /// i.e. that joining on edge functions only goes up the lattice that is
+  /// connected with the value-lattice on l_t
   [[nodiscard]] static EdgeFunction join(const EdgeFunction &FirstEF,
                                          const EdgeFunction &SecondEF) {
     assert(!!FirstEF && "join() called on LHS nullptr!");
@@ -305,6 +406,13 @@ public:
         FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
 
+  /// Checks for equality of two edge functions. Equality requires exact
+  /// type-equality and value-equality based on operator== of the concrete edge
+  /// functions that are compared.
+  ///
+  /// If the concrete edge function has no nonstatic data members, the equality
+  /// is defaulted to only compare the types. However, by explicitly defining
+  /// operator==, this behavior can be overridden.
   [[nodiscard]] friend bool operator==(const EdgeFunction &LHS,
                                        const EdgeFunction &RHS) noexcept {
     if (LHS.VTAndHeapAlloc.getPointer() != RHS.VTAndHeapAlloc.getPointer()) {
@@ -384,6 +492,12 @@ public:
     return !(LHS == RHS);
   }
 
+  /// Printing function. Based on llvm::raw_ostream
+  /// &operator<<(llvm::raw_ostream &OS, const ConcreteEF &EF) for the concrete
+  /// type ConcreteEF of EF.
+  ///
+  /// If the ConcreteEF does not define a fitting printing function, defaults to
+  /// printing the concrete type ConcreteEF.
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const EdgeFunction &EF) {
     if (!EF) {
@@ -394,7 +508,23 @@ public:
     return OS;
   }
 
-  friend std::string to_string(const EdgeFunction &EF) {
+  /// Printing function. Based on llvm::raw_ostream
+  /// &operator<<(llvm::raw_ostream &OS, const EdgeFunction &EF).
+  ///
+  /// Useful for unittests (gtest works with std::ostream instead of
+  /// llvm::raw_ostream).
+  friend std::ostream &operator<<(std::ostream &OS, const EdgeFunction &EF) {
+    llvm::raw_os_ostream ROS(OS);
+    ROS << EF;
+    return OS;
+  }
+
+  /// Stringify function. Based on llvm::raw_ostream
+  /// &operator<<(llvm::raw_ostream &OS, const EdgeFunction &EF).
+  ///
+  /// Useful for ADL calls to to_string (overloads with all the to_string
+  /// functions of the STL). Do not rename!
+  [[nodiscard]] friend std::string to_string(const EdgeFunction &EF) {
     std::string Ret;
     llvm::raw_string_ostream ROS(Ret);
     ROS << EF;
@@ -412,15 +542,27 @@ public:
            std::tuple(RHS.EF, RHS.VTAndHeapAlloc.getOpaqueValue());
   }
 
+  /// True, if the concrete edge function defines itself as constant, i.e.
+  /// for all x,y in l_t it holds: computeTarget(x) == computeTarget(y).
+  ///
+  /// Allows for better optimizations in compose and join and should be
+  /// provided, whehever this knowledge is available.
   [[nodiscard]] bool isConstant() const noexcept {
     assert(!!*this && "isConstant() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->isConstant(EF);
   }
 
+  /// Performs a null-check. True, iff thie edge function is not null.
   [[nodiscard]] explicit operator bool() const noexcept {
     return VTAndHeapAlloc.getOpaqueValue();
   }
 
+  /// Performs a runtime-typecheck. True, if the concrete type of the held edge
+  /// function *exactly* equals ConcreteEF.
+  ///
+  /// CAUTION: This model of isa-relation does not care about inheritance. Edge
+  /// functions of a base class BaseEF and a derived class DerivedEF are
+  /// considered unrelated!
   template <typename ConcreteEF> [[nodiscard]] bool isa() const noexcept {
     if constexpr (IsEdgeFunction<ConcreteEF> &&
                   std::is_same_v<l_t, typename ConcreteEF::l_t>) {
@@ -430,12 +572,22 @@ public:
     }
   }
 
+  /// Performs an *unchecked* typecast to ConcreteEF. In debug builds, asserts
+  /// isa<ConcreteEF>.
+  ///
+  /// Compatible with the llvm::isa API.
+  ///
+  /// Use with caution!
   template <typename ConcreteEF>
   [[nodiscard]] const ConcreteEF *cast() const noexcept {
     assert(this->template isa<ConcreteEF>() && "Cast on incompatible type!");
     return getPtr<ConcreteEF>(EF);
   }
 
+  /// Performs an *checked* typecast to ConcreteEF. If this edge function is not
+  /// *exactly* of type ConcreteEF, returns nullptr.
+  ///
+  /// Compatible with the llvm::dyn_cast API.
   template <typename ConcreteEF>
   // NOLINTNEXTLINE(readability-identifier-naming)
   [[nodiscard]] const ConcreteEF *dyn_cast() const noexcept {
@@ -444,16 +596,31 @@ public:
 
   // -- misc
 
+  /// True, iff this edge function is not small-object-optimized and thus its
+  /// lifetime is managed by ref-counting.
+  ///
+  /// False for null-EF.
   [[nodiscard]] bool isRefCounted() const noexcept {
     return VTAndHeapAlloc.getInt() != AllocationPolicy::SmallObjectOptimized;
   }
 
+  /// True, iff this edge function is cached in a EdgeFunctionSingletonCache.
+  ///
+  /// False for small-object-optimized- and null-EF.
   [[nodiscard]] bool isCached() const noexcept {
     return VTAndHeapAlloc.getInt() == AllocationPolicy::CustomHeapAllocated;
   }
 
+  /// Gets an opaque identifier for this edge function. Only meant for
+  /// comparisons of object-identity. Do not dereference!
   [[nodiscard]] const void *getOpaqueValue() const noexcept { return EF; }
 
+  /// Gets the cache where this edge function is being cached in. If this edge
+  /// function is not cached (i.e., isCached() returns false), returns nullptr.
+  /// Assumes that the held edge function is *exactly* of type ConcreteEF. In
+  /// debug builds, asserts isa<ConcreteEF>.
+  ///
+  /// Use with caution!
   template <typename ConcreteEF>
   [[nodiscard]] EdgeFunctionSingletonCache<ConcreteEF> *
   getCacheOrNull() const noexcept {
