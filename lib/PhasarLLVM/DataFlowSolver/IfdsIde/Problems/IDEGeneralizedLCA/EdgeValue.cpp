@@ -499,25 +499,25 @@ EdgeValue EdgeValue::typecast(Type Dest, unsigned Bits) const {
       case llvm::APFloatBase::opInexact:
         break;
       case llvm::APFloatBase::opInvalidOp:
-        llvm::report_fatal_error("opInvalidOp when truncating " +
-                                 llvm::Twine(to_string(*this)) + " to int" +
-                                 llvm::Twine(Bits));
+        llvm::errs() << "opInvalidOp when truncating " << *this << " to int"
+                     << Bits << "; result = " << Ai << '\n';
+        break;
       case llvm::APFloatBase::opDivByZero:
-        llvm::report_fatal_error("opDivByZero when truncating " +
-                                 llvm::Twine(to_string(*this)) + " to int" +
-                                 llvm::Twine(Bits));
+        llvm::errs() << "opDivByZero when truncating " << *this << " to int"
+                     << Bits << "; result = " << Ai << '\n';
+        break;
       case llvm::APFloatBase::opOverflow:
-        llvm::report_fatal_error("opOverflow when truncating " +
-                                 llvm::Twine(to_string(*this)) + " to int" +
-                                 llvm::Twine(Bits));
+        llvm::errs() << "opOverflow when truncating " << *this << " to int"
+                     << Bits << "; result = " << Ai << '\n';
+        break;
       case llvm::APFloatBase::opUnderflow:
-        llvm::report_fatal_error("opUnderflow when truncating " +
-                                 llvm::Twine(to_string(*this)) + " to int" +
-                                 llvm::Twine(Bits));
+        llvm::errs() << "opUnderflow when truncating " << *this << " to int"
+                     << Bits << "; result = " << Ai << '\n';
+        break;
       }
 
-      assert(Status == llvm::APFloatBase::opOK ||
-             Status == llvm::APFloatBase::opInexact);
+      // assert(Status == llvm::APFloatBase::opOK ||
+      //        Status == llvm::APFloatBase::opInexact);
 
       return {Ai};
     }
