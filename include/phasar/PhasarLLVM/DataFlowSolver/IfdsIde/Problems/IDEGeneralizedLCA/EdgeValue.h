@@ -15,6 +15,7 @@
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <variant>
 
@@ -81,6 +82,13 @@ public:
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &Os,
                                        const EdgeValue &EV);
   static std::string typeToString(Type Ty);
+
+  friend std::string to_string(const EdgeValue &EV) {
+    std::string Ret;
+    llvm::raw_string_ostream ROS(Ret);
+    ROS << EV;
+    return Ret;
+  }
 };
 class EdgeValueSet;
 using ev_t = EdgeValueSet;

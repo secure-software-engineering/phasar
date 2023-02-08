@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 
 #include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -492,6 +493,29 @@ EdgeValue EdgeValue::typecast(Type Dest, unsigned Bits) const {
           std::get<llvm::APFloat>(ValVariant)
               .convertToInteger(
                   Ai, llvm::APFloat::roundingMode::NearestTiesToEven, &Unused);
+
+      switch (Status) {
+      case llvm::APFloatBase::opOK:
+      case llvm::APFloatBase::opInexact:
+        break;
+      case llvm::APFloatBase::opInvalidOp:
+        llvm::report_fatal_error("opInvalidOp when truncating " +
+                                 llvm::Twine(to_string(*this)) + " to int" +
+                                 llvm::Twine(Bits));
+      case llvm::APFloatBase::opDivByZero:
+        llvm::report_fatal_error("opDivByZero when truncating " +
+                                 llvm::Twine(to_string(*this)) + " to int" +
+                                 llvm::Twine(Bits));
+      case llvm::APFloatBase::opOverflow:
+        llvm::report_fatal_error("opOverflow when truncating " +
+                                 llvm::Twine(to_string(*this)) + " to int" +
+                                 llvm::Twine(Bits));
+      case llvm::APFloatBase::opUnderflow:
+        llvm::report_fatal_error("opUnderflow when truncating " +
+                                 llvm::Twine(to_string(*this)) + " to int" +
+                                 llvm::Twine(Bits));
+      }
+
       assert(Status == llvm::APFloatBase::opOK ||
              Status == llvm::APFloatBase::opInexact);
 
