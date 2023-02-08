@@ -14,6 +14,7 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/raw_os_ostream.h"
 
 #include <variant>
 
@@ -93,6 +94,11 @@ ev_t join(const ev_t &Lhs, const ev_t &Rhs, size_t MaxSize);
 bool operator<(const ev_t &Lhs, const ev_t &Rhs);
 bool isTopValue(const ev_t &Val);
 llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &Val);
+inline std::ostream &operator<<(std::ostream &Os, const ev_t &Val) {
+  llvm::raw_os_ostream ROS(Os);
+  ROS << Val;
+  return Os;
+}
 
 } // namespace psr::glca
 
