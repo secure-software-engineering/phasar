@@ -14,9 +14,12 @@
 #include "llvm/ADT/APFloat.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+
+#include <math.h>
 
 namespace psr::glca {
 
@@ -229,7 +232,7 @@ bool operator==(const EdgeValue &Lhs, const EdgeValue &Rhs) {
 
     const double Epsilon = 0.000001;
     // llvm::outs() << "Compare " << d1 << " against " << d2 << std::endl;
-    return D1 == D2 || D1 - D2 < Epsilon || D2 - D1 < Epsilon;
+    return D1 == D2 || fabs(D1 - D2) < Epsilon;
   }
   case EdgeValue::String:
     // if (v1.value.asString != v2.value.asString)
@@ -275,8 +278,6 @@ EdgeValue operator-(const EdgeValue &Lhs, const EdgeValue &Rhs) {
     return {std::get<llvm::APInt>(Lhs.ValVariant) -
             std::get<llvm::APInt>(Lhs.ValVariant)};
   case EdgeValue::FloatingPoint:
-    // printSemantics(v1.value.asFP) << " <=> ";
-    // printSemantics(v2.value.asFP) << std::endl;
     return {std::get<llvm::APFloat>(Lhs.ValVariant) -
             std::get<llvm::APFloat>(Rhs.ValVariant)};
   default:
@@ -486,10 +487,14 @@ EdgeValue EdgeValue::typecast(Type Dest, unsigned Bits) const {
       return {std::get<llvm::APInt>(ValVariant) & ((1 << Bits) - 1)};
     case FloatingPoint: {
       bool Unused;
-      llvm::APSInt Ai;
-      std::get<llvm::APFloat>(ValVariant)
-          .convertToInteger(Ai, llvm::APFloat::roundingMode::NearestTiesToEven,
-                            &Unused);
+      llvm::APSInt Ai(Bits);
+      auto Status =
+          std::get<llvm::APFloat>(ValVariant)
+              .convertToInteger(
+                  Ai, llvm::APFloat::roundingMode::NearestTiesToEven, &Unused);
+      assert(Status == llvm::APFloatBase::opOK ||
+             Status == llvm::APFloatBase::opInexact);
+
       return {Ai};
     }
     default:
