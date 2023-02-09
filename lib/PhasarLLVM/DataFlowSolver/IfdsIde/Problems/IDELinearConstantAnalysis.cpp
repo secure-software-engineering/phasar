@@ -8,14 +8,16 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -54,21 +56,7 @@ static unsigned CurrBinaryId = 0;      // NOLINT
 
 class LCAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
 public:
-  LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                          std::shared_ptr<EdgeFunction<l_t>> G)
-      : EdgeFunctionComposer<l_t>(F, G){};
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-    if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-      return SecondFunction;
-    }
-    if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-      return shared_from_this();
-    }
-
-    return F->composeWith(G->composeWith(SecondFunction));
-  }
+  using EdgeFunctionComposer<l_t>::EdgeFunctionComposer;
 
   std::shared_ptr<EdgeFunction<l_t>>
   joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
@@ -79,65 +67,11 @@ public:
     if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
       return this->shared_from_this();
     }
-    return std::make_shared<AllBottom<l_t>>(Bottom{});
+    return AllBottom<l_t>::getInstance();
   }
 };
 
-class GenConstant : public EdgeFunction<l_t>,
-                    public std::enable_shared_from_this<GenConstant> {
-private:
-  const unsigned GenConstantId;
-  const int64_t IntConst;
-
-public:
-  explicit GenConstant(int64_t IntConst)
-      : GenConstantId(++CurrGenConstantId), IntConst(IntConst) {}
-
-  l_t computeTarget(l_t /*Source*/) override { return IntConst; }
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-
-    if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
-      return shared_from_this();
-    }
-
-    auto Res = SecondFunction->computeTarget(IntConst);
-
-    if (Res.isTop()) {
-      return std::make_shared<AllTop<l_t>>(Top{});
-    }
-    if (Res.isBottom()) {
-      return std::make_shared<AllBottom<l_t>>(Bottom{});
-    }
-
-    return std::make_shared<GenConstant>(std::get<int64_t>(Res));
-  }
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
-    if (OtherFunction.get() == this ||
-        OtherFunction->equal_to(shared_from_this())) {
-      return shared_from_this();
-    }
-    if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
-      return shared_from_this();
-    }
-    return std::make_shared<AllBottom<l_t>>(Bottom{});
-  }
-
-  bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
-    if (auto *GC = dynamic_cast<GenConstant *>(Other.get())) {
-      return (GC->IntConst == this->IntConst);
-    }
-    return this == Other.get();
-  }
-
-  void print(llvm::raw_ostream &OS,
-             bool /*IsForDebug*/ = false) const override {
-    OS << IntConst << " (EF:" << GenConstantId << ')';
-  }
-};
+using GenConstant = ConstantEdgeFunction<l_t>;
 
 /**
  * The following binary operations are computed:
@@ -153,8 +87,7 @@ public:
  * @param rop right operand
  * @return Result of binary operation
  */
-static l_t executeBinOperation(const unsigned Op, l_t LVal, l_t RVal) {
-
+static l_t executeBinOperation(unsigned Op, l_t LVal, l_t RVal) {
   auto *LopPtr = std::get_if<int64_t>(&LVal);
   auto *RopPtr = std::get_if<int64_t>(&RVal);
 
@@ -268,8 +201,8 @@ public:
       const auto *Ric = llvm::cast<llvm::ConstantInt>(Rop);
       return executeBinOperation(Op, Lic->getSExtValue(), Ric->getSExtValue());
     }
-    if (Source.isBottom()) {
-      return Bottom{};
+    if (Source == Bottom{}) {
+      return Source;
     }
     if (Lop == CurrNode && llvm::isa<llvm::ConstantInt>(Rop)) {
       const auto *Ric = llvm::cast<llvm::ConstantInt>(Rop);
@@ -286,11 +219,10 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-    if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get()) ||
-        dynamic_cast<GenConstant *>(SecondFunction.get())) {
+    if (SecondFunction->isConstant()) {
       return SecondFunction;
     }
-    if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
+    if (SecondFunction == EdgeIdentity<l_t>::getInstance()) {
       return shared_from_this();
     }
 
@@ -309,7 +241,7 @@ public:
     if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
       return this->shared_from_this();
     }
-    return std::make_shared<AllBottom<l_t>>(Bottom{});
+    return AllBottom<l_t>::getInstance();
   }
 
   bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
@@ -441,12 +373,6 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
       /*PropagateGlobals*/ false);
 }
 
-IDELinearConstantAnalysis::FlowFunctionPtrType
-IDELinearConstantAnalysis::getSummaryFlowFunction(n_t /*CallSite*/,
-                                                  f_t /*DestFun*/) {
-  return nullptr;
-}
-
 InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
              IDELinearConstantAnalysis::l_t>
 IDELinearConstantAnalysis::initialSeeds() {
@@ -515,7 +441,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   if ((llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
     PHASAR_LOG_LEVEL(DEBUG, "Case: Zero value.");
     PHASAR_LOG_LEVEL(DEBUG, ' ');
-    return std::make_shared<AllBottom<l_t>>(Bottom{});
+    return AllBottom<l_t>::getInstance();
   }
 
   // Check store instruction
@@ -560,7 +486,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
     // For non linear constant computation we propagate bottom
     if ((CurrNode == Lop && !llvm::isa<llvm::ConstantInt>(Rop)) ||
         (CurrNode == Rop && !llvm::isa<llvm::ConstantInt>(Lop))) {
-      return std::make_shared<AllBottom<l_t>>(Bottom{});
+      return AllBottom<l_t>::getInstance();
     }
 
     return std::make_shared<lca::BinOp>(OP, Lop, Rop, CurrNode);
@@ -614,35 +540,8 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
-IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t /*CallSite*/,
-                                                  d_t /*CallNode*/,
-                                                  n_t /*RetSite*/,
-                                                  d_t /*RetSiteNode*/) {
-  return nullptr;
-}
-
-IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::topElement() {
-  return Top{};
-}
-
-IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::bottomElement() {
-  return Bottom{};
-}
-
-IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::join(l_t Lhs,
-                                                               l_t Rhs) {
-  if (Rhs == Lhs || Lhs.isTop()) {
-    return Rhs;
-  }
-  if (Rhs.isTop()) {
-    return Lhs;
-  }
-  return Bottom{};
-}
-
-std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::allTopFunction() {
-  return std::make_shared<AllTop<l_t>>(Top{});
+  return std::make_shared<AllTop<l_t>>();
 }
 
 void IDELinearConstantAnalysis::printNode(llvm::raw_ostream &OS,
@@ -830,7 +729,7 @@ IDELinearConstantAnalysis::LCAResult::operator std::string() const {
   for (const auto *Ir : IRTrace) {
     OS << "  " << llvmIRToString(Ir) << '\n';
   }
-  return OS.str();
+  return Buffer;
 }
 
 } // namespace psr

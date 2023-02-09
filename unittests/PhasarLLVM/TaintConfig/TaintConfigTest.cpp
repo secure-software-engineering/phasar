@@ -1,18 +1,17 @@
 
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-
-#include "gtest/gtest.h"
-
-#include "nlohmann/json.hpp"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
 #include "../TestUtils/TestConfig.h"
+#include "gtest/gtest.h"
+#include "nlohmann/json.hpp"
 
 #include <string>
 

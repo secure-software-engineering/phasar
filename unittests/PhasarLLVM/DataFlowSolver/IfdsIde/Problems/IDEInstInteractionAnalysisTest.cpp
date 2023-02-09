@@ -8,23 +8,23 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/Logger.h"
 
-#include "TestConfig.h"
-
-#include "gtest/gtest.h"
-
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include <memory>
 #include <set>
@@ -64,7 +64,7 @@ protected:
       IRDB->dump();
     }
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToSet PT(*IRDB);
+    LLVMAliasSet PT(IRDB.get());
     LLVMBasedICFG ICFG(
         IRDB.get(), CallGraphAnalysisType::CHA,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
@@ -722,11 +722,11 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
           "main", 9, "retval", {"3"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "i", {"0", "7", "8"}));
+          "main", 9, "i", {"7", "8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 9, "j", {"0", "5", "6"}));
-  doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, false);
+  doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, true);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
@@ -736,13 +736,13 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
           "_Z5initBv", 2, "a", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "_Z5initBv", 2, "b", {"1", "2"}));
+          "_Z5initBv", 2, "b", {"2"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 12, "a", {"0", "10"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "b", {"1", "2", "11"}));
+          "main", 12, "b", {"2", "11"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 12, "retval", {"6"}));
@@ -815,7 +815,7 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_02) {
           "main", 12, "A", {"0", "10"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "B", {"1", "2", "11"}));
+          "main", 12, "B", {"2", "11"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 12, "C", {"1", "7", "8", "13"}));

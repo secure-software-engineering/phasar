@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 #define PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+
 #include <string>
 
 namespace llvm {
@@ -27,7 +29,20 @@ namespace psr {
 
 enum class BinaryDomain { BOTTOM = 0, TOP = 1 };
 
+[[nodiscard]] std::string to_string(BinaryDomain B);
+
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, BinaryDomain B);
+
+template <> struct JoinLatticeTraits<BinaryDomain> {
+  static constexpr BinaryDomain top() noexcept { return BinaryDomain::TOP; }
+  static constexpr BinaryDomain bottom() noexcept {
+    return BinaryDomain::BOTTOM;
+  }
+  static constexpr BinaryDomain join(BinaryDomain LHS,
+                                     BinaryDomain RHS) noexcept {
+    return LHS == RHS ? LHS : BinaryDomain::BOTTOM;
+  }
+};
 
 } // namespace psr
 

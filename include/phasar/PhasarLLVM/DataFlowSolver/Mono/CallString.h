@@ -17,14 +17,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CALLSTRING_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CALLSTRING_H
 
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include <algorithm>
 #include <deque>
 #include <initializer_list>
 #include <iterator>
 #include <stdexcept>
-
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/raw_ostream.h"
 
 namespace psr {
 

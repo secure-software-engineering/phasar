@@ -10,17 +10,17 @@
 #ifndef PHASAR_UTILS_UTILITIES_H_
 #define PHASAR_UTILS_UTILITIES_H_
 
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/SmallVector.h"
+
 #include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include "llvm/ADT/Hashing.h"
-#include "llvm/ADT/SmallVector.h"
-
-#include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/TypeTraits.h"
 
 namespace llvm {
 class Type;

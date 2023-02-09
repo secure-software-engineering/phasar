@@ -8,12 +8,11 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-
 #include "phasar/PhasarLLVM/Utils/LLVMCXXShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -34,14 +33,14 @@
 namespace psr {
 
 IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
-                                     LLVMPointsToInfo *PT,
+                                     LLVMAliasInfoRef PT,
                                      std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       PT(PT) {
-  assert(PT != nullptr);
+  assert(PT);
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,
+  REG_COUNTER("[Calls] getContextRelevantAliasSet", 0,
               PAMM_SEVERITY_LEVEL::Full);
 }
 
@@ -59,8 +58,8 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     IFDSConstAnalysis::d_t PointerOp = Store->getPointerOperand();
     PHASAR_LOG_LEVEL(DEBUG, "Pointer operand of store Instruction: "
                                 << llvmIRToString(PointerOp));
-    auto PTS = PT->getPointsToSet(PointerOp);
-    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
+    auto PTS = PT.getAliasSet(PointerOp);
+    std::set<IFDSConstAnalysis::d_t> AliasSet(PTS->begin(), PTS->end());
     // Check if this store instruction is the second write access to the
     // memory location the pointer operand or it's alias are pointing to.
     // This is done by checking the Initialized set.
@@ -69,12 +68,12 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     // 'context-relevant' requirements! (see getContextRelevantPointsToSet
     // function) NOTE: The points-to set of value x also contains the value
     // x itself!
-    for (const auto *Alias : PointsToSet) {
+    for (const auto *Alias : AliasSet) {
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information for the pointer operand.");
         return generateManyFlows(
-            getContextRelevantPointsToSet(PointsToSet, Curr->getFunction()),
+            getContextRelevantAliasSet(AliasSet, Curr->getFunction()),
             getZeroValue());
       }
     }
@@ -136,14 +135,14 @@ IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     IFDSConstAnalysis::d_t PointerOp = CallSite->getOperand(0);
     PHASAR_LOG_LEVEL(DEBUG, "Pointer Operand: " << llvmIRToString(PointerOp));
-    auto PTS = PT->getPointsToSet(PointerOp);
-    std::set<IFDSConstAnalysis::d_t> PointsToSet(PTS->begin(), PTS->end());
-    for (const auto *Alias : PointsToSet) {
+    auto PTS = PT.getAliasSet(PointerOp);
+    std::set<IFDSConstAnalysis::d_t> AliasSet(PTS->begin(), PTS->end());
+    for (const auto *Alias : AliasSet) {
       if (isInitialized(Alias)) {
         PHASAR_LOG_LEVEL(DEBUG, "Compute context-relevant points-to "
                                 "information of the pointer operand.");
         return generateManyFlows(
-            getContextRelevantPointsToSet(PointsToSet, CallSite->getFunction()),
+            getContextRelevantAliasSet(AliasSet, CallSite->getFunction()),
             getZeroValue());
       }
     }
@@ -210,17 +209,16 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
 #endif
 }
 
-std::set<IFDSConstAnalysis::d_t>
-IFDSConstAnalysis::getContextRelevantPointsToSet(
-    std::set<IFDSConstAnalysis::d_t> &PointsToSet,
+std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
+    std::set<IFDSConstAnalysis::d_t> &AliasSet,
     IFDSConstAnalysis::f_t CurrentContext) {
   PAMM_GET_INSTANCE;
-  INC_COUNTER("[Calls] getContextRelevantPointsToSet", 1,
+  INC_COUNTER("[Calls] getContextRelevantAliasSet", 1,
               PAMM_SEVERITY_LEVEL::Full);
-  START_TIMER("Context-Relevant-PointsTo-Set Computation",
+  START_TIMER("Context-Relevant-Alias-Set Computation",
               PAMM_SEVERITY_LEVEL::Full);
   std::set<IFDSConstAnalysis::d_t> ToGenerate;
-  for (const auto *Alias : PointsToSet) {
+  for (const auto *Alias : AliasSet) {
     PHASAR_LOG_LEVEL(DEBUG, "Alias: " << llvmIRToString(Alias));
     // Case (i + ii)
     if (const auto *I = llvm::dyn_cast<llvm::Instruction>(Alias)) {
@@ -246,7 +244,7 @@ IFDSConstAnalysis::getContextRelevantPointsToSet(
       }
     } // ignore everything else
   }
-  PAUSE_TIMER("Context-Relevant-PointsTo-Set Computation",
+  PAUSE_TIMER("Context-Relevant-Alias-Set Computation",
               PAMM_SEVERITY_LEVEL::Full);
   ADD_TO_HISTOGRAM("Context-relevant Pointer", ToGenerate.size(), 1,
                    PAMM_SEVERITY_LEVEL::Full);

@@ -10,6 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWEDGEFUNCTIONCACHE_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWEDGEFUNCTIONCACHE_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/Utils/EquivalenceClassMap.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
+
+#include "llvm/ADT/DenseMap.h"
+
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -17,14 +25,6 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
-
-#include "llvm/ADT/DenseMap.h"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/Utils/EquivalenceClassMap.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/PAMMMacros.h"
 
 namespace psr {
 template <typename KeyT> class DefaultMapKeyCompressor {

@@ -1,12 +1,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
 
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "boost/functional/hash.hpp"
+
 #include <deque>
 #include <functional>
 #include <initializer_list>
-
-#include "boost/functional/hash.hpp"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 namespace psr {
 

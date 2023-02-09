@@ -4,16 +4,15 @@
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
-#include "gtest/gtest.h"
-
-#include "TestConfig.h"
-
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
@@ -22,7 +21,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_7_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB, false);
+  LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -52,7 +51,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 //   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_8_cpp.ll"},
 //                    IRDBOptions::WPA);
 //   LLVMTypeHierarchy TH(IRDB);
-//   LLVMPointsToInfo PT(IRDB);
+//   LLVMAliasInfo PT(IRDB);
 //   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 //   const llvm::Function *F = IRDB.getFunctionDefinition("main");
 //   const llvm::Function *FooC =
@@ -73,7 +72,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/function_pointer_2_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB, false);
+  LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
@@ -111,7 +110,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/function_pointer_3_cpp.ll");
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB, false);
+  LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
