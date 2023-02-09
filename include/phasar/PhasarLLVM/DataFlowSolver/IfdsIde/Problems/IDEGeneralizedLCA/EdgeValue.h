@@ -46,7 +46,7 @@ public:
   EdgeValue(std::nullptr_t);
   ~EdgeValue();
   const static EdgeValue TopValue;
-  [[nodiscard]] bool tryGetInt(uint64_t &Res) const;
+  [[nodiscard]] bool tryGetInt(int64_t &Res) const;
   [[nodiscard]] bool tryGetFP(double &Res) const;
   [[nodiscard]] bool tryGetString(std::string &Res) const;
   [[nodiscard]] bool isTop() const;
@@ -116,11 +116,11 @@ template <> struct hash<psr::glca::EdgeValue> {
   hash() = default;
   size_t operator()(const psr::glca::EdgeValue &Val) const {
     auto Hash = hash<int>()(Val.getKind());
-    uint64_t AsInt;
+    int64_t AsInt;
     double AsFloat;
     string AsString;
     if (Val.tryGetInt(AsInt)) {
-      return hash<uint64_t>()(AsInt) * 31 + Hash;
+      return hash<int64_t>()(AsInt) * 31 + Hash;
     }
     if (Val.tryGetFP(AsFloat)) {
       return hash<double>()(round(AsFloat)) * 31 + Hash;

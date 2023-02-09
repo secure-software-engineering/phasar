@@ -107,8 +107,6 @@ TEST_F(IDEGeneralizedLCATest, BranchTest) {
 TEST_F(IDEGeneralizedLCATest, FPtest) {
   initialize("FPtest_c.ll");
 
-  LCASolver->dumpResults(llvm::errs());
-
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(4.5)}, 1, 16});
   GroundTruth.push_back({{EdgeValue(2.0)}, 2, 16});
