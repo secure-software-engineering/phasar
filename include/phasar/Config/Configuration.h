@@ -21,8 +21,10 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/iterator_range.h"
+#include "llvm/Support/MemoryBuffer.h"
 
 #include <filesystem>
+#include <optional>
 #include <set>
 #include <string>
 
@@ -49,9 +51,27 @@ public:
   /// located.
   [[nodiscard]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  ConfigurationDirectory() noexcept {
+  GlobalConfigurationDirectory() noexcept {
     return PHASAR_CONFIG_DIR;
   }
+
+  [[nodiscard]] static std::optional<llvm::StringRef>
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  LocalConfigurationDirectory() noexcept;
+
+  [[nodiscard]] std::unique_ptr<llvm::MemoryBuffer>
+  readConfigFile(const llvm::Twine &FileName);
+  [[nodiscard]] std::string readConfigFileAsText(const llvm::Twine &FileName);
+
+  [[nodiscard]] llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
+  readConfigFileOrErr(const llvm::Twine &FileName);
+  [[nodiscard]] llvm::ErrorOr<std::string>
+  readConfigFileAsTextOrErr(const llvm::Twine &FileName);
+
+  [[nodiscard]] std::unique_ptr<llvm::MemoryBuffer>
+  readConfigFileOrNull(const llvm::Twine &FileName);
+  [[nodiscard]] std::optional<std::string>
+  readConfigFileAsTextOrNull(const llvm::Twine &FileName);
 
   /// Specifies the directory in which Phasar is located.
   // NOLINTNEXTLINE(readability-identifier-naming)

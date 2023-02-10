@@ -120,13 +120,7 @@ else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
-set(PHASAR_CONFIG_INSTALL_PREFIX "" CACHE STRING "Customizes the directory, where configuration files for PhASAR are installed (default is $(HOME)/.config)")
-
-if("${PHASAR_CONFIG_INSTALL_PREFIX}" STREQUAL "")
-  set(PHASAR_CONFIG_INSTALL_DIR "$ENV{HOME}/.config/phasar")
-else()
-  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CONFIG_INSTALL_PREFIX}/phasar")
-endif()
+set(PHASAR_CONFIG_INSTALL_DIR "/opt/phasar/config/" CACHE STRING "Customizes the directory, where configuration files for PhASAR are installed (default is /opt/phasar/config)")
 
 add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
 add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
@@ -346,7 +340,7 @@ install(DIRECTORY utils/
               WORLD_EXECUTE WORLD_READ
 )
 
-# Install the Phasar config files into ~/.config/phasar/
+# Install the Phasar config files into /opt/phasar/config/
 install(DIRECTORY config/
   DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"

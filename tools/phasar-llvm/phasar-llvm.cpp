@@ -142,6 +142,24 @@ PSR_SHORTLONG_OPTION(
 
 #ifdef DYNAMIC_LOG
 PSR_SHORTLONG_OPTION(LogOpt, bool, "L", "log", "Enable logging");
+cl::opt<SeverityLevel> LogSeverityOpt(
+    "log-level",
+    cl::desc(
+        "The severity minimum level a log message must have in order to be "
+        "printed. Has no effect if logging is disabled.. You can enable "
+        "logging with --log/-L or by specifyint at least one --log-cat."),
+    cl::cat(PsrCat),
+    cl::values(
+#define SEVERITY_LEVEL(NAME, TYPE) clEnumVal(SeverityLevel::TYPE, NAME),
+#include "phasar/Utils/SeverityLevel.def"
+        clEnumVal(SeverityLevel::INVALID, "INVALID")),
+    cl::init(SeverityLevel::DEBUG));
+
+cl::list<std::string>
+    LogCategoriesOpt("log-cat",
+                     cl::desc("The categories that should be enabled for "
+                              "logging. Implies --log/-L is non-empty."),
+                     cl::cat(PsrCat));
 #endif
 
 cl::opt<std::string>
@@ -303,10 +321,20 @@ int main(int Argc, const char **Argv) {
   cl::ParseCommandLineOptions(Argc, Argv);
 
 #ifdef DYNAMIC_LOG
+  if (LogSeverityOpt == SeverityLevel::INVALID) {
+    llvm::errs() << "Invalid log-severity\n";
+    return 1;
+  }
   if (LogOpt) {
-    Logger::initializeStderrLogger(DEBUG);
+    Logger::initializeStderrLogger(LogSeverityOpt);
+  }
+  for (const auto &LogCat : LogCategoriesOpt) {
+    Logger::initializeStderrLogger(LogSeverityOpt, LogCat);
   }
 #endif
+
+  auto &PConfig = PhasarConfig::getPhasarConfig();
+
   // Vanity header
   if (!SilentOpt) {
     llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion()

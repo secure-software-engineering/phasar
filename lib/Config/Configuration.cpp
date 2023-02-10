@@ -16,13 +16,20 @@
 
 #include "phasar/Config/Configuration.h"
 
-#include "phasar/Config/Version.h"
+#include "phasar/Utils/ErrorHandling.h"
 #include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/Twine.h"
+#include "llvm/Support/FileSystem.h"
 
-#include "boost/algorithm/string/classification.hpp"
-#include "boost/algorithm/string/split.hpp"
+#include <algorithm>
+#include <cstdlib>
+#include <iterator>
+#include <system_error>
 
 using namespace psr;
 
@@ -36,47 +43,108 @@ PhasarConfig::PhasarConfig() {
   SpecialFuncNames.insert({"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
 }
 
+std::optional<llvm::StringRef>
+PhasarConfig::LocalConfigurationDirectory() noexcept {
+  static std::string DirName = []() -> std::string {
+    const auto *Home = getenv("HOME");
+    if (!Home) {
+      return {};
+    }
+    return (Home + llvm::Twine("/.config/phasar/")).str();
+  }();
+  if (DirName.empty()) {
+    return std::nullopt;
+  }
+  return DirName;
+}
+
+std::unique_ptr<llvm::MemoryBuffer>
+PhasarConfig::readConfigFile(const llvm::Twine &FileName) {
+  return getOrThrow(readConfigFileOrErr(FileName));
+}
+
+std::string PhasarConfig::readConfigFileAsText(const llvm::Twine &FileName) {
+  auto Buffer = readConfigFile(FileName);
+  return Buffer->getBuffer().str();
+}
+
+llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
+PhasarConfig::readConfigFileOrErr(const llvm::Twine &FileName) {
+  if (auto LocalConfigPath = LocalConfigurationDirectory()) {
+    if (llvm::sys::fs::exists(*LocalConfigPath + FileName)) {
+      PHASAR_LOG_LEVEL(INFO,
+                       "Local config file: " << (*LocalConfigPath + FileName));
+      return readFileOrErr(*LocalConfigPath + FileName);
+    }
+  }
+  PHASAR_LOG_LEVEL(INFO, "Global config file: "
+                             << (GlobalConfigurationDirectory() + FileName));
+  return readFileOrErr(GlobalConfigurationDirectory() + FileName);
+}
+llvm::ErrorOr<std::string>
+PhasarConfig::readConfigFileAsTextOrErr(const llvm::Twine &FileName) {
+  return mapValue(readConfigFileOrErr(FileName),
+                  [](auto Buffer) { return Buffer->getBuffer().str(); });
+}
+
+std::unique_ptr<llvm::MemoryBuffer>
+PhasarConfig::readConfigFileOrNull(const llvm::Twine &FileName) {
+  return getOrEmpty(readConfigFileOrErr(FileName));
+}
+std::optional<std::string>
+PhasarConfig::readConfigFileAsTextOrNull(const llvm::Twine &FileName) {
+  if (auto Buffer = readConfigFileOrNull(FileName)) {
+    return Buffer->getBuffer().str();
+  }
+  return std::nullopt;
+}
+
 void PhasarConfig::loadGlibcSpecialFunctionNames() {
-  const std::string GLIBCFunctionListFilePath =
-      (ConfigurationDirectory() + GLIBCFunctionListFileName).str();
-
-  if (std::filesystem::exists(GLIBCFunctionListFilePath)) {
-    // Load glibc function names specified in the config file
-    std::vector<std::string> GlibcFunctions;
-    std::string Glibc = readTextFile(GLIBCFunctionListFilePath);
-    // Insert glibc function names
-    boost::split(GlibcFunctions, Glibc, boost::is_any_of("\n"),
-                 boost::token_compress_on);
-
-    SpecialFuncNames.insert(GlibcFunctions.begin(), GlibcFunctions.end());
-  } else {
+  auto Glibc = readConfigFileAsTextOrErr(GLIBCFunctionListFileName);
+  if (!Glibc) {
+    if (Glibc.getError() != std::errc::no_such_file_or_directory) {
+      PHASAR_LOG_LEVEL(WARNING, "Could not open config file '"
+                                    << GLIBCFunctionListFileName
+                                    << "': " << Glibc.getError().message());
+    }
     // Add default glibc function names
     SpecialFuncNames.insert({"_exit"});
+    return;
   }
+
+  llvm::SmallVector<llvm::StringRef, 0> GlibcFunctions;
+  llvm::SplitString(*Glibc, GlibcFunctions, "\n");
+
+  llvm::transform(GlibcFunctions,
+                  std::inserter(SpecialFuncNames, SpecialFuncNames.end()),
+                  [](llvm::StringRef Str) { return Str.trim().str(); });
 }
 
 void PhasarConfig::loadLLVMSpecialFunctionNames() {
-  const std::string LLVMFunctionListFilePath =
-      (ConfigurationDirectory() + LLVMIntrinsicFunctionListFileName).str();
-  if (std::filesystem::exists(LLVMFunctionListFilePath)) {
-    // Load LLVM function names specified in the config file
-    std::string LLVMIntrinsics = readTextFile(LLVMFunctionListFilePath);
-
-    std::vector<std::string> LLVMIntrinsicFunctions;
-    boost::split(LLVMIntrinsicFunctions, LLVMIntrinsics, boost::is_any_of("\n"),
-                 boost::token_compress_on);
-
-    // Insert llvm intrinsic function names
-    SpecialFuncNames.insert(LLVMIntrinsicFunctions.begin(),
-                            LLVMIntrinsicFunctions.end());
-  } else {
+  auto LLVMIntrinsics =
+      readConfigFileAsTextOrErr(LLVMIntrinsicFunctionListFileName);
+  if (!LLVMIntrinsics) {
+    if (LLVMIntrinsics.getError() != std::errc::no_such_file_or_directory) {
+      PHASAR_LOG_LEVEL(WARNING,
+                       "Could not open config file '"
+                           << LLVMIntrinsicFunctionListFileName
+                           << "': " << LLVMIntrinsics.getError().message());
+    }
     // Add default LLVM function names
     SpecialFuncNames.insert({"llvm.va_start"});
+    return;
   }
+
+  llvm::SmallVector<llvm::StringRef, 0> LLVMIntrinsicFunctions;
+  llvm::SplitString(*LLVMIntrinsics, LLVMIntrinsicFunctions, "\n");
+
+  llvm::transform(LLVMIntrinsicFunctions,
+                  std::inserter(SpecialFuncNames, SpecialFuncNames.end()),
+                  [](llvm::StringRef Str) { return Str.trim().str(); });
 }
 
 PhasarConfig &PhasarConfig::getPhasarConfig() {
-  static PhasarConfig PC;
+  static PhasarConfig PC{};
   return PC;
 }
 
