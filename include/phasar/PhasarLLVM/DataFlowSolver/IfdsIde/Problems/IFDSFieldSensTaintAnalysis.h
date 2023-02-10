@@ -10,7 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/ExtendedValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
@@ -37,10 +37,10 @@ struct IFDSFieldSensTaintAnalysisDomain : public LLVMIFDSAnalysisDomainDefault {
 class IFDSFieldSensTaintAnalysis
     : public IFDSTabulationProblem<IFDSFieldSensTaintAnalysisDomain> {
 public:
-  using ConfigurationTy = TaintConfig;
+  using ConfigurationTy = LLVMTaintConfig;
 
   IFDSFieldSensTaintAnalysis(const LLVMProjectIRDB *IRDB,
-                             const TaintConfig *TaintConfig,
+                             const LLVMTaintConfig *TaintConfig,
                              std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSFieldSensTaintAnalysis() override = default;
@@ -115,7 +115,7 @@ public:
   }
 
 private:
-  const TaintConfig *Config{};
+  const LLVMTaintConfig *Config{};
 
   TraceStats Stats{};
 };

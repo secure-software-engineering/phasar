@@ -31,7 +31,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarPass/Options.h"
@@ -103,7 +103,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
       LLVMConstSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-taint") {
-    TaintConfig Config(DB);
+    LLVMTaintConfig Config(DB);
     IFDSTaintAnalysis TaintAnalysisProblem(&DB, &PT, &Config, EntryPoints);
     IFDSSolver LLVMTaintSolver(TaintAnalysisProblem, &I);
     LLVMTaintSolver.solve();

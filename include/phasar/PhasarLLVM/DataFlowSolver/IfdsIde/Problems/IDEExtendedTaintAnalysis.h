@@ -20,7 +20,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
@@ -67,7 +67,7 @@ public:
   using typename IDETabulationProblem<
       IDEExtendedTaintAnalysisDomain>::EdgeFunctionPtrType;
 
-  using config_callback_t = TaintConfig::TaintDescriptionCallBackTy;
+  using config_callback_t = LLVMTaintConfig::TaintDescriptionCallBackTy;
 
 private:
   struct SourceSinkInfo {
@@ -181,7 +181,7 @@ public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const LLVMProjectIRDB *IRDB,
                            const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                           const TaintConfig *TSF,
+                           const LLVMTaintConfig *TSF,
                            std::vector<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
@@ -343,14 +343,14 @@ public:
   template <typename GetDomTree = DefaultDominatorTreeAnalysis>
   IDEExtendedTaintAnalysis(const LLVMProjectIRDB *IRDB,
                            const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
-                           const TaintConfig &TSF,
+                           const LLVMTaintConfig &TSF,
                            std::vector<std::string> EntryPoints = {},
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
       : XTaint::IDEExtendedTaintAnalysis(
             IRDB, ICF, PT, &TSF, std::move(EntryPoints), BOUND,
             !USE_STRONG_UPDATES, std::forward<GetDomTree>(GDT)) {}
 
-  using ConfigurationTy = TaintConfig;
+  using ConfigurationTy = LLVMTaintConfig;
 };
 
 } // namespace psr

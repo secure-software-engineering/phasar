@@ -21,7 +21,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/Utils/BitVectorSet.h"
 
 #include <map>
@@ -53,11 +53,11 @@ public:
   using v_t = InterMonoTaintAnalysisDomain::v_t;
   using i_t = InterMonoTaintAnalysisDomain::i_t;
   using mono_container_t = InterMonoTaintAnalysisDomain::mono_container_t;
-  using ConfigurationTy = TaintConfig;
+  using ConfigurationTy = LLVMTaintConfig;
 
   InterMonoTaintAnalysis(const LLVMProjectIRDB *IRDB,
                          const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
-                         LLVMAliasInfoRef PT, const TaintConfig &Config,
+                         LLVMAliasInfoRef PT, const LLVMTaintConfig &Config,
                          std::vector<std::string> EntryPoints = {});
 
   ~InterMonoTaintAnalysis() override = default;
@@ -91,7 +91,7 @@ public:
   [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllLeaks() const;
 
 private:
-  [[maybe_unused]] const TaintConfig &Config;
+  [[maybe_unused]] const LLVMTaintConfig &Config;
   std::map<n_t, std::set<d_t>> Leaks;
 };
 

@@ -65,19 +65,20 @@ protected:
         &IRDB, CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
         &PT);
-    auto TC =
-        std::visit(Overloaded{[&](std::monostate) { return TaintConfig(IRDB); },
-                              [&](json *JS) {
-                                auto Ret = TaintConfig(IRDB, *JS);
-                                if (DumpResults) {
-                                  llvm::errs() << Ret << "\n";
-                                }
-                                return Ret;
-                              },
-                              [&](CallBackPairTy &CB) {
-                                return TaintConfig(CB.first, CB.second);
-                              }},
-                   Config);
+    auto TC = std::visit(
+        Overloaded{[&](std::monostate) { return LLVMTaintConfig(IRDB); },
+                   [&](json *JS) {
+                     auto Ret = LLVMTaintConfig(IRDB, *JS);
+                     if (DumpResults) {
+                       llvm::errs() << Ret << "\n";
+                     }
+                     return Ret;
+                   },
+                   [&](CallBackPairTy &&CB) {
+                     return LLVMTaintConfig(std::move(CB.first),
+                                            std::move(CB.second));
+                   }},
+        std::move(Config));
 
     IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &ICFG, &PT, TC, EntryPoints);
 

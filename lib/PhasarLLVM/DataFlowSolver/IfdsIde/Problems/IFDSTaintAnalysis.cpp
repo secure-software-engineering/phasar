@@ -29,7 +29,7 @@ namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      LLVMAliasInfoRef PT,
-                                     const TaintConfig *Config,
+                                     const LLVMTaintConfig *Config,
                                      std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT) {
@@ -44,7 +44,7 @@ bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
       return true;
     }
   }
-  auto Callback = Config->getRegisteredSourceCallBack();
+  const auto &Callback = Config->getRegisteredSourceCallBack();
   if (!Callback) {
     return false;
   }
@@ -72,7 +72,7 @@ bool IFDSTaintAnalysis::isSinkCall(const llvm::CallBase *CB,
       return true;
     }
   }
-  auto Callback = Config->getRegisteredSinkCallBack();
+  const auto &Callback = Config->getRegisteredSinkCallBack();
   if (!Callback) {
     return false;
   }

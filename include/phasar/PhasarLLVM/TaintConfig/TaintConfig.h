@@ -1,3 +1,4 @@
+#if 0
 /******************************************************************************
  * Copyright (c) 2021 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
@@ -132,11 +133,7 @@ private:
   TaintDescriptionCallBackTy SanitizerCallBack;
 };
 
-//===----------------------------------------------------------------------===//
-// Miscellaneous helper functions
-
-nlohmann::json parseTaintConfig(const std::filesystem::path &Path);
-
 } // namespace psr
 
+#endif
 #endif

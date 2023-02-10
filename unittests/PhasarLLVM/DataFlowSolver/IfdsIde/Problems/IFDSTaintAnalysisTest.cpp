@@ -5,7 +5,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
@@ -29,7 +29,7 @@ protected:
   unique_ptr<LLVMBasedICFG> ICFG;
   LLVMAliasInfo PT;
   unique_ptr<IFDSTaintAnalysis> TaintProblem;
-  unique_ptr<TaintConfig> TSF;
+  unique_ptr<LLVMTaintConfig> TSF;
 
   IFDSTaintAnalysisTest() = default;
   ~IFDSTaintAnalysisTest() override = default;
@@ -42,7 +42,7 @@ protected:
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
         TH.get(), PT.asRef());
-    TaintConfig::TaintDescriptionCallBackTy SourceCB =
+    LLVMTaintConfig::TaintDescriptionCallBackTy SourceCB =
         [](const llvm::Instruction *Inst) {
           std::set<const llvm::Value *> Ret;
           if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
@@ -52,7 +52,7 @@ protected:
           }
           return Ret;
         };
-    TaintConfig::TaintDescriptionCallBackTy SinkCB =
+    LLVMTaintConfig::TaintDescriptionCallBackTy SinkCB =
         [](const llvm::Instruction *Inst) {
           std::set<const llvm::Value *> Ret;
           if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
@@ -63,7 +63,7 @@ protected:
           }
           return Ret;
         };
-    TSF = make_unique<TaintConfig>(std::move(SourceCB), std::move(SinkCB));
+    TSF = make_unique<LLVMTaintConfig>(std::move(SourceCB), std::move(SinkCB));
     TaintProblem = make_unique<IFDSTaintAnalysis>(IRDB.get(), PT.get(),
                                                   TSF.get(), EntryPoints);
   }

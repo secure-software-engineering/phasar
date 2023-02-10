@@ -13,6 +13,11 @@
 #include "phasar/Utils/Nullable.h"
 
 #include "llvm/ADT/FunctionExtras.h"
+#include "llvm/ADT/Twine.h"
+#include "llvm/Support/Compiler.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "nlohmann/json.hpp"
 
 #include <map>
 #include <set>
@@ -24,14 +29,18 @@ namespace psr {
 enum class TaintCategory { Source, Sink, Sanitizer, None };
 
 [[nodiscard]] llvm::StringRef to_string(TaintCategory Cat) noexcept;
+[[nodiscard]] TaintCategory toTaintCategory(llvm::StringRef Str) noexcept;
 
-template <typename Derived, typename AnalysisDomainTy> class TaintConfigBase {
+template <typename T> struct TaintConfigTraits {};
+
+template <typename Derived> class TaintConfigBase {
 public:
-  using n_t = typename AnalysisDomainTy::n_t;
-  using v_t = typename AnalysisDomainTy::v_t;
-  using f_t = typename AnalysisDomainTy::f_t;
+  using n_t = typename TaintConfigTraits<Derived>::n_t;
+  using v_t = typename TaintConfigTraits<Derived>::v_t;
+  using f_t = typename TaintConfigTraits<Derived>::f_t;
 
-  using TaintDescriptionCallBackTy = llvm::unique_function<std::set<v_t>(n_t)>;
+  using TaintDescriptionCallBackTy =
+      llvm::unique_function<std::set<v_t>(n_t) const>;
 
   void registerSourceCallBack(TaintDescriptionCallBackTy CB) noexcept {
     SourceCallBack = std::move(CB);
@@ -120,24 +129,39 @@ public:
     return self().makeInitialSeedsImpl();
   }
 
-private:
-  [[nodiscard]] Derived &self() noexcept {
-    static_assert(std::is_base_of_v<TaintConfigBase, Derived>,
-                  "Invalid CRTP instantiation!");
-    return *static_cast<Derived *>(this);
+  void print(llvm::raw_ostream &OS = llvm::outs()) const {
+    self().printImpl(OS);
   }
+
+  LLVM_DUMP_METHOD void dump() const { print(); }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const TaintConfigBase &TC) {
+    TC.print(OS);
+    return OS;
+  }
+
+private:
   [[nodiscard]] const Derived &self() const noexcept {
     static_assert(std::is_base_of_v<TaintConfigBase, Derived>,
                   "Invalid CRTP instantiation!");
     return *static_cast<const Derived *>(this);
   }
 
+protected:
   // --- data members
 
   TaintDescriptionCallBackTy SourceCallBack{};
   TaintDescriptionCallBackTy SinkCallBack{};
   TaintDescriptionCallBackTy SanitizerCallBack{};
 };
+
+//===----------------------------------------------------------------------===//
+// Miscellaneous helper functions
+
+nlohmann::json parseTaintConfig(const llvm::Twine &Path);
+std::optional<nlohmann::json> parseTaintConfigOrNull(const llvm::Twine &Path);
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGBASE_H
