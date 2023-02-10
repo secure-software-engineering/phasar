@@ -33,6 +33,7 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
@@ -48,7 +49,14 @@
 #include <unordered_set>
 #include <utility>
 
+namespace llvm {
+class Instruction;
+class Value;
+} // namespace llvm
+
 namespace psr {
+// For sorting the results in dumpResults()
+std::string getMetaDataID(const llvm::Value *V);
 
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
@@ -267,7 +275,7 @@ public:
     IDEProblem.emitGraphicalReport(getSolverResults(), OS);
   }
 
-  virtual void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
+  void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
     PAMM_GET_INSTANCE;
     START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
     OS << "\n***************************************************************\n"
@@ -277,12 +285,11 @@ public:
     if (Cells.empty()) {
       OS << "No results computed!" << '\n';
     } else {
-      LLVMValueIDLess LLVMIDLess;
       std::sort(
-          Cells.begin(), Cells.end(),
-          [&LLVMIDLess](const auto &Lhs, const auto &Rhs) {
+          Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
             if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-              return LLVMIDLess(Lhs.getRowKey(), Rhs.getRowKey());
+              return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
+                                    getMetaDataID(Rhs.getRowKey()));
             } else {
               // If non-LLVM IR is used
               return Lhs.getRowKey() < Rhs.getRowKey();

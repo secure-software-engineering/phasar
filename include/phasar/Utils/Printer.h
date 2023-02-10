@@ -27,6 +27,7 @@ std::string toStringBuilder(void (P::*Printer)(llvm::raw_ostream &, T) const,
 }
 
 template <typename N> struct NodePrinterBase {
+  virtual ~NodePrinterBase() = default;
 
   virtual void printNode(llvm::raw_ostream &OS, N Stmt) const = 0;
 
@@ -38,6 +39,8 @@ template <typename AnalysisDomainTy>
 using NodePrinter = NodePrinterBase<typename AnalysisDomainTy::n_t>;
 
 template <typename D> struct DataFlowFactPrinterBase {
+  virtual ~DataFlowFactPrinterBase() = default;
+
   virtual void printDataFlowFact(llvm::raw_ostream &OS, D Fact) const = 0;
 
   [[nodiscard]] std::string DtoString(D Fact) const { // NOLINT
@@ -50,6 +53,8 @@ using DataFlowFactPrinter =
     DataFlowFactPrinterBase<typename AnalysisDomainTy::d_t>;
 
 template <typename V> struct ValuePrinter {
+  virtual ~ValuePrinter() = default;
+
   virtual void printValue(llvm::raw_ostream &OS, V Val) const = 0;
 
   [[nodiscard]] std::string VtoString(V Val) const { // NOLINT
@@ -58,6 +63,8 @@ template <typename V> struct ValuePrinter {
 };
 
 template <typename T> struct TypePrinter {
+  virtual ~TypePrinter() = default;
+
   virtual void printType(llvm::raw_ostream &OS, T Ty) const = 0;
 
   [[nodiscard]] std::string TtoString(T Ty) const { // NOLINT
@@ -67,6 +74,8 @@ template <typename T> struct TypePrinter {
 
 template <typename AnalysisDomainTy> struct EdgeFactPrinter {
   using l_t = typename AnalysisDomainTy::l_t;
+
+  virtual ~EdgeFactPrinter() = default;
 
   virtual void printEdgeFact(llvm::raw_ostream &OS, l_t L) const = 0;
 
@@ -78,6 +87,8 @@ template <typename AnalysisDomainTy> struct EdgeFactPrinter {
 template <typename AnalysisDomainTy> struct FunctionPrinter {
   using F = typename AnalysisDomainTy::f_t;
 
+  virtual ~FunctionPrinter() = default;
+
   virtual void printFunction(llvm::raw_ostream &OS, F Func) const = 0;
 
   [[nodiscard]] std::string FtoString(F Func) const { // NOLINT
@@ -86,6 +97,8 @@ template <typename AnalysisDomainTy> struct FunctionPrinter {
 };
 
 template <typename ContainerTy> struct ContainerPrinter {
+  virtual ~ContainerPrinter() = default;
+
   virtual void printContainer(llvm::raw_ostream &OS,
                               ContainerTy Container) const = 0;
 

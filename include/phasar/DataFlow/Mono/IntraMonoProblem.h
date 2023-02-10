@@ -72,7 +72,7 @@ public:
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
 
-  virtual ~IntraMonoProblem() = default;
+  ~IntraMonoProblem() override = default;
 
   virtual mono_container_t normalFlow(n_t Inst, const mono_container_t &In) = 0;
 

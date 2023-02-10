@@ -263,7 +263,7 @@ bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,
                                  const llvm::Value *Rhs) const {
   std::string LhsId = getMetaDataID(Lhs);
   std::string RhsId = getMetaDataID(Rhs);
-  return Sless(LhsId, RhsId);
+  return StringIDLess{}(LhsId, RhsId);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
