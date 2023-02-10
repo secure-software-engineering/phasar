@@ -53,6 +53,8 @@ template <typename AnalysisDomainTy> struct DataFlowFactPrinter {
 };
 
 template <typename V> struct ValuePrinter {
+  virtual ~ValuePrinter() = default;
+
   virtual void printValue(llvm::raw_ostream &OS, V Val) const = 0;
 
   virtual std::string VtoString(V Val) const { // NOLINT
@@ -64,6 +66,8 @@ template <typename V> struct ValuePrinter {
 };
 
 template <typename T> struct TypePrinter {
+  virtual ~TypePrinter() = default;
+
   virtual void printType(llvm::raw_ostream &OS, T Ty) const = 0;
 
   virtual std::string TtoString(T Ty) const { // NOLINT
@@ -76,6 +80,8 @@ template <typename T> struct TypePrinter {
 
 template <typename AnalysisDomainTy> struct EdgeFactPrinter {
   using l_t = typename AnalysisDomainTy::l_t;
+
+  virtual ~EdgeFactPrinter() = default;
 
   virtual void printEdgeFact(llvm::raw_ostream &OS, l_t L) const = 0;
 
@@ -90,6 +96,8 @@ template <typename AnalysisDomainTy> struct EdgeFactPrinter {
 template <typename AnalysisDomainTy> struct FunctionPrinter {
   using F = typename AnalysisDomainTy::f_t;
 
+  virtual ~FunctionPrinter() = default;
+
   virtual void printFunction(llvm::raw_ostream &OS, F Func) const = 0;
 
   virtual std::string FtoString(F Func) const { // NOLINT
@@ -101,6 +109,7 @@ template <typename AnalysisDomainTy> struct FunctionPrinter {
 };
 
 template <typename ContainerTy> struct ContainerPrinter {
+  virtual ~ContainerPrinter() = default;
 
   virtual void printContainer(llvm::raw_ostream &OS,
                               ContainerTy Container) const = 0;

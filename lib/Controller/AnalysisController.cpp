@@ -132,7 +132,7 @@ void AnalysisController::executeWholeProgram() {
     }
 
     llvm_unreachable("All possible DataFlowAnalysisType variants should be "
-                     "handled in the swicth above!");
+                     "handled in the switch above!");
   }
 }
 
