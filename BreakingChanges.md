@@ -2,6 +2,12 @@
 
 ## development HEAD
 
+- Renamed `phasar/PhasarLLVM/DataFlowSolver/` to either `phasar/DataFlow/` or `phasar/PhasarLLVM/DataFlow/` depending on whether the components need LLVMCore. Analoguous changes in `lib/` and `unittests/`.
+    An incomplete list of moved/renamed files:
+    - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/*` => `phasar/DataFlow/IfdsIde/Solver/*`
+    - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h` => `phasar/DataFlow/IfdsIde/IDETabulationProblem.h`
+    - `phasar/DB/LLVMProjectIRDB.h` => `phasar/PhasarLLVM/DB/LLVMProjectIRDB.h`
+    - ...
 - `LLVMPointsTo*` has been renamed to `LLVMAlias*`
 - The ctor of `LLVMAliasSet` now takes the `LLVMProjectIRDB` as pointer instead of a reference to better document that it may capture the IRDB by reference.
 - The `PointsToInfo` interface has been replaced by the CRTP interface `AliasInfoBase`. Introduced two type-erased implementation of that interface: `AliasInfo` and `AliasInfoRef`. In most cases you should replace `PointsToInfo*` and `LLVMPointsToInfo*` by `AliasInfoRef`, bzw. `LLVMAliasInfoRef`.
