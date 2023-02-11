@@ -146,6 +146,13 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     return generateFlow(GEP, GEP->getPointerOperand());
   }
+  // Check if a tainted value is extracted and taint the targets of
+  // the extract operation accordingly
+  if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
+
+    return generateFlow(Extract, Extract->getAggregateOperand());
+  }
+
   // Otherwise we do not care and leave everything as it is
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
