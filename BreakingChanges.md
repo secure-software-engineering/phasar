@@ -2,6 +2,13 @@
 
 ## development HEAD
 
+- `EdgeFunctionPtrType` is no longer a `std::shared_ptr`. Instead `EdgeFunction<l_t>` should be used directly. `EdgeFunction` is now a *value-type* that encapsulates its memory management by itself.
+- Concrete `EdgeFunction` types no longer derive from any base-class. Instead they just need to implement the required API functions. `EdgeFunction` implementations should me move-constructible and can be implicitly cast to `EdgeFunction`. To verify that your type implements the edge function interface use the `IsEdgeFunction` type trait. The API functions have been changed as follows:
+    - All API functions of `EdgeFunction` must be `const` qualified.
+    - `EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction)` and `EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction)` have been changed to `static EdgeFunction<l_t> compose(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& SecondFunction)` and `static EdgeFunction<l_t> join(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& OtherFunction)` respectively. Here, the `This` parameter models the former `shared_from_this()`.
+    - `bool equal_to(EdgeFunctionPtrType Other)const` has been changed to `bool operator==(const T &Other)const noexcept`, where `T` is your concrete edge function type.
+    - `void print(llvm::raw_ostream &OS, bool IsForDebug)` has been changed to `friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const T& EF)`.
+- `EdgeFunctionSingletonFactory` has been removed. Use `EdgeFunctionSingletonCache` instead.
 - `LLVMPointsTo*` has been renamed to `LLVMAlias*`
 - The ctor of `LLVMAliasSet` now takes the `LLVMProjectIRDB` as pointer instead of a reference to better document that it may capture the IRDB by reference.
 - The `PointsToInfo` interface has been replaced by the CRTP interface `AliasInfoBase`. Introduced two type-erased implementation of that interface: `AliasInfo` and `AliasInfoRef`. In most cases you should replace `PointsToInfo*` and `LLVMPointsToInfo*` by `AliasInfoRef`, bzw. `LLVMAliasInfoRef`.
