@@ -2,6 +2,7 @@
 
 ## development HEAD
 
+- `TaintConfig` has been renamed to `LLVMTaintConfig`. For generic code you may want to use the LLVM-independent `TaintConfigBase` CRTP interface instead.
 - `LLVMPointsTo*` has been renamed to `LLVMAlias*`
 - The ctor of `LLVMAliasSet` now takes the `LLVMProjectIRDB` as pointer instead of a reference to better document that it may capture the IRDB by reference.
 - The `PointsToInfo` interface has been replaced by the CRTP interface `AliasInfoBase`. Introduced two type-erased implementation of that interface: `AliasInfo` and `AliasInfoRef`. In most cases you should replace `PointsToInfo*` and `LLVMPointsToInfo*` by `AliasInfoRef`, bzw. `LLVMAliasInfoRef`.
