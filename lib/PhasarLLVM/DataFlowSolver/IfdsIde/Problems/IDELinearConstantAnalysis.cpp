@@ -329,6 +329,28 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
               llvm::isa<llvm::ConstantInt>(Rop));
     });
   }
+
+  if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
+    auto *ao = Extract->getAggregateOperand();
+    llvm::outs() << "extract " << *Extract << "\n";
+    llvm::outs() << "extract aggregate operand " << *ao << "\n";
+    /// We are extracting the result of a BinaryOpIntrinsic
+    /// The first parameter holds the resulting integer if
+    /// no error occured during the operation
+    if (const auto *binIntrinsic =
+            llvm::dyn_cast<llvm::BinaryOpIntrinsic>(ao)) {
+      auto idxArr = Extract->getIndices();
+      if (idxArr.size() == 1) {
+        auto extractIdx = idxArr[0];
+        auto type = Extract->getIndexedType(ao->getType(), {extractIdx});
+        if (type->isIntegerTy() && extractIdx == 0) {
+          llvm::outs() << "idx type: " << *type << "\n";
+          // return generateFlow<d_t>(Curr);
+        }
+      }
+    }
+  }
+
   return identityFlow<d_t>();
 }
 
