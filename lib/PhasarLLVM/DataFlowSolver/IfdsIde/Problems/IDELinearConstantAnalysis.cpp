@@ -545,6 +545,12 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
+                                                  n_t Succ, d_t SuccNode) {
+  return nullptr;
+}
+
+std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::allTopFunction() {
   return std::make_shared<AllTop<l_t>>();
 }

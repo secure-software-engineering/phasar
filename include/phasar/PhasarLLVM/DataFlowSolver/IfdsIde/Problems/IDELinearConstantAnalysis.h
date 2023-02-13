@@ -118,6 +118,10 @@ public:
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
 
+  std::shared_ptr<EdgeFunction<l_t>>
+  getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                         d_t SuccNode) override;
+
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
   // Helper functions
