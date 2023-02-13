@@ -91,6 +91,8 @@ public:
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                            llvm::ArrayRef<f_t> Callees) override;
 
+  FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t CalleeFun) override;
+
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
   [[nodiscard]] d_t createZeroValue() const;

@@ -418,6 +418,11 @@ IDELinearConstantAnalysis::initialSeeds() {
   return Seeds;
 }
 
+IDELinearConstantAnalysis::FlowFunctionPtrType
+IDELinearConstantAnalysis::getSummaryFlowFunction(n_t Curr, f_t CalleeFun) {
+  return nullptr;
+}
+
 IDELinearConstantAnalysis::d_t
 IDELinearConstantAnalysis::createZeroValue() const {
   // create a special value to represent the zero value!
