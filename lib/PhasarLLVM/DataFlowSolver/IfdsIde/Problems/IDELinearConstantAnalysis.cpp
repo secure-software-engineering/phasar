@@ -31,6 +31,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
@@ -420,6 +421,20 @@ IDELinearConstantAnalysis::initialSeeds() {
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getSummaryFlowFunction(n_t Curr, f_t CalleeFun) {
+
+  if (const auto *binIntrinsic =
+          llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Curr)) {
+    auto *Lop = binIntrinsic->getLHS();
+    auto *Rop = binIntrinsic->getRHS();
+
+    return generateFlowIf<d_t>(binIntrinsic, [this, Lop, Rop](d_t Source) {
+      /// Intentionally include nonlinear operations here for being able to
+      /// explicitly set them to BOTTOM in the edge function
+      return (Lop == Source) || (Rop == Source) ||
+             (isZeroValue(Source) && llvm::isa<llvm::ConstantInt>(Lop) &&
+              llvm::isa<llvm::ConstantInt>(Rop));
+    });
+  }
   return nullptr;
 }
 
@@ -547,7 +562,24 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
                                                   n_t Succ, d_t SuccNode) {
-  return nullptr;
+
+  if (const auto *binIntrinsic =
+          llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Curr)) {
+    auto *Lop = binIntrinsic->getLHS();
+    auto *Rop = binIntrinsic->getRHS();
+    unsigned OP = binIntrinsic->getBinaryOp();
+
+    // For non linear constant computation we propagate bottom
+    if ((CurrNode == Lop && !llvm::isa<llvm::ConstantInt>(Rop)) ||
+        (CurrNode == Rop && !llvm::isa<llvm::ConstantInt>(Lop))) {
+      return AllBottom<l_t>::getInstance();
+    }
+
+    if (Curr == SuccNode && CurrNode != SuccNode) {
+      return std::make_shared<lca::BinOp>(OP, Lop, Rop, CurrNode);
+    }
+  }
+  return EdgeIdentity<l_t>::getInstance();
 }
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
@@ -722,7 +754,7 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
 }
 
 void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) {
-  OS << this;
+  OS << *this;
 }
 
 IDELinearConstantAnalysis::LCAResult::operator std::string() const {
