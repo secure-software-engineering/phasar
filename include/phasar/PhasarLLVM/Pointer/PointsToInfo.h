@@ -11,7 +11,7 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H
 
 #include "phasar/PhasarLLVM/Pointer/PointsToInfoBase.h"
-#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/ByRef.h"
 
 #include <cassert>
 #include <memory>
