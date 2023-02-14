@@ -308,6 +308,17 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
       return strongUpdateStore(Store);
     }
   }
+
+  if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
+    llvm::outs() << " Found get element ptr " << *GEP << "\n";
+    // GEP: %._value1 = getelementptr inbounds %TSi, %TSi* %4, i32 0, i32 0
+    if (GEP->getResultElementType()->isIntegerTy()) {
+      auto operand = GEP->getPointerOperand(); // operand: %4 = alloca %TSi,
+      llvm::outs() << "generating flow with pointer operand " << *operand
+                   << "\n";
+      return generateFlow(GEP, operand);
+    }
+  }
   // check load instructions
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
