@@ -48,6 +48,7 @@ build/*
 
 # ignore all auto-generated LLVM IR code
 *.ll
+!*_swift.ll
 
 # auto generated test files
 *.test
