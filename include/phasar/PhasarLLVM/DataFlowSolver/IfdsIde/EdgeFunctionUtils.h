@@ -12,7 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
-#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/ByRef.h"
 
 #include <memory>
 

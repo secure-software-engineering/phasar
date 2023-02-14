@@ -11,11 +11,14 @@
 #define PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
-#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include <ostream>
 
 namespace psr {
 
@@ -86,6 +89,13 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   const auto *Val = LD.getValueOrNull();
   assert(Val && "Only alternative remaining is L");
   return OS << *Val;
+}
+
+template <typename L>
+inline std::ostream &operator<<(std::ostream &OS, const LatticeDomain<L> &LD) {
+  llvm::raw_os_ostream ROS(OS);
+  ROS << LD;
+  return OS;
 }
 
 template <typename L>

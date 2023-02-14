@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFOBASE_H
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFOBASE_H
 
-#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include <optional>
