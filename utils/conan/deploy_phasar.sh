@@ -14,12 +14,18 @@ set -euo pipefail
     package="phasar/$calver+$short_hash@"
     
     # from conanfile.txt
-    options=(-o llvm:shared=False -o llvm:enable_debug=True -o llvm:with_project_clang=True -o llvm:with_project_openmp=True -o llvm:with_runtime_compiler-rt=True -o llvm:keep_binaries_regex="^(clang|clang\+\+|opt)$")
-    cmd=(conan create "$(pwd)/phasar/" "$package" "${options[@]}" --build=missing)
+    cmd=(conan create "$(pwd)/phasar/" --build=missing)
     if [ "$#" -gt 0 ]; then
-        user_options+=("$@")
+        cmd+=("$@")
     fi
     
     echo "${cmd[@]}"
-    "${cmd[@]}"
+    "${cmd[@]}" -s build_type=Release
+    echo ""
+    echo "testing if install will work after export"
+    (
+        tmp_dir="$(mktemp -d)"
+        cd "$tmp_dir"
+        conan install "$package" --build=missing -s build_type=Debug
+    )
 )

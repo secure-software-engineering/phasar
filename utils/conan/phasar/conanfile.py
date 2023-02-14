@@ -1,8 +1,7 @@
 from distutils.dir_util import copy_tree
 from conans import ConanFile, CMake, tools
+from conans.errors import ConanInvalidConfiguration
 import glob
-
-enforce_local_build = True
 
 # How to run this recipe?
 # build local phasar:
@@ -25,16 +24,10 @@ class PhasarConan(ConanFile):
     topics = ("LLVM", "PhASAR", "SAST")
     settings = "os", "compiler", "build_type", "arch"
     options = {
-        "shared": [True, False],
-
-        # build only options
-        "is_recipe_and_source_in_same_repo": [True, False],
+        "shared": [True, False]
     }
     default_options = {
-        "shared": False,
-
-        # build only options
-        "is_recipe_and_source_in_same_repo": enforce_local_build
+        "shared": False
     }
     generators = "cmake"
     
@@ -47,18 +40,16 @@ class PhasarConan(ConanFile):
         "nlohmann_json/[>=3.10.5 <3.11.0]",
         "zlib/[>=1.2.0 <2.0.0]" # fix boost / clash zlib
     ]
-        
-    def export_sources(self):
-        if enforce_local_build: # self.options arent allowed in this method!
-            self.copy("../../../*", excludes=["build", "cmake-build", ".github", ".git", ".vscode"])
-        else:
-            self.copy("*")
 
-    def build_requirements(self):
-        self.tool_requires("cmake/[>=3.21.0 <4.0.0]")
-        self.tool_requires("ninja/[>=1.9.0 <2.0.0]")
+    def set_version(self):
+        git = tools.Git()
+        calver = git.run("show -s --date=format:'%Y.%m.%d' --format='%cd'")
+        short_hash = git.run("show -s --format='%h'")
+        self.version = f"{calver}+{short_hash}"
+        # XXX extract version from root CMakeLists.txt
 
-    def configure(self):
+    def requirements(self):
+        self.options['llvm'].enable_debug = True
         self.options['llvm'].with_project_clang = True
         self.options['llvm'].with_project_openmp = True
 
@@ -71,25 +62,17 @@ class PhasarConan(ConanFile):
         if self.options.shared:
             self.options['llvm'].shared = True
             self.options['sqlite3'].shared = True
+        
+        # workaround as long as the pr into upstream phasar is open
+        setattr(self.options['llvm'], "with_runtime_compiler-rt", True)
+        
+    # hint: only executed during create if recipe and source is in same repo, def set_version() would also be called during install
+    def export_sources(self):
+        self.copy("../../../*", excludes=["build", "cmake-build", ".github", ".git", ".vscode"])
 
-        if self.options.get_safe('is_recipe_and_source_in_same_repo', default=enforce_local_build):
-            git = tools.Git()
-            calver = git.run("show -s --date=format:'%Y.%m.%d' --format='%cd'")
-            short_hash = git.run("show -s --format='%h'")
-            self.version = f"{calver}+{short_hash}"
-            # XXX extract version from root CMakeLists.txt
-
-    def source(self):
-        if not self.options.get_safe('is_recipe_and_source_in_same_repo', default=enforce_local_build):
-            tools.get(**self.conan_data["sources"][self.version])
-            tools.rename(glob.glob("phasar-*")[0], self._source_subfolder)
-        # else: export_sources prepared the sources already
-
-        try:
-            for patch in self.conan_data.get("patches", {}).get(self.version, []):
-                tools.patch(**patch)
-        except TypeError:
-            self.output.info(f"no patches found for version \"{self.version}\"")
+    def build_requirements(self):
+        self.tool_requires("cmake/[>=3.21.0 <4.0.0]")
+        self.tool_requires("ninja/[>=1.9.0 <2.0.0]")
 
     def _configure_cmake(self):
         cmake = CMake(self, generator='Ninja')
@@ -101,9 +84,6 @@ class PhasarConan(ConanFile):
     def build(self):
         cmake = self._configure_cmake()
         cmake.build()
-
-    def package_id(self):
-        del self.options.is_recipe_and_source_in_same_repo
 
     def package(self):
         cmake = self._configure_cmake()
