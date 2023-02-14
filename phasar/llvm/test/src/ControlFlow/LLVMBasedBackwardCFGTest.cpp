@@ -1,22 +1,22 @@
-#include "gtest/gtest.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-
 #include "TestConfig.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Term = getNthTermInstruction(F, 1);
   const auto *A = getNthInstruction(F, 10);
@@ -30,7 +30,7 @@ TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -56,7 +56,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({"llvm_test_code/control_flow/function_call.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/control_flow/function_call.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE PREDECCESSOR
@@ -78,7 +78,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
@@ -95,7 +95,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/control_flow/branch.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE SUCCESSOR

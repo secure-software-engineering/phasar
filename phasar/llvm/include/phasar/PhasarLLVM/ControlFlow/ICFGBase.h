@@ -13,10 +13,10 @@
 #include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/Utils/TypeTraits.h"
 
-#include "nlohmann/json.hpp"
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "nlohmann/json.hpp"
 
 #include <type_traits>
 

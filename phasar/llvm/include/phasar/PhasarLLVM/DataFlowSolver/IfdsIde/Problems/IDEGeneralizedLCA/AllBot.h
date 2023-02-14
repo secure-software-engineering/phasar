@@ -10,10 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_ALLBOT_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_ALLBOT_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
-namespace psr {
+namespace psr::glca {
 
 struct AllBot {
   using type = AllBottom<IDEGeneralizedLCA::l_t>;
@@ -25,6 +26,6 @@ struct AllBot {
         bool NonRec = false);
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

@@ -1,21 +1,19 @@
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <string>
 #include <vector>
-
-#include "llvm/Support/raw_ostream.h"
-
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-
-#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
@@ -26,10 +24,9 @@ template <typename T> static auto makeSet(T &&Vec) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_1) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_1.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo = IRDB.getFunctionDefinition("foo");
@@ -47,10 +44,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_1) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_2a) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_2.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_2.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
                      Soundness::Soundy, false);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -74,10 +70,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2a) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_2.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_2.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FOO = IRDB.getFunctionDefinition("foo");
@@ -108,10 +103,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
 }
 
 TEST(LLVMBasedICFGTest, VirtualCallSite_1) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/virtual_call_1.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/virtual_call_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooA = IRDB.getFunctionDefinition("_ZN1A3fooEv");
@@ -128,10 +122,9 @@ TEST(LLVMBasedICFGTest, VirtualCallSite_1) {
 }
 
 TEST(LLVMBasedICFGTest, FunctionPointer_1) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/function_pointer_1.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/function_pointer_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo = IRDB.getFunctionDefinition("fptr");
@@ -147,10 +140,9 @@ TEST(LLVMBasedICFGTest, FunctionPointer_1) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_3) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_3.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_3.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *Factorial = IRDB.getFunctionDefinition("factorial");
   ASSERT_TRUE(Factorial);
@@ -167,10 +159,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_3) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_4) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_4.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_4.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   ASSERT_TRUE(F);
@@ -200,10 +191,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_4) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_5) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_5.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_5.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo =
@@ -223,10 +213,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_5) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_6) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_6.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_6.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooF = IRDB.getFunctionDefinition("_ZN3Foo1fEv");
@@ -249,10 +238,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_6) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_7) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_7.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_7.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooF = IRDB.getFunctionDefinition("_ZN3Foo1fEv");
@@ -273,10 +261,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_7) {
 }
 
 TEST(LLVMBasedICFGTest, StaticCallSite_8) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_8.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/static_callsite_8.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooF = IRDB.getFunctionDefinition("_ZN4Foo21fEv");
@@ -297,10 +284,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_8) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_1) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_1.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
                      Soundness::Soundy, true);
 
@@ -324,10 +310,9 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_1) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_2) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_2.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_2.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
                      Soundness::Soundy, true);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
@@ -348,10 +333,9 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_2) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_3) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_3.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_3.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
                      Soundness::Soundy, true);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
@@ -369,10 +353,9 @@ TEST(LLVMBasedICFGTest, GlobalCtorDtor_3) {
 }
 
 TEST(LLVMBasedICFGTest, GlobalCtorDtor_4) {
-  ProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_4.ll"},
-                   IRDBOptions::WPA);
+  LLVMProjectIRDB IRDB({"llvm_test_code/call_graphs/global_ctor_dtor_4.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  LLVMPointsToSet PT(IRDB);
+  LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::CHA, {"main"}, &TH, &PT,
                      Soundness::Soundy, true);
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");

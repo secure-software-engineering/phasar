@@ -17,13 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
+
 #include <deque>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace psr {
 
@@ -46,7 +46,7 @@ protected:
   const c_t *CFG;
 
   void initialize() {
-    auto EntryPoints = IMProblem.getEntryPoints();
+    const auto &EntryPoints = IMProblem.getEntryPoints();
     for (const auto &EntryPoint : EntryPoints) {
       auto Function =
           IMProblem.getProjectIRDB()->getFunctionDefinition(EntryPoint);

@@ -24,7 +24,7 @@ readonly llvm_major_rev=${llvm_version%%.*}  # i.e. 10, if llvm_release is "llvm
 
 function addLibraryPath {
    #libclang.so.<major rev> has been part of LLVM for a while, and we expect it to stick around -- so this should work for checking to make sure the library is available.
-   if ! ldconfig -p |grep -q libclang.so."${llvm_major_rev}"; then
+   if ! ldconfig -p |grep -q "libclang-${llvm_major_rev}.so"; then
        echo "libLLVM-${llvm_major_rev}.so not found in ldconfig. Trying to add it.";
        echo "${dest_dir}/lib" | sudo tee /etc/ld.so.conf.d/llvm-"${llvm_version}".conf > /dev/null
        sudo ldconfig

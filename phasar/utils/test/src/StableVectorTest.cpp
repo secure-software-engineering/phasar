@@ -1,9 +1,11 @@
+#include "phasar/Utils/StableVector.h"
+
 #include "gtest/gtest.h"
-#include <gtest/gtest-param-test.h>
+
 #include <iterator>
 #include <string>
 
-#include "phasar/Utils/StableVector.h"
+#include <gtest/gtest-param-test.h>
 
 using namespace psr;
 

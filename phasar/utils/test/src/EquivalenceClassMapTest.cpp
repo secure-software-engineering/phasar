@@ -1,9 +1,10 @@
+#include "phasar/Utils/EquivalenceClassMap.h"
+
 #include "gtest/gtest.h"
+
 #include <optional>
 #include <utility>
 #include <vector>
-
-#include "phasar/Utils/EquivalenceClassMap.h"
 
 using namespace psr;
 using namespace std;

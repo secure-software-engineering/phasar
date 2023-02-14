@@ -1,35 +1,31 @@
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/IR/AssemblyAnnotationWriter.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
 #include "gtest/gtest.h"
+#include "nlohmann/json.hpp"
 
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <string>
 #include <vector>
-
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/IR/AssemblyAnnotationWriter.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/FormattedStream.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "nlohmann/json.hpp"
-
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-
-#include "TestConfig.h"
 
 namespace psr {
 using MapTy = llvm::DenseMap<const llvm::Function *,
@@ -44,7 +40,7 @@ protected:
 
   nlohmann::json exportICFG(const std::string &TestFile,
                             bool AsSrcCode = false) {
-    ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH,
                        nullptr, Soundness::Soundy, /*IncludeGlobals*/ false);
@@ -59,7 +55,7 @@ protected:
   nlohmann::json exportCFGFor(const std::string &TestFile,
                               const std::string &FunctionName,
                               bool AsSrcCode = false) {
-    ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
     LLVMBasedCFG CFG;
 
     const auto *F = IRDB.getFunction(FunctionName);
@@ -184,7 +180,7 @@ protected:
 
   void verifyExportICFG(const std::string &TestFile,
                         bool WithDebugOutput = false) {
-    ProjectIRDB IRDB({PathToLLFiles + TestFile}, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
     LLVMTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH,
                        nullptr, Soundness::Soundy, /*IncludeGlobals*/ false);
@@ -200,8 +196,8 @@ protected:
                                   llvm::formatted_raw_ostream &OS) override {
           OS << "  ; | Id: " << getMetaDataID(Inst) << '\n';
         }
-      } AW;
-      IRDB.getWPAModule()->print(llvm::errs(), &AW);
+      } AW{};
+      IRDB.getModule()->print(llvm::errs(), &AW);
       // llvm::errs() << "ModuleRef: " << *IRDB.getWPAModule() << "\n";
       llvm::errs()
           << ICFG.exportICFGAsJson(/*WithSourceCodeInfo*/ false).dump(4)

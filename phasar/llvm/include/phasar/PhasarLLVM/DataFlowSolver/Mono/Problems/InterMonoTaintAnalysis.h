@@ -17,15 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/Utils/BitVectorSet.h"
+
 #include <map>
 #include <set>
 #include <string>
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Instruction;
@@ -36,7 +37,6 @@ class StructType;
 
 namespace psr {
 
-class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 
 struct InterMonoTaintAnalysisDomain : LLVMAnalysisDomainDefault {
@@ -55,10 +55,10 @@ public:
   using mono_container_t = InterMonoTaintAnalysisDomain::mono_container_t;
   using ConfigurationTy = TaintConfig;
 
-  InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                         const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                         const TaintConfig &Config,
-                         std::set<std::string> EntryPoints = {});
+  InterMonoTaintAnalysis(const LLVMProjectIRDB *IRDB,
+                         const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
+                         LLVMAliasInfoRef PT, const TaintConfig &Config,
+                         std::vector<std::string> EntryPoints = {});
 
   ~InterMonoTaintAnalysis() override = default;
 

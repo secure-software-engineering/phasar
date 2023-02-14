@@ -1,19 +1,19 @@
-#include "boost/graph/graph_utility.hpp"
-#include "boost/graph/graphviz.hpp"
-#include "boost/graph/isomorphism.hpp"
 
-#include "gtest/gtest.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "TestConfig.h"
-
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/Support/ManagedStatic.h"
+
+#include "TestConfig.h"
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
+#include "boost/graph/isomorphism.hpp"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
@@ -24,7 +24,7 @@ namespace psr {
 
 // Check basic type hierarchy construction
 TEST(LTHTest, BasicTHReconstruction_1) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -59,12 +59,13 @@ TEST(LTHTest, BasicTHReconstruction_1) {
 }
 
 TEST(LTHTest, THConstructionException) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_15.ll"});
+  LLVMProjectIRDB IRDB(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_15.ll"});
   LLVMTypeHierarchy LTH(IRDB);
 }
 
 TEST(LTHTest, BasicTHReconstruction_2) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_2.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_2.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -99,7 +100,7 @@ TEST(LTHTest, BasicTHReconstruction_2) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_3) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_3.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_3.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -144,7 +145,7 @@ TEST(LTHTest, BasicTHReconstruction_3) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_4) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_4.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_4.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -194,7 +195,7 @@ TEST(LTHTest, BasicTHReconstruction_4) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_5) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_5.ll"});
+  LLVMProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_5.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -272,7 +273,8 @@ TEST(LTHTest, BasicTHReconstruction_5) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_6) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_12.ll"});
+  LLVMProjectIRDB IRDB(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_12.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("class.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -307,7 +309,8 @@ TEST(LTHTest, BasicTHReconstruction_6) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_7) {
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_11.ll"});
+  LLVMProjectIRDB IRDB(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_11.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -344,12 +347,18 @@ TEST(LTHTest, BasicTHReconstruction_7) {
 
 // check if the vtables are constructed correctly in more complex scenarios
 TEST(LTHTest, VTableConstruction) {
-  ProjectIRDB IRDB1({"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
-  ProjectIRDB IRDB2({"llvm_test_code/type_hierarchies/type_hierarchy_7.ll"});
-  ProjectIRDB IRDB3({"llvm_test_code/type_hierarchies/type_hierarchy_8.ll"});
-  ProjectIRDB IRDB4({"llvm_test_code/type_hierarchies/type_hierarchy_9.ll"});
-  ProjectIRDB IRDB5({"llvm_test_code/type_hierarchies/type_hierarchy_10.ll"});
-  ProjectIRDB IRDB6({"llvm_test_code/type_hierarchies/type_hierarchy_14.ll"});
+  LLVMProjectIRDB IRDB1(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
+  LLVMProjectIRDB IRDB2(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_7.ll"});
+  LLVMProjectIRDB IRDB3(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_8.ll"});
+  LLVMProjectIRDB IRDB4(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_9.ll"});
+  LLVMProjectIRDB IRDB5(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_10.ll"});
+  LLVMProjectIRDB IRDB6(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_14.ll"});
 
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
@@ -511,11 +520,16 @@ TEST(LTHTest, VTableConstruction) {
 }
 
 TEST(LTHTest, TransitivelyReachableTypes) {
-  ProjectIRDB IRDB1({"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
-  ProjectIRDB IRDB2({"llvm_test_code/type_hierarchies/type_hierarchy_7.ll"});
-  ProjectIRDB IRDB3({"llvm_test_code/type_hierarchies/type_hierarchy_8.ll"});
-  ProjectIRDB IRDB4({"llvm_test_code/type_hierarchies/type_hierarchy_9.ll"});
-  ProjectIRDB IRDB5({"llvm_test_code/type_hierarchies/type_hierarchy_10.ll"});
+  LLVMProjectIRDB IRDB1(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
+  LLVMProjectIRDB IRDB2(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_7.ll"});
+  LLVMProjectIRDB IRDB3(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_8.ll"});
+  LLVMProjectIRDB IRDB4(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_9.ll"});
+  LLVMProjectIRDB IRDB5(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_10.ll"});
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
   LLVMTypeHierarchy TH2(IRDB2);
@@ -609,7 +623,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 }
 
 // TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
-//   ProjectIRDB IRDB(
+//   LLVMProjectIRDB IRDB(
 //       {pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll"});
 //   LLVMTypeHierarchy TH(IRDB);
 //   TH.print(llvm::outs());
@@ -632,7 +646,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 // }
 
 // // TEST(LTHTest, HandleLoadAndPrintOfEmptyGraph) {
-// //   ProjectIRDB IRDB({pathToLLFiles +
+// //   LLVMProjectIRDB IRDB({pathToLLFiles +
 // //   "taint_analysis/growing_example.ll"}); LLVMTypeHierarchy TH(IRDB);
 // //   std::ostringstream oss;
 // //   // Write empty LTH graph as dot to string
@@ -652,7 +666,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 // // }
 
 // // TEST(LTHTest, HandleMerge_1) {
-// //   ProjectIRDB IRDB(
+// //   LLVMProjectIRDB IRDB(
 // //       {pathToLLFiles + "type_hierarchies/type_hierarchy_12.ll",
 // //        pathToLLFiles + "type_hierarchies/type_hierarchy_12_b.ll"});
 // //   LLVMTypeHierarchy TH1(*IRDB.getModule(
@@ -714,9 +728,12 @@ PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
   // If we use libcxx this won't work since internal implementation is different
   LIBCPP_GTEST_SKIP;
 
-  ProjectIRDB IRDB({"llvm_test_code/type_hierarchies/type_hierarchy_13.ll"});
+  LLVMProjectIRDB IRDB(
+      {"llvm_test_code/type_hierarchies/type_hierarchy_13.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  EXPECT_EQ(TH.getAllTypes().size(), 7U);
+  // NOTE: Even if using libstdc++, depending on the version the generated IR is
+  // different; so, we cannot assert on the number of types here
+  // EXPECT_EQ(TH.getAllTypes().size(), 7U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
   EXPECT_TRUE(TH.hasType(
       TH.getType("struct.std::__cxx11::basic_string<char>::_Alloc_hider")));

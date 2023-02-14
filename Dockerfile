@@ -33,12 +33,12 @@ RUN apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key && \
               libclang-common-14-dev \
               libclang-14-dev \
               libclang-cpp14-dev \
-              clang-tidy-14
+              clang-tidy-14 && \
+            apt download libclang-rt-14-dev && \
+            dpkg --force-all -i libclang-rt-14-dev*
 
 RUN pip3 install Pygments pyyaml
 
-# installing boost
-RUN apt install libboost-all-dev -y
 
 
 # installing wllvm

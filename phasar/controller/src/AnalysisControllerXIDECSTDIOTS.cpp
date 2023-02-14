@@ -15,11 +15,10 @@ namespace psr {
 
 void AnalysisController::executeIDECSTDIOTS() {
   CSTDFILEIOTypeStateDescription TSDesc;
-  WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>, IDETypeStateAnalysis>
-      WPA(SolverConfig, IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
-  WPA.solve();
-  emitRequestedDataFlowResults(WPA);
-  WPA.releaseAllHelperAnalyses();
+  IDETypeStateAnalysis TSA(&HA.getProjectIRDB(), &HA.getAliasInfo(), &TSDesc,
+                           EntryPoints);
+
+  executeIDEAnalysis(TSA);
 }
 
 } // namespace psr

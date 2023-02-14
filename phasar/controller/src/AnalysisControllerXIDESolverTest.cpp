@@ -13,7 +13,8 @@
 namespace psr {
 
 void AnalysisController::executeIDESolverTest() {
-  executeIDEAnalysis<IDESolverTest>();
+  IDESolverTest ST(&HA.getProjectIRDB(), EntryPoints);
+  executeIDEAnalysis(ST);
 }
 
 } // namespace psr

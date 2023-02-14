@@ -17,15 +17,14 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/MemoryResource.h"
 #include "phasar/Utils/Soundness.h"
-
-#include "nlohmann/json.hpp"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
@@ -34,24 +33,21 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <memory>
+#include "nlohmann/json.hpp"
 
-#include "phasar/Utils/MemoryResource.h"
+#include <memory>
 
 /// On some MAC systems, <memory_resource> is still not fully implemented, so do
 /// a workaround here
 
-#if HAS_MEMORY_RESOURCE
-#include <memory_resource>
-#else
+#if !HAS_MEMORY_RESOURCE
 #include "llvm/Support/Allocator.h"
 #endif
 
 namespace psr {
-class ProjectIRDB;
-class LLVMPointsToInfo;
-class ProjectIRDB;
 class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
+class LLVMProjectIRDB;
 
 class LLVMBasedICFG;
 template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
@@ -86,10 +82,10 @@ public:
   /// \param IncludeGlobals Properly include global constructors/destructors
   /// into the ICFG, if true. Requires to generate artificial functions into the
   /// IRDB. True by default
-  explicit LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
-                         LLVMPointsToInfo *PT = nullptr,
+                         LLVMAliasInfoRef PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
 
@@ -117,7 +113,7 @@ public:
   [[nodiscard]] llvm::ArrayRef<f_t> getAllVertexFunctions() const noexcept;
 
   /// Gets the underlying IRDB
-  [[nodiscard]] ProjectIRDB *getIRDB() const noexcept { return IRDB; }
+  [[nodiscard]] LLVMProjectIRDB *getIRDB() const noexcept { return IRDB; }
 
   using CFGBase::print;
   using ICFGBase::print;
@@ -173,7 +169,7 @@ private:
 
   llvm::SmallVector<const llvm::Function *, 0> VertexFunctions;
 
-  ProjectIRDB *IRDB = nullptr;
+  LLVMProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
 };
 } // namespace psr

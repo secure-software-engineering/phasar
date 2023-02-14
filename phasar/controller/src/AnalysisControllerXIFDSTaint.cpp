@@ -13,7 +13,10 @@
 namespace psr {
 
 void AnalysisController::executeIFDSTaint() {
-  executeIFDSAnalysis<IFDSTaintAnalysis, true>();
+  auto Config = makeTaintConfig();
+  IFDSTaintAnalysis TA(&HA.getProjectIRDB(), &HA.getAliasInfo(), &Config,
+                       EntryPoints);
+  executeIFDSAnalysis(TA);
 }
 
 } // namespace psr

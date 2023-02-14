@@ -8,11 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 
-namespace psr {
+namespace psr::glca {
 
 GenConstant::GenConstant(const IDEGeneralizedLCA::l_t &Val, size_t MaxSize)
     : Val(Val), MaxSize(MaxSize) {
@@ -84,4 +85,4 @@ void GenConstant::print(llvm::raw_ostream &OS, bool /*IsForDebug*/) const {
   OS << "GenConstantEdgeFn(" << Val << ")";
 }
 
-} // namespace psr
+} // namespace psr::glca

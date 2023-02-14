@@ -13,7 +13,10 @@
 namespace psr {
 
 void AnalysisController::executeInterMonoSolverTest() {
-  executeInterMonoAnalysis<InterMonoSolverTest>();
+  InterMonoSolverTest ST(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
+                         &HA.getICFG(), &HA.getAliasInfo(), EntryPoints);
+
+  executeInterMonoAnalysis(ST);
 }
 
 } // namespace psr

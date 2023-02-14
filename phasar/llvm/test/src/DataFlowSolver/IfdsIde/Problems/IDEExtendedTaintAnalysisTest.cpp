@@ -7,12 +7,17 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#include <variant>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
-#include "gtest/gtest.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/DebugOutput.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
@@ -21,20 +26,15 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
 
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/DebugOutput.h"
-#include "phasar/Utils/Utilities.h"
-
-#include "TestConfig.h"
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
 
 using namespace std;
 using namespace psr;
@@ -48,20 +48,20 @@ using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
 class IDETaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLLFiles = "llvm_test_code/xtaint/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
   IDETaintAnalysisTest() = default;
   ~IDETaintAnalysisTest() override = default;
 
-  void doAnalysis(const std::vector<std::string> &IRFiles,
+  void doAnalysis(const llvm::Twine &IRFile,
                   const map<int, set<string>> &GroundTruth,
                   std::variant<std::monostate, json *, CallBackPairTy> Config,
                   bool DumpResults = false) {
-    ProjectIRDB IRDB(IRFiles, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(IRFile);
 
     LLVMTypeHierarchy TH(IRDB);
     // llvm::errs() << "TH: " << TH << '\n';
-    LLVMPointsToSet PT(IRDB);
+    LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(
         &IRDB, CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
@@ -80,10 +80,9 @@ protected:
                               }},
                    Config);
 
-    IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &TH, &ICFG, &PT, TC,
-                                            EntryPoints);
+    IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &ICFG, &PT, TC, EntryPoints);
 
-    IDESolver_P<IDEExtendedTaintAnalysis<>> Solver(TaintProblem);
+    IDESolver Solver(TaintProblem, &ICFG);
     Solver.solve();
     // Solver.printAnnotatedIR();
     if (DumpResults) {
@@ -104,7 +103,8 @@ protected:
                       const map<int, set<string>> &GroundTruth) {
 
     map<int, set<string>> FoundLeaks;
-    for (const auto &Leak : TaintProblem.getAllLeaks(Solver)) {
+    for (const auto &Leak :
+         TaintProblem.getAllLeaks(Solver.getSolverResults())) {
       llvm::errs() << "Leak: " << PrettyPrinter{Leak} << '\n';
       int SinkId = stoi(getMetaDataID(Leak.first));
       set<string> LeakedValueIds;

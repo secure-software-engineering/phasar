@@ -2,14 +2,9 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
 
-#include "llvm/IR/IntrinsicInst.h"
-
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/BranchSwitchInstFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CallToRetFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CheckOperandsFlowFunction.h"
@@ -31,31 +26,33 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStatsWriter.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
+#include "llvm/IR/IntrinsicInst.h"
+
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace psr {
 
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMPointsToInfo *PT,
-    const TaintConfig &TaintConfig, std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
+    const LLVMProjectIRDB *IRDB, const TaintConfig *TaintConfig,
+    std::vector<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(TaintConfig) {
-  IFDSFieldSensTaintAnalysis::ZeroValue =
-      IFDSFieldSensTaintAnalysis::createZeroValue();
+  assert(Config != nullptr);
 }
 
 IFDSFieldSensTaintAnalysis::FlowFunctionPtrType
 IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
     const llvm::Instruction *CurrentInst,
     const llvm::Instruction *SuccessorInst) {
-  if (Config.isSource(CurrentInst)) {
+  if (Config->isSource(CurrentInst)) {
     // TODO: generate current inst wrapped in an ExtendedValue
   }
 
-  if (Config.isSink(CurrentInst)) {
+  if (Config->isSink(CurrentInst)) {
     // TODO: report leak as done for the functions
   }
 
@@ -163,7 +160,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   /*
    * Exclude blacklisted functions here.
    */
-  bool IsSink = Config.mayLeakValuesAt(CallSite, DestFun);
+  bool IsSink = Config->mayLeakValuesAt(CallSite, DestFun);
 
   if (IsSink) {
     return std::make_shared<IdentityFlowFunction>(CS, Stats, getZeroValue());
@@ -196,9 +193,9 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    * Provide summary for tainted functions.
    */
   bool TaintRet =
-      Config.isSource(CallSite) ||
-      (Config.getRegisteredSourceCallBack() &&
-       Config.getRegisteredSourceCallBack()(CallSite).count(CallSite));
+      Config->isSource(CallSite) ||
+      (Config->getRegisteredSourceCallBack() &&
+       Config->getRegisteredSourceCallBack()(CallSite).count(CallSite));
   /// TODO: What about source parameters? They are not handled in the original
   /// implementation, so skip them for now and add them later.
   if (TaintRet) {
@@ -227,7 +224,7 @@ IFDSFieldSensTaintAnalysis::initialSeeds() {
   InitialSeeds<const llvm::Instruction *, ExtendedValue,
                IFDSFieldSensTaintAnalysis::l_t>
       Seeds;
-  auto TaintSeeds = Config.makeInitialSeeds();
+  auto TaintSeeds = Config->makeInitialSeeds();
   for (const auto &[Inst, Facts] : TaintSeeds) {
     for (const auto &Fact : Facts) {
       Seeds.addSeed(Inst, ExtendedValue(Fact));

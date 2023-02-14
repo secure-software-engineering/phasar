@@ -17,17 +17,18 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include "phasar/Utils/BitVectorSet.h"
+
 #include <cstdint>
 #include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -40,9 +41,7 @@ namespace psr {
 
 class LLVMBasedCFG;
 class LLVMBasedICFG;
-class ProjectIRDB;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 class InterMonoFullConstantPropagation;
 
 struct IntraMonoFullConstantPropagationAnalysisDomain
@@ -75,11 +74,10 @@ private:
   executeBinOperation(unsigned Op, plain_d_t Lop, plain_d_t Rop);
 
 public:
-  IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,
+  IntraMonoFullConstantPropagation(const LLVMProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
-                                   const LLVMBasedCFG *CF,
-                                   const LLVMPointsToInfo *PT,
-                                   std::set<std::string> EntryPoints = {});
+                                   const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
+                                   std::vector<std::string> EntryPoints = {});
 
   ~IntraMonoFullConstantPropagation() override = default;
 

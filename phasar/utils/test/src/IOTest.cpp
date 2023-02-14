@@ -1,7 +1,9 @@
-#include "gtest/gtest.h"
-
 #include "phasar/Utils/IO.h"
+
+#include "llvm/ADT/Twine.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
 
 //===----------------------------------------------------------------------===//
 // Unit tests for the IO functionalities

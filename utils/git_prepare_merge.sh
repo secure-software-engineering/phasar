@@ -167,8 +167,16 @@ set -uo pipefail
     #moved ./lib/PhasarLLVM/Utils/LLVMShorthands.cpp ./phasar/llvm/src/Utils/LLVMShorthands.cpp
     #moved ./phasar/llvm/src/Utils/LLVMIRToSrc.cpp ./phasar/utils/src/LLVMIRToSrc.cpp
     
-    # stage 2, handlinug current merge requests
+    # stage 2, handling current merge requests
     status="$(git status)"
+    gitAddFilesWithoutChanges() {
+        for file in "$@"; do
+            if ! grep -Eq '^<<<+ ' "$file"; then
+                git add "$file" 2>/dev/null
+            fi
+        done
+    }
+
 
     mapfile -t both_deleted < <(echo "$status" | grep -Po '(?<=both deleted:).*' | xargs printf '%s\n')
     echo "assuming if upstream and fork deleted a file -> we can remove it from merge"
@@ -203,11 +211,16 @@ set -uo pipefail
     mapfile -t added_by_them < <(echo "$status" | grep -Po '(?<=added by them:).*' | grep -v llvm_test_code | xargs printf '%s\n')
     echo "assuming if added upstream -> we need to add it, if below llvm_test_code use git mv to change the filename appropriate!"
     if [ -n "${added_by_them[*]}" ]; then
-        git add "${added_by_them[@]}"
+        gitAddFilesWithoutChanges "${added_by_them[@]}"
     fi
     printf '\n\n\n\n'
 
 
+
+    # TODO documentation if added by us
+    # e.g. if files are moved upstream or git lost track of it ...
+    # upstream should always have prio! Else you have to deal with more conflicts after merging it back into.
+    # Suggested: rm file, git add file || fix upstream before merge
 
     # cleanup empty directories
     find . -type d -empty -delete

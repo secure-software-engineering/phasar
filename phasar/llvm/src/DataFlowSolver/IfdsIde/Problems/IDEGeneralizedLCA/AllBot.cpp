@@ -8,10 +8,11 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 
-namespace psr {
+namespace psr::glca {
 
 std::shared_ptr<AllBot::type> AllBot::getInstance() {
   static std::shared_ptr<type> Ret =
@@ -45,4 +46,4 @@ bool AllBot::isBot(
   return isBot(EdgeFn.get(), NonRec);
 }
 
-} // namespace psr
+} // namespace psr::glca

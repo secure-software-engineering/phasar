@@ -17,9 +17,9 @@
 #ifndef PHASAR_UTILS_LLVMIRTOSRC_H_
 #define PHASAR_UTILS_LLVMIRTOSRC_H_
 
-#include <string>
-
 #include "nlohmann/json.hpp"
+
+#include <string>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {

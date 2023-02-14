@@ -10,12 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 
-#include <set>
-#include <string>
+#include "phasar/PhasarLLVM/TypeHierarchy/VFTable.h"
+
+#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
-#include "phasar/PhasarLLVM/TypeHierarchy/VFTable.h"
+#include <set>
+#include <string>
 
 namespace psr {
 

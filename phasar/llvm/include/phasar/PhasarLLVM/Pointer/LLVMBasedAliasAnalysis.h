@@ -7,16 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
-#define PHASAR_PHASARLLVM_POINTER_LLVMBASEDPOINTSTOANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 
-#include <unordered_map>
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisType.h"
 
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
-
-#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 namespace llvm {
 class Value;
@@ -26,42 +24,41 @@ class Instruction;
 
 namespace psr {
 
-class ProjectIRDB;
+class LLVMProjectIRDB;
 
-class LLVMBasedPointsToAnalysis {
+class LLVMBasedAliasAnalysis {
 private:
   llvm::PassBuilder PB;
   llvm::AAManager AA;
   llvm::FunctionAnalysisManager FAM;
   llvm::FunctionPassManager FPM;
-  mutable std::unordered_map<const llvm::Function *, llvm::AAResults *> AAInfos;
-  PointerAnalysisType PATy;
+  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
+  AliasAnalysisType PATy;
 
-  bool hasPointsToInfo(const llvm::Function &Fun) const;
+  [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
 
-  void computePointsToInfo(llvm::Function &Fun);
+  void computeAliasInfo(llvm::Function &Fun);
 
 public:
-  LLVMBasedPointsToAnalysis(
-      ProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-      PointerAnalysisType PATy = PointerAnalysisType::CFLAnders);
+  LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
+                         AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
-  ~LLVMBasedPointsToAnalysis() = default;
+  ~LLVMBasedAliasAnalysis() = default;
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
   [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
-    if (!hasPointsToInfo(*F)) {
-      computePointsToInfo(*F);
+    if (!hasAliasInfo(*F)) {
+      computeAliasInfo(*F);
     }
-    return AAInfos.at(F);
+    return AAInfos.lookup(F);
   };
 
   void erase(llvm::Function *F);
 
   void clear();
 
-  [[nodiscard]] inline PointerAnalysisType getPointerAnalysisType() const {
+  [[nodiscard]] inline AliasAnalysisType getPointerAnalysisType() const {
     return PATy;
   };
 };

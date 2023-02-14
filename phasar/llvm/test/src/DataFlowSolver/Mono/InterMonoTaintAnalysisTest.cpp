@@ -1,21 +1,22 @@
-#include <memory>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 
-#include "llvm/Support/raw_ostream.h"
-
-#include "gtest/gtest.h"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <memory>
+#include <vector>
 
 using namespace psr;
 
@@ -23,20 +24,19 @@ using namespace psr;
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles = "llvm_test_code/taint_analysis/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
-  std::unique_ptr<ProjectIRDB> IRDB;
+  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
   void SetUp() override {}
   void TearDown() override {}
 
   std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
-  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    auto IRFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
+    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    auto PT = std::make_unique<LLVMAliasSet>(IRDB.get());
     LLVMBasedICFG ICFG(
         IRDB.get(), CallGraphAnalysisType::OTF,
         std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
@@ -82,7 +82,7 @@ protected:
     // IRDB = std::make_unique<ProjectIRDB>(IR_Files, IRDBOptions::WPA);
     // ValueAnnotationPass::resetValueID();
     // LLVMTypeHierarchy TH(*IRDB);
-    // auto PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    // auto PT = std::make_unique<LLVMAliasSet>(*IRDB);
     // LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
     //                    PT.get());
     // TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
@@ -153,7 +153,7 @@ TEST(InterMonoTaintAnalysisTestNF, TaintTest_05) {
   // doAnalysisAndCompare("taint_13.ll", 31, Facts);
   const std::string pathToLLFiles =
       "llvm_test_code/taint_analysis/";
-  ProjectIRDB IRDB({pathToLLFiles + "taint_13.ll"});
+  LLVMProjectIRDB IRDB({pathToLLFiles + "taint_13.ll"});
   ValueAnnotationPass::resetValueID();
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);

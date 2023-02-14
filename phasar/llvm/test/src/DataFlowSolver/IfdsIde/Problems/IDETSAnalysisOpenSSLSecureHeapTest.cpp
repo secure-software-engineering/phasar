@@ -7,19 +7,22 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <memory>
-
-#include "gtest/gtest.h"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureHeapDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
+#include "llvm/ADT/Twine.h"
+
+#include "gtest/gtest.h"
+
+#include <memory>
+#include <vector>
 
 using namespace std;
 using namespace psr;
@@ -28,12 +31,12 @@ using namespace psr;
 class IDETSAnalysisOpenSSLSecureHeapTest : public ::testing::Test {
 protected:
   const std::string PathToLlFiles = "llvm_test_code/openssl/secure_heap/";
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<ProjectIRDB> IRDB;
+  unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;
   unique_ptr<LLVMBasedICFG> ICFG;
-  unique_ptr<LLVMPointsToInfo> PT;
+  LLVMAliasInfo PT;
   unique_ptr<OpenSSLSecureHeapDescription> Desc;
   unique_ptr<IDETypeStateAnalysis> TSProblem;
   unique_ptr<IDESolver<IDETypeStateAnalysisDomain>> Llvmtssolver;
@@ -52,26 +55,25 @@ protected:
   IDETSAnalysisOpenSSLSecureHeapTest() = default;
   ~IDETSAnalysisOpenSSLSecureHeapTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = make_unique<ProjectIRDB>(IRFiles, IRDBOptions::WPA);
+  void initialize(const llvm::Twine &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMPointsToSet>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(IRDB.get());
     ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
-                                      std::vector<std::string>{"main"},
-                                      TH.get(), PT.get());
+                                      std::vector{"main"s}, TH.get(), PT.get());
 
-    SecureHeapPropagationProblem = make_unique<IDESecureHeapPropagation>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), EntryPoints);
+    SecureHeapPropagationProblem =
+        make_unique<IDESecureHeapPropagation>(IRDB.get(), EntryPoints);
     SecureHeapPropagationResults =
         make_unique<IDESolver<IDESecureHeapPropagationAnalysisDomain>>(
-            *SecureHeapPropagationProblem);
+            *SecureHeapPropagationProblem, ICFG.get());
 
     Desc = make_unique<OpenSSLSecureHeapDescription>(
         *SecureHeapPropagationResults);
-    TSProblem = make_unique<IDETypeStateAnalysis>(
-        IRDB.get(), TH.get(), ICFG.get(), PT.get(), *Desc, EntryPoints);
-    Llvmtssolver =
-        make_unique<IDESolver<IDETypeStateAnalysisDomain>>(*TSProblem);
+    TSProblem = make_unique<IDETypeStateAnalysis>(IRDB.get(), PT.get(),
+                                                  Desc.get(), EntryPoints);
+    Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
+        *TSProblem, ICFG.get());
 
     SecureHeapPropagationResults->solve();
     Llvmtssolver->solve();

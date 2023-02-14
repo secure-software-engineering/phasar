@@ -17,13 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
 
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Utils/Table.h"
+
 #include <set>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
-
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
-#include "phasar/Utils/Table.h"
 
 namespace psr {
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2019 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
@@ -10,6 +10,7 @@
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
 
 std::string psr::toString(Soundness S) {
   switch (S) {

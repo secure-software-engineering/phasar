@@ -7,26 +7,26 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <set>
-#include <string>
-#include <utility>
-
-#include "gtest/gtest.h"
-
-#include "llvm/Support/raw_ostream.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoUninitVariables.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
+#include "gtest/gtest.h"
+
+#include <set>
+#include <string>
+#include <utility>
 
 using namespace psr;
 
@@ -37,24 +37,24 @@ protected:
 
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 
-  const std::set<std::string> EntryPoints = {"main"};
+  const std::vector<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB = nullptr;
+  LLVMProjectIRDB *IRDB = nullptr;
 
   void SetUp() override {}
 
   void TearDown() override { delete IRDB; }
 
-  void doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+  void doAnalysisAndCompareResults(llvm::StringRef LlvmFilePath,
                                    const CompactResults_t & /*GroundTruth*/,
                                    bool PrintDump = false) {
-    IRDB = new ProjectIRDB({PathToLLFiles + LlvmFilePath});
+    IRDB = new LLVMProjectIRDB(PathToLLFiles + LlvmFilePath);
     if (PrintDump) {
-      IRDB->emitPreprocessedIR();
+      IRDB->dump();
     }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    auto PT = LLVMPointsToSet(*IRDB);
+    auto PT = LLVMAliasSet(IRDB);
     LLVMBasedCFG CFG;
     IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, &PT, EntryPoints);
     IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);

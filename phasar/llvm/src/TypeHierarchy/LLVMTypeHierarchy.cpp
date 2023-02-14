@@ -14,16 +14,15 @@
  *      Author: pdschbrt
  */
 
-#include <algorithm>
-#include <cassert>
-#include <memory>
-#include <ostream>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
-#include "boost/graph/depth_first_search.hpp"
-#include "boost/graph/graph_utility.hpp"
-#include "boost/graph/graphviz.hpp"
-#include "boost/graph/transitive_closure.hpp"
-#include "boost/property_map/dynamic_property_map.hpp"
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
@@ -33,17 +32,16 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/Support/Format.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Utilities.h"
+#include "boost/graph/graphviz.hpp"
+#include "boost/graph/transitive_closure.hpp"
 
-using namespace psr;
+#include <algorithm>
+#include <cassert>
+#include <memory>
+#include <ostream>
+
 using namespace std;
 
 namespace psr {
@@ -70,12 +68,10 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
   return Type->getStructName().str();
 }
 
-LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Construct type hierarchy");
-  for (auto *M : IRDB.getAllModules()) {
-    buildLLVMTypeHierarchy(*M);
-  }
-  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Finished type hierarchy");
+LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
+  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
+
+  buildLLVMTypeHierarchy(*IRDB.getModule());
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {

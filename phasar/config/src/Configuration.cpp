@@ -14,14 +14,15 @@
  *      Author: philipp
  */
 
-#include <fstream>
+#include "phasar/Config/Configuration.h"
+
+#include "phasar/Config/Version.h"
+
+#include "llvm/ADT/Twine.h"
+#include "llvm/Support/MemoryBuffer.h"
 
 #include "boost/algorithm/string/classification.hpp"
 #include "boost/algorithm/string/split.hpp"
-#include "llvm/Support/MemoryBuffer.h"
-
-#include "phasar/Config/Configuration.h"
-#include "phasar/Config/Version.h"
 
 using namespace psr;
 

@@ -10,8 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLERFLOWFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLERFLOWFUNCTION_H
 
-#include <set>
-#include <vector>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
@@ -19,9 +20,8 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include <set>
+#include <vector>
 
 namespace llvm {
 class CallBase;
@@ -30,7 +30,7 @@ class Instruction;
 class ReturnInst;
 class Value;
 } // namespace llvm
-namespace psr {
+namespace psr::glca {
 
 class MapFactsToCallerFlowFunction : public FlowFunction<const llvm::Value *> {
   std::vector<const llvm::Value *> Actuals;
@@ -47,6 +47,6 @@ public:
   computeTargets(const llvm::Value *Source) override;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

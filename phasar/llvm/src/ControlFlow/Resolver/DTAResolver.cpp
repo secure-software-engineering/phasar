@@ -14,26 +14,27 @@
  *      Author: nicolas bellec
  */
 
-#include <memory>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
+
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
+#include <memory>
 
-using namespace std;
 using namespace psr;
 
-DTAResolver::DTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+DTAResolver::DTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : CHAResolver(IRDB, TH) {}
 
 bool DTAResolver::heuristicAntiConstructorThisType(
@@ -71,7 +72,8 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
   // the store instruction of the vtable.
   const auto *StructTy = stripPointer(BitCast->getSrcTy());
   if (StructTy == nullptr) {
-    throw runtime_error("StructTy == nullptr in the heuristic_anti_contructor");
+    throw std::runtime_error(
+        "StructTy == nullptr in the heuristic_anti_contructor");
   }
 
   // If it doesn't contain vtable, there is no reason to call this class in the
@@ -93,7 +95,8 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
 
   const auto *Caller = BitCast->getFunction();
   if (Caller == nullptr) {
-    throw runtime_error("A bitcast instruction has no associated function");
+    throw std::runtime_error(
+        "A bitcast instruction has no associated function");
   }
 
   int Idx = 0;

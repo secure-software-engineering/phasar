@@ -8,14 +8,14 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -35,9 +35,9 @@
 
 namespace psr {
 struct LLVMBasedICFG::Builder {
-  ProjectIRDB *IRDB = nullptr;
+  LLVMProjectIRDB *IRDB = nullptr;
   LLVMBasedICFG *ICF = nullptr;
-  MaybeUniquePtr<LLVMPointsToInfo> PT{};
+  LLVMAliasInfoRef PT{};
   std::unique_ptr<Resolver> Res = nullptr;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions{};
   llvm::SmallVector<llvm::Function *, 1> UserEntryPoints{};
@@ -67,10 +67,14 @@ struct LLVMBasedICFG::Builder {
 void LLVMBasedICFG::Builder::initEntryPoints(
     llvm::ArrayRef<std::string> EntryPoints) {
   if (EntryPoints.size() == 1 && EntryPoints.front() == "__ALL__") {
+    UserEntryPoints.reserve(IRDB->getNumFunctions());
     // Handle the special case in which a user wishes to treat all functions as
     // entry points.
     for (const auto *Fun : IRDB->getAllFunctions()) {
-      if (!Fun->isDeclaration() && Fun->hasName()) {
+      // Only functions with external linkage (or 'main') can be called from the
+      // outside!
+      if (!Fun->isDeclaration() && Fun->hasName() &&
+          (Fun->hasExternalLinkage() || Fun->getName() == "main")) {
         UserEntryPoints.push_back(IRDB->getFunctionDefinition(Fun->getName()));
       }
     }
@@ -91,12 +95,10 @@ void LLVMBasedICFG::Builder::initEntryPoints(
 
 void LLVMBasedICFG::Builder::initGlobalsAndWorkList(LLVMBasedICFG *ICFG,
                                                     bool IncludeGlobals) {
-  FunctionWL.reserve(IRDB->getAllFunctions().size());
+  FunctionWL.reserve(IRDB->getNumFunctions());
   if (IncludeGlobals) {
-    assert(IRDB->getNumberOfModules() == 1 &&
-           "IncludeGlobals is currently only supported for WPA");
     const auto *GlobCtor = ICFG->buildCRuntimeGlobalCtorsDtorsModel(
-        *IRDB->getWPAModule(), UserEntryPoints);
+        *IRDB->getModule(), UserEntryPoints);
     FunctionWL.push_back(GlobCtor);
   } else {
     FunctionWL.insert(FunctionWL.end(), UserEntryPoints.begin(),
@@ -107,7 +109,7 @@ void LLVMBasedICFG::Builder::initGlobalsAndWorkList(LLVMBasedICFG *ICFG,
 void LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/) {
   PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
                        "Starting CallGraphAnalysisType: " << Res->str());
-  VisitedFunctions.reserve(IRDB->getAllFunctions().size());
+  VisitedFunctions.reserve(IRDB->getNumFunctions());
 
   bool FixpointReached;
 
@@ -359,23 +361,27 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
   return NewTargetsFound;
 }
 
-LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+                             CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
+                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
     : TH(TH) {
   assert(IRDB != nullptr);
   this->IRDB = IRDB;
 
   Builder B{IRDB, this, PT};
+  LLVMAliasInfo PTOwn;
+
   if (!TH && CGType != CallGraphAnalysisType::NORESOLVE) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
   }
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
-    B.PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    PTOwn = std::make_unique<LLVMAliasSet>(IRDB);
+    B.PT = PTOwn.asRef();
   }
 
-  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT.get());
+  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT);
   B.initEntryPoints(EntryPoints);
   B.initGlobalsAndWorkList(this, IncludeGlobals);
 
@@ -395,10 +401,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB *IRDB, CallGraphAnalysisType CGType,
 LLVMBasedICFG::~LLVMBasedICFG() = default;
 
 [[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
-  /// With the new LLVMProjectIRDB, this will be easier...
-  return llvm::map_range(
-      static_cast<const llvm::Module &>(*IRDB->getWPAModule()),
-      Ref2PointerConverter<llvm::Function>{});
+  return IRDB->getAllFunctions();
 }
 
 [[nodiscard]] auto LLVMBasedICFG::getFunctionImpl(llvm::StringRef Fun) const
@@ -418,15 +421,13 @@ LLVMBasedICFG::~LLVMBasedICFG() = default;
 [[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const
     -> std::vector<n_t> {
   std::vector<n_t> NonCallStartNodes;
-  /// NOTE: Gets more performant once we have the new LLVMProjectIRDB
-  NonCallStartNodes.reserve(2 * IRDB->getAllFunctions().size());
-  for (const auto *F : IRDB->getAllFunctions()) {
-    for (const auto &I : llvm::instructions(F)) {
-      if (!llvm::isa<llvm::CallBase>(&I) && !isStartPoint(&I)) {
-        NonCallStartNodes.push_back(&I);
-      }
+  NonCallStartNodes.reserve(2 * IRDB->getNumFunctions());
+  for (const auto *Inst : IRDB->getAllInstructions()) {
+    if (!llvm::isa<llvm::CallBase>(Inst) && !isStartPoint(Inst)) {
+      NonCallStartNodes.push_back(Inst);
     }
   }
+
   return NonCallStartNodes;
 }
 

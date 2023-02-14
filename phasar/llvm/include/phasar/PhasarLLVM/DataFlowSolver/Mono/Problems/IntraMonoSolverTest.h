@@ -17,13 +17,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
 
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/Utils/BitVectorSet.h"
+
 #include <set>
 #include <string>
 #include <unordered_map>
-
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
-#include "phasar/PhasarLLVM/Domain/AnalysisDomain.h"
-#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;
@@ -37,7 +38,6 @@ namespace psr {
 class LLVMBasedCFG;
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 
 struct IntraMonoSolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
   using mono_container_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
@@ -54,9 +54,9 @@ public:
   using i_t = IntraMonoSolverTestAnalysisDomain::i_t;
   using mono_container_t = IntraMonoSolverTestAnalysisDomain::mono_container_t;
 
-  IntraMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                      const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,
-                      std::set<std::string> EntryPoints = {});
+  IntraMonoSolverTest(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                      const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
+                      std::vector<std::string> EntryPoints = {});
 
   ~IntraMonoSolverTest() override = default;
 

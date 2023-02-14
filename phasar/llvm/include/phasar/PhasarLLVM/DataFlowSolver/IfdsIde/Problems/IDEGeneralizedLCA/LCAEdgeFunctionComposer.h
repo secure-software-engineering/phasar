@@ -14,7 +14,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
-namespace psr {
+namespace psr::glca {
 
 class LCAEdgeFunctionComposer
     : public EdgeFunctionComposer<IDEGeneralizedLCA::l_t> {
@@ -38,6 +38,6 @@ public:
   getSecond() const;
 };
 
-} // namespace psr
+} // namespace psr::glca
 
 #endif

@@ -10,22 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIG_H
 
-#include <filesystem>
-#include <functional>
-#include <set>
-#include <string>
-#include <unordered_set>
-
-#include "nlohmann/json.hpp"
-
 #include "llvm/ADT/STLExtras.h" // function_ref
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
-#include "phasar/DB/ProjectIRDB.h"
+#include "nlohmann/json.hpp"
+
+#include <set>
+#include <unordered_set>
 
 namespace psr {
+class LLVMProjectIRDB;
 
 enum class TaintCategory { Source, Sink, Sanitizer, None };
 
@@ -52,14 +48,15 @@ TaintCategory toTaintCategory(llvm::StringRef Str);
 // analysis.
 class TaintConfig {
 
-  void addAllFunctions(const ProjectIRDB &IRDB, const nlohmann::json &Config);
+  void addAllFunctions(const LLVMProjectIRDB &IRDB,
+                       const nlohmann::json &Config);
 
 public:
   using TaintDescriptionCallBackTy =
       std::function<std::set<const llvm::Value *>(const llvm::Instruction *)>;
 
-  TaintConfig(const psr::ProjectIRDB &Code, const nlohmann::json &Config);
-  TaintConfig(const psr::ProjectIRDB &AnnotatedCode);
+  TaintConfig(const psr::LLVMProjectIRDB &Code, const nlohmann::json &Config);
+  TaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode);
   TaintConfig(
       TaintDescriptionCallBackTy SourceCB, TaintDescriptionCallBackTy SinkCB,
       TaintDescriptionCallBackTy SanitizerCB = TaintDescriptionCallBackTy{});

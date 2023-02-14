@@ -4,6 +4,7 @@
 #ifndef HAS_MEMORY_RESOURCE
 #if !defined(__has_include) || __has_include(<memory_resource>)
 #define HAS_MEMORY_RESOURCE 1
+#include <memory_resource>
 #else
 #define HAS_MEMORY_RESOURCE 0
 #endif

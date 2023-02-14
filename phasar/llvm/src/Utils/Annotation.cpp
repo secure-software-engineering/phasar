@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <cassert>
-#include <memory>
+#include "phasar/PhasarLLVM/Utils/Annotation.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Argument.h"
@@ -22,7 +21,8 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
-#include "phasar/PhasarLLVM/Utils/Annotation.h"
+#include <cassert>
+#include <memory>
 
 namespace psr {
 

@@ -1,8 +1,9 @@
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
+
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
-
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintAnalysisBase.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
 namespace psr::XTaint {
 AnalysisBase::AnalysisBase(const TaintConfig *TSF) noexcept : TSF(TSF) {

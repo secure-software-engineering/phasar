@@ -1,23 +1,20 @@
-#include <cstdlib>
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "TestConfig.h"
 #include "gtest/gtest.h"
-
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/Logger.h"
-
 #include "nlohmann/json.hpp"
 
-#include "TestConfig.h"
+#include <cstdlib>
 
 using namespace psr;
 
@@ -43,10 +40,10 @@ static SetTy makeSet(const nlohmann::json &J) {
 
 static void checkSer(const nlohmann::json &Ser, const GroundTruthTy &Gt) {
 
-  ASSERT_TRUE(Ser.count("PointsToSets"));
+  ASSERT_TRUE(Ser.count("AliasSets"));
   ASSERT_TRUE(Ser.count("AnalyzedFunctions"));
 
-  const auto &PSets = Ser.at("PointsToSets");
+  const auto &PSets = Ser.at("AliasSets");
   const auto &Funs = Ser.at("AnalyzedFunctions");
 
   const auto &GtPSets = Gt.first;
@@ -62,14 +59,14 @@ static void checkSer(const nlohmann::json &Ser, const GroundTruthTy &Gt) {
   EXPECT_EQ(GtFuns, FunsSet);
 }
 
-static void checkDeser(const llvm::Module &Mod, LLVMPointsToSet &PTS,
-                       LLVMPointsToSet &Deser) {
+static void checkDeser(const llvm::Module &Mod, LLVMAliasSet &PTS,
+                       LLVMAliasSet &Deser) {
   for (const auto &Glob : Mod.globals()) {
-    EXPECT_EQ(*PTS.getPointsToSet(&Glob), *Deser.getPointsToSet(&Glob));
+    EXPECT_EQ(*PTS.getAliasSet(&Glob), *Deser.getAliasSet(&Glob));
   }
   for (const auto &Fun : Mod) {
     for (const auto &Inst : llvm::instructions(Fun)) {
-      EXPECT_EQ(*PTS.getPointsToSet(&Inst), *Deser.getPointsToSet(&Inst));
+      EXPECT_EQ(*PTS.getAliasSet(&Inst), *Deser.getAliasSet(&Inst));
     }
   }
 }
@@ -78,11 +75,11 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
                     llvm::StringRef EntryPoint = "main") {
   Logger::disable();
   ValueAnnotationPass::resetValueID();
-  ProjectIRDB IRDB({"llvm_test_code/" + File.str()});
+  LLVMProjectIRDB IRDB({"llvm_test_code/" + File.str()});
 
   // llvm::outs() << *IRDB.getWPAModule() << '\n';
 
-  LLVMPointsToSet PTS(IRDB, false);
+  LLVMAliasSet PTS(&IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
                     &PTS);
@@ -90,15 +87,15 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
   auto Ser = PTS.getAsJson();
   checkSer(Ser, Gt);
 
-  LLVMPointsToSet Deser(IRDB, Ser);
-  checkDeser(*IRDB.getWPAModule(), PTS, Deser);
+  LLVMAliasSet Deser(&IRDB, Ser);
+  checkDeser(*IRDB.getModule(), PTS, Deser);
 }
 
-TEST(LLVMPointsToSetSerializationTest, Ser_Intra01) {
+TEST(LLVMAliasSetSerializationTest, Ser_Intra01) {
   analyze("pointers/basic_01.ll", {{{"1"}, {"0", "3"}}, {"main"}});
 }
 
-TEST(LLVMPointsToSetSerializationTest, Ser_Inter01) {
+TEST(LLVMAliasSetSerializationTest, Ser_Inter01) {
   analyze("pointers/call_01.ll",
           {{{"0"}, {"10", "12", "2", "6", "_Z10setIntegerPi.0"}, {"5"}, {"7"}},
            {"main", "_Z10setIntegerPi"}});
