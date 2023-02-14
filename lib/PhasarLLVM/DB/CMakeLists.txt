@@ -3,11 +3,13 @@ file(GLOB_RECURSE PSR_LLVM_DB_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
   phasar_db
   phasar_utils
+  phasar_llvm_utils
 )
 
 set(LLVM_LINK_COMPONENTS
   Core
   Support
+  IRReader
 )
 
 if(BUILD_SHARED_LIBS)
