@@ -15,6 +15,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "gtest/gtest.h"
 
@@ -50,7 +51,7 @@ protected:
   IDETSAnalysisOpenSSLSecureMemoryTest() = default;
   ~IDETSAnalysisOpenSSLSecureMemoryTest() override = default;
 
-  void initialize(const std::string &IRFile) {
+  void initialize(const llvm::Twine &IRFile) {
     IRDB = make_unique<LLVMProjectIRDB>(IRFile);
     TH = make_unique<LLVMTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMAliasSet>(IRDB.get());
