@@ -298,20 +298,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
-      return strongUpdateStore(Store, [](d_t Source) {
-        return LLVMZeroValue::isLLVMZeroValue(Source);
-      });
-    }
-
-    // Here we cheat a bit and "look through" the GetElementPtrInst to the
-    // targeted memory location.
-    auto po = Store->getPointerOperand();
-    if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(po)) {
-      if (GEP->getResultElementType()->isIntegerTy()) {
-        auto operand = GEP->getPointerOperand();
-        return generateFlowIf<d_t>(
-            operand, [ValueOp](d_t Source) { return Source == ValueOp; });
-      }
+      return strongUpdateStore(Store, LLVMZeroValue::isLLVMZeroValue);
     }
 
     // Case II: Storing an integer typed value.
@@ -322,14 +309,14 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
 
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (GEP->getResultElementType()->isIntegerTy()) {
-      auto operand = GEP->getPointerOperand();
-      return generateFlow(GEP, operand);
+      const auto *Op = GEP->getPointerOperand();
+      return generateFlow(GEP, Op);
     }
   }
   // check load instructions
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
-    if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
+    if (Load->getType()->isIntegerTy()) {
       return generateFlowIf<d_t>(Load, [Load](d_t Source) {
         return Source == Load->getPointerOperand();
       });
@@ -349,20 +336,15 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   }
 
   if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
-    auto *ao = Extract->getAggregateOperand();
+    const auto *Agg = Extract->getAggregateOperand();
 
     /// We are extracting the result of a BinaryOpIntrinsic
     /// The first parameter holds the resulting integer if
     /// no error occured during the operation
-    if (const auto *binIntrinsic =
-            llvm::dyn_cast<llvm::BinaryOpIntrinsic>(ao)) {
-      auto idxArr = Extract->getIndices();
-      if (idxArr.size() == 1) {
-        auto extractIdx = idxArr[0];
-        auto type = Extract->getIndexedType(ao->getType(), {extractIdx});
-        if (type->isIntegerTy() && extractIdx == 0) {
-          return generateFlow<d_t>(Curr, ao);
-        }
+    if (const auto *BinIntrinsic =
+            llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Agg)) {
+      if (Extract->getType()->isIntegerTy()) {
+        return generateFlow<d_t>(Curr, Agg);
       }
     }
   }
@@ -458,14 +440,14 @@ IDELinearConstantAnalysis::initialSeeds() {
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
-IDELinearConstantAnalysis::getSummaryFlowFunction(n_t Curr, f_t CalleeFun) {
+IDELinearConstantAnalysis::getSummaryFlowFunction(n_t Curr, f_t /*CalleeFun*/) {
 
-  if (const auto *binIntrinsic =
+  if (const auto *BinIntrinsic =
           llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Curr)) {
-    auto *Lop = binIntrinsic->getLHS();
-    auto *Rop = binIntrinsic->getRHS();
+    auto *Lop = BinIntrinsic->getLHS();
+    auto *Rop = BinIntrinsic->getRHS();
 
-    return generateFlowIf<d_t>(binIntrinsic, [this, Lop, Rop](d_t Source) {
+    return generateFlowIf<d_t>(BinIntrinsic, [this, Lop, Rop](d_t Source) {
       /// Intentionally include nonlinear operations here for being able to
       /// explicitly set them to BOTTOM in the edge function
       return (Lop == Source) || (Rop == Source) ||
@@ -599,13 +581,13 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
 
 std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
-                                                  n_t Succ, d_t SuccNode) {
+                                                  n_t /*Succ*/, d_t SuccNode) {
 
-  if (const auto *binIntrinsic =
+  if (const auto *BinIntrinsic =
           llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Curr)) {
-    auto *Lop = binIntrinsic->getLHS();
-    auto *Rop = binIntrinsic->getRHS();
-    unsigned OP = binIntrinsic->getBinaryOp();
+    auto *Lop = BinIntrinsic->getLHS();
+    auto *Rop = BinIntrinsic->getRHS();
+    unsigned OP = BinIntrinsic->getBinaryOp();
 
     // For non linear constant computation we propagate bottom
     if ((CurrNode == Lop && !llvm::isa<llvm::ConstantInt>(Rop)) ||
@@ -791,13 +773,7 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
   return AggResults;
 }
 
-void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) {
-  OS << *this;
-}
-
-IDELinearConstantAnalysis::LCAResult::operator std::string() const {
-  std::string Buffer;
-  llvm::raw_string_ostream OS(Buffer);
+void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) const {
   OS << "Line " << LineNr << ": " << SrcNode << '\n';
   OS << "Var(s): ";
   for (auto It = VariableToValue.begin(); It != VariableToValue.end(); ++It) {
@@ -810,7 +786,6 @@ IDELinearConstantAnalysis::LCAResult::operator std::string() const {
   for (const auto *Ir : IRTrace) {
     OS << "  " << llvmIRToString(Ir) << '\n';
   }
-  return Buffer;
 }
 
 } // namespace psr

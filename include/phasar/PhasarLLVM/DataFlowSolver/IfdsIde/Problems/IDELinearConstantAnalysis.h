@@ -65,13 +65,11 @@ public:
     std::string SrcNode;
     std::map<std::string, l_t> VariableToValue;
     std::vector<n_t> IRTrace;
-    void print(llvm::raw_ostream &OS);
+    void print(llvm::raw_ostream &OS) const;
     inline bool operator==(const LCAResult &Rhs) const {
       return SrcNode == Rhs.SrcNode && VariableToValue == Rhs.VariableToValue &&
              IRTrace == Rhs.IRTrace;
     }
-
-    operator std::string() const;
   };
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;

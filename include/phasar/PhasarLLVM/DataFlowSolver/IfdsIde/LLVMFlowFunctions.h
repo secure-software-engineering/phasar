@@ -386,6 +386,38 @@ template <typename Fn, typename Container = std::set<const llvm::Value *>,
               std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
+  // Here we cheat a bit and "look through" the GetElementPtrInst to the
+  // targeted memory location.
+  const auto *BasePtrOp = Store->getPointerOperand()->stripPointerCasts();
+  if (BasePtrOp != Store->getPointerOperand()) {
+    struct StrongUpdateFlow
+        : public FlowFunction<const llvm::Value *, Container> {
+
+      StrongUpdateFlow(const llvm::Value *PointerOp,
+                       const llvm::Value *BasePtrOp, Fn &&GeneratePointerOpIf)
+          : PointerOp(PointerOp), BasePtrOp(BasePtrOp),
+            Pred(std::forward<Fn>(GeneratePointerOpIf)) {}
+
+      Container computeTargets(const llvm::Value *Source) override {
+        if (Source == PointerOp || Source == BasePtrOp) {
+          return {};
+        }
+        if (std::invoke(Pred, Source)) {
+          return {Source, PointerOp, BasePtrOp};
+        }
+        return {Source};
+      }
+
+      const llvm::Value *PointerOp;
+      const llvm::Value *BasePtrOp;
+      [[no_unique_address]] std::decay_t<Fn> Pred;
+    };
+
+    return std::make_shared<StrongUpdateFlow>(
+        Store->getPointerOperand(), BasePtrOp,
+        std::forward<Fn>(GeneratePointerOpIf));
+  }
+
   struct StrongUpdateFlow
       : public FlowFunction<const llvm::Value *, Container> {
 
@@ -431,10 +463,38 @@ strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
 template <typename Container = std::set<const llvm::Value *>>
 FlowFunctionPtrType<const llvm::Value *, Container>
 strongUpdateStore(const llvm::StoreInst *Store) {
+  // Here we cheat a bit and "look through" the GetElementPtrInst to the
+  // targeted memory location.
+  const auto *BasePtrOp = Store->getPointerOperand()->stripPointerCasts();
+  if (BasePtrOp != Store->getPointerOperand()) {
+    struct StrongUpdateFlow
+        : public FlowFunction<const llvm::Value *, Container> {
+
+      StrongUpdateFlow(const llvm::StoreInst *Store,
+                       const llvm::Value *BasePtrOp) noexcept
+          : Store(Store), BasePtrOp(BasePtrOp) {}
+
+      Container computeTargets(const llvm::Value *Source) override {
+        if (Source == Store->getPointerOperand() || Source == BasePtrOp) {
+          return {};
+        }
+        if (Source == Store->getValueOperand()) {
+          return {Source, Store->getPointerOperand(), BasePtrOp};
+        }
+        return {Source};
+      }
+
+      const llvm::StoreInst *Store;
+      const llvm::Value *BasePtrOp;
+    };
+
+    return std::make_shared<StrongUpdateFlow>(Store, BasePtrOp);
+  }
+
   struct StrongUpdateFlow
       : public FlowFunction<const llvm::Value *, Container> {
 
-    StrongUpdateFlow(const llvm::StoreInst *Store) : Store(Store) {}
+    StrongUpdateFlow(const llvm::StoreInst *Store) noexcept : Store(Store) {}
 
     Container computeTargets(const llvm::Value *Source) override {
       if (Source == Store->getPointerOperand()) {
