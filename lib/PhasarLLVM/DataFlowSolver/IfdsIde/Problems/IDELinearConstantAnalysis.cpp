@@ -298,11 +298,22 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
-      // return Identity<d_t>::getInstance();
       return strongUpdateStore(Store, [](d_t Source) {
         return LLVMZeroValue::isLLVMZeroValue(Source);
       });
     }
+
+    // Here we cheat a bit and "look through" the GetElementPtrInst to the
+    // targeted memory location.
+    auto po = Store->getPointerOperand();
+    if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(po)) {
+      if (GEP->getResultElementType()->isIntegerTy()) {
+        auto operand = GEP->getPointerOperand();
+        return generateFlowIf<d_t>(
+            operand, [ValueOp](d_t Source) { return Source == ValueOp; });
+      }
+    }
+
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
       return strongUpdateStore(Store);
@@ -310,12 +321,8 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   }
 
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    llvm::outs() << " Found get element ptr " << *GEP << "\n";
-    // GEP: %._value1 = getelementptr inbounds %TSi, %TSi* %4, i32 0, i32 0
     if (GEP->getResultElementType()->isIntegerTy()) {
-      auto operand = GEP->getPointerOperand(); // operand: %4 = alloca %TSi,
-      llvm::outs() << "generating flow with pointer operand " << *operand
-                   << "\n";
+      auto operand = GEP->getPointerOperand();
       return generateFlow(GEP, operand);
     }
   }
@@ -340,8 +347,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
               llvm::isa<llvm::ConstantInt>(Rop));
     });
   }
-  // TODO: handle getelementptr to correctly propagate the constant to the store
-  // location
+
   if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
     auto *ao = Extract->getAggregateOperand();
 
@@ -355,8 +361,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
         auto extractIdx = idxArr[0];
         auto type = Extract->getIndexedType(ao->getType(), {extractIdx});
         if (type->isIntegerTy() && extractIdx == 0) {
-          llvm::outs() << "idx type: " << *type << "\n";
-          return generateFlow<d_t>(Curr, ao); // TODO: does this make sense?
+          return generateFlow<d_t>(Curr, ao);
         }
       }
     }
