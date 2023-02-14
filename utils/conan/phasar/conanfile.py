@@ -40,7 +40,7 @@ class PhasarConan(ConanFile):
     
     requires = [
         "llvm/[>=14.0.0 <15.0.0]@phasar/develop",
-        "boost/[>=1.72.0 <=1.80.0]",
+        "boost/[>=1.72.0 <=1.81.0]",
         "gtest/[>=1.10.0 <2.0.0]",
         "sqlite3/[>=3.36.0 <4.0.0]",
         "json-schema-validator/[>=2.1.0 <3.0.0]",
@@ -50,7 +50,7 @@ class PhasarConan(ConanFile):
         
     def export_sources(self):
         if enforce_local_build: # self.options arent allowed in this method!
-            self.copy("../../../*", excludes=["build", "cmake-build", ".github", ".cache", ".git"])
+            self.copy("../../../*", excludes=["build", "cmake-build", ".github", ".git", ".vscode"])
         else:
             self.copy("*")
 
