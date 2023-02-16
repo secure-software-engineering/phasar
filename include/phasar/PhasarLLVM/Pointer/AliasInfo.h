@@ -12,8 +12,8 @@
 
 #include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
 #include "phasar/PhasarLLVM/Pointer/AliasResult.h"
-#include "phasar/PhasarLLVM/Utils/ByRef.h"
 #include "phasar/Utils/AnalysisProperties.h"
+#include "phasar/Utils/ByRef.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
