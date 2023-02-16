@@ -18,7 +18,7 @@
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
+#include "phasar/TypeHierarchy/TypeHierarchy.h"
 
 #include "llvm/ADT/StringRef.h"
 
