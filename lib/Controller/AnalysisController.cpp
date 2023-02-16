@@ -9,11 +9,11 @@
 
 #include "phasar/Controller/AnalysisController.h"
 
+#include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/Utilities.h"

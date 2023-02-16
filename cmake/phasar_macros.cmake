@@ -16,17 +16,21 @@ function(add_phasar_unittest test_name)
     LINK_PUBLIC
     phasar_config
     phasar_controller
+    phasar_llvm_controlflow
     phasar_controlflow
-    phasar_phasarllvm_utils
+    phasar_llvm_utils
     phasar_analysis_strategy
-    phasar_ifdside
+    phasar_llvm_ifdside
     phasar_utils
     phasar_mono
+    phasar_llvm_db
     phasar_db
     # phasar_clang
     phasar_passes
+    phasar_llvm_pointer
     phasar_pointer
-    phasar_typehierarchy
+    phasar_llvm_typehierarchy
+    phasar_llvm
     phasar_taintconfig
     nlohmann_json_schema_validator
     ${SQLITE3_LIBRARY}
