@@ -3,8 +3,10 @@
 #include "phasar/DataFlow/Mono/Solver/InterMonoSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -25,25 +27,14 @@ protected:
       unittest::PathToLLTestFiles + "taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  std::unique_ptr<LLVMProjectIRDB> IRDB;
-
-  void SetUp() override {}
-  void TearDown() override {}
-
   std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
   doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
-    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
-    ValueAnnotationPass::resetValueID();
-    LLVMTypeHierarchy TH(*IRDB);
-    auto PT = std::make_unique<LLVMAliasSet>(IRDB.get());
-    LLVMBasedICFG ICFG(
-        IRDB.get(), CallGraphAnalysisType::OTF,
-        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
-        PT.get());
+    HelperAnalyses HA(PathToLlFiles + LlvmFilePath, EntryPoints);
+
     auto ConfigPath = PathToLlFiles + "config.json";
     auto BuildPos = ConfigPath.rfind("/build/") + 1;
     ConfigPath.erase(BuildPos, 6);
-    TaintConfig TC(*IRDB, parseTaintConfig(ConfigPath));
+    TaintConfig TC(HA.getProjectIRDB(), parseTaintConfig(ConfigPath));
     TC.registerSinkCallBack([](const llvm::Instruction *Inst) {
       std::set<const llvm::Value *> Ret;
       if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
@@ -55,8 +46,9 @@ protected:
       }
       return Ret;
     });
-    InterMonoTaintAnalysis TaintProblem(IRDB.get(), &TH, &ICFG, PT.get(), TC,
-                                        EntryPoints);
+
+    auto TaintProblem =
+        createAnalysisProblem<InterMonoTaintAnalysis>(HA, TC, EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysisDomain, 3> TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {

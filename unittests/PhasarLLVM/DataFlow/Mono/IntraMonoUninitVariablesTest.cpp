@@ -13,8 +13,10 @@
 #include "phasar/DataFlow/Mono/Solver/IntraMonoSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -40,25 +42,19 @@ protected:
 
   const std::vector<std::string> EntryPoints = {"main"};
 
-  LLVMProjectIRDB *IRDB = nullptr;
-
-  void SetUp() override {}
-
-  void TearDown() override { delete IRDB; }
-
   void doAnalysisAndCompareResults(llvm::StringRef LlvmFilePath,
                                    const CompactResults_t & /*GroundTruth*/,
                                    bool PrintDump = false) {
-    IRDB = new LLVMProjectIRDB(PathToLLFiles + LlvmFilePath);
+    HelperAnalyses HA(PathToLLFiles + LlvmFilePath, EntryPoints);
+
     if (PrintDump) {
-      IRDB->dump();
+      HA.getProjectIRDB().dump();
     }
-    ValueAnnotationPass::resetValueID();
-    LLVMTypeHierarchy TH(*IRDB);
-    auto PT = LLVMAliasSet(IRDB);
-    LLVMBasedCFG CFG;
-    IntraMonoUninitVariables Uninit(IRDB, &TH, &CFG, &PT, EntryPoints);
-    IntraMonoSolver_P<IntraMonoUninitVariables> Solver(Uninit);
+
+    auto Uninit =
+        createAnalysisProblem<IntraMonoUninitVariables>(HA, EntryPoints);
+
+    IntraMonoSolver Solver(Uninit);
     Solver.solve();
     if (PrintDump) {
       Solver.dumpResults();

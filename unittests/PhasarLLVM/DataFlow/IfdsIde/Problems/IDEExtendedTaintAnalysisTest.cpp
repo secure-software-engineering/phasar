@@ -12,8 +12,10 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
@@ -56,32 +58,28 @@ protected:
                   const map<int, set<string>> &GroundTruth,
                   std::variant<std::monostate, json *, CallBackPairTy> Config,
                   bool DumpResults = false) {
-    LLVMProjectIRDB IRDB(IRFile);
+    HelperAnalyses HA(IRFile, EntryPoints);
 
-    LLVMTypeHierarchy TH(IRDB);
-    // llvm::errs() << "TH: " << TH << '\n';
-    LLVMAliasSet PT(&IRDB);
-    LLVMBasedICFG ICFG(
-        &IRDB, CallGraphAnalysisType::OTF,
-        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
-        &PT);
-    auto TC =
-        std::visit(Overloaded{[&](std::monostate) { return TaintConfig(IRDB); },
-                              [&](json *JS) {
-                                auto Ret = TaintConfig(IRDB, *JS);
-                                if (DumpResults) {
-                                  llvm::errs() << Ret << "\n";
-                                }
-                                return Ret;
-                              },
-                              [&](CallBackPairTy &CB) {
-                                return TaintConfig(CB.first, CB.second);
-                              }},
-                   Config);
+    auto TC = std::visit(Overloaded{[&](std::monostate) {
+                                      return TaintConfig(HA.getProjectIRDB());
+                                    },
+                                    [&](json *JS) {
+                                      auto Ret =
+                                          TaintConfig(HA.getProjectIRDB(), *JS);
+                                      if (DumpResults) {
+                                        llvm::errs() << Ret << "\n";
+                                      }
+                                      return Ret;
+                                    },
+                                    [&](CallBackPairTy &CB) {
+                                      return TaintConfig(CB.first, CB.second);
+                                    }},
+                         Config);
 
-    IDEExtendedTaintAnalysis<> TaintProblem(&IRDB, &ICFG, &PT, TC, EntryPoints);
+    auto TaintProblem =
+        createAnalysisProblem<IDEExtendedTaintAnalysis<>>(HA, TC, EntryPoints);
 
-    IDESolver Solver(TaintProblem, &ICFG);
+    IDESolver Solver(TaintProblem, &HA.getICFG());
     Solver.solve();
     // Solver.printAnnotatedIR();
     if (DumpResults) {

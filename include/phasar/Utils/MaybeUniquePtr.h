@@ -43,7 +43,10 @@ template <typename T> class MaybeUniquePtrBase<T, true> {
 protected:
   llvm::PointerIntPair<T *, 1, bool> Data{};
 
-  MaybeUniquePtrBase(T *Ptr, bool Owns) noexcept : Data{Ptr, Owns} {}
+  MaybeUniquePtrBase(T *Ptr, bool Owns) noexcept : Data{Ptr, Owns} {
+    static_assert(alignof(T) > 1,
+                  "Using MaybeUniquePtr<T, true> requires alignment > 1!");
+  }
   MaybeUniquePtrBase() noexcept = default;
 };
 } // namespace detail

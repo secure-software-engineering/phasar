@@ -27,8 +27,9 @@ struct IDESecureHeapPropagationAnalysisDomain : LLVMAnalysisDomainDefault {
 class IDESecureHeapPropagation
     : public IDETabulationProblem<IDESecureHeapPropagationAnalysisDomain> {
 
-  const llvm::StringLiteral InitializerFn = "CRYPTO_secure_malloc_init";
-  const llvm::StringLiteral ShutdownFn = "CRYPTO_secure_malloc_done";
+  static constexpr llvm::StringLiteral InitializerFn =
+      "CRYPTO_secure_malloc_init";
+  static constexpr llvm::StringLiteral ShutdownFn = "CRYPTO_secure_malloc_done";
 
 public:
   using IDETabProblemType =

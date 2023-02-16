@@ -16,14 +16,17 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSSolverTest.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/Logger.h"
 
 #include <filesystem>
+#include <string>
 
 using namespace psr;
 
 int main(int Argc, const char **Argv) {
+  using namespace std::string_literals;
+
   if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
       std::filesystem::is_directory(Argv[1])) {
     llvm::errs() << "myphasartool\n"
@@ -32,7 +35,9 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 
-  HelperAnalyses HA({Argv[1]}, {"main"});
+  std::vector EntryPoints = {"main"s};
+
+  HelperAnalyses HA(Argv[1], EntryPoints);
 
   if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy
@@ -44,13 +49,14 @@ int main(int Argc, const char **Argv) {
 
     // IFDS template parametrization test
     llvm::outs() << "Testing IFDS:\n";
-    IFDSSolverTest L(&HA.getProjectIRDB(), {"main"});
+    auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
     IFDSSolver S(L, &HA.getICFG());
     S.solve();
     S.dumpResults();
     // IDE template parametrization test
     llvm::outs() << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&HA.getProjectIRDB(), &HA.getICFG(), {"main"});
+    auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+
     IDESolver T(M, &HA.getICFG());
     T.solve();
     T.dumpResults();

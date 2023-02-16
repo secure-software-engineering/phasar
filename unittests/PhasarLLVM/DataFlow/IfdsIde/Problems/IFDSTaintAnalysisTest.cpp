@@ -3,8 +3,10 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
@@ -24,24 +26,16 @@ protected:
       unittest::PathToLLTestFiles + "taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<LLVMProjectIRDB> IRDB;
-  unique_ptr<LLVMTypeHierarchy> TH;
-  unique_ptr<LLVMBasedICFG> ICFG;
-  LLVMAliasInfo PT;
-  unique_ptr<IFDSTaintAnalysis> TaintProblem;
-  unique_ptr<TaintConfig> TSF;
+  std::optional<HelperAnalyses> HA;
+
+  std::optional<IFDSTaintAnalysis> TaintProblem;
+  std::optional<TaintConfig> TSF;
 
   IFDSTaintAnalysisTest() = default;
   ~IFDSTaintAnalysisTest() override = default;
 
   void initialize(const llvm::Twine &IRFile) {
-    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
-    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMAliasSet>(IRDB.get());
-    ICFG = make_unique<LLVMBasedICFG>(
-        IRDB.get(), CallGraphAnalysisType::OTF,
-        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
-        TH.get(), PT.asRef());
+    HA.emplace(IRFile, EntryPoints);
     TaintConfig::TaintDescriptionCallBackTy SourceCB =
         [](const llvm::Instruction *Inst) {
           std::set<const llvm::Value *> Ret;
@@ -63,9 +57,9 @@ protected:
           }
           return Ret;
         };
-    TSF = make_unique<TaintConfig>(std::move(SourceCB), std::move(SinkCB));
-    TaintProblem = make_unique<IFDSTaintAnalysis>(IRDB.get(), PT.get(),
-                                                  TSF.get(), EntryPoints);
+    TSF.emplace(std::move(SourceCB), std::move(SinkCB));
+    TaintProblem =
+        createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
@@ -89,7 +83,7 @@ protected:
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[13] = set<string>{"12"};
@@ -98,7 +92,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_m2r_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[4] = set<string>{"2"};
@@ -107,7 +101,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_02_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[9] = set<string>{"8"};
@@ -116,7 +110,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_03_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[18] = set<string>{"17"};
@@ -125,7 +119,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_04_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[19] = set<string>{"18"};
@@ -135,7 +129,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_05_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[22] = set<string>{"21"};
@@ -144,7 +138,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_06_cpp_m2r_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[5] = set<string>{"main.0"};
@@ -154,7 +148,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[15] = set<string>{"14"};
@@ -164,7 +158,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_m2r_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[6] = set<string>{"0"};
@@ -174,7 +168,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[17] = set<string>{"16"};
@@ -184,7 +178,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_03_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[11] = set<string>{"10"};
@@ -195,7 +189,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_04_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[33] = set<string>{"32"};
@@ -205,7 +199,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_05_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   map<int, set<string>> GroundTruth;
@@ -216,7 +210,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_06_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[15] = set<string>{"14"};
@@ -226,7 +220,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_07_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[31] = set<string>{"30"};
@@ -236,7 +230,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_08_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[33] = set<string>{"32"};
@@ -246,7 +240,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_09_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[64] = set<string>{"63"};
@@ -256,7 +250,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, ICFG.get());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[62] = set<string>{"61"};
