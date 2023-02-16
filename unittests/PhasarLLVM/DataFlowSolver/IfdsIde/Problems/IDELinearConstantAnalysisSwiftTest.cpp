@@ -85,11 +85,11 @@ protected:
 TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_01) {
   auto Results = doAnalysis("basic_swift_01.ll");
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("s14basic_swift_016MyMainV9simpleAdd1xS2i_tFZ", 13, "a",
+  GroundTruth.emplace("$s14basic_swift_016MyMainV9simpleAdd1xS2i_tFZ", 14, "a",
                       1);
-  GroundTruth.emplace("s14basic_swift_016MyMainV9simpleAdd1xS2i_tFZ", 13, "x",
+  GroundTruth.emplace("$s14basic_swift_016MyMainV9simpleAdd1xS2i_tFZ", 14, "x",
                       1);
-  GroundTruth.emplace("s14basic_swift_016MyMainV9simpleAdd1xS2i_tFZ", 13, "b",
+  GroundTruth.emplace("$s14basic_swift_016MyMainV9simpleAdd1xS2i_tFZ", 14, "b",
                       42);
   compareResults(Results, GroundTruth);
 }

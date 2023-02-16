@@ -202,15 +202,6 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_12) {
   compareResults(Results, GroundTruth);
 }
 
-TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_Swift_01) {
-  auto Results = doAnalysis("basic_01_swift.ll");
-  std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("$s8myModule6MyMainV9simpleAdd1xS2i_tFZ", 14, "a", 1);
-  GroundTruth.emplace("$s8myModule6MyMainV9simpleAdd1xS2i_tFZ", 14, "b", 42);
-  GroundTruth.emplace("$s8myModule6MyMainV9simpleAdd1xS2i_tFZ", 14, "x", 1);
-  compareResults(Results, GroundTruth);
-}
-
 /* ============== BRANCH TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_01) {
   auto Results = doAnalysis("branch_01_cpp_dbg.ll");
