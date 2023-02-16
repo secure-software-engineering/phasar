@@ -17,13 +17,17 @@ target_link_libraries(myphasartool
   phasar_config
   phasar_controller
   phasar_db
+  phasar_llvm_db
+  phasar_llvm_controlflow
   phasar_controlflow
-  phasar_ifdside
+  phasar_llvm_ifdside
   phasar_mono
   phasar_passes
+  phasar_llvm_pointer
   phasar_pointer
-  phasar_typehierarchy
-  phasar_phasarllvm_utils
+  phasar_llvm_typehierarchy
+  phasar_llvm
+  phasar_llvm_utils
   phasar_utils
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}

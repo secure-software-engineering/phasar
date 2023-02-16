@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
+#include "phasar/Pointer/AliasInfoBase.h"
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"

@@ -17,7 +17,8 @@
 #ifndef PHASAR_UTILS_TABLE_H_
 #define PHASAR_UTILS_TABLE_H_
 
-#include <algorithm>
+#include "llvm/Support/raw_ostream.h"
+
 #include <set>
 #include <tuple>
 #include <unordered_map>

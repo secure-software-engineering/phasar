@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -114,7 +115,8 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
               }
               const auto *Callee = VFs[VtableIndex];
               if (Callee == nullptr || !Callee->hasName() ||
-                  Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName) {
+                  Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName ||
+                  !isConsistentCall(CallSite, Callee)) {
                 continue;
               }
               PossibleCallTargets.insert(Callee);
@@ -130,96 +132,93 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
 auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
+  if (!CallSite->getCalledOperand()) {
+    return {};
+  }
+
   FunctionSetTy Callees;
-  if (CallSite->getCalledOperand() &&
-      CallSite->getCalledOperand()->getType()->isPointerTy()) {
-    if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
-            CallSite->getCalledOperand()->getType()->getPointerElementType())) {
 
-      auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
+  auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
 
-      llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
-      llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
-      llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
-          VisitedConstantAggregates;
+  llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
+  llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
+  llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
+      VisitedConstantAggregates;
 
-      for (const auto *P : *PTS) {
-        if (!llvm::isa<llvm::Constant>(P)) {
-          continue;
+  for (const auto *P : *PTS) {
+    if (!llvm::isa<llvm::Constant>(P)) {
+      continue;
+    }
+
+    GlobalVariableWL.clear();
+    ConstantAggregateWL.clear();
+
+    if (P->getType()->isPointerTy() &&
+        P->getType()->getPointerElementType()->isFunctionTy()) {
+      if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
+        if (isConsistentCall(CallSite, F)) {
+          Callees.insert(F);
         }
+      }
+    }
 
-        GlobalVariableWL.clear();
-        ConstantAggregateWL.clear();
+    if (const auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
+      GlobalVariableWL.push_back(GVP);
+    } else if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
+      for (const auto &Op : CE->operands()) {
+        if (const auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
+          GlobalVariableWL.push_back(GVOp);
+        }
+      }
+    }
 
-        if (P->getType()->isPointerTy() &&
-            P->getType()->getPointerElementType()->isFunctionTy()) {
-          if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
-            if (matchesSignature(F, FTy, false)) {
+    if (GlobalVariableWL.empty()) {
+      continue;
+    }
+
+    for (const auto *GV : GlobalVariableWL) {
+      if (!GV->hasInitializer()) {
+        continue;
+      }
+      const auto *InitConst = GV->getInitializer();
+      if (const auto *InitConstAggregate =
+              llvm::dyn_cast<llvm::ConstantAggregate>(InitConst)) {
+        ConstantAggregateWL.push_back(InitConstAggregate);
+      }
+    }
+
+    VisitedConstantAggregates.clear();
+
+    while (!ConstantAggregateWL.empty()) {
+      const auto *ConstAggregateItem = ConstantAggregateWL.pop_back_val();
+      // We may have already processed the item, avoid an infinite loop
+      if (!VisitedConstantAggregates.insert(ConstAggregateItem).second) {
+        continue;
+      }
+      for (const auto &Op : ConstAggregateItem->operands()) {
+        if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+          if (CE->getType()->isPointerTy() && CE->isCast()) {
+            if (const auto *F =
+                    llvm::dyn_cast<llvm::Function>(CE->getOperand(0));
+                F && isConsistentCall(CallSite, F)) {
               Callees.insert(F);
             }
           }
         }
 
-        if (const auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
-          GlobalVariableWL.push_back(GVP);
-        } else if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(P)) {
-          for (const auto &Op : CE->operands()) {
-            if (const auto *GVOp = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
-              GlobalVariableWL.push_back(GVOp);
-            }
+        if (const auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
+          if (isConsistentCall(CallSite, F)) {
+            Callees.insert(F);
           }
-        }
-
-        if (GlobalVariableWL.empty()) {
-          continue;
-        }
-
-        for (const auto *GV : GlobalVariableWL) {
+        } else if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
+          ConstantAggregateWL.push_back(CA);
+        } else if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
           if (!GV->hasInitializer()) {
             continue;
           }
-          const auto *InitConst = GV->getInitializer();
-          if (const auto *InitConstAggregate =
-                  llvm::dyn_cast<llvm::ConstantAggregate>(InitConst)) {
-            ConstantAggregateWL.push_back(InitConstAggregate);
-          }
-        }
-
-        VisitedConstantAggregates.clear();
-
-        while (!ConstantAggregateWL.empty()) {
-          const auto *ConstAggregateItem = ConstantAggregateWL.pop_back_val();
-          // We may have already processed the item, avoid an infinite loop
-          if (!VisitedConstantAggregates.insert(ConstAggregateItem).second) {
-            continue;
-          }
-          for (const auto &Op : ConstAggregateItem->operands()) {
-            if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-              if (CE->getType()->isPointerTy() &&
-                  CE->getType()->getPointerElementType() == FTy &&
-                  CE->isCast()) {
-                if (const auto *F =
-                        llvm::dyn_cast<llvm::Function>(CE->getOperand(0))) {
-                  Callees.insert(F);
-                }
-              }
-            }
-
-            if (const auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
-              if (matchesSignature(F, FTy, false)) {
-                Callees.insert(F);
-              }
-            } else if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
-              ConstantAggregateWL.push_back(CA);
-            } else if (auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Op)) {
-              if (!GV->hasInitializer()) {
-                continue;
-              }
-              if (auto *GVCA = llvm::dyn_cast<llvm::ConstantAggregate>(
-                      GV->getInitializer())) {
-                ConstantAggregateWL.push_back(GVCA);
-              }
-            }
+          if (auto *GVCA = llvm::dyn_cast<llvm::ConstantAggregate>(
+                  GV->getInitializer())) {
+            ConstantAggregateWL.push_back(GVCA);
           }
         }
       }

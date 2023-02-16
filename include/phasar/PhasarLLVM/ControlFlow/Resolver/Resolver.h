@@ -39,11 +39,16 @@ enum class CallGraphAnalysisType;
 class LLVMBasedICFG;
 class LLVMPointsToInfo;
 
-std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite);
+[[nodiscard]] std::optional<unsigned>
+getVFTIndex(const llvm::CallBase *CallSite);
 
-const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite);
+[[nodiscard]] const llvm::StructType *
+getReceiverType(const llvm::CallBase *CallSite);
 
-std::string getReceiverTypeName(const llvm::CallBase &CallSite);
+[[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite);
+
+[[nodiscard]] bool isConsistentCall(const llvm::CallBase *CallSite,
+                                    const llvm::Function *DestFun);
 
 class Resolver {
 protected:

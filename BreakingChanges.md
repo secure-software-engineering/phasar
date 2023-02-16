@@ -2,7 +2,21 @@
 
 ## development HEAD
 
-- `LLVMPointsTo*` has been renamed to `LLVMAlias*`
+- Renamed `phasar/PhasarLLVM/DataFlowSolver/` to either `phasar/DataFlow/` or `phasar/PhasarLLVM/DataFlow/` depending on whether the components need LLVMCore. Analoguous changes in `lib/` and `unittests/`.
+    An incomplete list of moved/renamed files:
+    - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/*` => `phasar/DataFlow/IfdsIde/Solver/*`
+    - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h` => `phasar/DataFlow/IfdsIde/IDETabulationProblem.h`
+    - `phasar/DB/LLVMProjectIRDB.h` => `phasar/PhasarLLVM/DB/LLVMProjectIRDB.h`
+    - ...
+- Renamed and split up some libraries:
+    - `phasar_phasarllvm_utils` => `phasar_llvm_utils`
+    - `phasar_typehierarchy` => `phasar_llvm_typehierarchy`
+    - `phasar_ifdside` => `phasar_llvm_ifdside`
+    - `phasar_controlflow` has its LLVM dependent stuff moved to `phasar_llvm_controlflow`
+    - `phasar_db` has its LLVM dependent stuff moved to `phasar_llvm_db`
+    - `phasar_pointer` has its LLVM dependent stuff moved to `phasar_llvm_pointer`
+- Renamed the phasar tool `phasar-llvm` to `phasar-cli`
+- `LLVMPointsTo[.*]` has been renamed to `LLVMAlias[.*]`
 - The ctor of `LLVMAliasSet` now takes the `LLVMProjectIRDB` as pointer instead of a reference to better document that it may capture the IRDB by reference.
 - The `PointsToInfo` interface has been replaced by the CRTP interface `AliasInfoBase`. Introduced two type-erased implementation of that interface: `AliasInfo` and `AliasInfoRef`. In most cases you should replace `PointsToInfo*` and `LLVMPointsToInfo*` by `AliasInfoRef`, bzw. `LLVMAliasInfoRef`.
 - Introduced a new interface `PointsToInfoBase` and type-erased implementations `PointstoInfo` and `PointsToInfoRef`. Don't confuse them with the old `PointsToInfo`!!! (However, they have different APIs, so you should encounter compilation errors then)

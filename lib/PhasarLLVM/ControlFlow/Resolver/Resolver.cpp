@@ -16,13 +16,13 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -38,9 +38,7 @@
 #include <optional>
 #include <set>
 
-namespace psr {
-
-std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite) {
+std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
   const auto *Load =
@@ -59,7 +57,7 @@ std::optional<unsigned> getVFTIndex(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
-const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
+const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   if (CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
     return nullptr;
@@ -86,13 +84,29 @@ const llvm::StructType *getReceiverType(const llvm::CallBase *CallSite) {
   return nullptr;
 }
 
-std::string getReceiverTypeName(const llvm::CallBase *CallSite) {
+std::string psr::getReceiverTypeName(const llvm::CallBase *CallSite) {
   const auto *RT = getReceiverType(CallSite);
   if (RT) {
     return RT->getName().str();
   }
   return "";
 }
+
+bool psr::isConsistentCall(const llvm::CallBase *CallSite,
+                           const llvm::Function *DestFun) {
+  if (CallSite->arg_size() < DestFun->arg_size()) {
+    return false;
+  }
+  if (CallSite->arg_size() != DestFun->arg_size() && !DestFun->isVarArg()) {
+    return false;
+  }
+  if (!matchesSignature(DestFun, CallSite->getFunctionType(), false)) {
+    return false;
+  }
+  return true;
+}
+
+namespace psr {
 
 Resolver::Resolver(LLVMProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
 
@@ -101,10 +115,11 @@ Resolver::Resolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    const llvm::CallBase * /*CallSite*/) {
+                                    const llvm::CallBase *CallSite) {
   if (TH && TH->hasVFTable(T)) {
     const auto *Target = TH->getVFTable(T)->getFunction(Idx);
-    if (Target && Target->getName() != "__cxa_pure_virtual") {
+    if (Target && Target->getName() != LLVMTypeHierarchy::PureVirtualCallName &&
+        isConsistentCall(CallSite, Target)) {
       return Target;
     }
   }
@@ -133,7 +148,7 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CallSite->getCalledOperand()->getType()->getPointerElementType())) {
       for (const auto *F : IRDB.getAllFunctions()) {
-        if (matchesSignature(F, FTy)) {
+        if (isConsistentCall(CallSite, F)) {
           CalleeTargets.insert(F);
         }
       }
