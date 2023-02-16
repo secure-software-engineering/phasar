@@ -6,7 +6,11 @@ if (DEFINED LLVM_MAIN_SRC_DIR)
 endif()
 
 if (NOT PHASAR_IN_TREE)
-  project (phasar)
+  if (BUILD_SWIFT_TESTS)
+    project (phasar LANGUAGES C CXX Swift)
+  else()
+    project (phasar)
+  endif()
   set(CMAKE_PROJECT_NAME "phasar")
 endif ()
 
@@ -52,6 +56,8 @@ list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
 include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
+
+option(BUILD_SWIFT_TESTS "Builds the Swift tests (Swift compiler has to be installed manually beforehand!)" OFF)
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 

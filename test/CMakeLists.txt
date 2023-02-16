@@ -1,2 +1,5 @@
 add_subdirectory(llvm_test_code)
 add_subdirectory(text_test_code)
+if(BUILD_SWIFT_TESTS)
+    add_subdirectory(llvm_swift_test_code)
+endif()
