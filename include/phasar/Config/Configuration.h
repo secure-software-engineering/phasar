@@ -153,6 +153,9 @@ public:
 private:
   PhasarConfig();
 
+  bool loadConfigFileInto(llvm::StringRef FileName,
+                          std::set<std::string> &Lines);
+
   void loadGlibcSpecialFunctionNames();
   void loadLLVMSpecialFunctionNames();
 
