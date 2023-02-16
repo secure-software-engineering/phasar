@@ -13,10 +13,7 @@
 namespace psr {
 
 void AnalysisController::executeIntraMonoFullConstant() {
-  IntraMonoFullConstantPropagation FCA(&HA.getProjectIRDB(),
-                                       &HA.getTypeHierarchy(), &HA.getICFG(),
-                                       &HA.getAliasInfo(), EntryPoints);
-  executeIntraMonoAnalysis(FCA);
+  executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(EntryPoints);
 }
 
 } // namespace psr
