@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_LLVMTaintConfig_LLVMTaintConfigUTILITIES_H
-#define PHASAR_PHASARLLVM_LLVMTaintConfig_LLVMTaintConfigUTILITIES_H
+#ifndef PHASAR_PHASARLLVM_TAINTCONFIG_LLVMTAINTCONFIGUTILITIES_H
+#define PHASAR_PHASARLLVM_TAINTCONFIG_LLVMTAINTCONFIGUTILITIES_H
 
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -87,4 +87,4 @@ void collectSanitizedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
 }
 } // namespace psr
 
-#endif
+#endif // PHASAR_PHASARLLVM_TAINTCONFIG_LLVMTAINTCONFIGUTILITIES_H
