@@ -13,6 +13,7 @@
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
@@ -83,30 +84,46 @@ private:
   void executeInterMonoSolverTest();
   void executeInterMonoTaint();
 
-  template <typename ProblemTy>
-  void executeIntraMonoAnalysis(ProblemTy &Problem) {
-    IntraMonoSolver Solver(Problem);
+  template <typename SolverTy, typename ProblemTy, typename... ArgTys>
+  void executeMonoAnalysis(ArgTys &&...Args) {
+    auto Problem =
+        createAnalysisProblem<ProblemTy>(HA, std::forward<ArgTys>(Args)...);
+    SolverTy Solver(Problem);
     Solver.solve();
     emitRequestedDataFlowResults(Solver);
   }
 
-  template <typename ProblemTy>
-  void executeInterMonoAnalysis(ProblemTy &Problem) {
-    InterMonoSolver_P<ProblemTy, 3> Solver(Problem);
+  template <typename ProblemTy, typename... ArgTys>
+  void executeIntraMonoAnalysis(ArgTys &&...Args) {
+    executeMonoAnalysis<IntraMonoSolver_P<ProblemTy>, ProblemTy>(
+        std::forward<ArgTys>(Args)...);
+  }
+
+  template <typename ProblemTy, typename... ArgTys>
+  void executeInterMonoAnalysis(ArgTys &&...Args) {
+    executeMonoAnalysis<InterMonoSolver_P<ProblemTy, 3>, ProblemTy>(
+        std::forward<ArgTys>(Args)...);
+  }
+
+  template <typename SolverTy, typename ProblemTy, typename... ArgTys>
+  void executeIfdsIdeAnalysis(ArgTys &&...Args) {
+    auto Problem =
+        createAnalysisProblem<ProblemTy>(HA, std::forward<ArgTys>(Args)...);
+    SolverTy Solver(Problem, &HA.getICFG());
     Solver.solve();
     emitRequestedDataFlowResults(Solver);
   }
 
-  template <typename ProblemTy> void executeIFDSAnalysis(ProblemTy &Problem) {
-    IFDSSolver Solver(Problem, &HA.getICFG());
-    Solver.solve();
-    emitRequestedDataFlowResults(Solver);
+  template <typename ProblemTy, typename... ArgTys>
+  void executeIFDSAnalysis(ArgTys &&...Args) {
+    executeIfdsIdeAnalysis<IFDSSolver_P<ProblemTy>, ProblemTy>(
+        std::forward<ArgTys>(Args)...);
   }
 
-  template <typename ProblemTy> void executeIDEAnalysis(ProblemTy &Problem) {
-    IDESolver Solver(Problem, &HA.getICFG());
-    Solver.solve();
-    emitRequestedDataFlowResults(Solver);
+  template <typename ProblemTy, typename... ArgTys>
+  void executeIDEAnalysis(ArgTys &&...Args) {
+    executeIfdsIdeAnalysis<IDESolver_P<ProblemTy>, ProblemTy>(
+        std::forward<ArgTys>(Args)...);
   }
 
   TaintConfig makeTaintConfig();
@@ -156,8 +173,8 @@ public:
       std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
       AnalysisControllerEmitterOptions EmitterOptions,
       IFDSIDESolverConfig SolverConfig,
-      const std::string &ProjectID = "default-phasar-project",
-      const std::string &OutDirectory = "");
+      std::string ProjectID = "default-phasar-project",
+      std::string OutDirectory = "");
 
   ~AnalysisController() = default;
 

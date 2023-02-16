@@ -13,8 +13,7 @@
 namespace psr {
 
 void AnalysisController::executeIFDSSolverTest() {
-  IFDSSolverTest ST(&HA.getProjectIRDB(), EntryPoints);
-  executeIFDSAnalysis(ST);
+  executeIFDSAnalysis<IFDSSolverTest>(EntryPoints);
 }
 
 } // namespace psr
