@@ -10,7 +10,7 @@
 #include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 #include "phasar/PhasarLLVM/Pointer/PointsToInfoBase.h"
-#include "phasar/PhasarLLVM/Utils/ByRef.h"
+#include "phasar/Utils/ByRef.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"

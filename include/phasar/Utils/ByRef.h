@@ -14,13 +14,14 @@
 
 namespace psr {
 template <typename T>
-using ByConstRef = std::conditional_t<sizeof(T) <= 2 * sizeof(void *) &&
-                                          std::is_trivially_copyable_v<T>,
-                                      T, const T &>;
+static constexpr bool CanEfficientlyPassByValue =
+    sizeof(T) <= 2 * sizeof(void *) && std::is_trivially_copyable_v<T>;
+
 template <typename T>
-using ByMoveRef = std::conditional_t<sizeof(T) <= 2 * sizeof(void *) &&
-                                         std::is_trivially_copyable_v<T>,
-                                     T, T &&>;
+using ByConstRef =
+    std::conditional_t<CanEfficientlyPassByValue<T>, T, const T &>;
+template <typename T>
+using ByMoveRef = std::conditional_t<CanEfficientlyPassByValue<T>, T, T &&>;
 
 } // namespace psr
 
