@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
 
 #include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalysisConfig.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 
 #include "nlohmann/json.hpp"
 
@@ -23,6 +24,7 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMBasedICFG;
+class LLVMBasedCFG;
 class LLVMAliasSet;
 
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
@@ -32,23 +34,31 @@ public:
                           AliasAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
-                          bool AutoGlobalSupport);
+                          bool AutoGlobalSupport) noexcept;
 
   explicit HelperAnalyses(std::string IRFile,
                           std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {}) noexcept;
+  explicit HelperAnalyses(const llvm::Twine &IRFile,
+                          std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
-  ~HelperAnalyses();
+  explicit HelperAnalyses(const char *IRFile,
+                          std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
+  ~HelperAnalyses() noexcept;
 
-  LLVMProjectIRDB &getProjectIRDB();
-  LLVMAliasSet &getAliasInfo();
-  LLVMTypeHierarchy &getTypeHierarchy();
-  LLVMBasedICFG &getICFG();
+  [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
+  [[nodiscard]] LLVMAliasSet &getAliasInfo();
+  [[nodiscard]] LLVMTypeHierarchy &getTypeHierarchy();
+  [[nodiscard]] LLVMBasedICFG &getICFG();
+  [[nodiscard]] LLVMBasedCFG &getCFG();
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
   std::unique_ptr<LLVMAliasSet> PT;
   std::unique_ptr<LLVMTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
+  std::unique_ptr<LLVMBasedCFG> CFG;
 
   // IRDB
   std::string IRFile;
