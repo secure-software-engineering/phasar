@@ -8,13 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 
 namespace psr {
 
 void AnalysisController::executeIFDSUninitVar() {
-  IFDSUninitializedVariables UV(&HA.getProjectIRDB(), EntryPoints);
-  executeIFDSAnalysis(UV);
+  executeIFDSAnalysis<IFDSUninitializedVariables>(EntryPoints);
 }
 
 } // namespace psr

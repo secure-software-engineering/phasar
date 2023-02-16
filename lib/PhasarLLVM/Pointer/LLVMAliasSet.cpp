@@ -9,12 +9,11 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
-#include "phasar/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
@@ -50,10 +49,9 @@
 
 namespace psr {
 
-template class DynamicAliasSetPtr<>;
-template class DynamicAliasSetConstPtr<>;
-template class AliasSetOwner<DefaultAATraits<
-    const llvm::Value *, const llvm::Instruction *>::AliasSetTy>;
+template class BoxedPtr<LLVMAliasInfo::AliasSetTy>;
+template class BoxedConstPtr<LLVMAliasInfo::AliasSetTy>;
+template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
 
 LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
                            AliasAnalysisType PATy)
@@ -222,8 +220,8 @@ void LLVMAliasSet::mergeAliasSets(const llvm::Value *V1,
   mergeAliasSets(SearchV1->second, SearchV2->second);
 }
 
-void LLVMAliasSet::mergeAliasSets(DynamicAliasSetPtr<AliasSetTy> PTS1,
-                                  DynamicAliasSetPtr<AliasSetTy> PTS2) {
+void LLVMAliasSet::mergeAliasSets(BoxedPtr<AliasSetTy> PTS1,
+                                  BoxedPtr<AliasSetTy> PTS2) {
   if (PTS1 == PTS2 || PTS1.get() == PTS2.get()) {
     return;
   }
@@ -552,7 +550,7 @@ AliasResult LLVMAliasSet::alias(const llvm::Value *V1, const llvm::Value *V2,
                                   : AliasResult::NoAlias;
 }
 
-auto LLVMAliasSet::getEmptyAliasSet() -> DynamicAliasSetPtr<AliasSetTy> {
+auto LLVMAliasSet::getEmptyAliasSet() -> BoxedPtr<AliasSetTy> {
   static AliasSetTy EmptySet{};
   static AliasSetTy *EmptySetPtr = &EmptySet;
   return &EmptySetPtr;

@@ -13,6 +13,7 @@
 #include <type_traits>
 
 namespace psr {
+
 template <typename T>
 static constexpr bool CanEfficientlyPassByValue =
     sizeof(T) <= 2 * sizeof(void *) && std::is_trivially_copyable_v<T>;

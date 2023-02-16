@@ -8,13 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDESolverTest.h"
 
 namespace psr {
 
 void AnalysisController::executeIDESolverTest() {
-  IDESolverTest ST(&HA.getProjectIRDB(), EntryPoints);
-  executeIDEAnalysis(ST);
+  executeIDEAnalysis<IDESolverTest>(EntryPoints);
 }
 
 } // namespace psr
