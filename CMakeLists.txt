@@ -309,7 +309,7 @@ endif()
 
 set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Install dir of headers")
 
-# Install targets of phasar-llvm, other executables, and libraries are to be
+# Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
 # Install Phasar include directory

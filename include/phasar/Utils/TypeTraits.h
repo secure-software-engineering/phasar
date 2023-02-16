@@ -10,8 +10,6 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
-
 #include "llvm/Support/raw_ostream.h"
 
 #include <string_view>
@@ -25,12 +23,12 @@ namespace psr {
 namespace detail {
 
 template <typename T, typename = void>
-struct is_iterable : public std::false_type {}; // NOLINT
+struct is_iterable : std::false_type {}; // NOLINT
 template <typename T>
 struct is_iterable<T, std::void_t< // NOLINT
                           decltype(std::declval<T>().begin()),
-                          decltype(std::declval<T>().end())>>
-    : public std::true_type {};
+                          decltype(std::declval<T>().end())>> : std::true_type {
+};
 template <typename T, typename U, typename = void>
 struct is_iterable_over : std::false_type {}; // NOLINT
 template <typename T, typename U>
@@ -41,20 +39,20 @@ struct is_iterable_over<
         std::is_convertible_v<decltype(*std::declval<T>().begin()), U>>>
     : std::true_type {};
 
-template <typename T> struct is_pair : public std::false_type {}; // NOLINT
+template <typename T> struct is_pair : std::false_type {}; // NOLINT
 template <typename U, typename V>
-struct is_pair<std::pair<U, V>> : public std::true_type {}; // NOLINT
+struct is_pair<std::pair<U, V>> : std::true_type {}; // NOLINT
 
-template <typename T> struct is_tuple : public std::false_type {}; // NOLINT
+template <typename T> struct is_tuple : std::false_type {}; // NOLINT
 template <typename... Elems>
-struct is_tuple<std::tuple<Elems...>> : public std::true_type {}; // NOLINT
+struct is_tuple<std::tuple<Elems...>> : std::true_type {}; // NOLINT
 
 template <typename T, typename OS, typename = OS &>
-struct is_printable : public std::false_type {}; // NOLINT
+struct is_printable : std::false_type {}; // NOLINT
 template <typename T, typename OS>
 struct is_printable< // NOLINT
     T, OS, decltype(std::declval<OS &>() << std::declval<T>())>
-    : public std::true_type {};
+    : std::true_type {};
 
 template <typename T>
 using is_llvm_printable = is_printable<T, llvm::raw_ostream>; // NOLINT
@@ -63,9 +61,9 @@ template <typename T>
 using is_std_printable = is_printable<T, std::ostream>; // NOLINT
 
 template <typename T, typename Enable = std::string>
-struct has_str : public std::false_type {}; // NOLINT
+struct has_str : std::false_type {}; // NOLINT
 template <typename T>
-struct has_str<T, decltype(std::declval<T>().str())> : public std::true_type {
+struct has_str<T, decltype(std::declval<T>().str())> : std::true_type {
 }; // NOLINT
 
 template <typename T, typename = void>
@@ -86,13 +84,6 @@ struct is_llvm_hashable : std::false_type {}; // NOLINT
 template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
-
-template <typename T, typename = void>
-struct has_setIFDSIDESolverConfig : std::false_type {};
-template <typename T>
-struct has_setIFDSIDESolverConfig<
-    T, decltype(std::declval<T>().setIFDSIDESolverConfig(
-           std::declval<IFDSIDESolverConfig>()))> : std::true_type {};
 
 template <template <typename> typename Base, typename Derived>
 class template_arg {
@@ -156,10 +147,6 @@ template <typename T>
 constexpr bool is_llvm_hashable_v = // NOLINT
     detail::is_llvm_hashable<T>::value;
 
-template <typename T>
-constexpr bool has_setIFDSIDESolverConfig_v = // NOLINT
-    detail::has_setIFDSIDESolverConfig<T>::value;
-
 template <typename T> struct is_variant : std::false_type {}; // NOLINT
 
 template <typename... Args>
@@ -177,7 +164,7 @@ constexpr bool is_crtp_base_of_v = // NOLINT
     detail::is_crtp_base_of<Base, Derived>::value;
 
 #if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; }; // NOLINT
+template <typename T> struct type_identity { using type = T; };
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif

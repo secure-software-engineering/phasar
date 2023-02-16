@@ -11,11 +11,11 @@
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASGRAPH_H_
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
-#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
-#include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+#include "phasar/Pointer/AliasInfoBase.h"
+#include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Pointer/AliasSetOwner.h"
 #include "phasar/Utils/AnalysisProperties.h"
 
 #include "llvm/IR/AbstractCallSite.h"
@@ -37,6 +37,9 @@ class Type;
 } // namespace llvm
 
 namespace psr {
+extern template class BoxedPtr<LLVMAliasInfo::AliasSetTy>;
+extern template class BoxedConstPtr<LLVMAliasInfo::AliasSetTy>;
+extern template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
 
 class LLVMAliasGraph;
 template <>
@@ -263,7 +266,7 @@ private:
 
   AliasSetOwner<AliasSetTy>::memory_resource_type MRes;
   AliasSetOwner<AliasSetTy> Owner{&MRes};
-  std::unordered_map<const llvm::Value *, DynamicAliasSetPtr<AliasSetTy>> Cache;
+  std::unordered_map<const llvm::Value *, BoxedPtr<AliasSetTy>> Cache;
 };
 
 } // namespace psr
