@@ -14,8 +14,7 @@ namespace psr {
 
 void AnalysisController::executeIFDSFieldSensTaint() {
   auto Config = makeTaintConfig();
-  IFDSFieldSensTaintAnalysis FSTA(&HA.getProjectIRDB(), &Config, EntryPoints);
-  executeIFDSAnalysis(FSTA);
+  executeIFDSAnalysis<IFDSFieldSensTaintAnalysis>(&Config, EntryPoints);
 }
 
 } // namespace psr

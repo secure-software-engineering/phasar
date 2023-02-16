@@ -14,6 +14,7 @@
 #include "llvm/ADT/APFloat.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
@@ -667,6 +668,12 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &V) {
     Os << Elem;
   }
   return Os << "}";
+}
+
+std::ostream &operator<<(std::ostream &OS, const ev_t &V) {
+  llvm::raw_os_ostream ROS(OS);
+  ROS << V;
+  return OS;
 }
 
 bool operator<(const ev_t &Lhs, const ev_t &Rhs) {

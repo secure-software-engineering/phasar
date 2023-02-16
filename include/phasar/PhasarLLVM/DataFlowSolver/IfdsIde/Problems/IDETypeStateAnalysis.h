@@ -52,9 +52,6 @@ public:
 
   using ConfigurationTy = TypeStateDescription;
 
-  const l_t TOP;
-  const l_t BOTTOM;
-
   IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                        const TypeStateDescription *TSD,
                        std::vector<std::string> EntryPoints = {"main"});

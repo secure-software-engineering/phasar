@@ -26,6 +26,11 @@ struct HelperAnalysisConfig {
   Soundness SoundnessLevel = Soundness::Soundy;
   bool AutoGlobalSupport = true;
   bool AllowLazyPTS = true;
+
+  HelperAnalysisConfig &&withCGType(CallGraphAnalysisType CGTy) &&noexcept {
+    this->CGTy = CGTy;
+    return std::move(*this);
+  }
 };
 } // namespace psr
 

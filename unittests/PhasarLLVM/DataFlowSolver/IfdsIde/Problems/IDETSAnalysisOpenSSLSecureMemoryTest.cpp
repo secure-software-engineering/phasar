@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
@@ -19,6 +21,7 @@
 #include "gtest/gtest.h"
 
 #include <memory>
+#include <optional>
 
 using namespace std;
 using namespace psr;
@@ -31,12 +34,9 @@ protected:
       "build/test/llvm_test_code/openssl/secure_memory/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<LLVMProjectIRDB> IRDB;
-  unique_ptr<LLVMTypeHierarchy> TH;
-  unique_ptr<LLVMBasedICFG> ICFG;
-  LLVMAliasInfo PT;
-  unique_ptr<OpenSSLSecureMemoryDescription> Desc;
-  unique_ptr<IDETypeStateAnalysis> TSProblem;
+  std::optional<HelperAnalyses> HA;
+  OpenSSLSecureMemoryDescription Desc{};
+  std::optional<IDETypeStateAnalysis> TSProblem;
   unique_ptr<IDESolver_P<IDETypeStateAnalysis>> Llvmtssolver;
 
   enum OpenSSLSecureMemoryState {
@@ -50,17 +50,13 @@ protected:
   IDETSAnalysisOpenSSLSecureMemoryTest() = default;
   ~IDETSAnalysisOpenSSLSecureMemoryTest() override = default;
 
-  void initialize(const llvm::Twine &IRFile) {
-    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
-    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMAliasSet>(IRDB.get());
-    ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
-                                      std::vector{"main"s}, TH.get(), PT.get());
-    Desc = make_unique<OpenSSLSecureMemoryDescription>();
-    TSProblem = make_unique<IDETypeStateAnalysis>(IRDB.get(), PT.get(),
-                                                  Desc.get(), EntryPoints);
-    Llvmtssolver =
-        make_unique<IDESolver_P<IDETypeStateAnalysis>>(*TSProblem, ICFG.get());
+  void initialize(const std::string &IRFile) {
+    HA.emplace(IRFile, EntryPoints);
+
+    TSProblem =
+        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &Desc, EntryPoints);
+    Llvmtssolver = make_unique<IDESolver_P<IDETypeStateAnalysis>>(
+        *TSProblem, &HA->getICFG());
 
     Llvmtssolver->solve();
   }
@@ -79,7 +75,7 @@ protected:
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth) {
     for (const auto &InstToGroundTruth : GroundTruth) {
-      auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      auto *Inst = HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> Results;
       for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {

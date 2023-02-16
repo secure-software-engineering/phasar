@@ -13,9 +13,7 @@
 namespace psr {
 
 void AnalysisController::executeIDELinearConst() {
-  IDELinearConstantAnalysis LCA(&HA.getProjectIRDB(), &HA.getICFG(),
-                                EntryPoints);
-  executeIDEAnalysis(LCA);
+  executeIDEAnalysis<IDELinearConstantAnalysis>(EntryPoints);
 }
 
 } // namespace psr
