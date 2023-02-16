@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLE_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLE_H_
 
-#include "phasar/PhasarLLVM/TypeHierarchy/VFTable.h"
+#include "phasar/TypeHierarchy/VFTable.h"
 
 #include "nlohmann/json.hpp"
 

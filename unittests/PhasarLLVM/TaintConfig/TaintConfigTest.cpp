@@ -1,5 +1,5 @@
 
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"

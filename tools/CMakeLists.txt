@@ -1,2 +1,2 @@
 add_subdirectory(example-tool)
-add_subdirectory(phasar-llvm)
+add_subdirectory(phasar-cli)

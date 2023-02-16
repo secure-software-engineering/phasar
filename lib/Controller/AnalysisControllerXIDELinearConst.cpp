@@ -8,14 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeIDELinearConst() {
-  IDELinearConstantAnalysis LCA(&HA.getProjectIRDB(), &HA.getICFG(),
-                                EntryPoints);
-  executeIDEAnalysis(LCA);
+  executeIDEAnalysis<IDELinearConstantAnalysis>(EntryPoints);
 }
 
 } // namespace psr

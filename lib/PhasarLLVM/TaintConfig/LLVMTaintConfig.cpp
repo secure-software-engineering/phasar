@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
