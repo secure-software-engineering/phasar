@@ -1,8 +1,3 @@
-#  cmake_minimum_required(VERSION 3.21)
-# project(P
-#   LANGUAGES C CXX Swift)
-
-
 file(GLOB lca_files *.swift)
 
 set(SWIFT_COMPILE_IR_FLAGS -parse-as-library -emit-ir)
