@@ -2,8 +2,10 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -20,34 +22,32 @@ class IDELinearConstantAnalysisSwiftTest : public ::testing::Test {
 protected:
   const std::string PathToSwiftTestFiles =
       unittest::PathToSwiftTestFiles + "linear_constant/";
+  const std::vector<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
-  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
-  void SetUp() override {}
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
-    IRDB =
-        std::make_unique<LLVMProjectIRDB>(PathToSwiftTestFiles + LlvmFilePath);
-    ValueAnnotationPass::resetValueID();
-    LLVMTypeHierarchy TH(*IRDB);
-    LLVMAliasSet PT(IRDB.get());
-    LLVMBasedICFG ICFG(IRDB.get(), CallGraphAnalysisType::OTF, {"main"}, &TH,
-                       &PT, Soundness::Soundy, /*IncludeGlobals*/ true);
+    HelperAnalyses HA(PathToSwiftTestFiles + LlvmFilePath, EntryPoints);
 
-    auto HasGlobalCtor = IRDB->getFunctionDefinition(
+    // Compute the ICFG to possibly create the runtime model
+    auto &ICFG = HA.getICFG();
+
+    auto HasGlobalCtor = HA.getProjectIRDB().getFunctionDefinition(
                              LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
-    IDELinearConstantAnalysis LCAProblem(
-        IRDB.get(), &ICFG,
-        {HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
-                       : "main"});
+
+    auto LCAProblem = createAnalysisProblem<IDELinearConstantAnalysis>(
+        HA,
+        std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
+                                  : "main"});
     IDESolver LCASolver(LCAProblem, &ICFG);
     LCASolver.solve();
     if (PrintDump) {
-      IRDB->dump();
+      HA.getProjectIRDB().dump();
       ICFG.print();
       LCASolver.dumpResults();
     }
