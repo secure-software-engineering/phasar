@@ -288,8 +288,16 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
-    if (Alloca->getAllocatedType()->isIntegerTy()) {
+    auto *AT = Alloca->getAllocatedType();
+    if (AT->isIntegerTy()) {
       return generateFromZero(Alloca);
+    } else if (const auto *structType = llvm::dyn_cast<llvm::StructType>(AT)) {
+      // This odly specific code checks for Swift's definition of an integer.
+      // They pack their integers in structs like these %TSi = type <{ i64 }>
+      if (structType->isPacked() && structType->elements().size() == 1 &&
+          structType->getElementType(0)->isIntegerTy()) {
+        return generateFromZero(Alloca);
+      }
     }
   }
   // Check store instructions. Store instructions override previous value
