@@ -37,8 +37,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class InterMonoFullConstantPropagationTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "full_constant/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("full_constant/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   using IMFCPCompactResult_t =
