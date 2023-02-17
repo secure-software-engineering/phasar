@@ -18,8 +18,8 @@ static constexpr llvm::StringLiteral PathToTxtTestFiles =
 static constexpr llvm::StringLiteral PathToJSONTestFiles =
     PHASAR_DIR "/test/json_test_code/";
 
-static constexpr llvm::StringLiteral PathToSwiftTestFiles =
-    PHASAR_DIR "/build/test/llvm_swift_test_code/";
+#define PHASAR_BUILD_SWIFT_SUBFOLDER(SUB)                                      \
+  llvm::StringLiteral(PHASAR_DIR "/build/test/llvm_swift_test_code/" SUB)
 
 #define PHASAR_BUILD_SUBFOLDER(SUB)                                            \
   llvm::StringLiteral(PHASAR_DIR "/build/test/llvm_test_code/" SUB)
