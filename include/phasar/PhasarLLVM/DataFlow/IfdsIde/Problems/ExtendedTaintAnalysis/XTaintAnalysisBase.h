@@ -19,15 +19,15 @@ class Function;
 } // namespace llvm
 
 namespace psr {
-class TaintConfig;
+class LLVMTaintConfig;
 } // namespace psr
 
 namespace psr::XTaint {
 class AnalysisBase {
 protected:
-  const TaintConfig *TSF;
+  const LLVMTaintConfig *TSF;
 
-  explicit AnalysisBase(const TaintConfig *TSF) noexcept;
+  explicit AnalysisBase(const LLVMTaintConfig *TSF) noexcept;
 
   using SourceConfigTy = llvm::SmallPtrSet<const llvm::Value *, 4>;
   using SinkConfigTy = llvm::SmallPtrSet<const llvm::Value *, 4>;

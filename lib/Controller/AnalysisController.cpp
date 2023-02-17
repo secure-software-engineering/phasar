@@ -214,13 +214,13 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
 }
 
-TaintConfig AnalysisController::makeTaintConfig() {
+LLVMTaintConfig AnalysisController::makeTaintConfig() {
   std::string AnalysisConfigPath =
       !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
   return !AnalysisConfigPath.empty()
-             ? TaintConfig(HA.getProjectIRDB(),
-                           parseTaintConfig(AnalysisConfigPath))
-             : TaintConfig(HA.getProjectIRDB());
+             ? LLVMTaintConfig(HA.getProjectIRDB(),
+                               parseTaintConfig(AnalysisConfigPath))
+             : LLVMTaintConfig(HA.getProjectIRDB());
 }
 
 } // namespace psr
