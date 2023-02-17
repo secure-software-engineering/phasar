@@ -35,8 +35,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IntraMonoUninitVariablesTest : public ::testing::Test {
 protected:
-  const std::string PathToLLFiles =
-      unittest::PathToLLTestFiles + "/uninitialized_variables/";
+  static constexpr auto PathToLLFiles =
+      PHASAR_BUILD_SUBFOLDER("/uninitialized_variables/");
 
   using CompactResults_t = std::set<std::pair<size_t, std::set<std::string>>>;
 

@@ -12,6 +12,7 @@
 
 #include "llvm/ADT/STLExtras.h" // function_ref
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
@@ -135,7 +136,13 @@ private:
 //===----------------------------------------------------------------------===//
 // Miscellaneous helper functions
 
-nlohmann::json parseTaintConfig(const std::filesystem::path &Path);
+nlohmann::json parseTaintConfig(const llvm::Twine &Path);
+inline nlohmann::json parseTaintConfig(const std::string &Path) {
+  return parseTaintConfig(llvm::Twine(Path));
+}
+inline nlohmann::json parseTaintConfig(const std::filesystem::path &Path) {
+  return parseTaintConfig(llvm::Twine(Path.string()));
+}
 
 } // namespace psr
 

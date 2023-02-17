@@ -48,7 +48,7 @@ public:
   }
 
   static void
-  importDOTConfig(std::string ConfigPath = PhasarConfig::PhasarDirectory());
+  importDOTConfig(llvm::StringRef ConfigPath = PhasarConfig::PhasarDirectory());
 
   static DOTConfig &getDOTConfig();
   ~DOTConfig() = default;

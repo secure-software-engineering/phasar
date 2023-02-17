@@ -9,14 +9,17 @@
 
 namespace psr::unittest {
 
-inline const std::string PathToLLTestFiles(PhasarConfig::PhasarDirectory() +
-                                           "build/test/llvm_test_code/");
+static constexpr llvm::StringLiteral PathToLLTestFiles =
+    PHASAR_DIR "/build/test/llvm_test_code/";
 
-inline const std::string PathToTxtTestFiles(PhasarConfig::PhasarDirectory() +
-                                            "build/test/text_test_code/");
+static constexpr llvm::StringLiteral PathToTxtTestFiles =
+    PHASAR_DIR "/build/test/text_test_code/";
 
-inline const std::string PathToJSONTestFiles(PhasarConfig::PhasarDirectory() +
-                                             "test/json_test_code/");
+static constexpr llvm::StringLiteral PathToJSONTestFiles =
+    PHASAR_DIR "/test/json_test_code/";
+
+#define PHASAR_BUILD_SUBFOLDER(SUB)                                            \
+  llvm::StringLiteral(PHASAR_DIR "/build/test/llvm_test_code/" SUB)
 
 inline const std::string PathToSwiftTestFiles(
     PhasarConfig::PhasarDirectory() + "build/test/llvm_swift_test_code/");
