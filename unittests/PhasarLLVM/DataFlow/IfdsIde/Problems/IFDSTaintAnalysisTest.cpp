@@ -7,7 +7,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
@@ -29,14 +29,14 @@ protected:
   std::optional<HelperAnalyses> HA;
 
   std::optional<IFDSTaintAnalysis> TaintProblem;
-  std::optional<TaintConfig> TSF;
+  std::optional<LLVMTaintConfig> TSF;
 
   IFDSTaintAnalysisTest() = default;
   ~IFDSTaintAnalysisTest() override = default;
 
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
-    TaintConfig::TaintDescriptionCallBackTy SourceCB =
+    LLVMTaintConfig::TaintDescriptionCallBackTy SourceCB =
         [](const llvm::Instruction *Inst) {
           std::set<const llvm::Value *> Ret;
           if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
@@ -46,7 +46,7 @@ protected:
           }
           return Ret;
         };
-    TaintConfig::TaintDescriptionCallBackTy SinkCB =
+    LLVMTaintConfig::TaintDescriptionCallBackTy SinkCB =
         [](const llvm::Instruction *Inst) {
           std::set<const llvm::Value *> Ret;
           if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);

@@ -34,7 +34,7 @@ protected:
     auto ConfigPath = (PathToLlFiles + "config.json").str();
     auto BuildPos = ConfigPath.rfind("/build/") + 1;
     ConfigPath.erase(BuildPos, 6);
-    TaintConfig TC(HA.getProjectIRDB(), parseTaintConfig(ConfigPath));
+    LLVMTaintConfig TC(HA.getProjectIRDB(), parseTaintConfig(ConfigPath));
     TC.registerSinkCallBack([](const llvm::Instruction *Inst) {
       std::set<const llvm::Value *> Ret;
       if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);

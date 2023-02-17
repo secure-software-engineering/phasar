@@ -13,7 +13,6 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallSet.h"

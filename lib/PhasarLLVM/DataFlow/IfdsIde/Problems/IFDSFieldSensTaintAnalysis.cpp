@@ -37,7 +37,7 @@
 namespace psr {
 
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
-    const LLVMProjectIRDB *IRDB, const TaintConfig *TaintConfig,
+    const LLVMProjectIRDB *IRDB, const LLVMTaintConfig *TaintConfig,
     std::vector<std::string> EntryPoints)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(TaintConfig) {

@@ -23,7 +23,7 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -125,7 +125,7 @@ private:
         std::forward<ArgTys>(Args)...);
   }
 
-  TaintConfig makeTaintConfig();
+  LLVMTaintConfig makeTaintConfig();
 
   template <typename T> void emitRequestedDataFlowResults(T &Solver) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
