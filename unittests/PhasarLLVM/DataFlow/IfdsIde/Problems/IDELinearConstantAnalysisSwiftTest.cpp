@@ -83,26 +83,26 @@ protected:
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_01) {
-  auto Results = doAnalysis("basic_04.ll");
+  auto Results = doAnalysis("basic_01.ll");
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 4, "i", 13);
+  GroundTruth.emplace("$s8basic_016MyMainV4mainyyFZ", 4, "i", 13);
   compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_02) {
-  auto Results = doAnalysis("basic_04.ll");
+  auto Results = doAnalysis("basic_02.ll");
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 4, "i", 13);
-  GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 5, "k", 17);
+  GroundTruth.emplace("$s8basic_026MyMainV4mainyyFZ", 4, "i", 13);
+  GroundTruth.emplace("$s8basic_026MyMainV4mainyyFZ", 5, "i", 17);
   compareResults(Results, GroundTruth);
 }
 
 TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_03) {
-  auto Results = doAnalysis("basic_04.ll");
+  auto Results = doAnalysis("basic_03.ll");
   std::set<LCACompactResult_t> GroundTruth;
-  GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 5, "i", 10);
-  GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 6, "j", 14);
-  GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 6, "i", 14);
+
+  GroundTruth.emplace("$s8basic_036MyMainV4mainyyFZ", 6, "j", 14);
+  GroundTruth.emplace("$s8basic_036MyMainV4mainyyFZ", 6, "i", 14);
   compareResults(Results, GroundTruth);
 }
 
@@ -110,6 +110,7 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_04) {
   auto Results = doAnalysis("basic_04.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 11, "i", 14);
+  GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 11, "j", 20);
   GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 11, "k", 34);
   GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 11, "x", 14);
   compareResults(Results, GroundTruth);
@@ -137,9 +138,7 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_07) {
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("$s8basic_076MyMainV7wrapperyS2iFZ", 11, "i", 16);
   GroundTruth.emplace("$s8basic_076MyMainV7wrapperyS2iFZ", 11, "x", 4);
-  // TODO: This fails right now because we currently don't process
-  // store i 64, i64* %._value ... instructions.
-  // GroundTruth.emplace("$s8basic_076MyMainV7wrapperyS2iFZ", 11, "j", 3);
+  GroundTruth.emplace("$s8basic_076MyMainV7wrapperyS2iFZ", 11, "j", 3);
   compareResults(Results, GroundTruth);
 }
 
@@ -183,9 +182,7 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_12) {
   auto Results = doAnalysis("basic_12.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("$s8basic_126MyMainV4mainyyFZ", 5, "i", 43);
-  // TODO: This fails right now because we currently don't process
-  // store i 64, i64* %._value ... instructions.
-  // GroundTruth.emplace("$s8basic_126MyMainV4mainyyFZ", 4, "i", 42);
+  GroundTruth.emplace("$s8basic_126MyMainV4mainyyFZ", 4, "i", 42);
   GroundTruth.emplace("$s8basic_126MyMainV3fooyS2iFZ", 8, "x", 42);
   compareResults(Results, GroundTruth);
 }

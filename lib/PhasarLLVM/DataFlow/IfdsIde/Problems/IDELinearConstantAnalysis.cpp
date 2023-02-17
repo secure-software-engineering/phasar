@@ -495,7 +495,8 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     d_t PointerOperand = Store->getPointerOperand();
     d_t ValueOperand = Store->getValueOperand();
-    if (PointerOperand == SuccNode) {
+    if (PointerOperand == SuccNode ||
+        PointerOperand->stripPointerCasts() == SuccNode) {
       // Case I: Storing a constant integer.
       if (isZeroValue(CurrNode) && llvm::isa<llvm::ConstantInt>(ValueOperand)) {
         PHASAR_LOG_LEVEL(DEBUG, "Case: Storing constant integer.");
