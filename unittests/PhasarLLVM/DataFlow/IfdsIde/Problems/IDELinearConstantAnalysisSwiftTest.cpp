@@ -258,8 +258,9 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_06) {
   GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 11, "x", 10);
   GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 11, "i", 10);
   GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 11, "j", 10);
-  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 12, "x", 10);
-  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 12, "i", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 13, "x", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 13, "i", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 13, "j", 10);
   GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 15, "x", 10);
   GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 15, "i", 10);
   GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 15, "j", 9);
