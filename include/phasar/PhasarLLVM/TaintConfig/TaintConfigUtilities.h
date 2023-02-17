@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
-#define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H
+#ifndef PHASAR_PHASARLLVM_TAINTCONFIG_LLVMTAINTCONFIGUTILITIES_H
+#define PHASAR_PHASARLLVM_TAINTCONFIG_LLVMTAINTCONFIGUTILITIES_H
 
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
@@ -24,10 +24,10 @@ namespace psr {
 template <typename ContainerTy,
           typename = std::enable_if_t<std::is_same_v<
               typename ContainerTy::value_type, const llvm::Value *>>>
-void collectGeneratedFacts(ContainerTy &Dest, const TaintConfig &Config,
+void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                            const llvm::CallBase *CB,
                            const llvm::Function *Callee) {
-  auto Callback = Config.getRegisteredSourceCallBack();
+  const auto &Callback = Config.getRegisteredSourceCallBack();
   if (Callback) {
     auto CBFacts = Callback(CB);
     Dest.insert(CBFacts.begin(), CBFacts.end());
@@ -47,11 +47,11 @@ void collectGeneratedFacts(ContainerTy &Dest, const TaintConfig &Config,
 template <typename ContainerTy, typename Pred,
           typename = std::enable_if_t<std::is_same_v<
               typename ContainerTy::value_type, const llvm::Value *>>>
-void collectLeakedFacts(ContainerTy &Dest, const TaintConfig &Config,
+void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                         const llvm::CallBase *CB, const llvm::Function *Callee,
                         Pred &&LeakIf) {
 
-  auto Callback = Config.getRegisteredSinkCallBack();
+  const auto &Callback = Config.getRegisteredSinkCallBack();
   if (Callback) {
     auto CBLeaks = Callback(CB);
     std::copy_if(CBLeaks.begin(), CBLeaks.end(),
@@ -66,7 +66,7 @@ void collectLeakedFacts(ContainerTy &Dest, const TaintConfig &Config,
 }
 
 template <typename ContainerTy>
-inline void collectLeakedFacts(ContainerTy &Dest, const TaintConfig &Config,
+inline void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                                const llvm::CallBase *CB,
                                const llvm::Function *Callee) {
   collectLeakedFacts(Dest, Config, CB, Callee,
@@ -76,7 +76,7 @@ inline void collectLeakedFacts(ContainerTy &Dest, const TaintConfig &Config,
 template <typename ContainerTy,
           typename = std::enable_if_t<std::is_same_v<
               typename ContainerTy::value_type, const llvm::Value *>>>
-void collectSanitizedFacts(ContainerTy &Dest, const TaintConfig &Config,
+void collectSanitizedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                            const llvm::CallBase *CB,
                            const llvm::Function *Callee) {
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
@@ -87,4 +87,4 @@ void collectSanitizedFacts(ContainerTy &Dest, const TaintConfig &Config,
 }
 } // namespace psr
 
-#endif
+#endif // PHASAR_PHASARLLVM_TAINTCONFIG_LLVMTAINTCONFIGUTILITIES_H
