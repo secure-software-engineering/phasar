@@ -244,8 +244,8 @@ DOTConfig &DOTConfig::getDOTConfig() {
   return DC;
 }
 
-void DOTConfig::importDOTConfig(std::string ConfigPath) {
-  std::filesystem::path FilePath(ConfigPath);
+void DOTConfig::importDOTConfig(llvm::StringRef ConfigPath) {
+  std::filesystem::path FilePath(ConfigPath.str());
   FilePath /= std::filesystem::path("config/DOTGraphConfig.json");
   if (std::filesystem::exists(FilePath) &&
       !std::filesystem::is_directory(FilePath)) {

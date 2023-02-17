@@ -25,8 +25,8 @@ using namespace psr;
 
 class IFDSUninitializedVariablesTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      unittest::PathToLLTestFiles + "uninitialized_variables/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("uninitialized_variables/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   std::optional<HelperAnalyses> HA;

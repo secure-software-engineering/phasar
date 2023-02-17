@@ -137,11 +137,29 @@ PSR_OPTION_FLAG(AutoGlobalsOpt, "auto-globals",
                 cl::init(true));
 
 PSR_SHORTLONG_OPTION(
-    StatisticsOpt, bool, "S", "statistical-analysis",
+    StatisticsOpt, bool, "S", "emit-stats",
     "Collect and emit statistics of the module(s) under analysis");
 
 #ifdef DYNAMIC_LOG
 PSR_SHORTLONG_OPTION(LogOpt, bool, "L", "log", "Enable logging");
+cl::opt<SeverityLevel> LogSeverityOpt(
+    "log-level",
+    cl::desc(
+        "The minimum severity-level a log message must have in order to be "
+        "printed. Has no effect if logging is disabled. You can enable "
+        "logging with --log/-L or by specifying at least one --log-cat."),
+    cl::cat(PsrCat),
+    cl::values(
+#define SEVERITY_LEVEL(NAME, TYPE) clEnumValN(SeverityLevel::TYPE, NAME, NAME),
+#include "phasar/Utils/SeverityLevel.def"
+        clEnumValN(SeverityLevel::INVALID, "INVALID", "INVALID")),
+    cl::init(SeverityLevel::DEBUG));
+
+cl::list<std::string>
+    LogCategoriesOpt("log-cat",
+                     cl::desc("The categories that should be enabled for "
+                              "logging. Implies --log/-L is non-empty."),
+                     cl::cat(PsrCat));
 #endif
 
 cl::opt<std::string>
@@ -303,10 +321,18 @@ int main(int Argc, const char **Argv) {
   cl::ParseCommandLineOptions(Argc, Argv);
 
 #ifdef DYNAMIC_LOG
+  if (LogSeverityOpt == SeverityLevel::INVALID) {
+    llvm::errs() << "Invalid log-severity\n";
+    return 1;
+  }
   if (LogOpt) {
-    Logger::initializeStderrLogger(DEBUG);
+    Logger::initializeStderrLogger(LogSeverityOpt);
+  }
+  for (const auto &LogCat : LogCategoriesOpt) {
+    Logger::initializeStderrLogger(LogSeverityOpt, LogCat);
   }
 #endif
+
   // Vanity header
   if (!SilentOpt) {
     llvm::outs() << "PhASAR " << PhasarConfig::PhasarVersion()
@@ -326,6 +352,8 @@ int main(int Argc, const char **Argv) {
   validateParamAnalysisConfig();
   validatePTAJsonFile();
 
+  auto &PConfig = PhasarConfig::getPhasarConfig();
+
   // setup the emitter options to display the computed analysis results
   auto EmitterOptions = AnalysisControllerEmitterOptions::None;
 
@@ -344,7 +372,6 @@ int main(int Argc, const char **Argv) {
   }
   if (EmitESGAsDotOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitESGAsDot;
-    SolverConfig.setEmitESG();
   }
   if (EmitTHAsTextOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsText;
@@ -355,15 +382,9 @@ int main(int Argc, const char **Argv) {
   if (EmitTHAsJsonOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
   }
-  // if (EmitCGAsTextOpt) {
-  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
-  // }
   if (EmitCGAsDotOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
   }
-  // if (EmitCGAsJsonOpt) {
-  //   EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
-  // }
   if (EmitPTAAsTextOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
   }
@@ -373,7 +394,6 @@ int main(int Argc, const char **Argv) {
   if (EmitPTAAsJsonOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
-
   if (StatisticsOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitStatisticsAsText;
   }
@@ -386,10 +406,11 @@ int main(int Argc, const char **Argv) {
   SolverConfig.setComputeValues(ComputeValuesOpt);
   SolverConfig.setRecordEdges(RecordEdgesOpt || EmitESGAsDotOpt);
   SolverConfig.setComputePersistedSummaries(PersistedSummariesOpt);
+  SolverConfig.setEmitESG(EmitESGAsDotOpt);
 
-  nlohmann::json PrecomputedAliasSet;
+  std::optional<nlohmann::json> PrecomputedAliasSet;
   if (!LoadPTAFromJsonOpt.empty()) {
-    PrecomputedAliasSet = readJsonFile(llvm::StringRef(LoadPTAFromJsonOpt));
+    PrecomputedAliasSet = readJsonFile(LoadPTAFromJsonOpt);
   }
 
   if (EntryOpt.empty()) {
@@ -397,19 +418,13 @@ int main(int Argc, const char **Argv) {
   }
 
   // setup IRDB as source code manager
-  HelperAnalyses HA(
-      std::move(ModuleOpt.getValue()),
-      PrecomputedAliasSet.empty()
-          ? std::optional<nlohmann::json>()
-          : std::optional<nlohmann::json>(std::move(PrecomputedAliasSet)),
-      AliasTypeOpt, !AnalysisController::needsToEmitPTA(EmitterOptions),
-      std::vector(EntryOpt.begin(), EntryOpt.end()), CGTypeOpt, SoundnessOpt,
-      AutoGlobalsOpt);
+  HelperAnalyses HA(std::move(ModuleOpt.getValue()),
+                    std::move(PrecomputedAliasSet), AliasTypeOpt,
+                    !AnalysisController::needsToEmitPTA(EmitterOptions),
+                    EntryOpt, CGTypeOpt, SoundnessOpt, AutoGlobalsOpt);
 
   AnalysisController Controller(
-      HA, std::vector(DataFlowAnalysisOpt.begin(), DataFlowAnalysisOpt.end()),
-      {AnalysisConfigOpt.getValue()},
-      std::vector(EntryOpt.begin(), EntryOpt.end()), StrategyOpt,
-      EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt);
+      HA, DataFlowAnalysisOpt, {AnalysisConfigOpt.getValue()}, EntryOpt,
+      StrategyOpt, EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt);
   return 0;
 }

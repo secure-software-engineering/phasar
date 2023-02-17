@@ -16,6 +16,7 @@
 
 #include "phasar/Utils/IO.h"
 
+#include "phasar/Utils/ErrorHandling.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -25,19 +26,35 @@
 
 #include "nlohmann/json.hpp"
 
+llvm::ErrorOr<std::string> psr::readTextFileOrErr(const llvm::Twine &Path) {
+  auto BufferOrErr = readFileOrErr(Path);
+  if (BufferOrErr) {
+    return BufferOrErr->get()->getBuffer().str();
+  }
+
+  return BufferOrErr.getError();
+}
+
+llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
+psr::readFileOrErr(const llvm::Twine &Path) noexcept {
+  return llvm::MemoryBuffer::getFile(Path);
+}
+
 std::string psr::readTextFile(const llvm::Twine &Path) {
-  auto Buffer = readFile(Path);
-  return Buffer->getBuffer().str();
+  return getOrThrow(readTextFileOrErr(Path));
 }
 
 std::unique_ptr<llvm::MemoryBuffer> psr::readFile(const llvm::Twine &Path) {
-  auto Ret = llvm::MemoryBuffer::getFile(Path);
+  return getOrThrow(readFileOrErr(Path));
+}
 
-  if (!Ret) {
-    throw std::system_error(Ret.getError());
-  }
+std::optional<std::string> psr::readTextFileOrNull(const llvm::Twine &Path) {
+  return getOrNull(readTextFileOrErr(Path));
+}
 
-  return std::move(Ret.get());
+std::unique_ptr<llvm::MemoryBuffer>
+psr::readFileOrNull(const llvm::Twine &Path) noexcept {
+  return getOrEmpty(readFileOrErr(Path));
 }
 
 nlohmann::json psr::readJsonFile(const llvm::Twine &Path) {
