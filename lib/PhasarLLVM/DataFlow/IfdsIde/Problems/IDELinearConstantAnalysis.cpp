@@ -30,6 +30,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
@@ -296,20 +297,25 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
-      // return Identity<d_t>::getInstance();
-      return strongUpdateStore(Store, [](d_t Source) {
-        return LLVMZeroValue::isLLVMZeroValue(Source);
-      });
+      return strongUpdateStore(Store, LLVMZeroValue::isLLVMZeroValue);
     }
+
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
       return strongUpdateStore(Store);
     }
   }
+
+  if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
+    if (GEP->getResultElementType()->isIntegerTy()) {
+      const auto *Op = GEP->getPointerOperand();
+      return generateFlow(GEP, Op);
+    }
+  }
   // check load instructions
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
-    if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
+    if (Load->getType()->isIntegerTy()) {
       return generateFlowIf<d_t>(Load, [Load](d_t Source) {
         return Source == Load->getPointerOperand();
       });
@@ -327,6 +333,21 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
               llvm::isa<llvm::ConstantInt>(Rop));
     });
   }
+
+  if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
+    const auto *Agg = Extract->getAggregateOperand();
+
+    /// We are extracting the result of a BinaryOpIntrinsic
+    /// The first parameter holds the resulting integer if
+    /// no error occured during the operation
+    if (const auto *BinIntrinsic =
+            llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Agg)) {
+      if (Extract->getType()->isIntegerTy()) {
+        return generateFlow<d_t>(Curr, Agg);
+      }
+    }
+  }
+
   return identityFlow<d_t>();
 }
 
@@ -415,6 +436,25 @@ IDELinearConstantAnalysis::initialSeeds() {
   }
 
   return Seeds;
+}
+
+IDELinearConstantAnalysis::FlowFunctionPtrType
+IDELinearConstantAnalysis::getSummaryFlowFunction(n_t Curr, f_t /*CalleeFun*/) {
+
+  if (const auto *BinIntrinsic =
+          llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Curr)) {
+    auto *Lop = BinIntrinsic->getLHS();
+    auto *Rop = BinIntrinsic->getRHS();
+
+    return generateFlowIf<d_t>(BinIntrinsic, [this, Lop, Rop](d_t Source) {
+      /// Intentionally include nonlinear operations here for being able to
+      /// explicitly set them to BOTTOM in the edge function
+      return (Lop == Source) || (Rop == Source) ||
+             (isZeroValue(Source) && llvm::isa<llvm::ConstantInt>(Lop) &&
+              llvm::isa<llvm::ConstantInt>(Rop));
+    });
+  }
+  return nullptr;
 }
 
 IDELinearConstantAnalysis::d_t
@@ -535,6 +575,29 @@ std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/,
     llvm::ArrayRef<f_t> /*Callees*/) {
+  return EdgeIdentity<l_t>::getInstance();
+}
+
+std::shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
+                                                  n_t /*Succ*/, d_t SuccNode) {
+
+  if (const auto *BinIntrinsic =
+          llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Curr)) {
+    auto *Lop = BinIntrinsic->getLHS();
+    auto *Rop = BinIntrinsic->getRHS();
+    unsigned OP = BinIntrinsic->getBinaryOp();
+
+    // For non linear constant computation we propagate bottom
+    if ((CurrNode == Lop && !llvm::isa<llvm::ConstantInt>(Rop)) ||
+        (CurrNode == Rop && !llvm::isa<llvm::ConstantInt>(Lop))) {
+      return AllBottom<l_t>::getInstance();
+    }
+
+    if (Curr == SuccNode && CurrNode != SuccNode) {
+      return std::make_shared<lca::BinOp>(OP, Lop, Rop, CurrNode);
+    }
+  }
   return EdgeIdentity<l_t>::getInstance();
 }
 
@@ -709,13 +772,7 @@ IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
   return AggResults;
 }
 
-void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) {
-  OS << this;
-}
-
-IDELinearConstantAnalysis::LCAResult::operator std::string() const {
-  std::string Buffer;
-  llvm::raw_string_ostream OS(Buffer);
+void IDELinearConstantAnalysis::LCAResult::print(llvm::raw_ostream &OS) const {
   OS << "Line " << LineNr << ": " << SrcNode << '\n';
   OS << "Var(s): ";
   for (auto It = VariableToValue.begin(); It != VariableToValue.end(); ++It) {
@@ -728,7 +785,6 @@ IDELinearConstantAnalysis::LCAResult::operator std::string() const {
   for (const auto *Ir : IRTrace) {
     OS << "  " << llvmIRToString(Ir) << '\n';
   }
-  return Buffer;
 }
 
 } // namespace psr

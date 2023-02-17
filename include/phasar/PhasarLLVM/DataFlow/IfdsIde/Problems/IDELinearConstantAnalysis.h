@@ -65,13 +65,11 @@ public:
     std::string SrcNode;
     std::map<std::string, l_t> VariableToValue;
     std::vector<n_t> IRTrace;
-    void print(llvm::raw_ostream &OS);
+    void print(llvm::raw_ostream &OS) const;
     inline bool operator==(const LCAResult &Rhs) const {
       return SrcNode == Rhs.SrcNode && VariableToValue == Rhs.VariableToValue &&
              IRTrace == Rhs.IRTrace;
     }
-
-    operator std::string() const;
   };
 
   using lca_results_t = std::map<std::string, std::map<unsigned, LCAResult>>;
@@ -90,6 +88,8 @@ public:
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                            llvm::ArrayRef<f_t> Callees) override;
+
+  FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t CalleeFun) override;
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 
@@ -115,6 +115,10 @@ public:
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
+
+  std::shared_ptr<EdgeFunction<l_t>>
+  getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                         d_t SuccNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 

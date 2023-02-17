@@ -49,12 +49,13 @@ public:
     return LLVMZeroValueInternalName;
   }
 
-  static bool isLLVMZeroValue(const llvm::Value *V) {
-    return V == getInstance();
-  }
-
   // Do not specify a destructor (at all)!
   static const LLVMZeroValue *getInstance();
+
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) {
+    return V == getInstance();
+  };
 };
 } // namespace psr
 
