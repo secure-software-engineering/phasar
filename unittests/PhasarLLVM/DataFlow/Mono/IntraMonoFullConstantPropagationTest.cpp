@@ -34,7 +34,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IntraMonoFullConstantPropagationTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = unittest::PathToLLTestFiles;
+  static constexpr auto PathToLlFiles = unittest::PathToLLTestFiles;
   const std::vector<std::string> EntryPoints = {"main"};
 
   using IMFCPCompactResult_t =
