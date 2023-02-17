@@ -82,12 +82,87 @@ protected:
 }; // Test Fixture
 
 /* ============== BASIC TESTS ============== */
-TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_01) {
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_04) {
   auto Results = doAnalysis("basic_04.ll");
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 11, "i", 14);
   GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 11, "k", 34);
   GroundTruth.emplace("$s8basic_046MyMainV10addWrapperyS2iFZ", 11, "x", 14);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_05) {
+  auto Results = doAnalysis("basic_05.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_056MyMainV7wrapperyS2iFZ", 10, "i", 3);
+  GroundTruth.emplace("$s8basic_056MyMainV7wrapperyS2iFZ", 10, "j", 14);
+  GroundTruth.emplace("$s8basic_056MyMainV7wrapperyS2iFZ", 10, "x", 3);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_06) {
+  auto Results = doAnalysis("basic_06.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_066MyMainV7wrapperyS2iFZ", 10, "i", 16);
+  GroundTruth.emplace("$s8basic_066MyMainV7wrapperyS2iFZ", 10, "x", 4);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_07) {
+  auto Results = doAnalysis("basic_07.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_076MyMainV7wrapperyS2iFZ", 11, "i", 16);
+  GroundTruth.emplace("$s8basic_076MyMainV7wrapperyS2iFZ", 11, "x", 4);
+  // TODO: This fails right now because we currently don't process
+  // store i 64, i64* %._value ... instructions.
+  // GroundTruth.emplace("$s8basic_076MyMainV7wrapperyS2iFZ", 11, "j", 3);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_08) {
+  auto Results = doAnalysis("basic_08.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_086MyMainV7wrapperyS2iFZ", 10, "i", 42);
+  GroundTruth.emplace("$s8basic_086MyMainV7wrapperyS2iFZ", 10, "j", 40);
+  GroundTruth.emplace("$s8basic_086MyMainV7wrapperyS2iFZ", 10, "x", 42);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_09) {
+  auto Results = doAnalysis("basic_09.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_096MyMainV7wrapperyS2iFZ", 10, "i", 42);
+  GroundTruth.emplace("$s8basic_096MyMainV7wrapperyS2iFZ", 10, "j", 126);
+  GroundTruth.emplace("$s8basic_096MyMainV7wrapperyS2iFZ", 10, "x", 42);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_10) {
+  auto Results = doAnalysis("basic_10.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_106MyMainV7wrapperyS2iFZ", 10, "i", 42);
+  GroundTruth.emplace("$s8basic_106MyMainV7wrapperyS2iFZ", 10, "j", 14);
+  GroundTruth.emplace("$s8basic_106MyMainV7wrapperyS2iFZ", 10, "x", 42);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_11) {
+  auto Results = doAnalysis("basic_11.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_116MyMainV7wrapperyS2iFZ", 10, "i", 42);
+  GroundTruth.emplace("$s8basic_116MyMainV7wrapperyS2iFZ", 10, "j", 2);
+  GroundTruth.emplace("$s8basic_116MyMainV7wrapperyS2iFZ", 10, "x", 42);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_12) {
+  auto Results = doAnalysis("basic_12.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8basic_126MyMainV4mainyyFZ", 5, "i", 43);
+  // TODO: This fails right now because we currently don't process
+  // store i 64, i64* %._value ... instructions.
+  // GroundTruth.emplace("$s8basic_126MyMainV4mainyyFZ", 4, "i", 42);
+  GroundTruth.emplace("$s8basic_126MyMainV3fooyS2iFZ", 8, "x", 42);
   compareResults(Results, GroundTruth);
 }
 
