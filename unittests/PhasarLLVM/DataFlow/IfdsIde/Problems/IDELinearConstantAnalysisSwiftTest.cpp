@@ -188,16 +188,98 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBasicTest_12) {
 }
 
 /* ============== BRANCH TESTS ============== */
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_01) {
-//   auto Results = doAnalysis("branch_01_cpp_dbg.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("main", 3, "i", 10);
-//   GroundTruth.emplace("main", 5, "i", 2);
-//   compareResults(Results, GroundTruth);
-//   // Results available for line 5 but not for line 7
-//   EXPECT_FALSE(Results["main"].find(5) == Results["main"].end());
-//   EXPECT_TRUE(Results["main"].find(7) == Results["main"].end());
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_01) {
+  auto Results = doAnalysis("branch_01.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9branch_016MyMainV7wrapperyS2iFZ", 10, "i", 10);
+  GroundTruth.emplace("$s9branch_016MyMainV7wrapperyS2iFZ", 10, "x", 10);
+  GroundTruth.emplace("$s9branch_016MyMainV7wrapperyS2iFZ", 12, "i", 2);
+  GroundTruth.emplace("$s9branch_016MyMainV7wrapperyS2iFZ", 12, "x", 10);
+
+  compareResults(Results, GroundTruth);
+  EXPECT_FALSE(Results["$s9branch_016MyMainV7wrapperyS2iFZ"].find(12) ==
+               Results["$s9branch_016MyMainV7wrapperyS2iFZ"].end());
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_02) {
+  auto Results = doAnalysis("branch_02.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9branch_026MyMainV7wrapperyS2iFZ", 10, "x", 10);
+  GroundTruth.emplace("$s9branch_026MyMainV7wrapperyS2iFZ", 12, "i", 10);
+  GroundTruth.emplace("$s9branch_026MyMainV7wrapperyS2iFZ", 12, "x", 10);
+  GroundTruth.emplace("$s9branch_026MyMainV7wrapperyS2iFZ", 14, "x", 10);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_03) {
+  auto Results = doAnalysis("branch_03.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9branch_036MyMainV7wrapperyS2iFZ", 10, "x", 10);
+  GroundTruth.emplace("$s9branch_036MyMainV7wrapperyS2iFZ", 10, "i", 42);
+  GroundTruth.emplace("$s9branch_036MyMainV7wrapperyS2iFZ", 12, "x", 10);
+  GroundTruth.emplace("$s9branch_036MyMainV7wrapperyS2iFZ", 12, "i", 10);
+  GroundTruth.emplace("$s9branch_036MyMainV7wrapperyS2iFZ", 15, "x", 10);
+  GroundTruth.emplace("$s9branch_036MyMainV7wrapperyS2iFZ", 15, "i", 30);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_04) {
+  auto Results = doAnalysis("branch_04.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 11, "x", 10);
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 11, "i", 42);
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 11, "j", 10);
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 13, "x", 10);
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 13, "i", 20);
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 13, "j", 10);
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 15, "x", 10);
+  GroundTruth.emplace("$s9branch_046MyMainV7wrapperyS2iFZ", 15, "j", 10);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_05) {
+  auto Results = doAnalysis("branch_05.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 11, "x", 10);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 11, "i", 42);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 11, "j", 10);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 13, "x", 10);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 13, "i", 42);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 13, "j", 10);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 15, "x", 10);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 15, "j", 10);
+  GroundTruth.emplace("$s9branch_056MyMainV7wrapperyS2iFZ", 15, "i", 42);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_06) {
+  auto Results = doAnalysis("branch_06.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 11, "x", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 11, "i", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 11, "j", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 12, "x", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 12, "i", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 15, "x", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 15, "i", 10);
+  GroundTruth.emplace("$s9branch_066MyMainV7wrapperyS2iFZ", 15, "j", 9);
+  compareResults(Results, GroundTruth);
+}
+
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleBranchTest_07) {
+  auto Results = doAnalysis("branch_07.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 11, "x", 10);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 11, "i", 30);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 11, "j", 10);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 13, "x", 10);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 13, "i", 30);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 13, "j", 10);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 15, "x", 10);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 15, "j", 9);
+  GroundTruth.emplace("$s9branch_076MyMainV7wrapperyS2iFZ", 15, "i", 30);
+  compareResults(Results, GroundTruth);
+}
 
 // main function for the test case
 int main(int Argc, char **Argv) {

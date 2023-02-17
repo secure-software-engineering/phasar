@@ -12,7 +12,7 @@ struct MyMain {
         if cond {
             i = j + 20
         }
-
+        j = 9
         return x
     }
 }

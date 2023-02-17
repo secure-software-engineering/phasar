@@ -7,7 +7,7 @@ struct MyMain {
     }
 
     static func wrapper(_ x: Int) -> Int {
-        var i
+        var i: Int
         if cond {
             i = 10
         }
