@@ -18,11 +18,12 @@ static constexpr llvm::StringLiteral PathToTxtTestFiles =
 static constexpr llvm::StringLiteral PathToJSONTestFiles =
     PHASAR_DIR "/test/json_test_code/";
 
+static constexpr llvm::StringLiteral PathToSwiftTestFiles = 
+    PHASAR_DIR "/build/test/llvm_swift_test_code/");
+
+
 #define PHASAR_BUILD_SUBFOLDER(SUB)                                            \
   llvm::StringLiteral(PHASAR_DIR "/build/test/llvm_test_code/" SUB)
-
-inline const std::string PathToSwiftTestFiles(
-    PhasarConfig::PhasarDirectory() + "build/test/llvm_swift_test_code/");
 
 // Remove wrapped tests in case GTEST_SKIP is not available. This is needed as
 // LLVM currently ships with an older version of gtest (<1.10.0) that does not

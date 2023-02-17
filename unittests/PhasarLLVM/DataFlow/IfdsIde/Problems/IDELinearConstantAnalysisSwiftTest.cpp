@@ -18,9 +18,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDELinearConstantAnalysisSwiftTest : public ::testing::Test {
 protected:
-  const std::string PathToSwiftTestFiles =
-      unittest::PathToSwiftTestFiles + "linear_constant/";
-
+  static constexpr auto PathToSwiftTestFiles = unittest::PathToSwiftTestFiles;
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
