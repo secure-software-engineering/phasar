@@ -64,6 +64,14 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
   return false;
 }
 
+bool isIntegerLikeType(const llvm::Type *T) noexcept {
+  if (const auto *structType = llvm::dyn_cast<llvm::StructType>(T)) {
+    return structType->isPacked() && structType->elements().size() == 1 &&
+           structType->getElementType(0)->isIntegerTy();
+  }
+  return false;
+}
+
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {
