@@ -20,11 +20,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDELinearConstantAnalysisSwiftTest : public ::testing::Test {
 protected:
-  const std::string PathToSwiftTestFiles =
-      unittest::PathToSwiftTestFiles + "linear_constant/";
-  const std::vector<std::string> EntryPoints = {"main"};
-
-  // Function - Line Nr - Variable - Value
+  static constexpr auto PathToSwiftTestFiles = PHASAR_BUILD_SWIFT_SUBFOLDER(
+      "linear_constant/"); // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
 

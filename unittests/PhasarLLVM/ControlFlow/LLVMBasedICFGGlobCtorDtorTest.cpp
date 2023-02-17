@@ -44,7 +44,7 @@ using namespace psr;
 
 class LLVMBasedICFGGlobCtorDtorTest : public ::testing::Test {
 protected:
-  const std::string PathToLLFiles = unittest::PathToLLTestFiles + "globals/";
+  static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("globals/");
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
 

@@ -16,13 +16,21 @@
 
 #include "phasar/Config/Configuration.h"
 
-#include "phasar/Config/Version.h"
+#include "phasar/Utils/ErrorHandling.h"
 #include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/Twine.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Path.h"
 
-#include "boost/algorithm/string/classification.hpp"
-#include "boost/algorithm/string/split.hpp"
+#include <algorithm>
+#include <cstdlib>
+#include <iterator>
+#include <system_error>
 
 using namespace psr;
 
@@ -36,75 +44,101 @@ PhasarConfig::PhasarConfig() {
   SpecialFuncNames.insert({"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
 }
 
-const std::string &PhasarConfig::ConfigurationDirectory() {
-  static const std::string ConfigDir = [] {
-    auto *EnvHome = std::getenv("HOME");
-    std::string ConfigFolder = "config/";
-    if (EnvHome) { // Check if HOME was defined in the environment
-      std::string PhasarConfDir = std::string(EnvHome) + "/.config/phasar/";
-      if (std::filesystem::exists(PhasarConfDir) &&
-          std::filesystem::is_directory(PhasarConfDir)) {
-        ConfigFolder = PhasarConfDir;
-      }
+std::optional<llvm::StringRef>
+PhasarConfig::LocalConfigurationDirectory() noexcept {
+  static std::string DirName = []() -> std::string {
+    llvm::SmallString<256> HomePath;
+    if (llvm::sys::path::home_directory(HomePath)) {
+      return (HomePath + "/.config/phasar/").str();
     }
-    return ConfigFolder;
-  }();
 
-  return ConfigDir;
+    return {};
+  }();
+  if (DirName.empty()) {
+    return std::nullopt;
+  }
+  return DirName;
 }
 
-/// Specifies the directory in which Phasar is located.
-const std::string &PhasarConfig::PhasarDirectory() {
-  static const std::string PhasarDir = [] {
-    std::string CurrPath = std::filesystem::current_path().string();
-    size_t I = CurrPath.rfind("build", CurrPath.length());
-    return CurrPath.substr(0, I);
-  }();
+std::unique_ptr<llvm::MemoryBuffer>
+PhasarConfig::readConfigFile(const llvm::Twine &FileName) {
+  return getOrThrow(readConfigFileOrErr(FileName));
+}
 
-  return PhasarDir;
+std::string PhasarConfig::readConfigFileAsText(const llvm::Twine &FileName) {
+  auto Buffer = readConfigFile(FileName);
+  return Buffer->getBuffer().str();
+}
+
+llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
+PhasarConfig::readConfigFileOrErr(const llvm::Twine &FileName) {
+  if (auto LocalConfigPath = LocalConfigurationDirectory()) {
+    if (llvm::sys::fs::exists(*LocalConfigPath + FileName)) {
+      PHASAR_LOG_LEVEL(INFO,
+                       "Local config file: " << (*LocalConfigPath + FileName));
+      return readFileOrErr(*LocalConfigPath + FileName);
+    }
+  }
+  PHASAR_LOG_LEVEL(INFO, "Global config file: "
+                             << (GlobalConfigurationDirectory() + FileName));
+  return readFileOrErr(GlobalConfigurationDirectory() + FileName);
+}
+llvm::ErrorOr<std::string>
+PhasarConfig::readConfigFileAsTextOrErr(const llvm::Twine &FileName) {
+  return mapValue(readConfigFileOrErr(FileName),
+                  [](auto Buffer) { return Buffer->getBuffer().str(); });
+}
+
+std::unique_ptr<llvm::MemoryBuffer>
+PhasarConfig::readConfigFileOrNull(const llvm::Twine &FileName) {
+  return getOrEmpty(readConfigFileOrErr(FileName));
+}
+std::optional<std::string>
+PhasarConfig::readConfigFileAsTextOrNull(const llvm::Twine &FileName) {
+  if (auto Buffer = readConfigFileOrNull(FileName)) {
+    return Buffer->getBuffer().str();
+  }
+  return std::nullopt;
+}
+
+bool PhasarConfig::loadConfigFileInto(llvm::StringRef FileName,
+                                      std::set<std::string> &Lines) {
+  auto ConfigFile = readConfigFileAsTextOrErr(FileName);
+  if (!ConfigFile) {
+    if (ConfigFile.getError() != std::errc::no_such_file_or_directory) {
+      PHASAR_LOG_LEVEL(WARNING, "Could not open config file '"
+                                    << FileName << "': "
+                                    << ConfigFile.getError().message());
+    }
+
+    return false;
+  }
+
+  llvm::SmallVector<llvm::StringRef, 0> ConfigLines;
+  llvm::SplitString(*ConfigFile, ConfigLines, "\n");
+
+  llvm::transform(ConfigLines, std::inserter(Lines, Lines.end()),
+                  [](llvm::StringRef Str) { return Str.trim().str(); });
+  return true;
 }
 
 void PhasarConfig::loadGlibcSpecialFunctionNames() {
-  const std::string GLIBCFunctionListFilePath =
-      ConfigurationDirectory() + GLIBCFunctionListFileName;
-
-  if (std::filesystem::exists(GLIBCFunctionListFilePath)) {
-    // Load glibc function names specified in the config file
-    std::vector<std::string> GlibcFunctions;
-    std::string Glibc = readTextFile(GLIBCFunctionListFilePath);
-    // Insert glibc function names
-    boost::split(GlibcFunctions, Glibc, boost::is_any_of("\n"),
-                 boost::token_compress_on);
-
-    SpecialFuncNames.insert(GlibcFunctions.begin(), GlibcFunctions.end());
-  } else {
+  if (!loadConfigFileInto(GLIBCFunctionListFileName, SpecialFuncNames)) {
     // Add default glibc function names
     SpecialFuncNames.insert({"_exit"});
   }
 }
 
 void PhasarConfig::loadLLVMSpecialFunctionNames() {
-  const std::string LLVMFunctionListFilePath =
-      ConfigurationDirectory() + LLVMIntrinsicFunctionListFileName;
-  if (std::filesystem::exists(LLVMFunctionListFilePath)) {
-    // Load LLVM function names specified in the config file
-    std::string LLVMIntrinsics = readTextFile(LLVMFunctionListFilePath);
-
-    std::vector<std::string> LLVMIntrinsicFunctions;
-    boost::split(LLVMIntrinsicFunctions, LLVMIntrinsics, boost::is_any_of("\n"),
-                 boost::token_compress_on);
-
-    // Insert llvm intrinsic function names
-    SpecialFuncNames.insert(LLVMIntrinsicFunctions.begin(),
-                            LLVMIntrinsicFunctions.end());
-  } else {
+  if (!loadConfigFileInto(LLVMIntrinsicFunctionListFileName,
+                          SpecialFuncNames)) {
     // Add default LLVM function names
     SpecialFuncNames.insert({"llvm.va_start"});
   }
 }
 
 PhasarConfig &PhasarConfig::getPhasarConfig() {
-  static PhasarConfig PC;
+  static PhasarConfig PC{};
   return PC;
 }
 
