@@ -81,39 +81,21 @@ protected:
     auto Generator =
         [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
                Current) -> std::set<std::string> {
-      std::set<std::string> Labels;
-      // case we are looking at an instruction
-      if (std::holds_alternative<const llvm::Instruction *>(Current)) {
-        const llvm::Instruction *CurrentInst =
-            std::get<const llvm::Instruction *>(Current);
-        if (CurrentInst->hasMetadata()) {
-          std::string Label =
-              llvm::cast<llvm::MDString>(
-                  CurrentInst->getMetadata(PhasarConfig::MetaDataKind())
-                      ->getOperand(0))
-                  ->getString()
-                  .str();
-          Labels.insert(Label);
-          return Labels;
-        }
-      }
-      // case we are looking at a global variable
-      if (std::holds_alternative<const llvm::GlobalVariable *>(Current)) {
-        const llvm::GlobalVariable *CurrentGlobalVar =
-            std::get<const llvm::GlobalVariable *>(Current);
-        if (CurrentGlobalVar->hasMetadata()) {
-          std::string Label =
-              llvm::cast<llvm::MDString>(
-                  CurrentGlobalVar->getMetadata(PhasarConfig::MetaDataKind())
-                      ->getOperand(0))
-                  ->getString()
-                  .str();
-          Labels.insert(Label);
-          return Labels;
-        }
-      }
-      // default
-      return Labels;
+      return std::visit(
+          [](const auto *InstOrGlob) -> std::set<std::string> {
+            std::set<std::string> Labels;
+            if (InstOrGlob->hasMetadata()) {
+              std::string Label =
+                  llvm::cast<llvm::MDString>(
+                      InstOrGlob->getMetadata(PhasarConfig::MetaDataKind())
+                          ->getOperand(0))
+                      ->getString()
+                      .str();
+              Labels.insert(Label);
+            }
+            return Labels;
+          },
+          Current);
     };
     // register the above generator function
     IIAProblem.registerEdgeFactGenerator(Generator);

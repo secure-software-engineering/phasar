@@ -19,6 +19,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <ostream>
+#include <variant>
 
 namespace psr {
 
@@ -66,11 +67,21 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   [[nodiscard]] inline bool isTop() const noexcept {
     return std::holds_alternative<Top>(*this);
   }
+
   [[nodiscard]] inline L *getValueOrNull() noexcept {
     return std::get_if<L>(this);
   }
   [[nodiscard]] inline const L *getValueOrNull() const noexcept {
     return std::get_if<L>(this);
+  }
+
+  [[nodiscard]] inline L &assertGetValue() noexcept {
+    assert(std::holds_alternative<L>(*this));
+    return std::get<L>(*this);
+  }
+  [[nodiscard]] inline const L &assertGetValue() const noexcept {
+    assert(std::holds_alternative<L>(*this));
+    return std::get<L>(*this);
   }
 };
 
