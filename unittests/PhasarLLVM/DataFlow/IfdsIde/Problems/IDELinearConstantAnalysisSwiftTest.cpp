@@ -371,44 +371,36 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleCallTest_08) {
   compareResults(Results, GroundTruth);
 }
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleCallTest_09) {
-//   auto Results = doAnalysis("call_09.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z9incrementi", 1, "a", 42);
-//   GroundTruth.emplace("_Z9incrementi", 2, "a", 43);
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleCallTest_09) {
+  auto Results = doAnalysis("call_09.ll");
+  std::set<LCACompactResult_t> GroundTruth;
 
-//   GroundTruth.emplace("main", 6, "i", 43);
-//   GroundTruth.emplace("main", 7, "i", 43);
-//   GroundTruth.emplace("main", 7, "j", 43);
-//   GroundTruth.emplace("main", 8, "i", 43);
-//   GroundTruth.emplace("main", 8, "j", 43);
-//   compareResults(Results, GroundTruth);
-// }
+  GroundTruth.emplace("$s7call_096MyMainV4mainyyFZ", 8, "i", 43);
+  GroundTruth.emplace("$s7call_096MyMainV4mainyyFZ", 9, "i", 43);
+  GroundTruth.emplace("$s7call_096MyMainV4mainyyFZ", 9, "j", 43);
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleCallTest_10) {
-//   auto Results = doAnalysis("call_10.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3bari", 1, "b", 2);
-//   GroundTruth.emplace("_Z3fooi", 3, "a", 2);
-//   GroundTruth.emplace("_Z3fooi", 4, "a", 2);
-//   compareResults(Results, GroundTruth);
-//   EXPECT_TRUE(Results["main"].find(8) == Results["main"].end());
-//   EXPECT_TRUE(Results["main"].find(9) == Results["main"].end());
-// }
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleCallTest_11) {
-//   auto Results = doAnalysis("call_11.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3bari", 1, "b", 2);
-//   GroundTruth.emplace("_Z3bari", 2, "b", 2);
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleCallTest_10) {
+  auto Results = doAnalysis("call_10.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s7call_106MyMainV3baryySiFZ", 3, "b", 2);
+  GroundTruth.emplace("$s7call_106MyMainV3fooyySiFZ", 8, "a", 2);
 
-//   GroundTruth.emplace("_Z3fooi", 5, "a", 2);
-//   GroundTruth.emplace("_Z3fooi", 6, "a", 2);
+  compareResults(Results, GroundTruth);
+}
 
-//   GroundTruth.emplace("main", 11, "i", 2);
-//   GroundTruth.emplace("main", 12, "i", 2);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleCallTest_11) {
+  auto Results = doAnalysis("call_11.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("s7call_116MyMainV3baryS2iFZ", 4, "b", 2);
+
+  GroundTruth.emplace("$s7call_116MyMainV3fooyS2iFZ", 8, "a", 2);
+
+  GroundTruth.emplace("$s7call_116MyMainV4mainyyFZ", 13, "i", 2);
+  compareResults(Results, GroundTruth);
+}
 
 // main function for the test case
 int main(int Argc, char **Argv) {
