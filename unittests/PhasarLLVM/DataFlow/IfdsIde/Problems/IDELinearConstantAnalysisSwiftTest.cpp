@@ -403,53 +403,23 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_01) {
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("$s8while_016MyMainV4mainyyFZ", 4, "i", 42);
   compareResults(Results, GroundTruth);
-  EXPECT_TRUE(Results["$s8while_016MyMainV4mainyyFZ"].find(4) ==
-              Results["$s8while_016MyMainV4mainyyFZ"].end());
-  EXPECT_TRUE(Results["$s8while_016MyMainV4mainyyFZ"].find(6) ==
-              Results["$s8while_016MyMainV4mainyyFZ"].end());
 }
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_02) {
-//   auto Results = doAnalysis("while_02.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   compareResults(Results, GroundTruth);
-//   EXPECT_TRUE(Results["main"].find(2) == Results["main"].end());
-//   EXPECT_TRUE(Results["main"].find(4) == Results["main"].end());
-//   EXPECT_TRUE(Results["main"].find(6) == Results["main"].end());
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_03) {
+  auto Results = doAnalysis("while_03.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8while_036MyMainV4mainyyFZ", 4, "i", 42);
+  GroundTruth.emplace("$s8while_036MyMainV4mainyyFZ", 9, "a", 13);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_03) {
-//   auto Results = doAnalysis("while_03.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("main", 2, "i", 42);
-//   GroundTruth.emplace("main", 7, "a", 13);
-//   GroundTruth.emplace("main", 8, "a", 13);
-//   compareResults(Results, GroundTruth);
-//   EXPECT_TRUE(Results["main"].find(4) == Results["main"].end());
-//   EXPECT_TRUE(Results["main"].find(6) == Results["main"].end());
-// }
-
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_04) {
-//   auto Results = doAnalysis("while_04.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("main", 2, "i", 42);
-//   GroundTruth.emplace("main", 4, "a", 0);
-//   GroundTruth.emplace("main", 5, "a", 0);
-//   compareResults(Results, GroundTruth);
-//   EXPECT_TRUE(Results["main"].find(7) == Results["main"].end());
-// }
-
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_05) {
-//   auto Results = doAnalysis("while_05.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   // GroundTruth.emplace("foo", 5, "x", Bottom{});
-//   // GroundTruth.emplace("foo", 7, "x", Bottom{});
-//   GroundTruth.emplace("main", 13, "a", 3);
-//   // GroundTruth.emplace("main", 13, "b", Bottom{});
-//   compareResults(Results, GroundTruth);
-//   EXPECT_EQ(Results["foo"].end(), Results["foo"].find(5));
-//   EXPECT_EQ(Results["foo"].end(), Results["foo"].find(7));
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_04) {
+  auto Results = doAnalysis("while_04.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s8while_046MyMainV4mainyyFZ", 4, "i", 42);
+  GroundTruth.emplace("$s8while_046MyMainV4mainyyFZ", 7, "a", 0);
+  compareResults(Results, GroundTruth);
+}
 
 // TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_06) {
 //   auto Results = doAnalysis("for_01.ll");
@@ -457,7 +427,7 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_01) {
 //   GroundTruth.emplace("main", 2, "a", 0);
 //   compareResults(Results, GroundTruth);
 //   EXPECT_TRUE(Results["main"].find(4) == Results["main"].end());
-//   EXPECT_TRUE(Results["main"].find(6) == Results["main"].end());
+//   EXPECT_TRUE(Results["main"].find(7) == Results["main"].end());
 // }
 
 // main function for the test case
