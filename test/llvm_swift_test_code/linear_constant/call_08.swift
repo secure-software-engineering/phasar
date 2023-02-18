@@ -5,7 +5,7 @@ struct MyMain {
     }
 
     static func main() {
-        var i = 1
+        var i = 10
         var j = 1
         var k: Int
         k = foo(i, j)
