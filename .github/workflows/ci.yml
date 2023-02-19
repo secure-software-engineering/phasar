@@ -51,7 +51,8 @@ jobs:
               libclang-common-14-dev \
               libclang-14-dev \
               libclang-cpp14-dev \
-              clang-tidy-14
+              clang-tidy-14 \
+              libclang-rt-14-dev
 
       - uses: swift-actions/setup-swift@v1
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
