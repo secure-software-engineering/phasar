@@ -54,6 +54,13 @@ public:
     Cache.erase(&EF);
   }
 
+  template <typename... ArgTys>
+  [[nodiscard]] EdgeFunction<typename EdgeFunctionTy::l_t>
+  createEdgeFunction(ArgTys &&...Args) {
+    return CachedEdgeFunction<EdgeFunctionTy>{
+        EdgeFunctionTy{std::forward<ArgTys>(Args)...}, this};
+  }
+
 private:
   struct DSI : public llvm::DenseMapInfo<const EdgeFunctionTy *> {
     static bool isEqual(const EdgeFunctionTy *LHS,
@@ -98,6 +105,10 @@ public:
   }
   void erase(ByConstRef<EdgeFunctionTy> /*EF*/) noexcept override {
     assert(false && "We should never go here");
+  }
+  [[nodiscard]] EdgeFunction<typename EdgeFunctionTy::l_t>
+  createEdgeFunction(EdgeFunctionTy EF) {
+    return EF;
   }
 };
 

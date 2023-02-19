@@ -20,6 +20,23 @@
 
 namespace psr {
 
+template <typename EdgeFunctionTy> class EdgeFunctionSingletonCache;
+
+/// Wrapper over an edge function and a pointer to a compatible
+/// EdgeFunctionSingletonCache.
+///
+/// When converting CachedEdgeFunction to EdgeFunction, signals to the
+/// EdgeFunction-allocator that, if not small-object-optimized, this edge
+/// function EF wishes to be allocated within the provided cache.
+///
+/// Cache may not be nullptr.
+template <typename EdgeFunctionTy> struct CachedEdgeFunction {
+  using EdgeFunctionType = EdgeFunctionTy;
+
+  EdgeFunctionTy EF{};
+  EdgeFunctionSingletonCache<EdgeFunctionTy> *Cache{};
+};
+
 /// Base-class for edge function caches. Compatible with the caching mechanism
 /// built in EdgeFunction.
 template <typename EdgeFunctionTy> class EdgeFunctionSingletonCache {
@@ -41,21 +58,12 @@ public:
   /// Erases the cache-entry associated with the edge function EF from the
   /// cache.
   virtual void erase(ByConstRef<EdgeFunctionTy> EF) noexcept = 0;
-};
 
-/// Wrapper over an edge function and a pointer to a compatible
-/// EdgeFunctionSingletonCache.
-///
-/// When converting CachedEdgeFunction to EdgeFunction, signals to the
-/// EdgeFunction-allocator that, if not small-object-optimized, this edge
-/// function EF wishes to be allocated within the provided cache.
-///
-/// Cache may not be nullptr.
-template <typename EdgeFunctionTy> struct CachedEdgeFunction {
-  using EdgeFunctionType = EdgeFunctionTy;
-
-  EdgeFunctionTy EF{};
-  EdgeFunctionSingletonCache<EdgeFunctionTy> *Cache{};
+  template <typename... ArgTys>
+  [[nodiscard]] auto createEdgeFunction(ArgTys &&...Args) {
+    return CachedEdgeFunction<EdgeFunctionTy>{
+        EdgeFunctionTy{std::forward<ArgTys>(Args)...}, this};
+  }
 };
 
 template <typename EdgeFunctionTy>
