@@ -28,7 +28,6 @@ protected:
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
 
-
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
     HelperAnalyses HA(PathToSwiftTestFiles + LlvmFilePath, EntryPoints);
@@ -422,242 +421,219 @@ TEST_F(IDELinearConstantAnalysisSwiftTest, HandleLoopTest_04) {
 
 /* ============== Global TESTS ============== */
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_01) {
-//   auto Results = doAnalysis("global_01.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 8, "i", 666);
-//   GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 8, "g1", 10);
-//   GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 8, "g2", 1);
-//   GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 10, "i", 666);
-//   GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 10, "g1", 42);
-//   GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 10, "g2", 42);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_01) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_01.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 8, "i", 666);
+  GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 8, "g1", 10);
+  GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 8, "g2", 1);
+  GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 10, "i", 666);
+  GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 10, "g1", 42);
+  GroundTruth.emplace("$s9global_016MyMainV4mainyyFZ", 10, "g2", 42);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_02) {
-//   auto Results = doAnalysis("global_02.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 6, "g", 10);
-//   GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 6, "i", 10);
-//   GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 7, "g", 10);
-//   GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 7, "i", -10);
-//   GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 8, "g", -10);
-//   GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 8, "i", -10);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_02) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_02.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 6, "g", 10);
+  GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 6, "i", 10);
+  GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 7, "g", 10);
+  GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 7, "i", -10);
+  GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 8, "g", -10);
+  GroundTruth.emplace("$s9global_026MyMainV4mainyyFZ", 8, "i", -10);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_03) {
-//   auto Results = doAnalysis("global_03.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("$s9global_036MyMainV3fooyyFZ", 10, "g", 0);
-//   GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 10, "i", 42);
-//   GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 11, "i", 42);
-//   GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 11, "g", 1);
-//   GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 12, "i", 42);
-//   GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 12, "g", 2);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_03) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_03.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_036MyMainV3fooyyFZ", 10, "g", 0);
+  GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 10, "i", 42);
+  GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 11, "i", 42);
+  GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 11, "g", 1);
+  GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 12, "i", 42);
+  GroundTruth.emplace("$s9global_036MyMainV4mainyyFZ", 12, "g", 2);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_04) {
-//   auto Results = doAnalysis("global_04.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3fooi", 3, "g", 1);
-//   GroundTruth.emplace("_Z3fooi", 3, "a", 1);
-//   GroundTruth.emplace("_Z3fooi", 4, "g", 1);
-//   GroundTruth.emplace("_Z3fooi", 4, "a", 2);
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_04) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_04.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_046MyMainV3fooyS2iFZ", 7, "g", 1);
+  GroundTruth.emplace("$s9global_046MyMainV3fooyS2iFZ", 7, "a", 2);
 
-//   GroundTruth.emplace("main", 8, "g", 1);
-//   GroundTruth.emplace("main", 9, "g", 1);
-//   GroundTruth.emplace("main", 9, "i", 2);
-//   GroundTruth.emplace("main", 10, "g", 1);
-//   GroundTruth.emplace("main", 10, "i", 2);
-//   compareResults(Results, GroundTruth);
-// }
+  GroundTruth.emplace("$s9global_046MyMainV4mainyyFZ", 12, "g", 1);
+  GroundTruth.emplace("$s9global_046MyMainV4mainyyFZ", 12, "i", 2);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_05) {
-//   auto Results = doAnalysis("global_05.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3fooi", 3, "g", 2);
-//   GroundTruth.emplace("_Z3fooi", 3, "a", 2);
-//   GroundTruth.emplace("_Z3fooi", 4, "g", 2);
-//   GroundTruth.emplace("_Z3fooi", 4, "a", 3);
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_06) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_06.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_066MyMainV3fooSiyFZ", 7, "g", 2);
+  GroundTruth.emplace("$s9global_066MyMainV4mainyyFZ", 11, "g", 1);
+  GroundTruth.emplace("$s9global_066MyMainV4mainyyFZ", 12, "g", 2);
+  GroundTruth.emplace("$s9global_066MyMainV4mainyyFZ", 12, "i", 2);
+  compareResults(Results, GroundTruth);
+}
 
-//   GroundTruth.emplace("main", 8, "g", 1);
-//   GroundTruth.emplace("main", 9, "g", 2);
-//   GroundTruth.emplace("main", 9, "i", 3);
-//   GroundTruth.emplace("main", 10, "g", 2);
-//   GroundTruth.emplace("main", 10, "i", 3);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_07) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_07.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_076MyMainV3fooyS2iFZ", 7, "g", 1);
+  GroundTruth.emplace("$s9global_076MyMainV3fooyS2iFZ", 7, "a", 10);
+  GroundTruth.emplace("$s9global_076MyMainV3fooyS2iFZ", 7, "x", 10);
+  GroundTruth.emplace("$s9global_076MyMainV3fooyS2iFZ", 7, "g", 1);
+  GroundTruth.emplace("$s9global_076MyMainV3fooyS2iFZ", 7, "a", 10);
+  GroundTruth.emplace("$s9global_076MyMainV3fooyS2iFZ", 7, "x", 11);
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_06) {
-//   auto Results = doAnalysis("global_06.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3foov", 4, "g", 2);
-//   GroundTruth.emplace("main", 8, "g", 1);
-//   GroundTruth.emplace("main", 9, "g", 2);
-//   GroundTruth.emplace("main", 9, "i", 2);
-//   GroundTruth.emplace("main", 10, "g", 2);
-//   GroundTruth.emplace("main", 10, "i", 2);
-//   compareResults(Results, GroundTruth);
-// }
+  GroundTruth.emplace("$s9global_076MyMainV3baryS2iFZ", 14, "g", 2);
+  GroundTruth.emplace("$s9global_076MyMainV3baryS2iFZ", 14, "b", 3);
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_07) {
-//   auto Results = doAnalysis("global_07.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3fooi", 3, "g", 1);
-//   GroundTruth.emplace("_Z3fooi", 3, "a", 10);
-//   GroundTruth.emplace("_Z3fooi", 4, "g", 1);
-//   GroundTruth.emplace("_Z3fooi", 5, "g", 1);
+  GroundTruth.emplace("$s9global_076MyMainV4mainyyFZ", 19, "g", 1);
+  GroundTruth.emplace("$s9global_076MyMainV4mainyyFZ", 19, "i", 0);
+  GroundTruth.emplace("$s9global_076MyMainV4mainyyFZ", 20, "g", 1);
+  GroundTruth.emplace("$s9global_076MyMainV4mainyyFZ", 20, "i", 11);
+  GroundTruth.emplace("$s9global_076MyMainV4mainyyFZ", 21, "i", 5);
+  GroundTruth.emplace("$s9global_076MyMainV4mainyyFZ", 21, "g", 2);
+  compareResults(Results, GroundTruth);
+}
 
-//   GroundTruth.emplace("_Z3bari", 8, "g", 1);
-//   GroundTruth.emplace("_Z3bari", 8, "b", 3);
-//   GroundTruth.emplace("_Z3bari", 9, "g", 2);
-//   GroundTruth.emplace("_Z3bari", 9, "b", 3);
-//   GroundTruth.emplace("_Z3bari", 10, "g", 2);
-//   GroundTruth.emplace("_Z3bari", 10, "b", 3);
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_08) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_08.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_086MyMainV3baryS2iFZ", 11, "b", 2);
+  GroundTruth.emplace("$s9global_086MyMainV3baryS2iFZ", 11, "g", 2);
 
-//   GroundTruth.emplace("main", 14, "g", 1);
-//   GroundTruth.emplace("main", 15, "g", 1);
-//   GroundTruth.emplace("main", 15, "i", 0);
-//   GroundTruth.emplace("main", 16, "g", 1);
-//   GroundTruth.emplace("main", 17, "g", 2);
-//   GroundTruth.emplace("main", 17, "i", 4);
-//   GroundTruth.emplace("main", 18, "g", 2);
-//   GroundTruth.emplace("main", 18, "i", 4);
-//   compareResults(Results, GroundTruth);
-// }
+  GroundTruth.emplace("$s9global_086MyMainV3bazyS2iFZ", 7, "g", 2);
+  GroundTruth.emplace("$s9global_086MyMainV3bazyS2iFZ", 7, "c", 3);
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_08) {
-//   auto Results = doAnalysis("global_08.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3bari", 7, "b", 2);
-//   GroundTruth.emplace("_Z3bari", 7, "g", 2);
-//   GroundTruth.emplace("_Z3bari", 8, "b", 2);
-//   GroundTruth.emplace("_Z3bari", 8, "g", 2);
+  GroundTruth.emplace("$s9global_086MyMainV3fooyS2iFZ", 15, "g", 2);
+  GroundTruth.emplace("$s9global_086MyMainV3fooyS2iFZ", 15, "a", 1);
 
-//   GroundTruth.emplace("_Z3bazi", 3, "g", 2);
-//   GroundTruth.emplace("_Z3bazi", 3, "c", 3);
-//   GroundTruth.emplace("_Z3bazi", 4, "g", 2);
-//   GroundTruth.emplace("_Z3bazi", 4, "c", 3);
+  GroundTruth.emplace("$s9global_086MyMainV4mainyyFZ", 20, "g", 2);
+  GroundTruth.emplace("$s9global_086MyMainV4mainyyFZ", 20, "i", 0);
+  GroundTruth.emplace("$s9global_086MyMainV4mainyyFZ", 21, "i", 5);
+  GroundTruth.emplace("$s9global_086MyMainV4mainyyFZ", 21, "g", 2);
+  compareResults(Results, GroundTruth);
+}
 
-//   GroundTruth.emplace("_Z3fooi", 11, "g", 2);
-//   GroundTruth.emplace("_Z3fooi", 11, "a", 1);
-//   GroundTruth.emplace("_Z3fooi", 12, "g", 2);
-//   GroundTruth.emplace("_Z3fooi", 12, "a", 1);
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_10) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_10.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_106MyMainV4mainyyFZ", 7, "g1", 42);
+  GroundTruth.emplace("$s9global_106MyMainV4mainyyFZ", 7, "g2", 9001);
+  compareResults(Results, GroundTruth);
+}
 
-//   GroundTruth.emplace("main", 16, "g", 2);
-//   GroundTruth.emplace("main", 17, "g", 2);
-//   GroundTruth.emplace("main", 17, "i", 0);
-//   GroundTruth.emplace("main", 18, "g", 2);
-//   GroundTruth.emplace("main", 19, "g", 2);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_11) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_11.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 8, "x", 14);
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 8, "a", 14);
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 8, "g1", 42);
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 8, "g2", 9001);
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 10, "x", 14);
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 10, "a", 15);
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 10, "g1", 42);
+  GroundTruth.emplace("$s9global_116MyMainV3fooyS2iFZ", 10, "g2", 9001);
+  GroundTruth.emplace("$s9global_116MyMainV4mainyyFZ", 16, "a", 14);
+  GroundTruth.emplace("$s9global_116MyMainV4mainyyFZ", 16, "g1", 42);
+  GroundTruth.emplace("$s9global_116MyMainV4mainyyFZ", 16, "g2", 9001);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_10) {
-//   auto Results = doAnalysis("global_10.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("main", 5, "g1", 42);
-//   GroundTruth.emplace("main", 5, "g2", 9001);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_12) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_12.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("global_ctor", 4, "g", 42);
+  GroundTruth.emplace("$s9global_126MyMainV3fooyS2iFZ", 13, "x", 42);
+  GroundTruth.emplace("$s9global_126MyMainV3fooyS2iFZ", 13, "g", 42);
+  GroundTruth.emplace("$s9global_126MyMainV3fooyS2iFZ", 13, "a", 43);
+  GroundTruth.emplace("$s9global_126MyMainV4mainyyFZ", 17, "a", 42);
+  GroundTruth.emplace("$s9global_126MyMainV4mainyyFZ", 17, "g", 42);
+  GroundTruth.emplace("$s9global_126MyMainV4mainyyFZ", 18, "a", 43);
+  GroundTruth.emplace("$s9global_126MyMainV4mainyyFZ", 18, "g", 42);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_11) {
-//   auto Results = doAnalysis("global_11.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("main", 10, "a", 13);
-//   GroundTruth.emplace("main", 10, "g1", 42);
-//   GroundTruth.emplace("main", 10, "g2", 9001);
-//   GroundTruth.emplace("_Z3fooi", 5, "x", 14);
-//   GroundTruth.emplace("_Z3fooi", 5, "g1", 42);
-//   GroundTruth.emplace("_Z3fooi", 5, "g2", 9001);
-//   GroundTruth.emplace("main", 11, "a", 14);
-//   GroundTruth.emplace("main", 11, "g1", 42);
-//   GroundTruth.emplace("main", 11, "g2", 9001);
-//   GroundTruth.emplace("main", 12, "a", 14);
-//   GroundTruth.emplace("main", 12, "g1", 42);
-//   GroundTruth.emplace("main", 12, "g2", 9001);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_13) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_13.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("global_ctor", 4, "g", 42);
+  GroundTruth.emplace("global_dtor", 7, "g", 666);
+  GroundTruth.emplace("$s9global_136MyMainV3fooyS2iFZ", 16, "x", 42);
+  GroundTruth.emplace("$s9global_136MyMainV3fooyS2iFZ", 16, "g", 42);
+  GroundTruth.emplace("$s9global_136MyMainV3fooyS2iFZ", 16, "a", 43);
+  GroundTruth.emplace("$s9global_136MyMainV4mainyyFZ", 21, "a", 42);
+  GroundTruth.emplace("$s9global_136MyMainV4mainyyFZ", 21, "g", 42);
+  GroundTruth.emplace("$s9global_136MyMainV4mainyyFZ", 21, "b", 43);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_12) {
-//   auto Results = doAnalysis("global_12.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z11global_ctorv", 3, "g", 42);
-//   GroundTruth.emplace("_Z3fooi", 6, "x", 43);
-//   GroundTruth.emplace("_Z3fooi", 6, "g", 42);
-//   GroundTruth.emplace("main", 11, "a", 42);
-//   GroundTruth.emplace("main", 11, "g", 42);
-//   GroundTruth.emplace("main", 13, "a", 43);
-//   GroundTruth.emplace("main", 13, "g", 42);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_14) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_14.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("_ZN1XC2Ev", 4, "g", 1024);
+  GroundTruth.emplace("_Z3fooi", 9, "x", 1025);
+  GroundTruth.emplace("_Z3fooi", 9, "g", 1024);
+  GroundTruth.emplace("main", 15, "a", 1024);
+  GroundTruth.emplace("main", 15, "g", 1024);
+  GroundTruth.emplace("main", 17, "a", 1025);
+  GroundTruth.emplace("main", 17, "g", 1024);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_13) {
-//   auto Results = doAnalysis("global_13.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z11global_ctorv", 3, "g", 42);
-//   GroundTruth.emplace("_Z11global_dtorv", 5, "g", 666);
-//   GroundTruth.emplace("_Z3fooi", 8, "x", 43);
-//   GroundTruth.emplace("_Z3fooi", 8, "g", 42);
-//   GroundTruth.emplace("_Z3fooi", 9, "x", 43);
-//   GroundTruth.emplace("_Z3fooi", 9, "g", 42);
-//   GroundTruth.emplace("main", 13, "a", 42);
-//   GroundTruth.emplace("main", 13, "g", 42);
-//   GroundTruth.emplace("main", 15, "a", 42);
-//   GroundTruth.emplace("main", 15, "b", 43);
-//   GroundTruth.emplace("main", 15, "g", 42);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_15) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_15.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("_ZN1XC2Ev", 5, "g1", 1024);
+  GroundTruth.emplace("_ZN1XC2Ev", 5, "g2", 99);
+  GroundTruth.emplace("_ZN1YC2Ev", 9, "g1", 1024);
+  GroundTruth.emplace("_ZN1YC2Ev", 9, "g2", 100);
+  GroundTruth.emplace("_ZN1YD2Ev", 10, "g1", 113);
+  GroundTruth.emplace("_ZN1YD2Ev", 10, "g2", 100);
+  GroundTruth.emplace("_Z3fooi", 15, "x", 1025);
+  GroundTruth.emplace("_Z3fooi", 15, "g1", 1024);
+  GroundTruth.emplace("_Z3fooi", 15, "g2", 100);
+  GroundTruth.emplace("main", 22, "a", 1024);
+  GroundTruth.emplace("main", 22, "g1", 1024);
+  GroundTruth.emplace("main", 22, "g2", 100);
+  GroundTruth.emplace("main", 25, "a", 1025);
+  GroundTruth.emplace("main", 25, "b", 100);
+  GroundTruth.emplace("main", 25, "g1", 1024);
+  GroundTruth.emplace("main", 25, "g2", 100);
+  compareResults(Results, GroundTruth);
+}
 
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_14) {
-//   auto Results = doAnalysis("global_14.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_ZN1XC2Ev", 4, "g", 1024);
-//   GroundTruth.emplace("_Z3fooi", 9, "x", 1025);
-//   GroundTruth.emplace("_Z3fooi", 9, "g", 1024);
-//   GroundTruth.emplace("main", 15, "a", 1024);
-//   GroundTruth.emplace("main", 15, "g", 1024);
-//   GroundTruth.emplace("main", 17, "a", 1025);
-//   GroundTruth.emplace("main", 17, "g", 1024);
-//   compareResults(Results, GroundTruth);
-// }
-
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_15) {
-//   auto Results = doAnalysis("global_15.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_ZN1XC2Ev", 5, "g1", 1024);
-//   GroundTruth.emplace("_ZN1XC2Ev", 5, "g2", 99);
-//   GroundTruth.emplace("_ZN1YC2Ev", 9, "g1", 1024);
-//   GroundTruth.emplace("_ZN1YC2Ev", 9, "g2", 100);
-//   GroundTruth.emplace("_ZN1YD2Ev", 10, "g1", 113);
-//   GroundTruth.emplace("_ZN1YD2Ev", 10, "g2", 100);
-//   GroundTruth.emplace("_Z3fooi", 15, "x", 1025);
-//   GroundTruth.emplace("_Z3fooi", 15, "g1", 1024);
-//   GroundTruth.emplace("_Z3fooi", 15, "g2", 100);
-//   GroundTruth.emplace("main", 22, "a", 1024);
-//   GroundTruth.emplace("main", 22, "g1", 1024);
-//   GroundTruth.emplace("main", 22, "g2", 100);
-//   GroundTruth.emplace("main", 25, "a", 1025);
-//   GroundTruth.emplace("main", 25, "b", 100);
-//   GroundTruth.emplace("main", 25, "g1", 1024);
-//   GroundTruth.emplace("main", 25, "g2", 100);
-//   compareResults(Results, GroundTruth);
-// }
-
-// TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_16) {
-//   auto Results = doAnalysis("global_16.ll");
-//   std::set<LCACompactResult_t> GroundTruth;
-//   GroundTruth.emplace("_Z3fooi", 4, "x", 16);
-//   GroundTruth.emplace("_Z3fooi", 4, "g", 15);
-//   GroundTruth.emplace("_Z3fooi", 5, "x", 16);
-//   GroundTruth.emplace("_Z3fooi", 5, "g", 15);
-//   GroundTruth.emplace("main", 9, "a", 15);
-//   GroundTruth.emplace("main", 9, "g", 15);
-//   GroundTruth.emplace("main", 11, "a", 16);
-//   GroundTruth.emplace("main", 11, "g", 15);
-//   compareResults(Results, GroundTruth);
-// }
+TEST_F(IDELinearConstantAnalysisSwiftTest, HandleGlobalsTest_16) {
+  GTEST_SKIP() << "Swift-globals are not supported yet";
+  auto Results = doAnalysis("global_16.ll");
+  std::set<LCACompactResult_t> GroundTruth;
+  GroundTruth.emplace("_Z3fooi", 4, "x", 16);
+  GroundTruth.emplace("_Z3fooi", 4, "g", 15);
+  GroundTruth.emplace("_Z3fooi", 5, "x", 16);
+  GroundTruth.emplace("_Z3fooi", 5, "g", 15);
+  GroundTruth.emplace("main", 9, "a", 15);
+  GroundTruth.emplace("main", 9, "g", 15);
+  GroundTruth.emplace("main", 11, "a", 16);
+  GroundTruth.emplace("main", 11, "g", 15);
+  compareResults(Results, GroundTruth);
+}
 
 // main function for the test case
 int main(int Argc, char **Argv) {

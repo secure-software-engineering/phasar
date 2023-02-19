@@ -5,6 +5,7 @@ struct X {
     g = 1024
   }
 }
+
 var v = X()
 @main
 struct MyMain {
