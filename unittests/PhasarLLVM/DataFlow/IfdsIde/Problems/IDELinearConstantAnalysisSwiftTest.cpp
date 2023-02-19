@@ -28,7 +28,6 @@ protected:
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
 
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
