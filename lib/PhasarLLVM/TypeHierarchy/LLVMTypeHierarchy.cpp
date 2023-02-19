@@ -17,7 +17,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
@@ -338,11 +338,12 @@ nlohmann::json LLVMTypeHierarchy::getAsJson() const {
   // iterate all graph vertices
   for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
        ++VIv) {
-    J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*VIv].getTypeName()];
+    J[PhasarConfig::JsonTypeHierarchyID().str()][TypeGraph[*VIv].getTypeName()];
     // iterate all out edges of vertex vi_v
     for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, TypeGraph); EI != EIEnd;
          ++EI) {
-      J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*VIv].getTypeName()] +=
+      J[PhasarConfig::JsonTypeHierarchyID().str()]
+       [TypeGraph[*VIv].getTypeName()] +=
           TypeGraph[boost::target(*EI, TypeGraph)].getTypeName();
     }
   }

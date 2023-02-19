@@ -30,16 +30,11 @@ namespace psr {
 
 std::string createTimeStamp();
 
-bool isConstructor(const std::string &MangledName);
-
-std::string debasify(const std::string &Name);
+bool isConstructor(llvm::StringRef MangledName);
 
 const llvm::Type *stripPointer(const llvm::Type *Pointer);
 
-bool isMangled(const std::string &Name);
-
-std::vector<std::string> splitString(const std::string &Str,
-                                     const std::string &Delimiter);
+bool isMangled(llvm::StringRef Name);
 
 template <typename T>
 std::set<std::set<T>> computePowerSet(const std::set<T> &S) {
@@ -162,11 +157,10 @@ struct StringIDLess {
 template <typename Fn> class scope_exit { // NOLINT
 public:
   template <typename FFn, typename = decltype(std::declval<FFn>()())>
-  scope_exit(FFn &&F) noexcept(std::is_nothrow_constructible_v<Fn, FFn> ||
-                               std::is_nothrow_constructible_v<Fn, FFn &>)
+  scope_exit(FFn &&F) noexcept(std::is_nothrow_constructible_v<Fn, FFn &&>)
       : F(std::forward<FFn>(F)) {}
 
-  ~scope_exit() { F(); }
+  ~scope_exit() noexcept { F(); }
 
   scope_exit(const scope_exit &) = delete;
   scope_exit(scope_exit &&) = delete;

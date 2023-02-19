@@ -10,12 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 
-#include "phasar/PhasarLLVM/Pointer/AliasInfoBase.h"
-#include "phasar/PhasarLLVM/Pointer/AliasInfoTraits.h"
-#include "phasar/PhasarLLVM/Pointer/AliasResult.h"
-#include "phasar/PhasarLLVM/Pointer/AliasSetOwner.h"
-#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+#include "phasar/Pointer/AliasInfoBase.h"
+#include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Pointer/AliasResult.h"
+#include "phasar/Pointer/AliasSetOwner.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/StableVector.h"
 
@@ -52,8 +51,7 @@ public:
   using AliasSetTy = traits_t::AliasSetTy;
   using AliasSetPtrTy = traits_t::AliasSetPtrTy;
   using AllocationSiteSetPtrTy = traits_t::AllocationSiteSetPtrTy;
-  using AliasSetMap =
-      llvm::DenseMap<const llvm::Value *, DynamicAliasSetPtr<AliasSetTy>>;
+  using AliasSetMap = llvm::DenseMap<const llvm::Value *, BoxedPtr<AliasSetTy>>;
 
   /**
    * Creates points-to set(s) for all functions in the IRDB. If
@@ -134,8 +132,7 @@ private:
 
   void mergeAliasSets(const llvm::Value *V1, const llvm::Value *V2);
 
-  void mergeAliasSets(DynamicAliasSetPtr<AliasSetTy> PTS1,
-                      DynamicAliasSetPtr<AliasSetTy> PTS2);
+  void mergeAliasSets(BoxedPtr<AliasSetTy> PTS1, BoxedPtr<AliasSetTy> PTS2);
 
   bool interIsReachableAllocationSiteTy(const llvm::Value *V,
                                         const llvm::Value *P) const;
@@ -149,7 +146,7 @@ private:
   void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
                   const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
 
-  [[nodiscard]] static DynamicAliasSetPtr<AliasSetTy> getEmptyAliasSet();
+  [[nodiscard]] static BoxedPtr<AliasSetTy> getEmptyAliasSet();
 
   LLVMBasedAliasAnalysis PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;

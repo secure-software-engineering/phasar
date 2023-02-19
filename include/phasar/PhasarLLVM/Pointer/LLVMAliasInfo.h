@@ -10,8 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASINFO_H_
 
-#include "phasar/PhasarLLVM/Pointer/AliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/DynamicAliasSetPtr.h"
+#include "phasar/Pointer/AliasInfo.h"
 
 namespace llvm {
 class Function;

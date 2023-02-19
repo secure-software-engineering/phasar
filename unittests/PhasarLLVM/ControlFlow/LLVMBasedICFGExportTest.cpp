@@ -1,11 +1,13 @@
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -33,8 +35,8 @@ using MapTy = llvm::DenseMap<const llvm::Function *,
 
 class LLVMBasedICFGExportTest : public ::testing::Test {
 protected:
-  const std::string &PathToLLFiles = unittest::PathToLLTestFiles;
-  const std::string &PathToJSONFiles = unittest::PathToJSONTestFiles;
+  static constexpr auto PathToLLFiles = unittest::PathToLLTestFiles;
+  static constexpr auto PathToJSONFiles = unittest::PathToJSONTestFiles;
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
@@ -167,18 +169,11 @@ protected:
     }
   }
 
-  nlohmann::json readJson(const std::string &JsonFilename) {
-    std::ifstream IfIn(PathToJSONFiles + JsonFilename);
-    assert(IfIn.good() && "Invalid JSON file");
-
-    nlohmann::json J;
-    IfIn >> J;
-
-    assert(IfIn.good() && "Error reading JSON file");
-    return J;
+  nlohmann::json readJson(const llvm::Twine &JsonFilename) {
+    return psr::readJsonFile(PathToJSONFiles + JsonFilename);
   }
 
-  void verifyExportICFG(const std::string &TestFile,
+  void verifyExportICFG(const llvm::Twine &TestFile,
                         bool WithDebugOutput = false) {
     LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
     LLVMTypeHierarchy TH(IRDB);

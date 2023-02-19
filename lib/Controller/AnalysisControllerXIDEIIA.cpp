@@ -8,14 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeIDEIIA() {
-  IDEInstInteractionAnalysis IIA(&HA.getProjectIRDB(), &HA.getICFG(),
-                                 &HA.getAliasInfo(), EntryPoints);
-  executeIDEAnalysis(IIA);
+  executeIDEAnalysis<IDEInstInteractionAnalysis>(EntryPoints);
 }
 
 } // namespace psr

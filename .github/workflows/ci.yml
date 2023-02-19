@@ -60,6 +60,7 @@ jobs:
           sudo apt download libclang-rt-14-dev
           sudo dpkg --force-all -i libclang-rt-14-dev*
 
+      - uses: swift-actions/setup-swift@v1
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
           BUILD_TYPE: ${{ matrix.build }}
@@ -72,6 +73,7 @@ jobs:
           cmake .. \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_CXX_COMPILER=$CXX \
+            -DBUILD_SWIFT_TESTS=1 \
             -G Ninja
           cmake --build .
 

@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasGraph.h"
 
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -431,11 +431,11 @@ nlohmann::json LLVMAliasGraph::getAsJson() const {
   out_edge_iterator EIEnd;
   // iterate all graph vertices
   for (boost::tie(VIv, VIvEnd) = boost::vertices(PAG); VIv != VIvEnd; ++VIv) {
-    J[PhasarConfig::JsonAliasGraphID()][PAG[*VIv].getValueAsString()];
+    J[PhasarConfig::JsonAliasGraphID().str()][PAG[*VIv].getValueAsString()];
     // iterate all out edges of vertex vi_v
     for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, PAG); EI != EIEnd;
          ++EI) {
-      J[PhasarConfig::JsonAliasGraphID()][PAG[*VIv].getValueAsString()] +=
+      J[PhasarConfig::JsonAliasGraphID().str()][PAG[*VIv].getValueAsString()] +=
           PAG[boost::target(*EI, PAG)].getValueAsString();
     }
   }
