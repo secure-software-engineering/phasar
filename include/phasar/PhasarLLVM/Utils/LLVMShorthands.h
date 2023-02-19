@@ -105,8 +105,6 @@ std::string getMetaDataID(const llvm::Value *V);
  * underlying types for their ID's, size_t and string respectively.
  */
 struct LLVMValueIDLess {
-  StringIDLess Sless;
-  LLVMValueIDLess() : Sless(StringIDLess()) {}
   bool operator()(const llvm::Value *Lhs, const llvm::Value *Rhs) const;
 };
 

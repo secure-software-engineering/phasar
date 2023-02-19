@@ -3,7 +3,8 @@ file(GLOB_RECURSE TAINTCONFIG_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
   phasar_utils
   phasar_db
-  phasar_phasarllvm_utils
+  phasar_llvm_db
+  phasar_llvm_utils
 )
 
 set(LLVM_LINK_COMPONENTS

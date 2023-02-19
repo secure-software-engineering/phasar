@@ -53,6 +53,13 @@ include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
+option(BUILD_SWIFT_TESTS "Builds the Swift tests (Swift compiler has to be installed manually beforehand!)" OFF)
+if (BUILD_SWIFT_TESTS)
+  set(CMAKE_Swift_FLAGS_RELEASE "-g")
+  set(CMAKE_Swift_FLAGS_RELWITHDEBINFO "-g")
+  enable_language(Swift)
+endif(BUILD_SWIFT_TESTS)
+
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
@@ -120,13 +127,11 @@ else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
-option(PHASAR_CONFIG_INSTALL_PREFIX "Customizes the directory, where configuration files for PhASAR are installed (default is $(HOME)/.config)")
+set(PHASAR_CONFIG_INSTALL_DIR "/opt/phasar/config/" CACHE STRING "Customizes the directory, where configuration files for PhASAR are installed (default is /opt/phasar/config)")
 
-if(${PHASAR_CONFIG_INSTALL_PREFIX} STREQUAL "")
-  set(PHASAR_CONFIG_INSTALL_DIR "$ENV{HOME}/.config/phasar")
-else()
-  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CONFIG_INSTALL_PREFIX}/phasar")
-endif()
+add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
+add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
+
 
 ### Adding external libraries
 # Threads
@@ -309,7 +314,7 @@ endif()
 
 set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Install dir of headers")
 
-# Install targets of phasar-llvm, other executables, and libraries are to be
+# Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
 # Install Phasar include directory
@@ -342,7 +347,7 @@ install(DIRECTORY utils/
               WORLD_EXECUTE WORLD_READ
 )
 
-# Install the Phasar config files into ~/.config/phasar/
+# Install the Phasar config files into /opt/phasar/config/
 install(DIRECTORY config/
   DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"

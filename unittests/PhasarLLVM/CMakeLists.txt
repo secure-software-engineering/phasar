@@ -1,5 +1,5 @@
 add_subdirectory(ControlFlow)
-add_subdirectory(DataFlowSolver)
+add_subdirectory(DataFlow)
 add_subdirectory(Utils)
 # add_subdirectory(Passes)
 add_subdirectory(Pointer)

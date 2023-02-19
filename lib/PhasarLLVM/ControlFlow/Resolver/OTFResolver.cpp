@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -112,10 +113,10 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
           }
           const auto *Callee = VFs[VtableIndex];
           if (Callee == nullptr || !Callee->hasName() ||
-              Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName) {
+              Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName ||
+              !isConsistentCall(CallSite, Callee)) {
             continue;
           }
-
           PossibleCallTargets.insert(Callee);
         }
       }
@@ -127,8 +128,11 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
 auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
+  if (!CallSite->getCalledOperand()) {
+    return {};
+  }
+
   FunctionSetTy Callees;
-  const auto *FTy = CallSite->getFunctionType();
 
   auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
 
@@ -146,7 +150,7 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     ConstantAggregateWL.clear();
 
     if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
-      if (matchesSignature(F, FTy, false)) {
+      if (isConsistentCall(CallSite, F)) {
         Callees.insert(F);
       }
     }
@@ -185,19 +189,18 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
         continue;
       }
       for (const auto &Op : ConstAggregateItem->operands()) {
-        if (const auto *CE = llvm::dyn_cast<llvm::BitCastOperator>(Op)) {
-          if (CE->getType()->isPointerTy() &&
-              (CE->getType()->isOpaquePointerTy() ||
-               CE->getType()->getPointerElementType() == FTy)) {
+        if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+          if (CE->getType()->isPointerTy() && CE->isCast()) {
             if (const auto *F =
-                    llvm::dyn_cast<llvm::Function>(CE->getOperand(0))) {
+                    llvm::dyn_cast<llvm::Function>(CE->getOperand(0));
+                F && isConsistentCall(CallSite, F)) {
               Callees.insert(F);
             }
           }
         }
 
         if (const auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
-          if (matchesSignature(F, FTy, false)) {
+          if (isConsistentCall(CallSite, F)) {
             Callees.insert(F);
           }
         } else if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {

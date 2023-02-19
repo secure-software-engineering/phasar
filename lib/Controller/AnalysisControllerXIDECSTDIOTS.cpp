@@ -8,17 +8,14 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
 namespace psr {
 
 void AnalysisController::executeIDECSTDIOTS() {
   CSTDFILEIOTypeStateDescription TSDesc;
-  IDETypeStateAnalysis TSA(&HA.getProjectIRDB(), &HA.getAliasInfo(), &TSDesc,
-                           EntryPoints);
-
-  executeIDEAnalysis(TSA);
+  executeIDEAnalysis<IDETypeStateAnalysis>(&TSDesc, EntryPoints);
 }
 
 } // namespace psr

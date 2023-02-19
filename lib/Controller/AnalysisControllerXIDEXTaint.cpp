@@ -8,15 +8,13 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeIDEXTaint() {
   auto Config = makeTaintConfig();
-  IDEExtendedTaintAnalysis<> XTA(&HA.getProjectIRDB(), &HA.getICFG(),
-                                 &HA.getAliasInfo(), Config, EntryPoints);
-  executeIDEAnalysis(XTA);
+  executeIDEAnalysis<IDEExtendedTaintAnalysis<>>(Config, EntryPoints);
 }
 
 } // namespace psr

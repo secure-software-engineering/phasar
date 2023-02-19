@@ -7,26 +7,10 @@ include_directories(
 set(PHASAR_LINK_LIBS
   phasar_passes
   phasar_utils
-  phasar_phasarllvm_utils
 )
 
 set(LLVM_LINK_COMPONENTS
   Support
-  Core
-  # Vectorize
-  # ScalarOpts
-  # Instrumentation
-  # ObjCARCOpts
-  # TransformUtils
-  # CodeGen
-  # Analysis
-  # ipo
-  IRReader
-  # InstCombine
-  Linker
-  BitWriter
-  Passes
-  Demangle
 )
 
 if(BUILD_SHARED_LIBS)

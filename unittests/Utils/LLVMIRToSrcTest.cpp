@@ -1,8 +1,8 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -12,6 +12,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <memory>
@@ -23,8 +24,7 @@ using namespace psr;
 
 class LLVMIRToSrcTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = PhasarConfig::PhasarDirectory() +
-                                    "build/test/llvm_test_code/llvmIRtoSrc/";
+  static constexpr auto PathToLlFiles = PHASAR_BUILD_SUBFOLDER("llvmIRtoSrc/");
 
   unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;

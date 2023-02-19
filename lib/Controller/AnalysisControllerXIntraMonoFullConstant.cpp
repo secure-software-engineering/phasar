@@ -8,15 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoFullConstantPropagation.h"
 
 namespace psr {
 
 void AnalysisController::executeIntraMonoFullConstant() {
-  IntraMonoFullConstantPropagation FCA(&HA.getProjectIRDB(),
-                                       &HA.getTypeHierarchy(), &HA.getICFG(),
-                                       &HA.getAliasInfo(), EntryPoints);
-  executeIntraMonoAnalysis(FCA);
+  executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(EntryPoints);
 }
 
 } // namespace psr
