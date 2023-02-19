@@ -287,10 +287,12 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
-    if (Alloca->getAllocatedType()->isIntegerTy()) {
+    auto *AT = Alloca->getAllocatedType();
+    if (AT->isIntegerTy() || isIntegerLikeType(AT)) {
       return generateFromZero(Alloca);
     }
   }
+
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e., kills previous fact (= pointer operand).
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
@@ -487,7 +489,8 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     d_t PointerOperand = Store->getPointerOperand();
     d_t ValueOperand = Store->getValueOperand();
-    if (PointerOperand == SuccNode) {
+    if (PointerOperand == SuccNode ||
+        PointerOperand->stripPointerCasts() == SuccNode) {
       // Case I: Storing a constant integer.
       if (isZeroValue(CurrNode) && llvm::isa<llvm::ConstantInt>(ValueOperand)) {
         PHASAR_LOG_LEVEL(DEBUG, "Case: Storing constant integer.");
