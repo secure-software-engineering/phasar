@@ -65,9 +65,9 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
 }
 
 bool isIntegerLikeType(const llvm::Type *T) noexcept {
-  if (const auto *structType = llvm::dyn_cast<llvm::StructType>(T)) {
-    return structType->isPacked() && structType->elements().size() == 1 &&
-           structType->getElementType(0)->isIntegerTy();
+  if (const auto *StructType = llvm::dyn_cast<llvm::StructType>(T)) {
+    return StructType->isPacked() && StructType->elements().size() == 1 &&
+           StructType->getElementType(0)->isIntegerTy();
   }
   return false;
 }
