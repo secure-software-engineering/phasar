@@ -427,10 +427,19 @@ IDELinearConstantAnalysis::initialSeeds() {
     for (const auto &G : IRDB->getModule()->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer()) {
-          if (const auto *ConstInt =
-                  llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
+          auto Init = GV->getInitializer();
+          if (const auto *ConstInt = llvm::dyn_cast<llvm::ConstantInt>(Init)) {
             Seeds.addSeed(&EntryPointFun->front().front(), GV,
                           ConstInt->getSExtValue());
+          } else if (isIntegerLikeType(Init->getType())) {
+            if (const auto *ConstStruct =
+                    llvm::dyn_cast<llvm::ConstantStruct>(Init)) {
+              if (const auto *ConstInt = llvm::dyn_cast<llvm::ConstantInt>(
+                      ConstStruct->getOperand(0))) {
+                Seeds.addSeed(&EntryPointFun->front().front(), GV,
+                              ConstInt->getSExtValue());
+              }
+            }
           }
         }
       }
