@@ -288,9 +288,7 @@ IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     auto *AT = Alloca->getAllocatedType();
-    if (AT->isIntegerTy()) {
-      return generateFromZero(Alloca);
-    } else if (isIntegerLikeType(AT)) {
+    if (AT->isIntegerTy() || isIntegerLikeType(AT)) {
       return generateFromZero(Alloca);
     }
   }
