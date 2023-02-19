@@ -53,13 +53,6 @@ jobs:
               libclang-cpp14-dev \
               clang-tidy-14
 
-      - name: Workaround for sanitizer
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt download libclang-rt-14-dev
-          sudo dpkg --force-all -i libclang-rt-14-dev*
-
       - uses: swift-actions/setup-swift@v1
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
