@@ -67,12 +67,9 @@ protected:
                               bool PrintDump = false) {
     initializeIR(LlvmFilePath, EntryPoints);
     if (PrintDump) {
-      IRDB->dump();
+      IRDB->emitPreprocessedIR(llvm::outs());
     }
 
-    // IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &ICFG,
-    // &PT,
-    //                                                           EntryPoints);
     assert(HA);
     auto IIAProblem =
         createAnalysisProblem<IDEInstInteractionAnalysisT<std::string, true>>(
@@ -419,15 +416,24 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
   ASSERT_NE(FlowFact, OtherFlowFact);
 }
 
-// TODO
-// TEST_F(IDEInstInteractionAnalysisTest, HandleArrayTest_01) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   //   GroundTruth.emplace(
-//   //   std::tuple<std::string, size_t, std::string,
-//   BitVectorSet<std::string>>(
-//   //   "main", 9, "i", {"4", "5"}));
-//   doAnalysisAndCompareResults("array_01_cpp.ll", GroundTruth, true);
-// }
+// TODO specify GT
+TEST_F(IDEInstInteractionAnalysisTest, HandleArrayTest_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 28, "retval", {"7"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 28, "i", {"8", "12"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 28, "j", {"9", "15"}));
+  // FIXME GT specification and update load and store flow functions
+  //   GroundTruth.emplace(
+  //   std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+  //   "main", 28, "buffer", {"8", "12"}));
+  doAnalysisAndCompareResults("array_01_cpp.ll", {"main"}, GroundTruth, true);
+}
 
 // TEST_F(IDEInstInteractionAnalysisTest, HandleArrayTest_02) {
 //   std::set<IIACompactResult_t> GroundTruth;
