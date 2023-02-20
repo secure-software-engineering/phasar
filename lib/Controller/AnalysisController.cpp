@@ -105,9 +105,6 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IFDSSolverTest:
       executeIFDSSolverTest();
       continue;
-    case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis:
-      executeIFDSFieldSensTaint();
-      continue;
     case DataFlowAnalysisType::IDELinearConstantAnalysis:
       executeIDELinearConst();
       continue;
@@ -130,10 +127,9 @@ void AnalysisController::executeWholeProgram() {
       executeInterMonoTaint();
       continue;
     }
-
-    llvm_unreachable("All possible DataFlowAnalysisType variants should be "
-                     "handled in the switch above!");
   }
+  llvm_unreachable("All possible DataFlowAnalysisType variants should be "
+                   "handled in the switch above!");
 }
 
 void AnalysisController::emitRequestedHelperAnalysisResults() {
