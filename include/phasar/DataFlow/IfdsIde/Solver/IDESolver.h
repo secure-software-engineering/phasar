@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
@@ -275,7 +276,8 @@ public:
     IDEProblem.emitGraphicalReport(getSolverResults(), OS);
   }
 
-  void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
+  void dumpResults(llvm::raw_ostream &OS = llvm::outs(),
+                   const typename AnalysisDomainTy::db_t *IRDB = nullptr) {
     PAMM_GET_INSTANCE;
     START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
     OS << "\n***************************************************************\n"
@@ -285,16 +287,21 @@ public:
     if (Cells.empty()) {
       OS << "No results computed!" << '\n';
     } else {
-      std::sort(
-          Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
-            if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-              return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
-                                    getMetaDataID(Rhs.getRowKey()));
-            } else {
-              // If non-LLVM IR is used
-              return Lhs.getRowKey() < Rhs.getRowKey();
-            }
-          });
+      if (IRDB) {
+        IRDB->dump();
+      }
+
+      // std::sort(
+      //     Cells.begin(), Cells.end(), [IRDB](const auto &Lhs, const auto
+      //     &Rhs) {
+      //       if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
+      //         return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
+      //                               getMetaDataID(Rhs.getRowKey()));
+      //       } else {
+      //         // If non-LLVM IR is used
+      //         return Lhs.getRowKey() < Rhs.getRowKey();
+      //       }
+      //     });
       n_t Prev = n_t{};
       n_t Curr = n_t{};
       f_t PrevFn = f_t{};
