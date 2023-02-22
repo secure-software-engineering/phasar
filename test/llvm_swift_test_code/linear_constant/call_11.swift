@@ -1,10 +1,10 @@
 @main
 struct MyMain {
-    static func bar(_ b: Int)-> Int {
+    static func bar(_ b: Int) -> Int {
         return b
     }
 
-    static func foo(_ a: Int)-> Int {
+    static func foo(_ a: Int) -> Int {
         return bar(a)
     }
 
