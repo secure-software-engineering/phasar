@@ -56,6 +56,14 @@ namespace psr {
 const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
                                              "calloc", "realloc"};
 
+bool isIntegerLikeType(const llvm::Type *T) noexcept {
+  if (const auto *StructType = llvm::dyn_cast<llvm::StructType>(T)) {
+    return StructType->isPacked() && StructType->elements().size() == 1 &&
+           StructType->getElementType(0)->isIntegerTy();
+  }
+  return false;
+}
+
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
     if (llvm::isa<llvm::AllocaInst>(V)) {

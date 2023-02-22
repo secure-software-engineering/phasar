@@ -41,6 +41,14 @@ namespace psr {
 class LLVMProjectIRDB;
 
 /**
+ * @brief Checks if the given LLVM Type is a integer like struct.
+ * @param V LLVM Type.
+ * @return True, if given LLVM Type is a struct like this %TSi = type <{ i64 }>.
+ * False, otherwise.
+ */
+bool isIntegerLikeType(const llvm::Type *T) noexcept;
+
+/**
  * @brief Checks if the given LLVM Value is either a alloca instruction or a
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
  */
