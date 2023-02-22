@@ -762,6 +762,11 @@ public:
                                       << llvmIRToString(Curr) << "--> "
                                       << llvmIRToShortString(SuccNode));
 
+    if (isZeroValue(SuccNode)) {
+      // We don't want to propagate any facts on zero
+      return EdgeIdentity<l_t>::getInstance();
+    }
+
     // Overrides at store instructions
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
       return getStrongUpdateStoreEF(
