@@ -25,6 +25,7 @@ elseif(BUILD_SWIFT_TESTS)
 	IDEExtendedTaintAnalysisTest.cpp
 	IDETSAnalysisFileIOTest.cpp
 	IDELinearConstantAnalysisSwiftTest.cpp
+	IFDSTaintAnalysisSwiftTest.cpp
   )
   else()
 	set(IfdsIdeProblemSources
