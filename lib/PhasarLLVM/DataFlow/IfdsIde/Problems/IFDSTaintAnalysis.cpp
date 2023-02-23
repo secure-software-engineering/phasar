@@ -60,6 +60,9 @@ bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
     return true;
   }
 
+  //TODO: check for swift's commandline argument 
+  // ss11CommandLineO9argumentsSaySSGvgZ
+
   return std::any_of(CB->arg_begin(), CB->arg_end(),
                      [&AdditionalFacts](const auto &Arg) {
                        return AdditionalFacts.count(Arg.get());
@@ -291,6 +294,7 @@ IFDSTaintAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
+  // TODO: this needs to be extended to work for Swift CommandLine
   InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
                IFDSTaintAnalysis::l_t>
       Seeds;
