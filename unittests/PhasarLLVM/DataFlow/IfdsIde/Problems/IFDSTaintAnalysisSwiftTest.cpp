@@ -87,17 +87,17 @@ protected:
 }; // Test Fixture
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
   initialize({PathToLlFiles + "taint_01.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[13] = set<string>{"12"};
+  // sink --> taint
+  GroundTruth[23] = set<string>{"20"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with CLI arguments are not supported yet";
   initialize({PathToLlFiles + "taint_02.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
@@ -107,38 +107,40 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+
   initialize({PathToLlFiles + "taint_03.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[18] = set<string>{"17"};
+  GroundTruth[91] = set<string>{"88"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
   initialize({PathToLlFiles + "taint_04.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[19] = set<string>{"18"};
-  GroundTruth[24] = set<string>{"23"};
+  // This test case is a bit different than the C++ one
+  // the assignemt a = b is ignored in Swift-based
+  // LLVM IR and thus the same value is tainted for
+  // both sink calls
+  GroundTruth[95] = set<string>{"92"};
+  GroundTruth[100] = set<string>{"92"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
   initialize({PathToLlFiles + "taint_05.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[22] = set<string>{"21"};
+  GroundTruth[42] = set<string>{"39"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with CLI arguments are not supported yet";
   initialize({PathToLlFiles + "taint_06.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
@@ -148,12 +150,11 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
   initialize({PathToLlFiles + "taint_exception_01.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[15] = set<string>{"14"};
+  GroundTruth[73] = set<string>{"64"};
   compareResults(GroundTruth);
 }
 
