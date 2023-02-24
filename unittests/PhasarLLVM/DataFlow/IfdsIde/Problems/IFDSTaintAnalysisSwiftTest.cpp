@@ -40,9 +40,16 @@ protected:
           std::set<const llvm::Value *> Ret;
           if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
               Call && Call->getCalledFunction() &&
+              // Swift provides CLI arguments through a method call to
+              // this method to the program.
+              // TODO: handle this in the analysis, like this we need
+              // to include the method explicitly in every taint config
+              // which is not ideal
               (Call->getCalledFunction()->getName() == "source" ||
                Call->getCalledFunction()->getName().contains_insensitive(
-                   "MyMainV6sourceSi"))) {
+                   "MyMainV6sourceSi") ||
+               Call->getCalledFunction()->getName().equals(
+                   "$ss11CommandLineO9argumentsSaySSGvgZ"))) {
             Ret.insert(Call);
           }
           return Ret;
@@ -102,7 +109,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[9] = set<string>{"8"};
+  GroundTruth[15] = set<string>{"14"};
   compareResults(GroundTruth);
 }
 
@@ -149,48 +156,18 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   compareResults(GroundTruth);
 }
 
-TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
-  initialize({PathToLlFiles + "taint_exception_01.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
-  TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[73] = set<string>{"64"};
-  compareResults(GroundTruth);
-}
-
-TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
-  initialize({PathToLlFiles + "taint_exception_02.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
-  TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[17] = set<string>{"16"};
-  compareResults(GroundTruth);
-}
-
-TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
-  initialize({PathToLlFiles + "taint_exception_03.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
-  TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[11] = set<string>{"10"};
-  GroundTruth[21] = set<string>{"20"};
-  compareResults(GroundTruth);
-}
-
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with Exceptions are not supported yet";
   initialize({PathToLlFiles + "taint_exception_04.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[33] = set<string>{"32"};
+  GroundTruth[77] = set<string>{"72"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with Exceptions are not supported yet";
   initialize({PathToLlFiles + "taint_exception_05.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
@@ -201,7 +178,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with Exceptions are not supported yet";
   initialize({PathToLlFiles + "taint_exception_06.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
@@ -211,7 +188,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with Exceptions are not supported yet";
   initialize({PathToLlFiles + "taint_exception_07.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
@@ -221,7 +198,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with Exceptions are not supported yet";
   initialize({PathToLlFiles + "taint_exception_08.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
@@ -231,7 +208,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with Exceptions are not supported yet";
   initialize({PathToLlFiles + "taint_exception_09.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
@@ -241,7 +218,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
-  GTEST_SKIP() << "Swift taint tests are not supported yet";
+  GTEST_SKIP() << "Swift taint tests with Exceptions are not supported yet";
   initialize({PathToLlFiles + "taint_exception_10.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();

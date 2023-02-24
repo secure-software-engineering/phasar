@@ -9,6 +9,7 @@ struct S {
     init(_ data: Int) {
         self.data = data
     }
+    func test() throws {}
 }
 @main
 struct MyMain {
@@ -16,6 +17,7 @@ struct MyMain {
         var data = source()
         do {
             var s = S(0)
+            try s.test()
             sink(data)
         } catch {
 

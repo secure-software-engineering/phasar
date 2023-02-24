@@ -1,6 +1,6 @@
 file(GLOB lca_files *.swift)
 
-set(SWIFT_COMPILE_IR_FLAGS -emit-ir -suppress-warnings -g -parse-as-library -Onone -Xfrontend -disable-llvm-optzns -Xfrontend -disable-swift-specific-llvm-optzns)
+set(SWIFT_COMPILE_IR_FLAGS -emit-ir -suppress-warnings -g -parse-as-library -Onone -Xfrontend -disable-llvm-optzns)
 
 foreach(TEST_SRC ${lca_files})
   get_filename_component(TEST_SRC_FILE ${TEST_SRC} NAME_WE)
