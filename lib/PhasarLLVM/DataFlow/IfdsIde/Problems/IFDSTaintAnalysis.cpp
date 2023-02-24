@@ -60,9 +60,6 @@ bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
     return true;
   }
 
-  //TODO: check for swift's commandline argument 
-  // ss11CommandLineO9argumentsSaySSGvgZ
-
   return std::any_of(CB->arg_begin(), CB->arg_end(),
                      [&AdditionalFacts](const auto &Arg) {
                        return AdditionalFacts.count(Arg.get());
