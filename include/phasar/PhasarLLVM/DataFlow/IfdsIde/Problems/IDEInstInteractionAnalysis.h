@@ -15,6 +15,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/KFieldSensFlowFact.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -1440,6 +1441,11 @@ protected:
   }
 
 private:
+  KFieldSensFlowFact<const llvm::Value *> KFSFF,
+      KFSFF2 = KFSFF.getStored(), KFSFF3 = KFSFF.getWithOffset(42),
+      KFSFF4 = KFSFF.getFirstOverapproximated();
+  std::optional<KFieldSensFlowFact<const llvm::Value *>> KFSFF5 =
+      KFSFF.getLoaded(64); // FIXME just make it compile for now.
   /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
