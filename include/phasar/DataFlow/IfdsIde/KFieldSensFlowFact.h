@@ -58,6 +58,7 @@ public:
     return Result;
   }
 
+  // Increment the offset of the first indirection by Offset
   KFieldSensFlowFact getWithOffset(int64_t Offset) {
     auto Result = *this;
     int64_t NewFirstOffset64 =
@@ -78,6 +79,18 @@ public:
     auto Result = *this;
     Result.AccessPath.back() = OffsetLimit;
     return Result;
+  }
+
+  void print(llvm::raw_ostream &OS) {
+    OS << *BaseValue;
+    unsigned I = AccessPath.size();
+    while (I > 0) {
+      I--;
+      OS << ".(" << AccessPath[I] << ')';
+    }
+    if (FollowedByAny) {
+      OS << ".*";
+    }
   }
 
 private:

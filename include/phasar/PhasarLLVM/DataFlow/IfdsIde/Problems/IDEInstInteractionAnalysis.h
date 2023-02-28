@@ -15,11 +15,11 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
-#include "phasar/DataFlow/IfdsIde/KFieldSensFlowFact.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMKFieldSensFlowFact.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
@@ -63,13 +63,47 @@
 namespace {
 
 [[maybe_unused]] inline const llvm::AllocaInst *
-getAllocaInstruction(const llvm::GetElementPtrInst *GEP) {
-  if (!GEP) {
+getAllocaInstruction(const llvm::GetElementPtrInst *Gep) {
+  if (!Gep) {
     return nullptr;
   }
-  const auto *Alloca = GEP->getPointerOperand();
+  const auto *Alloca = Gep->getPointerOperand();
   while (const auto *NestedGEP =
              llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
+    Alloca = NestedGEP->getPointerOperand();
+  }
+  return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
+}
+
+std::optional<int64_t>
+maybeGetConstantOffsetOfGep(const llvm::GetElementPtrInst *Gep) {
+  if (!Gep->hasAllConstantIndices()) {
+    return std::nullopt;
+  }
+  const auto &DL = Gep->getModule()->getDataLayout();
+  llvm::APInt AccumulatedOffset(DL.getPointerSize() * 8, 0, true);
+  Gep->accumulateConstantOffset(DL, AccumulatedOffset);
+  return AccumulatedOffset.getSExtValue();
+}
+
+[[maybe_unused]] inline const llvm::AllocaInst *
+getAllocaInstruction(const llvm::GetElementPtrInst *Gep,
+                     std::optional<int64_t> &CumulatedOffset) {
+  if (!Gep) {
+    return nullptr;
+  }
+  CumulatedOffset = maybeGetConstantOffsetOfGep(Gep);
+  const auto *Alloca = Gep->getPointerOperand();
+  while (const auto *NestedGEP =
+             llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
+    if (CumulatedOffset.has_value()) {
+      const auto NestedGepOffset = maybeGetConstantOffsetOfGep(NestedGEP);
+      if (NestedGepOffset.has_value()) {
+        CumulatedOffset = CumulatedOffset.value() + NestedGepOffset.value();
+      } else {
+        CumulatedOffset = std::nullopt;
+      }
+    }
     Alloca = NestedGEP->getPointerOperand();
   }
   return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
@@ -1438,12 +1472,18 @@ protected:
     const auto &LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
     const auto &RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
     return LhsSet.setUnion(RhsSet);
+    LLVMKFieldSensFlowFact<> foo;
+    foo.print(llvm::outs());
+    foo.getLoaded(nullptr);
+    foo.getWithOffset(nullptr);
   }
 
 private:
   KFieldSensFlowFact<const llvm::Value *> KFSFF,
       KFSFF2 = KFSFF.getStored(), KFSFF3 = KFSFF.getWithOffset(42),
       KFSFF4 = KFSFF.getFirstOverapproximated();
+  // LLVMKFieldSensFlowFact<0> foo;
+  // LLVMKFieldSensFlowFact<0, 0, const llvm::Value*> foo2 = foo;
   std::optional<KFieldSensFlowFact<const llvm::Value *>> KFSFF5 =
       KFSFF.getLoaded(64); // FIXME just make it compile for now.
   /// Filters out all variables that had a non-empty set during edge functions
