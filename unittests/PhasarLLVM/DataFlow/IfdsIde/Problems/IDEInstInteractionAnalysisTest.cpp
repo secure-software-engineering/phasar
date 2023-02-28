@@ -129,7 +129,7 @@ protected:
       for (auto &[Fact, Value] : ResultMap) {
         std::string FactStr;
         llvm::raw_string_ostream RSO(FactStr);
-        RSO << *Fact.getBase();
+        RSO << *Fact.getBaseValue(); // TODO: Check whether this is right
         llvm::StringRef FactRef(FactStr);
         if (FactRef.ltrim().startswith("%" + VarName + " ") ||
             FactRef.ltrim().startswith("@" + VarName + " ")) {

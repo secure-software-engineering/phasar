@@ -203,7 +203,7 @@ namespace psr {
 template <typename EdgeFactType>
 struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
   // type of the element contained in the sets of edge functions
-  using d_t = IDEIIAFlowFact;
+  using d_t = LLVMKFieldSensFlowFact<>; // IDEIIAFlowFact;
   using e_t = EdgeFactType;
   using l_t = LatticeDomain<BitVectorSet<e_t>>;
 };
@@ -643,7 +643,7 @@ public:
       // function(s) are available, since the effect of the callee on these
       // values will be modelled using combined getCallFlowFunction and
       // getReturnFlowFunction.
-      if (llvm::isa<llvm::Constant>(Source.getBase())) {
+      if (llvm::isa<llvm::Constant>(Source.getBaseValue())) {
         return {};
       }
       // Pass everything else as identity. In particular, also do not kill

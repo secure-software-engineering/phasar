@@ -25,6 +25,8 @@ public:
   KFieldSensFlowFact() = default;
   ~KFieldSensFlowFact() = default;
 
+  KFieldSensFlowFact(d_t BaseValue) : BaseValue(BaseValue) {}
+
   KFieldSensFlowFact getStored() {
     auto Result = *this;
     if (Result.AccessPath.size() == K) {
@@ -81,7 +83,7 @@ public:
     return Result;
   }
 
-  void print(llvm::raw_ostream &OS) {
+  void print(llvm::raw_ostream &OS) const {
     OS << *BaseValue;
     unsigned I = AccessPath.size();
     while (I > 0) {
@@ -93,7 +95,9 @@ public:
     }
   }
 
-private:
+  const d_t getBaseValue() const { return BaseValue; }
+
+protected:
   d_t BaseValue;
   llvm::SmallVector<offset_int_t,
                     std::min<unsigned>(K, 8 / sizeof(offset_int_t))>

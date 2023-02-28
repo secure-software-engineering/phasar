@@ -11,6 +11,8 @@
 
 #include "phasar/DataFlow/IfdsIde/KFieldSensFlowFact.h"
 
+namespace psr {
+
 template <unsigned K = 3, unsigned OffsetLimit = 1024,
           typename d_t = const llvm::Value *>
 class LLVMKFieldSensFlowFact : public KFieldSensFlowFact<d_t, K, OffsetLimit> {
@@ -24,6 +26,23 @@ public:
   LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) = default;
   LLVMKFieldSensFlowFact &operator=(const LLVMKFieldSensFlowFact &) = default;
   LLVMKFieldSensFlowFact &operator=(LLVMKFieldSensFlowFact &&) = default;
+  LLVMKFieldSensFlowFact(d_t BaseValue)
+      : KFieldSensFlowFact<d_t, K, OffsetLimit>(BaseValue) {}
+
+  bool operator==(const LLVMKFieldSensFlowFact &Other) const {
+    return std::tie(this->BaseValue, this->AccessPath, this->FollowedByAny) ==
+           std::tie(Other.BaseValue, Other.AccessPath, Other.FollowedByAny);
+  }
+
+  bool operator!=(const LLVMKFieldSensFlowFact &Other) const {
+    return !(*this == (Other));
+  }
+
+  bool operator<(const LLVMKFieldSensFlowFact &Other) const {
+    return std::tie(this->BaseValue, this->AccessPath, this->FollowedByAny) <
+           std::tie(Other.BaseValue, Other.AccessPath, Other.FollowedByAny);
+  }
+
   LLVMKFieldSensFlowFact getStored() {
     return LLVMKFieldSensFlowFact(
         KFieldSensFlowFact<d_t, K, OffsetLimit>::getStored());
@@ -57,9 +76,12 @@ public:
   }
 
   LLVMKFieldSensFlowFact getFirstOverapproximated();
-  void print(llvm::raw_ostream &OS) {
+  void print(llvm::raw_ostream &OS) const {
     KFieldSensFlowFact<d_t, K, OffsetLimit>::print(OS);
   }
+
+  // bool operator==(const llvm::Value *V) const {};
+  inline operator const llvm::Value *() { return this->BaseValue; }
 };
 
 template <typename d_t> class LLVMKFieldSensFlowFact<0, 0, d_t> {
@@ -80,5 +102,31 @@ operator<<(llvm::raw_ostream &OS,
   FlowFact.print(OS);
   return OS;
 }
+
+} // namespace psr
+
+// Compatibility with LLVM Casting
+namespace llvm {
+template <unsigned K, unsigned OffsetLimit, typename d_t>
+struct simplify_type<psr::LLVMKFieldSensFlowFact<K, OffsetLimit, d_t>> {
+  using SimpleType = const llvm::Value *;
+
+  static SimpleType getSimplifiedValue(
+      const psr::LLVMKFieldSensFlowFact<K, OffsetLimit, d_t> &FF) noexcept {
+    return FF.getBaseValue();
+  }
+};
+} // namespace llvm
+
+// Implementations of STL traits.
+namespace std {
+template <unsigned K, unsigned OffsetLimit, typename d_t>
+struct hash<psr::LLVMKFieldSensFlowFact<K, OffsetLimit, d_t>> {
+  size_t operator()(
+      const psr::LLVMKFieldSensFlowFact<K, OffsetLimit, d_t> &FlowFact) const {
+    return std::hash<const llvm::Value *>()(FlowFact.getBaseValue());
+  }
+};
+} // namespace std
 
 #endif /* PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMKFIELDSENSFLOWFACT_H */
