@@ -340,11 +340,27 @@ public:
         //              v  v  v
         //              0  Y  x
         //
+        /*
         return generateFlowIf<d_t>(
             Load, [PointerOp = Load->getPointerOperand(),
                    PTS = PT.getReachableAllocationSites(
                        Load->getPointerOperand(), OnlyConsiderLocalAliases)](
                       d_t Src) { return Src == PointerOp || PTS->count(Src); });
+        */
+        return lambdaFlow<d_t>(
+            [Load, PTS = PT.getReachableAllocationSites(
+                       Load->getPointerOperand(), OnlyConsiderLocalAliases)](
+                d_t Source) -> container_type {
+              if (Source.getBaseValue() == Load->getPointerOperand()) {
+                auto LoadedVal = Source.getLoaded(Load);
+                if (LoadedVal == std::nullopt) {
+                  return {Source};
+                } else {
+                  return {Source, LoadedVal.value()};
+                };
+              }
+              return {Source};
+            });
       }
 
       // (ii) Handle semantic propagation (pointers) for store instructions.
@@ -566,7 +582,7 @@ public:
     auto MapFactsToCallerFF =
         mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
                               {}, [](const llvm::Value *RetVal, d_t Src) {
-                                if (Src == RetVal) {
+                                if (Src.getBaseValue() == RetVal) {
                                   return true;
                                 }
                                 if (isZeroValueImpl(Src)) {
@@ -778,7 +794,7 @@ public:
         //                v
         //                x
         //
-        if ((CurrNode == Load->getPointerOperand() ||
+        if ((CurrNode.getBaseValue() == Load->getPointerOperand() ||
              this->PT.isInReachableAllocationSites(Load->getPointerOperand(),
                                                    CurrNode,
                                                    OnlyConsiderLocalAliases)) &&
@@ -817,7 +833,8 @@ public:
         //               v
         //               y
         //
-        if ((CurrNode == SuccNode) && CurrNode == Store->getPointerOperand()) {
+        if ((CurrNode == SuccNode) &&
+            CurrNode.getBaseValue() == Store->getPointerOperand()) {
           // y obtains its value(s) from its original allocation and the store
           // instruction under analysis.
           IF_LOG_ENABLED({
@@ -858,8 +875,8 @@ public:
         //                v
         //                y
         //
-        if (CurrNode == Store->getValueOperand() &&
-            SuccNode == Store->getPointerOperand()) {
+        if (CurrNode.getBaseValue() == Store->getValueOperand() &&
+            SuccNode.getBaseValue() == Store->getPointerOperand()) {
           IF_LOG_ENABLED({
             PHASAR_LOG_LEVEL(DFADEBUG, "Var-Override: ");
             for (const auto &EF : EdgeFacts) {
@@ -929,7 +946,7 @@ public:
         //
         bool StoreValOpIsPointerTy =
             Store->getValueOperand()->getType()->isPointerTy();
-        if ((CurrNode == Store->getValueOperand() ||
+        if ((CurrNode.getBaseValue() == Store->getValueOperand() ||
              (StoreValOpIsPointerTy &&
               this->PT.isInReachableAllocationSites(
                   Store->getValueOperand(), Store->getValueOperand(),
@@ -1055,7 +1072,7 @@ public:
     //                  v
     //                  c
     //
-    if (isZeroValue(ExitNode) && RetNode == CallSite) {
+    if (isZeroValue(ExitNode) && RetNode.getBaseValue() == CallSite) {
       const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
       if (const auto *CD =
               llvm::dyn_cast<llvm::ConstantData>(Ret->getReturnValue())) {
@@ -1103,7 +1120,7 @@ public:
           //                  v
           //                  i
           //
-          if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
+          if (isZeroValue(CallNode) && RetSiteNode.getBaseValue() == CallSite) {
             return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
           }
         }
