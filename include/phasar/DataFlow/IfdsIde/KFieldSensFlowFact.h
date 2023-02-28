@@ -28,7 +28,7 @@ public:
   KFieldSensFlowFact getStored() {
     auto Result = *this;
     if (Result.AccessPath.size() == K) {
-      for (unsigned I = 0; I < K; I++) {
+      for (unsigned I = 0; I < K - 1; I++) {
         Result.AccessPath[I] = Result.AccessPath[I + 1];
       }
       if constexpr (K > 0) {
