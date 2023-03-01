@@ -358,8 +358,8 @@ public:
         //
         return lambdaFlow<d_t>(
             [Store, PointerPTS = PT.getReachableAllocationSites(
-                        Store->getPointerOperand(), OnlyConsiderLocalAliases)](
-                d_t Src) -> container_type {
+                        Store->getPointerOperand(), OnlyConsiderLocalAliases,
+                        Store)](d_t Src) -> container_type {
               if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
                 // Here, we are unsound!
                 return {};
@@ -679,7 +679,7 @@ public:
     //
     //            x
     //             \
-        // store x y    \ \x.x \cup { commit of('store x y') }
+    // store x y    \ \x.x \cup { commit of('store x y') }
     //               v
     //               y
     //
@@ -687,7 +687,11 @@ public:
     if (CurrNode == Store->getValueOperand() ||
         (isZeroValue(CurrNode) &&
          llvm::isa<llvm::Constant>(Store->getValueOperand()))) {
-      return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      if (SuccNode == Store->getPointerOperand() ||
+          PT.isInReachableAllocationSites(Store->getPointerOperand(), SuccNode,
+                                          true, Store)) {
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      }
     }
 
     if (SyntacticAnalysisOnly) {
