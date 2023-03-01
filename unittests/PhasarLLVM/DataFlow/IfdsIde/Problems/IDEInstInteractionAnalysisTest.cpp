@@ -66,9 +66,9 @@ protected:
                               const std::set<IIACompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
     initializeIR(LlvmFilePath, EntryPoints);
-    // if (PrintDump) {
-    IRDB->emitPreprocessedIR(llvm::outs());
-    // }
+    if (PrintDump) {
+      IRDB->emitPreprocessedIR(llvm::outs());
+    }
 
     // IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &ICFG,
     // &PT,
