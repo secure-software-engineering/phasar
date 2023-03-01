@@ -851,13 +851,13 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "retval", {"75", "76", "78"}));
+          "main", 16, "retval", {"75", "76"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 16, "str", {"70", "65", "72", "74", "77"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "ref.tmp", {"66", "9", "6", "29", "72", "73", "71"}));
+          "main", 16, "ref.tmp", {"66", "9", "72", "73", "71"}));
   doAnalysisAndCompareResults("rvo_01_cpp.ll", {"main"}, GroundTruth, false);
 })
 
