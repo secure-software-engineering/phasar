@@ -49,6 +49,7 @@ private:
   size_t Branches = 0;
   size_t GetElementPtrs = 0;
   size_t PhiNodes = 0;
+  size_t GlobalConsts = 0;
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;
   std::set<const llvm::Instruction *> RetResInstructions;
@@ -89,6 +90,11 @@ public:
    * @brief Returns the number of globals.
    */
   [[nodiscard]] size_t getGlobals() const;
+
+  /**
+   * @brief Returns the number of constant globals.
+   */
+  [[nodiscard]] size_t getGlobalConsts() const;
 
   /**
    * @brief Returns the number of memory intrinsics.
