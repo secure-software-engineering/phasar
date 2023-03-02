@@ -35,6 +35,9 @@
 using namespace psr;
 
 namespace psr {
+llvm::StringRef PhasarConfig::PhasarVersion() noexcept {
+  return XSTR(PHASAR_VERSION);
+}
 
 llvm::StringRef PhasarConfig::GlobalConfigurationDirectory() noexcept {
   return PHASAR_CONFIG_DIR;

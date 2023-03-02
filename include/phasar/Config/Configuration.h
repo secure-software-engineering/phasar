@@ -37,9 +37,7 @@ class PhasarConfig {
 public:
   /// Current Phasar version
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static constexpr llvm::StringRef PhasarVersion() noexcept {
-    return XSTR(PHASAR_VERSION);
-  }
+  [[nodiscard]] static llvm::StringRef PhasarVersion() noexcept;
 
   /// Stores the label/ tag with which we annotate the LLVM IR.
   // NOLINTNEXTLINE(readability-identifier-naming)
