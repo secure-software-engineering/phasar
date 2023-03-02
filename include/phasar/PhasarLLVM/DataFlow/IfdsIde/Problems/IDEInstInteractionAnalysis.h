@@ -793,10 +793,10 @@ public:
       return EdgeIdentity<l_t>::getInstance();
     }
 
-    // check if the user has registered a fact generator function
-    l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, Curr));
-
     if (Curr != CurrNode && Curr == SuccNode) {
+      // check if the user has registered a fact generator function
+      l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, Curr));
+
       // We generate Curr in this instruction, so we have to annotate it with
       // edge labels
       return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
