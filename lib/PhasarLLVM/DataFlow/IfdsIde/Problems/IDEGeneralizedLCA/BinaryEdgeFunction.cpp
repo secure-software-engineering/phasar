@@ -9,62 +9,49 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/BinaryEdgeFunction.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 
 namespace psr::glca {
 
-IDEGeneralizedLCA::l_t
-BinaryEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
-  /*auto ret = leftConst ? performBinOp(op, cnst, source, MaxSize)
-                       : performBinOp(op, source, cnst, MaxSize);
-  std::cout << "Binary(" << source << ") = " << ret << std::endl;
-  return ret;*/
+auto BinaryEdgeFunction::computeTarget(ByConstRef<l_t> Source) const -> l_t {
   if (LeftConst) {
-    return performBinOp(Op, Const, Source, MaxSize);
+    return performBinOp(Op, Const, Source, IDEGeneralizedLCADomain::MaxSetSize);
   }
-  return performBinOp(Op, Source, Const, MaxSize);
+  return performBinOp(Op, Source, Const, IDEGeneralizedLCADomain::MaxSetSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-BinaryEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
-  if (auto *EI = dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
-          SecondFunction.get())) {
-    return this->shared_from_this();
+auto BinaryEdgeFunction::compose(EdgeFunctionRef<BinaryEdgeFunction> This,
+                                 const EdgeFunction<l_t> &SecondFunction)
+    -> EdgeFunction<l_t> {
+  if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
+    return Default;
   }
-  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(SecondFunction.get())) {
-    // print(std::cout << "Compose ");
-    // std::cout << " with ALLBOT" << std::endl;
-    return SecondFunction;
-  }
-  return std::make_shared<LCAEdgeFunctionComposer>(this->shared_from_this(),
-                                                   SecondFunction, MaxSize);
+  return LCAEdgeFunctionComposer{This, SecondFunction};
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-BinaryEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction) {
-  if (OtherFunction.get() == this ||
-      OtherFunction->equal_to(this->shared_from_this())) {
-    return this->shared_from_this();
+auto BinaryEdgeFunction::join(EdgeFunctionRef<BinaryEdgeFunction> This,
+                              const EdgeFunction<l_t> &OtherFunction)
+    -> EdgeFunction<l_t> {
+  if (auto Default =
+          defaultJoinOrNull<l_t, IDEGeneralizedLCADomain::JoinThreshold>(
+              This, OtherFunction)) {
+    return Default;
   }
-  if (auto *AT =
-          dynamic_cast<AllTop<IDEGeneralizedLCA::l_t> *>(OtherFunction.get())) {
-    return this->shared_from_this();
-  }
-  return std::make_shared<AllBottom<IDEGeneralizedLCA::l_t>>(
-      IDEGeneralizedLCA::l_t({EdgeValue(nullptr)}));
+
+  /// XXX: Shouldn't this be JoinEdgeFunction<l_t,
+  /// IDEGeneralizedLCADomain::JoinThreshold>::create(This, OtherFunction); ???
+  return AllBottom<l_t>{};
 }
 
-bool BinaryEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other) const {
-  return this == Other.get();
+bool BinaryEdgeFunction::operator==(
+    const BinaryEdgeFunction &Other) const noexcept {
+  return Other.Op == Op && Other.Const == Const && Other.LeftConst == LeftConst;
 }
 
-void BinaryEdgeFunction::print(llvm::raw_ostream &OS,
-                               bool /*IsForDebug*/) const {
-  OS << "Binary_" << Op;
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const BinaryEdgeFunction &EF) {
+  return OS << "Binary_" << EF.Op;
 }
 
 } // namespace psr::glca

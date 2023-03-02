@@ -45,6 +45,8 @@ protected:
   std::optional<IDEGeneralizedLCA> LCAProblem;
   std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
 
+  static constexpr size_t MaxSetSize = 2;
+
   IDEGeneralizedLCATest() = default;
 
   void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {
@@ -98,6 +100,7 @@ TEST_F(IDEGeneralizedLCATest, BranchTest) {
 
 TEST_F(IDEGeneralizedLCATest, FPtest) {
   initialize("FPtest_c.ll");
+
   std::vector<groundTruth_t> GroundTruth;
   GroundTruth.push_back({{EdgeValue(4.5)}, 1, 16});
   GroundTruth.push_back({{EdgeValue(2.0)}, 2, 16});
@@ -158,7 +161,7 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
 }
 
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
-  initialize("Imprecision_c.ll", 2);
+  initialize("Imprecision_c.ll");
   //   auto xInst = IRDB->getInstruction(0); // foo.x
   //   auto yInst = IRDB->getInstruction(1); // foo.y
   //  auto barInst = IRDB->getInstruction(7);

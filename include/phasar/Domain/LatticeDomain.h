@@ -14,10 +14,13 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <cstdint>
 #include <ostream>
 #include <variant>
 
@@ -73,6 +76,18 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   }
   [[nodiscard]] inline const L *getValueOrNull() const noexcept {
     return std::get_if<L>(this);
+  }
+  template <typename LL = L,
+            typename = std::enable_if_t<is_llvm_hashable_v<LL>>>
+  friend llvm::hash_code
+  hash_value(const LatticeDomain &LD) noexcept { // NOLINT
+    if (LD.isBottom()) {
+      return llvm::hash_value(INTPTR_MAX);
+    }
+    if (LD.isTop()) {
+      return llvm::hash_value(INTPTR_MIN);
+    }
+    return hash_value(std::get<L>(LD));
   }
 
   [[nodiscard]] inline L &assertGetValue() noexcept {

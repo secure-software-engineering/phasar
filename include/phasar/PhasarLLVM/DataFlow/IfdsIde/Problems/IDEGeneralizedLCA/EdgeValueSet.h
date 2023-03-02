@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUESET_H
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValue.h"
+#include "phasar/Utils/JoinLattice.h"
 
 #include <initializer_list>
 #include <unordered_set>
@@ -42,5 +43,17 @@ public:
 };
 
 } // namespace psr::glca
+
+namespace psr {
+template <> struct JoinLatticeTraits<glca::EdgeValueSet> {
+  using l_t = glca::EdgeValueSet;
+
+  static l_t bottom() { return l_t({glca::EdgeValue::TopValue}); }
+  static l_t top() { return l_t({}); }
+  static l_t join(const l_t &LHS, const l_t &RHS) {
+    return glca::join(LHS, RHS, 2);
+  }
+};
+} // namespace psr
 
 #endif

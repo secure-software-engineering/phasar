@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_EDGEDOMAIN_H
 
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/JoinLattice.h"
 
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/IR/Instruction.h" // Need a complete type llvm::Instruction for llvm::PointerIntPair
@@ -90,5 +92,25 @@ public:
   [[nodiscard]] inline Kind getKind() const { return Value.getInt(); }
 };
 } // namespace psr::XTaint
+
+namespace psr {
+template <> struct NonTopBotValue<XTaint::EdgeDomain> {
+  using type = const llvm::Instruction *;
+
+  static type unwrap(XTaint::EdgeDomain Value) noexcept {
+    return Value.getSanitizer();
+  }
+};
+
+template <> struct JoinLatticeTraits<XTaint::EdgeDomain> {
+  static constexpr auto bottom() noexcept { return Bottom{}; }
+  static constexpr auto top() noexcept { return Top{}; }
+
+  static XTaint::EdgeDomain join(ByConstRef<XTaint::EdgeDomain> LHS,
+                                 ByConstRef<XTaint::EdgeDomain> RHS) noexcept {
+    return LHS.join(RHS);
+  }
+};
+} // namespace psr
 
 #endif

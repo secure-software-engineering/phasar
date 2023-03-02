@@ -9,8 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDESecureHeapPropagation.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctionComposer.h"
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -26,87 +25,35 @@
 
 namespace psr {
 
-struct SHPEdgeFn
-    : public EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>,
-      public std::enable_shared_from_this<SHPEdgeFn> {
-  ~SHPEdgeFn() override = default;
-
-  std::shared_ptr<EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>>
-  joinWith(
-      std::shared_ptr<EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>>
-          OtherFunction) override;
+struct SHPEdgeFn {
+  template <typename ConcreteEF>
+  static EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>
+  join(EdgeFunctionRef<ConcreteEF> This,
+       const EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>
+           &OtherFunction);
 };
 
 struct SHPEdgeFunctionComposer
-    : public EdgeFunctionComposer<IDESecureHeapPropagationAnalysisDomain::l_t>,
-      public std::enable_shared_from_this<SHPEdgeFn> {
-  ~SHPEdgeFunctionComposer() override = default;
-  std::shared_ptr<EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>>
-  joinWith(
-      std::shared_ptr<EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>>
-          OtherFunction) override;
+    : EdgeFunctionComposer<IDESecureHeapPropagationAnalysisDomain::l_t> {
+
+  static EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>
+  join(EdgeFunctionRef<SHPEdgeFunctionComposer> This,
+       EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t> OtherFunction);
 };
-struct SHPGenEdgeFn : public SHPEdgeFn {
-  using l_t = IDESecureHeapPropagationAnalysisDomain::l_t;
-  SHPGenEdgeFn(l_t Val) : Value(Val) {}
-  ~SHPGenEdgeFn() override = default;
-
-  l_t computeTarget(l_t /*Source*/) override { return Value; }
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-    return SHPGenEdgeFn::getInstance(SecondFunction->computeTarget(Value));
-  }
-
-  bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
-    return Other.get() == this; // reference-equality
-  }
-
-  void print(llvm::raw_ostream &OS,
-             bool /*IsForDebug*/ = false) const override {
-    OS << "GenEdgeFn[";
-    switch (Value) {
-    case l_t::BOT:
-      OS << "BOT";
-      break;
-    case l_t::INITIALIZED:
-      OS << "INITIALIZED";
-      break;
-    case l_t::TOP:
-      OS << "TOP";
-      break;
-    default:
-      assert(false && "Invalid edge value");
-      break;
-    }
-    OS << "]";
-  }
-
-  static std::shared_ptr<SHPGenEdgeFn> getInstance(l_t Val) {
-    static std::array<std::shared_ptr<SHPGenEdgeFn>, 3> Cache = {
-        nullptr, nullptr, nullptr};
-    auto Ind = static_cast<std::underlying_type<l_t>::type>(Val);
-    if (!Cache.at(Ind)) {
-      Cache[Ind] = std::make_shared<SHPGenEdgeFn>(Val);
-    }
-    return Cache.at(Ind);
-  }
-
-private:
-  l_t Value;
-};
+using SHPGenEdgeFn =
+    ConstantEdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>;
 
 // -- SHPEdgeFn --
-std::shared_ptr<EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>>
-SHPEdgeFn::joinWith(
-    std::shared_ptr<EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>>
-        OtherFunction) {
-
-  if (OtherFunction.get() != this) {
-    return SHPGenEdgeFn::getInstance(
-        IDESecureHeapPropagationAnalysisDomain::l_t::BOT);
+template <typename ConcreteEF>
+EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>
+SHPEdgeFn::join(EdgeFunctionRef<ConcreteEF> This,
+                const EdgeFunction<IDESecureHeapPropagationAnalysisDomain::l_t>
+                    &OtherFunction) {
+  if (OtherFunction != This) {
+    return SHPGenEdgeFn{IDESecureHeapPropagationAnalysisDomain::l_t::BOT};
+    /// TODO: Why not AllBottom?
   }
-  return shared_from_this();
+  return This;
 }
 
 IDESecureHeapPropagation::IDESecureHeapPropagation(
@@ -202,27 +149,27 @@ void IDESecureHeapPropagation::printFunction(llvm::raw_ostream &Os,
 
 // in addition provide specifications for the IDE parts
 
-std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
+EdgeFunction<IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
                                                 n_t /*Succ*/,
                                                 d_t /*SuccNode*/) {
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
-std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
+EdgeFunction<IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::getCallEdgeFunction(n_t /*CallSite*/, d_t /*SrcNode*/,
                                               f_t /*DestinationMethod*/,
                                               d_t /*DestNode*/) {
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
-std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
+EdgeFunction<IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::getReturnEdgeFunction(
     n_t /*CallSite*/, f_t /*CalleeMethod*/, n_t /*ExitInst*/, d_t /*ExitNode*/,
     n_t /*RetSite*/, d_t /*RetNode*/) {
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
-std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
+EdgeFunction<IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
     llvm::ArrayRef<f_t> /*Callees*/) {
@@ -230,18 +177,18 @@ IDESecureHeapPropagation::getCallToRetEdgeFunction(
     // generate
     // std::cerr << "Generate at " << llvmIRToShortString(callSite) <<
     // std::endl;
-    return SHPGenEdgeFn::getInstance(l_t::INITIALIZED);
+    return SHPGenEdgeFn{l_t::INITIALIZED};
   }
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   if (CallNode != ZeroValue &&
       CS->getCalledFunction()->getName() == ShutdownFn) {
     // std::cerr << "Kill at " << llvmIRToShortString(callSite) << std::endl;
-    return SHPGenEdgeFn::getInstance(l_t::BOT);
+    return SHPGenEdgeFn{l_t::BOT};
   }
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
-std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
+EdgeFunction<IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::getSummaryEdgeFunction(n_t /*CallSite*/,
                                                  d_t /*CallNode*/,
                                                  n_t /*RetSite*/,
@@ -270,10 +217,9 @@ IDESecureHeapPropagation::l_t IDESecureHeapPropagation::join(l_t Lhs, l_t Rhs) {
   return l_t::BOT;
 }
 
-std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
+EdgeFunction<IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::allTopFunction() {
-  static auto AT = std::make_shared<AllTop<l_t>>(l_t::TOP);
-  return AT;
+  return AllTop<l_t>{};
 }
 
 void IDESecureHeapPropagation::printEdgeFact(llvm::raw_ostream &Os,

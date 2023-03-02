@@ -2,6 +2,14 @@
 
 ## development HEAD
 
+- `EdgeFunctionPtrType` is no longer a `std::shared_ptr`. Instead `EdgeFunction<l_t>` should be used directly. `EdgeFunction` is now a *value-type* that encapsulates its memory management by itself.
+- Concrete `EdgeFunction` types no longer derive from any base-class. Instead they just need to implement the required API functions. `EdgeFunction` implementations should me move-constructible and can be implicitly cast to `EdgeFunction`. To verify that your type implements the edge function interface use the `IsEdgeFunction` type trait. The API functions have been changed as follows:
+    - All API functions of `EdgeFunction` must be `const` qualified.
+    - `EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction)` and `EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction)` have been changed to `static EdgeFunction<l_t> compose(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& SecondFunction)` and `static EdgeFunction<l_t> join(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& OtherFunction)` respectively. Here, the `This` parameter models the former `shared_from_this()`.
+    - `bool equal_to(EdgeFunctionPtrType Other)const` has been changed to `bool operator==(const T &Other)const noexcept`, where `T` is your concrete edge function type.
+    - `void print(llvm::raw_ostream &OS, bool IsForDebug)` has been changed to `friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const T& EF)`.
+- `EdgeFunction` is tagged with `[[clang::trivial_abi]]`. Hence, you should not rely on any destruction order within a top-level statement that uses temporary `EdgeFunction` objects.
+- `EdgeFunctionSingletonFactory` has been removed. Use `EdgeFunctionSingletonCache` instead.
 - `TaintConfig` has been renamed to `LLVMTaintConfig`. For generic code you may want to use the LLVM-independent `TaintConfigBase` CRTP interface instead.
 - Renamed `phasar/PhasarLLVM/DataFlowSolver/` to either `phasar/DataFlow/` or `phasar/PhasarLLVM/DataFlow/` depending on whether the components need LLVMCore. Analoguous changes in `lib/` and `unittests/`.
     An incomplete list of moved/renamed files:
@@ -19,7 +27,7 @@
 - Renamed the phasar tool `phasar-llvm` to `phasar-cli`
 - `LLVMPointsTo[.*]` has been renamed to `LLVMAlias[.*]`
 - The ctor of `LLVMAliasSet` now takes the `LLVMProjectIRDB` as pointer instead of a reference to better document that it may capture the IRDB by reference.
-- The `PointsToInfo` interface has been replaced by the CRTP interface `AliasInfoBase`. Introduced two type-erased implementation of that interface: `AliasInfo` and `AliasInfoRef`. In most cases you should replace `PointsToInfo*` and `LLVMPointsToInfo*` by `AliasInfoRef`, bzw. `LLVMAliasInfoRef`.
+- The `PointsToInfo` interface has been replaced by the CRTP interface `AliasInfoBase`. Introduced two type-erased implementations of that interface: `AliasInfo` and `AliasInfoRef`. In most cases you should replace `PointsToInfo *` and `LLVMPointsToInfo *` by `AliasInfoRef`, bzw. `LLVMAliasInfoRef`.
 - Introduced a new interface `PointsToInfoBase` and type-erased implementations `PointstoInfo` and `PointsToInfoRef`. Don't confuse them with the old `PointsToInfo`!!! (However, they have different APIs, so you should encounter compilation errors then)
 
 ## v1222
@@ -32,4 +40,4 @@
 - The type `WholeProgramAnalysis` has been removed. Use `AnalysisController` instead.
 - The IFDS and IDE TabulationProblems no longer take all of `LLVMProjectIRDB*`, `LLVMTypeHierarchy*`, `LLVMPointsToInfo*` and `LLVMBasedICFG*` as an argument. Instead, they only get what they need.
 - The `IFDSSolver` and `IDESolver` now take an instance of the `ICFGBase` interface as additional argument to their ctor (because the analysis problems now not necessarily store a reference to it anymore).
-- The `IDETabulationProblem` is now a base class of `IFDSTabulationProblem` (and not vice versa as it was previously). In their ctors they only take the bare minimum of arguments: The IRDB, the entrypoints and optionally the special zero-value. If the zero-value is not passed in the ctor (as it was previously), it has to be set from within the client analysis' ctor. You may use te new function `initializeZeroValue(d_t)` for this.
+- The `IDETabulationProblem` is now a base class of `IFDSTabulationProblem` (and not vice versa as it was previously). In their ctors they only take the bare minimum of arguments: The IRDB, the entrypoints and optionally the special zero-value. If the zero-value is not passed in the ctor (as it was previously), it has to be set from within the client analysis' ctor. You may use the new function `initializeZeroValue(d_t)` for this.

@@ -12,12 +12,14 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 
 #include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+#include <cmath>
 
 namespace psr::glca {
 
@@ -155,11 +157,11 @@ EdgeValue::EdgeValue(std::string &&Vs) : VariantType(EdgeValue::String) {
 }
 
 EdgeValue::EdgeValue(std::nullptr_t) : VariantType(EdgeValue::Top) {}
-bool EdgeValue::tryGetInt(uint64_t &Res) const {
+bool EdgeValue::tryGetInt(int64_t &Res) const {
   if (VariantType != Integer) {
     return false;
   }
-  Res = std::get<llvm::APInt>(ValVariant).getLimitedValue();
+  Res = std::get<llvm::APInt>(ValVariant).getSExtValue();
   return true;
 }
 
@@ -204,43 +206,33 @@ EdgeValue::operator bool() {
 }
 
 bool operator==(const EdgeValue &Lhs, const EdgeValue &Rhs) {
-  // llvm::outs() << "Compare edge values" << std::endl;
   if (Lhs.VariantType != Rhs.VariantType) {
-    // llvm::outs() << "Comparing incompatible types" << std::endl;
     return false;
   }
   switch (Lhs.VariantType) {
   case EdgeValue::Top:
     return true;
   case EdgeValue::Integer:
-    // if (v1.value.asInt != v2.value.asInt)
-    //  llvm::outs() << "integer unequal" << std::endl;
     return std::get<llvm::APInt>(Lhs.ValVariant) ==
            std::get<llvm::APInt>(Rhs.ValVariant);
   case EdgeValue::FloatingPoint: {
-    // llvm::outs() << "compare floating points" << std::endl;
     auto Cp = std::get<llvm::APFloat>(Lhs.ValVariant)
                   .compare(std::get<llvm::APFloat>(Rhs.ValVariant));
     if (Cp == llvm::APFloat::cmpResult::cmpEqual) {
-      // llvm::outs() << "FP equal" << std::endl;
       return true;
     }
     auto D1 = std::get<llvm::APFloat>(Lhs.ValVariant).convertToDouble();
     auto D2 = std::get<llvm::APFloat>(Rhs.ValVariant).convertToDouble();
 
     const double Epsilon = 0.000001;
-    // llvm::outs() << "Compare " << d1 << " against " << d2 << std::endl;
-    return D1 == D2 || D1 - D2 < Epsilon || D2 - D1 < Epsilon;
+    return D1 == D2 || fabs(D1 - D2) < Epsilon;
   }
   case EdgeValue::String:
-    // if (v1.value.asString != v2.value.asString)
-    //  llvm::outs() << "String unequal" << std::endl;
     return std::get<std::string>(Lhs.ValVariant) ==
            std::get<std::string>(Rhs.ValVariant);
-  default: // will not happen
-    llvm::errs() << "FATAL ERROR\n";
-    return false;
   }
+
+  llvm_unreachable("FATAL ERROR: Invalid variant type");
 }
 
 bool EdgeValue::sqSubsetEq(const EdgeValue &Other) const {
@@ -276,8 +268,6 @@ EdgeValue operator-(const EdgeValue &Lhs, const EdgeValue &Rhs) {
     return {std::get<llvm::APInt>(Lhs.ValVariant) -
             std::get<llvm::APInt>(Lhs.ValVariant)};
   case EdgeValue::FloatingPoint:
-    // printSemantics(v1.value.asFP) << " <=> ";
-    // printSemantics(v2.value.asFP) << std::endl;
     return {std::get<llvm::APFloat>(Lhs.ValVariant) -
             std::get<llvm::APFloat>(Rhs.ValVariant)};
   default:
@@ -417,28 +407,28 @@ EdgeValue EdgeValue::operator~() const {
 int EdgeValue::compare(const EdgeValue &Lhs, const EdgeValue &Rhs) {
   switch (Lhs.VariantType) {
   case EdgeValue::Integer: {
-    auto Lhsval = std::get<llvm::APInt>(Lhs.ValVariant).getLimitedValue();
-    uint64_t Rhsval;
+    auto Lhsval = std::get<llvm::APInt>(Lhs.ValVariant).getSExtValue();
+    int64_t Rhsval;
     double RhsvalFp;
     if (Rhs.tryGetInt(Rhsval)) {
-      return Lhsval - Rhsval;
+      return +std::signbit(Lhsval - Rhsval);
     }
     if (Rhs.tryGetFP(RhsvalFp)) {
-      return Lhsval < RhsvalFp ? -1 : (Lhsval > RhsvalFp ? 1 : 0);
+      return +std::signbit(double(Lhsval) - RhsvalFp);
     }
     break;
   }
   case EdgeValue::FloatingPoint: {
     auto Lhsval = std::get<llvm::APFloat>(Lhs.ValVariant).convertToDouble();
-    uint64_t Rhsval;
+    int64_t Rhsval;
     double RhsvalFp;
     bool IsInt = Rhs.tryGetInt(Rhsval);
     if (IsInt || Rhs.tryGetFP(RhsvalFp)) {
       if (IsInt) {
-        RhsvalFp = Rhsval;
+        RhsvalFp = double(Rhsval);
       }
 
-      return Lhsval < RhsvalFp ? -1 : (Lhsval > RhsvalFp ? 1 : 0);
+      return +std::signbit(Lhsval - RhsvalFp);
     }
 
     break;
@@ -487,10 +477,12 @@ EdgeValue EdgeValue::typecast(Type Dest, unsigned Bits) const {
       return {std::get<llvm::APInt>(ValVariant) & ((1 << Bits) - 1)};
     case FloatingPoint: {
       bool Unused;
-      llvm::APSInt Ai;
+      llvm::APSInt Ai(Bits);
+
       std::get<llvm::APFloat>(ValVariant)
           .convertToInteger(Ai, llvm::APFloat::roundingMode::NearestTiesToEven,
                             &Unused);
+
       return {Ai};
     }
     default:
@@ -668,12 +660,6 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &V) {
     Os << Elem;
   }
   return Os << "}";
-}
-
-std::ostream &operator<<(std::ostream &OS, const ev_t &V) {
-  llvm::raw_os_ostream ROS(OS);
-  ROS << V;
-  return OS;
 }
 
 bool operator<(const ev_t &Lhs, const ev_t &Rhs) {
