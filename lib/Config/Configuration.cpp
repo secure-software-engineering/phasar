@@ -49,6 +49,16 @@ llvm::StringRef PhasarConfig::DefaultSourceSinkFunctionsPath() noexcept {
   return PHASAR_DIR "/config/phasar-source-sink-function.json";
 }
 
+llvm::StringRef PhasarConfig::GlobalConfigurationDirectory() noexcept {
+  return PHASAR_CONFIG_DIR;
+}
+
+llvm::StringRef PhasarConfig::PhasarDirectory() noexcept { return PHASAR_DIR; }
+
+llvm::StringRef PhasarConfig::DefaultSourceSinkFunctionsPath() noexcept {
+  return PHASAR_DIR "/config/phasar-source-sink-function.json";
+}
+
 PhasarConfig::PhasarConfig() {
   loadGlibcSpecialFunctionNames();
   loadLLVMSpecialFunctionNames();
