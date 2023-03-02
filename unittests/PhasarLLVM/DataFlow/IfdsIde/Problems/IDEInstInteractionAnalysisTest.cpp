@@ -667,17 +667,16 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
-  // NOTE: Here we are suffering from IntraProceduralAliasesOnly
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 10, "retval", {"8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "i", {"11", "9"}));
+          "main", 10, "i", {"3", "11", "9"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "j", {"10", "12"}));
+          "main", 10, "j", {"3", "10", "12"}));
   doAnalysisAndCompareResults("call_05_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -700,6 +699,17 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "l", {"15", "3", "1", "2", "25", "27"}));
   doAnalysisAndCompareResults("call_06_cpp.ll", {"main"}, GroundTruth, false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_07) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 6, "retval", {"7"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 6, "VarIR", {"6", "3", "8"}));
+  doAnalysisAndCompareResults("call_07_cpp.ll", {"main"}, GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
