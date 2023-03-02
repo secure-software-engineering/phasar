@@ -17,32 +17,28 @@
 namespace psr {
 
 void AnalysisController::executeIDEIIA() {
-  auto EdgeFactGen =
+  // use Phasar's instruction ids as testing labels
+  auto Generator =
       [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
-             Src) -> std::set<std::string> {
+             Current) -> std::set<std::string> {
     return std::visit(
-        [](const auto *Inst) -> std::set<std::string> {
-          const auto *FVarAnnot = Inst->getMetadata("FVar");
-          if (!FVarAnnot || FVarAnnot->getNumOperands() == 0) {
-            return {};
+        [](const auto *InstOrGlob) -> std::set<std::string> {
+          std::set<std::string> Labels;
+          if (InstOrGlob->hasMetadata()) {
+            std::string Label =
+                llvm::cast<llvm::MDString>(
+                    InstOrGlob->getMetadata(PhasarConfig::MetaDataKind())
+                        ->getOperand(0))
+                    ->getString()
+                    .str();
+            Labels.insert(Label);
           }
-
-          const auto *FVar =
-              llvm::dyn_cast<llvm::MDNode>(FVarAnnot->getOperand(0).get());
-          if (!FVar || FVar->getNumOperands() == 0) {
-            return {};
-          }
-
-          if (const auto *Feat =
-                  llvm::dyn_cast<llvm::MDString>(FVar->getOperand(0).get())) {
-            return {Feat->getString().str()};
-          }
-          return {};
+          return Labels;
         },
-        Src);
+        Current);
   };
 
-  executeIDEAnalysis<IDEInstInteractionAnalysis>(EntryPoints, EdgeFactGen);
+  executeIDEAnalysis<IDEInstInteractionAnalysis>(EntryPoints, Generator);
 }
 
 } // namespace psr
