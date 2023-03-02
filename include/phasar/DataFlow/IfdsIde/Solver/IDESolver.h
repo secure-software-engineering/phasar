@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"

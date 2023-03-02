@@ -54,33 +54,50 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <variant>
 #include <vector>
 
 // Have some handy helper functionalities
-namespace {
-
-[[maybe_unused]] inline const llvm::AllocaInst *
-getAllocaInstruction(const llvm::GetElementPtrInst *GEP) {
-  if (!GEP) {
-    return nullptr;
-  }
-  const auto *Alloca = GEP->getPointerOperand();
-  while (const auto *NestedGEP =
-             llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
-    Alloca = NestedGEP->getPointerOperand();
-  }
-  return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
-}
-
-} // namespace
 
 namespace vara {
 class Taint;
 } // namespace vara
 
 namespace psr {
+
+// [[nodiscard]] static inline const llvm::AllocaInst *
+// getAllocaInstruction(const llvm::GetElementPtrInst *GEP) {
+//   if (!GEP) {
+//     return nullptr;
+//   }
+//   const auto *Alloca = GEP->getPointerOperand();
+//   while (const auto *NestedGEP =
+//              llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
+//     Alloca = NestedGEP->getPointerOperand();
+//   }
+//   return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
+// }
+
+template <typename T> static BitVectorSet<T> bvSetFrom(const std::set<T> &Set) {
+  BitVectorSet<T> Ret;
+  Ret.reserve(Set.size());
+  Ret.insert(Set.begin(), Set.end());
+  return Ret;
+}
+
+template <typename Callable, typename... ArgTys>
+static std::invoke_result_t<std::decay_t<Callable>, ArgTys...>
+invoke_or_default(Callable &&Fn, ArgTys &&...Args) {
+  if (!Fn) {
+    return {};
+  }
+
+  return std::invoke(Fn, std::forward<ArgTys>(Args)...);
+}
+
 class IDEIIAFlowFact {
+
 public:
   constexpr static unsigned KLimit = 2;
 
@@ -125,6 +142,13 @@ public:
   bool operator==(const llvm::Value *V) const;
 
   inline operator const llvm::Value *() { return BaseVal; }
+
+  [[nodiscard]] std::string str() const {
+    std::string Ret;
+    llvm::raw_string_ostream OS(Ret);
+    print(OS);
+    return Ret;
+  }
 };
 
 inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
@@ -332,8 +356,8 @@ public:
         //
         return lambdaFlow<d_t>(
             [Store, PointerPTS = PT.getReachableAllocationSites(
-                        Store->getPointerOperand(), OnlyConsiderLocalAliases)](
-                d_t Src) -> container_type {
+                        Store->getPointerOperand(), OnlyConsiderLocalAliases,
+                        Store)](d_t Src) -> container_type {
               if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
                 // Here, we are unsound!
                 return {};
@@ -384,35 +408,6 @@ public:
     //             0  x  y
     //
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      // Case x is a load instruction
-      if (const auto *Load =
-              llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
-
-        return lambdaFlow<d_t>([Store, Load](d_t Src) -> container_type {
-          // Override old value, i.e., kill value that is written to and
-          // generate from value that is stored.
-          if (Store->getPointerOperand() == Src) {
-            return {};
-          }
-          container_type Facts = {Src};
-          // y now obtains its new value from x
-          if (Load == Src || Load->getPointerOperand() == Src) {
-            Facts.insert(Load->getPointerOperand());
-            Facts.insert(Store->getPointerOperand());
-          }
-          IF_LOG_ENABLED({
-            for (const auto Fact : Facts) {
-              PHASAR_LOG_LEVEL(
-                  DFADEBUG, "Create edge: " << llvmIRToShortString(Src) << " --"
-                                            << llvmIRToShortString(Store)
-                                            << "--> " << Fact);
-            }
-          });
-          return Facts;
-        });
-      }
-
-      // Otherwise
       return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
         // Override old value, i.e., kill value that is written to and
         // generate from value that is stored.
@@ -669,6 +664,98 @@ public:
 
   // In addition provide specifications for the IDE parts.
 
+  inline EdgeFunctionType getStrongUpdateStoreEF(const llvm::StoreInst *Store,
+                                                 d_t CurrNode, d_t SuccNode,
+                                                 l_t UserEdgeFacts) {
+
+    // Overriding edge: obtain labels from value to be stored (and may add
+    // UserEdgeFacts, if any).
+    //
+    // x --> y
+    //
+    // Edge function:
+    //
+    //            x
+    //             \
+    // store x y    \ \x.x \cup { commit of('store x y') }
+    //               v
+    //               y
+    //
+
+    if (CurrNode == Store->getValueOperand() ||
+        (isZeroValue(CurrNode) &&
+         llvm::isa<llvm::Constant>(Store->getValueOperand()))) {
+      if (SuccNode == Store->getPointerOperand() ||
+          PT.isInReachableAllocationSites(Store->getPointerOperand(), SuccNode,
+                                          true, Store)) {
+        return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+      }
+    }
+
+    if (SyntacticAnalysisOnly) {
+      // Kill all labels that are propagated along the edge of the value that
+      // is overridden.
+      //
+      // y --> y
+      //
+      // Edge function:
+      //
+      //               y
+      //               |
+      // store x y     | \x.{ commit of('store x y') }
+      //               v
+      //               y
+      //
+      if ((CurrNode == SuccNode) && CurrNode == Store->getPointerOperand()) {
+        // y obtains its value(s) from its original allocation and the store
+        // instruction under analysis.
+        IF_LOG_ENABLED({
+          PHASAR_LOG_LEVEL(DFADEBUG,
+                           "Const-Replace at '" << llvmIRToString(Store));
+          PHASAR_LOG_LEVEL(DFADEBUG, "Replacement label(s): ");
+          for (const auto &Item : UserEdgeFacts.assertGetValue()) {
+            PHASAR_LOG_LEVEL(DFADEBUG, Item << ", ");
+          }
+          PHASAR_LOG_LEVEL(DFADEBUG, '\n');
+        });
+        // obtain label from the original allocation
+        return IIAAKillOrReplaceEFCache.createEdgeFunction(UserEdgeFacts);
+      }
+
+    } else {
+      // Use points-to information to find all possible overriding edges.
+
+      // Kill all labels that are propagated along the edge of the
+      // value/values that is/are overridden.
+      //
+      // y --> y
+      //
+      // Edge function:
+      //
+      //            y
+      //            |
+      // store x y  | \x.{}
+      //            v
+      //            y
+      //
+      if (CurrNode == SuccNode && (Store->getPointerOperand() == CurrNode ||
+                                   this->PT.isInReachableAllocationSites(
+                                       Store->getPointerOperand(), CurrNode,
+                                       OnlyConsiderLocalAliases))) {
+        return IIAAKillOrReplaceEFCache.createEdgeFunction(BitVectorSet<e_t>());
+      }
+    }
+
+    if (CurrNode == SuccNode) {
+      // Everything unrelated to the store
+      return EdgeIdentity<l_t>{};
+    }
+
+    llvm::report_fatal_error(
+        llvm::Twine("Unhandled edge: \n> Store: ") + llvmIRToString(Store) +
+        "\n> CurrNode: " + CurrNode.str() + "\n> SuccNode: " + SuccNode.str());
+  }
+
   inline EdgeFunctionType getNormalEdgeFunction(n_t Curr, d_t CurrNode,
                                                 n_t /* Succ */,
                                                 d_t SuccNode) override {
@@ -676,302 +763,43 @@ public:
                      "Process edge: " << llvmIRToShortString(CurrNode) << " --"
                                       << llvmIRToString(Curr) << "--> "
                                       << llvmIRToShortString(SuccNode));
+
+    if (isZeroValue(SuccNode)) {
+      // We don't want to propagate any facts on zero
+      return EdgeIdentity<l_t>{};
+    }
+
+    // Overrides at store instructions
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+      return getStrongUpdateStoreEF(
+          Store, CurrNode, SuccNode,
+          bvSetFrom(invoke_or_default(EdgeFactGen, Curr)));
+    }
+
     //
-    // Zero --> Zero edges
+    // Identity edges
     //
     // Edge function:
     //
     //                     0
     //                     |
-    // %i = instruction    | \x.BOT
+    // %i = instruction    | \x.x
     //                     v
     //                     0
     //
-    if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
+    if (CurrNode == SuccNode) {
       return EdgeIdentity<l_t>{};
     }
-    // check if the user has registered a fact generator function
-    l_t UserEdgeFacts = BitVectorSet<e_t>();
-    std::set<e_t> EdgeFacts;
-    if (EdgeFactGen) {
-      EdgeFacts = EdgeFactGen(Curr);
-      // fill BitVectorSet
-      UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-    }
-    //
-    // Zero --> Alloca edges
-    //
-    // Edge function:
-    //
-    //                0
-    //                 \
-    // %a = alloca      \ \x.x \cup { commit of('%a = alloca') }
-    //                   v
-    //                   a
-    //
-    if (isZeroValue(CurrNode) && Curr == SuccNode) {
-      if (llvm::isa<llvm::AllocaInst>(Curr)) {
-        return IIAAAddLabelsEFCache.createEdgeFunction(
-            std::move(UserEdgeFacts));
-      }
-    }
-    //
-    // i --> i edges
-    //
-    // Edge function:
-    //
-    //                    i
-    //                    |
-    // %i = instruction   | \x.x \cup { commit of('%i = instruction') }
-    //                    v
-    //                    i
-    //
-    if (Curr == CurrNode && CurrNode == SuccNode) {
-      return IIAAAddLabelsEFCache.createEdgeFunction(std::move(UserEdgeFacts));
-    }
-    // Handle loads in non-syntax only analysis
-    if constexpr (!SyntacticAnalysisOnly) {
-      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-        //
-        // y --> x
-        //
-        // Edge function:
-        //
-        //             y
-        //              \
-        // x = load y    \ \x.{ commit of('x = load y') } \cup { commits of y }
-        //                v
-        //                x
-        //
-        if ((CurrNode == Load->getPointerOperand() ||
-             this->PT.isInReachableAllocationSites(Load->getPointerOperand(),
-                                                   CurrNode,
-                                                   OnlyConsiderLocalAliases)) &&
-            Load == SuccNode) {
-          return IIAAAddLabelsEFCache.createEdgeFunction(
-              std::move(UserEdgeFacts));
-        }
-        //
-        // y --> y
-        //
-        // Edge function:
-        //
-        //             y
-        //             |
-        // x = load y  | \x.x (loads do not modify the value that is loaded
-        // from)
-        //             v
-        //             y
-        //
-        return EdgeIdentity<l_t>{};
-      }
-    }
-    // Overrides at store instructions
-    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      if (SyntacticAnalysisOnly) {
-        // Kill all labels that are propagated along the edge of the value that
-        // is overridden.
-        //
-        // y --> y
-        //
-        // Edge function:
-        //
-        //               y
-        //               |
-        // store x y     | \x.{ commit of('store x y') }
-        //               v
-        //               y
-        //
-        if ((CurrNode == SuccNode) && CurrNode == Store->getPointerOperand()) {
-          // y obtains its value(s) from its original allocation and the store
-          // instruction under analysis.
-          IF_LOG_ENABLED({
-            PHASAR_LOG_LEVEL(DFADEBUG,
-                             "Const-Replace at '" << llvmIRToString(Curr));
-            PHASAR_LOG_LEVEL(DFADEBUG, "Replacement label(s): ");
-            for (const auto &Item : EdgeFacts) {
-              PHASAR_LOG_LEVEL(DFADEBUG, Item << ", ");
-            }
-            PHASAR_LOG_LEVEL(DFADEBUG, '\n');
-          });
-          // obtain label from the original allocation
-          const llvm::AllocaInst *OrigAlloca = nullptr;
-          if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(
-                  Store->getPointerOperand())) {
-            OrigAlloca = Alloca;
-          }
-          if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
-                  Store->getPointerOperand())) {
-            OrigAlloca = getAllocaInstruction(GEP);
-          }
-          // obtain the label
-          if (OrigAlloca) {
-            if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
-              UEF->insert(edgeFactGenForInstToBitVectorSet(OrigAlloca));
-            }
-          }
-          return IIAAKillOrReplaceEFCache.createEdgeFunction(
-              std::move(UserEdgeFacts));
-        }
-        //
-        // x --> y
-        //
-        // Edge function:
-        //
-        //             x
-        //              \
-        // store x y     \ \x.{ commit of('store x y') }
-        //                v
-        //                y
-        //
-        if (CurrNode == Store->getValueOperand() &&
-            SuccNode == Store->getPointerOperand()) {
-          IF_LOG_ENABLED({
-            PHASAR_LOG_LEVEL(DFADEBUG, "Var-Override: ");
-            for (const auto &EF : EdgeFacts) {
-              PHASAR_LOG_LEVEL(DFADEBUG, EF << ", ");
-            }
-            PHASAR_LOG_LEVEL(DFADEBUG, "at '" << llvmIRToString(Curr) << "'\n");
-          });
-          return IIAAAddLabelsEFCache.createEdgeFunction(
-              std::move(UserEdgeFacts));
-        }
-      } else {
-        // Use points-to information to find all possible overriding edges.
 
-        // Overriding edge with literal: kill all labels that are propagated
-        // along the edge of the value that is overridden.
-        //
-        // x --> y
-        //
-        // Edge function:
-        //
-        // Let x be a literal.
-        //
-        //               y
-        //               |
-        // store x y     | \x.{} \cup { commit of('store x y') }
-        //               v
-        //               y
-        //
-        if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-            CurrNode == SuccNode &&
-            (this->PT.isInReachableAllocationSites(Store->getPointerOperand(),
-                                                   CurrNode,
-                                                   OnlyConsiderLocalAliases) ||
-             Store->getPointerOperand() == CurrNode)) {
-          // Add the original variable, i.e., memory location.
-          return IIAAKillOrReplaceEFCache.createEdgeFunction(
-              std::move(UserEdgeFacts));
-        }
-        // Kill all labels that are propagated along the edge of the
-        // value/values that is/are overridden.
-        //
-        // y --> y
-        //
-        // Edge function:
-        //
-        //            y
-        //            |
-        // store x y  | \x.{}
-        //            v
-        //            y
-        //
-        if (CurrNode == SuccNode && this->PT.isInReachableAllocationSites(
-                                        Store->getPointerOperand(), CurrNode,
-                                        OnlyConsiderLocalAliases)) {
-          return IIAAKillOrReplaceEFCache.createEdgeFunction();
-        }
-        // Overriding edge: obtain labels from value to be stored (and may add
-        // UserEdgeFacts, if any).
-        //
-        // x --> y
-        //
-        // Edge function:
-        //
-        //            x
-        //             \
-        // store x y    \ \x.x \cup { commit of('store x y') }
-        //               v
-        //               y
-        //
-        bool StoreValOpIsPointerTy =
-            Store->getValueOperand()->getType()->isPointerTy();
-        if ((CurrNode == Store->getValueOperand() ||
-             (StoreValOpIsPointerTy &&
-              this->PT.isInReachableAllocationSites(
-                  Store->getValueOperand(), Store->getValueOperand(),
-                  OnlyConsiderLocalAliases))) &&
-            this->PT.isInReachableAllocationSites(Store->getPointerOperand(),
-                                                  Store->getPointerOperand(),
-                                                  OnlyConsiderLocalAliases)) {
-          return IIAAAddLabelsEFCache.createEdgeFunction(
-              std::move(UserEdgeFacts));
-        }
-      }
+    if (Curr != CurrNode && Curr == SuccNode) {
+      // check if the user has registered a fact generator function
+      l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, Curr));
+
+      // We generate Curr in this instruction, so we have to annotate it with
+      // edge labels
+      return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
     }
-    // Handle edge functions for general instructions.
-    for (const auto &Op : Curr->operands()) {
-      //
-      // 0 --> o_i
-      //
-      // Edge function:
-      //
-      //                        0
-      //                         \
-      // %i = instruction o_i     \ \x.x \cup { commit of('%i = instruction') }
-      //                           v
-      //                           o_i
-      //
-      if (isZeroValue(CurrNode) && Op == SuccNode) {
-        return IIAAAddLabelsEFCache.createEdgeFunction(
-            std::move(UserEdgeFacts));
-      }
-      //
-      // o_i --> o_i
-      //
-      // Edge function:
-      //
-      //                        o_i
-      //                        |
-      // %i = instruction o_i   | \x.x \cup { commit of('%i = instruction') }
-      //                        v
-      //                        o_i
-      //
-      if (Op == CurrNode && CurrNode == SuccNode) {
-        IF_LOG_ENABLED({
-          PHASAR_LOG_LEVEL(DFADEBUG, "this is 'i'\n");
-          for (auto &EdgeFact : EdgeFacts) {
-            PHASAR_LOG_LEVEL(DFADEBUG, EdgeFact << ", ");
-          }
-          PHASAR_LOG_LEVEL(DFADEBUG, '\n');
-        });
-        return IIAAAddLabelsEFCache.createEdgeFunction(
-            std::move(UserEdgeFacts));
-      }
-      //
-      // o_i --> i
-      //
-      // Edge function:
-      //
-      //                        o_i
-      //                         \
-      // %i = instruction o_i     \ \x.x \cup { commit of('%i = instruction') }
-      //                           v
-      //                           i
-      //
-      if (Op == CurrNode && Curr == SuccNode) {
-        IF_LOG_ENABLED({
-          PHASAR_LOG_LEVEL(DFADEBUG, "this is '0'\n");
-          for (auto &EdgeFact : EdgeFacts) {
-            PHASAR_LOG_LEVEL(DFADEBUG, EdgeFact << ", ");
-          }
-          PHASAR_LOG_LEVEL(DFADEBUG, '\n');
-        });
-        return IIAAAddLabelsEFCache.createEdgeFunction(
-            std::move(UserEdgeFacts));
-      }
-    }
+
     // Otherwise stick to identity.
     return EdgeIdentity<l_t>{};
   }
@@ -1492,24 +1320,6 @@ private:
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   static inline const bool OnlyConsiderLocalAliases = true;
 
-  inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
-    if (EdgeFactGen) {
-      auto Results = EdgeFactGen(CurrInst);
-      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
-      return BVS;
-    }
-    return {};
-  }
-
-  inline BitVectorSet<e_t>
-  edgeFactGenForGlobalVarToBitVectorSet(const llvm::GlobalVariable *GlobalVar) {
-    if (EdgeFactGen) {
-      auto Results = EdgeFactGen(GlobalVar);
-      BitVectorSet<e_t> BVS(Results.begin(), Results.end());
-      return BVS;
-    }
-    return {};
-  }
 }; // namespace psr
 
 using IDEInstInteractionAnalysis = IDEInstInteractionAnalysisT<>;

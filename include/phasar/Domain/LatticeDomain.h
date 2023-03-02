@@ -22,6 +22,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <variant>
 
 namespace psr {
 
@@ -69,6 +70,7 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   [[nodiscard]] inline bool isTop() const noexcept {
     return std::holds_alternative<Top>(*this);
   }
+
   [[nodiscard]] inline L *getValueOrNull() noexcept {
     return std::get_if<L>(this);
   }
@@ -77,7 +79,8 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   }
   template <typename LL = L,
             typename = std::enable_if_t<is_llvm_hashable_v<LL>>>
-  friend llvm::hash_code hash_value(const LatticeDomain &LD) noexcept {
+  friend llvm::hash_code
+  hash_value(const LatticeDomain &LD) noexcept { // NOLINT
     if (LD.isBottom()) {
       return llvm::hash_value(INTPTR_MAX);
     }
@@ -85,6 +88,15 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
       return llvm::hash_value(INTPTR_MIN);
     }
     return hash_value(std::get<L>(LD));
+  }
+
+  [[nodiscard]] inline L &assertGetValue() noexcept {
+    assert(std::holds_alternative<L>(*this));
+    return std::get<L>(*this);
+  }
+  [[nodiscard]] inline const L &assertGetValue() const noexcept {
+    assert(std::holds_alternative<L>(*this));
+    return std::get<L>(*this);
   }
 };
 
