@@ -999,14 +999,11 @@ public:
 
     static EdgeFunction<l_t> join(EdgeFunctionRef<IIAAKillOrReplaceEF> This,
                                   const EdgeFunction<l_t> &OtherFunction) {
-      /// XXX: Here, we overapproximate joins with EdgeIdentity. Previously, we
-      /// just ignored OtherFunction
-      /// ---> previous code:
-      // if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get()))
-      // {
-      //   return this->shared_from_this();
-      // }
-      /// <--- previous code
+      /// XXX: Here, we underapproximate joins with EdgeIdentity
+      if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction)) {
+        return This;
+      }
+
       if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
         return Default;
       }
@@ -1093,14 +1090,11 @@ public:
 
     static EdgeFunction<l_t> join(EdgeFunctionRef<IIAAAddLabelsEF> This,
                                   const EdgeFunction<l_t> &OtherFunction) {
-      /// XXX: Here, we overapproximate joins with EdgeIdentity. Previously, we
-      /// just ignored OtherFunction
-      /// ---> previous code:
-      // if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get()))
-      // {
-      //   return this->shared_from_this();
-      // }
-      /// <--- previous code
+      /// XXX: Here, we underapproximate joins with EdgeIdentity
+      if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction)) {
+        return This;
+      }
+
       if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
         return Default;
       }
