@@ -1,10 +1,13 @@
 #include "phasar/Utils/BitVectorSet.h"
 
+#include "phasar/Utils/DebugOutput.h"
+
 #include "llvm/ADT/BitVector.h"
 
 #include "gtest/gtest.h"
 
 #include <set>
+#include <unordered_set>
 #include <utility>
 
 using namespace psr;
@@ -393,6 +396,27 @@ TEST(BitVectorSet, lessThan) {
   EXPECT_TRUE(B < A);
   EXPECT_FALSE(A < B);
   EXPECT_FALSE(A < A);
+}
+
+TEST(BitVectorSet, hash) {
+  struct Hasher {
+    size_t operator()(const BitVectorSet<int> &BV) const {
+      return hash_value(BV);
+    }
+  };
+
+  std::unordered_set<BitVectorSet<int>, Hasher> Set;
+  Set.insert(BitVectorSet<int>());
+  Set.insert({1, 3});
+  Set.insert({1, 3});
+  Set.insert({1, 3, 5});
+
+  EXPECT_EQ(3, Set.size());
+  EXPECT_TRUE(Set.count({})) << "Empty set not there in " << PrettyPrinter{Set};
+  EXPECT_TRUE(Set.count({1, 3}))
+      << "{1, 3} not there in " << PrettyPrinter{Set};
+  EXPECT_TRUE(Set.count({1, 3, 5}))
+      << "{1, 3, 5} not there in " << PrettyPrinter{Set};
 }
 
 //===----------------------------------------------------------------------===//
