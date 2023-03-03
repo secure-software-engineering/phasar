@@ -1,12 +1,11 @@
-#include <algorithm>
+#include "phasar/DB/Hexastore.h"
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/isomorphism.hpp"
-
 #include "gtest/gtest.h"
 
-#include "phasar/DB/Hexastore.h"
+#include <algorithm>
 
 using namespace psr;
 using namespace std;

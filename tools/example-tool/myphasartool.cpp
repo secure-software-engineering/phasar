@@ -7,26 +7,26 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <filesystem>
-#include <fstream>
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSSolverTest.h"
+#include "phasar/PhasarLLVM/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/Logger.h"
 
-namespace llvm {
-class Value;
-} // namespace llvm
+#include <filesystem>
+#include <string>
 
 using namespace psr;
 
 int main(int Argc, const char **Argv) {
+  using namespace std::string_literals;
+
   if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
       std::filesystem::is_directory(Argv[1])) {
     llvm::errs() << "myphasartool\n"
@@ -34,27 +34,30 @@ int main(int Argc, const char **Argv) {
                     "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
-  ProjectIRDB DB({Argv[1]});
-  if (const auto *F = DB.getFunctionDefinition("main")) {
-    LLVMTypeHierarchy H(DB);
+
+  std::vector EntryPoints = {"main"s};
+
+  HelperAnalyses HA(Argv[1], EntryPoints);
+
+  if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy
-    H.print();
-    LLVMPointsToSet P(DB);
+    HA.getTypeHierarchy().print();
     // print points-to information
-    P.print();
-    LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
+    HA.getAliasInfo().print();
     // print inter-procedural control-flow graph
-    I.print();
+    HA.getICFG().print();
+
     // IFDS template parametrization test
     llvm::outs() << "Testing IFDS:\n";
-    IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver S(L);
+    auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
+    IFDSSolver S(L, &HA.getICFG());
     S.solve();
     S.dumpResults();
     // IDE template parametrization test
     llvm::outs() << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
-    IDESolver T(M);
+    auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+
+    IDESolver T(M, &HA.getICFG());
     T.solve();
     T.dumpResults();
   } else {

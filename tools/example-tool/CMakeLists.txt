@@ -11,21 +11,23 @@ else()
   )
 endif()
 
-find_package(Boost COMPONENTS program_options graph ${BOOST_THREAD} REQUIRED)
+find_package(Boost COMPONENTS graph ${BOOST_THREAD} REQUIRED)
 target_link_libraries(myphasartool
   LINK_PUBLIC
   phasar_config
   phasar_controller
   phasar_db
-  phasar_experimental
+  phasar_llvm_db
+  phasar_llvm_controlflow
   phasar_controlflow
-  phasar_ifdside
+  phasar_llvm_ifdside
   phasar_mono
   phasar_passes
-  ${PHASAR_PLUGINS_LIB}
+  phasar_llvm_pointer
   phasar_pointer
-  phasar_typehierarchy
-  phasar_phasarllvm_utils
+  phasar_llvm_typehierarchy
+  phasar_llvm
+  phasar_llvm_utils
   phasar_utils
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}

@@ -8,18 +8,14 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
 namespace psr {
 
 void AnalysisController::executeIDEOpenSSLTS() {
   OpenSSLEVPKDFDescription TSDesc;
-  WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>, IDETypeStateAnalysis>
-      WPA(SolverConfig, IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
-  WPA.solve();
-  emitRequestedDataFlowResults(WPA);
-  WPA.releaseAllHelperAnalyses();
+  executeIDEAnalysis<IDETypeStateAnalysis>(&TSDesc, EntryPoints);
 }
 
 } // namespace psr

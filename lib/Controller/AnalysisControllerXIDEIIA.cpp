@@ -8,12 +8,37 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/Support/Casting.h"
 
 namespace psr {
 
 void AnalysisController::executeIDEIIA() {
-  executeIDEAnalysis<IDEInstInteractionAnalysis>();
+  // use Phasar's instruction ids as testing labels
+  auto Generator =
+      [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
+             Current) -> std::set<std::string> {
+    return std::visit(
+        [](const auto *InstOrGlob) -> std::set<std::string> {
+          std::set<std::string> Labels;
+          if (InstOrGlob->hasMetadata()) {
+            std::string Label =
+                llvm::cast<llvm::MDString>(
+                    InstOrGlob->getMetadata(PhasarConfig::MetaDataKind())
+                        ->getOperand(0))
+                    ->getString()
+                    .str();
+            Labels.insert(Label);
+          }
+          return Labels;
+        },
+        Current);
+  };
+
+  executeIDEAnalysis<IDEInstInteractionAnalysis>(EntryPoints, Generator);
 }
 
 } // namespace psr

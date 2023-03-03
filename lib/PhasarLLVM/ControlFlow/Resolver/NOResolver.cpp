@@ -14,15 +14,15 @@
  *      Author: nicolas bellec
  */
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
+
+#include <set>
 
 using namespace psr;
 
 namespace psr {
 
-NOResolver::NOResolver(ProjectIRDB &IRDB) : Resolver(IRDB) {}
+NOResolver::NOResolver(LLVMProjectIRDB &IRDB) : Resolver(IRDB) {}
 
 void NOResolver::preCall(const llvm::Instruction *Inst) {}
 
@@ -42,5 +42,7 @@ auto NOResolver::resolveFunctionPointer(const llvm::CallBase * /*CallSite*/)
 }
 
 void NOResolver::otherInst(const llvm::Instruction *Inst) {}
+
+std::string NOResolver::str() const { return "NOResolver"; }
 
 } // namespace psr

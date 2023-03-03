@@ -17,10 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
 #define PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
 
-#include <set>
+#include "llvm/IR/PassManager.h"
 
 #include "nlohmann/json.hpp"
-#include "llvm/IR/PassManager.h"
+
+#include <set>
 
 namespace llvm {
 class Type;
@@ -45,6 +46,10 @@ private:
   size_t LoadInstructions = 0;
   size_t MemIntrinsics = 0;
   size_t GlobalPointers = 0;
+  size_t Branches = 0;
+  size_t GetElementPtrs = 0;
+  size_t PhiNodes = 0;
+  size_t GlobalConsts = 0;
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;
   std::set<const llvm::Instruction *> RetResInstructions;
@@ -87,6 +92,11 @@ public:
   [[nodiscard]] size_t getGlobals() const;
 
   /**
+   * @brief Returns the number of constant globals.
+   */
+  [[nodiscard]] size_t getGlobalConsts() const;
+
+  /**
    * @brief Returns the number of memory intrinsics.
    */
   [[nodiscard]] size_t getMemoryIntrinsics() const;
@@ -104,20 +114,24 @@ public:
   /**
    * @brief Returns all possible Types.
    */
-  [[nodiscard]] std::set<const llvm::Type *> getAllocatedTypes() const;
+  [[nodiscard]] const std::set<const llvm::Type *> &getAllocatedTypes() const;
 
   /**
    * @brief Returns all stack and heap allocating instructions.
    */
-  [[nodiscard]] std::set<const llvm::Instruction *>
+  [[nodiscard]] const std::set<const llvm::Instruction *> &
   getAllocaInstructions() const;
 
   /**
    * @brief Returns all Return and Resume Instructions.
    */
-  [[nodiscard]] std::set<const llvm::Instruction *>
+  [[nodiscard]] const std::set<const llvm::Instruction *> &
   getRetResInstructions() const;
   [[nodiscard]] nlohmann::json getAsJson() const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const GeneralStatistics &Statistics);
 };
 
 /**
@@ -150,7 +164,12 @@ public:
 
   explicit GeneralStatisticsAnalysis() = default;
 
-  GeneralStatistics run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
+  GeneralStatistics runOnModule(llvm::Module &M);
+
+  inline GeneralStatistics run(llvm::Module &M,
+                               llvm::ModuleAnalysisManager & /*AM*/) {
+    return runOnModule(M);
+  }
 };
 
 } // namespace psr

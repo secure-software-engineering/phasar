@@ -8,12 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTypeAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeIFDSType() {
-  executeIFDSAnalysis<IFDSTypeAnalysis>();
+  executeIFDSAnalysis<IFDSTypeAnalysis>(EntryPoints);
 }
 
 } // namespace psr

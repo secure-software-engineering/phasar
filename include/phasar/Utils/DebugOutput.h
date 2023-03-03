@@ -67,9 +67,7 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data) {
   } else if constexpr (is_iterable_v<ElemTy>) {
     OS << "{ ";
     bool Frst = true;
-    size_t Cnt = 0;
     for (auto &&Elem : Data) {
-      ++Cnt;
       if (Frst) {
         Frst = false;
       } else {

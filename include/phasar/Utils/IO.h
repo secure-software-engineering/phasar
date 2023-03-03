@@ -17,23 +17,37 @@
 #ifndef PHASAR_UTILS_IO_H
 #define PHASAR_UTILS_IO_H
 
-#include <filesystem>
-#include <memory>
-#include <string>
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/Error.h"
+#include "llvm/Support/ErrorOr.h"
+#include "llvm/Support/MemoryBuffer.h"
 
 #include "nlohmann/json.hpp"
 
-#include "llvm/Support/MemoryBuffer.h"
+#include <optional>
 
 namespace psr {
 
-std::string readTextFile(const llvm::Twine &Path);
+[[nodiscard]] llvm::ErrorOr<std::string>
+readTextFileOrErr(const llvm::Twine &Path);
+[[nodiscard]] llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
+readFileOrErr(const llvm::Twine &Path) noexcept;
 
-std::unique_ptr<llvm::MemoryBuffer> readFile(const llvm::Twine &Path);
+[[nodiscard]] std::string readTextFile(const llvm::Twine &Path);
+[[nodiscard]] std::unique_ptr<llvm::MemoryBuffer>
+readFile(const llvm::Twine &Path);
 
-nlohmann::json readJsonFile(const llvm::Twine &Path);
+[[nodiscard]] std::optional<std::string>
+readTextFileOrNull(const llvm::Twine &Path);
+[[nodiscard]] std::unique_ptr<llvm::MemoryBuffer>
+readFileOrNull(const llvm::Twine &Path) noexcept;
+
+[[nodiscard]] nlohmann::json readJsonFile(const llvm::Twine &Path);
 
 void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content);
+
+[[nodiscard]] std::unique_ptr<llvm::raw_fd_ostream>
+openFileStream(const llvm::Twine &Filename);
 
 } // namespace psr
 

@@ -8,12 +8,13 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeIDEXTaint() {
-  executeIDEAnalysis<IDEExtendedTaintAnalysis<>, true>();
+  auto Config = makeTaintConfig();
+  executeIDEAnalysis<IDEExtendedTaintAnalysis<>>(Config, EntryPoints);
 }
 
 } // namespace psr

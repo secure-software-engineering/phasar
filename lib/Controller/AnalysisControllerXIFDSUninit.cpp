@@ -8,12 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 
 namespace psr {
 
 void AnalysisController::executeIFDSUninitVar() {
-  executeIFDSAnalysis<IFDSUninitializedVariables>();
+  executeIFDSAnalysis<IFDSUninitializedVariables>(EntryPoints);
 }
 
 } // namespace psr

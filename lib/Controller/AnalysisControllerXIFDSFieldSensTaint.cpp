@@ -8,12 +8,13 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeIFDSFieldSensTaint() {
-  executeIFDSAnalysis<IFDSFieldSensTaintAnalysis, true>();
+  auto Config = makeTaintConfig();
+  executeIFDSAnalysis<IFDSFieldSensTaintAnalysis>(&Config, EntryPoints);
 }
 
 } // namespace psr

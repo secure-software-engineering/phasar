@@ -1,0 +1,28 @@
+# Patterns listed later take precedence over earlier patterns.
+# All owners are automatically set as reviewers for PRs affecting their files.
+# At least one owner must approve a PR affecting their files.
+
+* @MMory @fabianbs96
+
+/include/phasar/PhasarLLVM/DataflowSolver/IfdsIde/Solver/IDESolver.h @pdschubert
+
+/include/phasar/PhasarLLVM/DataflowSolver/IfdsIde/FlowEdgeFunctionCache.h @vulder
+/include/phasar/PhasarLLVM/DataflowSolver/IfdsIde/EdgeFunctionSingletonFactory.h @vulder
+/unittests/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionSingletonFactoryTest.cpp @vulder
+
+/include/phasar/PhasarLLVM/DataflowSolver/Mono @pdschubert
+
+/img @pdschubert
+
+/include/phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEInstInteractionAnalysis.h @pdschubert @vulder
+/include/phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/ @fabianbs96
+/include/phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h @fabianbs96
+/lib/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.cpp @fabianbs96
+/lib/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/ @fabianbs96
+
+/include/phasar/PhasarLLVM/AnalysisStrategy/ @pdschubert
+
+Dockerfile @janniclas
+/.docker/ @janniclas
+
+/include/phasar/Utils/Logger.h @MMory

@@ -51,8 +51,8 @@ protected:
 /// object.
 ///
 /// \tparam T The pointee type
-/// \tparam RequireAlignment If true, the datastructure only works if alignof(T)
-/// > 1 holds. Enables incomplete T types
+/// \tparam RequireAlignment If true, the datastructure only works if
+/// alignof(T) > 1 holds. Enables incomplete T types
 template <typename T, bool RequireAlignment = false>
 class MaybeUniquePtr : detail::MaybeUniquePtrBase<T, RequireAlignment> {
   using detail::MaybeUniquePtrBase<T, RequireAlignment>::Data;
@@ -118,13 +118,24 @@ public:
     }
   }
 
-  [[nodiscard]] constexpr T *get() const noexcept { return Data.getPointer(); }
+  [[nodiscard]] constexpr T *get() noexcept { return Data.getPointer(); }
+  [[nodiscard]] constexpr const T *get() const noexcept {
+    return Data.getPointer();
+  }
 
-  [[nodiscard]] constexpr T *operator->() const noexcept { return get(); }
+  [[nodiscard]] constexpr T *operator->() noexcept { return get(); }
+  [[nodiscard]] constexpr const T *operator->() const noexcept { return get(); }
 
-  [[nodiscard]] constexpr T &operator*() const noexcept { return *get(); }
+  [[nodiscard]] constexpr T &operator*() noexcept {
+    assert(get() != nullptr);
+    return *get();
+  }
+  [[nodiscard]] constexpr const T &operator*() const noexcept {
+    assert(get() != nullptr);
+    return *get();
+  }
 
-  constexpr T *release() noexcept {
+  T *release() noexcept {
     Data.setInt(false);
     return Data.getPointer();
   }

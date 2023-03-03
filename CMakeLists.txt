@@ -52,6 +52,13 @@ include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
+option(BUILD_SWIFT_TESTS "Builds the Swift tests (Swift compiler has to be installed manually beforehand!)" OFF)
+if (BUILD_SWIFT_TESTS)
+  set(CMAKE_Swift_FLAGS_RELEASE "-g")
+  set(CMAKE_Swift_FLAGS_RELWITHDEBINFO "-g")
+  enable_language(Swift)
+endif(BUILD_SWIFT_TESTS)
+
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_USE_Z3 "Build the phasar_pathsensitivity library with Z3 support for constraint solving (default is ON as long as we are building out of tree)" ON)
@@ -124,14 +131,19 @@ else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
-# ## Adding external libraries
+set(PHASAR_CONFIG_INSTALL_DIR "/opt/phasar/config/" CACHE STRING "Customizes the directory, where configuration files for PhASAR are installed (default is /opt/phasar/config)")
+
+add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
+add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
+
+
+### Adding external libraries
 # Threads
 find_package(Threads)
 
 # Boost
-find_package(Boost 1.65.1 COMPONENTS graph program_options ${BOOST_THREAD} REQUIRED)
-
-# find_package(Boost 1.72.0 COMPONENTS graph program_options ${BOOST_THREAD} REQUIRED)
+find_package(Boost 1.65.1 COMPONENTS graph ${BOOST_THREAD} REQUIRED)
+#find_package(Boost 1.72.0 COMPONENTS graph  ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # Disable clang-tidy for the external projects
@@ -347,7 +359,7 @@ endif()
 
 set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Install dir of headers")
 
-# Install targets of phasar-llvm, other executables, and libraries are to be
+# Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
 # Install Phasar include directory
@@ -372,15 +384,17 @@ install(DIRECTORY external/googletest/googletest/include/gtest/
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/
   DESTINATION bin
-  FILES_MATCHING PATTERN "phasar-*"
+  FILES_MATCHING
+  PATTERN "CodeGen" EXCLUDE # CodeGen does not contain files to install
+  PATTERN "phasar-*"
   PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
   GROUP_EXECUTE GROUP_READ
   WORLD_EXECUTE WORLD_READ
 )
 
-# Install the Phasar config files into ~/.config/phasar/
+# Install the Phasar config files into /opt/phasar/config/
 install(DIRECTORY config/
-  DESTINATION $ENV{HOME}/.config/phasar
+  DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"
   PERMISSIONS OWNER_WRITE OWNER_READ
   GROUP_WRITE GROUP_READ

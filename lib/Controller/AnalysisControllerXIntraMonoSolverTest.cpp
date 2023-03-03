@@ -8,12 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoSolverTest.h"
 
 namespace psr {
 
 void AnalysisController::executeIntraMonoSolverTest() {
-  executeIntraMonoAnalysis<IntraMonoSolverTest>();
+  executeIntraMonoAnalysis<IntraMonoSolverTest>(EntryPoints);
 }
 
 } // namespace psr

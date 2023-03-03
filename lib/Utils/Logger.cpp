@@ -14,12 +14,19 @@
  *      Author: philipp
  */
 
+#include "phasar/Utils/Logger.h"
+
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/FileSystem.h"
 
-#include "phasar/Utils/Logger.h"
-
 namespace psr {
+
+SeverityLevel parseSeverityLevel(llvm::StringRef Str) {
+  return llvm::StringSwitch<SeverityLevel>(Str)
+#define SEVERITY_LEVEL(NAME, TYPE) .Case(NAME, SeverityLevel::TYPE)
+#include "phasar/Utils/SeverityLevel.def"
+      .Default(SeverityLevel::INVALID);
+}
 
 std::string Logger::toString(SeverityLevel Level) {
   switch (Level) {

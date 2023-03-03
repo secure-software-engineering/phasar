@@ -1,23 +1,23 @@
-#include "gtest/gtest.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-
 #include "TestConfig.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "control_flow/branch_cpp.ll");
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Term = getNthTermInstruction(F, 1);
   const auto *A = getNthInstruction(F, 10);
@@ -31,14 +31,14 @@ TEST(LLVMBasedBackwardCFGTest, BranchTargetTest) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
   // br i1 %5, label %6, label %9
   const auto *BRInst = getNthTermInstruction(F, 1);
-  std::vector<const llvm::Instruction *> Predeccessors;
+  llvm::SmallVector<const llvm::Instruction *> Predeccessors;
   // %7 = load i32, i32* %3, align 4
   Predeccessors.push_back(getNthInstruction(F, 10));
   // %10 = load i32, i32* %3, align 4
@@ -58,7 +58,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/function_call_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
@@ -67,7 +67,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %4 = call i32 @_Z4multii(i32 2, i32 4)
   const auto *Pred = getNthInstruction(F, 5);
-  std::vector<const llvm::Instruction *> Predeccessor{Pred};
+  llvm::SmallVector<const llvm::Instruction *> Predeccessor{Pred};
   auto PredsOfInst = Cfg.getPredsOf(Inst);
   ASSERT_EQ(PredsOfInst, Predeccessor);
 
@@ -81,14 +81,14 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
   const auto *TermInst = getNthTermInstruction(F, 4);
   std::cout << llvmIRToString(TermInst) << std::endl;
-  std::vector<const llvm::Instruction *> Successor;
+  llvm::SmallVector<const llvm::Instruction *> Successor;
   // br label %12
   Successor.push_back(getNthTermInstruction(F, 3));
   // br label %12
@@ -99,7 +99,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
 
 TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedBackwardCFG Cfg;
-  ProjectIRDB IRDB(
+  LLVMProjectIRDB IRDB(
       {unittest::PathToLLTestFiles + "control_flow/branch_cpp.ll"});
   const auto *F = IRDB.getFunctionDefinition("main");
 
@@ -108,7 +108,7 @@ TEST(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %3 = alloca i32, align 4)
   const auto *Succ = getNthInstruction(F, 3);
-  std::vector<const llvm::Instruction *> Successor{Succ};
+  llvm::SmallVector<const llvm::Instruction *> Successor{Succ};
   auto SuccsOfInst = Cfg.getSuccsOf(Inst);
   ASSERT_EQ(SuccsOfInst, Successor);
 

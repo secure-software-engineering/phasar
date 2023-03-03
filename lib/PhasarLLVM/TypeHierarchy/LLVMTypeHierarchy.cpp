@@ -14,16 +14,15 @@
  *      Author: pdschbrt
  */
 
-#include <algorithm>
-#include <cassert>
-#include <memory>
-#include <ostream>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
-#include "boost/graph/depth_first_search.hpp"
-#include "boost/graph/graph_utility.hpp"
-#include "boost/graph/graphviz.hpp"
-#include "boost/graph/transitive_closure.hpp"
-#include "boost/property_map/dynamic_property_map.hpp"
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
@@ -33,18 +32,16 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/Support/Format.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/GraphExtensions.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Utilities.h"
+#include "boost/graph/graphviz.hpp"
+#include "boost/graph/transitive_closure.hpp"
 
-using namespace psr;
+#include <algorithm>
+#include <cassert>
+#include <memory>
+#include <ostream>
+
 using namespace std;
 
 namespace psr {
@@ -71,16 +68,16 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
   return Type->getStructName().str();
 }
 
-LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
+LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
-  for (auto *M : IRDB.getAllModules()) {
-    buildLLVMTypeHierarchy(*M);
-  }
+
+  buildLLVMTypeHierarchy(*IRDB.getModule());
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
+  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Finished type hierarchy");
 }
 
 std::string
@@ -123,12 +120,12 @@ std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
 }
 
 bool LLVMTypeHierarchy::isTypeInfo(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(TypeInfoPrefixDemang);
 }
 
 bool LLVMTypeHierarchy::isVTable(const std::string &VarName) {
-  auto Demang = llvm::demangle(VarName.c_str());
+  auto Demang = llvm::demangle(VarName);
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
 
@@ -162,14 +159,14 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
   std::string ClearName = removeStructOrClassPrefix(Type);
   if (const auto *TI = ClearNameTIMap[ClearName]) {
     if (!TI->hasInitializer()) {
-      PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                           ClearName << " does not have initializer");
       return SubTypes;
     }
     if (const auto *I =
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-
           if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
@@ -197,7 +194,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
   if (const auto *TV = ClearNameTVMap[ClearName]) {
     if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
       if (!TI->hasInitializer()) {
-        PHASAR_LOG_LEVEL(DEBUG, ClearName << " does not have initializer");
+        PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                             ClearName << " does not have initializer");
         return VFS;
       }
       if (const auto *I =
@@ -210,8 +208,8 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
 }
 
 void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL(DEBUG,
-                   "Analyze types in module: " << M.getModuleIdentifier());
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+                       "Analyze types in module: " << M.getModuleIdentifier());
   // store analyzed module
   VisitedModules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();
@@ -340,11 +338,12 @@ nlohmann::json LLVMTypeHierarchy::getAsJson() const {
   // iterate all graph vertices
   for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
        ++VIv) {
-    J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*VIv].getTypeName()];
+    J[PhasarConfig::JsonTypeHierarchyID().str()][TypeGraph[*VIv].getTypeName()];
     // iterate all out edges of vertex vi_v
     for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, TypeGraph); EI != EIEnd;
          ++EI) {
-      J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*VIv].getTypeName()] +=
+      J[PhasarConfig::JsonTypeHierarchyID().str()]
+       [TypeGraph[*VIv].getTypeName()] +=
           TypeGraph[boost::target(*EI, TypeGraph)].getTypeName();
     }
   }
