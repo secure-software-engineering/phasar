@@ -304,6 +304,9 @@ public:
 
   // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
   friend llvm::hash_code hash_value(const BitVectorSet &BV) noexcept {
+    if (BV.Bits.empty()) {
+      return {};
+    }
     auto Words = BV.Bits.getData();
     size_t Idx = Words.size();
     while (Idx && Words[Idx - 1] == 0) {
