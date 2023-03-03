@@ -1,16 +1,16 @@
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/DataFlow/IfdsIde/Solver/PathAwareIDESolver.h"
+#include "phasar/DataFlow/PathSensitivity/FlowPath.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityManager.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathAwareIDESolver.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/FlowPath.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/LLVMPathConstraints.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManager.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitivityConfig.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitvityManager.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/PathSensitivity/LLVMPathConstraints.h"
+#include "phasar/PhasarLLVM/DataFlow/PathSensitivity/Z3BasedPathSensitivityConfig.h"
+#include "phasar/PhasarLLVM/DataFlow/PathSensitivity/Z3BasedPathSensitvityManager.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/AdjacencyList.h"
@@ -20,16 +20,15 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "gtest/gtest.h"
-
-#include "TestConfig.h"
-
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include <cassert>
 #include <fstream>
@@ -41,10 +40,9 @@
 // ============== TEST FIXTURE ============== //
 class PathTracingTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      psr::unittest::PathToLLTestFiles + "path_tracing/";
+  static constexpr auto PathToLlFiles = PHASAR_BUILD_SUBFOLDER("path_tracing/");
 
-  std::unique_ptr<psr::ProjectIRDB> IRDB;
+  std::unique_ptr<psr::LLVMProjectIRDB> IRDB;
   psr::LLVMPathConstraints LPC;
 
   void SetUp() override { psr::ValueAnnotationPass::resetValueID(); }
@@ -75,16 +73,14 @@ protected:
 
   psr::FlowPathSequence<const llvm::Instruction *>
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
-    auto IrFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<psr::ProjectIRDB>(IrFiles, psr::IRDBOptions::WPA);
+    IRDB = std::make_unique<psr::LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     psr::LLVMTypeHierarchy TH(*IRDB);
-    psr::LLVMPointsToSet PT(*IRDB);
-    psr::LLVMBasedICFG ICFG(*IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
-                            &TH, &PT, psr::Soundness::Soundy,
+    psr::LLVMAliasSet PT(IRDB.get());
+    psr::LLVMBasedICFG ICFG(IRDB.get(), psr::CallGraphAnalysisType::OTF,
+                            {"main"}, &TH, &PT, psr::Soundness::Soundy,
                             /*IncludeGlobals*/ false);
-    psr::IDELinearConstantAnalysis LCAProblem(IRDB.get(), &TH, &ICFG, &PT,
-                                              {"main"});
-    psr::PathAwareIDESolver LCASolver(LCAProblem);
+    psr::IDELinearConstantAnalysis LCAProblem(IRDB.get(), &ICFG, {"main"});
+    psr::PathAwareIDESolver LCASolver(LCAProblem, &ICFG);
     LCASolver.solve();
     if (PrintDump) {
       // IRDB->print();
@@ -109,18 +105,17 @@ protected:
   psr::FlowPathSequence<const llvm::Instruction *>
   doLambdaAnalysis(const std::string &LlvmFilePath,
                    size_t MaxDAGDepth = SIZE_MAX) {
-    auto IrFiles = {PathToLlFiles + LlvmFilePath};
-    IRDB = std::make_unique<psr::ProjectIRDB>(IrFiles, psr::IRDBOptions::WPA);
+    IRDB = std::make_unique<psr::LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
     psr::LLVMTypeHierarchy TH(*IRDB);
-    psr::LLVMPointsToSet PT(*IRDB);
-    psr::LLVMBasedICFG ICFG(*IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
-                            &TH, &PT, psr::Soundness::Soundy,
+    psr::LLVMAliasSet PT(IRDB.get());
+    psr::LLVMBasedICFG ICFG(IRDB.get(), psr::CallGraphAnalysisType::OTF,
+                            {"main"}, &TH, &PT, psr::Soundness::Soundy,
                             /*IncludeGlobals*/ false);
 
-    psr::TaintConfig Config(*IRDB, nlohmann::json{});
-    psr::IDEExtendedTaintAnalysis<3, false> Analysis(IRDB.get(), &TH, &ICFG,
-                                                     &PT, Config, {"main"});
-    psr::PathAwareIDESolver Solver(Analysis);
+    psr::LLVMTaintConfig Config(*IRDB, nlohmann::json{});
+    psr::IDEExtendedTaintAnalysis<3, false> Analysis(IRDB.get(), &ICFG, &PT,
+                                                     Config, {"main"});
+    psr::PathAwareIDESolver Solver(Analysis, &ICFG);
     Solver.solve();
 
     auto *Main = IRDB->getFunctionDefinition("main");

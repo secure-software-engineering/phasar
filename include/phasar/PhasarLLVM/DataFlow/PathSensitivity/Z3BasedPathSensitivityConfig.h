@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_Z3BASEDPATHSENSITIVITYCONFIG_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_Z3BASEDPATHSENSITIVITYCONFIG_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityConfig.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h"
 
 #include "z3++.h"
 

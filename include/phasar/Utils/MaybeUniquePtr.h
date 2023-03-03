@@ -151,30 +151,30 @@ public:
     return Data.getInt() && Data.getPointer();
   }
 
-  constexpr friend bool operator==(const MaybeUniquePtr<T> &LHS,
-                                   const MaybeUniquePtr<T> &RHS) noexcept {
+  constexpr friend bool operator==(const MaybeUniquePtr &LHS,
+                                   const MaybeUniquePtr &RHS) noexcept {
     return LHS.Data.getPointer() == RHS.Data.getPointer();
   }
-  constexpr friend bool operator!=(const MaybeUniquePtr<T> &LHS,
-                                   const MaybeUniquePtr<T> &RHS) noexcept {
+  constexpr friend bool operator!=(const MaybeUniquePtr &LHS,
+                                   const MaybeUniquePtr &RHS) noexcept {
     return !(LHS == RHS);
   }
 
-  constexpr friend bool operator==(const MaybeUniquePtr<T> &LHS,
+  constexpr friend bool operator==(const MaybeUniquePtr &LHS,
                                    const T *RHS) noexcept {
     return LHS.Data.getPointer() == RHS;
   }
-  constexpr friend bool operator!=(const MaybeUniquePtr<T> &LHS,
+  constexpr friend bool operator!=(const MaybeUniquePtr &LHS,
                                    const T *RHS) noexcept {
     return !(LHS == RHS);
   }
 
   constexpr friend bool operator==(const T *LHS,
-                                   const MaybeUniquePtr<T> &RHS) noexcept {
+                                   const MaybeUniquePtr &RHS) noexcept {
     return LHS == RHS.Data.getPointer();
   }
   constexpr friend bool operator!=(const T *LHS,
-                                   const MaybeUniquePtr<T> &RHS) noexcept {
+                                   const MaybeUniquePtr &RHS) noexcept {
     return !(LHS == RHS);
   }
 

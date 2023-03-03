@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/ExplodedSuperGraph.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityConfig.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerBase.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerMixin.h"
+#include "phasar/DataFlow/PathSensitivity/ExplodedSuperGraph.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityManagerBase.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityManagerMixin.h"
 #include "phasar/Utils/AdjacencyList.h"
 #include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/GraphTraits.h"

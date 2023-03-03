@@ -10,10 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/ESGEdgeKind.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/PhasarLLVM/Utils/Printer.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -37,6 +36,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+
+/// TODO: Keep an eye on memory_resource here! it is still not supported on some
+/// MAC systems
 
 namespace psr {
 

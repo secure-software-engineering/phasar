@@ -20,9 +20,11 @@ endif()
 set(PHASAR_LINK_LIBS
   phasar_config
   phasar_controlflow
+  phasar_llvm_controlflow
   phasar_utils
-  phasar_phasarllvm_utils
+  phasar_llvm_utils
   phasar_pointer
+  phasar_llvm_pointer
  # libz3
 )
 
@@ -32,25 +34,25 @@ set(LLVM_LINK_COMPONENTS
 )
 
 if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_pathsensitivity
+  add_phasar_library(phasar_llvm_pathsensitivity
     SHARED
     ${PATHSENSITIVITY_SRC}
   )
 else()
-  add_phasar_library(phasar_pathsensitivity
+  add_phasar_library(phasar_llvm_pathsensitivity
     STATIC
     ${PATHSENSITIVITY_SRC}
   )
 endif()
 
 if(PHASAR_USE_Z3)
-  target_link_libraries(phasar_pathsensitivity
+  target_link_libraries(phasar_llvm_pathsensitivity
     LINK_PUBLIC
     z3
   )
 endif()
 
-set_target_properties(phasar_pathsensitivity
+set_target_properties(phasar_llvm_pathsensitivity
   PROPERTIES
   LINKER_LANGUAGE CXX
   PREFIX "lib"

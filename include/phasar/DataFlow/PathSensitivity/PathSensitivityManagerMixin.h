@@ -10,12 +10,11 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGERMIXIN_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGERMIXIN_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/ExplodedSuperGraph.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityConfig.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerBase.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathTracingFilter.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/DataFlow/IfdsIde/SolverResults.h"
+#include "phasar/DataFlow/PathSensitivity/ExplodedSuperGraph.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityManagerBase.h"
+#include "phasar/DataFlow/PathSensitivity/PathTracingFilter.h"
 #include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/GraphTraits.h"
 
@@ -79,9 +78,10 @@ public:
 
       if (!Nod) {
 
-        llvm::errs() << "At Inst " << llvmIRToString(Inst) << "; Fact: " << Fact
-                     << '\n';
-        llvm::errs();
+        // llvm::errs() << "At Inst " << llvmIRToString(Inst) << "; Fact: " <<
+        // Fact
+        //              << '\n';
+        // llvm::errs();
 
         {
           std::error_code EC;

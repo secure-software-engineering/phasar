@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_Z3BASEDPATHSENSITIVITYMANAGER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_Z3BASEDPATHSENSITIVITYMANAGER_H
 
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/FlowPath.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerBase.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/PathSensitivityManagerMixin.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/PathSensitivity/Z3BasedPathSensitivityConfig.h"
+#include "phasar/DataFlow/PathSensitivity/FlowPath.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityManagerBase.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityManagerMixin.h"
+#include "phasar/PhasarLLVM/DataFlow/PathSensitivity/Z3BasedPathSensitivityConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/GraphTraits.h"
@@ -176,7 +176,8 @@ public:
 
 private:
   Z3BasedPathSensitivityConfig Config{};
-  MaybeUniquePtr<LLVMPathConstraints, true> LPC{};
+  /// FIXME: Not using 'mutable' here
+  mutable MaybeUniquePtr<LLVMPathConstraints, true> LPC{};
 };
 } // namespace psr
 
