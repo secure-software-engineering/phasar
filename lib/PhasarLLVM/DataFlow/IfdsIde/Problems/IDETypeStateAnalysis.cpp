@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -36,54 +36,40 @@
 
 namespace psr {
 
+///
+///
+/// TODO: Make Bottom common across all implementations of TypeStateDescription!
+/// then we can factor it out of all edge functions making some of them
+/// applicable for small-object optimization!
+///
+///
+
 // customize the edge function composer
-class TSEdgeFunctionComposer
-    : public EdgeFunctionComposer<IDETypeStateAnalysisDomain ::l_t> {
-private:
-  IDETypeStateAnalysisDomain ::l_t BotElement;
+struct TSEdgeFunctionComposer
+    : EdgeFunctionComposer<IDETypeStateAnalysisDomain::l_t> {
+  IDETypeStateAnalysisDomain::l_t BotElement{};
 
-public:
-  TSEdgeFunctionComposer(
-      std::shared_ptr<EdgeFunction<IDETypeStateAnalysisDomain ::l_t>> F,
-      std::shared_ptr<EdgeFunction<IDETypeStateAnalysisDomain ::l_t>> G,
-      IDETypeStateAnalysisDomain ::l_t Bot)
-      : EdgeFunctionComposer<
-            IDETypeStateAnalysisDomain ::IDETypeStateAnalysisDomain ::l_t>(F,
-                                                                           G),
-        BotElement(Bot) {}
+  static EdgeFunction<IDETypeStateAnalysisDomain::l_t>
+  join(EdgeFunctionRef<TSEdgeFunctionComposer> This,
+       const EdgeFunction<IDETypeStateAnalysisDomain::l_t> &OtherFunction) {
+    if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
+      return Default;
+    }
 
-  std::shared_ptr<EdgeFunction<IDETypeStateAnalysisDomain ::l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDETypeStateAnalysisDomain ::l_t>>
-               OtherFunction) override {
-    if (OtherFunction.get() == this ||
-        OtherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
-    }
-    if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::l_t> *>(
-            OtherFunction.get())) {
-      return this->shared_from_this();
-    }
-    return std::make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(BotElement);
+    return AllBottom<IDETypeStateAnalysis::l_t>{This->BotElement};
   }
 };
 
-class TSEdgeFunction : public EdgeFunction<IDETypeStateAnalysisDomain ::l_t>,
-                       public std::enable_shared_from_this<TSEdgeFunction> {
-protected:
+struct TSEdgeFunction {
   const TypeStateDescription *TSD;
-  // Do not use a reference here, since LLVM's StringRef's (obtained by str())
-  // might turn to nullptr for whatever reason...
-  const std::string Token;
+  // XXX: Do we really need a string here? Can't we just use an integer or sth
+  // else that is cheap?
+  std::string Token;
   const llvm::CallBase *CallSite;
 
-public:
   using l_t = IDETypeStateAnalysisDomain ::l_t;
 
-  TSEdgeFunction(const TypeStateDescription *TSD, const std::string &Tok,
-                 const llvm::CallBase *CB)
-      : TSD(TSD), Token(Tok), CallSite(CB){};
-
-  l_t computeTarget(l_t Source) override {
+  [[nodiscard]] l_t computeTarget(l_t Source) const {
 
     // assert((Source != TSD->top()) && "Error: call computeTarget with TOP\n");
 
@@ -95,118 +81,88 @@ public:
     return CurrentState;
   }
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
+  static EdgeFunction<l_t> compose(EdgeFunctionRef<TSEdgeFunction> This,
+                                   const EdgeFunction<l_t> &SecondFunction) {
+    if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
+      return Default;
+    }
 
-    if (auto *AB = dynamic_cast<AllBottom<IDETypeStateAnalysis::l_t> *>(
-            SecondFunction.get())) {
-      return SecondFunction;
-    }
-    if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
-            SecondFunction.get())) {
-      return this->shared_from_this();
-    }
-    return std::make_shared<TSEdgeFunctionComposer>(
-        this->shared_from_this(), SecondFunction, TSD->bottom());
+    return TSEdgeFunctionComposer{{This, SecondFunction}, This->TSD->bottom()};
   }
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
-    if (OtherFunction.get() == this ||
-        OtherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
+  static EdgeFunction<l_t> join(EdgeFunctionRef<TSEdgeFunction> This,
+                                const EdgeFunction<l_t> &OtherFunction) {
+    if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
+      return Default;
     }
-    // if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
-    //         otherFunction.get())) {
-    //   return this->shared_from_this();
-    // }
-    if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::l_t> *>(
-            OtherFunction.get())) {
-      return this->shared_from_this();
-    }
-    return std::make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(
-        TSD->bottom());
+
+    return AllBottom<IDETypeStateAnalysis::l_t>{This->TSD->bottom()};
   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
-    /*if (auto *TSEF =
-           dynamic_cast<IDETypeStateAnalysis::TSEdgeFunction *>(Other.get())) {
-     return this->CurrentState == TSEF->CurrentState;
-   }*/
-    return this == Other.get();
+  bool operator==(const TSEdgeFunction &Other) const {
+    return CallSite == Other.CallSite && Token == Other.Token;
   }
 
-  void print(llvm::raw_ostream &OS,
-             bool /*IsForDebug*/ = false) const override {
-    OS << "TSEF(" << Token << " at " << llvmIRToShortString(CallSite) << ")";
+  friend llvm::raw_ostream &print(llvm::raw_ostream &OS,
+                                  const TSEdgeFunction &TSE) {
+    return OS << "TSEF(" << TSE.Token << " at "
+              << llvmIRToShortString(TSE.CallSite) << ")";
   }
 };
 
-class TSConstant : public EdgeFunction<IDETypeStateAnalysisDomain ::l_t>,
-                   public std::enable_shared_from_this<TSConstant> {
-  const TypeStateDescription *TSD;
-  IDETypeStateAnalysisDomain ::l_t State;
+struct TSConstant : ConstantEdgeFunction<IDETypeStateAnalysisDomain::l_t> {
+  const TypeStateDescription *TSD{};
 
-public:
-  using l_t = IDETypeStateAnalysisDomain ::l_t;
-  explicit TSConstant(const TypeStateDescription *TSD, l_t State)
-      : TSD(TSD), State(State) {}
+  /// XXX: Cannot default compose() and join(), because l_t does not implement
+  /// JoinLatticeTraits (because bottom value is not constant)
+  template <typename ConcreteEF>
+  static EdgeFunction<l_t> compose(EdgeFunctionRef<ConcreteEF> This,
+                                   const EdgeFunction<l_t> &SecondFunction) {
 
-  l_t computeTarget(l_t /*Source*/) override { return State; }
-
-  std::shared_ptr<EdgeFunction<l_t>>
-  composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
-    auto Ret = SecondFunction->computeTarget(State);
-    if (Ret == State) {
-      return shared_from_this();
-    }
-    if (Ret == TSD->bottom()) {
-      return std::make_shared<AllBottom<l_t>>(Ret);
+    if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
+      return Default;
     }
 
-    return std::make_shared<TSConstant>(TSD, Ret);
+    auto Ret = SecondFunction.computeTarget(This->Value);
+    if (Ret == This->Value) {
+      return This;
+    }
+    if (Ret == This->TSD->bottom()) {
+      return AllBottom<l_t>{Ret};
+    }
+
+    return TSConstant{{Ret}, This->TSD};
   }
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
-    if (&*OtherFunction == this ||
-        OtherFunction->equal_to(this->shared_from_this())) {
-      return this->shared_from_this();
+  template <typename ConcreteEF>
+  static EdgeFunction<l_t> join(EdgeFunctionRef<ConcreteEF> This,
+                                const EdgeFunction<l_t> &OtherFunction) {
+    if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
+      return Default;
     }
 
-    if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::l_t> *>(
-            &*OtherFunction)) {
-      return this->shared_from_this();
-    }
-
-    if (auto *C = dynamic_cast<TSConstant *>(&*OtherFunction)) {
-      if (C->State == State || C->State == TSD->top()) {
-        return shared_from_this();
+    const auto *TSD = This->TSD;
+    if (const auto *C = llvm::dyn_cast<TSConstant>(OtherFunction)) {
+      if (C->Value == This->Value || C->Value == TSD->top()) {
+        return This;
       }
-      if (State == TSD->top()) {
+      if (This->Value == TSD->top()) {
         return OtherFunction;
       }
     }
-    return std::make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(
-        TSD->bottom());
-  }
-
-  bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
-    if (this == &*Other) {
-      return true;
-    }
-    if (const auto *OtherC = dynamic_cast<TSConstant *>(&*Other)) {
-      return State == OtherC->State;
-    }
-
-    return false;
-  }
-
-  void print(llvm::raw_ostream &OS,
-             bool /*IsForDebug*/ = false) const override {
-    OS << "TSConstant[" << TSD->stateToString(State) << "]";
+    return AllBottom<IDETypeStateAnalysis::l_t>{TSD->bottom()};
   }
 };
+
+bool operator==(ByConstRef<TSConstant> LHS,
+                ByConstRef<TSConstant> RHS) noexcept {
+  return LHS.Value == RHS.Value;
+}
+
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              ByConstRef<TSConstant> EF) {
+  return OS << "TSConstant[" << EF.TSD->stateToString(EF.Value) << "]";
+}
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB,
                                            LLVMAliasInfoRef PT,
@@ -495,38 +451,39 @@ bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t Fact) const {
 
 // in addition provide specifications for the IDE parts
 
+struct TSAllocaEF : TSConstant {
+  const llvm::AllocaInst *Alloca;
+  TSAllocaEF(const TypeStateDescription *Tsd,
+             const llvm::AllocaInst *Alloca) noexcept
+      : TSConstant{{Tsd->uninit()}, Tsd}, Alloca(Alloca) {}
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const TSAllocaEF &TSA) {
+    return OS << "Alloca(" << llvmIRToShortString(TSA.Alloca) << ")";
+  }
+};
+
 auto IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t Curr, IDETypeStateAnalysis::d_t CurrNode,
     IDETypeStateAnalysis::n_t /*Succ*/, IDETypeStateAnalysis::d_t SuccNode)
-    -> EdgeFunctionPtrType {
+    -> EdgeFunction<l_t> {
   // Set alloca instructions of target type to uninitialized.
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (hasMatchingType(Alloca)) {
       if (CurrNode == getZeroValue() && SuccNode == Alloca) {
-        struct TSAllocaEF : public TSConstant {
-          const llvm::AllocaInst *Alloca;
-          TSAllocaEF(const TypeStateDescription *Tsd,
-                     const llvm::AllocaInst *Alloca)
-              : TSConstant(Tsd, Tsd->uninit()), Alloca(Alloca) {}
-
-          void print(llvm::raw_ostream &OS,
-                     bool /*IsForDebug = false*/) const override {
-            OS << "Alloca(" << llvmIRToShortString(Alloca) << ")";
-          }
-        };
-        return std::make_shared<TSAllocaEF>(TSD, Alloca);
+        return TSAllocaEF(TSD, Alloca);
       }
     }
   }
-  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
 auto IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::d_t /*SrcNode*/,
     IDETypeStateAnalysis::f_t /*DestinationFunction*/,
-    IDETypeStateAnalysis::d_t /*DestNode*/) -> EdgeFunctionPtrType {
-  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
+    IDETypeStateAnalysis::d_t /*DestNode*/) -> EdgeFunction<l_t> {
+  return EdgeIdentity<l_t>{};
 }
 
 auto IDETypeStateAnalysis::getReturnEdgeFunction(
@@ -535,15 +492,15 @@ auto IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t /*ExitSite*/,
     IDETypeStateAnalysis::d_t /*ExitNode*/,
     IDETypeStateAnalysis::n_t /*ReSite*/, IDETypeStateAnalysis::d_t /*RetNode*/)
-    -> EdgeFunctionPtrType {
-  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
+    -> EdgeFunction<l_t> {
+  return EdgeIdentity<l_t>{};
 }
 
 auto IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t /*RetSite*/,
     IDETypeStateAnalysis::d_t RetSiteNode, llvm::ArrayRef<f_t> Callees)
-    -> EdgeFunctionPtrType {
+    -> EdgeFunction<l_t> {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
@@ -553,12 +510,8 @@ auto IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if (TSD->isFactoryFunction(DemangledFname)) {
       PHASAR_LOG_LEVEL(DEBUG, "Processing factory function");
       if (isZeroValue(CallNode) && RetSiteNode == CS) {
-        struct TSFactoryEF : public TSConstant {
-          TSFactoryEF(const TypeStateDescription *Tsd, l_t State)
-              : TSConstant(Tsd, State) {}
-        };
-        return std::make_shared<TSFactoryEF>(
-            TSD, TSD->getNextState(DemangledFname, TSD->uninit(), CS));
+        return TSConstant{
+            {TSD->getNextState(DemangledFname, TSD->uninit(), CS)}, TSD};
       }
     }
 
@@ -572,19 +525,19 @@ auto IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
         if (CallNode == RetSiteNode &&
             AliasAndAllocas.find(CallNode) != AliasAndAllocas.end()) {
-          return std::make_shared<TSEdgeFunction>(TSD, DemangledFname, CS);
+          return TSEdgeFunction{TSD, DemangledFname, CS};
         }
       }
     }
   }
-  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
 auto IDETypeStateAnalysis::getSummaryEdgeFunction(
     IDETypeStateAnalysis::n_t /*CallSite*/,
     IDETypeStateAnalysis::d_t /*CallNode*/,
     IDETypeStateAnalysis::n_t /*RetSite*/,
-    IDETypeStateAnalysis::d_t /*RetSiteNode*/) -> EdgeFunctionPtrType {
+    IDETypeStateAnalysis::d_t /*RetSiteNode*/) -> EdgeFunction<l_t> {
   return nullptr;
 }
 
@@ -611,9 +564,8 @@ IDETypeStateAnalysis::join(IDETypeStateAnalysis::l_t Lhs,
   return TSD->bottom();
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
-IDETypeStateAnalysis::allTopFunction() {
-  return std::make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TSD->top());
+auto IDETypeStateAnalysis::allTopFunction() -> EdgeFunction<l_t> {
+  return AllTop<IDETypeStateAnalysis::l_t>{TSD->top()};
 }
 
 void IDETypeStateAnalysis::printNode(llvm::raw_ostream &OS, n_t Stmt) const {

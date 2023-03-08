@@ -82,25 +82,25 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                            d_t SuccNode) override;
+  EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                          d_t SuccNode) override;
 
-  EdgeFunctionPtrType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                          f_t DestinationFunction,
-                                          d_t DestNode) override;
+  EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                        f_t DestinationFunction,
+                                        d_t DestNode) override;
 
-  EdgeFunctionPtrType getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
-                                            n_t ExitInst, d_t ExitNode,
-                                            n_t RetSite, d_t RetNode) override;
+  EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
+                                          n_t ExitInst, d_t ExitNode,
+                                          n_t RetSite, d_t RetNode) override;
 
-  EdgeFunctionPtrType
+  EdgeFunction<l_t>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  EdgeFunctionPtrType getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
-                                             n_t RetSite,
-                                             d_t RetSiteNode) override;
+  EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
+                                           n_t RetSite,
+                                           d_t RetSiteNode) override;
 
   l_t topElement() override;
 
@@ -116,7 +116,7 @@ public:
    */
   l_t join(l_t Lhs, l_t Rhs) override;
 
-  EdgeFunctionPtrType allTopFunction() override;
+  EdgeFunction<l_t> allTopFunction() override;
 
   void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 

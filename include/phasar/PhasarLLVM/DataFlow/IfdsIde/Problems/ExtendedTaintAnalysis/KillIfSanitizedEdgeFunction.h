@@ -10,38 +10,29 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_KILLIFSANITIZEDEDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_KILLIFSANITIZEDEDGEFUNCTION_H
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintEdgeFunctionBase.h"
+#include "phasar/Utils/ByRef.h"
 
 namespace psr::XTaint {
 
-class KillIfSanitizedEdgeFunction : public EdgeFunctionBase {
-  const llvm::Instruction *Load;
+struct KillIfSanitizedEdgeFunction
+    : EdgeFunctionBase<KillIfSanitizedEdgeFunction> {
+  BasicBlockOrdering *BBO{};
+  const llvm::Instruction *Load{};
 
-public:
-  KillIfSanitizedEdgeFunction(BasicBlockOrdering &BBO,
-                              const llvm::Instruction *Load);
+  using l_t = EdgeDomain;
 
-  l_t computeTarget(l_t Source) override;
+  [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const;
 
-  bool equal_to(EdgeFunctionPtrType OtherFunction) const override;
-
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-
-  inline const llvm::Instruction *getLoad() const { return Load; }
-
-  llvm::hash_code getHashCode() const override;
-
-  inline static bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == EFKind::KillIfSani;
-  }
+  [[nodiscard]] inline const llvm::Instruction *getLoad() const { return Load; }
 };
 
-inline EdgeFunctionBase::EdgeFunctionPtrType
-makeKillIfSanitizedEdgeFunction(BasicBlockOrdering &BBO,
-                                const llvm::Instruction *Load) {
-  return makeEF<KillIfSanitizedEdgeFunction>(BBO, Load);
-}
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              ByConstRef<KillIfSanitizedEdgeFunction> KEF);
+
+[[nodiscard]] bool
+operator==(ByConstRef<KillIfSanitizedEdgeFunction> LHS,
+           ByConstRef<KillIfSanitizedEdgeFunction> RHS) noexcept;
 
 } // namespace psr::XTaint
 

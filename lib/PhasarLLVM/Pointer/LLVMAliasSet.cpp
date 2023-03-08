@@ -22,6 +22,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalValue.h"
@@ -303,6 +304,10 @@ bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
         return true;
       }
     }
+  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(P)) {
+    /// Arguments are no allocation sites, but in the inTRAprocedural case, they
+    /// act as such
+    return Arg->getParent() == VFun;
   }
 
   return false;

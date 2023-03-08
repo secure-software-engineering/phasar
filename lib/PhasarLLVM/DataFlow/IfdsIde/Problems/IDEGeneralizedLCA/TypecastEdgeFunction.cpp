@@ -9,49 +9,48 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/TypecastEdgeFunction.h"
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCADomain.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 
 namespace psr::glca {
 
 IDEGeneralizedLCA::l_t
-TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t Source) {
+TypecastEdgeFunction::computeTarget(ByConstRef<l_t> Source) const {
   return performTypecast(Source, Dest, Bits);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-TypecastEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction) {
-  if (AllBot::isBot(SecondFunction)) {
-    return SecondFunction;
+auto TypecastEdgeFunction::compose(EdgeFunctionRef<TypecastEdgeFunction> This,
+                                   const EdgeFunction<l_t> &SecondFunction)
+    -> EdgeFunction<l_t> {
+  if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
+    return Default;
   }
-  return std::make_shared<LCAEdgeFunctionComposer>(shared_from_this(),
-                                                   SecondFunction, MaxSize);
+  return LCAEdgeFunctionComposer{This, SecondFunction};
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-TypecastEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction) {
-  return std::make_shared<JoinEdgeFunction>(shared_from_this(), OtherFunction,
-                                            MaxSize);
-}
-
-bool TypecastEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other) const {
-  if (this == Other.get()) {
-    return true;
+auto TypecastEdgeFunction::join(EdgeFunctionRef<TypecastEdgeFunction> This,
+                                const EdgeFunction<l_t> &OtherFunction)
+    -> EdgeFunction<l_t> {
+  if (auto Default =
+          defaultJoinOrNull<l_t, IDEGeneralizedLCADomain::JoinThreshold>(
+              This, OtherFunction)) {
+    return Default;
   }
-  if (const auto *OtherTC = dynamic_cast<TypecastEdgeFunction *>(Other.get())) {
-    return Bits == OtherTC->Bits && Dest == OtherTC->Dest;
-  }
-  return false;
-}
 
-void TypecastEdgeFunction::print(llvm::raw_ostream &OS,
-                                 bool /*IsForDebug*/) const {
-  OS << "TypecastEdgeFn[to=" << EdgeValue::typeToString(Dest)
-     << "; bits=" << Bits << "]";
+  return JoinEdgeFunction<l_t, IDEGeneralizedLCADomain::JoinThreshold>::create(
+      This, OtherFunction);
 }
 
 } // namespace psr::glca
+
+bool psr::glca::operator==(ByConstRef<TypecastEdgeFunction> LHS,
+                           ByConstRef<TypecastEdgeFunction> RHS) noexcept {
+  return LHS.Bits == RHS.Bits && LHS.Dest == RHS.Dest;
+}
+
+llvm::raw_ostream &psr::glca::operator<<(llvm::raw_ostream &OS,
+                                         ByConstRef<TypecastEdgeFunction> EF) {
+  return OS << "TypecastEdgeFn[to=" << EdgeValue::typeToString(EF.Dest)
+            << "; bits=" << EF.Bits << "]";
+}
