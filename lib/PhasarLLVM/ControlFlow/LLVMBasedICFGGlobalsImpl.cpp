@@ -136,7 +136,14 @@ static llvm::Function *createDtorCallerForModule(
 
   for (auto It = RegisteredDtors.rbegin(), End = RegisteredDtors.rend();
        It != End; ++It) {
-    IRB.CreateCall(It->first, {It->second});
+    auto FunCallee = It->first;
+    assert(FunCallee.getFunctionType()->getNumParams() == 1);
+    auto *ExpectedArgType = FunCallee.getFunctionType()->getParamType(0);
+    auto *Arg = It->second;
+    if (Arg->getType() != ExpectedArgType) {
+      Arg = IRB.CreateBitOrPointerCast(Arg, ExpectedArgType);
+    }
+    IRB.CreateCall(FunCallee, {Arg});
   }
 
   IRB.CreateRetVoid();
@@ -233,7 +240,7 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
 
   for (auto [unused, Ctor] : GlobalCtors) {
     assert(Ctor != nullptr);
-    assert(Ctor->arg_size() == 0);
+    assert(Ctor->arg_empty());
 
     IRB.CreateCall(Ctor);
   }
@@ -286,7 +293,7 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
     auto UEntrySelectorFn = M.getOrInsertFunction(
         "__psrCRuntimeUserEntrySelector", llvm::Type::getInt32Ty(CTX));
 
-    auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn, {});
+    auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn);
 
     auto *DefaultBB = llvm::BasicBlock::Create(CTX, "invalid", GlobModel);
     auto *SwitchEnd = llvm::BasicBlock::Create(CTX, "switchEnd", GlobModel);
