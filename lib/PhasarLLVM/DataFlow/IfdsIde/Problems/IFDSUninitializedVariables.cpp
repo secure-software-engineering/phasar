@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -389,14 +390,7 @@ InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
              IFDSUninitializedVariables::l_t>
 IFDSUninitializedVariables::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSUninitializedVariables::initialSeeds()");
-  InitialSeeds<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
-               IFDSUninitializedVariables::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IFDSUninitializedVariables::d_t
