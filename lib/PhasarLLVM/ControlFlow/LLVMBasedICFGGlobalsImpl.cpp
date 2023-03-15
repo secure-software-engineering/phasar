@@ -141,6 +141,16 @@ static llvm::Function *createDtorCallerForModule(
     auto *ExpectedArgType = FunCallee.getFunctionType()->getParamType(0);
     auto *Arg = It->second;
     if (Arg->getType() != ExpectedArgType) {
+      if (!Arg->getType()->canLosslesslyBitCastTo(ExpectedArgType)) {
+        PHASAR_LOG_LEVEL(
+            WARNING,
+            "Detected registered dtor with incompatible signature: Function "
+                << FunCallee.getCallee()->getName() << " passed parameter "
+                << llvmIRToString(Arg) << " of incompatible type: Expected "
+                << llvmTypeToString(ExpectedArgType, true) << " vs Got"
+                << llvmTypeToString(Arg->getType(), true));
+        continue;
+      }
       Arg = IRB.CreateBitOrPointerCast(Arg, ExpectedArgType);
     }
     IRB.CreateCall(FunCallee, {Arg});
