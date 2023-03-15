@@ -222,6 +222,23 @@ std::string llvmIRToShortString(const llvm::Value *V) {
   return llvm::StringRef(IRBuffer).ltrim().str();
 }
 
+std::string llvmTypeToString(const llvm::Type *Ty, bool Shorten) {
+  if (!Ty) {
+    return "<null>";
+  }
+  if (Shorten) {
+    if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty);
+        StructTy && StructTy->hasName()) {
+      return StructTy->getName().str();
+    }
+  }
+
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  Ty->print(RSO, false, Shorten);
+  return IRBuffer;
+}
+
 void dumpIRValue(const llvm::Value *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
