@@ -129,6 +129,9 @@ protected:
     return generateFlow(std::move(FactToGenerate), getZeroValue());
   }
 
+  /// Seeds that just start with ZeroValue and bottomElement() at the starting
+  /// points of each EntryPoint function.
+  /// Takes the __ALL__ EntryPoint into account.
   template <
       typename CC = typename AnalysisDomainTy::c_t,
       typename = std::enable_if_t<std::is_nothrow_default_constructible_v<CC>>>
