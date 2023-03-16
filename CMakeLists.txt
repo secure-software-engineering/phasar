@@ -131,7 +131,12 @@ else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
-set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/" CACHE STRING "Customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
+set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
+if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
+  set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
+else()
+  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
+endif()
 
 add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
 add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
