@@ -10,27 +10,22 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_COMPOSEEDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_COMPOSEEDGEFUNCTION_H
 
+#include "phasar//DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/EdgeDomain.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/XTaintEdgeFunctionBase.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 namespace psr::XTaint {
-class ComposeEdgeFunction : public EdgeFunctionBase {
-  EdgeFunctionPtrType F, G;
+struct ComposeEdgeFunction : EdgeFunctionComposer<EdgeDomain> {
+  using typename EdgeFunctionComposer<EdgeDomain>::l_t;
 
-public:
-  ComposeEdgeFunction(BasicBlockOrdering &BBO, EdgeFunctionPtrType F,
-                      EdgeFunctionPtrType G);
+  static EdgeFunction<EdgeDomain>
+  join(EdgeFunctionRef<ComposeEdgeFunction> This,
+       const EdgeFunction<EdgeDomain> &Other);
 
-  l_t computeTarget(l_t Source) override;
-
-  bool equal_to(EdgeFunctionPtrType Other) const override;
-
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
-
-  llvm::hash_code getHashCode() const override;
-
-  static inline bool classof(const EdgeFunctionBase *EF) {
-    return EF->getKind() == EFKind::Compose;
-  }
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const ComposeEdgeFunction &CEF);
 };
 } // namespace psr::XTaint
 

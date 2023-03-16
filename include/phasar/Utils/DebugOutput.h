@@ -96,9 +96,9 @@ template <typename T> struct PrettyPrinter {
 };
 
 template <typename T>
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const PrettyPrinter<T> &P) {
-  OS << P;
+std::ostream &operator<<(std::ostream &OS, const PrettyPrinter<T> &P) {
+  llvm::raw_os_ostream ROS(OS);
+  ROS << P;
   return OS;
 }
 

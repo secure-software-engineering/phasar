@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
 
@@ -43,35 +43,30 @@ public:
   using d_t = typename AnalysisDomainTy::d_t;
   using n_t = typename AnalysisDomainTy::n_t;
 
-  using EdgeFunctionType = EdgeFunction<l_t>;
-  using EdgeFunctionPtrType = std::shared_ptr<EdgeFunctionType>;
-
 private:
-  EdgeFunctionPtrType Alltop;
   const IDETabulationProblem<AnalysisDomainTy, Container> &Problem;
 
 protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<n_t, d_t, llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>
+  Table<n_t, d_t, llvm::SmallVector<std::pair<d_t, EdgeFunction<l_t>>, 1>>
       NonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<d_t, n_t, llvm::SmallVector<std::pair<d_t, EdgeFunctionPtrType>, 1>>
+  Table<d_t, n_t, llvm::SmallVector<std::pair<d_t, EdgeFunction<l_t>>, 1>>
       NonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
   // we exclude empty default functions
-  std::unordered_map<n_t, Table<d_t, d_t, EdgeFunctionPtrType>>
+  std::unordered_map<n_t, Table<d_t, d_t, EdgeFunction<l_t>>>
       NonEmptyLookupByTargetNode;
 
 public:
   JumpFunctions(
-      EdgeFunctionPtrType Alltop,
       const IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
-      : Alltop(std::move(Alltop)), Problem(Problem) {}
+      : Problem(Problem) {}
 
   ~JumpFunctions() = default;
 
@@ -85,23 +80,23 @@ public:
    * @see PathEdge
    */
   void addFunction(d_t SourceVal, n_t Target, d_t TargetVal,
-                   EdgeFunctionPtrType EdgeFunc) {
+                   EdgeFunction<l_t> EdgeFunc) {
     PHASAR_LOG_LEVEL(DEBUG, "Start adding new jump function");
     PHASAR_LOG_LEVEL(DEBUG,
                      "Fact at source : " << Problem.DtoString(SourceVal));
     PHASAR_LOG_LEVEL(DEBUG,
                      "Fact at target : " << Problem.DtoString(TargetVal));
     PHASAR_LOG_LEVEL(DEBUG, "Destination    : " << Problem.NtoString(Target));
-    PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EdgeFunc->str());
+    PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EdgeFunc);
     // we do not store the default function (all-top)
-    if (EdgeFunc->equal_to(Alltop)) {
+    if (llvm::isa<AllTop<l_t>>(EdgeFunc)) {
       return;
     }
 
     auto &SourceValToFunc = NonEmptyReverseLookup.get(Target, TargetVal);
     if (auto Find = std::find_if(
             SourceValToFunc.begin(), SourceValToFunc.end(),
-            [SourceVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+            [SourceVal](const std::pair<d_t, EdgeFunction<l_t>> &Entry) {
               return SourceVal == Entry.first;
             });
         Find != SourceValToFunc.end()) {
@@ -115,7 +110,7 @@ public:
     auto &TargetValToFunc = NonEmptyForwardLookup.get(SourceVal, Target);
     if (auto Find = std::find_if(
             TargetValToFunc.begin(), TargetValToFunc.end(),
-            [TargetVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+            [TargetVal](const std::pair<d_t, EdgeFunction<l_t>> &Entry) {
               return TargetVal == Entry.first;
             });
         Find != TargetValToFunc.end()) {
@@ -138,7 +133,7 @@ public:
    * The return value is a mapping from source value to function.
    */
   std::optional<std::reference_wrapper<
-      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunctionPtrType>>>>
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunction<l_t>>>>>
   reverseLookup(n_t Target, d_t TargetVal) {
     if (!NonEmptyReverseLookup.contains(Target, TargetVal)) {
       return std::nullopt;
@@ -152,7 +147,7 @@ public:
    * The return value is a mapping from target value to function.
    */
   std::optional<std::reference_wrapper<
-      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunctionPtrType>>>>
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunction<l_t>>>>>
   forwardLookup(d_t SourceVal, n_t Target) {
     if (!NonEmptyForwardLookup.contains(SourceVal, Target)) {
       return std::nullopt;
@@ -166,7 +161,7 @@ public:
    * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
-  Table<d_t, d_t, EdgeFunctionPtrType> &lookupByTarget(n_t Target) {
+  Table<d_t, d_t, EdgeFunction<l_t>> &lookupByTarget(n_t Target) {
     return NonEmptyLookupByTargetNode[Target];
   }
 
@@ -180,7 +175,7 @@ public:
     auto &SourceValToFunc = NonEmptyReverseLookup.get(Target, TargetVal);
     if (auto Find = std::find_if(
             SourceValToFunc.begin(), SourceValToFunc.end(),
-            [SourceVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+            [SourceVal](const std::pair<d_t, EdgeFunction<l_t>> &Entry) {
               return SourceVal == Entry.first;
             });
         Find != SourceValToFunc.end()) {
@@ -189,7 +184,7 @@ public:
     auto &TargetValToFunc = NonEmptyForwardLookup.get(SourceVal, Target);
     if (auto Find = std::find_if(
             TargetValToFunc.begin(), TargetValToFunc.end(),
-            [TargetVal](const std::pair<d_t, EdgeFunctionPtrType> &Entry) {
+            [TargetVal](const std::pair<d_t, EdgeFunction<l_t>> &Entry) {
               return TargetVal == Entry.first;
             });
         Find != TargetValToFunc.end()) {
@@ -218,7 +213,7 @@ public:
       for (auto Cell : Entry.second.cellSet()) {
         OS << "D1: " << Problem.DtoString(Cell.r) << '\n'
            << "\tD2: " << Problem.DtoString(Cell.c) << '\n'
-           << "\tEF: " << Cell.v->str() << "\n\n";
+           << "\tEF: " << Cell.v << "\n\n";
       }
     }
   }
@@ -232,7 +227,7 @@ public:
          << "\nD1: " << Problem.DtoString(Cell.c) << '\n';
       for (auto D2ToEF : Cell.v) {
         OS << "D2: " << Problem.DtoString(D2ToEF.first)
-           << "\nEF: " << D2ToEF.second->str() << '\n';
+           << "\nEF: " << D2ToEF.second << '\n';
       }
       OS << '\n';
     }
@@ -247,7 +242,7 @@ public:
          << "\nN : " << Problem.NtoString(Cell.c) << '\n';
       for (auto D2ToEF : Cell.v) {
         OS << "D2: " << Problem.DtoString(D2ToEF.first)
-           << "\nEF: " << D2ToEF.second->str() << '\n';
+           << "\nEF: " << D2ToEF.second << '\n';
       }
       OS << '\n';
     }
@@ -262,7 +257,7 @@ public:
       auto CellVec = Table.cellVec();
       for (auto Cell : CellVec) {
         OS << "D1: " << Problem.DtoString(Cell.r)
-           << "\nD2: " << Problem.DtoString(Cell.c) << "\nEF: " << Cell.v->str()
+           << "\nD2: " << Problem.DtoString(Cell.c) << "\nEF: " << Cell.v
            << '\n';
       }
       OS << '\n';
