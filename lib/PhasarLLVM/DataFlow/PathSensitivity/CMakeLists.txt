@@ -25,8 +25,11 @@ set(PHASAR_LINK_LIBS
   phasar_llvm_utils
   phasar_pointer
   phasar_llvm_pointer
- # libz3
 )
+
+if(PHASAR_USE_Z3)
+  list(APPEND PHASAR_LINK_LIBS z3)
+endif()
 
 set(LLVM_LINK_COMPONENTS
   Core
@@ -42,13 +45,6 @@ else()
   add_phasar_library(phasar_llvm_pathsensitivity
     STATIC
     ${PATHSENSITIVITY_SRC}
-  )
-endif()
-
-if(PHASAR_USE_Z3)
-  target_link_libraries(phasar_llvm_pathsensitivity
-    LINK_PUBLIC
-    z3
   )
 endif()
 
