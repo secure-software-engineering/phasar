@@ -15,6 +15,8 @@
 #include "phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h"
 #include "phasar/DataFlow/PathSensitivity/PathSensitivityManagerBase.h"
 #include "phasar/DataFlow/PathSensitivity/PathTracingFilter.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/GraphTraits.h"
 
@@ -35,13 +37,13 @@ class PathSensitivityManagerMixin {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
 
-  using Node = typename ExplodedSuperGraph<AnalysisDomainTy>::Node;
+  using NodeRef = typename ExplodedSuperGraph<AnalysisDomainTy>::NodeRef;
   using graph_type = GraphType;
   using graph_traits_t = GraphTraits<graph_type>;
   using vertex_t = typename graph_traits_t::vertex_t;
 
   struct PathsToContext {
-    llvm::DenseMap<Node *, unsigned> Cache;
+    llvm::DenseMap<NodeRef, unsigned, typename NodeRef::DSI> Cache;
     llvm::SetVector<unsigned, llvm::SmallVector<unsigned, 0>> CurrPath;
   };
 
@@ -65,7 +67,7 @@ public:
   template <
       typename FactsRangeTy, typename ConfigTy,
       typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, Node>>>
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
   [[nodiscard]] GraphType
   pathsDagToAll(n_t Inst, FactsRangeTy FactsRange,
                 const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -118,6 +120,32 @@ public:
       PHASAR_LOG_LEVEL_CAT(DEBUG, "PathSensitivityManager",
                            "The DAG indeed has no circles");
     }
+
+    // {
+    //   std::error_code EC;
+    //   llvm::raw_fd_stream ROS(
+    //       "revdag-" +
+    //           std::filesystem::path(psr::getFilePathFromIR(Inst))
+    //               .filename()
+    //               .string() +
+    //           "-" + psr::getMetaDataID(Inst) + ".dot",
+    //       EC);
+    //   assert(!EC);
+    //   printGraph(Dag, ROS, "DAG", [](llvm::ArrayRef<n_t> PartialPath) {
+    //     std::string Buf;
+    //     llvm::raw_string_ostream ROS(Buf);
+    //     ROS << "[ ";
+    //     llvm::interleaveComma(PartialPath, ROS, [&ROS](const auto *Inst) {
+    //       ROS << psr::getMetaDataID(Inst);
+    //     });
+    //     ROS << " ]";
+    //     ROS.flush();
+    //     return Buf;
+    //   });
+
+    //   llvm::errs() << "Rev Paths DAG has " << Dag.Roots.size() << " roots\n";
+    // }
+
 #endif
 
     if (Config.DAGDepthThreshold != SIZE_MAX) {
@@ -187,7 +215,7 @@ public:
 
   template <
       typename ConfigTy, typename L, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, Node>>>
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, const SolverResults<n_t, d_t, L> &SR,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -199,7 +227,7 @@ public:
 
   template <
       typename ConfigTy, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, Node>>>
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, d_t Fact,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -211,21 +239,21 @@ public:
 
 private:
   template <typename Filter>
-  bool pathsToImplLAInvoke(vertex_t Ret, Node *Vtx, PathsToContext &Ctx,
+  bool pathsToImplLAInvoke(vertex_t Ret, NodeRef Vtx, PathsToContext &Ctx,
                            graph_type &RetDag, const Filter &PFilter) const {
-    Node *Prev;
+    NodeRef Prev;
     bool IsEnd = false;
     bool IsError = false;
 
     do {
       Prev = Vtx;
-      graph_traits_t::node(RetDag, Ret).push_back(Vtx->Source);
+      graph_traits_t::node(RetDag, Ret).push_back(Vtx.source());
 
-      if (!Vtx->Predecessor) {
+      if (!Vtx.predecessor()) {
         return true;
       }
 
-      Vtx = Vtx->Predecessor;
+      Vtx = Vtx.predecessor();
 
       if (PFilter.HasReachedEnd(Prev, Vtx)) {
         IsEnd = true;
@@ -237,7 +265,7 @@ private:
         break;
       }
 
-    } while (Vtx->Neighbors.empty());
+    } while (!Vtx.hasNeighbors());
 
     if (!Ctx.CurrPath.insert(Ret)) {
       PHASAR_LOG_LEVEL(ERROR, "Node " << Ret << " already on path");
@@ -246,7 +274,7 @@ private:
     scope_exit PopRet = [&Ctx] { Ctx.CurrPath.pop_back(); };
 
     // NOLINTNEXTLINE(readability-identifier-naming)
-    auto traverseNext = [&Ctx, this, Ret, &RetDag, &PFilter](Node *Nxt) {
+    auto traverseNext = [&Ctx, this, Ret, &RetDag, &PFilter](NodeRef Nxt) {
       auto Succ = pathsToImplLA(Nxt, Ctx, RetDag, PFilter);
       if (Succ != graph_traits_t::Invalid && !Ctx.CurrPath.contains(Succ)) {
         graph_traits_t::addEdge(RetDag, Ret, Succ);
@@ -257,7 +285,7 @@ private:
       traverseNext(Vtx);
     }
 
-    for (auto Nxt : Vtx->Neighbors) {
+    for (auto Nxt : Vtx.neighbors()) {
       assert(Nxt != nullptr);
       if (PFilter.IsErrorneousTransition(Prev, Nxt)) {
         continue;
@@ -275,7 +303,7 @@ private:
   }
 
   template <typename Filter>
-  vertex_t pathsToImplLA(Node *Vtx, PathsToContext &Ctx, graph_type &RetDag,
+  vertex_t pathsToImplLA(NodeRef Vtx, PathsToContext &Ctx, graph_type &RetDag,
                          const Filter &PFilter) const {
     /// Idea: Treat the graph as firstChild-nextSibling notation and always
     /// traverse with one predecessor lookAhead
@@ -306,14 +334,14 @@ private:
   }
 
   template <typename Filter>
-  vertex_t pathsToImpl(n_t QueryInst, Node *Vtx, graph_type &RetDag,
+  vertex_t pathsToImpl(n_t QueryInst, NodeRef Vtx, graph_type &RetDag,
                        PathsToContext &Ctx, const Filter &PFilter) const {
 
     auto Ret =
         graph_traits_t::addNode(RetDag, typename graph_traits_t::value_type());
     graph_traits_t::node(RetDag, Ret).push_back(QueryInst);
 
-    for (auto *NB : Vtx->Neighbors) {
+    for (auto NB : Vtx.neighbors()) {
       auto NBNode = pathsToImplLA(NB, Ctx, RetDag, PFilter);
       if (NBNode != graph_traits_t::Invalid) {
         graph_traits_t::addEdge(RetDag, Ret, NBNode);

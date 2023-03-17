@@ -223,7 +223,7 @@ TEST_F(PathTracingTest, Handle_Inter_03) {
   //                                       "PathSensitivityManager");
   //   psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
   //                                       "CallStackPathFilter");
-  auto PathsVec = doAnalysis("inter_03_cpp.ll", true);
+  auto PathsVec = doAnalysis("inter_03_cpp.ll", false);
   comparePaths(PathsVec, {{6, 7, 8,  9,  10, 11, 12, 13, 14, 15, 16, 0,  1, 2,
                            3, 5, 17, 18, 19, 0,  1,  2,  3,  5,  20, 21, 22}});
 }
@@ -260,7 +260,7 @@ TEST_F(PathTracingTest, Lambda_Inter_04) {
 TEST_F(PathTracingTest, Handle_Inter_05) {
   /// NOTE: We are generating from zero a few times, so without AutoSkipZero we
   /// get a lot of paths here
-  auto PathsVec = doAnalysis("inter_05_cpp.ll", true);
+  auto PathsVec = doAnalysis("inter_05_cpp.ll", false);
   comparePaths(
       PathsVec,
       {{22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
@@ -409,7 +409,7 @@ TEST_F(PathTracingTest, Lambda_Inter_Depth3_07) {
 }
 
 TEST_F(PathTracingTest, Handle_Inter_08) {
-  auto PathsVec = doAnalysis("inter_08_cpp.ll", true);
+  auto PathsVec = doAnalysis("inter_08_cpp.ll", false);
   /// FIXME: Handle mutable z3::exprs; As of now, we reject all paths that go
   /// into a loop, because this requires the loop condiiton to hold, whereas
   /// leaving the loop requires the loop condition not to hold which is
@@ -493,7 +493,7 @@ TEST_F(PathTracingTest, Lambda_Inter_08) {
 }
 
 TEST_F(PathTracingTest, Handle_Inter_09) {
-  auto PathsVec = doAnalysis("inter_09_cpp.ll", true);
+  auto PathsVec = doAnalysis("inter_09_cpp.ll", false);
   /// FIXME: Same reason as Handle_Inter_08
   comparePaths(
       PathsVec,
@@ -521,7 +521,7 @@ TEST_F(PathTracingTest, Handle_Inter_10) {
   // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
   // "PathSensitivityManager");
   GTEST_SKIP() << "Need globals support";
-  auto PathsVec = doAnalysis("inter_10_cpp.ll", true);
+  auto PathsVec = doAnalysis("inter_10_cpp.ll", false);
   /// TODO: GT
 }
 
@@ -692,9 +692,16 @@ TEST_F(PathTracingTest, Handle_Intra_07) {
 }
 
 TEST_F(PathTracingTest, Handle_Intra_08) {
-  //   psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-  //   "PathSensitivityManager");
-  auto PathsVec = doAnalysis("intra_08_cpp.ll");
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  //                                     "PathSensitivityManager");
+  auto PathsVec = doAnalysis("intra_08_cpp.ll", false);
+  // for (const auto &Path : PathsVec) {
+  //   for (const auto *Inst : Path) {
+  //     llvm::errs() << " " << psr::getMetaDataID(Inst);
+  //   }
+  //   llvm::errs() << '\n';
+  // }
+
   /// NOTE: we have a fallthrough from case 4 to default; Therefore, we only
   /// have 3 paths
   /// UPDATE: Despite the fallthrough, clang-14 now generates 4 distinct

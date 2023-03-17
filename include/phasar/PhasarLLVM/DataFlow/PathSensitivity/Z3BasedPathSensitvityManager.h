@@ -127,6 +127,8 @@ public:
         ROS.flush();
         return Buf;
       });
+
+      llvm::errs() << "Paths DAG has " << Dag.Roots.size() << " roots\n";
     }
 #endif
 

@@ -33,20 +33,19 @@ struct False2 {
 using DefaultPathTracingFilter =
     PathTracingFilter<detail::False2, detail::False2>;
 
-template <typename F, typename Node, typename = void>
+template <typename F, typename NodeRef, typename = void>
 struct is_pathtracingfilter_for : std::false_type {};
 
-template <typename EndFilter, typename ErrFilter, typename Node>
+template <typename EndFilter, typename ErrFilter, typename NodeRef>
 struct is_pathtracingfilter_for<
-    PathTracingFilter<EndFilter, ErrFilter>, Node,
-    std::enable_if_t<
-        std::is_invocable_r_v<bool, EndFilter, const Node *, const Node *> &&
-        std::is_invocable_r_v<bool, ErrFilter, const Node *, const Node *>>>
+    PathTracingFilter<EndFilter, ErrFilter>, NodeRef,
+    std::enable_if_t<std::is_invocable_r_v<bool, EndFilter, NodeRef, NodeRef> &&
+                     std::is_invocable_r_v<bool, ErrFilter, NodeRef, NodeRef>>>
     : std::true_type {};
 
-template <typename F, typename Node>
+template <typename F, typename NodeRef>
 constexpr static bool is_pathtracingfilter_for_v =
-    is_pathtracingfilter_for<F, Node>::value;
+    is_pathtracingfilter_for<F, NodeRef>::value;
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHTRACINGFILTER_H
