@@ -43,7 +43,7 @@ class PathSensitivityManagerMixin {
   using vertex_t = typename graph_traits_t::vertex_t;
 
   struct PathsToContext {
-    llvm::DenseMap<NodeRef, unsigned, typename NodeRef::DSI> Cache;
+    llvm::DenseMap<size_t, unsigned> Cache;
     llvm::SetVector<unsigned, llvm::SmallVector<unsigned, 0>> CurrPath;
   };
 
@@ -308,7 +308,8 @@ private:
     /// Idea: Treat the graph as firstChild-nextSibling notation and always
     /// traverse with one predecessor lookAhead
 
-    auto [It, Inserted] = Ctx.Cache.try_emplace(Vtx, graph_traits_t::Invalid);
+    auto [It, Inserted] =
+        Ctx.Cache.try_emplace(Vtx.id(), graph_traits_t::Invalid);
     if (!Inserted) {
       return It->second;
     }
@@ -321,7 +322,7 @@ private:
     if (!pathsToImplLAInvoke(Ret, Vtx, Ctx, RetDag, PFilter)) {
       /// NOTE: Don't erase Vtx from Cache to guarantee termination
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) -- fp
-      Ctx.Cache[Vtx] = graph_traits_t::Invalid;
+      Ctx.Cache[Vtx.id()] = graph_traits_t::Invalid;
 
       if (Ctx.CurrPath.contains(Ret) || !graph_traits_t::pop(RetDag, Ret)) {
         PHASAR_LOG_LEVEL(WARNING, "Cannot remove invalid path at: " << Ret);

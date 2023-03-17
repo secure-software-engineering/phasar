@@ -142,28 +142,6 @@ public:
       return llvm::hash_combine(NR.NodeId, NR.Owner);
     }
 
-    struct DSI {
-      [[nodiscard]] static NodeRef getEmptyKey() noexcept {
-        return NodeRef(
-            Node::NoPredId,
-            llvm::DenseMapInfo<const ExplodedSuperGraph *>::getEmptyKey());
-      }
-
-      [[nodiscard]] static NodeRef getTombstoneKey() noexcept {
-        return NodeRef(
-            Node::NoPredId,
-            llvm::DenseMapInfo<const ExplodedSuperGraph *>::getTombstoneKey());
-      }
-
-      [[nodiscard]] static auto getHashValue(NodeRef NR) noexcept {
-        return hash_value(NR);
-      }
-
-      [[nodiscard]] static bool isEqual(NodeRef L, NodeRef R) noexcept {
-        return L == R;
-      }
-    };
-
   private:
     explicit NodeRef(size_t NodeId, const ExplodedSuperGraph *Owner) noexcept
         : NodeId(NodeId), Owner(Owner) {}
@@ -204,7 +182,16 @@ public:
     return nullptr;
   }
 
-  [[nodiscard]] const d_t &getZeroValue() const noexcept { return ZeroValue; }
+  [[nodiscard]] NodeRef fromNodeId(size_t NodeId) const noexcept {
+    assert(NodeDataOwner.size() == NodeAdjOwner.size());
+    assert(NodeId < NodeDataOwner.size());
+
+    return NodeRef(NodeId, this);
+  }
+
+  [[nodiscard]] ByConstRef<d_t> getZeroValue() const noexcept {
+    return ZeroValue;
+  }
 
   template <typename Container>
   void saveEdges(n_t Curr, d_t CurrNode, n_t Succ, const Container &SuccNodes,
