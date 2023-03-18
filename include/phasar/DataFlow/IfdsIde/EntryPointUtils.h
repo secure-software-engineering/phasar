@@ -40,7 +40,9 @@ template <typename EntryRange, typename C, typename ICFGorIRDB,
           typename HandlerFn>
 void forallStartingPoints(const EntryRange &EntryPoints, const ICFGorIRDB *ICDB,
                           const CFGBase<C> &CFG, HandlerFn Handler) {
-  if (EntryPoints.size() == 1 && EntryPoints.front() == "__ALL__") {
+
+  if (llvm::hasSingleElement(EntryPoints) &&
+      *llvm::adl_begin(EntryPoints) == "__ALL__") {
     forallStartingPoints(ICDB->getAllFunctions(), CFG, std::move(Handler));
   } else {
     forallStartingPoints(llvm::map_range(EntryPoints,
