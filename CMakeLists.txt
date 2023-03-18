@@ -166,7 +166,7 @@ set(CMAKE_CXX_CLANG_TIDY "")
 set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
 
 # Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
-include_directories(external/json/single_include/)
+include_directories(SYSTEM external/json/single_include/)
 
 if (PHASAR_IN_TREE)
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
