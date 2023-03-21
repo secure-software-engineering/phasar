@@ -240,6 +240,9 @@ macro(add_phasar_library name)
       EXPORT ${name}-targets
       COMPONENT ${component_name}
 
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+
       # NOTE: Library, archive and runtime destination are automatically set by
       # GNUInstallDirs which is included in the top-level CMakeLists.txt
     )
