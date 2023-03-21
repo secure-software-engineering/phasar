@@ -66,19 +66,6 @@ class Taint;
 
 namespace psr {
 
-// [[nodiscard]] static inline const llvm::AllocaInst *
-// getAllocaInstruction(const llvm::GetElementPtrInst *GEP) {
-//   if (!GEP) {
-//     return nullptr;
-//   }
-//   const auto *Alloca = GEP->getPointerOperand();
-//   while (const auto *NestedGEP =
-//              llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
-//     Alloca = NestedGEP->getPointerOperand();
-//   }
-//   return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
-// }
-
 template <typename T> static BitVectorSet<T> bvSetFrom(const std::set<T> &Set) {
   BitVectorSet<T> Ret;
   Ret.reserve(Set.size());
@@ -240,8 +227,6 @@ public:
         ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
     assert(ICF != nullptr);
     assert(PT);
-    // IIAAAddLabelsEF::initEdgeFunctionCleaner();
-    // IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
   }
 
   ~IDEInstInteractionAnalysisT() override = default;
@@ -269,7 +254,10 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
+      // if (generatesEdgeFactsAt(Curr)) {
       return generateFromZero(Alloca);
+      // }
+      // return identityFlow<d_t>();
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -329,14 +317,45 @@ public:
         //              0  Y  x
         //
         return generateFlowIf<d_t>(
-            Load, [PointerOp = Load->getPointerOperand(),
-                   PTS = PT.getReachableAllocationSites(
-                       Load->getPointerOperand(), OnlyConsiderLocalAliases)](
-                      d_t Src) { return Src == PointerOp || PTS->count(Src); });
+            Load, [PointerOp = Load->getPointerOperand()](d_t Src) {
+              return Src == PointerOp;
+            });
       }
 
       // (ii) Handle semantic propagation (pointers) for store instructions.
       if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+
+        if (llvm::isa<llvm::ConstantData>(Store->getValueOperand())) {
+          auto PointerOp = Store->getPointerOperand();
+          auto PointerPTS = PT.getReachableAllocationSites(
+              PointerOp, OnlyConsiderLocalAliases, Store);
+          if (generatesEdgeFactsAt(Store)) {
+            return lambdaFlow<d_t>(
+                [PointerOp, PointerPTS = std::move(PointerPTS)](d_t Src) {
+                  container_type Facts;
+                  if (PointerOp == Src || PointerPTS->count(Src)) {
+                    // Here, we are unsound!
+                    return Facts;
+                  }
+
+                  Facts.insert(Src);
+
+                  if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+                    Facts.insert(PointerOp);
+                    Facts.insert(PointerPTS->begin(), PointerPTS->end());
+                  }
+
+                  return Facts;
+                });
+          }
+
+          // Here, we are unsound!
+          return killFlowIf<d_t>(
+              [PointerOp, PointerPTS = std::move(PointerPTS)](d_t Src) {
+                return PointerOp == Src || PointerPTS->count(Src);
+              });
+        }
+
         // If the value to be stored holds, the potential memory location(s)
         // that it is stored to must be generated and populated, too.
         //
@@ -371,12 +390,7 @@ public:
                 Facts.insert(Store->getPointerOperand());
                 Facts.insert(PointerPTS->begin(), PointerPTS->end());
               }
-              // ... or from zero, if a constant literal is stored to y
-              if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-                  IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-                Facts.insert(Store->getPointerOperand());
-                Facts.insert(PointerPTS->begin(), PointerPTS->end());
-              }
+
               return Facts;
             });
       }
@@ -408,6 +422,26 @@ public:
     //             0  x  y
     //
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+      if (llvm::isa<llvm::ConstantData>(Store->getValueOperand())) {
+        auto PointerOp = Store->getPointerOperand();
+        if (generatesEdgeFactsAt(Store)) {
+          return lambdaFlow<d_t>([PointerOp](d_t Src) -> container_type {
+            if (PointerOp == Src) {
+              return {};
+            }
+
+            if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+              return {Src, PointerOp};
+            }
+
+            return {Src};
+          });
+        }
+
+        // Here, we are unsound!
+        return killFlow<d_t>(PointerOp);
+      }
+
       return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
         // Override old value, i.e., kill value that is written to and
         // generate from value that is stored.
@@ -419,11 +453,7 @@ public:
         if (Store->getValueOperand() == Src) {
           Facts.insert(Store->getPointerOperand());
         }
-        // ... or from zero, if a constant literal is stored to y
-        if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-            IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-          Facts.insert(Store->getPointerOperand());
-        }
+
         IF_LOG_ENABLED({
           for (const auto Fact : Facts) {
             PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
@@ -522,19 +552,20 @@ public:
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
 
-    auto MapFactsToCallerFF =
-        mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
-                              {}, [](const llvm::Value *RetVal, d_t Src) {
-                                if (Src == RetVal) {
-                                  return true;
-                                }
-                                if (isZeroValueImpl(Src)) {
-                                  if (llvm::isa<llvm::ConstantData>(RetVal)) {
-                                    return true;
-                                  }
-                                }
-                                return false;
-                              });
+    auto MapFactsToCallerFF = mapFactsToCaller<d_t>(
+        llvm::cast<llvm::CallBase>(CallSite), ExitInst, {},
+        [this, ExitInst](const llvm::Value *RetVal, d_t Src) {
+          if (Src == RetVal) {
+            return true;
+          }
+          if (isZeroValueImpl(Src)) {
+            if (llvm::isa<llvm::ConstantData>(RetVal) &&
+                generatesEdgeFactsAt(ExitInst)) {
+              return true;
+            }
+          }
+          return false;
+        });
 
     return MapFactsToCallerFF;
   }
@@ -542,25 +573,29 @@ public:
   inline FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /* RetSite */,
                            llvm::ArrayRef<f_t> Callees) override {
+
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
       const auto *Callee = Callees.front();
       if (this->ICF->isHeapAllocatingFunction(Callee)) {
-        // In case a heap allocating function is called, generate the pointer
-        // that is returned.
-        //
-        // Flow function:
-        //
-        // Let H be a heap allocating function.
-        //
-        //              0
-        //              |\
-        // x = call H   | \
-        //              v  v
-        //              0  x
-        //
-        return generateFromZero(CallSite);
+        if (generatesEdgeFactsAt(CallSite)) {
+          // In case a heap allocating function is called, generate the pointer
+          // that is returned.
+          //
+          // Flow function:
+          //
+          // Let H be a heap allocating function.
+          //
+          //              0
+          //              |\
+          // x = call H   | \
+          //              v  v
+          //              0  x
+          //
+          return generateFromZero(CallSite);
+        }
+        return identityFlow<d_t>();
       }
     }
     // Just use the auto mapping for values; pointer parameters and global
@@ -581,35 +616,39 @@ public:
       }
     }
 
-    return lambdaFlow<d_t>([CallSite = llvm::cast<llvm::CallBase>(CallSite),
-                            OnlyDecls,
-                            AllVoidRetTys](d_t Source) -> container_type {
-      // There are a few things to consider, in case only declarations of
-      // callee targets are available.
-      if (OnlyDecls) {
-        if (!AllVoidRetTys) {
-          // If one or more of the declaration-only targets return a value, it
-          // must be generated from zero!
-          if (isZeroValueImpl(Source)) {
-            return {Source, CallSite};
+    bool NeedGenerateFromZero =
+        OnlyDecls && !AllVoidRetTys && generatesEdgeFactsAt(CallSite);
+
+    return lambdaFlow<d_t>(
+        [CallSite = llvm::cast<llvm::CallBase>(CallSite), OnlyDecls,
+         NeedGenerateFromZero](d_t Source) -> container_type {
+          // There are a few things to consider, in case only declarations of
+          // callee targets are available.
+          if (OnlyDecls) {
+            if (NeedGenerateFromZero) {
+              // If one or more of the declaration-only targets return a value,
+              // it must be generated from zero!
+              if (isZeroValueImpl(Source)) {
+                return {Source, CallSite};
+              }
+            }
+            // If all declaration-only callee targets return void, just pass
+            // everything as identity.
+            return {Source};
           }
-        }
-        // If all declaration-only callee targets return void, just pass
-        // everything as identity.
-        return {Source};
-      }
-      // Do not pass global variables if definitions of the callee
-      // function(s) are available, since the effect of the callee on these
-      // values will be modelled using combined getCallFlowFunction and
-      // getReturnFlowFunction.
-      if (llvm::isa<llvm::Constant>(Source.getBase())) {
-        return {};
-      }
-      // Pass everything else as identity. In particular, also do not kill
-      // pointer or reference parameters since this then also captures usages
-      // oft the parameters, which we wish to compute using this analysis.
-      return {Source};
-    });
+          // Do not pass global variables if definitions of the callee
+          // function(s) are available, since the effect of the callee on these
+          // values will be modelled using combined getCallFlowFunction and
+          // getReturnFlowFunction.
+          if (llvm::isa<llvm::Constant>(Source.getBase())) {
+            return {};
+          }
+          // Pass everything else as identity. In particular, also do not kill
+          // pointer or reference parameters since this then also captures
+          // usages oft the parameters, which we wish to compute using this
+          // analysis.
+          return {Source};
+        });
   }
 
   inline FlowFunctionPtrType
@@ -1303,6 +1342,13 @@ private:
       }
     }
     return Variables;
+  }
+
+  [[nodiscard]] bool generatesEdgeFactsAt(const llvm::Instruction *Inst) const {
+    if (!EdgeFactGen) {
+      return false;
+    }
+    return !EdgeFactGen(Inst).empty();
   }
 
   DefaultEdgeFunctionSingletonCache<IIAAAddLabelsEF> IIAAAddLabelsEFCache;
