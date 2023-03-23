@@ -158,6 +158,15 @@ private:
     return static_cast<const Derived &>(*this);
   }
 };
+
+template <typename DB>
+// NOLINTNEXTLINE(readability-identifier-naming)
+auto IRDBGetFunctionDef(const ProjectIRDBBase<DB> *IRDB) noexcept {
+  return [IRDB](llvm::StringRef Name) {
+    return IRDB->getFunctionDefinition(Name);
+  };
+}
+
 } // namespace psr
 
 #endif // PHASAR_DB_PROJECTIRDBBASE_H

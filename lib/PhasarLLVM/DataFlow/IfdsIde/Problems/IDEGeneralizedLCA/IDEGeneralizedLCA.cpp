@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
@@ -226,24 +227,21 @@ IDEGeneralizedLCA::initialSeeds() {
   InitialSeeds<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
                IDEGeneralizedLCA::l_t>
       Seeds;
-  // For now, out only entrypoint is main:
-  std::vector<std::string> EntryPoints = {"main"};
-  for (auto &EntryPoint : EntryPoints) {
-    std::set<IDEGeneralizedLCA::d_t> Globals;
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
-                  getZeroValue(), bottomElement());
+
+  forallStartingPoints(EntryPoints, ICF, [this, &Seeds](n_t SP) {
+    Seeds.addSeed(SP, getZeroValue(), bottomElement());
     for (const auto &G : IRDB->getModule()->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer()) {
           if (llvm::isa<llvm::ConstantInt>(GV->getInitializer()) ||
               llvm::isa<llvm::ConstantDataArray>(GV->getInitializer())) {
-            Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), GV,
-                          bottomElement());
+            Seeds.addSeed(SP, GV, bottomElement());
           }
         }
       }
     }
-  }
+  });
+
   return Seeds;
 }
 

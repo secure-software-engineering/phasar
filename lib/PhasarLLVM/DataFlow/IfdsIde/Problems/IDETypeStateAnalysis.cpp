@@ -430,14 +430,7 @@ InitialSeeds<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
              IDETypeStateAnalysis::l_t>
 IDETypeStateAnalysis::initialSeeds() {
   // just start in main()
-  InitialSeeds<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-               IDETypeStateAnalysis::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue(), bottomElement());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() const {
