@@ -114,10 +114,14 @@ include_directories(
   ${PHASAR_SRC_DIR}/include
 )
 
-set(PHASAR_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}/phasar)
-
 if (NOT PHASAR_IN_TREE)
-  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${PHASAR_INSTALL_LIBDIR})
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+  if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
+    message(STATUS "Detected CMAKE_INSTALL_LIBDIR that deviates from 'lib': ${CMAKE_INSTALL_LIBDIR}. Add ${CMAKE_INSTALL_PREFIX}/lib to the RPATH as json-schema-validator needs it")
+    list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+  endif()
+
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
 
@@ -127,7 +131,12 @@ else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
-set(PHASAR_CONFIG_INSTALL_DIR "/opt/phasar/config/" CACHE STRING "Customizes the directory, where configuration files for PhASAR are installed (default is /opt/phasar/config)")
+set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
+if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
+  set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
+else()
+  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
+endif()
 
 add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
 add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
@@ -157,7 +166,7 @@ set(CMAKE_CXX_CLANG_TIDY "")
 set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
 
 # Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
-include_directories(external/json/single_include/)
+include_directories(SYSTEM external/json/single_include/)
 
 if (PHASAR_IN_TREE)
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
@@ -347,7 +356,7 @@ install(DIRECTORY utils/
               WORLD_EXECUTE WORLD_READ
 )
 
-# Install the Phasar config files into /opt/phasar/config/
+# Install the Phasar config files into CMAKE_INSTALL_PREFIX/.phasar-config/
 install(DIRECTORY config/
   DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"

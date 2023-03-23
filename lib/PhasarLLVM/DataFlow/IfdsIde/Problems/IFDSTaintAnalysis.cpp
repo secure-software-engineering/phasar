@@ -285,7 +285,17 @@ IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getSummaryFlowFunction(
     [[maybe_unused]] IFDSTaintAnalysis::n_t CallSite,
     [[maybe_unused]] IFDSTaintAnalysis::f_t DestFun) {
-  // Don't use a special summary
+  // $sSS1poiyS2S_SStFZ is Swift's String append method
+  // if concat a tainted string with something else the
+  // result should be tainted
+  if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
+    const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+
+    return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
+      return ((Source == CS->getArgOperand(1)) ||
+              (Source == CS->getArgOperand(3)));
+    });
+  }
   return nullptr;
 }
 
