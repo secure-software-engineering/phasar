@@ -269,7 +269,7 @@ public:
   template <typename Container = std::set<d_t>>
   auto generateFlow(const llvm::Value *FactToGenerate, d_t From) {
     struct GenFrom final : public FlowFunction<d_t, Container> {
-      GenFrom(const llvm::Value * GenValue, d_t FromValue)
+      GenFrom(const llvm::Value *GenValue, d_t FromValue)
           : GenValue(GenValue), FromValue(std::move(FromValue)) {}
 
       Container computeTargets(d_t Source) override {
@@ -279,7 +279,7 @@ public:
         return {std::move(Source)};
       }
 
-      const llvm::Value * GenValue;
+      const llvm::Value *GenValue;
       d_t FromValue;
     };
 
@@ -291,17 +291,18 @@ public:
   auto generateFlowAndKillAllOthers(const llvm::Value *FactToGenerate,
                                     d_t From) {
     struct GenFlowAndKillAllOthers final : public FlowFunction<d_t, Container> {
-      GenFlowAndKillAllOthers(d_t GenValue, d_t FromValue)
-          : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
+      GenFlowAndKillAllOthers(const llvm::Value *GenValueBase, d_t FromValue)
+          : GenValueBase(std::move(GenValueBase)),
+            FromValue(std::move(FromValue)) {}
 
       Container computeTargets(d_t Source) override {
         if (Source == FromValue) {
-          return {std::move(Source), FromValue.getSameAP(GenValue)};
+          return {std::move(Source), FromValue.getSameAP(GenValueBase)};
         }
         return {};
       }
 
-      d_t GenValue;
+      const llvm::Value *GenValueBase;
       d_t FromValue;
     };
 
@@ -324,7 +325,21 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return generateFlow(Alloca, this->getZeroValue());
+      return lambdaFlow<d_t>([Alloca](d_t Src) -> container_type {
+        container_type Facts = {Src};
+        if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+          Facts.insert(Src.getStored(Alloca));
+        }
+        IF_LOG_ENABLED({
+          for (const auto Fact : Facts) {
+            PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
+                                           << llvmIRToShortString(Src) << " --"
+                                           << llvmIRToShortString(Alloca)
+                                           << "--> " << Fact);
+          }
+        });
+        return Facts;
+      });
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -560,6 +575,9 @@ public:
         return Facts;
       });
     }
+
+    // FIXME: add gep handling here.
+
     // At last, we can handle all other (unary/binary) instructions.
     //
     // Flow function:
@@ -617,7 +635,8 @@ public:
 
     // Map actual to formal parameters.
     auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
-        CS, DestFun, [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
+        CS, DestFun,
+        [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
           if (ActualArg != Src.getBaseValue()) { // FIXMEMM
             return false;
           }
@@ -627,7 +646,9 @@ public:
           }
 
           return true;
-        });
+        },
+        {}, true, true,
+        [](const llvm::Value *Lhs, d_t Rhs) { return Rhs.getSameAP(Lhs); });
 
     // Generate the artificially introduced RVO parameters from zero value.
     auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
@@ -647,19 +668,24 @@ public:
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
 
-    auto MapFactsToCallerFF =
-        mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
-                              {}, [](const llvm::Value *RetVal, d_t Src) {
-                                if (Src.getBaseValue() == RetVal) {
-                                  return true;
-                                }
-                                if (isZeroValueImpl(Src)) {
-                                  if (llvm::isa<llvm::ConstantData>(RetVal)) {
-                                    return true;
-                                  }
-                                }
-                                return false;
-                              });
+    auto MapFactsToCallerFF = mapFactsToCaller<d_t>(
+        llvm::cast<llvm::CallBase>(CallSite), ExitInst,
+        [](const llvm::Value *Param, d_t Src) {
+          return Src.getBaseValue() == Param;
+        },
+        [](const llvm::Value *RetVal, d_t Src) {
+          if (Src.getBaseValue() == RetVal) {
+            return true;
+          }
+          if (isZeroValueImpl(Src)) {
+            if (llvm::isa<llvm::ConstantData>(RetVal)) {
+              return true;
+            }
+          }
+          return false;
+        },
+        {}, true, true,
+        [](const llvm::Value *Lhs, d_t Rhs) { return Rhs.getSameAP(Lhs); });
 
     return MapFactsToCallerFF;
   }
@@ -775,7 +801,7 @@ public:
                 BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
           }
           Seeds.addSeed(&EntryPointFun->front().front(),
-                        d_t::getNonIndirectionValue(GV), InitialValues);
+                        d_t::getZeroOffsetDerefValue(GV), InitialValues);
         }
       }
     }
@@ -1566,13 +1592,13 @@ protected:
   }
 
 private:
-  KFieldSensFlowFact<const llvm::Value *> KFSFF,
-      KFSFF2 = KFSFF.getStored(nullptr), KFSFF3 = KFSFF.getWithOffset(42),
-      KFSFF4 = KFSFF.getFirstOverapproximated();
-  // LLVMKFieldSensFlowFact<0> foo;
-  // LLVMKFieldSensFlowFact<0, 0, const llvm::Value*> foo2 = foo;
-  std::optional<KFieldSensFlowFact<const llvm::Value *>> KFSFF5 =
-      KFSFF.getLoaded(nullptr, 64); // FIXME just make it compile for now.
+  // KFieldSensFlowFact<const llvm::Value *> KFSFF,
+  //     KFSFF2 = KFSFF.getStored(nullptr), KFSFF3 = KFSFF.getWithOffset(42),
+  //     KFSFF4 = KFSFF.getFirstOverapproximated();
+  // // LLVMKFieldSensFlowFact<0> foo;
+  // // LLVMKFieldSensFlowFact<0, 0, const llvm::Value*> foo2 = foo;
+  // std::optional<KFieldSensFlowFact<const llvm::Value *>> KFSFF5 =
+  //     KFSFF.getLoaded(nullptr, 64); // FIXME just make it compile for now.
   /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(

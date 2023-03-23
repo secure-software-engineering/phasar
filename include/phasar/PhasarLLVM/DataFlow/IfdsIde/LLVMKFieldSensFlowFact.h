@@ -26,9 +26,16 @@ public:
   LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) = default;
   LLVMKFieldSensFlowFact &operator=(const LLVMKFieldSensFlowFact &) = default;
   LLVMKFieldSensFlowFact &operator=(LLVMKFieldSensFlowFact &&) = default;
-  static LLVMKFieldSensFlowFact getNonIndirectionValue(d_t Value){
+  static LLVMKFieldSensFlowFact getNonIndirectionValue(d_t Value) {
     LLVMKFieldSensFlowFact Result;
     Result.BaseValue = Value;
+    return Result;
+  }
+
+  static LLVMKFieldSensFlowFact getZeroOffsetDerefValue(d_t Value) {
+    LLVMKFieldSensFlowFact Result;
+    Result.BaseValue = Value;
+    Result.AccessPath.push_back(0);
     return Result;
   }
   // LLVMKFieldSensFlowFact(d_t BaseValue)

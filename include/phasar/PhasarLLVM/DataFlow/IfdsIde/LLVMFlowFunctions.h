@@ -133,20 +133,24 @@ template <typename D = const llvm::Value *, typename Container = std::set<D>,
           typename Fn = std::equal_to<D>, typename DCtor = DefaultConstruct<D>,
           typename = std::enable_if_t<
               std::is_invocable_r_v<bool, Fn, const llvm::Value *, D>>>
-FlowFunctionPtrType<D, Container>
-mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
-                 Fn &&PropagateArgumentWithSource = {},
-                 DCtor &&FactConstructor = {}, bool PropagateGlobals = true,
-                 bool PropagateZeroToCallee = true) {
+FlowFunctionPtrType<D, Container> mapFactsToCallee(
+    const llvm::CallBase *CallSite, const llvm::Function *DestFun,
+    Fn &&PropagateArgumentWithSource = {}, DCtor &&FactConstructor = {},
+    bool PropagateGlobals = true, bool PropagateZeroToCallee = true,
+    std::function<D(const llvm::Value *, D)> &&FactPropagator =
+        [](const llvm::Value *Lhs, D) { return Lhs; }) {
   struct Mapper : public FlowFunction<D, Container> {
 
     Mapper(const llvm::CallBase *CS, const llvm::Function *DestFun,
            bool PropagateGlobals, bool PropagateZeroToCallee, Fn &&PropArg,
-           DCtor &&FactConstructor)
+           DCtor &&FactConstructor,
+           std::function<D(const llvm::Value *, D)> &&FactPropagator)
         : CSAndPropGlob(CS, PropagateGlobals),
           DestFunAndPropZero(DestFun, PropagateZeroToCallee),
           PropArg(std::forward<Fn>(PropArg)),
-          FactConstructor(std::forward<DCtor>(FactConstructor)) {}
+          FactConstructor(std::forward<DCtor>(FactConstructor)),
+          FactPropagator(std::forward<std::function<D(const llvm::Value *, D)>>(
+              FactPropagator)) {}
 
     Container computeTargets(D Source) override {
       // If DestFun is a declaration we cannot follow this call, we thus need to
@@ -181,7 +185,8 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, ArgIt->get(), Source)) {
-          Res.insert(std::invoke(FactConstructor, &*ParamIt));
+          Res.insert(std::invoke(
+              FactConstructor, std::invoke(FactPropagator, &*ParamIt, Source)));
         }
       }
 
@@ -205,7 +210,11 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
                   Alloc->getAllocatedType()
                           ->getArrayElementType()
                           ->getStructName() == "struct.__va_list_tag") {
-                Res.insert(std::invoke(FactConstructor, Alloc));
+                Res.insert(std::invoke(
+                    FactConstructor,
+                    std::invoke(
+                        FactPropagator, Alloc,
+                        Source))); // FIXME: we need to overapproximate here
               }
             }
           }
@@ -219,12 +228,15 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
     llvm::PointerIntPair<const llvm::Function *, 1, bool> DestFunAndPropZero;
     [[no_unique_address]] std::decay_t<Fn> PropArg;
     [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
+    [[no_unique_address]] std::decay_t<std::function<D(const llvm::Value *, D)>>
+        FactPropagator;
   };
 
-  return std::make_shared<Mapper>(CallSite, DestFun, PropagateGlobals,
-                                  PropagateZeroToCallee,
-                                  std::forward<Fn>(PropagateArgumentWithSource),
-                                  std::forward<DCtor>(FactConstructor));
+  return std::make_shared<Mapper>(
+      CallSite, DestFun, PropagateGlobals, PropagateZeroToCallee,
+      std::forward<Fn>(PropagateArgumentWithSource),
+      std::forward<DCtor>(FactConstructor),
+      std::forward<std::function<D(const llvm::Value *, D)>>(FactPropagator));
 }
 
 /// A flow function that serves as default-implementation of the return flow
@@ -253,23 +265,26 @@ template <typename D = const llvm::Value *, typename Container = std::set<D>,
           typename = std::enable_if_t<
               std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
               std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>>>
-FlowFunctionPtrType<D, Container>
-mapFactsToCaller(const llvm::CallBase *CallSite,
-                 const llvm::Instruction *ExitInst,
-                 FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
-                 DCtor &&FactConstructor = {}, bool PropagateGlobals = true,
-                 bool PropagateZeroToCaller = true) {
-
+FlowFunctionPtrType<D, Container> mapFactsToCaller(
+    const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
+    FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
+    DCtor &&FactConstructor = {}, bool PropagateGlobals = true,
+    bool PropagateZeroToCaller = true,
+    std::function<D(const llvm::Value *, D)> &&FactPropagator =
+        [](const llvm::Value *Lhs, D) { return Lhs; }) {
   struct Mapper : public FlowFunction<D, Container> {
     Mapper(const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
            bool PropagateGlobals, FnParam &&PropagateParameter,
            FnRet &&PropagateRet, DCtor &&FactConstructor,
-           bool PropagateZeroToCaller)
+           bool PropagateZeroToCaller,
+           std::function<D(const llvm::Value *, D)> &&FactPropagator)
         : CSAndPropGlob(CallSite, PropagateGlobals),
           ExitInstAndPropZero(ExitInst, PropagateZeroToCaller),
           PropArg(std::forward<FnParam>(PropagateParameter)),
           PropRet(std::forward<FnRet>(PropagateRet)),
-          FactConstructor(std::forward<DCtor>(FactConstructor)) {}
+          FactConstructor(std::forward<DCtor>(FactConstructor)),
+          FactPropagator(std::forward<std::function<D(const llvm::Value *, D)>>(
+              FactPropagator)) {}
 
     Container computeTargets(D Source) override {
       Container Res;
@@ -296,7 +311,9 @@ mapFactsToCaller(const llvm::CallBase *CallSite,
 
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, &*ParamIt, Source)) {
-          Res.insert(std::invoke(FactConstructor, ArgIt->get()));
+          Res.insert(
+              std::invoke(FactConstructor,
+                          std::invoke(FactPropagator, ArgIt->get(), Source)));
         }
       }
 
@@ -315,7 +332,11 @@ mapFactsToCaller(const llvm::CallBase *CallSite,
                     "struct.__va_list_tag") {
               if (std::invoke(PropArg, Alloc, Source)) {
                 std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
-                               FactConstructor);
+                               [this, Source](const auto &Fact) {
+                                 return std::invoke(
+                                     FactConstructor,
+                                     std::invoke(FactPropagator, Fact, Source));
+                               });
                 break;
               }
             }
@@ -327,7 +348,8 @@ mapFactsToCaller(const llvm::CallBase *CallSite,
               ExitInstAndPropZero.getPointer());
           RetInst && RetInst->getReturnValue()) {
         if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
-          Res.insert(std::invoke(FactConstructor, CS));
+          Res.insert(std::invoke(FactConstructor,
+                                 std::invoke(FactPropagator, CS, Source)));
         }
       }
 
@@ -340,13 +362,16 @@ mapFactsToCaller(const llvm::CallBase *CallSite,
     [[no_unique_address]] std::decay_t<FnParam> PropArg;
     [[no_unique_address]] std::decay_t<FnRet> PropRet;
     [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
+    [[no_unique_address]] std::decay_t<std::function<D(const llvm::Value *, D)>>
+        FactPropagator;
   };
 
-  return std::make_shared<Mapper>(CallSite, ExitInst, PropagateGlobals,
-                                  std::forward<FnParam>(PropagateParameter),
-                                  std::forward<FnRet>(PropagateRet),
-                                  std::forward<DCtor>(FactConstructor),
-                                  PropagateZeroToCaller);
+  return std::make_shared<Mapper>(
+      CallSite, ExitInst, PropagateGlobals,
+      std::forward<FnParam>(PropagateParameter),
+      std::forward<FnRet>(PropagateRet), std::forward<DCtor>(FactConstructor),
+      PropagateZeroToCaller,
+      std::forward<std::function<D(const llvm::Value *, D)>>(FactPropagator));
 }
 
 //===----------------------------------------------------------------------===//
