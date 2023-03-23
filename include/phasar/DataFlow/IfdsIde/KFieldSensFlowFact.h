@@ -27,8 +27,9 @@ public:
 
   KFieldSensFlowFact(d_t BaseValue) : BaseValue(BaseValue) {}
 
-  KFieldSensFlowFact getStored() {
+  KFieldSensFlowFact getStored(d_t BaseValue) {
     auto Result = *this;
+    Result.BaseValue = BaseValue;
     if (Result.AccessPath.size() == K) {
       for (unsigned I = 0; I < K - 1; I++) {
         Result.AccessPath[I] = Result.AccessPath[I + 1];
@@ -43,7 +44,7 @@ public:
     return Result;
   }
 
-  std::optional<KFieldSensFlowFact> getLoaded(uint64_t TargetTypeSize,
+  std::optional<KFieldSensFlowFact> getLoaded(d_t LoadedBaseValue, uint64_t TargetTypeSize,
                                               int64_t FollowedOffset = 0) {
     auto Result = *this;
     if (Result.AccessPath.size() > 0) {
@@ -57,6 +58,7 @@ public:
     } else if (!Result.FollowedByAny) {
       return std::nullopt;
     }
+    Result.BaseValue = LoadedBaseValue;
     return Result;
   }
 

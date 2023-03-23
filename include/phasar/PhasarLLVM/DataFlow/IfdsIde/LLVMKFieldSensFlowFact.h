@@ -26,8 +26,13 @@ public:
   LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) = default;
   LLVMKFieldSensFlowFact &operator=(const LLVMKFieldSensFlowFact &) = default;
   LLVMKFieldSensFlowFact &operator=(LLVMKFieldSensFlowFact &&) = default;
-  LLVMKFieldSensFlowFact(d_t BaseValue)
-      : KFieldSensFlowFact<d_t, K, OffsetLimit>(BaseValue) {}
+  static LLVMKFieldSensFlowFact getNonIndirectionValue(d_t Value){
+    LLVMKFieldSensFlowFact Result;
+    Result.BaseValue = Value;
+    return Result;
+  }
+  // LLVMKFieldSensFlowFact(d_t BaseValue)
+  //     : KFieldSensFlowFact<d_t, K, OffsetLimit>(BaseValue) {}
 
   bool operator==(const LLVMKFieldSensFlowFact &Other) const {
     return std::tie(this->BaseValue, this->AccessPath, this->FollowedByAny) ==
@@ -43,9 +48,9 @@ public:
            std::tie(Other.BaseValue, Other.AccessPath, Other.FollowedByAny);
   }
 
-  LLVMKFieldSensFlowFact getStored() {
+  LLVMKFieldSensFlowFact getStored(const llvm::Value *BaseValue) {
     return LLVMKFieldSensFlowFact(
-        KFieldSensFlowFact<d_t, K, OffsetLimit>::getStored());
+        KFieldSensFlowFact<d_t, K, OffsetLimit>::getStored(BaseValue));
   }
 
   std::optional<LLVMKFieldSensFlowFact> getLoaded(const llvm::LoadInst *Load,
@@ -53,11 +58,24 @@ public:
     const auto &DL = Load->getModule()->getDataLayout();
     const auto LoadSize = DL.getTypeAllocSize(Load->getType());
     const auto &Parent = KFieldSensFlowFact<d_t, K, OffsetLimit>::getLoaded(
-        LoadSize, FollowedOffset);
+        Load, LoadSize, FollowedOffset);
     if (Parent) {
       return LLVMKFieldSensFlowFact(Parent.value());
     }
     return std::nullopt;
+  }
+
+  LLVMKFieldSensFlowFact getSameAP(const llvm::Value *GeneratedBaseVal) {
+    auto Result = *this;
+    Result.BaseValue = GeneratedBaseVal;
+    return Result;
+  }
+
+  LLVMKFieldSensFlowFact getOverapproximated(const llvm::Value *BaseVal) {
+    LLVMKFieldSensFlowFact Result;
+    Result.BaseValue = BaseVal;
+    Result.FollowedByAny = true;
+    return Result;
   }
 
   LLVMKFieldSensFlowFact getWithOffset(const llvm::GetElementPtrInst *Gep) {

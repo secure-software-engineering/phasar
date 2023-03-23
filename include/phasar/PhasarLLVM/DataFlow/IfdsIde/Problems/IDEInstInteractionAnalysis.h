@@ -266,6 +266,49 @@ public:
     EdgeFactGen = std::move(EdgeFactGenerator);
   }
 
+  template <typename Container = std::set<d_t>>
+  auto generateFlow(const llvm::Value *FactToGenerate, d_t From) {
+    struct GenFrom final : public FlowFunction<d_t, Container> {
+      GenFrom(const llvm::Value * GenValue, d_t FromValue)
+          : GenValue(GenValue), FromValue(std::move(FromValue)) {}
+
+      Container computeTargets(d_t Source) override {
+        if (Source == FromValue) {
+          return {std::move(Source), FromValue.getSameAP(GenValue)};
+        }
+        return {std::move(Source)};
+      }
+
+      const llvm::Value * GenValue;
+      d_t FromValue;
+    };
+
+    return std::make_shared<GenFrom>(std::move(FactToGenerate),
+                                     std::move(From));
+  }
+
+  template <typename Container = std::set<d_t>>
+  auto generateFlowAndKillAllOthers(const llvm::Value *FactToGenerate,
+                                    d_t From) {
+    struct GenFlowAndKillAllOthers final : public FlowFunction<d_t, Container> {
+      GenFlowAndKillAllOthers(d_t GenValue, d_t FromValue)
+          : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
+
+      Container computeTargets(d_t Source) override {
+        if (Source == FromValue) {
+          return {std::move(Source), FromValue.getSameAP(GenValue)};
+        }
+        return {};
+      }
+
+      d_t GenValue;
+      d_t FromValue;
+    };
+
+    return std::make_shared<GenFlowAndKillAllOthers>(std::move(FactToGenerate),
+                                                     std::move(From));
+  }
+
   // start formulating our analysis by specifying the parts required for IFDS
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /* Succ */) override {
@@ -281,7 +324,7 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return generateFromZero(Alloca);
+      return generateFlow(Alloca, this->getZeroValue());
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -308,10 +351,10 @@ public:
           container_type Facts;
           Facts.insert(Src);
           if (Src == Br->getCondition()) {
-            Facts.insert(Br);
+            Facts.insert(Src.getOverapproximated(Br));
             for (const auto *Succs : Br->successors()) {
               for (const auto &Inst : Succs->instructionsWithoutDebug()) {
-                Facts.insert(&Inst);
+                Facts.insert(Src.getOverapproximated(&Inst));
               }
             }
           }
@@ -347,20 +390,17 @@ public:
                        Load->getPointerOperand(), OnlyConsiderLocalAliases)](
                       d_t Src) { return Src == PointerOp || PTS->count(Src); });
         */
-        return lambdaFlow<d_t>(
-            [Load, PTS = PT.getReachableAllocationSites(
-                       Load->getPointerOperand(), OnlyConsiderLocalAliases)](
-                d_t Source) -> container_type {
-              if (Source.getBaseValue() == Load->getPointerOperand()) {
-                auto LoadedVal = Source.getLoaded(Load);
-                if (LoadedVal == std::nullopt) {
-                  return {Source};
-                } else {
-                  return {Source, LoadedVal.value()};
-                };
-              }
+        return lambdaFlow<d_t>([Load](d_t Source) -> container_type {
+          if (Source.getBaseValue() == Load->getPointerOperand()) {
+            auto LoadedVal = Source.getLoaded(Load);
+            if (LoadedVal == std::nullopt) {
               return {Source};
-            });
+            } else {
+              return {Source, LoadedVal.value()};
+            };
+          }
+          return {Source};
+        });
       }
 
       // (ii) Handle semantic propagation (pointers) for store instructions.
@@ -382,31 +422,40 @@ public:
         //             v  v  v
         //             0  x  Y
         //
-        return lambdaFlow<d_t>(
-            [Store, PointerPTS = PT.getReachableAllocationSites(
-                        Store->getPointerOperand(), OnlyConsiderLocalAliases)](
-                d_t Src) -> container_type {
-              if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
-                // Here, we are unsound!
-                return {};
+        return lambdaFlow<d_t>([Store,
+                                PointerPTS = PT.getReachableAllocationSites(
+                                    Store->getPointerOperand(),
+                                    OnlyConsiderLocalAliases)](
+                                   d_t Src) -> container_type {
+          if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
+            // Here, we are unsound!
+            return {};
+          }
+          container_type Facts;
+          Facts.insert(Src);
+          // y/Y now obtains its new value(s) from x/X
+          // If a value is stored that holds we must generate all potential
+          // memory locations the store might write to.
+          if (Store->getValueOperand() == Src) {
+            Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
+            for (const auto *Alias : *PointerPTS) {
+              if (Alias != Store->getPointerOperand()) {
+                Facts.insert(Src.getOverapproximated(Alias));
               }
-              container_type Facts;
-              Facts.insert(Src);
-              // y/Y now obtains its new value(s) from x/X
-              // If a value is stored that holds we must generate all potential
-              // memory locations the store might write to.
-              if (Store->getValueOperand() == Src) {
-                Facts.insert(Store->getPointerOperand());
-                Facts.insert(PointerPTS->begin(), PointerPTS->end());
+            }
+          }
+          // ... or from zero, if a constant literal is stored to y
+          if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+              IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+            Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
+            for (const auto *Alias : *PointerPTS) {
+              if (Alias != Store->getPointerOperand()) {
+                Facts.insert(Src.getOverapproximated(Alias));
               }
-              // ... or from zero, if a constant literal is stored to y
-              if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-                  IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-                Facts.insert(Store->getPointerOperand());
-                Facts.insert(PointerPTS->begin(), PointerPTS->end());
-              }
-              return Facts;
-            });
+            }
+          }
+          return Facts;
+        });
       }
     }
 
@@ -423,7 +472,17 @@ public:
     //              0  y  x
     //
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      return generateFlow<d_t>(Load, Load->getPointerOperand());
+      return lambdaFlow<d_t>([Load](d_t Source) -> container_type {
+        if (Source.getBaseValue() == Load->getPointerOperand()) {
+          auto LoadedVal = Source.getLoaded(Load);
+          if (LoadedVal == std::nullopt) {
+            return {Source};
+          } else {
+            return {Source, LoadedVal.value()};
+          };
+        }
+        return {Source};
+      });
     }
     // Handle store instructions
     //
@@ -448,9 +507,18 @@ public:
           }
           container_type Facts = {Src};
           // y now obtains its new value from x
-          if (Load == Src || Load->getPointerOperand() == Src) {
-            Facts.insert(Load->getPointerOperand());
-            Facts.insert(Store->getPointerOperand());
+          if (Load ==
+              Src /*|| Load->getPointerOperand() == Src*/) { // MM: why the
+                                                             // second case?
+                                                             // This should be
+                                                             // propagated
+                                                             // through Load
+                                                             // anyways?!
+            // auto MaybeLoaded = Src.getLoaded(Load);
+            // if (MaybeLoaded.has_value()) {
+            //   Facts.insert(MaybeLoaded.value()); // FIXMEMM
+            // }
+            Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
           }
           IF_LOG_ENABLED({
             for (const auto Fact : Facts) {
@@ -463,7 +531,7 @@ public:
           return Facts;
         });
       }
-
+      // MM: If we don't need the stuff above, this part here is redundant.
       // Otherwise
       return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
         // Override old value, i.e., kill value that is written to and
@@ -474,12 +542,12 @@ public:
         container_type Facts = {Src};
         // y now obtains its new value from x
         if (Store->getValueOperand() == Src) {
-          Facts.insert(Store->getPointerOperand());
+          Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
         }
         // ... or from zero, if a constant literal is stored to y
         if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
             IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-          Facts.insert(Store->getPointerOperand());
+          Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
         }
         IF_LOG_ENABLED({
           for (const auto Fact : Facts) {
@@ -518,7 +586,7 @@ public:
         // if one of the operands holds, also generate the instruction using
         // it
         if (Op == Src) {
-          Facts.insert(Inst);
+          Facts.insert(Src.getSameAP(Inst)); // FIXMEMM
         }
       }
       // pass everything that already holds as identity
@@ -550,7 +618,7 @@ public:
     // Map actual to formal parameters.
     auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
         CS, DestFun, [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
-          if (d_t(ActualArg) != Src) {
+          if (ActualArg != Src.getBaseValue()) { // FIXMEMM
             return false;
           }
 
@@ -565,9 +633,9 @@ public:
     auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
 
     if (SRetFormal) {
-      return unionFlows(
-          std::move(MapFactsToCalleeFF),
-          generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
+      return unionFlows(std::move(MapFactsToCalleeFF),
+                        generateFlowAndKillAllOthers(
+                            SRetFormal, this->getZeroValue())); // FIXMEMM
     }
 
     return MapFactsToCalleeFF;
@@ -617,7 +685,7 @@ public:
         //              v  v
         //              0  x
         //
-        return generateFromZero(CallSite);
+        return generateFlow(CallSite, this->getZeroValue()); // FIXMEMM
       }
     }
     // Just use the auto mapping for values; pointer parameters and global
@@ -648,7 +716,7 @@ public:
           // If one or more of the declaration-only targets return a value, it
           // must be generated from zero!
           if (isZeroValueImpl(Source)) {
-            return {Source, CallSite};
+            return {Source, Source.getSameAP(CallSite)}; // FIXMEMM
           }
         }
         // If all declaration-only callee targets return void, just pass
@@ -691,7 +759,8 @@ public:
       // parameters will otherwise cause trouble by overriding alloca
       // instructions without being valid data-flow facts themselves.
       for (const auto &Arg : EntryPointFun->args()) {
-        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, Bottom{});
+        Seeds.addSeed(&EntryPointFun->front().front(),
+                      d_t::getNonIndirectionValue(&Arg), Bottom{});
       }
       // Generate all global variables using generalized initial seeds
 
@@ -705,7 +774,8 @@ public:
             InitialValues =
                 BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
           }
-          Seeds.addSeed(&EntryPointFun->front().front(), GV, InitialValues);
+          Seeds.addSeed(&EntryPointFun->front().front(),
+                        d_t::getNonIndirectionValue(GV), InitialValues);
         }
       }
     }
@@ -714,7 +784,7 @@ public:
 
   [[nodiscard]] inline d_t createZeroValue() const {
     // Create a special value to represent the zero value!
-    return LLVMZeroValue::getInstance();
+    return d_t::getNonIndirectionValue(LLVMZeroValue::getInstance()); // FIXMEMM
   }
 
   inline bool isZeroValue(d_t d) const override { return isZeroValueImpl(d); }
@@ -1041,14 +1111,14 @@ public:
     //                         v
     //                         a_i
     //
-    std::set<d_t> SRetParams;
+    std::set<const llvm::Value *> SRetParams;
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
     for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
       if (CS->paramHasAttr(Idx, llvm::Attribute::StructRet)) {
-        SRetParams.insert(CS->getArgOperand(Idx));
+        SRetParams.insert(CS->getArgOperand(Idx)); // FIXMEMM
       }
     }
-    if (isZeroValue(SrcNode) && SRetParams.count(DestNode)) {
+    if (isZeroValue(SrcNode) && SRetParams.count(DestNode.getBaseValue())) {
       return IIAAAddLabelsEF::createEdgeFunction(BitVectorSet<e_t>());
     }
     // Everything else can be passed as identity.
@@ -1497,12 +1567,12 @@ protected:
 
 private:
   KFieldSensFlowFact<const llvm::Value *> KFSFF,
-      KFSFF2 = KFSFF.getStored(), KFSFF3 = KFSFF.getWithOffset(42),
+      KFSFF2 = KFSFF.getStored(nullptr), KFSFF3 = KFSFF.getWithOffset(42),
       KFSFF4 = KFSFF.getFirstOverapproximated();
   // LLVMKFieldSensFlowFact<0> foo;
   // LLVMKFieldSensFlowFact<0, 0, const llvm::Value*> foo2 = foo;
   std::optional<KFieldSensFlowFact<const llvm::Value *>> KFSFF5 =
-      KFSFF.getLoaded(64); // FIXME just make it compile for now.
+      KFSFF.getLoaded(nullptr, 64); // FIXME just make it compile for now.
   /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
