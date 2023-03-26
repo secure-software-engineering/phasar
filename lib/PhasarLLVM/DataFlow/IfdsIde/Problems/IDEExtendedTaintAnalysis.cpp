@@ -11,6 +11,7 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
@@ -48,18 +49,8 @@ IDEExtendedTaintAnalysis::initialSeeds() {
     }
   }
 
-  for (const auto &Ep : base_t::EntryPoints) {
-    const auto *EntryFn = ICF->getFunction(Ep);
-
-    if (!EntryFn) {
-      llvm::errs() << "WARNING: Entry-Function \"" << Ep
-                   << "\" not contained in the module; skip it\n";
-      continue;
-    }
-
-    Seeds.addSeed(&EntryFn->front().front(), this->base_t::getZeroValue(),
-                  bottomElement());
-  }
+  addSeedsForStartingPoints(base_t::EntryPoints, ICF, Seeds,
+                            this->base_t::getZeroValue(), bottomElement());
 
   if (Seeds.empty()) {
     llvm::errs() << "WARNING: No initial seeds specified, skip the analysis. "

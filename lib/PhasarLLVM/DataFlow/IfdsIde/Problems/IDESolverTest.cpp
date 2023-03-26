@@ -12,6 +12,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
@@ -72,13 +73,7 @@ IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t /*CallSite*/,
 InitialSeeds<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::l_t>
 IDESolverTest::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IDESolverTest::initialSeeds()");
-  InitialSeeds<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::l_t>
-      Seeds;
-  for (auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue(), topElement());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IDESolverTest::d_t IDESolverTest::createZeroValue() const {
