@@ -137,6 +137,10 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
     return generateFlow(Extract, Extract->getAggregateOperand());
   }
 
+  if (const auto *Insert = llvm::dyn_cast<llvm::InsertValueInst>(Curr)) {
+    return generateFlow(Insert, Insert->getInsertedValueOperand());
+  }
+
   // Otherwise we do not care and leave everything as it is
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
@@ -269,40 +273,12 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
   // result should be tainted
   if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-
     return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
       return ((Source == CS->getArgOperand(1)) ||
               (Source == CS->getArgOperand(3)));
     });
   }
-  // $sSayxSicig is array subscript getter method
-  // first arg is the target register to extract the result to
-  // second arg is the index to extract
-  // third arg is the array to extract the value from.
-  // for a taint analysis we want to taint all values extracted
-  // from the command line argument because they represent
-  // user input.
-  if (DestFun->getName().equals("$sSayxSicig")) {
-    const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-    auto *RV = CS->getArgOperand(0);
-    // llvm::outs() << "append " << *CS << "\n";
-    if (const auto *BitCast = llvm::dyn_cast<llvm::BitCastInst>(RV)) {
-      // llvm::outs() << "bitcast " << *BitCast << "\n";
-      auto *BT = BitCast->getOperand(0);
-      // llvm::outs() << "value " << *BT << "\n";
 
-      return generateFlowIf<d_t>(BT, [CS](d_t Source) {
-        if (Source == CS->getArgOperand(2)) {
-          llvm::outs() << "target of array index is tainted \n";
-        }
-        return (Source == CS->getArgOperand(2));
-      });
-    }
-    // const auto *TA = CS->getArgOperand(2);
-    // // here we need to check whether the target array is
-    // // either the commandline args or an aliases it.
-    // llvm::outs() << "Target array " << *TA << "\n";
-  }
   return nullptr;
 }
 
@@ -310,9 +286,7 @@ InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
              IFDSTaintAnalysis::l_t>
 IFDSTaintAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
-  // If main function is the entry point, commandline arguments have to be
-  // tainted. Otherwise we just use the zero value to initialize the analysis.
-  // TODO: this needs to be extended to work for Swift CommandLine
+
   InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
                IFDSTaintAnalysis::l_t>
       Seeds;
