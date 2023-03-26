@@ -37,9 +37,7 @@ class PhasarConfig {
 public:
   /// Current Phasar version
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static constexpr llvm::StringRef PhasarVersion() noexcept {
-    return XSTR(PHASAR_VERSION);
-  }
+  [[nodiscard]] static llvm::StringRef PhasarVersion() noexcept;
 
   /// Stores the label/ tag with which we annotate the LLVM IR.
   // NOLINTNEXTLINE(readability-identifier-naming)
@@ -49,11 +47,9 @@ public:
 
   /// Specifies the directory in which important configuration files are
   /// located.
-  [[nodiscard]] static constexpr llvm::StringRef
+  [[nodiscard]] static llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  GlobalConfigurationDirectory() noexcept {
-    return PHASAR_CONFIG_DIR;
-  }
+  GlobalConfigurationDirectory() noexcept;
 
   [[nodiscard]] static std::optional<llvm::StringRef>
   // NOLINTNEXTLINE(readability-identifier-naming)
@@ -75,9 +71,7 @@ public:
 
   /// Specifies the directory in which Phasar is located.
   // NOLINTNEXTLINE(readability-identifier-naming)
-  [[nodiscard]] static constexpr llvm::StringRef PhasarDirectory() noexcept {
-    return PHASAR_DIR;
-  }
+  [[nodiscard]] static llvm::StringRef PhasarDirectory() noexcept;
 
   /// Name of the file storing all standard header search paths used for
   /// compilation.
@@ -95,11 +89,9 @@ public:
   }
 
   /// Default Source- and Sink-Functions path
-  [[nodiscard]] static constexpr llvm::StringRef
+  [[nodiscard]] static llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
-  DefaultSourceSinkFunctionsPath() noexcept {
-    return PHASAR_DIR "/config/phasar-source-sink-function.json";
-  }
+  DefaultSourceSinkFunctionsPath() noexcept;
 
   // Variables to be used in JSON export format
   /// Identifier for call graph export

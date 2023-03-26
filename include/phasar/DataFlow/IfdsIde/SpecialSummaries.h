@@ -40,7 +40,7 @@ template <typename D, typename V = BinaryDomain> class SpecialSummaries {
 
 private:
   std::map<std::string, FlowFunctionPtrType> SpecialFlowFunctions;
-  std::map<std::string, std::shared_ptr<EdgeFunction<V>>> SpecialEdgeFunctions;
+  std::map<std::string, EdgeFunction<V>> SpecialEdgeFunctions;
   std::vector<std::string> SpecialFunctionNames;
 
   // Constructs the SpecialSummaryMap such that it contains all glibc,
@@ -53,7 +53,7 @@ private:
       SpecialFlowFunctions.insert(
           std::make_pair(FunctionName, Identity<D>::getInstance()));
       SpecialEdgeFunctions.insert(
-          std::make_pair(FunctionName, EdgeIdentity<V>::getInstance()));
+          std::make_pair(FunctionName, EdgeIdentity<V>{}));
     }
   }
 
