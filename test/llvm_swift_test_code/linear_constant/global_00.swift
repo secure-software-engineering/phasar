@@ -1,6 +1,7 @@
+var y = 42
 @main
 struct MyMain {
     static func main() {
-        var i = CommandLine.arguments.count
+        y += 1
     }
 }

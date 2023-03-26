@@ -6,9 +6,9 @@ struct MyMain {
     }
 
     static func decrement(_ i: Int) -> Int {
-      if(cond) {
-        return decrement(i - 1)
-      }
-      return -1
+        if cond {
+            return decrement(i - 1)
+        }
+        return -1
     }
 }

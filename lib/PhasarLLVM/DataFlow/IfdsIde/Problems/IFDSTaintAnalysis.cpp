@@ -120,23 +120,7 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
     IFDSTaintAnalysis::n_t Curr, [[maybe_unused]] IFDSTaintAnalysis::n_t Succ) {
   // If a tainted value is stored, the store location must be tainted too
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
-      const llvm::StoreInst *Store;
-      TAFF(const llvm::StoreInst *S) : Store(S){};
-      std::set<IFDSTaintAnalysis::d_t>
-      computeTargets(IFDSTaintAnalysis::d_t Source) override {
-        if (Store->getValueOperand() == Source) {
-          return std::set<IFDSTaintAnalysis::d_t>{Store->getPointerOperand(),
-                                                  Source};
-        }
-        if (Store->getValueOperand() != Source &&
-            Store->getPointerOperand() == Source) {
-          return {};
-        }
-        return {Source};
-      }
-    };
-    return std::make_shared<TAFF>(Store);
+    return strongUpdateStore(Store);
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
@@ -150,7 +134,6 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   // Check if a tainted value is extracted and taint the targets of
   // the extract operation accordingly
   if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
-
     return generateFlow(Extract, Extract->getAggregateOperand());
   }
 
@@ -329,6 +312,7 @@ IFDSTaintAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
+  // TODO: this needs to be extended to work for Swift CommandLine
   InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
                IFDSTaintAnalysis::l_t>
       Seeds;
