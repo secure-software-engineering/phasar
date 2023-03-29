@@ -109,7 +109,7 @@ export LDFLAGS="-L/opt/homebrew/opt/llvm@14/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm@14/include"
 export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"
 ```
-4. Run `cmake .. -DCMAKE_CXX_COMPILER=$CXX -G Ninja` and `ninja` to build PhASAR
+4. Run `cmake .. -DCMAKE_CXX_COMPILER=$CXX -DPHASAR_BUILD_UNITTESTS=0 -DPHASAR_BUILD_IR=0 -G Ninja` and `ninja` to build PhASAR (currently unit tests break the build, because cmake tries to use LLVM 17 to create the IR. We are working on a solution for this)
 ### Use Docker for development
 The easiest solution to develop PhASAR on a Mac right now is to use [dockers development environments](https://docs.docker.com/desktop/dev-environments/). Clone this repository as described in their documentation. Afterwards, you have to login once manually, as a root user by running `docker exec -it -u root <container name> /bin/bash` to complete the rest of the install process as described in this readme (install submodules, run bootstrap.sh, ...).
 Now you can just attach your docker container to VS Code or any other IDE, which supports remote development.
