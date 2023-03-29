@@ -13,20 +13,6 @@ if(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)
 	IDEExtendedTaintAnalysisTest.cpp
     IDEGeneralizedLCATest.cpp
   )
-elseif(BUILD_SWIFT_TESTS)
-  set(IfdsIdeProblemSources
-	IFDSConstAnalysisTest.cpp
-	IFDSTaintAnalysisTest.cpp
-	IDEInstInteractionAnalysisTest.cpp
-	IDELinearConstantAnalysisTest.cpp
-	IDELinearConstantAnalysis_DotTest.cpp
-	IFDSUninitializedVariablesTest.cpp
-    IDEGeneralizedLCATest.cpp
-	IDEExtendedTaintAnalysisTest.cpp
-	IDETSAnalysisFileIOTest.cpp
-	IDELinearConstantAnalysisSwiftTest.cpp
-	IFDSTaintAnalysisSwiftTest.cpp
-  )
   else()
 	set(IfdsIdeProblemSources
 	IFDSConstAnalysisTest.cpp
@@ -40,6 +26,14 @@ elseif(BUILD_SWIFT_TESTS)
 	IDETSAnalysisFileIOTest.cpp
 	)
 endif(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)
+
+if(BUILD_SWIFT_TESTS)
+set(SwiftTests
+	IDELinearConstantAnalysisSwiftTest.cpp
+	IFDSTaintAnalysisSwiftTest.cpp
+)
+list(APPEND IfdsIdeProblemSources ${SwiftTests})
+endif(BUILD_SWIFT_TESTS)
 
 test_require_config_file("DOTGraphConfig.json")
 
