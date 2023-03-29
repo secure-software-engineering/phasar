@@ -94,7 +94,23 @@ Done!
 
 
 ### Installing PhASAR a MacOS system
-Due to unfortunate updates to MacOS and the handling of C++, especially on the newer M1 processors, we can't support native development on Mac.
+To install PhASAR on a Mac you need to follow these steps:
+1. Install both LLVM 14 and LLVM 17 on your system using e.g. homebrew.
+2. Setup LLVM 17 as your compiler to compile PhASAR with using the following environment variables
+
+```
+// this must point to LLVM 17 !
+CC=/opt/homebrew/opt/llvm/bin/clang
+CXX=/opt/homebrew/opt/llvm/bin/clang++
+```
+3. Update your `LDFLAGS`, `CPPFLAGS`, and `PATH` to point to your LLVM 14 installation
+```
+export LDFLAGS="-L/opt/homebrew/opt/llvm@14/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/llvm@14/include"
+export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"
+```
+4. Run `cmake .. -DCMAKE_CXX_COMPILER=$CXX -G Ninja` and `ninja` to build PhASAR
+### Use Docker for development
 The easiest solution to develop PhASAR on a Mac right now is to use [dockers development environments](https://docs.docker.com/desktop/dev-environments/). Clone this repository as described in their documentation. Afterwards, you have to login once manually, as a root user by running `docker exec -it -u root <container name> /bin/bash` to complete the rest of the install process as described in this readme (install submodules, run bootstrap.sh, ...).
 Now you can just attach your docker container to VS Code or any other IDE, which supports remote development.
 
@@ -152,6 +168,7 @@ When using CMake to compile PhASAR the following optional parameters can be used
 | <b>PHASAR_CONFIG_INSTALL_PREFIX</b> : PATH | Path where PhASAR's configuration files will be installed if <br> ninja install” is invoked or the “install” <br> target is built. Expression will be evaluated within CMAKE_INSTALL_PREFIX, so prefer absolute paths (default is $(HOME)/.config/) |
 | <b>PHASAR_BUILD_DOC</b> : BOOL | Build PhASAR documentation (default is OFF) |
 | <b>PHASAR_BUILD_UNITTESTS</b> : BOOL | Build PhASAR unit tests (default is ON) |
+| <b>BUILD_SWIFT_TESTS</b> : BOOL | Builds the Swift tests (Swift compiler has to be installed manually beforehand!) (default is OFF) |
 | <b>PHASAR_BUILD_IR</b> : BOOL | Build PhASAR IR (required for running the unit tests) (default is ON) |
 | <b>PHASAR_BUILD_OPENSSL_TS_UNITTESTS</b> : BOOL | Build PhASAR unit tests that require OpenSSL (default is OFF) |
 | <b>PHASAR_ENABLE_PAMM</b> : STRING | Enable the performance measurement mechanism <br> ('Off', 'Core' or 'Full', default is Off) |
