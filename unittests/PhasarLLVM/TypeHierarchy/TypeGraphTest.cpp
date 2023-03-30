@@ -1,17 +1,15 @@
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "gtest/gtest.h"
-
-#include "boost/graph/isomorphism.hpp"
+#include "llvm/Support/ManagedStatic.h"
 
 #include "TestConfig.h"
-
-#include "llvm/Support/ManagedStatic.h"
+#include "boost/graph/isomorphism.hpp"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;

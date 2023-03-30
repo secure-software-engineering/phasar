@@ -7,22 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <chrono>
-#include <iterator>
-#include <ostream>
+#include "phasar/Utils/Utilities.h"
 
-#include "boost/algorithm/string/classification.hpp"
-#include "boost/algorithm/string/find.hpp"
-#include "boost/algorithm/string/predicate.hpp"
-#include "boost/algorithm/string/split.hpp"
+#include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/StringExtras.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DerivedTypes.h"
 
-#include "cxxabi.h"
+#include "boost/algorithm/string/find.hpp"
 
-#include "phasar/Utils/Utilities.h"
+#include <algorithm>
+#include <chrono>
 
 using namespace std;
 using namespace psr;
@@ -39,7 +35,7 @@ std::string createTimeStamp() {
   return TimeStr;
 }
 
-bool isConstructor(const string &MangledName) {
+bool isConstructor(llvm::StringRef MangledName) {
   // WARNING: Doesn't work for templated classes, should
   // the best way to do it I can think of is to use a lexer
   // on the name to detect the constructor point explained
@@ -78,20 +74,22 @@ const llvm::Type *stripPointer(const llvm::Type *Pointer) {
   return Pointer;
 }
 
-bool isMangled(const string &Name) { return Name != llvm::demangle(Name); }
-
-vector<string> splitString(const string &Str, const string &Delimiter) {
-  vector<string> SplitStrings;
-  boost::split(SplitStrings, Str, boost::is_any_of(Delimiter),
-               boost::token_compress_on);
-  return SplitStrings;
-}
-
-ostream &operator<<(ostream &OS, const vector<bool> &Bits) {
-  for (auto Bit : Bits) {
-    OS << Bit;
+bool isMangled(llvm::StringRef Name) {
+  // See llvm/Demangle/Demangle.cpp
+  if (Name.startswith("_Z") || Name.startswith("___Z")) {
+    // Itanium ABI
+    return true;
   }
-  return OS;
+  if (Name.startswith("_R")) {
+    // Rust ABI
+    return true;
+  }
+  if (Name.startswith("_D")) {
+    // D ABI
+    return true;
+  }
+  // Microsoft ABI is a bit more complicated...
+  return Name != llvm::demangle(Name.str());
 }
 
 bool StringIDLess::operator()(const std::string &Lhs,

@@ -15,12 +15,11 @@
  */
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
-
-#include "boost/algorithm/string/trim.hpp"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -38,6 +37,8 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "boost/algorithm/string/trim.hpp"
 
 #include <cctype>
 #include <charconv>
@@ -59,6 +60,14 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
   if (V) {
     return V->getType()->isPointerTy() &&
            V->getType()->getPointerElementType()->isFunctionTy();
+  }
+  return false;
+}
+
+bool isIntegerLikeType(const llvm::Type *T) noexcept {
+  if (const auto *StructType = llvm::dyn_cast<llvm::StructType>(T)) {
+    return StructType->isPacked() && StructType->elements().size() == 1 &&
+           StructType->getElementType(0)->isIntegerTy();
   }
   return false;
 }
@@ -213,6 +222,23 @@ std::string llvmIRToShortString(const llvm::Value *V) {
   return llvm::StringRef(IRBuffer).ltrim().str();
 }
 
+std::string llvmTypeToString(const llvm::Type *Ty, bool Shorten) {
+  if (!Ty) {
+    return "<null>";
+  }
+  if (Shorten) {
+    if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty);
+        StructTy && StructTy->hasName()) {
+      return StructTy->getName().str();
+    }
+  }
+
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  Ty->print(RSO, false, Shorten);
+  return IRBuffer;
+}
+
 void dumpIRValue(const llvm::Value *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
@@ -262,7 +288,7 @@ bool LLVMValueIDLess::operator()(const llvm::Value *Lhs,
                                  const llvm::Value *Rhs) const {
   std::string LhsId = getMetaDataID(Lhs);
   std::string RhsId = getMetaDataID(Rhs);
-  return Sless(LhsId, RhsId);
+  return StringIDLess{}(LhsId, RhsId);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {

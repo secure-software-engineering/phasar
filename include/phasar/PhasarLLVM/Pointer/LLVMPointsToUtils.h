@@ -10,15 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
 
-#include <set>
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Constants.h"
-#include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 
 namespace llvm {
-class Value;
+class Function;
 } // namespace llvm
 
 namespace psr {
@@ -27,12 +24,12 @@ namespace psr {
  * @brief Returns true if the given pointer is an interesting pointer,
  *        i.e. not a constant null pointer.
  */
-inline bool isInterestingPointer(const llvm::Value *V) {
+[[nodiscard]] inline bool isInterestingPointer(const llvm::Value *V) {
   return V->getType()->isPointerTy() &&
          !llvm::isa<llvm::ConstantPointerNull>(V);
 }
 
-extern const std::set<llvm::StringRef> HeapAllocatingFunctions;
+[[nodiscard]] bool isHeapAllocatingFunction(const llvm::Function *Fun);
 
 } // namespace psr
 

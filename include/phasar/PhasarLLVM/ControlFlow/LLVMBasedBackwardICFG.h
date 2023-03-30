@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/ICFGBase.h"
+#include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 

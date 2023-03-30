@@ -8,13 +8,14 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -36,7 +37,7 @@ namespace psr {
 struct LLVMBasedICFG::Builder {
   LLVMProjectIRDB *IRDB = nullptr;
   LLVMBasedICFG *ICF = nullptr;
-  MaybeUniquePtr<LLVMPointsToInfo> PT{};
+  LLVMAliasInfoRef PT{};
   std::unique_ptr<Resolver> Res = nullptr;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions{};
   llvm::SmallVector<llvm::Function *, 1> UserEntryPoints{};
@@ -363,21 +364,24 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
 LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                              CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
+                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
     : TH(TH) {
   assert(IRDB != nullptr);
   this->IRDB = IRDB;
 
   Builder B{IRDB, this, PT};
+  LLVMAliasInfo PTOwn;
+
   if (!TH && CGType != CallGraphAnalysisType::NORESOLVE) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
   }
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
-    B.PT = std::make_unique<LLVMPointsToSet>(*IRDB);
+    PTOwn = std::make_unique<LLVMAliasSet>(IRDB);
+    B.PT = PTOwn.asRef();
   }
 
-  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT.get());
+  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT);
   B.initEntryPoints(EntryPoints);
   B.initGlobalsAndWorkList(this, IncludeGlobals);
 
@@ -502,7 +506,8 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 
   for (size_t Vtx = 0, VtxEnd = VertexFunctions.size(); Vtx != VtxEnd; ++Vtx) {
     auto VtxFunName = VertexFunctions[Vtx]->getName().str();
-    J[PhasarConfig::JsonCallGraphID()][VtxFunName] = nlohmann::json::array();
+    J[PhasarConfig::JsonCallGraphID().str()][VtxFunName] =
+        nlohmann::json::array();
 
     for (const auto &Inst : llvm::instructions(VertexFunctions[Vtx])) {
       if (!llvm::isa<llvm::CallBase>(Inst)) {
@@ -511,7 +516,7 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 
       if (auto It = CalleesAt.find(&Inst); It != CalleesAt.end()) {
         for (const auto *Succ : *It->second) {
-          J[PhasarConfig::JsonCallGraphID()][VtxFunName].push_back(
+          J[PhasarConfig::JsonCallGraphID().str()][VtxFunName].push_back(
               Succ->getName().str());
         }
       }

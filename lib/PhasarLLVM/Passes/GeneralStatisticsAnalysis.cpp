@@ -15,6 +15,7 @@
  */
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
+
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -129,6 +130,9 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
       ++Stats.GlobalPointers;
     }
     ++Stats.Globals;
+    if (Global.isConstant()) {
+      ++Stats.GlobalConsts;
+    }
   }
   // register stuff in PAMM
   // For performance reasons (and out of sheer convenience) we simply initialize
@@ -166,6 +170,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
       PHASAR_LOG_LEVEL(INFO, "Functions          : " << Stats.Functions);
       PHASAR_LOG_LEVEL(INFO, "Globals            : " << Stats.Globals);
       PHASAR_LOG_LEVEL(INFO, "Global Pointer     : " << Stats.GlobalPointers);
+      PHASAR_LOG_LEVEL(INFO, "Global Consts      : " << Stats.GlobalConsts);
       PHASAR_LOG_LEVEL(INFO, "Memory Intrinsics  : " << Stats.MemIntrinsics);
       PHASAR_LOG_LEVEL(INFO,
                        "Store Instructions : " << Stats.StoreInstructions);
@@ -195,6 +200,8 @@ size_t GeneralStatistics::getBasicBlocks() const { return BasicBlocks; }
 size_t GeneralStatistics::getFunctions() const { return Functions; }
 
 size_t GeneralStatistics::getGlobals() const { return Globals; }
+
+size_t GeneralStatistics::getGlobalConsts() const { return GlobalConsts; }
 
 size_t GeneralStatistics::getMemoryIntrinsics() const { return MemIntrinsics; }
 
@@ -232,6 +239,8 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   J["GetElementPtrs"] = GetElementPtrs;
   J["BasicBlocks"] = BasicBlocks;
   J["PhiNodes"] = PhiNodes;
+  J["GlobalConsts"] = GlobalConsts;
+  J["GlobalPointers"] = GlobalPointers;
   return J;
 }
 
@@ -243,6 +252,8 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
             << "LLVM IR instructions:\t" << Statistics.Instructions << "\n"
             << "Functions:\t" << Statistics.Functions << "\n"
             << "Global Variables:\t" << Statistics.Globals << "\n"
+            << "Global Variable Consts:\t" << Statistics.GlobalConsts << "\n"
+            << "Global Pointers:\t" << Statistics.GlobalPointers << "\n"
             << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
             << "\n"
             << "Call Sites:\t" << Statistics.CallSites << "\n"

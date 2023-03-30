@@ -10,16 +10,17 @@
 #ifndef PHASAR_UTILS_BITVECTORSET_H_
 #define PHASAR_UTILS_BITVECTORSET_H_
 
-#include <algorithm>
-#include <cassert>
-#include <initializer_list>
+#include "llvm/ADT/BitVector.h"
+#include "llvm/ADT/Hashing.h"
+#include "llvm/Support/Compiler.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "boost/bimap.hpp"
 #include "boost/bimap/unordered_set_of.hpp"
 
-#include "llvm/ADT/BitVector.h"
-#include "llvm/Support/Compiler.h"
-#include "llvm/Support/raw_ostream.h"
+#include <algorithm>
+#include <cassert>
+#include <initializer_list>
 
 namespace psr {
 namespace internal {
@@ -299,6 +300,20 @@ public:
 
   friend bool operator<(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
     return internal::isLess(Lhs.Bits, Rhs.Bits);
+  }
+
+  // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
+  friend llvm::hash_code hash_value(const BitVectorSet &BV) noexcept {
+    if (BV.Bits.empty()) {
+      return {};
+    }
+    auto Words = BV.Bits.getData();
+    size_t Idx = Words.size();
+    while (Idx && Words[Idx - 1] == 0) {
+      --Idx;
+    }
+    return llvm::hash_combine_range(Words.begin(),
+                                    std::next(Words.begin(), Idx));
   }
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,

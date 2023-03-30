@@ -8,17 +8,13 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/InterMonoTaintAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeInterMonoTaint() {
   auto Config = makeTaintConfig();
-  InterMonoTaintAnalysis TA(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
-                            &HA.getICFG(), &HA.getPointsToInfo(), Config,
-                            EntryPoints);
-
-  executeInterMonoAnalysis(TA);
+  executeInterMonoAnalysis<InterMonoTaintAnalysis>(Config, EntryPoints);
 }
 
 } // namespace psr

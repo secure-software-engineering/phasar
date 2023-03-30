@@ -16,17 +16,21 @@ function(add_phasar_unittest test_name)
     LINK_PUBLIC
     phasar_config
     phasar_controller
+    phasar_llvm_controlflow
     phasar_controlflow
-    phasar_phasarllvm_utils
+    phasar_llvm_utils
     phasar_analysis_strategy
-    phasar_ifdside
+    phasar_llvm_ifdside
     phasar_utils
     phasar_mono
+    phasar_llvm_db
     phasar_db
     # phasar_clang
     phasar_passes
+    phasar_llvm_pointer
     phasar_pointer
-    phasar_typehierarchy
+    phasar_llvm_typehierarchy
+    phasar_llvm
     phasar_taintconfig
     nlohmann_json_schema_validator
     ${SQLITE3_LIBRARY}
@@ -80,8 +84,8 @@ function(generate_ll_file)
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
   # define compilation flags
-  set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S)
-  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S)
+  set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S -w)
+  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
   set(GEN_CMD_COMMENT "[LL]")
 
   if(GEN_LL_MEM2REG)
@@ -235,6 +239,9 @@ macro(add_phasar_library name)
     install(TARGETS ${name}
       EXPORT ${name}-targets
       COMPONENT ${component_name}
+
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 
       # NOTE: Library, archive and runtime destination are automatically set by
       # GNUInstallDirs which is included in the top-level CMakeLists.txt

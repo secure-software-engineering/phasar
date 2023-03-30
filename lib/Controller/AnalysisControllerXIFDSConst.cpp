@@ -8,14 +8,12 @@
  *****************************************************************************/
 
 #include "phasar/Controller/AnalysisController.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSConstAnalysis.h"
 
 namespace psr {
 
 void AnalysisController::executeIFDSConst() {
-  IFDSConstAnalysis CA(&HA.getProjectIRDB(), &HA.getPointsToInfo(),
-                       EntryPoints);
-  executeIFDSAnalysis(CA);
+  executeIFDSAnalysis<IFDSConstAnalysis>(EntryPoints);
 }
 
 } // namespace psr

@@ -18,7 +18,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <set>
 #include <string>
@@ -41,11 +41,11 @@ class LLVMTypeHierarchy;
 class OTFResolver : public Resolver {
 protected:
   LLVMBasedICFG &ICF;
-  LLVMPointsToInfo &PT;
+  LLVMAliasInfoRef PT;
 
 public:
   OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
-              LLVMPointsToInfo &PT);
+              LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;
 
@@ -61,7 +61,7 @@ public:
   FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   static std::set<const llvm::Type *>
-  getReachableTypes(const LLVMPointsToInfo::PointsToSetTy &Values);
+  getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values);
 
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
   getActualFormalPointerPairs(const llvm::CallBase *CallSite,
