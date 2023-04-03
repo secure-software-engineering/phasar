@@ -50,14 +50,7 @@
 #include <unordered_set>
 #include <utility>
 
-namespace llvm {
-class Instruction;
-class Value;
-} // namespace llvm
-
 namespace psr {
-// For sorting the results in dumpResults()
-std::string getMetaDataID(const llvm::Value *V);
 
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
@@ -276,49 +269,7 @@ public:
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
-    PAMM_GET_INSTANCE;
-    START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
-    OS << "\n***************************************************************\n"
-       << "*                  Raw IDESolver results                      *\n"
-       << "***************************************************************\n";
-    auto Cells = this->ValTab.cellVec();
-    if (Cells.empty()) {
-      OS << "No results computed!" << '\n';
-    } else {
-      std::sort(
-          Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
-            if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-              return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
-                                    getMetaDataID(Rhs.getRowKey()));
-            } else {
-              // If non-LLVM IR is used
-              return Lhs.getRowKey() < Rhs.getRowKey();
-            }
-          });
-      n_t Prev = n_t{};
-      n_t Curr = n_t{};
-      f_t PrevFn = f_t{};
-      f_t CurrFn = f_t{};
-      for (unsigned I = 0; I < Cells.size(); ++I) {
-        Curr = Cells[I].getRowKey();
-        CurrFn = ICF->getFunctionOf(Curr);
-        if (PrevFn != CurrFn) {
-          PrevFn = CurrFn;
-          OS << "\n\n============ Results for function '" +
-                    ICF->getFunctionName(CurrFn) + "' ============\n";
-        }
-        if (Prev != Curr) {
-          Prev = Curr;
-          std::string NString = IDEProblem.NtoString(Curr);
-          std::string Line(NString.size(), '-');
-          OS << "\n\nN: " << NString << "\n---" << Line << '\n';
-        }
-        OS << "\tD: " << IDEProblem.DtoString(Cells[I].getColumnKey())
-           << " | V: " << IDEProblem.LtoString(Cells[I].getValue()) << '\n';
-      }
-    }
-    OS << '\n';
-    STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
+    getSolverResults().dumpResults(*ICF, IDEProblem, OS);
   }
 
   void dumpAllInterPathEdges() {
@@ -361,9 +312,25 @@ public:
     }
   }
 
-  SolverResults<n_t, d_t, l_t> getSolverResults() {
-    return SolverResults<n_t, d_t, l_t>(this->ValTab,
-                                        IDEProblem.getZeroValue());
+  /// Returns a view into the computed solver-results.
+  ///
+  /// NOTE: The SolverResults store a reference into this IDESolver, so its
+  /// lifetime is also bound to the lifetime of this solver. If you want to use
+  /// the solverResults beyond the lifetime of this solver, use
+  /// comsumeSolverResults() instead.
+  [[nodiscard]] SolverResults<n_t, d_t, l_t>
+  getSolverResults() noexcept(std::is_nothrow_copy_constructible_v<d_t>) {
+    return SolverResults<n_t, d_t, l_t>(this->ValTab, ZeroValue);
+  }
+
+  /// Moves the computed solver-results out of this solver such that the solver
+  /// can be destroyed without that the analysis results are lost.
+  /// Do not call any function (including getSolverResults()) on this IDESolver
+  /// instance after that.
+  [[nodiscard]] OwningSolverResults<n_t, d_t, l_t>
+  consumeSolverResults() noexcept(std::is_nothrow_move_constructible_v<d_t>) {
+    return OwningSolverResults<n_t, d_t, l_t>(std::move(this->ValTab),
+                                              std::move(ZeroValue));
   }
 
 protected:
@@ -1817,6 +1784,17 @@ IDESolver(Problem &, ICF *)
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,
                               typename Problem::container_type>;
+
+template <typename AnalysisDomainTy, typename Container>
+OwningSolverResults<typename AnalysisDomainTy::n_t,
+                    typename AnalysisDomainTy::d_t,
+                    typename AnalysisDomainTy::l_t>
+solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
+                const typename AnalysisDomainTy::i_t &ICF) {
+  IDESolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
+  Solver.solve();
+  return Solver.consumeSolverResults();
+}
 
 } // namespace psr
 
