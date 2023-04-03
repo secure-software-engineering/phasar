@@ -173,8 +173,8 @@ public:
   }
 
   /// Returns the L-type result for the given value at the given statement.
-  [[nodiscard]] virtual l_t resultAt(n_t Stmt, d_t Value) {
-    return ValTab.get(Stmt, Value);
+  [[nodiscard]] l_t resultAt(n_t Stmt, d_t Value) {
+    return getSolverResults().resultAt(Stmt, Value);
   }
 
   /// Returns the L-type result at the given statement for the given data-flow
@@ -196,11 +196,7 @@ public:
   [[nodiscard]] typename std::enable_if_t<
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>, l_t>
   resultAtInLLVMSSA(NTy Stmt, d_t Value) {
-    if (Stmt->getType()->isVoidTy()) {
-      return ValTab.get(Stmt, Value);
-    }
-    assert(Stmt->getNextNode() && "Expected to find a valid successor node!");
-    return ValTab.get(Stmt->getNextNode(), Value);
+    return getSolverResults().resultAtInLLVMSSA(Stmt, Value);
   }
 
   /// Returns the resulting environment for the given statement.
@@ -208,17 +204,7 @@ public:
   /// TOP values are never returned.
   [[nodiscard]] virtual std::unordered_map<d_t, l_t>
   resultsAt(n_t Stmt, bool StripZero = false) /*TODO const*/ {
-    std::unordered_map<d_t, l_t> Result = ValTab.row(Stmt);
-    if (StripZero) {
-      for (auto It = Result.begin(); It != Result.end();) {
-        if (IDEProblem.isZeroValue(It->first)) {
-          It = Result.erase(It);
-        } else {
-          ++It;
-        }
-      }
-    }
-    return Result;
+    return getSolverResults().resultsAt(Stmt, StripZero);
   }
 
   /// Returns the data-flow results at the given statement while respecting
@@ -241,23 +227,7 @@ public:
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
       std::unordered_map<d_t, l_t>>
   resultsAtInLLVMSSA(NTy Stmt, bool StripZero = false) {
-    std::unordered_map<d_t, l_t> Result = [this, Stmt]() {
-      if (Stmt->getType()->isVoidTy()) {
-        return ValTab.row(Stmt);
-      }
-      return ValTab.row(Stmt->getNextNode());
-    }();
-    if (StripZero) {
-      // TODO: replace with std::erase_if (C++20)
-      for (auto It = Result.begin(); It != Result.end();) {
-        if (IDEProblem.isZeroValue(It->first)) {
-          It = Result.erase(It);
-        } else {
-          ++It;
-        }
-      }
-    }
-    return Result;
+    return getSolverResults().resultsAtInLLVMSSA(Stmt, StripZero);
   }
 
   virtual void emitTextReport(llvm::raw_ostream &OS = llvm::outs()) {
@@ -318,8 +288,7 @@ public:
   /// lifetime is also bound to the lifetime of this solver. If you want to use
   /// the solverResults beyond the lifetime of this solver, use
   /// comsumeSolverResults() instead.
-  [[nodiscard]] SolverResults<n_t, d_t, l_t>
-  getSolverResults() noexcept(std::is_nothrow_copy_constructible_v<d_t>) {
+  [[nodiscard]] SolverResults<n_t, d_t, l_t> getSolverResults() noexcept {
     return SolverResults<n_t, d_t, l_t>(this->ValTab, ZeroValue);
   }
 

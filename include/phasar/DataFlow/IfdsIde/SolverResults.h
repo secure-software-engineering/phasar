@@ -38,47 +38,107 @@ namespace psr {
 // For sorting the results in dumpResults()
 std::string getMetaDataID(const llvm::Value *V);
 
-template <typename N, typename D, typename L> class SolverResults {
+namespace detail {
+template <typename Derived, typename N, typename D, typename L>
+class SolverResultsBase {
 public:
   using n_t = N;
   using d_t = D;
   using l_t = L;
 
-  SolverResults(Table<N, D, L> &ResTab,
-                D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
-      : Results(ResTab), ZV(std::move(ZV)) {}
-  SolverResults(Table<N, D, L> &&ResTab, D ZV) = delete;
-
-  [[nodiscard]] L resultAt(ByConstRef<N> Stmt, ByConstRef<D> Node) const {
-    return Results.get(Stmt, Node);
+  [[nodiscard]] ByConstRef<l_t> resultAt(ByConstRef<n_t> Stmt,
+                                         ByConstRef<d_t> Node) const {
+    return self().Results.get(Stmt, Node);
   }
 
-  [[nodiscard]] std::unordered_map<D, L>
-  resultsAt(ByConstRef<N> Stmt, bool StripZero = false) const {
-    std::unordered_map<D, L> Result = Results.row(Stmt);
+  [[nodiscard]] std::unordered_map<d_t, l_t>
+  resultsAt(ByConstRef<n_t> Stmt, bool StripZero = false) const {
+    std::unordered_map<d_t, l_t> Result = self().Results.row(Stmt);
     if (StripZero) {
-      Result.erase(ZV);
+      Result.erase(self().ZV);
     }
     return Result;
   }
 
   // this function only exists for IFDS problems which use BinaryDomain as their
   // value domain L
-  template <typename ValueDomain = L,
+  template <typename ValueDomain = l_t,
             typename = typename std::enable_if_t<
                 std::is_same_v<ValueDomain, BinaryDomain>>>
-  [[nodiscard]] std::set<D> ifdsResultsAt(ByConstRef<N> Stmt) const {
+  [[nodiscard]] std::set<d_t> ifdsResultsAt(ByConstRef<n_t> Stmt) const {
     std::set<D> KeySet;
-    std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(Stmt);
-    for (auto FlowFact : ResultMap) {
-      KeySet.insert(FlowFact.first);
+    const auto &ResultMap = self().Results.row(Stmt);
+    for (const auto &[FlowFact, Val] : ResultMap) {
+      KeySet.insert(FlowFact);
     }
     return KeySet;
   }
 
-  [[nodiscard]] std::vector<typename Table<N, D, L>::Cell>
+  /// Returns the data-flow results at the given statement while respecting
+  /// LLVM's SSA semantics.
+  ///
+  /// An example: when a value is loaded and the location loaded from, here
+  /// variable 'i', is a data-flow fact that holds, then the loaded value '%0'
+  /// will usually be generated and also holds. However, due to the underlying
+  /// theory (and respective implementation) this load instruction causes the
+  /// loaded value to be generated and thus, it will be valid only AFTER the
+  /// load instruction, i.e., at the successor instruction.
+  ///
+  ///   %0 = load i32, i32* %i, align 4
+  ///
+  /// This result accessor function returns the results at the successor
+  /// instruction(s) reflecting that the expression on the left-hand side holds
+  /// if the expression on the right-hand side holds.
+  template <typename NTy = n_t>
+  [[nodiscard]] typename std::enable_if_t<
+      std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
+                     llvm::Instruction>,
+      std::unordered_map<d_t, l_t>>
+  resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool StripZero = false) {
+    std::unordered_map<d_t, l_t> Result = [this, Stmt]() {
+      if (Stmt->getType()->isVoidTy()) {
+        return self().Results.row(Stmt);
+      }
+      assert(Stmt->getNextNode() && "Expected to find a valid successor node!");
+      return self().Results.row(Stmt->getNextNode());
+    }();
+    if (StripZero) {
+      Result.erase(self().ZV);
+    }
+    return Result;
+  }
+
+  /// Returns the L-type result at the given statement for the given data-flow
+  /// fact while respecting LLVM's SSA semantics.
+  ///
+  /// An example: when a value is loaded and the location loaded from, here
+  /// variable 'i', is a data-flow fact that holds, then the loaded value '%0'
+  /// will usually be generated and also holds. However, due to the underlying
+  /// theory (and respective implementation) this load instruction causes the
+  /// loaded value to be generated and thus, it will be valid only AFTER the
+  /// load instruction, i.e., at the successor instruction.
+  ///
+  ///   %0 = load i32, i32* %i, align 4
+  ///
+  /// This result accessor function returns the results at the successor
+  /// instruction(s) reflecting that the expression on the left-hand side holds
+  /// if the expression on the right-hand side holds.
+  template <typename NTy = n_t>
+  [[nodiscard]] typename std::enable_if_t<
+      std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
+                     llvm::Instruction>,
+      l_t>
+  resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value) {
+    if (Stmt->getType()->isVoidTy()) {
+      return self().Results.get(Stmt, Value);
+    }
+    assert(Stmt->getNextNode() && "Expected to find a valid successor node!");
+    return self().Results.get(Stmt->getNextNode(), Value);
+  }
+
+  [[nodiscard]] std::vector<typename Table<n_t, d_t, l_t>::Cell>
   getAllResultEntries() const {
-    return Results.cellVec();
+    return self().Results.cellVec();
   }
 
   template <typename ICFGTy>
@@ -93,7 +153,7 @@ public:
     OS << "\n***************************************************************\n"
        << "*                  Raw IDESolver results                      *\n"
        << "***************************************************************\n";
-    auto Cells = Results.cellVec();
+    auto Cells = self().Results.cellVec();
     if (Cells.empty()) {
       OS << "No results computed!" << '\n';
     } else {
@@ -140,64 +200,57 @@ public:
   }
 
 private:
-  Table<N, D, L> &Results;
-  D ZV;
+  [[nodiscard]] Derived &self() noexcept {
+    static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
+    return static_cast<Derived &>(*this);
+  }
+  [[nodiscard]] const Derived &self() const noexcept {
+    static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
+    return static_cast<const Derived &>(*this);
+  }
+};
+} // namespace detail
+
+template <typename N, typename D, typename L>
+class SolverResults
+    : public detail::SolverResultsBase<SolverResults<N, D, L>, N, D, L> {
+  using base_t = detail::SolverResultsBase<SolverResults<N, D, L>, N, D, L>;
+  friend base_t;
+
+public:
+  using typename base_t::d_t;
+  using typename base_t::l_t;
+  using typename base_t::n_t;
+
+  SolverResults(Table<n_t, d_t, l_t> &ResTab, ByConstRef<d_t> ZV) noexcept
+      : Results(ResTab), ZV(ZV) {}
+  SolverResults(Table<n_t, d_t, l_t> &&ResTab, ByConstRef<d_t> ZV) = delete;
+
+private:
+  Table<n_t, d_t, l_t> &Results;
+  ByConstRef<D> ZV;
 };
 
-template <typename N, typename D, typename L> class OwningSolverResults {
+template <typename N, typename D, typename L>
+class OwningSolverResults
+    : public detail::SolverResultsBase<OwningSolverResults<N, D, L>, N, D, L> {
+  using base_t =
+      detail::SolverResultsBase<OwningSolverResults<N, D, L>, N, D, L>;
+  friend base_t;
+
 public:
-  using n_t = N;
-  using d_t = D;
-  using l_t = L;
+  using typename base_t::d_t;
+  using typename base_t::l_t;
+  using typename base_t::n_t;
 
   OwningSolverResults(Table<N, D, L> ResTab,
                       D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
       : Results(std::move(ResTab)), ZV(ZV) {}
 
-  [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept(
-      std::is_nothrow_copy_constructible_v<D>) {
+  [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
     return {Results, ZV};
   }
   operator SolverResults<N, D, L>() && = delete;
-
-  [[nodiscard]] ByConstRef<L> resultAt(ByConstRef<N> Stmt,
-                                       ByConstRef<D> Node) const {
-    return Results.get(Stmt, Node);
-  }
-
-  [[nodiscard]] std::unordered_map<D, L>
-  resultsAt(ByConstRef<N> Stmt, bool StripZero = false) const {
-    return static_cast<SolverResults<N, D, L>>(*this).resultsAt(Stmt,
-                                                                StripZero);
-  }
-
-  // this function only exists for IFDS problems which use BinaryDomain as their
-  // value domain L
-  template <typename ValueDomain = L,
-            typename = typename std::enable_if_t<
-                std::is_same_v<ValueDomain, BinaryDomain>>>
-  [[nodiscard]] std::set<D> ifdsResultsAt(ByConstRef<N> Stmt) const {
-    return static_cast<SolverResults<N, D, L>>(*this).ifdsResultsAt(Stmt);
-  }
-
-  [[nodiscard]] std::vector<typename Table<N, D, L>::Cell>
-  getAllResultEntries() const {
-    return Results.cellVec();
-  }
-
-  template <typename ICFGTy>
-  void dumpResults(const ICFGTy &ICF, const NodePrinterBase<n_t> &NP,
-                   const DataFlowFactPrinterBase<d_t> &DP,
-                   const ValuePrinter<l_t> LP,
-                   llvm::raw_ostream &OS = llvm::outs()) {
-    static_cast<SolverResults<N, D, L>>(*this).dumpResults(ICF, NP, DP, LP, OS);
-  }
-
-  template <typename ICFGTy, typename ProblemTy>
-  void dumpResults(const ICFGTy &ICF, const ProblemTy &IDEProblem,
-                   llvm::raw_ostream &OS = llvm::outs()) {
-    static_cast<SolverResults<N, D, L>>(*this).dumpResults(ICF, IDEProblem, OS);
-  }
 
 private:
   // psr::Table is not const-enabled, so we have to give out mutable references
