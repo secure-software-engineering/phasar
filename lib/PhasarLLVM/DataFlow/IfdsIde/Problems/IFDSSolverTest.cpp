@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSSolverTest.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -60,13 +61,7 @@ IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t /*CallSite*/,
 InitialSeeds<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::l_t>
 IFDSSolverTest::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSSolverTest::initialSeeds()");
-  InitialSeeds<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() const {

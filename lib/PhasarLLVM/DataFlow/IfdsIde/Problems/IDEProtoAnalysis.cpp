@@ -10,6 +10,8 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEProtoAnalysis.h"
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -68,14 +70,7 @@ InitialSeeds<IDEProtoAnalysis::n_t, IDEProtoAnalysis::d_t,
              IDEProtoAnalysis::l_t>
 IDEProtoAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::initialSeeds()");
-  InitialSeeds<IDEProtoAnalysis::n_t, IDEProtoAnalysis::d_t,
-               IDEProtoAnalysis::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue(), bottomElement());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IDEProtoAnalysis::d_t IDEProtoAnalysis::createZeroValue() const {

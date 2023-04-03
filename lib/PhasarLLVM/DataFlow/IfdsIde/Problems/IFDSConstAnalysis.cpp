@@ -165,14 +165,7 @@ InitialSeeds<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
              IFDSConstAnalysis::l_t>
 IFDSConstAnalysis::initialSeeds() {
   // just start in main()
-  InitialSeeds<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
-               IFDSConstAnalysis::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IFDSConstAnalysis::d_t IFDSConstAnalysis::createZeroValue() const {

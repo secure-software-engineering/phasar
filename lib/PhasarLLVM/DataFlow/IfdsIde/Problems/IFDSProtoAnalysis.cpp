@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSProtoAnalysis.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -65,14 +66,7 @@ InitialSeeds<IFDSProtoAnalysis::n_t, IFDSProtoAnalysis::d_t,
              IFDSProtoAnalysis::l_t>
 IFDSProtoAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSProtoAnalysis::initialSeeds()");
-  InitialSeeds<IFDSProtoAnalysis::n_t, IFDSProtoAnalysis::d_t,
-               IFDSProtoAnalysis::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() const {

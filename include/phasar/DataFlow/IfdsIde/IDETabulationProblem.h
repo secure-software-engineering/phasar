@@ -7,12 +7,13 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDETABULATIONPROBLEM_H_
+#ifndef PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
+#define PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
+#include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
@@ -21,7 +22,10 @@
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
 
+#include "llvm/ADT/StringRef.h"
+
 #include <cassert>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <set>
@@ -123,6 +127,22 @@ protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
   generateFromZero(d_t FactToGenerate) {
     return generateFlow(std::move(FactToGenerate), getZeroValue());
+  }
+
+  /// Seeds that just start with ZeroValue and bottomElement() at the starting
+  /// points of each EntryPoint function.
+  /// Takes the __ALL__ EntryPoint into account.
+  template <
+      typename CC = typename AnalysisDomainTy::c_t,
+      typename = std::enable_if_t<std::is_nothrow_default_constructible_v<CC>>>
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> createDefaultSeeds() {
+    InitialSeeds<n_t, d_t, l_t> Seeds;
+    CC C{};
+
+    addSeedsForStartingPoints(EntryPoints, IRDB, C, Seeds, getZeroValue(),
+                              this->bottomElement());
+
+    return Seeds;
   }
 
   const ProjectIRDBBase<db_t> *IRDB{};
