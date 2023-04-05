@@ -126,6 +126,18 @@ struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
     : std::true_type {};
 
+template <typename T, typename = void>
+struct has_llvm_dense_map_info : std::false_type {};
+template <typename T>
+struct has_llvm_dense_map_info<
+    T, std::void_t<decltype(llvm::DenseMapInfo<T>::getEmptyKey()),
+                   decltype(llvm::DenseMapInfo<T>::getTombstoneKey()),
+                   decltype(llvm::DenseMapInfo<T>::getHashValue(
+                       std::declval<T>())),
+                   decltype(llvm::DenseMapInfo<T>::isEqual(std::declval<T>(),
+                                                           std::declval<T>()))>>
+    : std::true_type {};
+
 } // namespace detail
 
 template <typename T>
@@ -192,6 +204,10 @@ static inline constexpr bool IsEqualityComparable =
 template <typename T, typename U>
 static inline constexpr bool AreEqualityComparable =
     detail::AreEqualityComparable<T, U>::value;
+
+template <typename T>
+static constexpr bool HasLLVMDenseMapInfo =
+    detail::has_llvm_dense_map_info<T>::value;
 
 #if __cplusplus < 202002L
 template <typename T> struct type_identity { using type = T; };

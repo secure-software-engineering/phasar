@@ -26,6 +26,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallVector.h"
@@ -254,10 +255,10 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      // if (generatesEdgeFactsAt(Curr)) {
-      return generateFromZero(Alloca);
-      // }
-      // return identityFlow<d_t>();
+      if (generatesEdgeFactsAt(Curr)) {
+        return generateFromZero(Alloca);
+      }
+      return identityFlow<d_t>();
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -1357,6 +1358,7 @@ private:
 
   const LLVMBasedICFG *ICF{};
   LLVMAliasInfoRef PT{};
+  Compressor<e_t> ValCompressor{};
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   static inline const bool OnlyConsiderLocalAliases = true;
 
