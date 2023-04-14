@@ -12,6 +12,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FunctionExtras.h"
+#include "llvm/IR/Dominators.h"
 
 #include <memory>
 #include <type_traits>
@@ -20,17 +21,17 @@ namespace llvm {
 class Function;
 class BasicBlock;
 class Instruction;
-class DominatorTree;
 } // namespace llvm
 
 namespace psr {
 
 class DefaultDominatorTreeAnalysis {
-  llvm::DenseMap<const llvm::Function *, std::unique_ptr<llvm::DominatorTree>>
-      Dom;
-
 public:
   llvm::DominatorTree &operator()(const llvm::Function *F);
+
+private:
+  llvm::DenseMap<const llvm::Function *, std::unique_ptr<llvm::DominatorTree>>
+      Dom{};
 };
 
 /// Provides a simple partial ordering of BasicBlocks based on LLVM's

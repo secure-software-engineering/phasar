@@ -30,6 +30,8 @@ class Value;
 class Instruction;
 class GlobalVariable;
 class Function;
+class GlobalObject;
+class DataLayout;
 } // namespace llvm
 
 namespace psr {

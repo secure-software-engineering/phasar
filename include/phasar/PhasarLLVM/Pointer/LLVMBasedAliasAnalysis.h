@@ -10,14 +10,16 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 
-#include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/Passes/PassBuilder.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <memory>
 
 namespace llvm {
 class Value;
 class Function;
 class Instruction;
+class AAResults;
 } // namespace llvm
 
 namespace psr {
@@ -25,21 +27,17 @@ namespace psr {
 class LLVMProjectIRDB;
 
 class LLVMBasedAliasAnalysis {
-private:
-  llvm::PassBuilder PB;
-
-  llvm::FunctionAnalysisManager FAM;
-  llvm::FunctionPassManager FPM;
-  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
-
-  [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
-
-  void computeAliasInfo(llvm::Function &Fun);
-
 public:
   LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true);
 
-  ~LLVMBasedAliasAnalysis() = default;
+  LLVMBasedAliasAnalysis(LLVMBasedAliasAnalysis &&) noexcept = default;
+  LLVMBasedAliasAnalysis &
+  operator=(LLVMBasedAliasAnalysis &&) noexcept = default;
+
+  LLVMBasedAliasAnalysis(const LLVMBasedAliasAnalysis &) = delete;
+  LLVMBasedAliasAnalysis &operator=(const LLVMBasedAliasAnalysis &) = delete;
+
+  ~LLVMBasedAliasAnalysis();
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
@@ -53,6 +51,15 @@ public:
   void erase(llvm::Function *F);
 
   void clear();
+
+private:
+  struct Impl;
+  std::unique_ptr<Impl> PImpl;
+  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
+
+  [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
+
+  void computeAliasInfo(llvm::Function &Fun);
 };
 
 } // namespace psr
