@@ -11,21 +11,21 @@
 namespace psr {
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::optional<nlohmann::json> PrecomputedPTS,
-                               AliasAnalysisType PTATy, bool AllowLazyPTS,
+                               bool AllowLazyPTS,
                                std::vector<std::string> EntryPoints,
                                CallGraphAnalysisType CGTy,
                                Soundness SoundnessLevel,
                                bool AutoGlobalSupport) noexcept
     : IRFile(std::move(IRFile)), PrecomputedPTS(std::move(PrecomputedPTS)),
-      PTATy(PTATy), AllowLazyPTS(AllowLazyPTS),
-      EntryPoints(std::move(EntryPoints)), CGTy(CGTy),
-      SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {}
+      AllowLazyPTS(AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
+      CGTy(CGTy), SoundnessLevel(SoundnessLevel),
+      AutoGlobalSupport(AutoGlobalSupport) {}
 
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::vector<std::string> EntryPoints,
                                HelperAnalysisConfig Config) noexcept
     : IRFile(std::move(IRFile)),
-      PrecomputedPTS(std::move(Config.PrecomputedPTS)), PTATy(Config.PTATy),
+      PrecomputedPTS(std::move(Config.PrecomputedPTS)),
       AllowLazyPTS(Config.AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
       CGTy(Config.CGTy), SoundnessLevel(Config.SoundnessLevel),
       AutoGlobalSupport(Config.AutoGlobalSupport) {}
@@ -54,8 +54,7 @@ LLVMAliasSet &HelperAnalyses::getAliasInfo() {
     if (PrecomputedPTS.has_value()) {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), *PrecomputedPTS);
     } else {
-      PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS,
-                                          PTATy);
+      PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS);
     }
   }
   return *PT;

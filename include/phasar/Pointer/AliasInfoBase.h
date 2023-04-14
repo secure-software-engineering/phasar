@@ -28,7 +28,6 @@ class Value;
 
 namespace psr {
 
-enum class AliasAnalysisType;
 enum class AnalysisProperties;
 enum class AliasResult;
 
@@ -45,8 +44,8 @@ auto testAliasInfo(
     const std::optional<typename AliasInfoTraits<T>::n_t> &NT = {},
     const std::optional<typename AliasInfoTraits<T>::v_t> &VT = {})
     -> decltype(std::make_tuple(
-        CAI.isInterProcedural(), CAI.getAliasAnalysisType(),
-        AI.alias(*VT, *VT, *NT), AI.getAliasSet(*VT, *NT),
+        CAI.isInterProcedural(), AI.alias(*VT, *VT, *NT),
+        AI.getAliasSet(*VT, *NT),
         AI.getReachableAllocationSites(*VT, true, *NT),
         AI.isInReachableAllocationSites(*VT, *VT, true, *NT), CAI.getAsJson(),
         CAI.getAnalysisProperties(), CAI.isContextSensitive(),
@@ -65,7 +64,7 @@ struct IsAliasInfo<
                     std::declval<typename AliasInfoTraits<T>::n_t>(),
                     AliasResult{}))>,
     std::enable_if_t<std::is_same_v<
-        std::tuple<bool, AliasAnalysisType, AliasResult,
+        std::tuple<bool, AliasResult,
                    typename AliasInfoTraits<T>::AliasSetPtrTy,
                    typename AliasInfoTraits<T>::AllocationSiteSetPtrTy, bool,
                    nlohmann::json, AnalysisProperties, bool, bool, bool>,

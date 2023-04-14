@@ -19,6 +19,7 @@
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/CFLAndersAliasAnalysis.h"
 #include "llvm/Analysis/CFLSteensAliasAnalysis.h"
+#include "llvm/Analysis/ScopedNoAliasAA.h"
 #include "llvm/Analysis/TypeBasedAliasAnalysis.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/BasicBlock.h"
@@ -106,22 +107,16 @@ void LLVMBasedAliasAnalysis::clear() {
 }
 
 LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
-                                               bool UseLazyEvaluation,
-                                               AliasAnalysisType PATy)
-    : PATy(PATy) {
-  AA.registerFunctionAnalysis<llvm::BasicAA>();
-  switch (PATy) {
-  case AliasAnalysisType::CFLAnders:
-    AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
-    break;
-  case AliasAnalysisType::CFLSteens:
-    AA.registerFunctionAnalysis<llvm::CFLSteensAA>();
-    break;
-  default:
-    break;
-  }
-  AA.registerFunctionAnalysis<llvm::TypeBasedAA>();
-  FAM.registerPass([&] { return std::move(AA); });
+                                               bool UseLazyEvaluation) {
+
+  FAM.registerPass([&] {
+    llvm::AAManager AA;
+    // Note: The order of the alias analyses is important
+    AA.registerFunctionAnalysis<llvm::TypeBasedAA>();
+    AA.registerFunctionAnalysis<llvm::ScopedNoAliasAA>();
+    AA.registerFunctionAnalysis<llvm::BasicAA>();
+    return AA;
+  });
   PB.registerFunctionAnalyses(FAM);
   llvm::FunctionPassManager FPM;
   // Always verify the input.

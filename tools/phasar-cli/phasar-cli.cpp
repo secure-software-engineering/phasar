@@ -16,7 +16,6 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
@@ -96,21 +95,6 @@ cl::opt<std::string> AnalysisConfigOpt(
     "analysis-config",
     cl::desc("Set the analysis's configuration (if required)"),
     cl::cat(PsrCat));
-
-cl::opt<AliasAnalysisType> AliasTypeOpt(
-    "alias-analysis",
-    cl::desc("Set the alias analysis to be used (CFLSteens, "
-             "CFLAnders).  CFLSteens is ~O(N) but inaccurate while "
-             "CFLAnders O(N^3) but more accurate."),
-    cl::values(
-#define ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                               \
-  clEnumValN(AliasAnalysisType::NAME, CMDFLAG, DESC),
-#include "phasar/Pointer/AliasAnalysisType.def"
-        clEnumValN(AliasAnalysisType::Invalid, "invalid", "invalid")),
-    cl::init(AliasAnalysisType::CFLAnders), cl::cat(PsrCat));
-cl::alias AliasTypeAlias("P", cl::aliasopt(AliasTypeOpt),
-                         cl::desc("Alias for --alias-analysis"),
-                         cl::cat(PsrCat));
 
 cl::opt<CallGraphAnalysisType> CGTypeOpt(
     "call-graph-analysis", cl::desc("Set the call-graph algorithm to be used"),
@@ -270,13 +254,6 @@ void validateParamOutput() {
   }
 }
 
-void validateParamPointerAnalysis() {
-  if (AliasTypeOpt == AliasAnalysisType::Invalid) {
-    llvm::errs() << "'Invalid' is not a valid pointer analysis!\n";
-    exit(1);
-  }
-}
-
 void validateParamCallGraphAnalysis() {
   if (CGTypeOpt == CallGraphAnalysisType::Invalid) {
     llvm::errs() << "'Invalid' is not a valid call-graph analysis!\n";
@@ -346,7 +323,6 @@ int main(int Argc, const char **Argv) {
 
   validateParamModule();
   validateParamOutput();
-  validateParamPointerAnalysis();
   validateParamCallGraphAnalysis();
   validateSoundnessFlag();
   validateParamAnalysisConfig();
@@ -419,7 +395,7 @@ int main(int Argc, const char **Argv) {
 
   // setup IRDB as source code manager
   HelperAnalyses HA(std::move(ModuleOpt.getValue()),
-                    std::move(PrecomputedAliasSet), AliasTypeOpt,
+                    std::move(PrecomputedAliasSet),
                     !AnalysisController::needsToEmitPTA(EmitterOptions),
                     EntryOpt, CGTypeOpt, SoundnessOpt, AutoGlobalsOpt);
 

@@ -10,8 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 
-#include "phasar/Pointer/AliasAnalysisType.h"
-
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
@@ -29,19 +27,17 @@ class LLVMProjectIRDB;
 class LLVMBasedAliasAnalysis {
 private:
   llvm::PassBuilder PB;
-  llvm::AAManager AA;
+
   llvm::FunctionAnalysisManager FAM;
   llvm::FunctionPassManager FPM;
   llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
-  AliasAnalysisType PATy;
 
   [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
 
   void computeAliasInfo(llvm::Function &Fun);
 
 public:
-  LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-                         AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
+  LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true);
 
   ~LLVMBasedAliasAnalysis() = default;
 
@@ -57,10 +53,6 @@ public:
   void erase(llvm::Function *F);
 
   void clear();
-
-  [[nodiscard]] inline AliasAnalysisType getPointerAnalysisType() const {
-    return PATy;
-  };
 };
 
 } // namespace psr

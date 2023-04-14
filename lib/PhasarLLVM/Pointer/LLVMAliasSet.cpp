@@ -54,9 +54,8 @@ template class BoxedPtr<LLVMAliasInfo::AliasSetTy>;
 template class BoxedConstPtr<LLVMAliasInfo::AliasSetTy>;
 template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
 
-LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
-                           AliasAnalysisType PATy)
-    : PTA(*IRDB, UseLazyEvaluation, PATy) {
+LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation)
+    : PTA(*IRDB, UseLazyEvaluation) {
   assert(IRDB != nullptr);
 
   auto NumGlobals = IRDB->getNumGlobals();
@@ -447,7 +446,10 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMAliasSet",
                        "Analyzing function: " << F->getName());
 
+  llvm::errs() << "> computeFunctionsAliasSet\n";
+
   llvm::AAResults &AA = *PTA.getAAResults(F);
+  llvm::errs() << "> after getAAResults()\n";
   bool EvalAAMD = true;
 
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
@@ -461,6 +463,8 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
   llvm::DenseSet<const llvm::Value *> UsedGlobals;
 
   for (auto &Inst : llvm::instructions(F)) {
+    llvm::errs() << "> Inst: " << Inst << '\n';
+
     if (Inst.getType()->isPointerTy()) {
       // Add all pointer instructions.
       addPointer(&Inst, Pointers);
@@ -525,6 +529,8 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
     }
   }
 
+  llvm::errs() << "Args\n";
+
   for (auto &I : F->args()) {
     if (I.getType()->isPointerTy()) {
       // Add all pointer arguments.
@@ -534,13 +540,17 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
 
   auto NumGlobals = UsedGlobals.size();
 
+  llvm::errs() << "Globals\n";
   Pointers.reserve(Pointers.size() + NumGlobals);
   for (const auto *Glob : UsedGlobals) {
+    llvm::errs() << "> " << *Glob << '\n';
     addPointer(Glob, Pointers);
   }
 
+  llvm::errs() << "> erase()\n";
   // we no longer need the LLVM representation
   PTA.erase(F);
+  llvm::errs() << "> done\n";
 }
 
 AliasResult LLVMAliasSet::alias(const llvm::Value *V1, const llvm::Value *V2,

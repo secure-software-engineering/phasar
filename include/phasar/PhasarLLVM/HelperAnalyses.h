@@ -31,7 +31,7 @@ class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   explicit HelperAnalyses(std::string IRFile,
                           std::optional<nlohmann::json> PrecomputedPTS,
-                          AliasAnalysisType PTATy, bool AllowLazyPTS,
+                          bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport) noexcept;
@@ -65,7 +65,6 @@ private:
 
   // PTS
   std::optional<nlohmann::json> PrecomputedPTS;
-  AliasAnalysisType PTATy{};
   bool AllowLazyPTS{};
 
   // ICF
