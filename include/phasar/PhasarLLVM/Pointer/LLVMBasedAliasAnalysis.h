@@ -39,8 +39,6 @@ public:
 
   ~LLVMBasedAliasAnalysis();
 
-  void print(llvm::raw_ostream &OS = llvm::outs()) const;
-
   [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
     if (!hasAliasInfo(*F)) {
       computeAliasInfo(*F);
