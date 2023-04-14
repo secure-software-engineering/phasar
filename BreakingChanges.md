@@ -1,5 +1,9 @@
 # Breaking Changes
 
+## development HEAD
+
+- Removed the CLI options `--alias-analysis` and `-P`. PhASAR now only supports the default alias analysis pipeline from LLVM consisting of TBAA, ScopedNoAliasAA and BasicAA.
+
 ## v0323
 
 - `EdgeFunctionPtrType` is no longer a `std::shared_ptr`. Instead `EdgeFunction<l_t>` should be used directly. `EdgeFunction` is now a *value-type* that encapsulates its memory management by itself.
