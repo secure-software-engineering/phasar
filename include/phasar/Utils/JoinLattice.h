@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_JOINLATTICE_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_JOINLATTICE_H
 
+#include "llvm/ADT/SmallBitVector.h"
+
 #include <type_traits>
 #include <utility>
 
@@ -77,6 +79,18 @@ template <typename L, typename = void> struct NonTopBotValue {
   }
 };
 
+template <> struct JoinLatticeTraits<llvm::SmallBitVector> {
+  // For such simple sets we don't care about the difference between top and
+  // bottom...
+  static llvm::SmallBitVector top() { return {}; }
+  static llvm::SmallBitVector bottom() { return {}; }
+  static llvm::SmallBitVector join(const llvm::SmallBitVector &L,
+                                   const llvm::SmallBitVector &R) {
+    auto Ret = L;
+    Ret |= R;
+    return Ret;
+  }
+};
 } // namespace psr
 
 #endif

@@ -24,11 +24,13 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/BitSetView.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Attributes.h"
@@ -66,13 +68,6 @@ class Taint;
 } // namespace vara
 
 namespace psr {
-
-template <typename T> static BitVectorSet<T> bvSetFrom(const std::set<T> &Set) {
-  BitVectorSet<T> Ret;
-  Ret.reserve(Set.size());
-  Ret.insert(Set.begin(), Set.end());
-  return Ret;
-}
 
 template <typename Callable, typename... ArgTys>
 static std::invoke_result_t<std::decay_t<Callable>, ArgTys...>
@@ -181,7 +176,7 @@ struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
   // type of the element contained in the sets of edge functions
   using d_t = IDEIIAFlowFact;
   using e_t = EdgeFactType;
-  using l_t = LatticeDomain<BitVectorSet<e_t>>;
+  using l_t = llvm::SmallBitVector;
 };
 
 ///
@@ -674,21 +669,17 @@ public:
       // parameters will otherwise cause trouble by overriding alloca
       // instructions without being valid data-flow facts themselves.
       for (const auto &Arg : EntryPointFun->args()) {
-        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, Bottom{});
+        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, bottomElement());
       }
       // Generate all global variables using generalized initial seeds
 
       for (const auto &G : this->IRDB->getModule()->globals()) {
         if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-          l_t InitialValues = BitVectorSet<e_t>();
-          std::set<e_t> EdgeFacts;
-          if (EdgeFactGen) {
-            EdgeFacts = EdgeFactGen(GV);
-            // fill BitVectorSet
-            InitialValues =
-                BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-          }
-          Seeds.addSeed(&EntryPointFun->front().front(), GV, InitialValues);
+          OwningBitSetView<e_t> InitialValues(&ValCompressor);
+          auto EdgeFacts = invoke_or_default(EdgeFactGen, GV);
+          InitialValues.insert(EdgeFacts.begin(), EdgeFacts.end());
+          Seeds.addSeed(&EntryPointFun->front().front(), GV,
+                        std::move(InitialValues).bits());
         }
       }
     }
@@ -728,7 +719,8 @@ public:
       if (SuccNode == Store->getPointerOperand() ||
           PT.isInReachableAllocationSites(Store->getPointerOperand(), SuccNode,
                                           true, Store)) {
-        return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+        return IIAAAddLabelsEFCache.createEdgeFunction(
+            std::move(UserEdgeFacts));
       }
     }
 
@@ -753,13 +745,15 @@ public:
           PHASAR_LOG_LEVEL(DFADEBUG,
                            "Const-Replace at '" << llvmIRToString(Store));
           PHASAR_LOG_LEVEL(DFADEBUG, "Replacement label(s): ");
-          for (const auto &Item : UserEdgeFacts.assertGetValue()) {
+          for (const auto &Item :
+               BitSetView<e_t>(&UserEdgeFacts, &ValCompressor)) {
             PHASAR_LOG_LEVEL(DFADEBUG, Item << ", ");
           }
           PHASAR_LOG_LEVEL(DFADEBUG, '\n');
         });
         // obtain label from the original allocation
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(UserEdgeFacts);
+        return IIAAKillOrReplaceEFCache.createEdgeFunction(
+            std::move(UserEdgeFacts));
       }
 
     } else {
@@ -782,7 +776,7 @@ public:
                                    this->PT.isInReachableAllocationSites(
                                        Store->getPointerOperand(), CurrNode,
                                        OnlyConsiderLocalAliases))) {
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(BitVectorSet<e_t>());
+        return IIAAKillOrReplaceEFCache.createEdgeFunction();
       }
     }
 
@@ -811,9 +805,7 @@ public:
 
     // Overrides at store instructions
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      return getStrongUpdateStoreEF(
-          Store, CurrNode, SuccNode,
-          bvSetFrom(invoke_or_default(EdgeFactGen, Curr)));
+      return getStrongUpdateStoreEF(Store, CurrNode, SuccNode, createVal(Curr));
     }
 
     //
@@ -833,11 +825,11 @@ public:
 
     if (Curr != CurrNode && Curr == SuccNode) {
       // check if the user has registered a fact generator function
-      l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, Curr));
+      l_t UserEdgeFacts = createVal(Curr);
 
       // We generate Curr in this instruction, so we have to annotate it with
       // edge labels
-      return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+      return IIAAAddLabelsEFCache.createEdgeFunction(std::move(UserEdgeFacts));
     }
 
     // Otherwise stick to identity.
@@ -899,16 +891,7 @@ public:
       const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
       if (const auto *CD =
               llvm::dyn_cast<llvm::ConstantData>(Ret->getReturnValue())) {
-        // Check if the user has registered a fact generator function
-        l_t UserEdgeFacts = BitVectorSet<e_t>();
-        std::set<e_t> EdgeFacts;
-        if (EdgeFactGen) {
-          EdgeFacts = EdgeFactGen(ExitInst);
-          // fill BitVectorSet
-          UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-        }
-        return IIAAAddLabelsEFCache.createEdgeFunction(
-            std::move(UserEdgeFacts));
+        return IIAAAddLabelsEFCache.createEdgeFunction(createVal(ExitInst));
       }
     }
     // Everything else can be passed as identity.
@@ -920,13 +903,7 @@ public:
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override {
     // Check if the user has registered a fact generator function
-    l_t UserEdgeFacts = BitVectorSet<e_t>();
-    std::set<e_t> EdgeFacts;
-    if (EdgeFactGen) {
-      EdgeFacts = EdgeFactGen(CallSite);
-      // fill BitVectorSet
-      UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-    }
+    l_t UserEdgeFacts = createVal(CallSite);
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
@@ -981,9 +958,9 @@ public:
     return nullptr;
   }
 
-  inline l_t topElement() override { return Top{}; }
+  inline l_t topElement() override { return {}; }
 
-  inline l_t bottomElement() override { return Bottom{}; }
+  inline l_t bottomElement() override { return {}; }
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
@@ -1078,16 +1055,13 @@ public:
       if (EF.isKillAll()) {
         OS << "(KillAll";
       } else {
-        IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Replacement);
+        // IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Replacement);
       }
       return OS << ")";
     }
 
     [[nodiscard]] bool isKillAll() const noexcept {
-      if (auto *RSet = std::get_if<BitVectorSet<e_t>>(&Replacement)) {
-        return RSet->empty();
-      }
-      return false;
+      return Replacement.empty();
     }
 
     // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
@@ -1164,7 +1138,7 @@ public:
     friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                          const IIAAAddLabelsEF &EF) {
       OS << "EF: (IIAAAddLabelsEF: ";
-      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Data);
+      // IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Data);
       return OS << ")";
     }
 
@@ -1190,18 +1164,18 @@ public:
 
   inline void printEdgeFact(llvm::raw_ostream &OS,
                             l_t EdgeFact) const override {
-    printEdgeFactImpl(OS, EdgeFact);
+    printEdgeFactImpl(OS, EdgeFact, &ValCompressor);
   }
 
-  static void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
-    for (auto It = Res.begin(); It != Res.end();) {
-      if (It->second.isBottom()) {
-        It = Res.erase(It);
-      } else {
-        ++It;
-      }
-    }
-  }
+  // static void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
+  //   for (auto It = Res.begin(); It != Res.end();) {
+  //     if (It->second.isBottom()) {
+  //       It = Res.erase(It);
+  //     } else {
+  //       ++It;
+  //     }
+  //   }
+  // }
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
@@ -1217,11 +1191,11 @@ public:
          << std::string(FunName.size(), '-') << '\n';
       for (const auto *Inst : this->ICF->getAllInstructionsOf(f)) {
         auto Results = SR.resultsAt(Inst, true);
-        stripBottomResults(Results);
+        // stripBottomResults(Results);
         if (!Results.empty()) {
           OS << "At IR statement: " << this->NtoString(Inst) << '\n';
           for (auto Result : Results) {
-            if (!Result.second.isBottom()) {
+            if (!Result.second.empty()) {
               OS << "   Fact: " << this->DtoString(Result.first)
                  << "\n  Value: " << this->LtoString(Result.second) << '\n';
             }
@@ -1269,46 +1243,45 @@ public:
                                                getAllVariables(Solution));
   }
 
+  [[nodiscard]] std::vector<e_t>
+  getEdgeFactsFrom(const llvm::SmallBitVector &Bits) const {
+    std::vector<e_t> Ret;
+    Ret.reserve(Bits.count());
+    for (auto Idx : Bits.set_bits()) {
+      Ret.push_back(ValCompressor[Idx]);
+    }
+    return Ret;
+  }
+
 protected:
   static inline bool isZeroValueImpl(d_t d) {
     return LLVMZeroValue::isLLVMZeroValue(d);
   }
 
   static void printEdgeFactImpl(llvm::raw_ostream &OS,
-                                ByConstRef<l_t> EdgeFact) {
-    if (std::holds_alternative<Top>(EdgeFact)) {
-      OS << std::get<Top>(EdgeFact);
-    } else if (std::holds_alternative<Bottom>(EdgeFact)) {
-      OS << std::get<Bottom>(EdgeFact);
+                                ByConstRef<l_t> EdgeFacts,
+                                const Compressor<e_t> *Compr) {
+    BitSetView<e_t> LSet(&EdgeFacts, Compr);
+
+    OS << "(set size: " << LSet.size() << ") values: ";
+    if constexpr (std::is_same_v<e_t, vara::Taint *>) {
+      for (const auto &LElem : LSet) {
+        std::string IRBuffer;
+        llvm::raw_string_ostream RSO(IRBuffer);
+        LElem->print(RSO);
+        RSO.flush();
+        OS << IRBuffer << ", ";
+      }
     } else {
-      auto LSet = std::get<BitVectorSet<e_t>>(EdgeFact);
-      OS << "(set size: " << LSet.size() << ") values: ";
-      if constexpr (std::is_same_v<e_t, vara::Taint *>) {
-        for (const auto &LElem : LSet) {
-          std::string IRBuffer;
-          llvm::raw_string_ostream RSO(IRBuffer);
-          LElem->print(RSO);
-          RSO.flush();
-          OS << IRBuffer << ", ";
-        }
-      } else {
-        for (const auto &LElem : LSet) {
-          OS << LElem << ", ";
-        }
+      for (const auto &LElem : LSet) {
+        OS << LElem << ", ";
       }
     }
   }
 
-  static inline l_t joinImpl(ByConstRef<l_t> Lhs, ByConstRef<l_t> Rhs) {
-    if (Lhs.isTop() || Lhs.isBottom()) {
-      return Rhs;
-    }
-    if (Rhs.isTop() || Rhs.isBottom()) {
-      return Lhs;
-    }
-    const auto &LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
-    const auto &RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
-    return LhsSet.setUnion(RhsSet);
+  static inline l_t joinImpl(l_t Lhs, ByConstRef<l_t> Rhs) {
+    Lhs |= Rhs;
+    return Lhs;
   }
 
 private:
@@ -1327,17 +1300,14 @@ private:
       // associated values and ignore at which point a variable may holds as a
       // data-flow fact.
       const auto Variable = Result.getColumnKey();
-      const auto &Value = Result.getValue();
+      const auto &Values = Result.getValue();
       // skip result entry if variable is not in the set of all variables
-      if (Variables.find(Variable) == Variables.end()) {
+      if (!Variables.count(Variable)) {
         continue;
       }
-      // skip result entry if the computed value is not of type BitVectorSet
-      if (!std::holds_alternative<BitVectorSet<e_t>>(Value)) {
-        continue;
-      }
+
       // remove variable from result set if a non-empty that has been computed
-      auto &Values = std::get<BitVectorSet<e_t>>(Value);
+
       if (!Values.empty()) {
         Variables.erase(Variable);
       }
@@ -1350,6 +1320,12 @@ private:
       return false;
     }
     return !EdgeFactGen(Inst).empty();
+  }
+
+  [[nodiscard]] l_t createVal(const llvm::Instruction *Inst) {
+    return OwningBitSetView<e_t>::create(invoke_or_default(EdgeFactGen, Inst),
+                                         &ValCompressor)
+        .bits();
   }
 
   DefaultEdgeFunctionSingletonCache<IIAAAddLabelsEF> IIAAAddLabelsEFCache;
