@@ -57,9 +57,10 @@ int main(int Argc, const char **Argv) {
     llvm::outs() << "Testing IDE:\n";
     auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
 
-    IDESolver T(M, &HA.getICFG());
-    T.solve();
-    T.dumpResults();
+    // Alternative way of solving an IFDS/IDEProblem:
+    auto IDEResults = solveIDEProblem(M, HA.getICFG());
+    IDEResults.dumpResults(HA.getICFG(), M);
+
   } else {
     llvm::errs() << "error: file does not contain a 'main' function!\n";
   }

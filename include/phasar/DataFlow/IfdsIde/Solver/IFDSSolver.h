@@ -28,8 +28,10 @@
 
 namespace psr {
 
-template <typename AnalysisDomainTy>
-class IFDSSolver : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>> {
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class IFDSSolver
+    : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container> {
 public:
   using ProblemTy = IFDSTabulationProblem<AnalysisDomainTy>;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -39,7 +41,8 @@ public:
   template <typename IfdsDomainTy,
             typename = std::enable_if_t<
                 std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
-  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy> &IFDSProblem, const i_t *ICF)
+  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
+             const i_t *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
 
   virtual ~IFDSSolver() = default;
@@ -96,10 +99,23 @@ public:
 
 template <typename Problem, typename ICF>
 IFDSSolver(Problem &, ICF *)
-    -> IFDSSolver<typename Problem::ProblemAnalysisDomain>;
+    -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                  typename Problem::container_type>;
 
 template <typename Problem>
-using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain>;
+using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                                typename Problem::container_type>;
+
+template <typename AnalysisDomainTy, typename Container>
+OwningSolverResults<typename AnalysisDomainTy::n_t,
+                    typename AnalysisDomainTy::d_t,
+                    typename AnalysisDomainTy::l_t>
+solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
+                 const typename AnalysisDomainTy::i_t &ICF) {
+  IFDSSolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
+  Solver.solve();
+  return Solver.consumeSolverResults();
+}
 
 } // namespace psr
 
