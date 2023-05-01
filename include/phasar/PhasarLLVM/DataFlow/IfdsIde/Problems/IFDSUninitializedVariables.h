@@ -12,6 +12,10 @@
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseSet.h"
 
 #include <map>
 #include <memory>
@@ -29,16 +33,17 @@ class IFDSUninitializedVariables
     std::string FilePath;
     std::string SrcCode;
     std::vector<std::string> VarNames;
-    std::map<IFDSUninitializedVariables::n_t,
-             std::set<IFDSUninitializedVariables::d_t>>
-        IRTrace;
+    std::vector<std::pair<n_t, llvm::SmallDenseSet<d_t>>> IRTrace;
+
     [[nodiscard]] bool empty() const;
     void print(llvm::raw_ostream &OS);
   };
 
 public:
-  IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
-                             std::vector<std::string> EntryPoints = {"main"});
+  explicit IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
+                                      LLVMAliasInfoRef PT,
+                                      std::vector<std::string> EntryPoints = {
+                                          "main"});
 
   ~IFDSUninitializedVariables() override = default;
 
@@ -71,12 +76,15 @@ public:
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
-  [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
+  [[nodiscard]] const auto &getAllUndefUses() const noexcept {
+    return UndefValueUses;
+  }
 
-  std::vector<UninitResult> aggregateResults();
+  [[nodiscard]] std::vector<UninitResult> aggregateResults();
 
 private:
-  std::map<n_t, std::set<d_t>> UndefValueUses;
+  llvm::DenseMap<n_t, llvm::SmallDenseSet<d_t>> UndefValueUses{};
+  LLVMAliasInfoRef PT;
 };
 
 } // namespace psr

@@ -35,10 +35,14 @@ class StoreInst;
 class BranchInst;
 class Module;
 class CallInst;
+class Use;
 } // namespace llvm
 
 namespace psr {
 class LLVMProjectIRDB;
+
+[[nodiscard]] bool isDefiniteLastUse(const llvm::Use &Use) noexcept;
+[[nodiscard]] bool isDefiniteLastUse(const llvm::Value *Use) noexcept;
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
