@@ -16,6 +16,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <map>
 #include <memory>
@@ -36,7 +37,13 @@ class IFDSUninitializedVariables
     std::vector<std::pair<n_t, llvm::SmallDenseSet<d_t>>> IRTrace;
 
     [[nodiscard]] bool empty() const;
-    void print(llvm::raw_ostream &OS);
+    void print(llvm::raw_ostream &OS) const;
+
+    friend inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                                const UninitResult &UR) {
+      UR.print(OS);
+      return OS;
+    }
   };
 
 public:

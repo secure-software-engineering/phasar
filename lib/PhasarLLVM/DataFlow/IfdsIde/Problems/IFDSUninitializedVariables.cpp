@@ -20,6 +20,7 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallBitVector.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalValue.h"
@@ -180,8 +181,9 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
         if (!Arg.getType()->isPointerTy() ||
             Arg.hasPassPointeeByValueCopyAttr() || Arg.onlyReadsMemory()) {
           LeakArgs.set(Arg.getArgNo());
-        } else if (Arg.getType()->isPointerTy()) {
-          // Here we are unsound!
+        } else if (Arg.getType()->isPointerTy() ||
+                   isDefiniteLastUse(Call->getArgOperandUse(Arg.getArgNo()))) {
+          // Here we may be unsound!
           // We just assume that the function will write to the pointer and
           // therefore initialize it
           SanitizerArgs.set(Arg.getArgNo());
@@ -322,18 +324,27 @@ auto IFDSUninitializedVariables::aggregateResults()
   unsigned int CurrLineNr = 0;
 
   UninitResult UR;
+
+  auto Push = [&UR, &Results] {
+    if (!UR.empty()) {
+      std::sort(UR.IRTrace.begin(), UR.IRTrace.end(),
+                [](const auto &TR1, const auto &TR2) {
+                  return LLVMValueIDLess{}(TR1.first, TR2.first);
+                });
+      Results.push_back(std::move(UR));
+    }
+  };
+
   for (const auto &User : UndefValueUses) {
     // new line nr idicates a new uninit use on source code level
     LineNr = getLineFromIR(User.first);
     if (CurrLineNr != LineNr) {
       CurrLineNr = LineNr;
 
-      if (!UR.empty()) {
-        Results.push_back(std::move(UR));
-      }
+      Push();
 
       UR.Line = LineNr;
-      UR.FuncName = getFunctionNameFromIR(User.first);
+      UR.FuncName = llvm::demangle(getFunctionNameFromIR(User.first));
       UR.FilePath = getFilePathFromIR(User.first);
       UR.SrcCode = getSrcCodeFromIR(User.first);
     }
@@ -347,9 +358,8 @@ auto IFDSUninitializedVariables::aggregateResults()
       }
     }
   }
-  if (!UR.empty()) {
-    Results.push_back(std::move(UR));
-  }
+
+  Push();
   return Results;
 }
 
@@ -357,7 +367,8 @@ bool IFDSUninitializedVariables::UninitResult::empty() const {
   return Line == 0;
 }
 
-void IFDSUninitializedVariables::UninitResult::print(llvm::raw_ostream &OS) {
+void IFDSUninitializedVariables::UninitResult::print(
+    llvm::raw_ostream &OS) const {
   OS << "Variable(s): ";
   if (!VarNames.empty()) {
     for (size_t I = 0; I < VarNames.size(); ++I) {
