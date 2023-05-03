@@ -51,6 +51,7 @@
 #include <initializer_list>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -75,7 +76,7 @@ getAllocaInstruction(const llvm::GetElementPtrInst *Gep) {
   return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
 }
 
-std::optional<int64_t>
+inline std::optional<int64_t>
 maybeGetConstantOffsetOfGep(const llvm::GetElementPtrInst *Gep) {
   if (!Gep->hasAllConstantIndices()) {
     return std::nullopt;
@@ -405,14 +406,17 @@ public:
                        Load->getPointerOperand(), OnlyConsiderLocalAliases)](
                       d_t Src) { return Src == PointerOp || PTS->count(Src); });
         */
+
+        // FIXME check correctness of the following flow function
+        // llvm::errs() << "looking at load: " << *Curr << '\n';
         return lambdaFlow<d_t>([Load](d_t Source) -> container_type {
           if (Source.getBaseValue() == Load->getPointerOperand()) {
+            // llvm::errs() << "equal! " << Source << '\n';
             auto LoadedVal = Source.getLoaded(Load);
             if (LoadedVal == std::nullopt) {
               return {Source};
-            } else {
-              return {Source, LoadedVal.value()};
-            };
+            }
+            return {Source, LoadedVal.value()};
           }
           return {Source};
         });
@@ -437,40 +441,59 @@ public:
         //             v  v  v
         //             0  x  Y
         //
-        return lambdaFlow<d_t>([Store,
-                                PointerPTS = PT.getReachableAllocationSites(
-                                    Store->getPointerOperand(),
-                                    OnlyConsiderLocalAliases)](
-                                   d_t Src) -> container_type {
-          if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
-            // Here, we are unsound!
-            return {};
-          }
-          container_type Facts;
-          Facts.insert(Src);
-          // y/Y now obtains its new value(s) from x/X
-          // If a value is stored that holds we must generate all potential
-          // memory locations the store might write to.
-          if (Store->getValueOperand() == Src) {
-            Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
-            for (const auto *Alias : *PointerPTS) {
-              if (Alias != Store->getPointerOperand()) {
-                Facts.insert(Src.getOverapproximated(Alias));
+        return lambdaFlow<d_t>(
+            [Store, PointerPTS = PT.getReachableAllocationSites(
+                        Store->getPointerOperand(), OnlyConsiderLocalAliases)](
+                d_t Src) -> container_type {
+              if (Store->getPointerOperand() ==
+                  Src) { // || PointerPTS->count(Src)) {
+                // Here, we are unsound!
+                return {};
               }
-            }
-          }
-          // ... or from zero, if a constant literal is stored to y
-          if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-              IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-            Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
-            for (const auto *Alias : *PointerPTS) {
-              if (Alias != Store->getPointerOperand()) {
-                Facts.insert(Src.getOverapproximated(Alias));
+              container_type Facts;
+              Facts.insert(Src);
+              // y/Y now obtains its new value(s) from x/X
+              // If a value is stored that holds we must generate all potential
+              // memory locations the store might write to.
+              if (Store->getValueOperand() == Src) {
+                // Store to field or array.
+                if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                        Store->getPointerOperand())) {
+                  std::optional<int64_t> Offset;
+                  const auto *Alloca = getAllocaInstruction(Gep, Offset);
+                  Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
+                } else {
+                  // Ordinary store.
+                  Facts.insert(Src.getStored(Store->getPointerOperand()));
+                }
+                // Facts.insert(Src.getStored(Store->getPointerOperand()));
+                // for (const auto *Alias : *PointerPTS) {
+                //   if (Alias != Store->getPointerOperand()) {
+                //     Facts.insert(Src.getOverapproximated(Alias));
+                //   }
+                // }
               }
-            }
-          }
-          return Facts;
-        });
+              // ... or from zero, if a constant literal is stored to y
+              if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+                  IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+                // Store to field or array.
+                if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                        Store->getPointerOperand())) {
+                  std::optional<int64_t> Offset;
+                  const auto *Alloca = getAllocaInstruction(Gep, Offset);
+                  Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
+                } else {
+                  // Ordinary store.
+                  Facts.insert(Src.getStored(Store->getPointerOperand()));
+                }
+                // for (const auto *Alias : *PointerPTS) {
+                //   if (Alias != Store->getPointerOperand()) {
+                //     Facts.insert(Src.getOverapproximated(Alias));
+                //   }
+                // }
+              }
+              return Facts;
+            });
       }
     }
 
@@ -492,9 +515,8 @@ public:
           auto LoadedVal = Source.getLoaded(Load);
           if (LoadedVal == std::nullopt) {
             return {Source};
-          } else {
-            return {Source, LoadedVal.value()};
-          };
+          }
+          return {Source, LoadedVal.value()};
         }
         return {Source};
       });
@@ -577,6 +599,9 @@ public:
     }
 
     // FIXME: add gep handling here.
+    if (llvm::isa<llvm::GetElementPtrInst>(Curr)) {
+      llvm::errs() << "FOUND UNHANDLED GEP!\n";
+    }
 
     // At last, we can handle all other (unary/binary) instructions.
     //
@@ -1457,7 +1482,7 @@ public:
   }
 
   void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override {
-    OS << llvmIRToString(FlowFact);
+    FlowFact.print(OS);
   }
 
   void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {

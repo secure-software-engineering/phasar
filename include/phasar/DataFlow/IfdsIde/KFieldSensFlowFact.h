@@ -11,6 +11,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_KFIELDSENSFLOWFACT_H
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <optional>
 
@@ -27,7 +28,7 @@ public:
 
   KFieldSensFlowFact(d_t BaseValue) : BaseValue(BaseValue) {}
 
-  KFieldSensFlowFact getStored(d_t BaseValue) {
+  KFieldSensFlowFact getStored(d_t BaseValue, int64_t FollowedOffset = 0) {
     auto Result = *this;
     Result.BaseValue = BaseValue;
     if (Result.AccessPath.size() == K) {
@@ -40,11 +41,12 @@ public:
       Result.FollowedByAny = true;
       return Result;
     }
-    Result.AccessPath.push_back(0);
+    Result.AccessPath.push_back(FollowedOffset);
     return Result;
   }
 
-  std::optional<KFieldSensFlowFact> getLoaded(d_t LoadedBaseValue, uint64_t TargetTypeSize,
+  std::optional<KFieldSensFlowFact> getLoaded(d_t LoadedBaseValue,
+                                              uint64_t TargetTypeSize,
                                               int64_t FollowedOffset = 0) {
     auto Result = *this;
     if (Result.AccessPath.size() > 0) {
@@ -87,6 +89,7 @@ public:
 
   void print(llvm::raw_ostream &OS) const {
     OS << *BaseValue;
+    OS << "__field_desc__";
     unsigned I = AccessPath.size();
     while (I > 0) {
       I--;
@@ -97,7 +100,7 @@ public:
     }
   }
 
-  const d_t getBaseValue() const { return BaseValue; }
+  d_t getBaseValue() const { return BaseValue; }
 
 protected:
   d_t BaseValue;

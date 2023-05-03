@@ -72,7 +72,7 @@ protected:
 
     assert(HA);
     auto IIAProblem =
-        createAnalysisProblem<IDEInstInteractionAnalysisT<std::string, true>>(
+        createAnalysisProblem<IDEInstInteractionAnalysisT<std::string>>(
             *HA, EntryPoints);
     // use Phasar's instruction ids as testing labels
     auto Generator =

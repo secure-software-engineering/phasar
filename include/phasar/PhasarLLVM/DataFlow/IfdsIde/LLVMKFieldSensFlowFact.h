@@ -11,6 +11,11 @@
 
 #include "phasar/DataFlow/IfdsIde/KFieldSensFlowFact.h"
 
+#include "llvm/ADT/APInt.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
+
 namespace psr {
 
 template <unsigned K = 3, unsigned OffsetLimit = 1024,
@@ -22,10 +27,12 @@ private:
 
 public:
   LLVMKFieldSensFlowFact() = default;
+  ~LLVMKFieldSensFlowFact() = default;
   LLVMKFieldSensFlowFact(const LLVMKFieldSensFlowFact &) = default;
-  LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) = default;
+  LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) noexcept = default;
   LLVMKFieldSensFlowFact &operator=(const LLVMKFieldSensFlowFact &) = default;
-  LLVMKFieldSensFlowFact &operator=(LLVMKFieldSensFlowFact &&) = default;
+  LLVMKFieldSensFlowFact &
+  operator=(LLVMKFieldSensFlowFact &&) noexcept = default;
   static LLVMKFieldSensFlowFact getNonIndirectionValue(d_t Value) {
     LLVMKFieldSensFlowFact Result;
     Result.BaseValue = Value;
@@ -47,7 +54,7 @@ public:
   }
 
   bool operator!=(const LLVMKFieldSensFlowFact &Other) const {
-    return !(*this == (Other));
+    return !(*this == Other);
   }
 
   bool operator<(const LLVMKFieldSensFlowFact &Other) const {
@@ -55,9 +62,11 @@ public:
            std::tie(Other.BaseValue, Other.AccessPath, Other.FollowedByAny);
   }
 
-  LLVMKFieldSensFlowFact getStored(const llvm::Value *BaseValue) {
+  LLVMKFieldSensFlowFact getStored(const llvm::Value *BaseValue,
+                                   int64_t FollowedOffset = 0) {
     return LLVMKFieldSensFlowFact(
-        KFieldSensFlowFact<d_t, K, OffsetLimit>::getStored(BaseValue));
+        KFieldSensFlowFact<d_t, K, OffsetLimit>::getStored(BaseValue,
+                                                           FollowedOffset));
   }
 
   std::optional<LLVMKFieldSensFlowFact> getLoaded(const llvm::LoadInst *Load,
