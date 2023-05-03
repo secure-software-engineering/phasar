@@ -231,7 +231,7 @@ std::pair<unsigned, unsigned> getLineAndColFromIR(const llvm::Value *V) {
   return {0, 0};
 }
 
-std::string getSrcCodeFromIR(const llvm::Value *V) {
+std::string getSrcCodeFromIR(const llvm::Value *V, bool Trim) {
   unsigned int LineNr = getLineFromIR(V);
   if (LineNr > 0) {
     std::filesystem::path Path(getFilePathFromIR(V));
@@ -244,7 +244,7 @@ std::string getSrcCodeFromIR(const llvm::Value *V) {
           Ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         std::getline(Ifs, SrcLine);
-        return llvm::StringRef(SrcLine).trim().str();
+        return Trim ? llvm::StringRef(SrcLine).trim().str() : SrcLine;
       }
     }
   }

@@ -51,7 +51,8 @@ namespace psr {
 [[nodiscard]] std::pair<unsigned, unsigned>
 getLineAndColFromIR(const llvm::Value *V);
 
-[[nodiscard]] std::string getSrcCodeFromIR(const llvm::Value *V);
+[[nodiscard]] std::string getSrcCodeFromIR(const llvm::Value *V,
+                                           bool Trim = true);
 
 [[nodiscard]] std::string getModuleIDFromIR(const llvm::Value *V);
 
