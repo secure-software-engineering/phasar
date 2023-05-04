@@ -6,6 +6,7 @@ bin/*
 # build directories for cmake
 build/
 build_*/
+build-*/
 
 # LLVM project
 llvm-project/*
