@@ -112,7 +112,7 @@ public:
   /// module for this function to work
   [[nodiscard]] size_t getInstructionId(n_t Inst) const {
     assert(isValid());
-    return self().getInstructionId(Inst);
+    return self().getInstructionIdImpl(Inst);
   }
 
   [[nodiscard]] decltype(auto) getAllInstructions() const {
