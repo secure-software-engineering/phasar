@@ -1,14 +1,15 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "gtest/gtest.h"
-
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 
 #include "TestConfig.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
@@ -41,6 +42,24 @@ TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
   I = getNthInstruction(F, 27);
   ASSERT_EQ(getNthTermInstruction(F, 4), I);
   ASSERT_EQ(getNthTermInstruction(F, 5), nullptr);
+}
+
+TEST(SlotTrackerTest, HandleTwoReferences) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "control_flow/global_stmt_cpp.ll");
+
+  const auto *F = IRDB.getFunctionDefinition("main");
+
+  ASSERT_NE(F, nullptr);
+  const auto *Inst = getNthInstruction(F, 6);
+  llvm::StringRef InstStr = "%0 = load i32, i32* @i, align 4 | ID: 6";
+  {
+    LLVMProjectIRDB IRDB2(IRDB.getModule());
+
+    EXPECT_EQ(llvmIRToStableString(Inst), InstStr);
+  }
+
+  EXPECT_EQ(llvmIRToStableString(Inst), InstStr);
 }
 
 int main(int Argc, char **Argv) {

@@ -14,9 +14,9 @@
  *      Author: nicolas bellec
  */
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
+
+#include <set>
 
 using namespace psr;
 

@@ -112,7 +112,7 @@ public:
   /// module for this function to work
   [[nodiscard]] size_t getInstructionId(n_t Inst) const {
     assert(isValid());
-    return self().getInstructionId(Inst);
+    return self().getInstructionIdImpl(Inst);
   }
 
   [[nodiscard]] decltype(auto) getAllInstructions() const {
@@ -158,6 +158,15 @@ private:
     return static_cast<const Derived &>(*this);
   }
 };
+
+template <typename DB>
+// NOLINTNEXTLINE(readability-identifier-naming)
+auto IRDBGetFunctionDef(const ProjectIRDBBase<DB> *IRDB) noexcept {
+  return [IRDB](llvm::StringRef Name) {
+    return IRDB->getFunctionDefinition(Name);
+  };
+}
+
 } // namespace psr
 
 #endif // PHASAR_DB_PROJECTIRDBBASE_H

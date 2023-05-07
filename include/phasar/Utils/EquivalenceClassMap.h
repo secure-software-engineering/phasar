@@ -10,12 +10,12 @@
 #ifndef PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 #define PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 
+#include "llvm/ADT/iterator_range.h"
+
 #include <initializer_list>
 #include <optional>
 #include <set>
 #include <vector>
-
-#include "llvm/ADT/iterator_range.h"
 
 namespace psr {
 

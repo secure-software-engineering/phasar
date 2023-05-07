@@ -65,9 +65,9 @@ template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
 
-template <typename T> struct type_identity {
+template <typename T> struct type_identity { // NOLINT
   using type = T;
-}; // NOLINT
+};
 } // namespace detail
 
 template <typename T>

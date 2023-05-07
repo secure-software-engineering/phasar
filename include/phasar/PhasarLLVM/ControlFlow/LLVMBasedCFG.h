@@ -10,15 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/CFGBase.h"
-
-#include "nlohmann/json.hpp"
+#include "phasar/ControlFlow/CFGBase.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+
+#include "nlohmann/json.hpp"
 
 namespace llvm {
 class Function;
@@ -49,10 +49,11 @@ public:
   }
 
 protected:
-  LLVMBasedCFGImpl(bool IgnoreDbgInstructions = true) noexcept
+  LLVMBasedCFGImpl() noexcept = default;
+  LLVMBasedCFGImpl(bool IgnoreDbgInstructions) noexcept
       : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
 
-  bool IgnoreDbgInstructions = false;
+  bool IgnoreDbgInstructions = true;
 
   [[nodiscard]] f_t getFunctionOfImpl(n_t Inst) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t, 2> getPredsOfImpl(n_t Inst) const;
@@ -99,7 +100,8 @@ class LLVMBasedCFG : public detail::LLVMBasedCFGImpl<LLVMBasedCFG> {
   friend class LLVMBasedBackwardCFG;
 
 public:
-  LLVMBasedCFG(bool IgnoreDbgInstructions = true) noexcept
+  LLVMBasedCFG() noexcept = default;
+  LLVMBasedCFG(bool IgnoreDbgInstructions) noexcept
       : detail::LLVMBasedCFGImpl<LLVMBasedCFG>(IgnoreDbgInstructions) {}
 
   [[nodiscard]] nlohmann::json exportCFGAsJson(const llvm::Function *F) const;

@@ -7,22 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <chrono>
-#include <iterator>
-#include <ostream>
+#include "phasar/Utils/Utilities.h"
 
-#include "boost/algorithm/string/classification.hpp"
-#include "boost/algorithm/string/find.hpp"
-#include "boost/algorithm/string/predicate.hpp"
-#include "boost/algorithm/string/split.hpp"
+#include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/StringExtras.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DerivedTypes.h"
 
-#include "cxxabi.h"
+#include "boost/algorithm/string/find.hpp"
 
-#include "phasar/Utils/Utilities.h"
+#include <algorithm>
+#include <chrono>
 
 using namespace std;
 using namespace psr;
@@ -39,7 +35,7 @@ std::string createTimeStamp() {
   return TimeStr;
 }
 
-bool isConstructor(const string &MangledName) {
+bool isConstructor(llvm::StringRef MangledName) {
   // WARNING: Doesn't work for templated classes, should
   // the best way to do it I can think of is to use a lexer
   // on the name to detect the constructor point explained

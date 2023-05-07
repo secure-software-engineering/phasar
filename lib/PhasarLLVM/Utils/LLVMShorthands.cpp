@@ -15,12 +15,11 @@
  */
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
-
-#include "boost/algorithm/string/trim.hpp"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -39,10 +38,13 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "boost/algorithm/string/trim.hpp"
+
 #include <cctype>
 #include <charconv>
 #include <cstdlib>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <system_error>
 
@@ -54,6 +56,22 @@ namespace psr {
 /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
 const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
                                              "calloc", "realloc"};
+
+bool isFunctionPointer(const llvm::Value *V) noexcept {
+  if (V) {
+    return V->getType()->isPointerTy() &&
+           V->getType()->getPointerElementType()->isFunctionTy();
+  }
+  return false;
+}
+
+bool isIntegerLikeType(const llvm::Type *T) noexcept {
+  if (const auto *StructType = llvm::dyn_cast<llvm::StructType>(T)) {
+    return StructType->isPacked() && StructType->elements().size() == 1 &&
+           StructType->getElementType(0)->isIntegerTy();
+  }
+  return false;
+}
 
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
   if (V) {
@@ -203,6 +221,23 @@ std::string llvmIRToShortString(const llvm::Value *V) {
   RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
   return llvm::StringRef(IRBuffer).ltrim().str();
+}
+
+std::string llvmTypeToString(const llvm::Type *Ty, bool Shorten) {
+  if (!Ty) {
+    return "<null>";
+  }
+  if (Shorten) {
+    if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty);
+        StructTy && StructTy->hasName()) {
+      return StructTy->getName().str();
+    }
+  }
+
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  Ty->print(RSO, false, Shorten);
+  return IRBuffer;
 }
 
 void dumpIRValue(const llvm::Value *V) {
@@ -429,32 +464,44 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   return Data->getAsCString();
 }
 
+struct PhasarModuleSlotTrackerWrapper {
+  PhasarModuleSlotTrackerWrapper(const llvm::Module *M) : MST(M) {}
+
+  llvm::ModuleSlotTracker MST;
+  size_t RefCount = 0;
+};
+
 static llvm::SmallDenseMap<const llvm::Module *,
-                           std::unique_ptr<llvm::ModuleSlotTracker>, 2>
+                           std::unique_ptr<PhasarModuleSlotTrackerWrapper>, 2>
     MToST{};
+
+static std::mutex MSTMx;
 
 llvm::ModuleSlotTracker &
 ModulesToSlotTracker::getSlotTrackerForModule(const llvm::Module *M) {
+  std::lock_guard Lck(MSTMx);
+
   auto &Ret = MToST[M];
   if (M == nullptr && Ret == nullptr) {
-    Ret = std::make_unique<llvm::ModuleSlotTracker>(M);
+    Ret = std::make_unique<PhasarModuleSlotTrackerWrapper>(M);
+    Ret->RefCount++;
   }
   assert(Ret != nullptr && "no ModuleSlotTracker instance for module cached");
-  return *Ret;
+  return Ret->MST;
 }
 
 void ModulesToSlotTracker::setMSTForModule(const llvm::Module *M) {
+  std::lock_guard Lck(MSTMx);
+
   auto [It, Inserted] = MToST.try_emplace(M, nullptr);
-  if (!Inserted) {
-    llvm::report_fatal_error(
-        "Cannot register the same module twice in the ModulesToSlotTracker! "
-        "Probably you have managed the same LLVM Module with multiple "
-        "ProjectIRDB instances at the same time. Don't do that!");
+  if (Inserted) {
+    It->second = std::make_unique<PhasarModuleSlotTrackerWrapper>(M);
   }
-  It->second = std::make_unique<llvm::ModuleSlotTracker>(M);
+  It->second->RefCount++;
 }
 
 void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *Module) {
+  std::lock_guard Lck(MSTMx);
   auto It = MToST.find(Module);
   if (It == MToST.end()) {
     llvm::report_fatal_error(
@@ -466,7 +513,16 @@ void ModulesToSlotTracker::updateMSTForModule(const llvm::Module *Module) {
 }
 
 void ModulesToSlotTracker::deleteMSTForModule(const llvm::Module *M) {
-  MToST.erase(M);
+  std::lock_guard Lck(MSTMx);
+
+  auto It = MToST.find(M);
+  if (It == MToST.end()) {
+    return;
+  }
+
+  if (--It->second->RefCount == 0) {
+    MToST.erase(It);
+  }
 }
 
 } // namespace psr

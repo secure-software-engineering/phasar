@@ -10,17 +10,17 @@
 #ifndef PHASAR_UTILS_UTILITIES_H_
 #define PHASAR_UTILS_UTILITIES_H_
 
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/SmallVector.h"
+
 #include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include "llvm/ADT/Hashing.h"
-#include "llvm/ADT/SmallVector.h"
-
-#include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/TypeTraits.h"
 
 namespace llvm {
 class Type;
@@ -30,7 +30,7 @@ namespace psr {
 
 std::string createTimeStamp();
 
-bool isConstructor(const std::string &MangledName);
+bool isConstructor(llvm::StringRef MangledName);
 
 const llvm::Type *stripPointer(const llvm::Type *Pointer);
 
@@ -120,11 +120,10 @@ struct StringIDLess {
 template <typename Fn> class scope_exit { // NOLINT
 public:
   template <typename FFn, typename = decltype(std::declval<FFn>()())>
-  scope_exit(FFn &&F) noexcept(std::is_nothrow_constructible_v<Fn, FFn> ||
-                               std::is_nothrow_constructible_v<Fn, FFn &>)
+  scope_exit(FFn &&F) noexcept(std::is_nothrow_constructible_v<Fn, FFn &&>)
       : F(std::forward<FFn>(F)) {}
 
-  ~scope_exit() { F(); }
+  ~scope_exit() noexcept { F(); }
 
   scope_exit(const scope_exit &) = delete;
   scope_exit(scope_exit &&) = delete;
@@ -139,9 +138,7 @@ private:
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
 // Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct Overloaded : Ts... {
-  using Ts::operator()...;
-};
+template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
 // explicit deduction guide (not needed as of C++20)
 template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;

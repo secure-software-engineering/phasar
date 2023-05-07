@@ -53,6 +53,13 @@ include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
+option(BUILD_SWIFT_TESTS "Builds the Swift tests (Swift compiler has to be installed manually beforehand!)" OFF)
+if (BUILD_SWIFT_TESTS)
+  set(CMAKE_Swift_FLAGS_RELEASE "-g")
+  set(CMAKE_Swift_FLAGS_RELWITHDEBINFO "-g")
+  enable_language(Swift)
+endif(BUILD_SWIFT_TESTS)
+
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
@@ -107,10 +114,14 @@ include_directories(
   ${PHASAR_SRC_DIR}/include
 )
 
-set(PHASAR_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}/phasar)
-
 if (NOT PHASAR_IN_TREE)
-  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${PHASAR_INSTALL_LIBDIR})
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+  if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
+    message(STATUS "Detected CMAKE_INSTALL_LIBDIR that deviates from 'lib': ${CMAKE_INSTALL_LIBDIR}. Add ${CMAKE_INSTALL_PREFIX}/lib to the RPATH as json-schema-validator needs it")
+    list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+  endif()
+
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
 
@@ -119,6 +130,17 @@ if (LLVM_ENABLE_LIBCXX)
 else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
+
+set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
+if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
+  set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
+else()
+  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
+endif()
+
+add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
+add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
+
 
 ### Adding external libraries
 # Threads
@@ -144,7 +166,7 @@ set(CMAKE_CXX_CLANG_TIDY "")
 set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
 
 # Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
-include_directories(external/json/single_include/)
+include_directories(SYSTEM external/json/single_include/)
 
 if (PHASAR_IN_TREE)
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
@@ -301,7 +323,7 @@ endif()
 
 set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Install dir of headers")
 
-# Install targets of phasar-llvm, other executables, and libraries are to be
+# Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
 # Install Phasar include directory
@@ -326,15 +348,17 @@ install(DIRECTORY external/googletest/googletest/include/gtest/
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/
   DESTINATION bin
-  FILES_MATCHING PATTERN "phasar-*"
+  FILES_MATCHING
+  PATTERN "CodeGen" EXCLUDE # CodeGen does not contain files to install
+  PATTERN "phasar-*"
   PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
               GROUP_EXECUTE GROUP_READ
               WORLD_EXECUTE WORLD_READ
 )
 
-# Install the Phasar config files into ~/.config/phasar/
+# Install the Phasar config files into CMAKE_INSTALL_PREFIX/.phasar-config/
 install(DIRECTORY config/
-  DESTINATION $ENV{HOME}/.config/phasar
+  DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"
   PERMISSIONS OWNER_WRITE OWNER_READ
               GROUP_WRITE GROUP_READ

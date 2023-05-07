@@ -41,6 +41,22 @@ namespace psr {
 class LLVMProjectIRDB;
 
 /**
+ * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
+ * @param V LLVM Value.
+ * @return True, if given LLVM Value is a LLVM Function Pointer. False,
+ * otherwise.
+ */
+bool isFunctionPointer(const llvm::Value *V) noexcept;
+
+/**
+ * @brief Checks if the given LLVM Type is a integer like struct.
+ * @param V LLVM Type.
+ * @return True, if given LLVM Type is a struct like this %TSi = type <{ i64 }>.
+ * False, otherwise.
+ */
+bool isIntegerLikeType(const llvm::Type *T) noexcept;
+
+/**
  * @brief Checks if the given LLVM Value is either a alloca instruction or a
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
  */
@@ -59,20 +75,28 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
 /**
  * @brief Returns a string representation of a LLVM Value.
  */
-std::string llvmIRToString(const llvm::Value *V);
+[[nodiscard]] std::string llvmIRToString(const llvm::Value *V);
 
 /**
  * @brief Similar to llvmIRToString, but removes the metadata from the output as
  * they are not always stable. Prefer this function over llvmIRToString, if you
  * are comparing the string representations of LLVM iR instructions.
  */
-std::string llvmIRToStableString(const llvm::Value *V);
+[[nodiscard]] std::string llvmIRToStableString(const llvm::Value *V);
 
 /**
  * @brief Same as @link(llvmIRToString) but tries to shorten the
  *        resulting string
  */
 std::string llvmIRToShortString(const llvm::Value *V);
+
+/**
+ * @brief Returns a string-representation of a LLVM type.
+ *
+ * @param Shorten Tries to shorten the output
+ */
+[[nodiscard]] std::string llvmTypeToString(const llvm::Type *Ty,
+                                           bool Shorten = false);
 
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);

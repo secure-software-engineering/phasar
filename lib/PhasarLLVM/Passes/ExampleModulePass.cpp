@@ -7,9 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "llvm/IR/Module.h"
-
 #include "phasar/PhasarLLVM/Passes/ExampleModulePass.h"
+
+#include "llvm/IR/Module.h"
 
 using namespace std;
 using namespace psr;

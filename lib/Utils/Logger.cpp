@@ -14,10 +14,10 @@
  *      Author: philipp
  */
 
+#include "phasar/Utils/Logger.h"
+
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/FileSystem.h"
-
-#include "phasar/Utils/Logger.h"
 
 namespace psr {
 

@@ -7,14 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <utility>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalAlias.h"
 #include "llvm/IR/Operator.h"
 
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include <algorithm>
+#include <utility>
 
 using namespace psr;
 
