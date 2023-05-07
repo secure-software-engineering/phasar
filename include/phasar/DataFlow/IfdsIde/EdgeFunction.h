@@ -58,8 +58,8 @@ template <typename T>
 concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_t>& TEEF, EdgeFunctionRef<T> CEF, typename T::l_t Src) {
   typename T::l_t;
   {EF.computeTarget(Src)}   -> std::convertible_to<typename T::l_t>;
-  {T::compose(CEF, TEEF)}  -> std::convertible_to<EdgeFunction<typename T::l_t>>;
-  {T::join(CEF, TEEF)}     -> std::convertible_to<EdgeFunction<typename T::l_t>>;
+  {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
+  {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
 };
   // clang-format on
 
