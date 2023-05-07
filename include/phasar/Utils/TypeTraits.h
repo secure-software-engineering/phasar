@@ -52,25 +52,6 @@ struct is_crtp_base_of<
         std::is_base_of_v<typename template_arg<Base, Derived>::type, Derived>>>
     : std::true_type {};
 
-template <typename T, typename = bool>
-struct HasIsConstant : std::false_type {};
-template <typename T>
-struct HasIsConstant<T, decltype(std::declval<const T &>().isConstant())>
-    : std::true_type {};
-
-template <typename T, typename = bool>
-struct IsEqualityComparable : std::false_type {};
-template <typename T>
-struct IsEqualityComparable<T, decltype(std::declval<T>() == std::declval<T>())>
-    : std::true_type {};
-
-template <typename T, typename U, typename = bool>
-struct AreEqualityComparable : std::false_type {};
-template <typename T, typename U>
-struct AreEqualityComparable<T, U,
-                             decltype(std::declval<T>() == std::declval<U>())>
-    : std::true_type {};
-
 } // namespace detail
 
 template <typename T>
@@ -90,17 +71,6 @@ inline constexpr bool is_variant_v = is_variant<T>::value; // NOLINT
 template <template <typename> typename Base, typename Derived>
 constexpr bool is_crtp_base_of_v = // NOLINT
     detail::is_crtp_base_of<Base, Derived>::value;
-
-template <typename T>
-static inline constexpr bool HasIsConstant = detail::HasIsConstant<T>::value;
-
-template <typename T>
-static inline constexpr bool IsEqualityComparable =
-    detail::IsEqualityComparable<T>::value;
-
-template <typename T, typename U>
-static inline constexpr bool AreEqualityComparable =
-    detail::AreEqualityComparable<T, U>::value;
 
 struct TrueFn {
   template <typename... Args>

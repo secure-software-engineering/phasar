@@ -68,6 +68,26 @@ struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
 template <typename T> struct type_identity { // NOLINT
   using type = T;
 };
+
+template <typename T, typename = bool>
+struct HasIsConstant : std::false_type {};
+template <typename T>
+struct HasIsConstant<T, decltype(std::declval<const T &>().isConstant())>
+    : std::true_type {};
+
+template <typename T, typename = bool>
+struct IsEqualityComparable : std::false_type {};
+template <typename T>
+struct IsEqualityComparable<T, decltype(std::declval<T>() == std::declval<T>())>
+    : std::true_type {};
+
+template <typename T, typename U, typename = bool>
+struct AreEqualityComparable : std::false_type {};
+template <typename T, typename U>
+struct AreEqualityComparable<T, U,
+                             decltype(std::declval<T>() == std::declval<U>())>
+    : std::true_type {};
+
 } // namespace detail
 
 template <typename T>
@@ -107,6 +127,18 @@ using type_identity_t = typename detail::type_identity<T>::type;
 template <typename T>
 // NOLINTNEXTLINE
 constexpr bool is_string_like_v = std::is_convertible_v<T, std::string_view>;
+
+template <typename T>
+static inline constexpr bool HasIsConstant = detail::HasIsConstant<T>::value;
+
+template <typename T>
+static inline constexpr bool IsEqualityComparable =
+    detail::IsEqualityComparable<T>::value;
+
+template <typename T, typename U>
+static inline constexpr bool AreEqualityComparable =
+    detail::AreEqualityComparable<T, U>::value;
+
 } // namespace psr
 
 #endif // PHASAR_UTILS_DETAIL_CXX17TYPETRAITS_H
