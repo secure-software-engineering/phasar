@@ -100,7 +100,7 @@ LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
   assert(IRDB != nullptr);
   // Assume, we already have validated the json schema
 
-  llvm::outs() << "Load precomputed points-to info from JSON\n";
+  // llvm::outs() << "Load precomputed points-to info from JSON\n";
 
   const auto &Sets = SerializedPTS.at("AliasSets");
   assert(Sets.is_array());
