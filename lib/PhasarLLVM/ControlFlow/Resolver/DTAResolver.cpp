@@ -71,8 +71,7 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
   // the same as the this argument. We then check where the bitcast is against
   // the store instruction of the vtable.
   if (!BitCast->getSrcTy()->isOpaquePointerTy()) {
-    // NOLINTNEXTLINE -- already checked for opaqueness of the ptr type
-    const auto *StructTy = stripPointer(BitCast->getSrcTy());
+    const auto *StructTy = psr::legacy::stripPointer(BitCast->getSrcTy());
     if (StructTy == nullptr) {
       throw std::runtime_error(
           "StructTy == nullptr in the heuristic_anti_contructor");
@@ -151,10 +150,10 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
     auto *Src = BitCast->getSrcTy();
     auto *Dest = BitCast->getDestTy();
 
-    const auto *SrcStructType =
-        llvm::dyn_cast<llvm::StructType>(stripPointer(Src)); // NOLINT
-    const auto *DestStructType =
-        llvm::dyn_cast<llvm::StructType>(stripPointer(Dest)); // NOLINT
+    const auto *SrcStructType = llvm::dyn_cast<llvm::StructType>(
+        psr::legacy::stripPointer(Src)); // NOLINT
+    const auto *DestStructType = llvm::dyn_cast<llvm::StructType>(
+        psr::legacy::stripPointer(Dest)); // NOLINT
 
     if (SrcStructType && DestStructType &&
         heuristicAntiConstructorVtablePos(BitCast)) {

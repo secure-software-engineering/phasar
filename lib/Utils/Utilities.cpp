@@ -64,7 +64,7 @@ bool isConstructor(llvm::StringRef MangledName) {
   return false;
 }
 
-const llvm::Type *stripPointer(const llvm::Type *Pointer) {
+const llvm::Type *legacy::stripPointer(const llvm::Type *Pointer) {
   const auto *Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
   while (Next) {
     assert(!Next->isOpaquePointerTy() &&

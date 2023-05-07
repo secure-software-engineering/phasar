@@ -1,5 +1,9 @@
 # Breaking Changes
 
+## development HEAD
+
+- Removed IfdsFieldSensTaintAnalysis as it relies on LLVM's deprecated typed-pointers.
+
 ## v0323
 
 - `EdgeFunctionPtrType` is no longer a `std::shared_ptr`. Instead `EdgeFunction<l_t>` should be used directly. `EdgeFunction` is now a *value-type* that encapsulates its memory management by itself.
