@@ -89,6 +89,9 @@ public:
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
 
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+                         const nlohmann::json &SerializedCG);
+
   ~LLVMBasedICFG();
 
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;
