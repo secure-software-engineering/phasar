@@ -26,6 +26,8 @@
 
 #include <memory>
 
+#include <llvm/Support/MemoryBufferRef.h>
+
 namespace psr {
 class LLVMProjectIRDB;
 
@@ -48,10 +50,12 @@ public:
   /// CAUTION: Do not manage the same LLVM Module with multiple LLVMProjectIRDB
   /// instances at the same time! This will confuse the ModulesToSlotTracker
   explicit LLVMProjectIRDB(llvm::Module *Mod);
-  /// Initializes the new ProjectIRDB with the given IR Moduleand takes
+  /// Initializes the new ProjectIRDB with the given IR Module and takes
   /// ownership of it
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
+  /// Parses the given LLVM IR file and owns the resulting IR Module
+  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
   LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;
