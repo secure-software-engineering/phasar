@@ -395,21 +395,6 @@ LLVMBasedICFG::~LLVMBasedICFG() = default;
   return NonCallStartNodes;
 }
 
-[[nodiscard]] auto
-LLVMBasedICFG::getCalleesOfCallAtImpl(n_t Inst) const noexcept
-    -> llvm::ArrayRef<f_t> {
-  if (!llvm::isa<llvm::CallBase>(Inst)) {
-    return {};
-  }
-
-  return CG.getCalleesOfCallAt(Inst);
-}
-
-[[nodiscard]] auto LLVMBasedICFG::getCallersOfImpl(f_t Fun) const noexcept
-    -> llvm::ArrayRef<n_t> {
-  return CG.getCallersOf(Fun);
-}
-
 [[nodiscard]] auto LLVMBasedICFG::getCallsFromWithinImpl(f_t Fun) const
     -> llvm::SmallVector<n_t> {
   llvm::SmallVector<n_t> CallSites;
