@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
+#include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
@@ -29,6 +30,7 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
@@ -36,13 +38,6 @@
 #include "nlohmann/json.hpp"
 
 #include <memory>
-
-/// On some MAC systems, <memory_resource> is still not fully implemented, so do
-/// a workaround here
-
-#if !HAS_MEMORY_RESOURCE
-#include "llvm/Support/Allocator.h"
-#endif
 
 namespace psr {
 class LLVMTypeHierarchy;
@@ -110,7 +105,9 @@ public:
 
   /// Returns all functions from the underlying IRDB that are part of the ICFG,
   /// i.e. that are reachable from the entry-points
-  [[nodiscard]] llvm::ArrayRef<f_t> getAllVertexFunctions() const noexcept;
+  [[nodiscard]] auto getAllVertexFunctions() const noexcept {
+    return CG.getAllVertexFunctions();
+  }
 
   /// Gets the underlying IRDB
   [[nodiscard]] LLVMProjectIRDB *getIRDB() const noexcept { return IRDB; }
@@ -140,35 +137,9 @@ private:
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
       llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 
-  // -------------------- Utilities --------------------
+  // ---
 
-  llvm::SmallVector<const llvm::Instruction *> *
-  addFunctionVertex(const llvm::Function *F);
-  llvm::SmallVector<const llvm::Function *> *
-  addInstructionVertex(const llvm::Instruction *Inst);
-
-  void addCallEdge(const llvm::Instruction *CS, const llvm::Function *Callee);
-  void addCallEdge(const llvm::Instruction *CS,
-                   llvm::SmallVector<const llvm::Function *> *Callees,
-                   const llvm::Function *Callee);
-
-#if HAS_MEMORY_RESOURCE
-  std::pmr::monotonic_buffer_resource MRes;
-#else
-  llvm::BumpPtrAllocator MRes;
-#endif
-
-  llvm::DenseMap<const llvm::Instruction *,
-                 std::unique_ptr<llvm::SmallVector<const llvm::Function *>,
-                                 OnlyDestroyDeleter>>
-      CalleesAt;
-  llvm::DenseMap<const llvm::Function *,
-                 std::unique_ptr<llvm::SmallVector<const llvm::Instruction *>,
-                                 OnlyDestroyDeleter>>
-      CallersOf;
-
-  llvm::SmallVector<const llvm::Function *, 0> VertexFunctions;
-
+  CallGraph<const llvm::Instruction *, const llvm::Function *> CG;
   LLVMProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
 };

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2022 Fabian Schiebel.
+ * Copyright (c) 2023 Fabian Schiebel.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
@@ -22,6 +22,7 @@
 #include "nlohmann/json.hpp"
 
 #include <functional>
+#include <utility>
 #include <vector>
 
 namespace psr {
@@ -75,14 +76,18 @@ public:
 
   [[nodiscard]] llvm::ArrayRef<F>
   getCalleesOfCallAt(ByConstRef<N> Inst) const noexcept {
-    const auto *CalleesPtr = CalleesAt.lookup(Inst);
-    return CalleesPtr ? *CalleesPtr : llvm::ArrayRef<F>();
+    if (const auto *CalleesPtr = CalleesAt.lookup(Inst)) {
+      return *CalleesPtr;
+    }
+    return {};
   }
 
   [[nodiscard]] llvm::ArrayRef<N>
   getCallersOf(ByConstRef<F> Fun) const noexcept {
-    const auto *CallersPtr = CallersOf.lookup(Fun);
-    return CallersPtr ? *CallersPtr : llvm::ArrayRef<F>();
+    if (const auto *CallersPtr = CallersOf.lookup(Fun)) {
+      return *CallersPtr;
+    }
+    return {};
   }
 
   [[nodiscard]] auto getAllVertexFunctions() const noexcept {
@@ -108,8 +113,8 @@ public:
   }
 
 private:
-  StableVector<InstructionVertexTy> InstVertexOwner{};
-  std::vector<FunctionVertexTy> FunVertexOwner{};
+  StableVector<InstructionVertexTy> InstVertexOwner;
+  std::vector<FunctionVertexTy> FunVertexOwner;
 
   llvm::DenseMap<N, InstructionVertexTy *> CalleesAt{};
   llvm::DenseMap<F, FunctionVertexTy *> CallersOf{};
@@ -120,7 +125,7 @@ public:
   using FunctionVertexTy = typename CallGraph<N, F>::FunctionVertexTy;
   using InstructionVertexTy = typename CallGraph<N, F>::InstructionVertexTy;
 
-  explicit CallGraphBuilder(size_t MaxNumFunctions) {
+  void reserve(size_t MaxNumFunctions) {
     CG.FunVertexOwner.reserve(MaxNumFunctions);
     CG.CalleesAt.reserve(MaxNumFunctions);
     CG.CallersOf.reserve(MaxNumFunctions);
@@ -163,6 +168,11 @@ public:
 
   [[nodiscard]] const CallGraph<N, F> &viewCallGraph() const noexcept {
     return CG;
+  }
+
+  [[nodiscard]] InstructionVertexTy *
+  getInstVertexOrNull(ByConstRef<N> Inst) const noexcept {
+    return CG.CalleesAt.lookup(Inst);
   }
 
 private:
