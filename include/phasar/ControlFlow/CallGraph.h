@@ -132,7 +132,7 @@ private:
     return {};
   }
 
-  [[nodiscard]] llvm::ArrayRef<N>
+  [[nodiscard]] llvm::ArrayRef<n_t>
   getCallersOfImpl(ByConstRef<f_t> Fun) const noexcept {
     if (const auto *CallersPtr = CallersOf.lookup(Fun)) {
       return *CallersPtr;
@@ -153,8 +153,10 @@ private:
 /// within your call-graph ananlysis.
 template <typename N, typename F> class CallGraphBuilder {
 public:
-  using FunctionVertexTy = typename CallGraph<N, F>::FunctionVertexTy;
-  using InstructionVertexTy = typename CallGraph<N, F>::InstructionVertexTy;
+  using n_t = typename CallGraph<N, F>::n_t;
+  using f_t = typename CallGraph<N, F>::f_t;
+  using FunctionVertexTy = typename CallGraph<n_t, f_t>::FunctionVertexTy;
+  using InstructionVertexTy = typename CallGraph<n_t, f_t>::InstructionVertexTy;
 
   void reserve(size_t MaxNumFunctions) {
     CG.FunVertexOwner.reserve(MaxNumFunctions);
@@ -165,7 +167,7 @@ public:
   /// Registeres a new function in the call-graph. Returns a list of all
   /// call-sites that are known so far to potentially call this function.
   /// Do not manually add elements to this vector -- use addCallEdge instead.
-  [[nodiscard]] FunctionVertexTy *addFunctionVertex(F Fun) {
+  [[nodiscard]] FunctionVertexTy *addFunctionVertex(f_t Fun) {
     auto [It, Inserted] = CG.CallersOf.try_emplace(std::move(Fun), nullptr);
     if (Inserted) {
       auto Cap = CG.FunVertexOwner.capacity();
@@ -180,7 +182,7 @@ public:
   /// callee functions that are known so far to potentially be called by this
   /// function.
   /// Do not manually add elements to this vector -- use addCallEdge instead.
-  [[nodiscard]] InstructionVertexTy *addInstructionVertex(N Inst) {
+  [[nodiscard]] InstructionVertexTy *addInstructionVertex(n_t Inst) {
     auto [It, Inserted] = CG.CalleesAt.try_emplace(std::move(Inst), nullptr);
     if (Inserted) {
       It->second = &CG.InstVertexOwner.emplace_back();
@@ -191,20 +193,20 @@ public:
   /// Tries to lookup the InstructionVertex for the given call-site. Returns
   /// nullptr on failure.
   [[nodiscard]] InstructionVertexTy *
-  getInstVertexOrNull(ByConstRef<N> Inst) const noexcept {
+  getInstVertexOrNull(ByConstRef<n_t> Inst) const noexcept {
     return CG.CalleesAt.lookup(Inst);
   }
 
   /// Adds a new directional edge to the call-graph indicating that CS may call
   /// Callee
-  void addCallEdge(N CS, F Callee) {
+  void addCallEdge(n_t CS, f_t Callee) {
     auto Vtx = addInstructionVertex(CS);
     addCallEdge(std::move(CS), Vtx, std::move(Callee));
   }
 
   /// Same as addCallEdge(n_t, f_t), but uses an already known
   /// InstructionVertexTy to save a lookup
-  void addCallEdge(N CS, InstructionVertexTy *Callees, F Callee) {
+  void addCallEdge(n_t CS, InstructionVertexTy *Callees, f_t Callee) {
     auto *Callers = addFunctionVertex(Callee);
 
     Callees->push_back(std::move(Callee));
@@ -213,18 +215,18 @@ public:
 
   /// Moves the completely built call-graph out of this builder for further use.
   /// Do not use the builder after it anymore.
-  [[nodiscard]] CallGraph<N, F> consumeCallGraph() noexcept {
+  [[nodiscard]] CallGraph<n_t, f_t> consumeCallGraph() noexcept {
     return std::move(CG);
   }
 
   /// Returns a view on the current (partial) call-graph that has already been
   /// constructed
-  [[nodiscard]] const CallGraph<N, F> &viewCallGraph() const noexcept {
+  [[nodiscard]] const CallGraph<n_t, f_t> &viewCallGraph() const noexcept {
     return CG;
   }
 
 private:
-  CallGraph<N, F> CG{};
+  CallGraph<n_t, f_t> CG{};
 };
 } // namespace psr
 

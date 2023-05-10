@@ -330,7 +330,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
   assert(IRDB != nullptr);
   this->IRDB = IRDB;
 
-  if (!TH && CGType != CallGraphAnalysisType::NORESOLVE) {
+  if (!TH) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
   }
 
@@ -360,6 +360,14 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
       INFO, "LLVMBasedICFG",
       "Finished ICFG construction "
           << std::chrono::steady_clock::now().time_since_epoch().count());
+}
+
+LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
+                             LLVMTypeHierarchy *TH)
+    : CG(std::move(CG)), IRDB(IRDB), TH(TH) {
+  if (!TH) {
+    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+  }
 }
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
