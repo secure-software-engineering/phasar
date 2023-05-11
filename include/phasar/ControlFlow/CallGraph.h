@@ -57,43 +57,10 @@ public:
 
   /// Deserializes a previously computed call-graph
   template <typename FunctionGetter, typename InstructionGetter>
-  explicit CallGraph(const nlohmann::json &PrecomputedCG,
-                     FunctionGetter GetFunctionFromName,
-                     InstructionGetter GetInstructionFromId) {
-
-    if (!PrecomputedCG.is_object()) {
-      PHASAR_LOG_LEVEL_CAT(ERROR, "CallGraph", "Invalid Json. Expected object");
-      return;
-    }
-
-    CallersOf.reserve(PrecomputedCG.size());
-    CalleesAt.reserve(PrecomputedCG.size());
-    FunVertexOwner.reserve(PrecomputedCG.size());
-
-    for (const auto &[FunName, CallerIDs] : PrecomputedCG.items()) {
-      const auto &Fun = std::invoke(GetFunctionFromName, FunName);
-      if (!Fun) {
-        PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
-                             "Invalid function name: " << FunName);
-        continue;
-      }
-
-      auto *CEdges = addFunctionVertex(Fun);
-      CEdges->reserve(CallerIDs.size());
-
-      for (const auto &JId : CallerIDs) {
-        auto Id = JId.get<size_t>();
-        const auto &CS = std::invoke(GetInstructionFromId, Id);
-        if (!CS) {
-          PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
-                               "Invalid CAll-Instruction Id: " << Id);
-        }
-
-        addCallEdge(CS, Fun);
-      }
-    }
-  }
-
+  [[nodiscard]] static CallGraph
+  deserialize(const nlohmann::json &PrecomputedCG,
+              FunctionGetter GetFunctionFromName,
+              InstructionGetter GetInstructionFromId);
   /// A range of all functions that are vertices in thie call-graph
   [[nodiscard]] auto getAllVertexFunctions() const noexcept {
     return llvm::make_first_range(CallersOf);
@@ -200,21 +167,27 @@ public:
   /// Adds a new directional edge to the call-graph indicating that CS may call
   /// Callee
   void addCallEdge(n_t CS, f_t Callee) {
-    auto Vtx = addInstructionVertex(CS);
-    addCallEdge(std::move(CS), Vtx, std::move(Callee));
+    auto IVtx = addInstructionVertex(CS);
+    auto FVtx = addFunctionVertex(Callee);
+    addCallEdge(std::move(CS), IVtx, std::move(Callee), FVtx);
   }
 
   /// Same as addCallEdge(n_t, f_t), but uses an already known
   /// InstructionVertexTy to save a lookup
   void addCallEdge(n_t CS, InstructionVertexTy *Callees, f_t Callee) {
     auto *Callers = addFunctionVertex(Callee);
-
-    Callees->push_back(std::move(Callee));
-    Callers->push_back(std::move(CS));
+    addCallEdge(std::move(CS), Callees, std::move(Callee), Callers);
   }
 
-  /// Moves the completely built call-graph out of this builder for further use.
-  /// Do not use the builder after it anymore.
+  /// Same as addCallEdge(n_t, f_t), but uses an already known
+  /// FunctionVertexTy to save a lookup
+  void addCallEdge(n_t CS, f_t Callee, FunctionVertexTy *Callers) {
+    auto *Callees = addInstructionVertex(CS);
+    addCallEdge(std::move(CS), Callees, std::move(Callee), Callers);
+  }
+
+  /// Moves the completely built call-graph out of this builder for further
+  /// use. Do not use the builder after it anymore.
   [[nodiscard]] CallGraph<n_t, f_t> consumeCallGraph() noexcept {
     return std::move(CG);
   }
@@ -226,8 +199,53 @@ public:
   }
 
 private:
+  void addCallEdge(n_t CS, InstructionVertexTy *Callees, f_t Callee,
+                   FunctionVertexTy *Callers) {
+    Callees->push_back(std::move(Callee));
+    Callers->push_back(std::move(CS));
+  }
+
   CallGraph<n_t, f_t> CG{};
 };
+
+template <typename N, typename F>
+template <typename FunctionGetter, typename InstructionGetter>
+[[nodiscard]] CallGraph<N, F>
+CallGraph<N, F>::deserialize(const nlohmann::json &PrecomputedCG,
+                             FunctionGetter GetFunctionFromName,
+                             InstructionGetter GetInstructionFromId) {
+  if (!PrecomputedCG.is_object()) {
+    PHASAR_LOG_LEVEL_CAT(ERROR, "CallGraph", "Invalid Json. Expected object");
+    return {};
+  }
+
+  CallGraphBuilder<N, F> CGBuilder;
+  CGBuilder.reserve(PrecomputedCG.size());
+
+  for (const auto &[FunName, CallerIDs] : PrecomputedCG.items()) {
+    const auto &Fun = std::invoke(GetFunctionFromName, FunName);
+    if (!Fun) {
+      PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
+                           "Invalid function name: " << FunName);
+      continue;
+    }
+
+    auto *CEdges = CGBuilder.addFunctionVertex(Fun);
+    CEdges->reserve(CallerIDs.size());
+
+    for (const auto &JId : CallerIDs) {
+      auto Id = JId.get<size_t>();
+      const auto &CS = std::invoke(GetInstructionFromId, Id);
+      if (!CS) {
+        PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
+                             "Invalid CAll-Instruction Id: " << Id);
+      }
+
+      CGBuilder.addCallEdge(CS, Fun);
+    }
+  }
+  return CGBuilder.consumeCallGraph();
+}
 } // namespace psr
 
 namespace llvm {
