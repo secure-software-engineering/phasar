@@ -230,4 +230,14 @@ private:
 };
 } // namespace psr
 
+namespace llvm {
+class Function;
+class Instruction;
+} // namespace llvm
+
+extern template class psr::CallGraph<const llvm::Instruction *,
+                                     const llvm::Function *>;
+extern template class psr::CallGraphBuilder<const llvm::Instruction *,
+                                            const llvm::Function *>;
+
 #endif // PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPH_H
