@@ -402,7 +402,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
     : IRDB(IRDB) {
   assert(IRDB != nullptr);
 
-  // llvm::outs() << "Load precomputed call-graph from JSON\n";
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                       "Load precomputed call-graph from JSON");
 
   auto It = SerializedCG.find(PhasarConfig::JsonCallGraphID().str());
 
