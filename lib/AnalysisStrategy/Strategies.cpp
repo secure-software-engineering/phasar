@@ -16,7 +16,6 @@ namespace psr {
 
 std::string toString(const AnalysisStrategy &S) {
   switch (S) {
-  default:
 #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, DESC)                           \
   case AnalysisStrategy::NAME:                                                 \
     return #NAME;                                                              \

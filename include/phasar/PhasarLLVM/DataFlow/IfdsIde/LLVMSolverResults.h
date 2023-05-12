@@ -133,7 +133,7 @@ auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
       for (++It; It != End; ++It) {
         const auto &Val = GetStartVal(*It);
         if constexpr (HasJoinLatticeTraits<l_t>) {
-          Ret = JoinLatticeTraits<l_t>::join(Ret, Value);
+          Ret = JoinLatticeTraits<l_t>::join(Ret, Val);
           if (Ret == JoinLatticeTraits<l_t>::bottom()) {
             break;
           }
