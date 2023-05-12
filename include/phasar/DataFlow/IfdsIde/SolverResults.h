@@ -94,19 +94,7 @@ public:
       std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                      llvm::Instruction>,
       std::unordered_map<d_t, l_t>>
-  resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool StripZero = false) {
-    std::unordered_map<d_t, l_t> Result = [this, Stmt]() {
-      if (Stmt->getType()->isVoidTy()) {
-        return self().Results.row(Stmt);
-      }
-      assert(Stmt->getNextNode() && "Expected to find a valid successor node!");
-      return self().Results.row(Stmt->getNextNode());
-    }();
-    if (StripZero) {
-      Result.erase(self().ZV);
-    }
-    return Result;
-  }
+  resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool StripZero = false);
 
   /// Returns the L-type result at the given statement for the given data-flow
   /// fact while respecting LLVM's SSA semantics.
@@ -128,13 +116,7 @@ public:
       std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                      llvm::Instruction>,
       l_t>
-  resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value) {
-    if (Stmt->getType()->isVoidTy()) {
-      return self().Results.get(Stmt, Value);
-    }
-    assert(Stmt->getNextNode() && "Expected to find a valid successor node!");
-    return self().Results.get(Stmt->getNextNode(), Value);
-  }
+  resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value);
 
   [[nodiscard]] std::vector<typename Table<n_t, d_t, l_t>::Cell>
   getAllResultEntries() const {
