@@ -41,7 +41,6 @@
 
 namespace psr {
 class LLVMTypeHierarchy;
-class LLVMPointsToInfo;
 class LLVMProjectIRDB;
 
 class LLVMBasedICFG;
@@ -51,10 +50,6 @@ class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   friend ICFGBase;
 
   struct Builder;
-
-  struct OnlyDestroyDeleter {
-    template <typename T> void operator()(T *Data) { std::destroy_at(Data); }
-  };
 
 public:
   static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
@@ -93,8 +88,8 @@ public:
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;
   LLVMBasedICFG &operator=(const LLVMBasedICFG &) = delete;
 
-  LLVMBasedICFG(LLVMBasedICFG &&) noexcept = delete;
-  LLVMBasedICFG &operator=(LLVMBasedICFG &&) noexcept = delete;
+  LLVMBasedICFG(LLVMBasedICFG &&) noexcept = default;
+  LLVMBasedICFG &operator=(LLVMBasedICFG &&) noexcept = default;
 
   /// Exports the whole ICFG (not only the call-graph) as DOT.
   ///

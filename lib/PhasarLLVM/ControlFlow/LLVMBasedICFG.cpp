@@ -38,18 +38,11 @@
 
 namespace psr {
 struct LLVMBasedICFG::Builder {
-
-  explicit Builder(LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
-                   LLVMTypeHierarchy *TH)
-      : IRDB(IRDB), PT(PT), TH(TH) {}
-
-  //---
-
   LLVMProjectIRDB *IRDB = nullptr;
-  // LLVMBasedICFG *ICF = nullptr;
   LLVMAliasInfoRef PT{};
-  CallGraphBuilder<const llvm::Instruction *, const llvm::Function *> CGBuilder;
   LLVMTypeHierarchy *TH{};
+  CallGraphBuilder<const llvm::Instruction *, const llvm::Function *>
+      CGBuilder{};
   std::unique_ptr<Resolver> Res = nullptr;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions{};
   llvm::SmallVector<llvm::Function *, 1> UserEntryPoints{};
@@ -88,7 +81,7 @@ void LLVMBasedICFG::Builder::initEntryPoints(
       // outside!
       if (!Fun->isDeclaration() && Fun->hasName() &&
           (Fun->hasExternalLinkage() || Fun->getName() == "main")) {
-        UserEntryPoints.push_back(IRDB->getFunctionDefinition(Fun->getName()));
+        UserEntryPoints.push_back(IRDB->getFunction(Fun->getName()));
       }
     }
   } else {
@@ -117,6 +110,9 @@ void LLVMBasedICFG::Builder::initGlobalsAndWorkList(LLVMBasedICFG *ICFG,
     FunctionWL.insert(FunctionWL.end(), UserEntryPoints.begin(),
                       UserEntryPoints.end());
   }
+  // Note: Pre-allocate the call-graph builder *after* adding the
+  // CRuntimeGlobalCtorsDtorsModel
+  CGBuilder.reserve(IRDB->getNumFunctions());
 }
 
 auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
@@ -280,7 +276,7 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
     PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG", "  " << llvmIRToString(CS));
     // call the resolve routine
 
-    // assert(ICF->TH != nullptr);
+    assert(TH != nullptr);
     auto PossibleTargets = internalIsVirtualFunctionCall(CallSite, *TH)
                                ? Res->resolveVirtualCall(CallSite)
                                : Res->resolveFunctionPointer(CallSite);
@@ -326,9 +322,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                              llvm::ArrayRef<std::string> EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
-    : TH(TH) {
+    : IRDB(IRDB), TH(TH) {
   assert(IRDB != nullptr);
-  this->IRDB = IRDB;
 
   if (!TH) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
@@ -346,15 +341,12 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
   B.initEntryPoints(EntryPoints);
   B.initGlobalsAndWorkList(this, IncludeGlobals);
 
-  B.CGBuilder.reserve(IRDB->getNumFunctions());
-
   PHASAR_LOG_LEVEL_CAT(
       INFO, "LLVMBasedICFG",
       "Starting ICFG construction "
           << std::chrono::steady_clock::now().time_since_epoch().count());
 
-  auto Foo = B.buildCallGraph(S);
-  CG = std::move(Foo);
+  this->CG = B.buildCallGraph(S);
 
   PHASAR_LOG_LEVEL_CAT(
       INFO, "LLVMBasedICFG",
@@ -438,7 +430,6 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
       const auto &Callees = CG.getCalleesOfCallAt(&Inst);
 
       for (const auto *Succ : Callees) {
-        // assert(CallersOf.count(Succ));
         OS << uintptr_t(Fun) << "->" << uintptr_t(Succ) << "[label=\"";
         OS.write_escaped(llvmIRToStableString(&Inst));
         OS << "\"]\n;";
@@ -449,7 +440,6 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 }
 
 [[nodiscard]] nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
-
   return CG.getAsJson(
       [](f_t F) { return F->getName().str(); },
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
