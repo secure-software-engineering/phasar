@@ -415,28 +415,10 @@ LLVMBasedICFG::~LLVMBasedICFG() = default;
 }
 
 void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
-  OS << "digraph CallGraph{\n";
-  scope_exit CloseBrace = [&OS] { OS << "}\n"; };
-
-  for (const auto *Fun : CG.getAllVertexFunctions()) {
-    OS << uintptr_t(Fun) << "[label=\"";
-    OS.write_escaped(Fun->getName());
-    OS << "\"];\n";
-    for (const auto &Inst : llvm::instructions(Fun)) {
-      if (!llvm::isa<llvm::CallBase>(Inst)) {
-        continue;
-      }
-
-      const auto &Callees = CG.getCalleesOfCallAt(&Inst);
-
-      for (const auto *Succ : Callees) {
-        OS << uintptr_t(Fun) << "->" << uintptr_t(Succ) << "[label=\"";
-        OS.write_escaped(llvmIRToStableString(&Inst));
-        OS << "\"]\n;";
-      }
-    }
-    OS << '\n';
-  }
+  CG.printAsDot(
+      OS, [](f_t Fun) { return Fun->getName(); },
+      [](n_t CS) { return CS->getFunction(); },
+      [](n_t CS) { return llvmIRToStableString(CS); });
 }
 
 [[nodiscard]] nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {

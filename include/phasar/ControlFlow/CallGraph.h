@@ -61,13 +61,28 @@ public:
   deserialize(const nlohmann::json &PrecomputedCG,
               FunctionGetter GetFunctionFromName,
               InstructionGetter GetInstructionFromId);
-  /// A range of all functions that are vertices in thie call-graph
+
+  /// A range of all functions that are vertices in the call-graph. The number
+  /// of vertex functions can be retrieved by getNumVertexFunctions().
   [[nodiscard]] auto getAllVertexFunctions() const noexcept {
     return llvm::make_first_range(CallersOf);
   }
 
+  /// A range of all call-sites that are vertices in the call-graph. The number
+  /// of vertex-callsites can be retrived by getNumVertexCallSites().
+  [[nodiscard]] auto getAllVertexCallSites() const noexcept {
+    return llvm::make_first_range(CalleesAt);
+  }
+
+  [[nodiscard]] size_t getNumVertexFunctions() const noexcept {
+    return CallersOf.size();
+  }
+  [[nodiscard]] size_t getNumVertexCallSites() const noexcept {
+    return CalleesAt.size();
+  }
+
   /// The number of functions within this call-graph
-  [[nodiscard]] size_t size() const noexcept { return CallersOf.size(); }
+  [[nodiscard]] size_t size() const noexcept { return getNumVertexFunctions(); }
 
   [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
 
@@ -88,6 +103,34 @@ public:
     }
 
     return J;
+  }
+
+  template <typename FunctionLabelGetter, typename InstParentGetter,
+            typename InstLabelGetter>
+  void printAsDot(llvm::raw_ostream &OS, FunctionLabelGetter GetFunctionLabel,
+                  InstParentGetter GetFunctionFromInst,
+                  InstLabelGetter GetInstLabel) const {
+    OS << "digraph CallGraph{\n";
+    scope_exit CloseBrace = [&OS] { OS << "}\n"; };
+
+    llvm::DenseMap<f_t, size_t> Fun2Id;
+    Fun2Id.reserve(CallersOf.size());
+
+    size_t CurrId = 0;
+    for (const auto &Fun : getAllVertexFunctions()) {
+      OS << CurrId << "[label=\"";
+      OS.write_escaped(std::invoke(GetFunctionLabel, Fun)) << "\"];\n";
+      Fun2Id[Fun] = CurrId++;
+    }
+
+    for (const auto &[CS, Callees] : CalleesAt) {
+      const auto &Fun = std::invoke(GetFunctionFromInst, CS);
+
+      for (const auto &Succ : *Callees) {
+        OS << Fun2Id.lookup(Fun) << "->" << Fun2Id.lookup(Succ) << "[label=\"";
+        OS.write_escaped(std::invoke(GetInstLabel, CS)) << "\"];\n";
+      }
+    }
   }
 
 private:
