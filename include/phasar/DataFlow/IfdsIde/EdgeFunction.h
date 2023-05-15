@@ -222,10 +222,8 @@ public:
 
   /// Implicit-conversion constructor from EdgeFunctionRef. Increments the
   /// ref-count if not small-object optimized
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
+  template <typename ConcreteEF, typename = std::enable_if_t<!std::is_same_v<
+                                     EdgeFunction, std::decay_t<ConcreteEF>>>>
   EdgeFunction(EdgeFunctionRef<ConcreteEF> CEF) noexcept
       : EdgeFunction(CEF.Instance,
                      {&VTableFor<ConcreteEF>, [CEF] {
