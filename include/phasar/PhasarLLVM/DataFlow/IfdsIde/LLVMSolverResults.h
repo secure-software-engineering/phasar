@@ -138,10 +138,11 @@ auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
             break;
           }
         } else {
-          // We have no way of correctly merging, so set the value to the
-          // default constructed l_t hoping it marks BOTTOM.
-          Ret = l_t();
-          break;
+          if (Ret != Val) {
+            // We have no way of correctly merging, so set the value to the
+            // default constructed l_t hoping it marks BOTTOM.
+            return {};
+          }
         }
       }
     }
