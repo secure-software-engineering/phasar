@@ -63,9 +63,8 @@ struct IFDSIDESolverConfig {
                                        const IFDSIDESolverConfig &SC);
 
 private:
-  SolverConfigOptions Options = SolverConfigOptions::AutoAddZero |
-                                SolverConfigOptions::ComputeValues |
-                                SolverConfigOptions::RecordEdges;
+  SolverConfigOptions Options =
+      SolverConfigOptions::AutoAddZero | SolverConfigOptions::ComputeValues;
 };
 
 } // namespace psr

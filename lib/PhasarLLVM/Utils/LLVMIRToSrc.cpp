@@ -103,32 +103,6 @@ llvm::DILocation *getDILocation(const llvm::Value *V) {
   return nullptr;
 }
 
-llvm::DIFile *getDIFile(const llvm::Value *V) {
-  if (const auto *GO = llvm::dyn_cast<llvm::GlobalObject>(V)) {
-    if (auto *MN = GO->getMetadata(llvm::LLVMContext::MD_dbg)) {
-      if (auto *Subpr = llvm::dyn_cast<llvm::DISubprogram>(MN)) {
-        return Subpr->getFile();
-      }
-      if (auto *GVExpr = llvm::dyn_cast<llvm::DIGlobalVariableExpression>(MN)) {
-        return GVExpr->getVariable()->getFile();
-      }
-    }
-  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    if (auto *LocVar = getDILocalVariable(Arg)) {
-      return LocVar->getFile();
-    }
-  } else if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (I->isUsedByMetadata()) {
-      if (auto *LocVar = getDILocalVariable(I)) {
-        return LocVar->getFile();
-      }
-    } else if (I->getMetadata(llvm::LLVMContext::MD_dbg)) {
-      return I->getDebugLoc()->getFile();
-    }
-  }
-  return nullptr;
-}
-
 std::string getVarNameFromIR(const llvm::Value *V) {
   if (auto *LocVar = getDILocalVariable(V)) {
     return LocVar->getName().str();
@@ -154,7 +128,7 @@ std::string getFunctionNameFromIR(const llvm::Value *V) {
 }
 
 std::string getFilePathFromIR(const llvm::Value *V) {
-  if (auto *DIF = getDIFile(V)) {
+  if (auto *DIF = getDIFileFromIR(V)) {
     std::filesystem::path File(DIF->getFilename().str());
     std::filesystem::path Dir(DIF->getDirectory().str());
     if (!File.empty()) {
@@ -181,18 +155,30 @@ std::string getFilePathFromIR(const llvm::Value *V) {
   return "";
 }
 
-unsigned int getLineFromIR(const llvm::Value *V) {
-  // Argument and Instruction
-  if (auto *DILoc = getDILocation(V)) {
-    return DILoc->getLine();
+const llvm::DIFile *getDIFileFromIR(const llvm::Value *V) {
+  if (const auto *GO = llvm::dyn_cast<llvm::GlobalObject>(V)) {
+    if (auto *MN = GO->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      if (auto *Subpr = llvm::dyn_cast<llvm::DISubprogram>(MN)) {
+        return Subpr->getFile();
+      }
+      if (auto *GVExpr = llvm::dyn_cast<llvm::DIGlobalVariableExpression>(MN)) {
+        return GVExpr->getVariable()->getFile();
+      }
+    }
+  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    if (auto *LocVar = getDILocalVariable(Arg)) {
+      return LocVar->getFile();
+    }
+  } else if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (I->isUsedByMetadata()) {
+      if (auto *LocVar = getDILocalVariable(I)) {
+        return LocVar->getFile();
+      }
+    } else if (I->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      return I->getDebugLoc()->getFile();
+    }
   }
-  if (auto *DISubpr = getDISubprogram(V)) { // Function
-    return DISubpr->getLine();
-  }
-  if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
-    return DIGV->getLine();
-  }
-  return 0;
+  return nullptr;
 }
 
 std::string getDirectoryFromIR(const llvm::Value *V) {
@@ -209,6 +195,20 @@ std::string getDirectoryFromIR(const llvm::Value *V) {
   return "";
 }
 
+unsigned int getLineFromIR(const llvm::Value *V) {
+  // Argument and Instruction
+  if (auto *DILoc = getDILocation(V)) {
+    return DILoc->getLine();
+  }
+  if (auto *DISubpr = getDISubprogram(V)) { // Function
+    return DISubpr->getLine();
+  }
+  if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
+    return DIGV->getLine();
+  }
+  return 0;
+}
+
 unsigned int getColumnFromIR(const llvm::Value *V) {
   // Globals and Function have no column info
   if (auto *DILoc = getDILocation(V)) {
@@ -217,7 +217,21 @@ unsigned int getColumnFromIR(const llvm::Value *V) {
   return 0;
 }
 
-std::string getSrcCodeFromIR(const llvm::Value *V) {
+std::pair<unsigned, unsigned> getLineAndColFromIR(const llvm::Value *V) {
+  // Argument and Instruction
+  if (auto *DILoc = getDILocation(V)) {
+    return {DILoc->getLine(), DILoc->getColumn()};
+  }
+  if (auto *DISubpr = getDISubprogram(V)) { // Function
+    return {DISubpr->getLine(), 0};
+  }
+  if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
+    return {DIGV->getLine(), 0};
+  }
+  return {0, 0};
+}
+
+std::string getSrcCodeFromIR(const llvm::Value *V, bool Trim) {
   unsigned int LineNr = getLineFromIR(V);
   if (LineNr > 0) {
     std::filesystem::path Path(getFilePathFromIR(V));
@@ -230,7 +244,7 @@ std::string getSrcCodeFromIR(const llvm::Value *V) {
           Ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         std::getline(Ifs, SrcLine);
-        return llvm::StringRef(SrcLine).trim().str();
+        return Trim ? llvm::StringRef(SrcLine).trim().str() : SrcLine;
       }
     }
   }
