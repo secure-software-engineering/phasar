@@ -17,18 +17,19 @@
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/ErrorHandling.h"
 
 namespace psr::detail {
 
 template <typename Derived, typename N, typename D, typename L>
 template <typename NTy>
 auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
-    ByConstRef<n_t> Stmt, bool StripZero) ->
+    ByConstRef<n_t> Stmt, bool AllowOverapproximation, bool StripZero) ->
     typename std::enable_if_t<
         std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                        llvm::Instruction>,
         std::unordered_map<d_t, l_t>> {
-  std::unordered_map<d_t, l_t> Result = [this, Stmt]() {
+  std::unordered_map<d_t, l_t> Result = [this, Stmt, AllowOverapproximation]() {
     if (Stmt->getType()->isVoidTy()) {
       return self().Results.row(Stmt);
     }
@@ -48,6 +49,14 @@ auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
         if (Succ->hasNPredecessors(1)) {
           return GetStartRow(Succ);
         }
+      }
+
+      if (!AllowOverapproximation) {
+        llvm::report_fatal_error("[resultsAtInLLVMSSA]: Cannot precisely "
+                                 "collect the results at instruction " +
+                                 llvm::Twine(llvmIRToString(Stmt)) +
+                                 ". Use a sound, but potentially "
+                                 "imprecise overapproximation");
       }
 
       // There is no successor with only one predecessor.
@@ -89,7 +98,7 @@ auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
 template <typename Derived, typename N, typename D, typename L>
 template <typename NTy>
 auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
-    ByConstRef<n_t> Stmt, d_t Value) ->
+    ByConstRef<n_t> Stmt, d_t Value, bool AllowOverapproximation) ->
     typename std::enable_if_t<
         std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                        llvm::Instruction>,
@@ -114,6 +123,14 @@ auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
       if (Succ->hasNPredecessors(1)) {
         return GetStartVal(Succ);
       }
+    }
+
+    if (!AllowOverapproximation) {
+      llvm::report_fatal_error("[resultsAtInLLVMSSA]: Cannot precisely "
+                               "collect the results at instruction " +
+                               llvm::Twine(llvmIRToString(Stmt)) +
+                               ". Use a sound, but potentially "
+                               "imprecise overapproximation");
     }
 
     // There is no successor with only one predecessor.

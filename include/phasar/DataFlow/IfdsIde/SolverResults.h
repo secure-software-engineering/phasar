@@ -94,7 +94,8 @@ public:
       std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                      llvm::Instruction>,
       std::unordered_map<d_t, l_t>>
-  resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool StripZero = false);
+  resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool AllowOverapproximation = false,
+                     bool StripZero = false);
 
   /// Returns the L-type result at the given statement for the given data-flow
   /// fact while respecting LLVM's SSA semantics.
@@ -116,7 +117,8 @@ public:
       std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                      llvm::Instruction>,
       l_t>
-  resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value);
+  resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
+                    bool AllowOverapproximation = false);
 
   [[nodiscard]] std::vector<typename Table<n_t, d_t, l_t>::Cell>
   getAllResultEntries() const {
