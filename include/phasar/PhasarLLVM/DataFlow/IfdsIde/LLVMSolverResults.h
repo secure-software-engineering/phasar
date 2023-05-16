@@ -54,9 +54,7 @@ auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
       if (!AllowOverapproximation) {
         llvm::report_fatal_error("[resultsAtInLLVMSSA]: Cannot precisely "
                                  "collect the results at instruction " +
-                                 llvm::Twine(llvmIRToString(Stmt)) +
-                                 ". Use a sound, but potentially "
-                                 "imprecise overapproximation");
+                                 llvm::Twine(llvmIRToString(Stmt)));
       }
 
       // There is no successor with only one predecessor.
@@ -128,9 +126,7 @@ auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
     if (!AllowOverapproximation) {
       llvm::report_fatal_error("[resultsAtInLLVMSSA]: Cannot precisely "
                                "collect the results at instruction " +
-                               llvm::Twine(llvmIRToString(Stmt)) +
-                               ". Use a sound, but potentially "
-                               "imprecise overapproximation");
+                               llvm::Twine(llvmIRToString(Stmt)));
     }
 
     // There is no successor with only one predecessor.
