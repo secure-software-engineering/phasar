@@ -79,7 +79,7 @@ public:
       : detail::MaybeUniquePtrBase<T, RequireAlignment>(
             std::exchange(Other.Data, {})) {}
 
-  void swap(MaybeUniquePtr &Other) noexcept { std::swap(Data, Other, Data); }
+  void swap(MaybeUniquePtr &Other) noexcept { std::swap(Data, Other.Data); }
 
   friend void swap(MaybeUniquePtr &LHS, MaybeUniquePtr &RHS) noexcept {
     LHS.swap(RHS);
