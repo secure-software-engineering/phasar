@@ -9,6 +9,8 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 
+#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
@@ -18,6 +20,8 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/LLVMContext.h"
@@ -281,7 +285,17 @@ IFDSTaintAnalysis::FlowFunctionPtrType
 IFDSTaintAnalysis::getSummaryFlowFunction(
     [[maybe_unused]] IFDSTaintAnalysis::n_t CallSite,
     [[maybe_unused]] IFDSTaintAnalysis::f_t DestFun) {
-  // Don't use a special summary
+  // $sSS1poiyS2S_SStFZ is Swift's String append method
+  // if concat a tainted string with something else the
+  // result should be tainted
+  if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
+    const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+
+    return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
+      return ((Source == CS->getArgOperand(1)) ||
+              (Source == CS->getArgOperand(3)));
+    });
+  }
   return nullptr;
 }
 
@@ -291,19 +305,19 @@ IFDSTaintAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
-  InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-               IFDSTaintAnalysis::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-    if (EntryPoint == "main") {
+  InitialSeeds<n_t, d_t, l_t> Seeds;
+
+  LLVMBasedCFG C;
+  forallStartingPoints(EntryPoints, IRDB, C, [this, &Seeds](n_t SP) {
+    Seeds.addSeed(SP, getZeroValue());
+    if (SP->getFunction()->getName() == "main") {
       std::set<IFDSTaintAnalysis::d_t> CmdArgs;
-      for (const auto &Arg : IRDB->getFunction(EntryPoint)->args()) {
-        Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(), &Arg);
+      for (const auto &Arg : SP->getFunction()->args()) {
+        Seeds.addSeed(SP, &Arg);
       }
     }
-  }
+  });
+
   return Seeds;
 }
 

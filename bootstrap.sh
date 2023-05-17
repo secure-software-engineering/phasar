@@ -84,7 +84,7 @@ if [ ! -z "${DESIRED_BOOST_DIR}" ]; then
 else
 # New way of installing boost:
 # Check whether we have the required boost packages installed
-    BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"')
+    (BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"')) || true
 
 	if [ -z "$BOOST_VERSION" ] ;then
         if [ -x "$(command -v pacman)" ]; then

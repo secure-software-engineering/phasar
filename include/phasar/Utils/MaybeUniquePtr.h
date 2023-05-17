@@ -75,7 +75,7 @@ public:
             std::exchange(Other.Data, {})) {}
 
   constexpr void swap(MaybeUniquePtr &Other) noexcept {
-    std::swap(Data, Other, Data);
+    std::swap(Data, Other.Data);
   }
 
   constexpr friend void swap(MaybeUniquePtr &LHS,
