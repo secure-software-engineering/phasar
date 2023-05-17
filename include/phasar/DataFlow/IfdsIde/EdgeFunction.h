@@ -61,17 +61,17 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
   {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
   {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
 };
-  // clang-format on
+// clang-format on
 
 #endif
 
 class EdgeFunctionBase {
 public:
   template <typename ConcreteEF>
-  static constexpr bool
-      IsSOOCandidate = sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
-                       alignof(ConcreteEF) <= alignof(void *) &&
-                       std::is_trivially_copyable_v<ConcreteEF>;
+  static constexpr bool IsSOOCandidate =
+      sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
+      alignof(ConcreteEF) <= alignof(void *) &&
+      std::is_trivially_copyable_v<ConcreteEF>;
 
 protected:
   enum class AllocationPolicy {
@@ -82,7 +82,9 @@ protected:
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
-  template <typename T> struct RefCounted : RefCountedBase { T Value; };
+  template <typename T> struct RefCounted : RefCountedBase {
+    T Value;
+  };
 
   template <typename T> struct CachedRefCounted : RefCounted<T> {
     EdgeFunctionSingletonCache<T> *Cache{};

@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
 
