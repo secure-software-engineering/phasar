@@ -18,6 +18,9 @@ Required version of the C++ standard
 ------------------------------------
 PhASAR requires C++-17.
 
+However, building in C++20 mode is supported as experimental feature. Cou may enable this by turning the cmake option `PHASAR_EXPERIMENTAL_CXX20` on.
+Although phasar currently does not make use of C++20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 ealier.
+
 Currently supported version of LLVM
 -----------------------------------
 PhASAR is currently set up to support LLVM-14.0.
@@ -49,7 +52,8 @@ prerequisites and compilation. It is recommended to compile PhASAR yourself in
 order to get the full C++ experience and to have full control over the build
 mode.
 
-As a shortcut for the very first PhASAR build on your system, you can use our [bootstrap](./bootstrap.sh) script:
+As a shortcut for the very first PhASAR build on your system, you can use our [bootstrap](./bootstrap.sh) script.
+Please note that you must have python installed for the script to work properly.
 
 ```bash
 $ ./bootstrap.sh
@@ -173,7 +177,34 @@ If you obtain output other than a segmentation fault or an exception terminating
 
 How to use PhASAR?
 ------------------
-Please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
+
+We recomment using phasar with `cmake`.
+
+If you already have installed phasar, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
+
+Otherwise, we recommend adding PhASAR as a git submodule to your repository.
+In this case, just `add_subdirectory` the phasar submodule directory and add phasar's include folder to your `include_directories`.
+
+Assuming you have checked out phasar in `external/phasar`, the phasar-related cmake commands may look like this:
+
+```cmake
+set(PHASAR_BUILD_UNITTESTS OFF)              # -- Don't build PhASAR's unittests with *your* tool
+set(PHASAR_BUILD_IR OFF)                     # --
+add_subdirectories(external/phasar)          # Build phasar with your tool
+include_directories(external/phasar/include) # To find PhASAR's headers
+link_libraries(nlohmann_json::nlohmann:json) # To find the json headers
+
+...
+
+target_link_libraries(yourphasartool
+    ...
+    phasar # Make your tool link against phasar
+)
+```
+
+Depending on your use of PhASAR you also may need to add LLVM to your build.
+
+For more information please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
 
 
 ### Installing PhASAR's Git pre-commit hook

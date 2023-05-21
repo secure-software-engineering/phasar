@@ -1,5 +1,9 @@
 # Breaking Changes
 
+## Development HEAD
+
+- Default build mode is no longer `SHARED` but `STATIC`. To build in shared mode, use the cmake option `BUILD_SHARED_LIBS` which is not recommended. Consider using `PHASAR_BUILD_DYLIB` instead to build one big libphasar.so.
+
 ## v0323
 
 - `EdgeFunctionPtrType` is no longer a `std::shared_ptr`. Instead `EdgeFunction<l_t>` should be used directly. `EdgeFunction` is now a *value-type* that encapsulates its memory management by itself.
