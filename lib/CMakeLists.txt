@@ -8,3 +8,8 @@ add_subdirectory(Utils)
 add_subdirectory(Controller)
 add_subdirectory(Pointer)
 add_subdirectory(ControlFlow)
+
+
+add_library(phasar STATIC
+    LibPhasar.cpp
+)
