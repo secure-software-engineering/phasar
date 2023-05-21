@@ -22,11 +22,14 @@
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/reverse_graph.hpp"
-#include "gtest/gtest_prod.h"
 
 #include <set>
 #include <string>
 #include <unordered_map>
+
+#ifndef FRIEND_TEST
+#define FRIEND_TEST(TEST, CLASS)
+#endif
 
 namespace llvm {
 class StructType;
