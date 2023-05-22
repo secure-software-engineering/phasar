@@ -42,8 +42,12 @@ public:
   }
 
   [[nodiscard]] const ExplodedSuperGraph<domain_t> &
-  getExplicitESG() const noexcept {
+  getExplicitESG() const &noexcept {
     return ESG;
+  }
+
+  [[nodiscard]] ExplodedSuperGraph<domain_t> &&getExplicitESG() &&noexcept {
+    return std::move(ESG);
   }
 
 private:

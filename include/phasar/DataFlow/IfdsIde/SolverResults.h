@@ -129,7 +129,7 @@ public:
   void dumpResults(const ICFGTy &ICF, const NodePrinterBase<n_t> &NP,
                    const DataFlowFactPrinterBase<d_t> &DP,
                    const EdgeFactPrinterBase<l_t> &LP,
-                   llvm::raw_ostream &OS = llvm::outs()) {
+                   llvm::raw_ostream &OS = llvm::outs()) const {
     using f_t = typename ICFGTy::f_t;
 
     PAMM_GET_INSTANCE;
@@ -179,7 +179,7 @@ public:
 
   template <typename ICFGTy, typename ProblemTy>
   void dumpResults(const ICFGTy &ICF, const ProblemTy &IDEProblem,
-                   llvm::raw_ostream &OS = llvm::outs()) {
+                   llvm::raw_ostream &OS = llvm::outs()) const {
     dumpResults(ICF, IDEProblem, IDEProblem, IDEProblem, OS);
   }
 
@@ -206,12 +206,12 @@ public:
   using typename base_t::l_t;
   using typename base_t::n_t;
 
-  SolverResults(Table<n_t, d_t, l_t> &ResTab, ByConstRef<d_t> ZV) noexcept
+  SolverResults(const Table<n_t, d_t, l_t> &ResTab, ByConstRef<d_t> ZV) noexcept
       : Results(ResTab), ZV(ZV) {}
   SolverResults(Table<n_t, d_t, l_t> &&ResTab, ByConstRef<d_t> ZV) = delete;
 
 private:
-  Table<n_t, d_t, l_t> &Results;
+  const Table<n_t, d_t, l_t> &Results;
   ByConstRef<D> ZV;
 };
 
@@ -243,8 +243,7 @@ public:
   operator SolverResults<N, D, L>() && = delete;
 
 private:
-  // psr::Table is not const-enabled, so we have to give out mutable references
-  mutable Table<N, D, L> Results;
+  Table<N, D, L> Results;
   D ZV;
 };
 

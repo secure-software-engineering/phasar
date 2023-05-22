@@ -185,6 +185,21 @@ public:
     return Tab[RowKey][ColumnKey];
   }
 
+  [[nodiscard]] const V &get(R RowKey, C ColumnKey) const {
+    static V Empty{};
+    // Returns the value corresponding to the given row and column keys, or null
+    // if no such mapping exists.
+    auto OuterIt = Tab.find(RowKey);
+    if (OuterIt == Tab.end()) {
+      return Empty;
+    }
+    auto InnerIt = OuterIt->second.find(ColumnKey);
+    if (InnerIt == OuterIt->second.end()) {
+      return Empty;
+    }
+    return InnerIt->second;
+  }
+
   V remove(R RowKey, C ColumnKey) {
     // Removes the mapping, if any, associated with the given keys.
     V Val = Tab[RowKey][ColumnKey];
@@ -197,6 +212,16 @@ public:
   [[nodiscard]] std::unordered_map<C, V> &row(R RowKey) {
     // Returns a view of all mappings that have the given row key.
     return Tab[RowKey];
+  }
+
+  [[nodiscard]] const std::unordered_map<C, V> &row(R RowKey) const {
+    static std::unordered_map<C, V> Empty{};
+    auto It = Tab.find(RowKey);
+    if (It == Tab.end()) {
+      return Empty;
+    }
+    // Returns a view of all mappings that have the given row key.
+    return It->second;
   }
 
   [[nodiscard]] std::multiset<R> rowKeySet() const {
