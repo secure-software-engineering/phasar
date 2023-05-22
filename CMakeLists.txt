@@ -10,8 +10,15 @@ if (NOT PHASAR_IN_TREE)
   set(CMAKE_PROJECT_NAME "phasar")
 endif ()
 
+option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. THis is an experimental feature" OFF)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-set(CMAKE_CXX_STANDARD 17)
+if(PHASAR_EXPERIMENTAL_CXX20)
+  message(STATUS "Selected experimental C++ build")
+  set(CMAKE_CXX_STANDARD 20)
+else()
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
