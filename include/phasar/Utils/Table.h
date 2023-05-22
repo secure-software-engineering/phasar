@@ -17,10 +17,14 @@
 #ifndef PHASAR_UTILS_TABLE_H_
 #define PHASAR_UTILS_TABLE_H_
 
+#include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/DefaultValue.h"
+
 #include "llvm/Support/raw_ostream.h"
 
 #include <set>
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -75,10 +79,8 @@ public:
 
   void insert(R Row, C Column, V Val) {
     // Associates the specified value with the specified keys.
-    Tab[Row][Column] = std::move(Val);
+    Tab[std::move(Row)][std::move(Column)] = std::move(Val);
   }
-
-  void insert(const Table &T) { Tab.insert(T.table.begin(), T.table.end()); }
 
   void clear() { Tab.clear(); }
 
@@ -180,9 +182,26 @@ public:
   }
 
   [[nodiscard]] V &get(R RowKey, C ColumnKey) {
-    // Returns the value corresponding to the given row and column keys, or null
+    // Returns the value corresponding to the given row and column keys, or V()
     // if no such mapping exists.
-    return Tab[RowKey][ColumnKey];
+    return Tab[std::move(RowKey)][std::move(ColumnKey)];
+  }
+
+  [[nodiscard]] ByConstRef<V> get(ByConstRef<R> RowKey,
+                                  ByConstRef<C> ColumnKey) const noexcept {
+    // Returns the value corresponding to the given row and column keys, or V()
+    // if no such mapping exists.
+    auto OuterIt = Tab.find(RowKey);
+    if (OuterIt == Tab.end()) {
+      return getDefaultValue<V>();
+    }
+
+    auto It = OuterIt->second.find(ColumnKey);
+    if (It == OuterIt->second.end()) {
+      return getDefaultValue<V>();
+    }
+
+    return It->second;
   }
 
   V remove(R RowKey, C ColumnKey) {
@@ -199,6 +218,16 @@ public:
     return Tab[RowKey];
   }
 
+  [[nodiscard]] ByConstRef<std::unordered_map<C, V>>
+  row(ByConstRef<R> RowKey) const noexcept {
+    // Returns a view of all mappings that have the given row key.
+    auto It = Tab.find(RowKey);
+    if (It == Tab.end()) {
+      return getDefaultValue<std::unordered_map<C, V>>();
+    }
+    return It->second;
+  }
+
   [[nodiscard]] std::multiset<R> rowKeySet() const {
     // Returns a set of row keys that have one or more values in the table.
     std::multiset<R> Result;
@@ -208,7 +237,8 @@ public:
     return Result;
   }
 
-  [[nodiscard]] std::unordered_map<R, std::unordered_map<C, V>> rowMap() const {
+  [[nodiscard]] const std::unordered_map<R, std::unordered_map<C, V>> &
+  rowMap() const noexcept {
     // Returns a view that associates each row key with the corresponding map
     // from column keys to values.
     return Tab;
@@ -225,11 +255,13 @@ public:
     return Result;
   }
 
-  friend bool operator==(const Table<R, C, V> &Lhs, const Table<R, C, V> &Rhs) {
+  friend bool operator==(const Table<R, C, V> &Lhs,
+                         const Table<R, C, V> &Rhs) noexcept {
     return Lhs.table == Rhs.table;
   }
 
-  friend bool operator<(const Table<R, C, V> &Lhs, const Table<R, C, V> &Rhs) {
+  friend bool operator<(const Table<R, C, V> &Lhs,
+                        const Table<R, C, V> &Rhs) noexcept {
     return Lhs.table < Rhs.table;
   }
 
