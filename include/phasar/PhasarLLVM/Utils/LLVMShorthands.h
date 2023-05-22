@@ -78,11 +78,6 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
 [[nodiscard]] std::string llvmIRToString(const llvm::Value *V);
 
 /**
- * @brief Returns a string representation of a LLVM Type.
- */
-std::string llvmTypeToString(const llvm::Type *T);
-
-/**
  * @brief Similar to llvmIRToString, but removes the metadata from the output as
  * they are not always stable. Prefer this function over llvmIRToString, if you
  * are comparing the string representations of LLVM iR instructions.
