@@ -95,7 +95,7 @@ public:
                      llvm::Instruction>,
       std::unordered_map<d_t, l_t>>
   resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool AllowOverapproximation = false,
-                     bool StripZero = false);
+                     bool StripZero = false) const;
 
   /// Returns the L-type result at the given statement for the given data-flow
   /// fact while respecting LLVM's SSA semantics.
@@ -118,7 +118,7 @@ public:
                      llvm::Instruction>,
       l_t>
   resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
-                    bool AllowOverapproximation = false);
+                    bool AllowOverapproximation = false) const;
 
   [[nodiscard]] std::vector<typename Table<n_t, d_t, l_t>::Cell>
   getAllResultEntries() const {
@@ -231,9 +231,15 @@ public:
                       D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
       : Results(std::move(ResTab)), ZV(ZV) {}
 
-  [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
+  [[nodiscard]] SolverResults<N, D, L> asRef() const &noexcept {
     return {Results, ZV};
   }
+  SolverResults<N, D, L> asRef() && = delete;
+
+  [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
+    return asRef();
+  }
+
   operator SolverResults<N, D, L>() && = delete;
 
 private:

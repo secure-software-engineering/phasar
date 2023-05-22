@@ -171,7 +171,12 @@ public:
         DPrinter(DPrinter) {}
 
   explicit ExplodedSuperGraph(const ExplodedSuperGraph &) = default;
+  ExplodedSuperGraph &operator=(const ExplodedSuperGraph &) = delete;
+
   ExplodedSuperGraph(ExplodedSuperGraph &&) noexcept = default;
+  ExplodedSuperGraph &operator=(ExplodedSuperGraph &&) noexcept = default;
+
+  ~ExplodedSuperGraph() = default;
 
   [[nodiscard]] NodeRef getNodeOrNull(n_t Inst, d_t Fact) const {
     auto It = FlowFactVertexMap.find(
