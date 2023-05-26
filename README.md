@@ -9,8 +9,11 @@ Version 0323
 
 ## Secure Software Engineering Group
 
-+ Fabian Schiebel (<fabian.schiebel@iem.fraunhofer.de>), Martin Mory (<martin.mory@upb.de>), Philipp Dominik Schubert (<philipp.schubert@upb.de>) and others
-+ Please also refer to <https://phasar.org/>
+PhASAR is primarily developed and maintained by the Secure Software Engineering Group at Heinz Nixdorf Institute (University of Paderborn) and Fraunhofer IEM.
+
+Lead developers of PhASAR are:  Fabian Schiebel (@fabianbs96)(<fabian.schiebel@iem.fraunhofer.de>), Martin Mory (@MMory)(<martin.mory@upb.de>), Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>) and others.
+
+<!--  Please also refer to <https://phasar.org/> -->
 
 ## Required version of the C++ standard
 
@@ -21,7 +24,7 @@ Although phasar currently does not make use of C++20 features (except for some `
 
 ## Currently supported version of LLVM
 
-PhASAR is currently set up to support LLVM-14.0.
+PhASAR is currently set up to support LLVM-14.0.*
 
 ## What is PhASAR?
 
@@ -38,17 +41,15 @@ To keep PhASAR in a state that it is well suited for state-of-the-art research i
 ## How do I get started with PhASAR?
 
 We have some documentation on PhASAR in our [***Wiki***](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
-this README first and then have a look on the material provided on <https://phasar.org/>
-as well. Please also have a look on PhASAR's project directory and notice the project directory
-examples/ as well as the custom tool tools/myphasartool.cpp.
+this README first.
+<!-- and then have a look on the material provided on <https://phasar.org/>
+as well. -->
+Please also have a look on PhASAR's project directory and notice the project directory `examples/` as well as the custom tool `tools/example-tool/myphasartool.cpp`.
 
 ## Building PhASAR
 
-If you cannot work with one of the pre-built versions of PhASAR and would like to
-compile PhASAR yourself, then please check the wiki for installing the
-prerequisites and compilation. It is recommended to compile PhASAR yourself in
-order to get the full C++ experience and to have full control over the build
-mode.
+It is recommended to compile PhASAR yourself in order to get the full C++ experience and to have full control over the build mode.
+However, you may also want to try out one of the pre-built versions of PhASAR or the Docker container.
 
 As a shortcut for the very first PhASAR build on your system, you can use our [bootstrap](./bootstrap.sh) script.
 Please note that you must have python installed for the script to work properly.
@@ -177,7 +178,7 @@ C++'s long compile times are always a pain. As shown in the above, when using cm
 
 To test if everything works as expected please run the following command:
 
-`$ phasar-cli -m test/build_systems_tests/installation_tests/module.ll -D ifds-solvertest`
+`$ phasar-cli -m test/llvm_test_code/basic/module_cpp.ll -D ifds-solvertest`
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 
