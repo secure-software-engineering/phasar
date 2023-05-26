@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.9)
+
+# Avoid IPO/LTO Warnings:
+cmake_policy(SET CMP0069 NEW) 
+set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 
 # Check if we build within the llvm source tree
 if (DEFINED LLVM_MAIN_SRC_DIR)
@@ -38,8 +42,21 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
 else()
   message(STATUS "Selected Release Build")
+
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
+
+
+  if(LTO_SUPPORTED)
+    message(STATUS "IPO/LTO enabled")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # LTO
+  else()
+    message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+  endif()
+
+
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # LTO
+  
 endif()
 
 # Enable testing
@@ -79,10 +96,10 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
 #option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
-option(PHASAR_BUILD_DYLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
+option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
 
-if(PHASAR_BUILD_DYLIB AND BUILD_SHARED_LIBS)
-  message(FATAL_ERROR "PHASAR_BUILD_DYLIB is incompatible with BUILD_SHARED_LIBS")
+if(PHASAR_BUILD_DYNLIB AND BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "PHASAR_BUILD_DYNLIB is incompatible with BUILD_SHARED_LIBS")
 endif()
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
