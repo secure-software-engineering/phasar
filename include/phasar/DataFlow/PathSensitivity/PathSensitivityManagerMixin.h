@@ -249,10 +249,6 @@ private:
       Prev = Vtx;
       graph_traits_t::node(RetDag, Ret).push_back(Vtx.source());
 
-      if (!Vtx.predecessor()) {
-        return true;
-      }
-
       Vtx = Vtx.predecessor();
 
       if (PFilter.HasReachedEnd(Prev, Vtx)) {
@@ -263,6 +259,10 @@ private:
       if (PFilter.IsErrorneousTransition(Prev, Vtx)) {
         IsError = true;
         break;
+      }
+
+      if (!Vtx) {
+        return true;
       }
 
     } while (!Vtx.hasNeighbors());
