@@ -260,5 +260,5 @@ const llvm::Value *psr::fromMetaDataId(const LLVMProjectIRDB &IRDB,
   }
 
   auto IdNr = ParseInt(Id);
-  return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
+  return IdNr ? IRDB.getValueFromId(*IdNr) : nullptr;
 }
