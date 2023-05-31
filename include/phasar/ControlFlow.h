@@ -11,7 +11,9 @@
 #define PHASAR_CONTROLFLOW_H
 
 #include "phasar/ControlFlow/CFGBase.h"
+#include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphBase.h"
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/ControlFlow/SpecialMemberFunctionType.h"
 
