@@ -83,6 +83,10 @@ public:
   explicit LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
                          LLVMTypeHierarchy *TH = nullptr);
 
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+                         const nlohmann::json &SerializedCG,
+                         LLVMTypeHierarchy *TH = nullptr);
+
   ~LLVMBasedICFG();
 
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;
@@ -101,6 +105,10 @@ public:
   /// Similar to exportICFGAsDot, but exports the ICFG as JSON instead
   [[nodiscard]] nlohmann::json
   exportICFGAsJson(bool WithSourceCodeInfo = true) const;
+
+  [[nodiscard]] size_t getNumVertexFunctions() const noexcept {
+    return CG.getNumVertexFunctions();
+  }
 
   /// Returns all functions from the underlying IRDB that are part of the ICFG,
   /// i.e. that are reachable from the entry-points

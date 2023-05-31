@@ -362,6 +362,19 @@ LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
   }
 }
 
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+                             const nlohmann::json &SerializedCG,
+                             LLVMTypeHierarchy *TH)
+    : CG(CallGraph<n_t, f_t>::deserialize(
+          SerializedCG,
+          [IRDB](llvm::StringRef Name) { return IRDB->getFunction(Name); },
+          [IRDB](size_t Id) { return IRDB->getInstruction(Id); })),
+      IRDB(IRDB) {
+  if (!TH) {
+    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+  }
+}
+
 LLVMBasedICFG::~LLVMBasedICFG() = default;
 
 [[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {

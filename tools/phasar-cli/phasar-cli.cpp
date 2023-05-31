@@ -169,7 +169,6 @@ cl::opt<std::string>
 
 cl::opt<std::string> ProjectIdOpt("project-id",
                                   cl::desc("Project id used for output"),
-                                  cl::init("default-phasar-project"),
                                   cl::cat(PsrCat), cl::Hidden);
 
 PSR_SHORTLONG_OPTION(OutDirOpt, std::string, "O", "out",
@@ -232,6 +231,12 @@ cl::opt<std::string>
                        cl::desc("Load the points-to info previously exported "
                                 "via emit-pta-as-json from the given file"),
                        cl::cat(PsrCat));
+
+cl::opt<std::string> LoadCGFromJsonOpt(
+    "load-cg-from-json",
+    cl::desc("Load the persisted call-graph previously exported via "
+             "emit-cg-as-json from the given file"),
+    cl::cat(PsrCat));
 
 PSR_SHORTLONG_OPTION(PammOutOpt, std::string, "A", "pamm-out",
                      "Filename for PAMM's gathered data",
@@ -344,6 +349,15 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 
+  if (ProjectIdOpt.empty()) {
+    ProjectIdOpt = std::filesystem::path(ModuleOpt.getValue())
+                       .filename()
+                       .replace_extension();
+    if (ProjectIdOpt.empty()) {
+      ProjectIdOpt = "default-phasar-project";
+    }
+  }
+
   validateParamModule();
   validateParamOutput();
   validateParamPointerAnalysis();
@@ -385,6 +399,15 @@ int main(int Argc, const char **Argv) {
   if (EmitCGAsDotOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
   }
+  if (EmitCGAsJsonOpt) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
+  }
+  if (EmitCGAsTextOpt) {
+    llvm::errs()
+        << "ERROR: emit-cg-as-text is currently not supported. Did you mean "
+           "emit-cg-as-dot? For reversible serialization use emit-cg-as-json\n";
+    return 1;
+  }
   if (EmitPTAAsTextOpt) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
   }
@@ -410,7 +433,14 @@ int main(int Argc, const char **Argv) {
 
   std::optional<nlohmann::json> PrecomputedAliasSet;
   if (!LoadPTAFromJsonOpt.empty()) {
+    PHASAR_LOG_LEVEL(INFO, "Load AliasInfo from file: " << LoadCGFromJsonOpt);
     PrecomputedAliasSet = readJsonFile(LoadPTAFromJsonOpt);
+  }
+
+  std::optional<nlohmann::json> PrecomputedCallGraph;
+  if (!LoadCGFromJsonOpt.empty()) {
+    PHASAR_LOG_LEVEL(INFO, "Load CallGraph from file: " << LoadCGFromJsonOpt);
+    PrecomputedCallGraph = readJsonFile(LoadCGFromJsonOpt);
   }
 
   if (EntryOpt.empty()) {
@@ -421,7 +451,8 @@ int main(int Argc, const char **Argv) {
   HelperAnalyses HA(std::move(ModuleOpt.getValue()),
                     std::move(PrecomputedAliasSet), AliasTypeOpt,
                     !AnalysisController::needsToEmitPTA(EmitterOptions),
-                    EntryOpt, CGTypeOpt, SoundnessOpt, AutoGlobalsOpt);
+                    EntryOpt, std::move(PrecomputedCallGraph), CGTypeOpt,
+                    SoundnessOpt, AutoGlobalsOpt);
 
   AnalysisController Controller(
       HA, DataFlowAnalysisOpt, {AnalysisConfigOpt.getValue()}, EntryOpt,
