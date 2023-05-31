@@ -253,16 +253,16 @@ private:
 
       if (PFilter.HasReachedEnd(Prev, Vtx)) {
         IsEnd = true;
-        break;
-      }
-
-      if (PFilter.IsErrorneousTransition(Prev, Vtx)) {
+      } else if (PFilter.IsErrorneousTransition(Prev, Vtx)) {
         IsError = true;
-        break;
       }
 
       if (!Vtx) {
-        return true;
+        return !IsError;
+      }
+
+      if (IsEnd || IsError) {
+        break;
       }
 
     } while (!Vtx.hasNeighbors());
