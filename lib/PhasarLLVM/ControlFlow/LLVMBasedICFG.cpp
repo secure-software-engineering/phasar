@@ -366,9 +366,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                              llvm::ArrayRef<std::string> EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
-    : TH(TH) {
+    : IRDB(IRDB), TH(TH) {
   assert(IRDB != nullptr);
-  this->IRDB = IRDB;
 
   Builder B{IRDB, this, PT};
   LLVMAliasInfo PTOwn;
@@ -396,6 +395,52 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
       INFO, "LLVMBasedICFG",
       "Finished ICFG construction "
           << std::chrono::steady_clock::now().time_since_epoch().count());
+}
+
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+                             const nlohmann::json &SerializedCG)
+    : IRDB(IRDB) {
+  assert(IRDB != nullptr);
+
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                       "Load precomputed call-graph from JSON");
+
+  auto It = SerializedCG.find(PhasarConfig::JsonCallGraphID().str());
+
+  if (It == SerializedCG.end()) {
+    PHASAR_LOG_LEVEL_CAT(ERROR, "LLVMBasedICFG",
+                         "Cannot deserialize call-graph from JSON: No key '"
+                             << PhasarConfig::JsonCallGraphID() << "' present");
+    return;
+  }
+
+  const auto &Edges = It.value();
+
+  CallersOf.reserve(Edges.size());
+  CalleesAt.reserve(Edges.size());
+  VertexFunctions.reserve(Edges.size());
+
+  for (const auto &[FunName, CallerIDs] : Edges.items()) {
+    const auto *Fun = IRDB->getFunction(FunName);
+    if (!Fun) {
+      PHASAR_LOG_LEVEL_CAT(WARNING, "LLVMBasedICFG",
+                           "Invalid function name: " << FunName);
+      continue;
+    }
+    auto *CEdges = addFunctionVertex(Fun);
+    CEdges->reserve(CallerIDs.size());
+
+    for (const auto &JId : CallerIDs) {
+      auto Id = JId.get<size_t>();
+      const auto *CS = IRDB->getInstruction(Id);
+      if (!CS) {
+        PHASAR_LOG_LEVEL_CAT(WARNING, "LLVMBasedICFG",
+                             "Invalid CAll-Instruction Id: " << Id);
+      }
+
+      addCallEdge(CS, Fun);
+    }
+  }
 }
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
@@ -504,22 +549,12 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 [[nodiscard]] nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
   nlohmann::json J;
 
-  for (size_t Vtx = 0, VtxEnd = VertexFunctions.size(); Vtx != VtxEnd; ++Vtx) {
-    auto VtxFunName = VertexFunctions[Vtx]->getName().str();
-    J[PhasarConfig::JsonCallGraphID().str()][VtxFunName] =
-        nlohmann::json::array();
+  auto &Edges = J[PhasarConfig::JsonCallGraphID().str()];
+  for (const auto &[Fun, Callers] : CallersOf) {
+    auto &JCallers = Edges[Fun->getName().str()];
 
-    for (const auto &Inst : llvm::instructions(VertexFunctions[Vtx])) {
-      if (!llvm::isa<llvm::CallBase>(Inst)) {
-        continue;
-      }
-
-      if (auto It = CalleesAt.find(&Inst); It != CalleesAt.end()) {
-        for (const auto *Succ : *It->second) {
-          J[PhasarConfig::JsonCallGraphID().str()][VtxFunName].push_back(
-              Succ->getName().str());
-        }
-      }
+    for (const auto *CS : *Callers) {
+      JCallers.push_back(IRDB->getInstructionId(CS));
     }
   }
 
