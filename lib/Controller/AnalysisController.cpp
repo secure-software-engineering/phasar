@@ -9,6 +9,7 @@
 
 #include "phasar/Controller/AnalysisController.h"
 
+#include "phasar//Utils/NlohmannLogging.h"
 #include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -183,6 +184,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     WithResultFileOrStdout("/psr-cg.txt",
                            [this](auto &OS) { HA.getICFG().print(OS); });
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+    WithResultFileOrStdout(
+        "/psr-cg.json", [this](auto &OS) { OS << HA.getICFG().getAsJson(); });
   }
 
   if (EmitterOptions &
