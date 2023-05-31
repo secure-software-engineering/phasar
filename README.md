@@ -19,7 +19,7 @@ Lead developers of PhASAR are:  Fabian Schiebel (@fabianbs96)(<fabian.schiebel@i
 
 PhASAR requires C++-17.
 
-However, building in C++20 mode is supported as experimental feature. You may enable this by turning the cmake option `PHASAR_EXPERIMENTAL_CXX20` on.
+However, building in C++20 mode is supported as an experimental feature. You may enable this by turning the cmake option `PHASAR_EXPERIMENTAL_CXX20` on.
 Although phasar currently does not make use of C++20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 ealier.
 
 ## Currently supported version of LLVM
@@ -196,7 +196,7 @@ Assuming you have checked out phasar in `external/phasar`, the phasar-related cm
 ```cmake
 set(PHASAR_BUILD_UNITTESTS OFF)              # -- Don't build PhASAR's unittests with *your* tool
 set(PHASAR_BUILD_IR OFF)                     # --
-add_subdirectories(external/phasar)          # Build phasar with your tool
+add_subdirectory(external/phasar)            # Build phasar with your tool
 include_directories(external/phasar/include) # To find PhASAR's headers
 link_libraries(nlohmann_json::nlohmann:json) # To find the json headers
 

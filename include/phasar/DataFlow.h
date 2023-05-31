@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2023 Philipp Schubert.
+ * Copyright (c) 2023 Fabian Schiebel.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *

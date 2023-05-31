@@ -135,7 +135,6 @@ private:
   std::vector<const llvm::Function *>
   getVirtualFunctions(const llvm::Module &M, const llvm::StructType &Type);
 
-  FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
   FRIEND_TEST(LTHTest, GraphConstruction);
   FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
 
