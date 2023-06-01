@@ -6,6 +6,8 @@
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Module.h"
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
@@ -19,9 +21,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include <llvm-14/llvm/IR/DerivedTypes.h>
-#include <llvm-14/llvm/IR/Module.h>
 
 namespace llvm {
 class Module;
@@ -70,12 +69,6 @@ public:
    */
   LLVMTypeHierarchy_MD(LLVMProjectIRDB &IRDB);
 
-  /**
-   *  @brief Creates a LLVMStructTypeHierarchy based on the
-   *         llvm::Module.
-   *  @param M A llvm::Module.
-   */
-  LLVMTypeHierarchy_MD(const llvm::Module &M);
   ~LLVMTypeHierarchy_MD() override = default;
 
   /**
@@ -85,20 +78,18 @@ public:
    * Extracts new information from the given module and adds new vertices
    * accordingly to the type hierarchy graph.
    */
-  void constructHierarchy(const llvm::Module &M);
+  void constructHierarchy();
 
-  [[nodiscard]] inline bool
-  hasType(const llvm::StructType *Type) const override;
+  [[nodiscard]] bool hasType(const llvm::StructType *Type) const override;
 
-  [[nodiscard]] inline bool isSubType(const llvm::StructType *Type,
-                                      const llvm::StructType *SubType) override;
+  [[nodiscard]] bool isSubType(const llvm::StructType *Type,
+                               const llvm::StructType *SubType) override;
 
   std::set<const llvm::StructType *>
   getSubTypes(const llvm::StructType *Type) override;
 
-  [[nodiscard]] inline bool
-  isSuperType(const llvm::StructType *Type,
-              const llvm::StructType *SuperType) override;
+  [[nodiscard]] bool isSuperType(const llvm::StructType *Type,
+                                 const llvm::StructType *SuperType) override;
 
   std::set<const llvm::StructType *>
   getSuperTypes(const llvm::StructType *Type) override;
@@ -116,41 +107,24 @@ public:
   [[nodiscard]] const LLVMVFTable *
   getVFTable(const llvm::StructType *Type) const override;
 
-  [[nodiscard]] inline size_t size() const override;
+  [[nodiscard]] size_t size() const override;
 
-  [[nodiscard]] inline bool empty() const override;
+  [[nodiscard]] bool empty() const override;
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
-  static inline constexpr llvm::StringLiteral StructPrefix = "struct.";
-  static inline constexpr llvm::StringLiteral ClassPrefix = "class.";
-  static inline constexpr llvm::StringLiteral VTablePrefix = "_ZTV";
-  static inline constexpr llvm::StringLiteral VTablePrefixDemang =
-      "vtable for ";
-  static inline constexpr llvm::StringLiteral TypeInfoPrefix = "_ZTI";
-  static inline constexpr llvm::StringLiteral TypeInfoPrefixDemang =
-      "typeinfo for ";
-  static inline constexpr llvm::StringLiteral PureVirtualCallName =
-      "__cxa_pure_virtual";
-
 protected:
-  void buildLLVMTypeHierarchy(const llvm::Module &M);
+  void buildLLVMTypeHierarchy();
 
 private:
   Graph TypeGraph;
-  // holds all modules that are included in the type hierarchy
-  std::unordered_set<const llvm::Module *> VisitedModules;
   // holds all metadata notes
   std::vector<llvm::MDNode *> MetadataNotes;
   std::unordered_map<const llvm::StructType *, LLVMVFTable> TypeVFTMap;
   // helper map from clearname to type*
   std::unordered_map<std::string, const llvm::StructType *> ClearNameTypeMap;
-
-  static std::string removeStructOrClassPrefix(const llvm::StructType &T);
-
-  static std::string removeStructOrClassPrefix(const std::string &TypeName);
 
   /**
    * 	@brief Prints the class hierarchy to an ostream in dot format.
@@ -162,7 +136,13 @@ private:
    * @brief Extracts the metadata from a LLVM function
    * @param F LLVM function
    */
-  void getMetaData(llvm::Function &F);
+  void getMetaDataOfFunction(const llvm::Function *F);
+
+  /**
+   * @brief Extracts the metadata from all functions of a LLVMProjectIRDB
+   * @param IRDB LLVMProjectIRDB
+   */
+  void getAllMetadata(const LLVMProjectIRDB &IRDB);
 };
 
 } // namespace psr

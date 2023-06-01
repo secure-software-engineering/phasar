@@ -4,6 +4,9 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/Metadata.h"
+#include "llvm/Support/Casting.h"
+
+#include <llvm-14/llvm/IR/Metadata.h>
 
 namespace psr {
 
@@ -17,59 +20,37 @@ std::string LLVMTypeHierarchy_MD::VertexProperties::getTypeName() const {
 
 LLVMTypeHierarchy_MD::LLVMTypeHierarchy_MD(LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
-
-  // TODO (max): getMetadata() here
-
-  buildLLVMTypeHierarchy(*IRDB.getModule());
+  getAllMetadata(IRDB);
+  buildLLVMTypeHierarchy();
 }
 
-LLVMTypeHierarchy_MD::LLVMTypeHierarchy_MD(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Construct type hierarchy");
-  buildLLVMTypeHierarchy(M);
-  PHASAR_LOG_LEVEL_CAT(INFO, "LLVMTypeHierarchy", "Finished type hierarchy");
-}
-
-void LLVMTypeHierarchy_MD::buildLLVMTypeHierarchy(const llvm::Module &M) {
+void LLVMTypeHierarchy_MD::buildLLVMTypeHierarchy() {
   // build the hierarchy for the module
-  constructHierarchy(M);
+  constructHierarchy();
   // cache the reachable types
 
   // TODO (max): implement the caching of reachable types
 }
 
-void LLVMTypeHierarchy_MD::constructHierarchy(const llvm::Module &M) {
-  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
-                       "Analyze types in module: " << M.getModuleIdentifier());
-  // store analyzed module
-  VisitedModules.insert(&M);
-
-  // TODO (max): go over all metadata nodes and construct hierarchy
-}
-
-std::string
-LLVMTypeHierarchy_MD::removeStructOrClassPrefix(const llvm::StructType &T) {
-  return removeStructOrClassPrefix(T.getName().str());
-}
-
-std::string
-LLVMTypeHierarchy_MD::removeStructOrClassPrefix(const std::string &TypeName) {
-  llvm::StringRef SR(TypeName);
-  if (SR.startswith(StructPrefix)) {
-    return SR.drop_front(StructPrefix.size()).str();
+void LLVMTypeHierarchy_MD::constructHierarchy() {
+  // PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
+  //"Analyze types in module: " << M.getModuleIdentifier());
+  for (const auto *Node : MetadataNotes) {
+    // if (Node-> ==
+    //     llvm::Metadata::MetadataKind::DICompositeTypeKind) {
+    // }
   }
-  if (SR.startswith(ClassPrefix)) {
-    return SR.drop_front(ClassPrefix.size()).str();
-  }
-  return TypeName;
 }
 
 std::set<const llvm::StructType *>
 LLVMTypeHierarchy_MD::getSubTypes(const llvm::StructType *Type) {
 
-  // TODO (max): ask fabian how to implement boostless version of TypeVertexMap
+  // TODO (max): ask fabian how to implement boostless
+  // version of TypeVertexMap
 
   // if (TypeVertexMap.count(Type)) {
-  //   return TypeGraph[TypeVertexMap[Type]].ReachableTypes;
+  //   return
+  //   TypeGraph[TypeVertexMap[Type]].ReachableTypes;
   // }
   return {};
 }
@@ -99,6 +80,11 @@ std::set<const llvm::StructType *> LLVMTypeHierarchy_MD::getAllTypes() const {
   return Types;
 }
 
+[[nodiscard]] bool
+LLVMTypeHierarchy_MD::hasType(const llvm::StructType *Type) const {
+  return false;
+}
+
 std::string
 LLVMTypeHierarchy_MD::getTypeName(const llvm::StructType *Type) const {
   return Type->getStructName().str();
@@ -119,12 +105,38 @@ LLVMTypeHierarchy_MD::getVFTable(const llvm::StructType *Type) const {
   return nullptr;
 }
 
-void LLVMTypeHierarchy_MD::getMetaData(llvm::Function &F) {
+void LLVMTypeHierarchy_MD::getMetaDataOfFunction(const llvm::Function *F) {
   llvm::SmallVector<std::pair<unsigned, llvm::MDNode *>, 4> MDs;
-  F.getAllMetadata(MDs);
+
+  F->getAllMetadata(MDs);
   for (auto &CurrentMd : MDs) {
     MetadataNotes.push_back(CurrentMd.second);
   }
 }
+
+void LLVMTypeHierarchy_MD::getAllMetadata(const LLVMProjectIRDB &IRDB) {
+  FunctionRange AllFunctions = IRDB.getAllFunctions();
+  for (const auto *Function : AllFunctions) {
+    getMetaDataOfFunction(Function);
+  }
+}
+
+[[nodiscard]] size_t LLVMTypeHierarchy_MD::size() const {
+  return TypeGraph.Vertices.size();
+}
+
+[[nodiscard]] bool LLVMTypeHierarchy_MD::empty() const { return size() == 0; }
+
+void LLVMTypeHierarchy_MD::print(llvm::raw_ostream &OS) const {}
+
+[[nodiscard]] nlohmann::json LLVMTypeHierarchy_MD::getAsJson() const {}
+
+[[nodiscard]] bool
+LLVMTypeHierarchy_MD::isSuperType(const llvm::StructType *Type,
+                                  const llvm::StructType *SuperType) {}
+
+[[nodiscard]] bool
+LLVMTypeHierarchy_MD::isSubType(const llvm::StructType *Type,
+                                const llvm::StructType *SubType) {}
 
 } // namespace psr
