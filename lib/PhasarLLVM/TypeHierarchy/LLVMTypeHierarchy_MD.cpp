@@ -6,6 +6,8 @@
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
 
+#include <llvm-14/llvm/IR/DerivedTypes.h>
+#include <llvm-14/llvm/IR/GlobalVariable.h>
 #include <llvm-14/llvm/IR/Metadata.h>
 
 namespace psr {
@@ -20,6 +22,7 @@ std::string LLVMTypeHierarchy_MD::VertexProperties::getTypeName() const {
 
 LLVMTypeHierarchy_MD::LLVMTypeHierarchy_MD(LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
+  IRDBModule = IRDB.getModule();
   getAllMetadata(IRDB);
   buildLLVMTypeHierarchy();
 }
@@ -35,10 +38,19 @@ void LLVMTypeHierarchy_MD::buildLLVMTypeHierarchy() {
 void LLVMTypeHierarchy_MD::constructHierarchy() {
   // PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
   //"Analyze types in module: " << M.getModuleIdentifier());
+
+  // global variable
   for (const auto *Node : MetadataNotes) {
-    // if (Node-> ==
-    //     llvm::Metadata::MetadataKind::DICompositeTypeKind) {
-    // }
+    if (Node->getMetadataID() == llvm::Metadata::DIGlobalVariableKind) {
+      // TypeGraph.Vertices.emplace_back(VertexProperties());
+      return;
+    }
+
+    // structs
+    if (Node->getMetadataID() == llvm::Metadata::DICompositeTypeKind) {
+      // TypeGraph.Vertices.emplace_back(VertexProperties());
+      return;
+    }
   }
 }
 
@@ -127,7 +139,9 @@ void LLVMTypeHierarchy_MD::getAllMetadata(const LLVMProjectIRDB &IRDB) {
 
 [[nodiscard]] bool LLVMTypeHierarchy_MD::empty() const { return size() == 0; }
 
-void LLVMTypeHierarchy_MD::print(llvm::raw_ostream &OS) const {}
+void LLVMTypeHierarchy_MD::print(llvm::raw_ostream &OS) const {
+  OS << "Type Hierarchy:\n";
+}
 
 [[nodiscard]] nlohmann::json LLVMTypeHierarchy_MD::getAsJson() const {}
 

@@ -9,8 +9,6 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
 
-#include "boost/graph/adjacency_list.hpp"
-#include "boost/graph/graph_traits.hpp"
 #include "gtest/gtest_prod.h"
 #include "nlohmann/json.hpp"
 
@@ -121,6 +119,7 @@ protected:
 private:
   Graph TypeGraph;
   // holds all metadata notes
+  llvm::Module *IRDBModule;
   std::vector<llvm::MDNode *> MetadataNotes;
   std::unordered_map<const llvm::StructType *, LLVMVFTable> TypeVFTMap;
   // helper map from clearname to type*
