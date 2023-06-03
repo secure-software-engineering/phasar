@@ -20,6 +20,7 @@
 namespace psr {
 struct HelperAnalysisConfig {
   std::optional<nlohmann::json> PrecomputedPTS = std::nullopt;
+  std::optional<nlohmann::json> PrecomputedCG = std::nullopt;
   CallGraphAnalysisType CGTy = CallGraphAnalysisType::OTF;
   Soundness SoundnessLevel = Soundness::Soundy;
   bool AutoGlobalSupport = true;

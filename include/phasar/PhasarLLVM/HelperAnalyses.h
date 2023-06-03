@@ -33,6 +33,7 @@ public:
                           std::optional<nlohmann::json> PrecomputedPTS,
                           bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
+                          std::optional<nlohmann::json> PrecomputedCG,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport) noexcept;
 
@@ -68,6 +69,7 @@ private:
   bool AllowLazyPTS{};
 
   // ICF
+  std::optional<nlohmann::json> PrecomputedCG;
   std::vector<std::string> EntryPoints;
   CallGraphAnalysisType CGTy{};
   Soundness SoundnessLevel{};

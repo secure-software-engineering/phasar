@@ -9,25 +9,25 @@
 #include <string>
 
 namespace psr {
-HelperAnalyses::HelperAnalyses(std::string IRFile,
-                               std::optional<nlohmann::json> PrecomputedPTS,
-                               bool AllowLazyPTS,
-                               std::vector<std::string> EntryPoints,
-                               CallGraphAnalysisType CGTy,
-                               Soundness SoundnessLevel,
-                               bool AutoGlobalSupport) noexcept
+HelperAnalyses::HelperAnalyses(
+    std::string IRFile, std::optional<nlohmann::json> PrecomputedPTS,
+    bool AllowLazyPTS, std::vector<std::string> EntryPoints,
+    std::optional<nlohmann::json> PrecomputedCG, CallGraphAnalysisType CGTy,
+    Soundness SoundnessLevel, bool AutoGlobalSupport) noexcept
     : IRFile(std::move(IRFile)), PrecomputedPTS(std::move(PrecomputedPTS)),
-      AllowLazyPTS(AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
-      CGTy(CGTy), SoundnessLevel(SoundnessLevel),
-      AutoGlobalSupport(AutoGlobalSupport) {}
+      AllowLazyPTS(AllowLazyPTS), PrecomputedCG(std::move(PrecomputedCG)),
+      EntryPoints(std::move(EntryPoints)), CGTy(CGTy),
+      SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {}
 
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::vector<std::string> EntryPoints,
                                HelperAnalysisConfig Config) noexcept
     : IRFile(std::move(IRFile)),
       PrecomputedPTS(std::move(Config.PrecomputedPTS)),
-      AllowLazyPTS(Config.AllowLazyPTS), EntryPoints(std::move(EntryPoints)),
-      CGTy(Config.CGTy), SoundnessLevel(Config.SoundnessLevel),
+      AllowLazyPTS(Config.AllowLazyPTS),
+      PrecomputedCG(std::move(Config.PrecomputedCG)),
+      EntryPoints(std::move(EntryPoints)), CGTy(Config.CGTy),
+      SoundnessLevel(Config.SoundnessLevel),
       AutoGlobalSupport(Config.AutoGlobalSupport) {}
 
 HelperAnalyses::HelperAnalyses(const llvm::Twine &IRFile,
@@ -69,10 +69,14 @@ LLVMTypeHierarchy &HelperAnalyses::getTypeHierarchy() {
 
 LLVMBasedICFG &HelperAnalyses::getICFG() {
   if (!ICF) {
-    ICF = std::make_unique<LLVMBasedICFG>(
-        &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
-        CGTy == CallGraphAnalysisType::OTF ? &getAliasInfo() : nullptr,
-        SoundnessLevel, AutoGlobalSupport);
+    if (PrecomputedCG.has_value()) {
+      ICF = std::make_unique<LLVMBasedICFG>(&getProjectIRDB(), *PrecomputedCG);
+    } else {
+      ICF = std::make_unique<LLVMBasedICFG>(
+          &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
+          CGTy == CallGraphAnalysisType::OTF ? &getAliasInfo() : nullptr,
+          SoundnessLevel, AutoGlobalSupport);
+    }
   }
 
   return *ICF;
