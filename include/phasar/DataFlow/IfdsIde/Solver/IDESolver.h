@@ -619,7 +619,8 @@ protected:
     l_t LPrime = joinValueAt(NHashN, NHashD, ValNHash, L);
     if (!(LPrime == ValNHash)) {
       setVal(NHashN, NHashD, std::move(LPrime));
-      valuePropagationTask(std::pair<n_t, d_t>(NHashN, NHashD));
+      ValuePropWL.emplace_back(std::move(NHashN), std::move(NHashD));
+      // valuePropagationTask(std::pair<n_t, d_t>(NHashN, NHashD));
     }
   }
 
@@ -720,7 +721,7 @@ protected:
   }
 
   // should be made a callable at some point
-  void valuePropagationTask(const std::pair<n_t, d_t> NAndD) {
+  void valuePropagationTask(std::pair<n_t, d_t> NAndD) {
     n_t n = NAndD.first;
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
@@ -771,10 +772,7 @@ protected:
                                                        DestVals.end());
   }
 
-  /// Computes the final values for edge functions.
-  void computeValues() {
-    PHASAR_LOG_LEVEL(DEBUG, "Start computing values");
-    // Phase II(i)
+  void submitInitialValues() {
     std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
     for (n_t UnbalancedRetSite : UnbalancedRetSites) {
       if (AllSeeds.find(UnbalancedRetSite) == AllSeeds.end()) {
@@ -793,9 +791,22 @@ protected:
         // information at the beginning of the value computation problem
         setVal(StartPoint, Fact, Value);
         std::pair<n_t, d_t> SuperGraphNode(StartPoint, Fact);
-        valuePropagationTask(SuperGraphNode);
+        valuePropagationTask(std::move(SuperGraphNode));
       }
     }
+  }
+
+  /// Computes the final values for edge functions.
+  void computeValues() {
+    PHASAR_LOG_LEVEL(DEBUG, "Start computing values");
+    // Phase II(i)
+    submitInitialValues();
+    while (!ValuePropWL.empty()) {
+      auto NAndD = std::move(ValuePropWL.back());
+      ValuePropWL.pop_back();
+      valuePropagationTask(std::move(NAndD));
+    }
+
     // Phase II(ii)
     // we create an array of all nodes and then dispatch fractions of this
     // array to multiple threads
@@ -1729,6 +1740,7 @@ public:
   IFDSIDESolverConfig &SolverConfig;
 
   std::vector<std::pair<PathEdge<n_t, d_t>, EdgeFunction<l_t>>> WorkList;
+  std::vector<std::pair<n_t, d_t>> ValuePropWL;
 
   size_t PathEdgeCount = 0;
 
