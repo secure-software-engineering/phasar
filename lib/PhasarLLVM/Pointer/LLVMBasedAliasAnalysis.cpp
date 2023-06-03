@@ -11,6 +11,7 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
+#include "phasar/Pointer/AliasAnalysisType.h"
 
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallVector.h"
@@ -19,6 +20,7 @@
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/CFLAndersAliasAnalysis.h"
 #include "llvm/Analysis/CFLSteensAliasAnalysis.h"
+#include "llvm/Analysis/ScopedNoAliasAA.h"
 #include "llvm/Analysis/TypeBasedAliasAnalysis.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/BasicBlock.h"
@@ -28,10 +30,17 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Passes/PassBuilder.h"
 
 using namespace psr;
 
 namespace psr {
+
+struct LLVMBasedAliasAnalysis::Impl {
+  llvm::PassBuilder PB{};
+  llvm::FunctionAnalysisManager FAM{};
+  llvm::FunctionPassManager FPM{};
+};
 
 static void printResults(llvm::AliasResult AR, bool P, const llvm::Value *V1,
                          const llvm::Value *V2, const llvm::Module *M) {
@@ -88,44 +97,54 @@ bool LLVMBasedAliasAnalysis::hasAliasInfo(const llvm::Function &Fun) const {
 }
 
 void LLVMBasedAliasAnalysis::computeAliasInfo(llvm::Function &Fun) {
-  llvm::PreservedAnalyses PA = FPM.run(Fun, FAM);
-  llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(Fun);
+  assert(PImpl != nullptr);
+  llvm::PreservedAnalyses PA = PImpl->FPM.run(Fun, PImpl->FAM);
+  llvm::AAResults &AAR = PImpl->FAM.getResult<llvm::AAManager>(Fun);
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
 
-void LLVMBasedAliasAnalysis::erase(llvm::Function *F) {
+void LLVMBasedAliasAnalysis::erase(llvm::Function *F) noexcept {
   // after we clear all stuff, we need to set it up for the next function-wise
   // analysis
   AAInfos.erase(F);
-  FAM.clear(*F, F->getName());
+  PImpl->FAM.clear(*F, F->getName());
 }
 
-void LLVMBasedAliasAnalysis::clear() {
+void LLVMBasedAliasAnalysis::clear() noexcept {
   AAInfos.clear();
-  FAM.clear();
+  PImpl->FAM.clear();
 }
 
 LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
                                                bool UseLazyEvaluation,
                                                AliasAnalysisType PATy)
-    : PATy(PATy) {
-  AA.registerFunctionAnalysis<llvm::BasicAA>();
-  switch (PATy) {
-  case AliasAnalysisType::CFLAnders:
-    AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
-    break;
-  case AliasAnalysisType::CFLSteens:
-    AA.registerFunctionAnalysis<llvm::CFLSteensAA>();
-    break;
-  default:
-    break;
-  }
-  AA.registerFunctionAnalysis<llvm::TypeBasedAA>();
-  FAM.registerPass([&] { return std::move(AA); });
-  PB.registerFunctionAnalyses(FAM);
-  llvm::FunctionPassManager FPM;
-  // Always verify the input.
-  FPM.addPass(llvm::VerifierPass());
+    : PImpl(new Impl{}), PATy(PATy) {
+
+  PImpl->FAM.registerPass([&] {
+    llvm::AAManager AA;
+    switch (PATy) {
+    case AliasAnalysisType::CFLAnders:
+      AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
+      break;
+    case AliasAnalysisType::CFLSteens:
+      AA.registerFunctionAnalysis<llvm::CFLSteensAA>();
+      break;
+    case AliasAnalysisType::Basic:
+      [[fallthrough]];
+    default:
+      break;
+    }
+    // Note: The order of the alias analyses is important. See LLVM's source
+    // code for reference (e.g. registerAAAnalyses() in
+    // llvm/CodeGen/CodeGenPassBuilder.h)
+    //
+    AA.registerFunctionAnalysis<llvm::TypeBasedAA>();
+    AA.registerFunctionAnalysis<llvm::ScopedNoAliasAA>();
+    AA.registerFunctionAnalysis<llvm::BasicAA>();
+    return AA;
+  });
+  PImpl->PB.registerFunctionAnalyses(PImpl->FAM);
+
   if (!UseLazyEvaluation) {
     for (auto &F : *IRDB.getModule()) {
       if (!F.isDeclaration()) {
@@ -134,6 +153,8 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
     }
   }
 }
+
+LLVMBasedAliasAnalysis::~LLVMBasedAliasAnalysis() = default;
 
 void LLVMBasedAliasAnalysis::print(llvm::raw_ostream &OS) const {
   OS << "Points-to Info:\n";

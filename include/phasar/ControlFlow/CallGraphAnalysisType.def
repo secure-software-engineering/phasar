@@ -16,6 +16,6 @@ CALL_GRAPH_ANALYSIS_TYPE(CHA, "cha", "Class hierarchy analysis")
 CALL_GRAPH_ANALYSIS_TYPE(RTA, "rta", "Rapid type analysis")
 CALL_GRAPH_ANALYSIS_TYPE(DTA, "dta", "Declared type analysis")
 CALL_GRAPH_ANALYSIS_TYPE(VTA, "vta", "Variable type analysis")
-CALL_GRAPH_ANALYSIS_TYPE(OTF, "otf", "On-the-fly analysis based on points-to info")
+CALL_GRAPH_ANALYSIS_TYPE(OTF, "otf", "On-the-fly analysis based on points-to info (default)")
 
 #undef CALL_GRAPH_ANALYSIS_TYPE
