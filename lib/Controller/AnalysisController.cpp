@@ -9,7 +9,6 @@
 
 #include "phasar/Controller/AnalysisController.h"
 
-#include "phasar//Utils/NlohmannLogging.h"
 #include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"

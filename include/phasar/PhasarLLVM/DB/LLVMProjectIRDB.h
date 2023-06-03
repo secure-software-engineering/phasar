@@ -22,11 +22,10 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
-
-#include <llvm/Support/MemoryBufferRef.h>
 
 namespace psr {
 class LLVMProjectIRDB;

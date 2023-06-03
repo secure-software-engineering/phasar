@@ -17,6 +17,10 @@
 
 namespace psr {
 
+/// Simple struct that allows formatting of time-durations as
+/// hours:minutes:seconds.microseconds.
+///
+/// \remark  This feature may come into C++23, so until then, use this one.
 struct hms { // NOLINT
   std::chrono::hours Hours{};
   std::chrono::minutes Minutes{};

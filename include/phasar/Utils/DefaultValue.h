@@ -13,9 +13,10 @@
 #include "phasar/Utils/ByRef.h"
 
 #include <type_traits>
+
 namespace psr {
 
-/// Gets a (cached) reference to  the default-constructed value of type T. If T
+/// Gets a (cached) reference to the default-constructed value of type T. If T
 /// is small and trivially default constructible, creates a temporary instead.
 /// Useful for getters that return ByConstRef<T> but need to handle the
 /// non-existing-T case

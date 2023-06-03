@@ -115,8 +115,8 @@ LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf) {
     Diag.print(nullptr, llvm::errs());
     return;
   }
-  /* Crash in presence of llvm-3.9.1 module (segfault) */
-  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
+
+  if (llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
     PHASAR_LOG_LEVEL(ERROR, Buf.getBufferIdentifier()
                                 << " could not be parsed correctly!");
     return;
