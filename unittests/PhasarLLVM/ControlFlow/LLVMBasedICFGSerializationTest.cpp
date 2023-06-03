@@ -26,8 +26,8 @@ protected:
 
   void compareResults(const psr::LLVMBasedICFG &Orig,
                       const psr::LLVMBasedICFG &Deser) {
-    EXPECT_EQ(Orig.getAllVertexFunctions().size(),
-              Deser.getAllVertexFunctions().size());
+
+    EXPECT_EQ(Orig.getNumVertexFunctions(), Deser.getNumVertexFunctions());
 
     {
       llvm::DenseSet<const llvm::Function *> DeserFuns(

@@ -17,6 +17,7 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
