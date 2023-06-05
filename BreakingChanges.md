@@ -1,29 +1,33 @@
 # Breaking Changes
 
+## Development HEAD
+
+- Default build mode is no longer `SHARED` but `STATIC`. To build in shared mode, use the cmake option `BUILD_SHARED_LIBS` which we don't recommend anymore. Consider using `PHASAR_BUILD_DYNLIB` instead to build one big libphasar.so.
+
 ## v0323
 
 - `EdgeFunctionPtrType` is no longer a `std::shared_ptr`. Instead `EdgeFunction<l_t>` should be used directly. `EdgeFunction` is now a *value-type* that encapsulates its memory management by itself.
 - Concrete `EdgeFunction` types no longer derive from any base-class. Instead they just need to implement the required API functions. `EdgeFunction` implementations should me move-constructible and can be implicitly cast to `EdgeFunction`. To verify that your type implements the edge function interface use the `IsEdgeFunction` type trait. The API functions have been changed as follows:
-    - All API functions of `EdgeFunction` must be `const` qualified.
-    - `EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction)` and `EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction)` have been changed to `static EdgeFunction<l_t> compose(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& SecondFunction)` and `static EdgeFunction<l_t> join(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& OtherFunction)` respectively. Here, the `This` parameter models the former `shared_from_this()`.
-    - `bool equal_to(EdgeFunctionPtrType Other)const` has been changed to `bool operator==(const T &Other)const noexcept`, where `T` is your concrete edge function type.
-    - `void print(llvm::raw_ostream &OS, bool IsForDebug)` has been changed to `friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const T& EF)`.
+  - All API functions of `EdgeFunction` must be `const` qualified.
+  - `EdgeFunctionPtrType composeWith(EdgeFunctionPtrType SecondFunction)` and `EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction)` have been changed to `static EdgeFunction<l_t> compose(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& SecondFunction)` and `static EdgeFunction<l_t> join(EdgeFunctionRef<T> This, const EdgeFunction<l_t>& OtherFunction)` respectively. Here, the `This` parameter models the former `shared_from_this()`.
+  - `bool equal_to(EdgeFunctionPtrType Other)const` has been changed to `bool operator==(const T &Other)const noexcept`, where `T` is your concrete edge function type.
+  - `void print(llvm::raw_ostream &OS, bool IsForDebug)` has been changed to `friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const T& EF)`.
 - `EdgeFunction` is tagged with `[[clang::trivial_abi]]`. Hence, you should not rely on any destruction order within a top-level statement that uses temporary `EdgeFunction` objects.
 - `EdgeFunctionSingletonFactory` has been removed. Use `EdgeFunctionSingletonCache` instead.
 - `TaintConfig` has been renamed to `LLVMTaintConfig`. For generic code you may want to use the LLVM-independent `TaintConfigBase` CRTP interface instead.
 - Renamed `phasar/PhasarLLVM/DataFlowSolver/` to either `phasar/DataFlow/` or `phasar/PhasarLLVM/DataFlow/` depending on whether the components need LLVMCore. Analoguous changes in `lib/` and `unittests/`.
     An incomplete list of moved/renamed files:
-    - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/*` => `phasar/DataFlow/IfdsIde/Solver/*`
-    - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h` => `phasar/DataFlow/IfdsIde/IDETabulationProblem.h`
-    - `phasar/DB/LLVMProjectIRDB.h` => `phasar/PhasarLLVM/DB/LLVMProjectIRDB.h`
-    - ...
+  - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/*` => `phasar/DataFlow/IfdsIde/Solver/*`
+  - `phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h` => `phasar/DataFlow/IfdsIde/IDETabulationProblem.h`
+  - `phasar/DB/LLVMProjectIRDB.h` => `phasar/PhasarLLVM/DB/LLVMProjectIRDB.h`
+  - ...
 - Renamed and split up some libraries:
-    - `phasar_phasarllvm_utils` => `phasar_llvm_utils`
-    - `phasar_typehierarchy` => `phasar_llvm_typehierarchy`
-    - `phasar_ifdside` => `phasar_llvm_ifdside`
-    - `phasar_controlflow` has its LLVM dependent stuff moved to `phasar_llvm_controlflow`
-    - `phasar_db` has its LLVM dependent stuff moved to `phasar_llvm_db`
-    - `phasar_pointer` has its LLVM dependent stuff moved to `phasar_llvm_pointer`
+  - `phasar_phasarllvm_utils` => `phasar_llvm_utils`
+  - `phasar_typehierarchy` => `phasar_llvm_typehierarchy`
+  - `phasar_ifdside` => `phasar_llvm_ifdside`
+  - `phasar_controlflow` has its LLVM dependent stuff moved to `phasar_llvm_controlflow`
+  - `phasar_db` has its LLVM dependent stuff moved to `phasar_llvm_db`
+  - `phasar_pointer` has its LLVM dependent stuff moved to `phasar_llvm_pointer`
 - Renamed the phasar tool `phasar-llvm` to `phasar-cli`
 - `LLVMPointsTo[.*]` has been renamed to `LLVMAlias[.*]`
 - The ctor of `LLVMAliasSet` now takes the `LLVMProjectIRDB` as pointer instead of a reference to better document that it may capture the IRDB by reference.
