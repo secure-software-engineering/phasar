@@ -10,9 +10,11 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/TypeHierarchy/VFTable.h"
 
 #include "llvm/Support/ErrorHandling.h"
 
+#include <llvm-14/llvm/ADT/SmallVector.h>
 #include <llvm-14/llvm/IR/DebugInfoMetadata.h>
 #include <llvm-14/llvm/IR/DerivedTypes.h>
 #include <llvm-14/llvm/IR/GlobalVariable.h>
@@ -27,8 +29,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     F->getAllMetadata(MDs);
 
     for (const auto &Node : MDs) {
-      // TODO (max): create edges in the graph
-
       // basic type (like int for example)
       if (const llvm::DIBasicType *BasicType =
               llvm::dyn_cast<llvm::DIBasicType *>(Node)) {
@@ -42,6 +42,16 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
               llvm::dyn_cast<llvm::DICompositeType *>(Node)) {
         TypeToVertex.grow(llvm::Metadata::DICompositeTypeKind);
         VertexTypes.emplace_back(llvm::Metadata::DICompositeTypeKind);
+
+        // determine how many variables the composite type has
+        // TODO (max): Check how a composite type in a composite type will be
+        // handled
+        llvm::SmallVector<size_t, 6> SubTypes;
+        for (const auto &Element : CompositeType->getElements()) {
+          SubTypes.push_back(Element->getMetadataID());
+        }
+
+        DerivedTypesOf[CompositeType->getMetadataID()] = SubTypes;
         continue;
       }
 
@@ -77,14 +87,58 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   /// TODO: implement
   // You may want to do a graph search based on DerivedTypesOf
 
-  llvm::report_fatal_error("Not implemented");
+  // find index of super type
+  int IndexOfType = -1;
+
+  for (int I = 0; I < DerivedTypesOf.size(); I++) {
+    if (DerivedTypesOf[I][0] == Type->getMetadataID()) {
+      IndexOfType = I;
+    }
+  }
+
+  // if the super type hasn't been found, return false
+  if (IndexOfType == -1) {
+    return false;
+  }
+
+  // go over all sub types of type and check if the sub type of interest is
+  // present
+  for (const auto &Current : DerivedTypesOf[Type->getMetadataID()]) {
+    if (Current == SubType->getMetadataID()) {
+      return true;
+    }
+  }
+
+  return false;
+  // llvm::report_fatal_error("Not implemented");
 }
 
 [[nodiscard]] auto DIBasedTypeHierarchy::getSubTypes(ClassType Type)
     -> std::set<ClassType> {
   /// TODO: implement
   // You may want to do a graph search based on DerivedTypesOf
-  llvm::report_fatal_error("Not implemented");
+
+  // find index of super type
+  int IndexOfType = -1;
+
+  for (unsigned int I = 0; I < DerivedTypesOf.size(); I++) {
+    if (DerivedTypesOf[I][0] == Type->getMetadataID()) {
+      IndexOfType = I;
+    }
+  }
+
+  // if the super type hasn't been found, return an empty set
+  if (IndexOfType == -1) {
+    return {};
+  }
+
+  // return all sub types
+  std::set<ClassType> SubTypes = {};
+  for (unsigned long I : DerivedTypesOf[IndexOfType]) {
+    SubTypes.insert(VertexTypes[I]);
+  }
+
+  return SubTypes;
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::isSuperType(ClassType Type,
@@ -115,11 +169,34 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   /// TODO: implement
   // Use the VTables deque here; either you have that pre-computed, or you
   // create it on demand
+
+  // Problem: getting VFTables from Metadata nodes seems to be not possible?
+  // Therefore, creating VTables seems not possible aswell
+  // I will search for a solution though
+
+  // return VTables.at(Type->getMetadataID());
+
   llvm::report_fatal_error("Not implemented");
 }
 
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   /// TODO: implement
+  OS << "Type Hierarchy:\n";
+
+  for (const auto &CurrentVertex : VertexTypes) {
+    OS << CurrentVertex->getName();
+
+    if (!DerivedTypesOf[CurrentVertex->getMetadataID()].empty()) {
+      for (const auto &CurrentDerived :
+           DerivedTypesOf[CurrentVertex->getMetadataID()]) {
+        OS << VertexTypes[CurrentDerived];
+      }
+    }
+  }
+
+  OS << "VFTables:\n";
+  // TODO: implement
+
   llvm::report_fatal_error("Not implemented");
 }
 
