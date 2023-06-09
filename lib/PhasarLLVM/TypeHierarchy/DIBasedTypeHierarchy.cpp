@@ -12,40 +12,34 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/TypeHierarchy/VFTable.h"
 
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include <llvm-14/llvm/ADT/SmallVector.h>
 #include <llvm-14/llvm/IR/DebugInfoMetadata.h>
-#include <llvm-14/llvm/IR/DerivedTypes.h>
-#include <llvm-14/llvm/IR/GlobalVariable.h>
-#include <llvm-14/llvm/IR/Metadata.h>
-#include <llvm-14/llvm/Support/Casting.h>
 
 namespace psr {
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
-  for (const auto *F : IRDB.getAllFunctions()) {
-    llvm::SmallVector<std::pair<unsigned, llvm::MDNode *>, 4> MDs;
+  size_t Counter = 0;
 
+  for (const auto *F : IRDB.getAllFunctions()) {
+
+    llvm::SmallVector<std::pair<unsigned, llvm::MDNode *>, 4> MDs;
     F->getAllMetadata(MDs);
 
     for (const auto &Node : MDs) {
-      // basic type (like int for example)
-      if (const llvm::DIBasicType *BasicType =
-              llvm::dyn_cast<llvm::DIBasicType *>(Node)) {
-        TypeToVertex.grow(llvm::Metadata::DIBasicTypeKind);
-        VertexTypes.emplace_back(llvm::Metadata::DIBasicTypeKind);
-        continue;
-      }
-
       // composite type (like struct or class)
       if (const llvm::DICompositeType *CompositeType =
               llvm::dyn_cast<llvm::DICompositeType *>(Node)) {
-        TypeToVertex.grow(llvm::Metadata::DICompositeTypeKind);
-        VertexTypes.emplace_back(llvm::Metadata::DICompositeTypeKind);
+        TypeToVertex.try_emplace(CompositeType, Counter++);
+        VertexTypes.push_back(CompositeType);
 
         // determine how many variables the composite type has
-        // TODO (max): Check how a composite type in a composite type will be
-        // handled
+        // BUG; INHERITANCE nicht member variablen typen
         llvm::SmallVector<size_t, 6> SubTypes;
         for (const auto &Element : CompositeType->getElements()) {
           SubTypes.push_back(Element->getMetadataID());
@@ -54,31 +48,52 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         DerivedTypesOf[CompositeType->getMetadataID()] = SubTypes;
         continue;
       }
+    }
+  }
 
-      // derived type (like a pointer for example)
-      if (const llvm::DIDerivedType *DerivedType =
-              llvm::dyn_cast<llvm::DIDerivedType *>(Node)) {
-        TypeToVertex.grow(llvm::Metadata::DIDerivedTypeKind);
-        VertexTypes.emplace_back(llvm::Metadata::DIDerivedTypeKind);
-        continue;
-      }
+  // Initialize the transitive closure matrix with all as false, except at it's
+  // own position
+  std::vector<bool> InitVector;
+  for (unsigned int I = 0; I < VertexTypes.size(); I++) {
+    InitVector.push_back(false);
+  }
 
-      // string type
-      if (const llvm::DIStringType *StringType =
-              llvm::dyn_cast<llvm::DIStringType *>(Node)) {
-        TypeToVertex.grow(llvm::Metadata::DIStringTypeKind);
-        VertexTypes.emplace_back(llvm::Metadata::DIStringTypeKind);
-        continue;
-      }
+  for (unsigned int I = 0; I < VertexTypes.size(); I++) {
+    std::vector<bool> SelfVector = InitVector;
+    // Each Vertex can reach itself
+    SelfVector.at(I) = true;
+    TransitiveClosure.push_back(InitVector);
+  }
 
-      // global type
-      if (const llvm::DIGlobalVariable *GlobalType =
-              llvm::dyn_cast<llvm::DIGlobalVariable *>(Node)) {
-        TypeToVertex.grow(llvm::Metadata::DIGlobalVariableKind);
-        VertexTypes.emplace_back(llvm::Metadata::DIGlobalVariableKind);
-        continue;
+  // Add direct edges
+  unsigned int CurrentIndex = 0;
+  for (const auto &Edges : DerivedTypesOf) {
+    if (Edges.empty()) {
+      CurrentIndex++;
+      continue;
+    }
+
+    for (const auto &Current : Edges) {
+      TransitiveClosure.at(CurrentIndex).at(Current) = true;
+    }
+    CurrentIndex++;
+  }
+
+  // TODO (max): add transitive edges
+  for (unsigned int I = 0; I < TransitiveClosure.size(); I++) {
+    std::vector<bool> AllEdges = TransitiveClosure.at(I);
+
+    for (unsigned int N = I + 1; N < TransitiveClosure.size(); N++) {
+      // Transitive closure is a matrix of size n x n, therefore
+      // TransitiveClosure.size() works for both loops here
+      for (unsigned int Z = 0; Z < TransitiveClosure.size(); Z++) {
+        if (TransitiveClosure.at(N).at(Z)) {
+          AllEdges.at(Z) = true;
+        }
       }
     }
+
+    TransitiveClosure.at(I) = AllEdges;
   }
 }
 
@@ -88,22 +103,20 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // You may want to do a graph search based on DerivedTypesOf
 
   // find index of super type
-  int IndexOfType = -1;
-
-  for (int I = 0; I < DerivedTypesOf.size(); I++) {
-    if (DerivedTypesOf[I][0] == Type->getMetadataID()) {
-      IndexOfType = I;
-    }
-  }
+  auto IndexOfType = TypeToVertex.find(Type)->getSecond();
 
   // if the super type hasn't been found, return false
-  if (IndexOfType == -1) {
+  if (IndexOfType == TypeToVertex.size()) {
     return false;
   }
 
   // go over all sub types of type and check if the sub type of interest is
   // present
-  for (const auto &Current : DerivedTypesOf[Type->getMetadataID()]) {
+  for (const auto &Current : DerivedTypesOf[IndexOfType]) {
+    // BUG: mit TypeToVertex.find index von SubType finden
+    // Auch schauen, ob sub sub types usw zu schauen.
+    // BFS search oder DFS, bitte nicht rekursiv
+    // transitive hülle im Constructor berechnen (also sub sub types etc)
     if (Current == SubType->getMetadataID()) {
       return true;
     }
@@ -119,22 +132,16 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // You may want to do a graph search based on DerivedTypesOf
 
   // find index of super type
-  int IndexOfType = -1;
+  auto IndexOfType = TypeToVertex.find(Type);
 
-  for (unsigned int I = 0; I < DerivedTypesOf.size(); I++) {
-    if (DerivedTypesOf[I][0] == Type->getMetadataID()) {
-      IndexOfType = I;
-    }
-  }
-
-  // if the super type hasn't been found, return an empty set
-  if (IndexOfType == -1) {
+  // if the super type hasn't been found, return false
+  if (IndexOfType == TypeToVertex.end()) {
     return {};
   }
 
   // return all sub types
   std::set<ClassType> SubTypes = {};
-  for (unsigned long I : DerivedTypesOf[IndexOfType]) {
+  for (unsigned long I : DerivedTypesOf[IndexOfType->second]) {
     SubTypes.insert(VertexTypes[I]);
   }
 
@@ -153,15 +160,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
-  /// TODO: implement
-  // Maybe take a look at Type->isVirtual()
-
-  // Can't we just return Type->isVirtual() here? (max)
   return Type->isVirtual();
-
-  // auto test = Type->getFlags();
-
-  // llvm::report_fatal_error("Not implemented");
 }
 
 [[nodiscard]] auto DIBasedTypeHierarchy::getVFTable(ClassType Type) const
@@ -173,6 +172,12 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // Problem: getting VFTables from Metadata nodes seems to be not possible?
   // Therefore, creating VTables seems not possible aswell
   // I will search for a solution though
+
+  // schauen, ob Name mit z.B. _ZTV7Derived anfängt
+  // printAsDot() schreiben, Ergebnis soll Format haben wie
+  // boost::write_graphviz()
+  // minimale version
+  // jede node sollte namen haben
 
   // return VTables.at(Type->getMetadataID());
 

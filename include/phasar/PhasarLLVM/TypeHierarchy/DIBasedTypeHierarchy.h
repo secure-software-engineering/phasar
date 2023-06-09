@@ -89,6 +89,18 @@ private:
   // The VTables of the polymorphic types in the TH. default-constructed if not
   // exists
   std::deque<LLVMVFTable> VTables;
+  // Transitive closure implemented as a matrix
+  // Example:
+  // Graph:
+  // (1) -> (3)
+  //  ^
+  //  |
+  // (2)
+  // Transitive closure:
+  // 1 0 1
+  // 1 1 1
+  // 0 0 1
+  std::vector<std::vector<bool>> TransitiveClosure;
 };
 } // namespace psr
 
