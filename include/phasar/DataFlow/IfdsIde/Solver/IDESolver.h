@@ -384,7 +384,6 @@ protected:
                                                     << '\n'));
             WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
                                   f.composeWith(SumEdgFnE));
-            // propagate(d1, ReturnSiteN, d3, f.composeWith(SumEdgFnE));
           }
         }
       } else {
@@ -411,8 +410,8 @@ protected:
             // create initial self-loop
             PHASAR_LOG_LEVEL(DEBUG, "Create initial self-loop with D: "
                                         << IDEProblem.DtoString(d3));
-            WorkList.emplace_back(PathEdge(d3, SP, d3), EdgeIdentity<l_t>{});
-            // propagate(d3, SP, d3, EdgeIdentity<l_t>{}); // line 15
+            WorkList.emplace_back(PathEdge(d3, SP, d3),
+                                  EdgeIdentity<l_t>{}); // line 15
             //  register the fact that <sp,d3> has an incoming edge from <n,d2>
             //  line 15.1 of Naeem/Lhotak/Rodriguez
             addIncoming(SP, d3, n, d2);
@@ -485,8 +484,6 @@ protected:
                   WorkList.emplace_back(
                       PathEdge(d1, RetSiteN, std::move(d5_restoredCtx)),
                       f.composeWith(fPrime));
-                  // propagate(d1, RetSiteN, d5_restoredCtx,
-                  //           f.composeWith(fPrime));
                 }
               }
             }
@@ -522,7 +519,6 @@ protected:
                                             << fPrime);
         WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
                               std::move(fPrime));
-        // propagate(d1, ReturnSiteN, d3, fPrime);
       }
     }
   }
@@ -561,7 +557,6 @@ protected:
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         WorkList.emplace_back(PathEdge(d1, nPrime, std::move(d3)),
                               std::move(fPrime));
-        // propagate(d1, nPrime, d3, fPrime);
       }
     }
   }
@@ -620,7 +615,6 @@ protected:
     if (!(LPrime == ValNHash)) {
       setVal(NHashN, NHashD, std::move(LPrime));
       ValuePropWL.emplace_back(std::move(NHashN), std::move(NHashD));
-      // valuePropagationTask(std::pair<n_t, d_t>(NHashN, NHashD));
     }
   }
 
@@ -856,8 +850,6 @@ protected:
         }
         WorkList.emplace_back(PathEdge(Fact, StartPoint, Fact),
                               EdgeIdentity<l_t>{});
-        // propagate(Fact, StartPoint, Fact, EdgeIdentity<l_t>{});
-        // JumpFn->addFunction(Fact, StartPoint, Fact, EdgeIdentity<l_t>{});
       }
     }
   }
@@ -954,8 +946,6 @@ protected:
                   WorkList.emplace_back(PathEdge(std::move(d3), RetSiteC,
                                                  std::move(d5_restoredCtx)),
                                         f3.composeWith(fPrime));
-                  // propagate(d3, RetSiteC, d5_restoredCtx,
-                  //           f3.composeWith(fPrime));
                 }
               }
             }
@@ -1021,7 +1011,6 @@ protected:
     WorkList.emplace_back(
         PathEdge(ZeroValue, std::move(RetSiteC), std::move(TargetVal)),
         std::move(EdgeFunc));
-    // propagate(ZeroValue, RetSiteC, TargetVal, std::move(EdgeFunc));
   }
 
   /// This method will be called for each incoming edge and can be used to
