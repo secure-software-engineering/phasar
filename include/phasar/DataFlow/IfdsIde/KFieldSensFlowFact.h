@@ -51,8 +51,8 @@ public:
     auto Result = *this;
     if (Result.AccessPath.size() > 0) {
       if (Result.AccessPath.back() == OffsetLimit ||
-          std::abs(Result.AccessPath.back()) <
-              static_cast<int64_t>(TargetTypeSize) + FollowedOffset) {
+          std::abs(Result.AccessPath.back() - FollowedOffset) <
+              static_cast<int64_t>(TargetTypeSize)) {
         Result.AccessPath.pop_back();
       } else {
         return std::nullopt;
