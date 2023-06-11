@@ -265,11 +265,19 @@ public:
           const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
           // auto TargetedLoad = Source.getStored(Alloca,
           // Offset.value_or(9002));
-          auto TargetedLoad =
-              LLVMKFieldSensFlowFact<>::getCustomOffsetDerefValue(Alloca, {0});
-          if (Source == TargetedLoad) {
-            auto LoadedVal = Source.getLoaded(Load);
-            return {Source, LoadedVal.value()};
+          // auto TargetedLoad =
+          //     LLVMKFieldSensFlowFact<>::getCustomOffsetDerefValue(Alloca,
+          //     {0});
+          if (Source.getBaseValue() == Alloca) {
+            if (Offset != std::nullopt) {
+              auto LoadedVal = Source.getLoaded(Load, Offset.value());
+              if (LoadedVal != std::nullopt) {
+                return {Source, LoadedVal.value()};
+              }
+              return {Source};
+            }
+            // FIXME handle non-constant load here, need another factory func
+            // that performs an overapproximated load
           }
         }
         if (Source.getBaseValue() == Load->getPointerOperand()) {
