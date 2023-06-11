@@ -16,7 +16,18 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 
+#include <initializer_list>
+#include <optional>
+#include <utility>
+
 namespace psr {
+
+const llvm::AllocaInst *getAllocaInst(const llvm::GetElementPtrInst *Gep);
+
+std::optional<int64_t> getConstantOffset(const llvm::GetElementPtrInst *Gep);
+
+std::pair<const llvm::AllocaInst *, std::optional<int64_t>>
+getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep);
 
 template <unsigned K = 3, unsigned OffsetLimit = 1024,
           typename d_t = const llvm::Value *>
@@ -29,10 +40,11 @@ public:
   LLVMKFieldSensFlowFact() = default;
   ~LLVMKFieldSensFlowFact() = default;
   LLVMKFieldSensFlowFact(const LLVMKFieldSensFlowFact &) = default;
-  LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) noexcept = default;
   LLVMKFieldSensFlowFact &operator=(const LLVMKFieldSensFlowFact &) = default;
+  LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) noexcept = default;
   LLVMKFieldSensFlowFact &
   operator=(LLVMKFieldSensFlowFact &&) noexcept = default;
+
   static LLVMKFieldSensFlowFact getNonIndirectionValue(d_t Value) {
     LLVMKFieldSensFlowFact Result;
     Result.BaseValue = Value;
@@ -45,8 +57,35 @@ public:
     Result.AccessPath.push_back(0);
     return Result;
   }
-  // LLVMKFieldSensFlowFact(d_t BaseValue)
-  //     : KFieldSensFlowFact<d_t, K, OffsetLimit>(BaseValue) {}
+
+  static LLVMKFieldSensFlowFact
+  getCustomOffsetDerefValue(d_t Value,
+                            std::initializer_list<unsigned> Offsets) {
+    LLVMKFieldSensFlowFact Result;
+    Result.BaseValue = Value;
+    for (unsigned Offset : Offsets) {
+      Result.AccessPath.push_back(Offset);
+    }
+    return Result;
+  }
+
+  static LLVMKFieldSensFlowFact
+  getDerefValueFromGep(const llvm::GetElementPtrInst *Gep) {
+    LLVMKFieldSensFlowFact Result;
+    Result.BaseValue = getAllocaInst(Gep);
+    auto CumulatedOffset = getConstantOffset(Gep);
+    Result.AccessPath.push_back(CumulatedOffset.value_or(0));
+    const auto *Alloca = Gep->getPointerOperand();
+    while (const auto *ChainedGEP =
+               llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
+      if (CumulatedOffset.has_value()) {
+        const auto ChainedGepOffset = getConstantOffset(ChainedGEP);
+        Result.AccessPath.push_back(ChainedGepOffset.value_or(0));
+      }
+      Alloca = ChainedGEP->getPointerOperand();
+    }
+    return Result;
+  }
 
   bool operator==(const LLVMKFieldSensFlowFact &Other) const {
     return std::tie(this->BaseValue, this->AccessPath, this->FollowedByAny) ==

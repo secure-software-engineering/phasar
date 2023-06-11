@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonFactory.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
@@ -60,151 +61,16 @@
 #include <variant>
 #include <vector>
 
-// Have some handy helper functionalities
-namespace {
-
-[[maybe_unused]] inline const llvm::AllocaInst *
-getAllocaInstruction(const llvm::GetElementPtrInst *Gep) {
-  if (!Gep) {
-    return nullptr;
-  }
-  const auto *Alloca = Gep->getPointerOperand();
-  while (const auto *NestedGEP =
-             llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
-    Alloca = NestedGEP->getPointerOperand();
-  }
-  return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
-}
-
-inline std::optional<int64_t>
-maybeGetConstantOffsetOfGep(const llvm::GetElementPtrInst *Gep) {
-  if (!Gep->hasAllConstantIndices()) {
-    return std::nullopt;
-  }
-  const auto &DL = Gep->getModule()->getDataLayout();
-  llvm::APInt AccumulatedOffset(DL.getPointerSize() * 8, 0, true);
-  Gep->accumulateConstantOffset(DL, AccumulatedOffset);
-  return AccumulatedOffset.getSExtValue();
-}
-
-[[maybe_unused]] inline const llvm::AllocaInst *
-getAllocaInstruction(const llvm::GetElementPtrInst *Gep,
-                     std::optional<int64_t> &CumulatedOffset) {
-  if (!Gep) {
-    return nullptr;
-  }
-  CumulatedOffset = maybeGetConstantOffsetOfGep(Gep);
-  const auto *Alloca = Gep->getPointerOperand();
-  while (const auto *NestedGEP =
-             llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
-    if (CumulatedOffset.has_value()) {
-      const auto NestedGepOffset = maybeGetConstantOffsetOfGep(NestedGEP);
-      if (NestedGepOffset.has_value()) {
-        CumulatedOffset = CumulatedOffset.value() + NestedGepOffset.value();
-      } else {
-        CumulatedOffset = std::nullopt;
-      }
-    }
-    Alloca = NestedGEP->getPointerOperand();
-  }
-  return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
-}
-
-} // namespace
-
 namespace vara {
 class Taint;
 } // namespace vara
-
-namespace psr {
-class IDEIIAFlowFact {
-public:
-  constexpr static unsigned KLimit = 2;
-
-private:
-  const llvm::Value *BaseVal = nullptr;
-  llvm::SmallVector<const llvm::GetElementPtrInst *, KLimit> FieldDesc;
-
-public:
-  ~IDEIIAFlowFact() = default;
-  IDEIIAFlowFact() = default;
-  /// Constructs a data-flow fact from the base value. Fields are ignored. Use
-  /// the factory function(s) to construct field-sensitive data-flow facts.
-  IDEIIAFlowFact(const llvm::Value *BaseVal);
-  /// Construct a data-flow fact from the base value and field specification.
-  IDEIIAFlowFact(
-      const llvm::Value *BaseVal,
-      llvm::SmallVector<const llvm::GetElementPtrInst *, KLimit> FieldDesc);
-
-  /// Creates a new data-flow fact of the base value that respects fields. Field
-  /// accesses that exceed the specified depth will be collapsed and not further
-  /// distinguished.
-  static IDEIIAFlowFact create(const llvm::Value *BaseVal);
-
-  /// Returns whether this data-flow fact describes the same abstract memory
-  /// location than the other one.
-  [[nodiscard]] bool flowFactEqual(const IDEIIAFlowFact &Other) const;
-
-  [[nodiscard]] inline const llvm::Value *getBase() const { return BaseVal; }
-  [[nodiscard]] inline llvm::SmallVector<const llvm::GetElementPtrInst *,
-                                         KLimit>
-  getField() const {
-    return FieldDesc;
-  }
-  [[nodiscard]] inline constexpr unsigned getKLimit() const { return KLimit; }
-
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const;
-
-  bool operator==(const IDEIIAFlowFact &Other) const;
-  bool operator!=(const IDEIIAFlowFact &Other) const;
-  bool operator<(const IDEIIAFlowFact &Other) const;
-
-  bool operator==(const llvm::Value *V) const;
-
-  inline operator const llvm::Value *() { return BaseVal; }
-};
-
-inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                     const IDEIIAFlowFact &FlowFact) {
-  FlowFact.print(OS);
-  return OS;
-}
-
-inline std::ostream &operator<<(std::ostream &OS,
-                                const IDEIIAFlowFact &FlowFact) {
-  llvm::raw_os_ostream Rso(OS);
-  FlowFact.print(Rso);
-  return OS;
-}
-
-} // namespace psr
-
-// Implementations of STL traits.
-namespace std {
-template <> struct hash<psr::IDEIIAFlowFact> {
-  size_t operator()(const psr::IDEIIAFlowFact &FlowFact) const {
-    return std::hash<const llvm::Value *>()(FlowFact.getBase());
-  }
-};
-} // namespace std
-
-// Compatibility with LLVM Casting
-namespace llvm {
-template <> struct simplify_type<psr::IDEIIAFlowFact> {
-  using SimpleType = const llvm::Value *;
-
-  static SimpleType getSimplifiedValue(const psr::IDEIIAFlowFact &FF) noexcept {
-    return FF.getBase();
-  }
-};
-} // namespace llvm
 
 namespace psr {
 
 template <typename EdgeFactType>
 struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
   // type of the element contained in the sets of edge functions
-  using d_t = LLVMKFieldSensFlowFact<>; // IDEIIAFlowFact;
+  using d_t = LLVMKFieldSensFlowFact<>;
   using e_t = EdgeFactType;
   using l_t = LatticeDomain<BitVectorSet<e_t>>;
 };
@@ -216,7 +82,7 @@ struct IDEInstInteractionAnalysisDomain : public LLVMAnalysisDomainDefault {
 /// IndirectTaints: Can be set to ensure non-interference
 ///
 template <typename EdgeFactType = std::string,
-          bool SyntacticAnalysisOnly = false, bool EnableIndirectTaints = false>
+          bool EnableIndirectTaints = false>
 class IDEInstInteractionAnalysisT
     : public IDETabulationProblem<
           IDEInstInteractionAnalysisDomain<EdgeFactType>> {
@@ -379,138 +245,33 @@ public:
       }
     }
 
-    // Handle points-to information if the user wishes to conduct a
-    // non-syntax-only inst-interaction analysis.
-    if constexpr (!SyntacticAnalysisOnly) {
-
-      // (ii) Handle semantic propagation (pointers) for load instructions.
-
-      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-        // If one of the potentially many loaded values holds, the load itself
-        // (dereferenced value) must also be generated and populated.
-        //
-        // Flow function:
-        //
-        // Let Y = pts(y), be the points-to set of y.
-        //
-        //              0  Y  x
-        //              |  |\
-        // x = load y   |  | \
-        //              v  v  v
-        //              0  Y  x
-        //
-        /*
-        return generateFlowIf<d_t>(
-            Load, [PointerOp = Load->getPointerOperand(),
-                   PTS = PT.getReachableAllocationSites(
-                       Load->getPointerOperand(), OnlyConsiderLocalAliases)](
-                      d_t Src) { return Src == PointerOp || PTS->count(Src); });
-        */
-
-        // FIXME check correctness of the following flow function
-        // llvm::errs() << "looking at load: " << *Curr << '\n';
-        return lambdaFlow<d_t>([Load](d_t Source) -> container_type {
-          if (Source.getBaseValue() == Load->getPointerOperand()) {
-            // llvm::errs() << "equal! " << Source << '\n';
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+      // If one of the potentially many loaded values holds, the load itself
+      // (dereferenced value) must also be generated and populated.
+      //
+      // Flow function:
+      //
+      // Let Y = pts(y), be the points-to set of y.
+      //
+      //              0  Y  x
+      //              |  |\
+      // x = load y   |  | \
+      //              v  v  v
+      //              0  Y  x
+      //
+      return lambdaFlow<d_t>([Load](d_t Source) -> container_type {
+        if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                Load->getPointerOperand())) {
+          const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
+          // auto TargetedLoad = Source.getStored(Alloca,
+          // Offset.value_or(9002));
+          auto TargetedLoad =
+              LLVMKFieldSensFlowFact<>::getCustomOffsetDerefValue(Alloca, {0});
+          if (Source == TargetedLoad) {
             auto LoadedVal = Source.getLoaded(Load);
-            if (LoadedVal == std::nullopt) {
-              return {Source};
-            }
             return {Source, LoadedVal.value()};
           }
-          return {Source};
-        });
-      }
-
-      // (ii) Handle semantic propagation (pointers) for store instructions.
-      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-        // If the value to be stored holds, the potential memory location(s)
-        // that it is stored to must be generated and populated, too.
-        //
-        // Flow function:
-        //
-        // Let X be
-        //    - pts(x), the points-to set of x, if x is an intersting pointer.
-        //    - a singleton set containing x, otherwise.
-        //
-        // Let Y be pts(y), the points-to set of y.
-        //
-        //             0  X  y
-        //             |  |\ |
-        // store x y   |  | \|
-        //             v  v  v
-        //             0  x  Y
-        //
-        return lambdaFlow<d_t>(
-            [Store, PointerPTS = PT.getReachableAllocationSites(
-                        Store->getPointerOperand(), OnlyConsiderLocalAliases)](
-                d_t Src) -> container_type {
-              if (Store->getPointerOperand() ==
-                  Src) { // || PointerPTS->count(Src)) {
-                // Here, we are unsound!
-                return {};
-              }
-              container_type Facts;
-              Facts.insert(Src);
-              // y/Y now obtains its new value(s) from x/X
-              // If a value is stored that holds we must generate all potential
-              // memory locations the store might write to.
-              if (Store->getValueOperand() == Src) {
-                // Store to field or array.
-                if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
-                        Store->getPointerOperand())) {
-                  std::optional<int64_t> Offset;
-                  const auto *Alloca = getAllocaInstruction(Gep, Offset);
-                  Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
-                } else {
-                  // Ordinary store.
-                  Facts.insert(Src.getStored(Store->getPointerOperand()));
-                }
-                // Facts.insert(Src.getStored(Store->getPointerOperand()));
-                // for (const auto *Alias : *PointerPTS) {
-                //   if (Alias != Store->getPointerOperand()) {
-                //     Facts.insert(Src.getOverapproximated(Alias));
-                //   }
-                // }
-              }
-              // ... or from zero, if a constant literal is stored to y
-              if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-                  IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-                // Store to field or array.
-                if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
-                        Store->getPointerOperand())) {
-                  std::optional<int64_t> Offset;
-                  const auto *Alloca = getAllocaInstruction(Gep, Offset);
-                  Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
-                } else {
-                  // Ordinary store.
-                  Facts.insert(Src.getStored(Store->getPointerOperand()));
-                }
-                // for (const auto *Alias : *PointerPTS) {
-                //   if (Alias != Store->getPointerOperand()) {
-                //     Facts.insert(Src.getOverapproximated(Alias));
-                //   }
-                // }
-              }
-              return Facts;
-            });
-      }
-    }
-
-    // (i) Handle syntactic propagation
-
-    // Handle load instruction
-    //
-    // Flow function:
-    //
-    //              0  y  x
-    //              |  |\
-    // x = load y   |  | \
-    //              v  v  v
-    //              0  y  x
-    //
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      return lambdaFlow<d_t>([Load](d_t Source) -> container_type {
+        }
         if (Source.getBaseValue() == Load->getPointerOperand()) {
           auto LoadedVal = Source.getLoaded(Load);
           if (LoadedVal == std::nullopt) {
@@ -521,86 +282,65 @@ public:
         return {Source};
       });
     }
-    // Handle store instructions
-    //
-    // Flow function:
-    //
-    //             0  x  y
-    //             |  |\ |
-    // store x y   |  | \|
-    //             v  v  v
-    //             0  x  y
-    //
-    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      // Case x is a load instruction
-      if (const auto *Load =
-              llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
 
-        return lambdaFlow<d_t>([Store, Load](d_t Src) -> container_type {
-          // Override old value, i.e., kill value that is written to and
-          // generate from value that is stored.
-          if (Store->getPointerOperand() == Src) {
-            return {};
-          }
-          container_type Facts = {Src};
-          // y now obtains its new value from x
-          if (Load ==
-              Src /*|| Load->getPointerOperand() == Src*/) { // MM: why the
-                                                             // second case?
-                                                             // This should be
-                                                             // propagated
-                                                             // through Load
-                                                             // anyways?!
-            // auto MaybeLoaded = Src.getLoaded(Load);
-            // if (MaybeLoaded.has_value()) {
-            //   Facts.insert(MaybeLoaded.value()); // FIXMEMM
-            // }
-            Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
-          }
-          IF_LOG_ENABLED({
-            for (const auto Fact : Facts) {
-              PHASAR_LOG_LEVEL(
-                  DFADEBUG, "Create edge: " << llvmIRToShortString(Src) << " --"
-                                            << llvmIRToShortString(Store)
-                                            << "--> " << Fact);
-            }
-          });
-          return Facts;
-        });
-      }
-      // MM: If we don't need the stuff above, this part here is redundant.
-      // Otherwise
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+      // If the value to be stored holds, the potential memory location(s)
+      // that it is stored to must be generated and populated, too.
+      //
+      // Flow function:
+      //
+      // Let X be
+      //    - pts(x), the points-to set of x, if x is an intersting pointer.
+      //    - a singleton set containing x, otherwise.
+      //
+      // Let Y be pts(y), the points-to set of y.
+      //
+      //             0  X  y
+      //             |  |\ |
+      // store x y   |  | \|
+      //             v  v  v
+      //             0  x  Y
+      //
       return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
-        // Override old value, i.e., kill value that is written to and
-        // generate from value that is stored.
         if (Store->getPointerOperand() == Src) {
           return {};
         }
-        container_type Facts = {Src};
-        // y now obtains its new value from x
+        container_type Facts;
+        Facts.insert(Src);
+        // y/Y now obtains its new value(s) from x/X
+        // If a value is stored that holds we must generate all potential
+        // memory locations the store might write to.
         if (Store->getValueOperand() == Src) {
-          Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
+          // Store to field or array.
+          if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                  Store->getPointerOperand())) {
+            Facts.insert(LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep));
+          } else {
+            // Ordinary store.
+            Facts.insert(LLVMKFieldSensFlowFact<>::getNonIndirectionValue(
+                Store->getPointerOperand()));
+          }
         }
         // ... or from zero, if a constant literal is stored to y
         if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
             IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-          Facts.insert(Src.getStored(Store->getPointerOperand())); // FIXMEMM
-        }
-        IF_LOG_ENABLED({
-          for (const auto Fact : Facts) {
-            PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
-                                           << llvmIRToShortString(Src) << " --"
-                                           << llvmIRToShortString(Store)
-                                           << "--> " << Fact);
+          // Store to field or array.
+          if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                  Store->getPointerOperand())) {
+            const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
+            Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
+          } else {
+            // Ordinary store.
+            Facts.insert(Src.getStored(Store->getPointerOperand()));
           }
-        });
+        }
         return Facts;
       });
     }
 
-    // FIXME: add gep handling here.
+    // FIXME: handle gep here.
     if (llvm::isa<llvm::GetElementPtrInst>(Curr)) {
-      llvm::errs() << "FOUND UNHANDLED GEP!\n";
+      return lambdaFlow<d_t>([](d_t Src) -> container_type { return {Src}; });
     }
 
     // At last, we can handle all other (unary/binary) instructions.
@@ -623,8 +363,7 @@ public:
         return Facts;
       }
 
-      // continue syntactic propagation: populate and propagate other existing
-      // facts
+      // populate and propagate other existing facts
       for (auto &Op : Inst->operands()) {
         // if one of the operands holds, also generate the instruction using
         // it
@@ -901,184 +640,119 @@ public:
     if (Curr == CurrNode && CurrNode == SuccNode) {
       return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
     }
-    // Handle loads in non-syntax only analysis
-    if constexpr (!SyntacticAnalysisOnly) {
-      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+    // Handle loads instruction
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+      //
+      // y --> x
+      //
+      // Edge function:
+      //
+      //             y
+      //              \
+      // x = load y    \ \x.{ commit of('x = load y') } \cup { commits of y }
+      //                v
+      //                x
+      //
+      if (CurrNode.getBaseValue() == Load->getPointerOperand() &&
+          Load == SuccNode) {
+        IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
+      } else {
         //
-        // y --> x
+        // y --> y
         //
         // Edge function:
         //
         //             y
-        //              \
-        // x = load y    \ \x.{ commit of('x = load y') } \cup { commits of y }
-        //                v
-        //                x
+        //             |
+        // x = load y  | \x.x (loads do not modify the value that is loaded
+        // from)
+        //             v
+        //             y
         //
-        if ((CurrNode.getBaseValue() == Load->getPointerOperand() ||
-             this->PT.isInReachableAllocationSites(Load->getPointerOperand(),
-                                                   CurrNode,
-                                                   OnlyConsiderLocalAliases)) &&
-            Load == SuccNode) {
-          IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-        } else {
-          //
-          // y --> y
-          //
-          // Edge function:
-          //
-          //             y
-          //             |
-          // x = load y  | \x.x (loads do not modify the value that is loaded
-          // from)
-          //             v
-          //             y
-          //
-          return EdgeIdentity<l_t>::getInstance();
-        }
+        return EdgeIdentity<l_t>::getInstance();
       }
     }
     // Overrides at store instructions
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      if (SyntacticAnalysisOnly) {
-        // Kill all labels that are propagated along the edge of the value that
-        // is overridden.
-        //
-        // y --> y
-        //
-        // Edge function:
-        //
-        //               y
-        //               |
-        // store x y     | \x.{ commit of('store x y') }
-        //               v
-        //               y
-        //
-        if ((CurrNode == SuccNode) &&
-            CurrNode.getBaseValue() == Store->getPointerOperand()) {
-          // y obtains its value(s) from its original allocation and the store
-          // instruction under analysis.
-          IF_LOG_ENABLED({
-            PHASAR_LOG_LEVEL(DFADEBUG,
-                             "Const-Replace at '" << llvmIRToString(Curr));
-            PHASAR_LOG_LEVEL(DFADEBUG, "Replacement label(s): ");
-            for (const auto &Item : EdgeFacts) {
-              PHASAR_LOG_LEVEL(DFADEBUG, Item << ", ");
-            }
-            PHASAR_LOG_LEVEL(DFADEBUG, '\n');
-          });
-          // obtain label from the original allocation
-          const llvm::AllocaInst *OrigAlloca = nullptr;
-          if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(
-                  Store->getPointerOperand())) {
-            OrigAlloca = Alloca;
-          }
-          if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
-                  Store->getPointerOperand())) {
-            OrigAlloca = getAllocaInstruction(GEP);
-          }
-          // obtain the label
-          if (OrigAlloca) {
-            if (auto *UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
-              UEF->insert(edgeFactGenForInstToBitVectorSet(OrigAlloca));
-            }
-          }
-          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
+      // Overriding edge with literal: kill all labels that are propagated
+      // along the edge of the value that is overridden.
+      //
+      // x --> y
+      //
+      // Edge function:
+      //
+      // Let x be a literal.
+      //
+      //               y
+      //               |
+      // store x y     | \x.{} \cup { commit of('store x y') }
+      //               v
+      //               y
+      //
+      if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+          CurrNode == SuccNode &&
+          Store->getPointerOperand() == CurrNode.getBaseValue()) {
+        // Add the original variable, i.e., memory location.
+        return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
+      }
+      // Kill all labels that are propagated along the edge of the
+      // value/values that is/are overridden.
+      //
+      // y --> y
+      //
+      // Edge function:
+      //
+      //            y
+      //            |
+      // store x y  | \x.{}
+      //            v
+      //            y
+      //
+      if (CurrNode == SuccNode) {
+        llvm::errs() << "Found store with 'CurrNode == SuccNode' at: " << *Store
+                     << '\n';
+        LLVMKFieldSensFlowFact StoreTarget;
+        if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                Store->getPointerOperand())) {
+          // Store to array/struct.
+          StoreTarget = LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep);
+        } else {
+          // Store to plain alloca.
+          StoreTarget = LLVMKFieldSensFlowFact<>::getNonIndirectionValue(
+              Store->getPointerOperand());
         }
-        //
-        // x --> y
-        //
-        // Edge function:
-        //
-        //             x
-        //              \
-        // store x y     \ \x.{ commit of('store x y') }
-        //                v
-        //                y
-        //
-        if (CurrNode.getBaseValue() == Store->getValueOperand() &&
-            SuccNode.getBaseValue() == Store->getPointerOperand()) {
-          IF_LOG_ENABLED({
-            PHASAR_LOG_LEVEL(DFADEBUG, "Var-Override: ");
-            for (const auto &EF : EdgeFacts) {
-              PHASAR_LOG_LEVEL(DFADEBUG, EF << ", ");
-            }
-            PHASAR_LOG_LEVEL(DFADEBUG, "at '" << llvmIRToString(Curr) << "'\n");
-          });
-          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-        }
-      } else {
-        // Use points-to information to find all possible overriding edges.
-
-        // Overriding edge with literal: kill all labels that are propagated
-        // along the edge of the value that is overridden.
-        //
-        // x --> y
-        //
-        // Edge function:
-        //
-        // Let x be a literal.
-        //
-        //               y
-        //               |
-        // store x y     | \x.{} \cup { commit of('store x y') }
-        //               v
-        //               y
-        //
-        if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-            CurrNode == SuccNode &&
-            (this->PT.isInReachableAllocationSites(Store->getPointerOperand(),
-                                                   CurrNode,
-                                                   OnlyConsiderLocalAliases) ||
-             Store->getPointerOperand() == CurrNode)) {
-          // Add the original variable, i.e., memory location.
-          return IIAAKillOrReplaceEF::createEdgeFunction(UserEdgeFacts);
-        }
-        // Kill all labels that are propagated along the edge of the
-        // value/values that is/are overridden.
-        //
-        // y --> y
-        //
-        // Edge function:
-        //
-        //            y
-        //            |
-        // store x y  | \x.{}
-        //            v
-        //            y
-        //
-        if (CurrNode == SuccNode && this->PT.isInReachableAllocationSites(
-                                        Store->getPointerOperand(), CurrNode,
-                                        OnlyConsiderLocalAliases)) {
+        llvm::errs() << "Compare: " << CurrNode << " with " << StoreTarget
+                     << '\n';
+        if (CurrNode == StoreTarget) {
+          llvm::errs() << "Jessas!\n";
           return IIAAKillOrReplaceEF::createEdgeFunction(BitVectorSet<e_t>());
         }
-        // Overriding edge: obtain labels from value to be stored (and may add
-        // UserEdgeFacts, if any).
-        //
-        // x --> y
-        //
-        // Edge function:
-        //
-        //            x
-        //             \
-        // store x y    \ \x.x \cup { commit of('store x y') }
-        //               v
-        //               y
-        //
-        bool StoreValOpIsPointerTy =
-            Store->getValueOperand()->getType()->isPointerTy();
-        if ((CurrNode.getBaseValue() == Store->getValueOperand() ||
-             (StoreValOpIsPointerTy &&
-              this->PT.isInReachableAllocationSites(
-                  Store->getValueOperand(), Store->getValueOperand(),
-                  OnlyConsiderLocalAliases))) &&
-            this->PT.isInReachableAllocationSites(Store->getPointerOperand(),
-                                                  Store->getPointerOperand(),
-                                                  OnlyConsiderLocalAliases)) {
-          return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
-        }
+        llvm::errs() << "Error Jessas not found!\n";
+      }
+      // Overriding edge: obtain labels from value to be stored (and may add
+      // UserEdgeFacts, if any).
+      //
+      // x --> y
+      //
+      // Edge function:
+      //
+      //            x
+      //             \
+      // store x y    \ \x.x \cup { commit of('store x y') }
+      //               v
+      //               y
+      //
+      if (CurrNode.getBaseValue() == Store->getValueOperand() &&
+          SuccNode.getBaseValue() == Store->getPointerOperand()) {
+        return IIAAAddLabelsEF::createEdgeFunction(UserEdgeFacts);
       }
     }
+
+    // FIXME: handle GEP here.
+    if (llvm::isa<llvm::GetElementPtrInst>(Curr)) {
+      return EdgeIdentity<l_t>::getInstance();
+    }
+
     // Handle edge functions for general instructions.
     for (const auto &Op : Curr->operands()) {
       //
