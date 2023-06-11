@@ -311,7 +311,7 @@ public:
         // If a value is stored that holds we must generate all potential
         // memory locations the store might write to.
         if (Store->getValueOperand() == Src) {
-          // Store to field or array.
+          // Store to array or struct.
           if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                   Store->getPointerOperand())) {
             Facts.insert(LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep));
@@ -324,7 +324,7 @@ public:
         // ... or from zero, if a constant literal is stored to y
         if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
             IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-          // Store to field or array.
+          // Store to array or struct.
           if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                   Store->getPointerOperand())) {
             const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
