@@ -17,6 +17,7 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include <filesystem>
@@ -39,5 +40,6 @@ int main(int Argc, const char **Argv) {
 
   HelperAnalyses HA(Argv[1], EntryPoints);
   HA.getTypeHierarchy().print();
+  HA.getNewTypeHierarchy().print();
   return 0;
 }

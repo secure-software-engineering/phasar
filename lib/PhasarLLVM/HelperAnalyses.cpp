@@ -3,6 +3,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include <memory>
@@ -66,6 +67,13 @@ LLVMTypeHierarchy &HelperAnalyses::getTypeHierarchy() {
     TH = std::make_unique<LLVMTypeHierarchy>(getProjectIRDB());
   }
   return *TH;
+}
+
+DIBasedTypeHierarchy &HelperAnalyses::getNewTypeHierarchy() {
+  if (!DiTh) {
+    DiTh = std::make_unique<DIBasedTypeHierarchy>(getProjectIRDB());
+  }
+  return *DiTh;
 }
 
 LLVMBasedICFG &HelperAnalyses::getICFG() {

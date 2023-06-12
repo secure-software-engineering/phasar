@@ -20,8 +20,6 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include <llvm-14/llvm/IR/DebugInfoMetadata.h>
-
 namespace psr {
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   size_t Counter = 0;
@@ -134,7 +132,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // find index of super type
   auto IndexOfType = TypeToVertex.find(Type);
 
-  // if the super type hasn't been found, return false
+  // if the super type hasn't been found, return an empty set
   if (IndexOfType == TypeToVertex.end()) {
     return {};
   }
@@ -142,7 +140,17 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // return all sub types
   std::set<ClassType> SubTypes = {};
   for (unsigned long I : DerivedTypesOf[IndexOfType->second]) {
+    // TODO (max): add transitive closure sub types as well
     SubTypes.insert(VertexTypes[I]);
+
+    int Index = 0;
+    for (const bool TransitiveType :
+         TransitiveClosure.at(IndexOfType->second)) {
+      if (TransitiveType) {
+        SubTypes.insert(VertexTypes[Index]);
+      }
+      Index++;
+    }
   }
 
   return SubTypes;
@@ -188,15 +196,18 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   /// TODO: implement
   OS << "Type Hierarchy:\n";
 
-  for (const auto &CurrentVertex : VertexTypes) {
-    OS << CurrentVertex->getName();
-
-    if (!DerivedTypesOf[CurrentVertex->getMetadataID()].empty()) {
-      for (const auto &CurrentDerived :
-           DerivedTypesOf[CurrentVertex->getMetadataID()]) {
-        OS << VertexTypes[CurrentDerived];
+  size_t VertexIndex = 0;
+  size_t EdgeIndex = 0;
+  for (const auto &CurrentVertex : TransitiveClosure) {
+    OS << VertexTypes.at(VertexIndex)->getName() << "\n";
+    for (const bool CurrentEdge : CurrentVertex) {
+      if (EdgeIndex != VertexIndex && CurrentEdge) {
+        OS << "--> " << VertexTypes[EdgeIndex] << "\n";
       }
+      EdgeIndex++;
     }
+    VertexIndex++;
+    EdgeIndex = 0;
   }
 
   OS << "VFTables:\n";

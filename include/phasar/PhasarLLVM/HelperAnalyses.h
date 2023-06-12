@@ -12,6 +12,7 @@
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "nlohmann/json.hpp"
 
@@ -50,6 +51,7 @@ public:
   [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
   [[nodiscard]] LLVMAliasSet &getAliasInfo();
   [[nodiscard]] LLVMTypeHierarchy &getTypeHierarchy();
+  [[nodiscard]] DIBasedTypeHierarchy &getNewTypeHierarchy();
   [[nodiscard]] LLVMBasedICFG &getICFG();
   [[nodiscard]] LLVMBasedCFG &getCFG();
 
@@ -57,6 +59,7 @@ private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
   std::unique_ptr<LLVMAliasSet> PT;
   std::unique_ptr<LLVMTypeHierarchy> TH;
+  std::unique_ptr<DIBasedTypeHierarchy> DiTh;
   std::unique_ptr<LLVMBasedICFG> ICF;
   std::unique_ptr<LLVMBasedCFG> CFG;
 
