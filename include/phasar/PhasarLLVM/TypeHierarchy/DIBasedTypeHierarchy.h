@@ -74,6 +74,8 @@ private:
     return NameToType.lookup(TypeName);
   }
 
+  void addSubtypes(std::vector<bool> &Row, size_t OtherRowIndex);
+
   llvm::StringMap<ClassType> NameToType;
 
   // Map each type to an integer index that is used by VertexTypes and
@@ -100,6 +102,7 @@ private:
   // 1 0 1
   // 1 1 1
   // 0 0 1
+  // TODO (max): llvm::BitVector
   std::vector<std::vector<bool>> TransitiveClosure;
 };
 } // namespace psr

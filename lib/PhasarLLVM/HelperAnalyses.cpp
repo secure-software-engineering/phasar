@@ -69,13 +69,6 @@ LLVMTypeHierarchy &HelperAnalyses::getTypeHierarchy() {
   return *TH;
 }
 
-DIBasedTypeHierarchy &HelperAnalyses::getNewTypeHierarchy() {
-  if (!DiTh) {
-    DiTh = std::make_unique<DIBasedTypeHierarchy>(getProjectIRDB());
-  }
-  return *DiTh;
-}
-
 LLVMBasedICFG &HelperAnalyses::getICFG() {
   if (!ICF) {
     ICF = std::make_unique<LLVMBasedICFG>(

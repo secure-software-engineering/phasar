@@ -13,6 +13,7 @@
 #include "phasar/TypeHierarchy/VFTable.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -21,6 +22,7 @@
 #include "llvm/Support/ErrorHandling.h"
 
 namespace psr {
+
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   size_t Counter = 0;
 
@@ -32,7 +34,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     for (const auto &Node : MDs) {
       // composite type (like struct or class)
       if (const llvm::DICompositeType *CompositeType =
-              llvm::dyn_cast<llvm::DICompositeType *>(Node)) {
+              llvm::dyn_cast<llvm::DICompositeType>(Node.second)) {
         TypeToVertex.try_emplace(CompositeType, Counter++);
         VertexTypes.push_back(CompositeType);
 
@@ -49,108 +51,69 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     }
   }
 
-  // Initialize the transitive closure matrix with all as false, except at it's
-  // own position
-  std::vector<bool> InitVector;
-  for (unsigned int I = 0; I < VertexTypes.size(); I++) {
-    InitVector.push_back(false);
-  }
+  // Initialize the transitive closure matrix with all as false
+  std::vector<bool> InitVector(VertexTypes.size(), false);
 
-  for (unsigned int I = 0; I < VertexTypes.size(); I++) {
-    std::vector<bool> SelfVector = InitVector;
-    // Each Vertex can reach itself
-    SelfVector.at(I) = true;
+  for (size_t I = 0; I < VertexTypes.size(); I++) {
     TransitiveClosure.push_back(InitVector);
   }
 
   // Add direct edges
   unsigned int CurrentIndex = 0;
   for (const auto &Edges : DerivedTypesOf) {
-    if (Edges.empty()) {
-      CurrentIndex++;
-      continue;
-    }
-
     for (const auto &Current : Edges) {
       TransitiveClosure.at(CurrentIndex).at(Current) = true;
     }
     CurrentIndex++;
   }
 
-  // TODO (max): add transitive edges
-  for (unsigned int I = 0; I < TransitiveClosure.size(); I++) {
-    std::vector<bool> AllEdges = TransitiveClosure.at(I);
-
-    for (unsigned int N = I + 1; N < TransitiveClosure.size(); N++) {
-      // Transitive closure is a matrix of size n x n, therefore
-      // TransitiveClosure.size() works for both loops here
-      for (unsigned int Z = 0; Z < TransitiveClosure.size(); Z++) {
-        if (TransitiveClosure.at(N).at(Z)) {
-          AllEdges.at(Z) = true;
-        }
+  // Add transitive edges
+  for (auto &Row : TransitiveClosure) {
+    size_t Index = 0;
+    for (auto Edge : Row) {
+      if (Edge) {
+        addSubtypes(Row, Index);
       }
+      Index++;
     }
-
-    TransitiveClosure.at(I) = AllEdges;
   }
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::isSubType(ClassType Type,
                                                    ClassType SubType) {
-  /// TODO: implement
-  // You may want to do a graph search based on DerivedTypesOf
-
   // find index of super type
-  auto IndexOfType = TypeToVertex.find(Type)->getSecond();
+  unsigned long IndexOfType = TypeToVertex.find(Type)->getSecond();
+  unsigned long IndexOfSubType = TypeToVertex.find(SubType)->getSecond();
 
-  // if the super type hasn't been found, return false
-  if (IndexOfType == TypeToVertex.size()) {
+  // if the super type or the sub type haven't been found, return false
+  if (IndexOfType >= TypeToVertex.size() ||
+      IndexOfSubType >= TypeToVertex.size()) {
     return false;
   }
 
-  // go over all sub types of type and check if the sub type of interest is
-  // present
-  for (const auto &Current : DerivedTypesOf[IndexOfType]) {
-    // BUG: mit TypeToVertex.find index von SubType finden
-    // Auch schauen, ob sub sub types usw zu schauen.
-    // BFS search oder DFS, bitte nicht rekursiv
-    // transitive hülle im Constructor berechnen (also sub sub types etc)
-    if (Current == SubType->getMetadataID()) {
-      return true;
-    }
-  }
-
-  return false;
-  // llvm::report_fatal_error("Not implemented");
+  return TransitiveClosure[IndexOfType][IndexOfSubType];
 }
 
 [[nodiscard]] auto DIBasedTypeHierarchy::getSubTypes(ClassType Type)
     -> std::set<ClassType> {
-  /// TODO: implement
-  // You may want to do a graph search based on DerivedTypesOf
-
   // find index of super type
-  auto IndexOfType = TypeToVertex.find(Type);
+  unsigned long IndexOfType = TypeToVertex.find(Type)->getSecond();
 
   // if the super type hasn't been found, return an empty set
-  if (IndexOfType == TypeToVertex.end()) {
+  if (IndexOfType >= TypeToVertex.size()) {
     return {};
   }
 
   // return all sub types
   std::set<ClassType> SubTypes = {};
-  for (unsigned long I : DerivedTypesOf[IndexOfType->second]) {
-    // TODO (max): add transitive closure sub types as well
-    SubTypes.insert(VertexTypes[I]);
 
-    int Index = 0;
-    for (const bool TransitiveType :
-         TransitiveClosure.at(IndexOfType->second)) {
-      if (TransitiveType) {
-        SubTypes.insert(VertexTypes[Index]);
-      }
-      Index++;
+  size_t Index = 0;
+  for (const auto &Current : TransitiveClosure[IndexOfType]) {
+    if (Current) {
+      SubTypes.insert(VertexTypes[Index]);
     }
+
+    Index++;
   }
 
   return SubTypes;
@@ -219,5 +182,18 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
 [[nodiscard]] nlohmann::json DIBasedTypeHierarchy::getAsJson() const {
   /// TODO: implement
   llvm::report_fatal_error("Not implemented");
+}
+
+void DIBasedTypeHierarchy::addSubtypes(std::vector<bool> &Row,
+                                       size_t OtherRowIndex) {
+  size_t Index = 0;
+  for (auto Edge : TransitiveClosure[OtherRowIndex]) {
+    if (Edge) {
+      Row[Index] = true;
+      addSubtypes(Row, Index);
+    }
+
+    Index++;
+  }
 }
 } // namespace psr
