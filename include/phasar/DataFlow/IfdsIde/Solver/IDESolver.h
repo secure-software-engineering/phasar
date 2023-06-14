@@ -27,6 +27,7 @@
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
+#include "phasar/DataFlow/IfdsIde/Solver/InteractiveIDESolverMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/PathEdge.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
@@ -59,7 +60,10 @@ namespace psr {
 /// can then be queried by using resultAt() and resultsAt().
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
-class IDESolver {
+class IDESolver
+    : public InteractiveIDESolverMixin<IDESolver<AnalysisDomainTy, Container>> {
+  friend InteractiveIDESolverMixin<IDESolver<AnalysisDomainTy, Container>>;
+
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;
   using container_type = typename ProblemTy::container_type;
@@ -1711,6 +1715,7 @@ public:
     OS << G;
   }
 
+private:
   /// @brief: Allows less-than comparison based on the statement ID.
   struct StmtLess {
     const i_t *ICF;
@@ -1720,6 +1725,53 @@ public:
       return StrIDLess(ICF->getStatementId(Lhs), ICF->getStatementId(Rhs));
     }
   };
+
+  /// -- InteractiveIDESolverMixin implementation
+
+  bool doInitialize() {
+    PHASAR_LOG_LEVEL(INFO, "IDE solver is solving the specified problem");
+    PHASAR_LOG_LEVEL(INFO,
+                     "Submit initial seeds, construct exploded super graph");
+    // We start our analysis and construct exploded supergraph
+    submitInitialSeeds();
+    return !WorkList.empty();
+  }
+
+  bool doNext() {
+    assert(!WorkList.empty());
+    auto [Edge, EF] = std::move(WorkList.back());
+    WorkList.pop_back();
+
+    auto [SourceVal, Target, TargetVal] = Edge.consume();
+    propagate(std::move(SourceVal), std::move(Target), std::move(TargetVal),
+              std::move(EF));
+
+    return !WorkList.empty();
+  }
+  void finalizeInternal() {
+    if (SolverConfig.computeValues()) {
+
+      // Computing the final values for the edge functions
+      PHASAR_LOG_LEVEL(
+          INFO, "Compute the final values according to the edge functions");
+      computeValues();
+    }
+    PHASAR_LOG_LEVEL(INFO, "Problem solved");
+    if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
+      computeAndPrintStatistics();
+    }
+    if (SolverConfig.emitESG()) {
+      emitESGAsDot();
+    }
+  }
+  SolverResults<n_t, d_t, l_t> doFinalize() & {
+    finalizeInternal();
+    return getSolverResults();
+  }
+  OwningSolverResults<n_t, d_t, l_t> doFinalize() && {
+    finalizeInternal();
+    return consumeSolverResults();
+  }
 
   /// -- Data members
 
