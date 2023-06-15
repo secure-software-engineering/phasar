@@ -14,6 +14,7 @@ endif()
 target_link_libraries(myphasartool
   LINK_PUBLIC
   phasar
+  LLVM
   LINK_PRIVATE
   ${PHASAR_STD_FILESYSTEM}
 )

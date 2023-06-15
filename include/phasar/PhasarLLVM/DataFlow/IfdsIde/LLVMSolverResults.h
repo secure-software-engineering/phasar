@@ -24,7 +24,7 @@ namespace psr::detail {
 template <typename Derived, typename N, typename D, typename L>
 template <typename NTy>
 auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
-    ByConstRef<n_t> Stmt, bool AllowOverapproximation, bool StripZero) ->
+    ByConstRef<n_t> Stmt, bool AllowOverapproximation, bool StripZero) const ->
     typename std::enable_if_t<
         std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                        llvm::Instruction>,
@@ -96,7 +96,7 @@ auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
 template <typename Derived, typename N, typename D, typename L>
 template <typename NTy>
 auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
-    ByConstRef<n_t> Stmt, d_t Value, bool AllowOverapproximation) ->
+    ByConstRef<n_t> Stmt, d_t Value, bool AllowOverapproximation) const ->
     typename std::enable_if_t<
         std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
                        llvm::Instruction>,
