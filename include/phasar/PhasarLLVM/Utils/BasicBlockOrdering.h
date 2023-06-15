@@ -12,6 +12,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FunctionExtras.h"
+#include "llvm/IR/Dominators.h"
 
 #include <memory>
 #include <type_traits>
