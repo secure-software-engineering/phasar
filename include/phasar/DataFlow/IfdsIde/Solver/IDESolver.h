@@ -1320,7 +1320,6 @@ protected:
     // key
     std::unordered_map<n_t, std::set<d_t>> ValidInCallerContext;
     size_t NumGenFacts = 0;
-    size_t NumKillFacts = 0;
     size_t NumIntraPathEdges = 0;
     size_t NumInterPathEdges = 0;
     // --- Intra-procedural Path Edges ---
@@ -1341,10 +1340,6 @@ protected:
         // Case 2
         else {
           NumGenFacts += D2s.size();
-          // We ignore the zero value
-          if (!IDEProblem.isZeroValue(D1)) {
-            NumKillFacts++;
-          }
         }
         // Store all valid facts after call-to-return flow
         if (ICF->isCallSite(Edge.first)) {
@@ -1402,10 +1397,6 @@ protected:
                 NumGenFacts += SummaryDSet.size() - 1;
               } else {
                 NumGenFacts += SummaryDSet.size();
-                // We ignore the zero value
-                if (!IDEProblem.isZeroValue(D1)) {
-                  NumKillFacts++;
-                }
               }
             } else {
               ProcessSummaryFacts.emplace(Edge.second, D2);
@@ -1433,9 +1424,6 @@ protected:
               NumGenFacts++;
             }
             PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2));
-          }
-          if (!IDEProblem.isZeroValue(D1)) {
-            NumKillFacts++;
           }
           PHASAR_LOG_LEVEL(DEBUG, "----");
         }
