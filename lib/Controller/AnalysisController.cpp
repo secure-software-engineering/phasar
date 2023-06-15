@@ -196,15 +196,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
-      llvm::outs() << "Module " << IRDB.getModule()->getName() << ":\n";
-      llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-                   << "\n";
-      llvm::outs() << "> Functions:\t\t" << IRDB.getModule()->size() << "\n";
-      llvm::outs() << "> Global variables:\t" << IRDB.getModule()->global_size()
-                   << "\n";
-      llvm::outs() << "> Alloca instructions:\t"
-                   << Stats.getAllocaInstructions().size() << "\n";
-      llvm::outs() << "> Call Sites:\t\t" << Stats.getFunctioncalls() << "\n";
+      llvm::outs() << Stats << '\n';
     }
 
     if (EmitterOptions &
