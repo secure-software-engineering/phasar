@@ -13,8 +13,6 @@
 #include "phasar/Pointer/AliasAnalysisType.h"
 
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/Passes/PassBuilder.h"
 
 namespace llvm {
 class Value;
@@ -27,23 +25,19 @@ namespace psr {
 class LLVMProjectIRDB;
 
 class LLVMBasedAliasAnalysis {
-private:
-  llvm::PassBuilder PB;
-  llvm::AAManager AA;
-  llvm::FunctionAnalysisManager FAM;
-  llvm::FunctionPassManager FPM;
-  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
-  AliasAnalysisType PATy;
-
-  [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
-
-  void computeAliasInfo(llvm::Function &Fun);
 
 public:
-  LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-                         AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
+  explicit LLVMBasedAliasAnalysis(
+      LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
+      AliasAnalysisType PATy = AliasAnalysisType::Basic);
 
-  ~LLVMBasedAliasAnalysis() = default;
+  LLVMBasedAliasAnalysis(LLVMBasedAliasAnalysis &&) noexcept = default;
+  LLVMBasedAliasAnalysis &
+  operator=(LLVMBasedAliasAnalysis &&) noexcept = default;
+
+  LLVMBasedAliasAnalysis(const LLVMBasedAliasAnalysis &) = delete;
+  LLVMBasedAliasAnalysis &operator=(const LLVMBasedAliasAnalysis &) = delete;
+  ~LLVMBasedAliasAnalysis();
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
@@ -54,13 +48,26 @@ public:
     return AAInfos.lookup(F);
   };
 
-  void erase(llvm::Function *F);
+  void erase(llvm::Function *F) noexcept;
 
-  void clear();
+  void clear() noexcept;
 
-  [[nodiscard]] inline AliasAnalysisType getPointerAnalysisType() const {
+  [[nodiscard]] inline AliasAnalysisType
+  getPointerAnalysisType() const noexcept {
     return PATy;
   };
+
+private:
+  [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
+
+  void computeAliasInfo(llvm::Function &Fun);
+
+  // -- data members
+
+  struct Impl;
+  std::unique_ptr<Impl> PImpl;
+  AliasAnalysisType PATy;
+  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
 };
 
 } // namespace psr
