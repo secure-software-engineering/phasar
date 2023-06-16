@@ -32,7 +32,7 @@ public:
   InitialSeeds(const std::map<N, std::set<D>> &Seeds) {
     for (const auto &[Node, Facts] : Seeds) {
       for (const auto &Fact : Facts) {
-        this->Seeds[Node][Fact] = BinaryDomain::TOP;
+        this->Seeds[Node][Fact] = BinaryDomain::BOTTOM;
       }
     }
   }
@@ -42,7 +42,7 @@ public:
   template <typename LL = L,
             typename = std::enable_if_t<std::is_same_v<LL, BinaryDomain>>>
   void addSeed(N Node, D Fact) {
-    addSeed(Node, Fact, BinaryDomain::TOP);
+    addSeed(Node, Fact, BinaryDomain::BOTTOM);
   }
 
   void addSeed(N Node, D Fact, L Value) {
