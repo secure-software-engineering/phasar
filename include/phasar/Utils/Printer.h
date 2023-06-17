@@ -72,17 +72,20 @@ template <typename T> struct TypePrinter {
   }
 };
 
-template <typename AnalysisDomainTy> struct EdgeFactPrinter {
-  using l_t = typename AnalysisDomainTy::l_t;
+template <typename L> struct EdgeFactPrinterBase {
+  using l_t = L;
 
-  virtual ~EdgeFactPrinter() = default;
+  virtual ~EdgeFactPrinterBase() = default;
 
-  virtual void printEdgeFact(llvm::raw_ostream &OS, l_t L) const = 0;
+  virtual void printEdgeFact(llvm::raw_ostream &OS, l_t Val) const = 0;
 
-  [[nodiscard]] std::string LtoString(l_t L) const { // NOLINT
-    return toStringBuilder(&EdgeFactPrinter::printEdgeFact, this, L);
+  [[nodiscard]] std::string LtoString(l_t Val) const { // NOLINT
+    return toStringBuilder(&EdgeFactPrinterBase::printEdgeFact, this, Val);
   }
 };
+
+template <typename AnalysisDomainTy>
+using EdgeFactPrinter = EdgeFactPrinterBase<typename AnalysisDomainTy::l_t>;
 
 template <typename AnalysisDomainTy> struct FunctionPrinter {
   using F = typename AnalysisDomainTy::f_t;

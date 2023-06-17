@@ -29,25 +29,32 @@ class Function;
 class Value;
 class GlobalVariable;
 class Module;
+class DIFile;
 } // namespace llvm
 
 namespace psr {
 
-std::string getVarNameFromIR(const llvm::Value *V);
+[[nodiscard]] std::string getVarNameFromIR(const llvm::Value *V);
 
-std::string getFunctionNameFromIR(const llvm::Value *V);
+[[nodiscard]] std::string getFunctionNameFromIR(const llvm::Value *V);
 
-std::string getFilePathFromIR(const llvm::Value *V);
+[[nodiscard]] std::string getFilePathFromIR(const llvm::Value *V);
 
-std::string getDirectoryFromIR(const llvm::Value *V);
+[[nodiscard]] std::string getDirectoryFromIR(const llvm::Value *V);
 
-unsigned int getLineFromIR(const llvm::Value *V);
+[[nodiscard]] const llvm::DIFile *getDIFileFromIR(const llvm::Value *V);
 
-unsigned int getColumnFromIR(const llvm::Value *V);
+[[nodiscard]] unsigned int getLineFromIR(const llvm::Value *V);
 
-std::string getSrcCodeFromIR(const llvm::Value *V);
+[[nodiscard]] unsigned int getColumnFromIR(const llvm::Value *V);
 
-std::string getModuleIDFromIR(const llvm::Value *V);
+[[nodiscard]] std::pair<unsigned, unsigned>
+getLineAndColFromIR(const llvm::Value *V);
+
+[[nodiscard]] std::string getSrcCodeFromIR(const llvm::Value *V,
+                                           bool Trim = true);
+
+[[nodiscard]] std::string getModuleIDFromIR(const llvm::Value *V);
 
 struct SourceCodeInfo {
   std::string SourceCodeLine;
@@ -76,7 +83,7 @@ void from_json(const nlohmann::json &J, SourceCodeInfo &Info);
 /// SourceCodeInfo
 void to_json(nlohmann::json &J, const SourceCodeInfo &Info);
 
-SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V);
+[[nodiscard]] SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V);
 
 } // namespace psr
 
