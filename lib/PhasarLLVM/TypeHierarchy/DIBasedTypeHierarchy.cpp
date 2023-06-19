@@ -21,6 +21,10 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
+#include <iostream>
+
+#include <llvm-14/llvm/IR/DebugInfoMetadata.h>
+
 namespace psr {
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
@@ -29,23 +33,24 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   for (const auto *F : IRDB.getAllFunctions()) {
 
     llvm::SmallVector<std::pair<unsigned, llvm::MDNode *>, 4> MDs;
+    // TODO (max): Fix getting metadata nodes. Code below seems to not work
     F->getAllMetadata(MDs);
 
+    // std::cout << "number of Metadata nodes found: " << MDs.size() <<
+    // std::endl;
+
     for (const auto &Node : MDs) {
-      // composite type (like struct or class)
-      if (const llvm::DICompositeType *CompositeType =
-              llvm::dyn_cast<llvm::DICompositeType>(Node.second)) {
-        TypeToVertex.try_emplace(CompositeType, Counter++);
-        VertexTypes.push_back(CompositeType);
+      std::cout << Node.second->getMetadataID() << std::endl;
+      // derived type, aka inheritance
+      if (const llvm::DIDerivedType *DerivedType =
+              llvm::dyn_cast<llvm::DIDerivedType>(Node.second)) {
 
-        // determine how many variables the composite type has
-        // BUG; INHERITANCE nicht member variablen typen
-        llvm::SmallVector<size_t, 6> SubTypes;
-        for (const auto &Element : CompositeType->getElements()) {
-          SubTypes.push_back(Element->getMetadataID());
-        }
+        std::cout << "made it" << std::endl;
+        TypeToVertex.try_emplace(DerivedType, Counter++);
+        VertexTypes.push_back(DerivedType);
 
-        DerivedTypesOf[CompositeType->getMetadataID()] = SubTypes;
+        DerivedTypesOf[DerivedType->getMetadataID()].push_back(
+            DerivedType->getBaseType()->getMetadataID());
         continue;
       }
     }
@@ -157,6 +162,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   /// TODO: implement
+  OS << "Size of Transitive Closure: " << TransitiveClosure.size() << "\n";
+  OS << "Number of Vertices " << VertexTypes.size() << "\n";
   OS << "Type Hierarchy:\n";
 
   size_t VertexIndex = 0;

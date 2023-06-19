@@ -75,7 +75,7 @@ option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (defau
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
-option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 

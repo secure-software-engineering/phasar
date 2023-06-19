@@ -44,7 +44,8 @@ public:
 
   [[nodiscard]] std::set<ClassType> getSuperTypes(ClassType Type) override;
 
-  [[nodiscard]] ClassType getType(llvm::StringRef TypeName) const noexcept {
+  [[nodiscard]] ClassType
+  getType(std::string TypeName) const noexcept override {
     return NameToType.lookup(TypeName);
   }
 
@@ -70,10 +71,6 @@ public:
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
 private:
-  [[nodiscard]] ClassType getType(std::string TypeName) const override {
-    return NameToType.lookup(TypeName);
-  }
-
   void addSubtypes(std::vector<bool> &Row, size_t OtherRowIndex);
 
   llvm::StringMap<ClassType> NameToType;
