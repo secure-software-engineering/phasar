@@ -73,6 +73,8 @@ public:
 private:
   void addSubtypes(std::vector<bool> &Row, size_t OtherRowIndex);
 
+  llvm::SmallVector<std::pair<unsigned, llvm::MDNode *>, 4> MDs;
+
   llvm::StringMap<ClassType> NameToType;
 
   // Map each type to an integer index that is used by VertexTypes and

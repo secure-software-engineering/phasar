@@ -23,6 +23,8 @@
 
 #include <iostream>
 
+#include <llvm-14/llvm/ADT/StringRef.h>
+#include <llvm-14/llvm/BinaryFormat/Dwarf.h>
 #include <llvm-14/llvm/IR/DebugInfoMetadata.h>
 
 namespace psr {
@@ -30,29 +32,58 @@ namespace psr {
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   size_t Counter = 0;
 
-  for (const auto *F : IRDB.getAllFunctions()) {
+  for (const auto *I : IRDB.getAllInstructions()) {
+    I->getAllMetadata(MDs);
+  }
 
-    llvm::SmallVector<std::pair<unsigned, llvm::MDNode *>, 4> MDs;
+  for (const auto &Node : MDs) {
+    // std::cout << "MD-ID first loop: " << Node.second->getMetadataID()
+    //           << std::endl;
+  }
+
+  for (const auto *F : IRDB.getAllFunctions()) {
     // TODO (max): Fix getting metadata nodes. Code below seems to not work
     F->getAllMetadata(MDs);
+    // std::cout << "number of metadata nodes: " << MetadataNodes.size()
+    //           << std::endl;
+  }
 
-    // std::cout << "number of Metadata nodes found: " << MDs.size() <<
-    // std::endl;
+  for (const auto &Node : MDs) {
+    // std::cout << "MD-ID second loop: " << Node.second->getMetadataID()
+    //           << std::endl;
+    const auto &Kind = Node.second->getOperand(0).get();
+  }
 
-    for (const auto &Node : MDs) {
-      std::cout << Node.second->getMetadataID() << std::endl;
-      // derived type, aka inheritance
-      if (const llvm::DIDerivedType *DerivedType =
-              llvm::dyn_cast<llvm::DIDerivedType>(Node.second)) {
+  // llvm::DIDerivedType::MDStringKind;
+  // llvm::DIDerivedType::getBaseType();
 
-        std::cout << "made it" << std::endl;
-        TypeToVertex.try_emplace(DerivedType, Counter++);
-        VertexTypes.push_back(DerivedType);
+  // std::cout << "number of Metadata nodes found: " << MDs.size() <<
+  // std::endl;
 
-        DerivedTypesOf[DerivedType->getMetadataID()].push_back(
-            DerivedType->getBaseType()->getMetadataID());
-        continue;
+  bool TestOnce = true;
+
+  for (const auto &Node : MDs) {
+    if (llvm::dyn_cast<llvm::DIDerivedType>(Node.second) && TestOnce &&
+        Node.second->getNumOperands() > 1) {
+      TestOnce = false;
+      for (unsigned int I = 0; I < Node.second->getNumOperands(); I++) {
+        const auto &Test = Node.second->getOperand(I)->getMetadataID();
       }
+    }
+    std::cout << "first: " << Node.first
+              << " second: " << Node.second->getMetadataID() << std::endl;
+    //   derived type, aka inheritance
+    if (const llvm::DIDerivedType *DerivedType =
+            llvm::dyn_cast<llvm::DIDerivedType>(
+                Node.second->getOperand(0).get())) {
+
+      std::cout << "made it" << std::endl;
+      TypeToVertex.try_emplace(DerivedType, Counter++);
+      VertexTypes.push_back(DerivedType);
+
+      DerivedTypesOf[DerivedType->getMetadataID()].push_back(
+          DerivedType->getBaseType()->getMetadataID());
+      continue;
     }
   }
 
@@ -162,6 +193,15 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   /// TODO: implement
+  OS << "Test Print of Operants…\n";
+  for (const auto &Node : MDs) {
+    // std::cout << "MD-ID second loop: " << Node.second->getMetadataID()
+    //           << std::endl;
+    Node.second->getOperand(0)->print(OS);
+    OS << "\n";
+  }
+  OS << "\n";
+
   OS << "Size of Transitive Closure: " << TransitiveClosure.size() << "\n";
   OS << "Number of Vertices " << VertexTypes.size() << "\n";
   OS << "Type Hierarchy:\n";
