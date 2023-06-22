@@ -1202,7 +1202,6 @@ protected:
   }
 
   void printIncomingTab() const {
-#ifdef DYNAMIC_LOG
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Start of incomingtab entry");
         for (const auto &Cell
@@ -1220,29 +1219,27 @@ protected:
           }
           PHASAR_LOG_LEVEL(DEBUG, "---------------");
         } PHASAR_LOG_LEVEL(DEBUG, "End of incomingtab entry");)
-#endif
   }
 
   void printEndSummaryTab() const {
-#ifdef DYNAMIC_LOG
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Start of endsummarytab entry");
-        for (const auto &Cell
-             : EndsummaryTab.cellVec()) {
-          PHASAR_LOG_LEVEL(DEBUG,
-                           "sP: " << IDEProblem.NtoString(Cell.getRowKey()));
-          PHASAR_LOG_LEVEL(DEBUG,
-                           "d1: " << IDEProblem.DtoString(Cell.getColumnKey()));
-          for (const auto &InnerCell : Cell.getValue().cellVec()) {
-            PHASAR_LOG_LEVEL(
-                DEBUG, "  eP: " << IDEProblem.NtoString(InnerCell.getRowKey()));
-            PHASAR_LOG_LEVEL(DEBUG, "  d2: " << IDEProblem.DtoString(
-                                        InnerCell.getColumnKey()));
-            PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerCell.getValue());
-          }
+
+        EndsummaryTab.foreachCell([this](const auto &Row, const auto &Col,
+                                         const auto &Val) {
+          PHASAR_LOG_LEVEL(DEBUG, "sP: " << IDEProblem.NtoString(Row));
+          PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(Col));
+
+          Val.foreachCell([this](const auto &InnerRow, const auto &InnerCol,
+                                 const auto &InnerVal) {
+            PHASAR_LOG_LEVEL(DEBUG, "  eP: " << IDEProblem.NtoString(InnerRow));
+            PHASAR_LOG_LEVEL(DEBUG, "  d2: " << IDEProblem.DtoString(InnerCol));
+            PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerVal);
+          });
           PHASAR_LOG_LEVEL(DEBUG, "---------------");
-        } PHASAR_LOG_LEVEL(DEBUG, "End of endsummarytab entry");)
-#endif
+        });
+
+        PHASAR_LOG_LEVEL(DEBUG, "End of endsummarytab entry");)
   }
 
   void printComputedPathEdges() {
@@ -1324,7 +1321,6 @@ protected:
     // key
     std::unordered_map<n_t, std::set<d_t>> ValidInCallerContext;
     size_t NumGenFacts = 0;
-    size_t NumKillFacts = 0;
     size_t NumIntraPathEdges = 0;
     size_t NumInterPathEdges = 0;
     // --- Intra-procedural Path Edges ---
@@ -1345,10 +1341,6 @@ protected:
         // Case 2
         else {
           NumGenFacts += D2s.size();
-          // We ignore the zero value
-          if (!IDEProblem.isZeroValue(D1)) {
-            NumKillFacts++;
-          }
         }
         // Store all valid facts after call-to-return flow
         if (ICF->isCallSite(Edge.first)) {
@@ -1406,10 +1398,6 @@ protected:
                 NumGenFacts += SummaryDSet.size() - 1;
               } else {
                 NumGenFacts += SummaryDSet.size();
-                // We ignore the zero value
-                if (!IDEProblem.isZeroValue(D1)) {
-                  NumKillFacts++;
-                }
               }
             } else {
               ProcessSummaryFacts.emplace(Edge.second, D2);
@@ -1437,9 +1425,6 @@ protected:
               NumGenFacts++;
             }
             PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2));
-          }
-          if (!IDEProblem.isZeroValue(D1)) {
-            NumKillFacts++;
           }
           PHASAR_LOG_LEVEL(DEBUG, "----");
         }

@@ -100,7 +100,7 @@ public:
                      llvm::Instruction>,
       std::unordered_map<d_t, l_t>>
   resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool AllowOverapproximation = false,
-                     bool StripZero = false);
+                     bool StripZero = false) const;
 
   /// Returns the L-type result at the given statement for the given data-flow
   /// fact while respecting LLVM's SSA semantics.
@@ -123,7 +123,7 @@ public:
                      llvm::Instruction>,
       l_t>
   resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
-                    bool AllowOverapproximation = false);
+                    bool AllowOverapproximation = false) const;
 
   [[nodiscard]] std::vector<typename Table<n_t, d_t, l_t>::Cell>
   getAllResultEntries() const {
@@ -134,7 +134,7 @@ public:
   void dumpResults(const ICFGTy &ICF, const NodePrinterBase<n_t> &NP,
                    const DataFlowFactPrinterBase<d_t> &DP,
                    const EdgeFactPrinterBase<l_t> &LP,
-                   llvm::raw_ostream &OS = llvm::outs()) {
+                   llvm::raw_ostream &OS = llvm::outs()) const {
     using f_t = typename ICFGTy::f_t;
 
     PAMM_GET_INSTANCE;
@@ -184,15 +184,11 @@ public:
 
   template <typename ICFGTy, typename ProblemTy>
   void dumpResults(const ICFGTy &ICF, const ProblemTy &IDEProblem,
-                   llvm::raw_ostream &OS = llvm::outs()) {
+                   llvm::raw_ostream &OS = llvm::outs()) const {
     dumpResults(ICF, IDEProblem, IDEProblem, IDEProblem, OS);
   }
 
 private:
-  [[nodiscard]] Derived &self() noexcept {
-    static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
-    return static_cast<Derived &>(*this);
-  }
   [[nodiscard]] const Derived &self() const noexcept {
     static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
     return static_cast<const Derived &>(*this);
@@ -211,12 +207,12 @@ public:
   using typename base_t::l_t;
   using typename base_t::n_t;
 
-  SolverResults(Table<n_t, d_t, l_t> &ResTab, ByConstRef<d_t> ZV) noexcept
+  SolverResults(const Table<n_t, d_t, l_t> &ResTab, ByConstRef<d_t> ZV) noexcept
       : Results(ResTab), ZV(ZV) {}
   SolverResults(Table<n_t, d_t, l_t> &&ResTab, ByConstRef<d_t> ZV) = delete;
 
 private:
-  Table<n_t, d_t, l_t> &Results;
+  const Table<n_t, d_t, l_t> &Results;
   ByConstRef<D> ZV;
 };
 
@@ -234,16 +230,20 @@ public:
 
   OwningSolverResults(Table<N, D, L> ResTab,
                       D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
-      : Results(std::move(ResTab)), ZV(ZV) {}
+      : Results(std::move(ResTab)), ZV(std::move(ZV)) {}
+
+  [[nodiscard]] SolverResults<N, D, L> get() const &noexcept {
+    return {Results, ZV};
+  }
+  SolverResults<N, D, L> get() && = delete;
 
   [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
-    return {Results, ZV};
+    return get();
   }
   operator SolverResults<N, D, L>() && = delete;
 
 private:
-  // psr::Table is not const-enabled, so we have to give out mutable references
-  mutable Table<N, D, L> Results;
+  Table<N, D, L> Results;
   D ZV;
 };
 
