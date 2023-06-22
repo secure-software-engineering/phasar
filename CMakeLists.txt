@@ -184,6 +184,13 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
 
+# Nlohmann JSON
+
+set(JSON_BuildTests OFF)
+set(JSON_Install ON)
+add_subdirectory(external/json)
+include_directories(SYSTEM external/json/include/)
+
 # We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
 # The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
 # is not installed, leading to linker error. But just including nlohmann_json is not sufficient, as
@@ -195,24 +202,14 @@ set(CMAKE_CXX_CLANG_TIDY "")
 #Override option of nlohmann_json_schema_validator to not build its tests
 set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
 
-# Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
-include_directories(SYSTEM external/json/single_include/)
-
 if (PHASAR_IN_TREE)
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
 endif()
-
-set(nlohmann_json_DIR ${PHASAR_SRC_DIR}/external/json/single_include/)
 
 # Json Schema Validator
 set(JSON_VALIDATOR_INSTALL ON)
 add_subdirectory(external/json-schema-validator)
 include_directories(SYSTEM external/json-schema-validator/src/)
-
-# now we finally add the subdirectory
-set(JSON_BuildTests OFF)
-set(JSON_Install ON)
-add_subdirectory(external/json)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
