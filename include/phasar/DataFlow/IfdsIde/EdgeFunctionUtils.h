@@ -425,6 +425,12 @@ ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConcreteEF> This,
   if (auto Default = defaultJoinOrNull<l_t>(This, OtherFunction)) {
     return Default;
   }
+
+  if (llvm::isa<EdgeIdentity<L>>(OtherFunction)) {
+    // Prevent endless recursion
+    return AllBottom<L>{};
+  }
+
   if (!OtherFunction.isConstant()) {
     // do not know how to join; hence ask other function to decide on this
     return OtherFunction.joinWith(This);
