@@ -101,7 +101,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
                   if (Cast->getDestTy()->isPointerTy() &&
                       !Cast->getDestTy()->isOpaquePointerTy() &&
                       Cast->getDestTy()
-                          ->getPointerElementType()
+                          ->getNonOpaquePointerElementType()
                           ->isStructTy()) {
                     // finally check for ctor call
                     for (auto *User : Cast->users()) {
@@ -114,7 +114,8 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
                             CTor->getCalledFunction()->getArg(0)->getType() ==
                                 Cast->getDestTy()) {
                           Stats.AllocatedTypes.insert(
-                              Cast->getDestTy()->getPointerElementType());
+                              Cast->getDestTy()
+                                  ->getNonOpaquePointerElementType());
                         }
                       }
                     }

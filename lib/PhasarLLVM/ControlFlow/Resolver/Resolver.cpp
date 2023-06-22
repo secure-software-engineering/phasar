@@ -78,7 +78,7 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
 
   if (!Receiver->getType()->isOpaquePointerTy()) {
     if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-            Receiver->getType()->getPointerElementType())) {
+            Receiver->getType()->getNonOpaquePointerElementType())) {
       return ReceiverTy;
     }
   }

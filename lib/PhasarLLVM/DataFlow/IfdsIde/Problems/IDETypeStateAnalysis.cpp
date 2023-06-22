@@ -680,8 +680,8 @@ bool hasMatchingTypeName(const llvm::Type *Ty, const std::string &Pattern) {
 }
 bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   // General case
-  if (V->getType()->isPointerTy()) {
-    if (hasMatchingTypeName(V->getType()->getPointerElementType(),
+  if (V->getType()->isPointerTy() && !V->getType()->isOpaquePointerTy()) {
+    if (hasMatchingTypeName(V->getType()->getNonOpaquePointerElementType(),
                             TSD->getTypeNameOfInterest())) {
       return true;
     }
@@ -691,7 +691,7 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (Alloca->getAllocatedType()->isOpaquePointerTy() ||
           hasMatchingTypeName(
-              Alloca->getAllocatedType()->getPointerElementType(),
+              Alloca->getAllocatedType()->getNonOpaquePointerElementType(),
               TSD->getTypeNameOfInterest())) {
         return true;
       }
@@ -701,7 +701,7 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
     if (Load->getType()->isPointerTy()) {
       if (Load->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(Load->getType()->getPointerElementType(),
+          hasMatchingTypeName(Load->getType()->getNonOpaquePointerElementType(),
                               TSD->getTypeNameOfInterest())) {
         return true;
       }
@@ -711,9 +711,10 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
     if (Store->getValueOperand()->getType()->isPointerTy()) {
       if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(
-              Store->getValueOperand()->getType()->getPointerElementType(),
-              TSD->getTypeNameOfInterest())) {
+          hasMatchingTypeName(Store->getValueOperand()
+                                  ->getType()
+                                  ->getNonOpaquePointerElementType(),
+                              TSD->getTypeNameOfInterest())) {
         return true;
       }
     }

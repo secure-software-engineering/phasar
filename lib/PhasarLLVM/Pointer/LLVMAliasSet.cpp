@@ -321,10 +321,10 @@ static bool mayAlias(llvm::AAResults &AA, const llvm::DataLayout &DL,
   assert(Rep->getType()->isPointerTy());
 
   auto *ElTy = !V->getType()->isOpaquePointerTy()
-                   ? V->getType()->getPointerElementType()
+                   ? V->getType()->getNonOpaquePointerElementType()
                    : nullptr;
   auto *RepElTy = !Rep->getType()->isOpaquePointerTy()
-                      ? Rep->getType()->getPointerElementType()
+                      ? Rep->getType()->getNonOpaquePointerElementType()
                       : nullptr;
 
   auto VSize = ElTy && ElTy->isSized() ? DL.getTypeStoreSize(ElTy)
