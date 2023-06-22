@@ -13,6 +13,7 @@
 #include "phasar/TypeHierarchy/VFTable.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -20,14 +21,9 @@
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <iostream>
-
-#include <llvm-14/llvm/ADT/StringRef.h>
-#include <llvm-14/llvm/BinaryFormat/Dwarf.h>
-#include <llvm-14/llvm/IR/DebugInfo.h>
-#include <llvm-14/llvm/IR/DebugInfoMetadata.h>
-#include <llvm-14/llvm/Support/raw_ostream.h>
 
 namespace psr {
 
@@ -165,8 +161,19 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
 
   size_t VertexIndex = 0;
   size_t EdgeIndex = 0;
+
+  OS << "Transitive Closure Matrix\n";
+
+  for (const auto &BaseType : TransitiveClosure) {
+    for (const auto &Edge : BaseType) {
+      OS << Edge << " ";
+    }
+    OS << "\n";
+  }
+
+  OS << "Type Hierarchy\n";
   for (const auto &CurrentVertex : TransitiveClosure) {
-    OS << VertexTypes.at(VertexIndex)->getName() << "\n";
+    OS << VertexTypes[VertexIndex]->getName() << "\n";
     for (const bool CurrentEdge : CurrentVertex) {
       if (EdgeIndex != VertexIndex && CurrentEdge) {
         OS << "--> " << VertexTypes[EdgeIndex] << "\n";
