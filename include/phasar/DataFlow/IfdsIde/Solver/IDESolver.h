@@ -1733,6 +1733,7 @@ private:
 
     return !WorkList.empty();
   }
+
   void finalizeInternal() {
     if (SolverConfig.computeValues()) {
 
@@ -1749,10 +1750,12 @@ private:
       emitESGAsDot();
     }
   }
+
   SolverResults<n_t, d_t, l_t> doFinalize() & {
     finalizeInternal();
     return getSolverResults();
   }
+
   OwningSolverResults<n_t, d_t, l_t> doFinalize() && {
     finalizeInternal();
     return consumeSolverResults();

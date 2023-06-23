@@ -25,8 +25,31 @@
 namespace psr {
 template <typename Derived> class InteractiveIDESolverMixin {
 public:
+  /// Initialize the IDE solver for step-wise solving (iteratively calling
+  /// next() or nextN()).
+  /// For a more high-level API use solveUntil() or solveTimeout().
+  ///
+  /// \returns True, iff it is valid to call next() or nextN() afterwards.
   [[nodiscard]] bool initialize() { return self().doInitialize(); }
+
+  /// Performs one tiny step towards the analysis' fixpoint. For a
+  /// more high-level API use solveUntil() or solveTimeout().
+  ///
+  /// Requires that initialize() has been called before once and returned true
+  /// and that all previous next() or nextN() calls returned true as well.
+  ///
+  /// \returns True, iff there are more steps to process before calling
+  /// finalize()
   [[nodiscard]] bool next() { return self().doNext(); }
+
+  /// Performs N tiny steps towards the analysis' fixpoint.
+  /// For a more high-level API use solveUntil() or solveTimeout().
+  ///
+  /// Requires that initialize() has been called before once and returned true
+  /// and that all previous next() or nextN() calls returned true as well.
+  ///
+  /// \returns True, iff there are more steps to process before calling
+  /// finalize()
   [[nodiscard]] bool nextN(size_t MaxNumIterations) {
     PHASAR_LOG_LEVEL(DEBUG,
                      "[nextN]: Next " << MaxNumIterations << " Iterations");
@@ -40,13 +63,25 @@ public:
     PHASAR_LOG_LEVEL(DEBUG, "[nextN]: > has next");
     return true;
   }
+
+  /// Computes the final analysis results after the analysis has reached its
+  /// fixpoint, i.e. either initialize() returned false or the last next() or
+  /// nextN() call returned false.
+  ///
+  /// Returns a view into the computed analysis results
   decltype(auto) finalize() & { return self().doFinalize(); }
+  /// Computes the final analysis results after the analysis has reached its
+  /// fixpoint, i.e. either initialize() returned false or the last next() or
+  /// nextN() call returned false.
+  ///
+  /// Returns a the computed analysis results
   decltype(auto) finalize() && { return std::move(self()).doFinalize(); }
 
   /// Solves the analysis problen and periodically checks with Frequency whether
   /// CancellationRequested evaluates to true.
   ///
-  /// \returns True, iff the solving process was cancelled, else false.
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
   template <typename CancellationRequest,
             typename = std::enable_if_t<
                 std::is_invocable_r_v<bool, CancellationRequest> ||
@@ -61,7 +96,8 @@ public:
   /// Solves the analysis problen and periodically checks with Frequency whether
   /// CancellationRequested evaluates to true.
   ///
-  /// \returns True, iff the solving process was cancelled, else false.
+  /// \returns An std::optional holding the analysis results or std::nullopt if
+  /// the analysis was cancelled.
   template <typename CancellationRequest,
             typename = std::enable_if_t<
                 std::is_invocable_r_v<bool, CancellationRequest> ||
@@ -77,15 +113,31 @@ public:
   /// Solves the analysis problen and periodically checks with Frequency whether
   /// the Timeout has been exceeded.
   ///
-  /// \returns True, iff the solving process was cancelled, else false.
-  bool solveTimeout(std::chrono::milliseconds Timeout,
-                    std::chrono::milliseconds Frequency) {
-    return solveUntil(
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  auto solveTimeout(std::chrono::milliseconds Timeout,
+                    std::chrono::milliseconds Frequency) & {
+    auto CancellatioNRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
           return TimeStamp - Start >= Timeout;
-        },
-        Frequency);
+        };
+    return solveUntilImpl(self(), CancellatioNRequested, Frequency);
+  }
+
+  /// Solves the analysis problen and periodically checks with Frequency whether
+  /// the Timeout has been exceeded.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  auto solveTimeout(std::chrono::milliseconds Timeout,
+                    std::chrono::milliseconds Frequency) && {
+    auto CancellatioNRequested =
+        [Timeout, Start = std::chrono::steady_clock::now()](
+            std::chrono::steady_clock::time_point TimeStamp) {
+          return TimeStamp - Start >= Timeout;
+        };
+    return solveUntilImpl(std::move(self()), CancellatioNRequested, Frequency);
   }
 
 private:
@@ -103,10 +155,6 @@ private:
         std::decay_t<decltype(std::forward<SelfTy>(Self).finalize())>>;
 
     size_t NumIterations = Frequency.count() * 500;
-    if (!Self.initialize()) {
-      return RetTy(std::forward<SelfTy>(Self).finalize());
-    }
-
     auto IsCancellationRequested =
         [&CancellationRequested](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -119,36 +167,38 @@ private:
           }
         };
 
-    auto Start = std::chrono::steady_clock::now();
+    if (Self.initialize()) {
+      auto Start = std::chrono::steady_clock::now();
 
-    if (IsCancellationRequested(Start)) {
-      return RetTy();
-    }
-
-    while (true) {
-      if (!Self.nextN(NumIterations)) {
-        return RetTy(std::forward<SelfTy>(Self).finalize());
-      }
-
-      auto End = std::chrono::steady_clock::now();
-      using milliseconds_d = std::chrono::duration<double, std::milli>;
-
-      auto DeltaTime = std::chrono::duration_cast<milliseconds_d>(End - Start);
-      Start = End;
-
-      if (IsCancellationRequested(End)) {
+      if (IsCancellationRequested(Start)) {
         return RetTy();
       }
 
-      // Adjust NumIterations
-      auto IterationsPerMilli = double(NumIterations) / DeltaTime.count();
-      auto NewNumIterations =
-          size_t(IterationsPerMilli * double(Frequency.count()));
-      NumIterations = (NumIterations + 2 * NewNumIterations) / 3;
+      while (Self.nextN(NumIterations)) {
+        auto End = std::chrono::steady_clock::now();
+        using milliseconds_d = std::chrono::duration<double, std::milli>;
+
+        auto DeltaTime =
+            std::chrono::duration_cast<milliseconds_d>(End - Start);
+        Start = End;
+
+        if (IsCancellationRequested(End)) {
+          return RetTy();
+        }
+
+        // Adjust NumIterations
+        auto IterationsPerMilli = double(NumIterations) / DeltaTime.count();
+        auto NewNumIterations =
+            size_t(IterationsPerMilli * double(Frequency.count()));
+        NumIterations = (NumIterations + 2 * NewNumIterations) / 3;
+      }
     }
 
-    llvm_unreachable(
-        "We do not break out the above loop except for explicit returns");
+    auto End = std::chrono::steady_clock::now();
+    if (IsCancellationRequested(End)) {
+      return RetTy();
+    }
+    return RetTy(std::forward<SelfTy>(Self).finalize());
   }
 };
 } // namespace psr
