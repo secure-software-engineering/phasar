@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_INTERACTIVEIDESOLVERMIXIN_H
-#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_INTERACTIVEIDESOLVERMIXIN_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVERAPIMIXIN_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVERAPIMIXIN_H
 
 #include "phasar/Utils/Logger.h"
 
@@ -23,7 +23,7 @@
 #include <utility>
 
 namespace psr {
-template <typename Derived> class InteractiveIDESolverMixin {
+template <typename Derived> class IDESolverAPIMixin {
 public:
   /// Initialize the IDE solver for step-wise solving (iteratively calling
   /// next() or nextN()).
@@ -68,17 +68,42 @@ public:
   /// fixpoint, i.e. either initialize() returned false or the last next() or
   /// nextN() call returned false.
   ///
-  /// Returns a view into the computed analysis results
+  /// \returns A view into the computed analysis results
   decltype(auto) finalize() & { return self().doFinalize(); }
   /// Computes the final analysis results after the analysis has reached its
   /// fixpoint, i.e. either initialize() returned false or the last next() or
   /// nextN() call returned false.
   ///
-  /// Returns a the computed analysis results
+  /// \returns The computed analysis results
   decltype(auto) finalize() && { return std::move(self()).doFinalize(); }
 
-  /// Solves the analysis problen and periodically checks with Frequency whether
+  /// Runs the solver on the configured problem. This can take some time and
+  /// cannot be interrupted. If you need the ability to interrupt the solving
+  /// process consider using solveUntil() or solveTimeout().
+  ///
+  /// \returns A view into the computed analysis results
+  auto solve() & {
+    solveImpl(self());
+    return finalize();
+  }
+
+  /// Runs the solver on the configured problem. This can take some time and
+  /// cannot be interrupted. If you need the ability to interrupt the solving
+  /// process consider using solveUntil() or solveTimeout().
+  ///
+  /// \returns The computed analysis results
+  auto solve() && {
+    solveImpl(self());
+    return std::move(*this).finalize();
+  }
+
+  /// Solves the analysis problen and periodically checks every Interval whether
   /// CancellationRequested evaluates to true.
+  ///
+  /// Note: Shortening the cancellation-check interval will make the
+  /// cancellation-time more precise (by having more frequent calls to
+  /// CancellationRequested) but also have negative impact on the solver's
+  /// performance.
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
@@ -89,12 +114,17 @@ public:
                                       std::chrono::steady_clock::time_point>>>
   auto
   solveUntil(CancellationRequest CancellationRequested,
-             std::chrono::milliseconds Frequency = std::chrono::seconds{1}) & {
-    return solveUntilImpl(self(), std::move(CancellationRequested), Frequency);
+             std::chrono::milliseconds Interval = std::chrono::seconds{1}) & {
+    return solveUntilImpl(self(), std::move(CancellationRequested), Interval);
   }
 
-  /// Solves the analysis problen and periodically checks with Frequency whether
+  /// Solves the analysis problen and periodically checks every Interval whether
   /// CancellationRequested evaluates to true.
+  ///
+  /// Note: Shortening the cancellation-check interval will make the
+  /// cancellation-time more precise (by having more frequent calls to
+  /// CancellationRequested) but also have negative impact on the solver's
+  /// performance.
   ///
   /// \returns An std::optional holding the analysis results or std::nullopt if
   /// the analysis was cancelled.
@@ -105,56 +135,72 @@ public:
                                       std::chrono::steady_clock::time_point>>>
   auto
   solveUntil(CancellationRequest CancellationRequested,
-             std::chrono::milliseconds Frequency = std::chrono::seconds{1}) && {
+             std::chrono::milliseconds Interval = std::chrono::seconds{1}) && {
     return solveUntilImpl(std::move(self()), std::move(CancellationRequested),
-                          Frequency);
+                          Interval);
   }
 
-  /// Solves the analysis problen and periodically checks with Frequency whether
+  /// Solves the analysis problen and periodically checks every Interval whether
   /// the Timeout has been exceeded.
+  ///
+  /// Note: Shortening the timeout-check interval will make the timeout more
+  /// precise but also have negative impact on the solver's performance.
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
   auto solveTimeout(std::chrono::milliseconds Timeout,
-                    std::chrono::milliseconds Frequency) & {
+                    std::chrono::milliseconds Interval) & {
     auto CancellatioNRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
           return TimeStamp - Start >= Timeout;
         };
-    return solveUntilImpl(self(), CancellatioNRequested, Frequency);
+    return solveUntilImpl(self(), CancellatioNRequested, Interval);
   }
 
-  /// Solves the analysis problen and periodically checks with Frequency whether
+  /// Solves the analysis problen and periodically checks every Interval whether
   /// the Timeout has been exceeded.
+  ///
+  /// Note: Shortening the timeout-check interval will make the timeout more
+  /// precise but also have negative impact on the solver's performance.
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
   auto solveTimeout(std::chrono::milliseconds Timeout,
-                    std::chrono::milliseconds Frequency) && {
+                    std::chrono::milliseconds Interval) && {
     auto CancellatioNRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
           return TimeStamp - Start >= Timeout;
         };
-    return solveUntilImpl(std::move(self()), CancellatioNRequested, Frequency);
+    return solveUntilImpl(std::move(self()), CancellatioNRequested, Interval);
   }
 
 private:
   [[nodiscard]] Derived &self() &noexcept {
-    static_assert(std::is_base_of_v<InteractiveIDESolverMixin, Derived>,
+    static_assert(std::is_base_of_v<IDESolverAPIMixin, Derived>,
                   "Invalid CRTP instantiation");
     return static_cast<Derived &>(*this);
+  }
+
+  static void solveImpl(Derived &Self) {
+    if (Self.initialize()) {
+      while (Self.next()) {
+        // no interrupt in normal solving process
+      }
+    }
+    // Note: Do not call finalize() here, because depending on the
+    // reference-category of self(), we may need to call a different function.
   }
 
   template <typename SelfTy, typename CancellationRequest>
   static auto solveUntilImpl(SelfTy &&Self,
                              CancellationRequest CancellationRequested,
-                             std::chrono::milliseconds Frequency) {
+                             std::chrono::milliseconds Interval) {
     using RetTy = std::optional<
         std::decay_t<decltype(std::forward<SelfTy>(Self).finalize())>>;
 
-    size_t NumIterations = Frequency.count() * 500;
+    size_t NumIterations = Interval.count() * 500;
     auto IsCancellationRequested =
         [&CancellationRequested](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -189,7 +235,7 @@ private:
         // Adjust NumIterations
         auto IterationsPerMilli = double(NumIterations) / DeltaTime.count();
         auto NewNumIterations =
-            size_t(IterationsPerMilli * double(Frequency.count()));
+            size_t(IterationsPerMilli * double(Interval.count()));
         NumIterations = (NumIterations + 2 * NewNumIterations) / 3;
       }
     }
@@ -203,4 +249,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_DATAFLOW_IFDSIDE_SOLVER_INTERACTIVEIDESOLVERMIXIN_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVERAPIMIXIN_H

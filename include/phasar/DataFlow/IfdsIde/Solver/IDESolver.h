@@ -27,7 +27,7 @@
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
-#include "phasar/DataFlow/IfdsIde/Solver/InteractiveIDESolverMixin.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/PathEdge.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
@@ -61,8 +61,8 @@ namespace psr {
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDESolver
-    : public InteractiveIDESolverMixin<IDESolver<AnalysisDomainTy, Container>> {
-  friend InteractiveIDESolverMixin<IDESolver<AnalysisDomainTy, Container>>;
+    : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>> {
+  friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>>;
 
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;
@@ -129,18 +129,6 @@ public:
       }
     }
     return J;
-  }
-
-  /// \brief Runs the solver on the configured problem. This can take some time.
-  auto solve() & {
-    doSolve();
-    return getSolverResults();
-  }
-
-  /// \brief Runs the solver on the configured problem. This can take some time.
-  auto solve() && {
-    doSolve();
-    return consumeSolverResults();
   }
 
   /// Returns the L-type result for the given value at the given statement.
@@ -274,62 +262,6 @@ public:
   }
 
 protected:
-  virtual void doSolve() {
-    PAMM_GET_INSTANCE;
-    REG_COUNTER("Gen facts", 0, PAMM_SEVERITY_LEVEL::Core);
-    REG_COUNTER("Kill facts", 0, PAMM_SEVERITY_LEVEL::Core);
-    REG_COUNTER("Summary-reuse", 0, PAMM_SEVERITY_LEVEL::Core);
-    REG_COUNTER("Intra Path Edges", 0, PAMM_SEVERITY_LEVEL::Core);
-    REG_COUNTER("Inter Path Edges", 0, PAMM_SEVERITY_LEVEL::Core);
-    REG_COUNTER("FF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("EF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("Value Propagation", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("Value Computation", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("SpecialSummary-FF Application", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("SpecialSummary-EF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("JumpFn Construction", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("Process Call", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("Process Normal", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("Process Exit", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_COUNTER("[Calls] getAliasSet", 0, PAMM_SEVERITY_LEVEL::Full);
-    REG_HISTOGRAM("Data-flow facts", PAMM_SEVERITY_LEVEL::Full);
-    REG_HISTOGRAM("Points-to", PAMM_SEVERITY_LEVEL::Full);
-
-    PHASAR_LOG_LEVEL(INFO, "IDE solver is solving the specified problem");
-    PHASAR_LOG_LEVEL(INFO,
-                     "Submit initial seeds, construct exploded super graph");
-    // computations starting here
-    START_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
-    // We start our analysis and construct exploded supergraph
-    submitInitialSeeds();
-
-    while (!WorkList.empty()) {
-      auto [Edge, EF] = std::move(WorkList.back());
-      WorkList.pop_back();
-
-      auto [SourceVal, Target, TargetVal] = Edge.consume();
-      propagate(std::move(SourceVal), std::move(Target), std::move(TargetVal),
-                std::move(EF));
-    }
-
-    STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
-    if (SolverConfig.computeValues()) {
-      START_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
-      // Computing the final values for the edge functions
-      PHASAR_LOG_LEVEL(
-          INFO, "Compute the final values according to the edge functions");
-      computeValues();
-      STOP_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
-    }
-    PHASAR_LOG_LEVEL(INFO, "Problem solved");
-    if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
-      computeAndPrintStatistics();
-    }
-    if (SolverConfig.emitESG()) {
-      emitESGAsDot();
-    }
-  }
-
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
   ///
@@ -1725,9 +1657,32 @@ private:
   /// -- InteractiveIDESolverMixin implementation
 
   bool doInitialize() {
+    PAMM_GET_INSTANCE;
+    REG_COUNTER("Gen facts", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Kill facts", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Summary-reuse", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Intra Path Edges", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Inter Path Edges", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("FF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("EF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Value Propagation", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Value Computation", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("SpecialSummary-FF Application", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("SpecialSummary-EF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("JumpFn Construction", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Process Call", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Process Normal", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Process Exit", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("[Calls] getAliasSet", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_HISTOGRAM("Data-flow facts", PAMM_SEVERITY_LEVEL::Full);
+    REG_HISTOGRAM("Points-to", PAMM_SEVERITY_LEVEL::Full);
+
     PHASAR_LOG_LEVEL(INFO, "IDE solver is solving the specified problem");
     PHASAR_LOG_LEVEL(INFO,
                      "Submit initial seeds, construct exploded super graph");
+    // computations starting here
+    START_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
+
     // We start our analysis and construct exploded supergraph
     submitInitialSeeds();
     return !WorkList.empty();
@@ -1746,12 +1701,14 @@ private:
   }
 
   void finalizeInternal() {
+    STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     if (SolverConfig.computeValues()) {
-
+      START_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
       // Computing the final values for the edge functions
       PHASAR_LOG_LEVEL(
           INFO, "Compute the final values according to the edge functions");
       computeValues();
+      STOP_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
     }
     PHASAR_LOG_LEVEL(INFO, "Problem solved");
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {

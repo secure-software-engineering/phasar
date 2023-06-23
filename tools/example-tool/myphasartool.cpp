@@ -41,12 +41,12 @@ int main(int Argc, const char **Argv) {
     llvm::outs() << "Testing IFDS:\n";
     auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
     IFDSSolver S(L, &HA.getICFG());
-    S.solve();
-    S.dumpResults();
+    auto IFDSResults = S.solve();
+    IFDSResults.dumpResults(HA.getICFG(), L);
+
     // IDE template parametrization test
     llvm::outs() << "Testing IDE:\n";
     auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
-
     // Alternative way of solving an IFDS/IDEProblem:
     auto IDEResults = solveIDEProblem(M, HA.getICFG());
     IDEResults.dumpResults(HA.getICFG(), M);
