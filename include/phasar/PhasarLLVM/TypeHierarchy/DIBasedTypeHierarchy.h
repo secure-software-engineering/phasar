@@ -71,8 +71,6 @@ public:
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
 private:
-  void addSubtypes(std::vector<bool> &Row, size_t OtherRowIndex);
-
   llvm::StringMap<ClassType> NameToType;
 
   // Map each type to an integer index that is used by VertexTypes and
