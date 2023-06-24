@@ -15,6 +15,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <functional>
@@ -82,7 +83,7 @@ public:
   /// process consider using solveUntil() or solveTimeout().
   ///
   /// \returns A view into the computed analysis results
-  auto solve() & {
+  decltype(auto) solve() & {
     solveImpl(self());
     return finalize();
   }
@@ -92,7 +93,7 @@ public:
   /// process consider using solveUntil() or solveTimeout().
   ///
   /// \returns The computed analysis results
-  auto solve() && {
+  decltype(auto) solve() && {
     solveImpl(self());
     return std::move(*this).finalize();
   }
@@ -115,7 +116,13 @@ public:
   auto
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) & {
-    return solveUntilImpl(self(), std::move(CancellationRequested), Interval);
+    using RetTy = std::optional<std::decay_t<decltype(self().finalize())>>;
+    return [&]() -> RetTy {
+      if (solveUntilImpl(std::move(CancellationRequested), Interval)) {
+        return finalize();
+      }
+      return std::nullopt;
+    }();
   }
 
   /// Solves the analysis problen and periodically checks every Interval whether
@@ -136,8 +143,14 @@ public:
   auto
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) && {
-    return solveUntilImpl(std::move(self()), std::move(CancellationRequested),
-                          Interval);
+    using RetTy =
+        std::optional<std::decay_t<decltype(std::move(self()).finalize())>>;
+    return [&]() -> RetTy {
+      if (solveUntilImpl(std::move(CancellationRequested), Interval)) {
+        return std::move(self()).finalize();
+      }
+      return std::nullopt;
+    }();
   }
 
   /// Solves the analysis problen and periodically checks every Interval whether
@@ -150,12 +163,13 @@ public:
   /// std::nullopt if the analysis was cancelled.
   auto solveTimeout(std::chrono::milliseconds Timeout,
                     std::chrono::milliseconds Interval) & {
-    auto CancellatioNRequested =
+    auto CancellationRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
           return TimeStamp - Start >= Timeout;
         };
-    return solveUntilImpl(self(), CancellatioNRequested, Interval);
+
+    return solveUntil(CancellationRequested, Interval);
   }
 
   /// Solves the analysis problen and periodically checks every Interval whether
@@ -173,7 +187,40 @@ public:
             std::chrono::steady_clock::time_point TimeStamp) {
           return TimeStamp - Start >= Timeout;
         };
-    return solveUntilImpl(std::move(self()), CancellatioNRequested, Interval);
+    return std::move(*this).solveUntil(CancellatioNRequested, Interval);
+  }
+
+  // -- Async cancellation
+
+  /// Solves the analysis problen and periodically checks whether
+  /// IsCancelled is true.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) & {
+    using RetTy = std::optional<std::decay_t<decltype(self().finalize())>>;
+    return [&]() -> RetTy {
+      if (solveWithAsyncCancellationImpl(IsCancelled)) {
+        return self().finalize();
+      }
+      return std::nullopt;
+    }();
+  }
+
+  /// Solves the analysis problen and periodically checks whether
+  /// IsCancelled is true.
+  ///
+  /// \returns An std::optional holding the analysis results or std::nullopt if
+  /// the analysis was cancelled.
+  auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) && {
+    using RetTy =
+        std::optional<std::decay_t<decltype(std::move(self()).finalize())>>;
+    return [&]() -> RetTy {
+      if (solveWithAsyncCancellationImpl(IsCancelled)) {
+        return std::move(self()).finalize();
+      }
+      return std::nullopt;
+    }();
   }
 
 private:
@@ -189,16 +236,11 @@ private:
         // no interrupt in normal solving process
       }
     }
-    // Note: Do not call finalize() here, because depending on the
-    // reference-category of self(), we may need to call a different function.
   }
 
-  template <typename SelfTy, typename CancellationRequest>
-  static auto solveUntilImpl(SelfTy &&Self,
-                             CancellationRequest CancellationRequested,
-                             std::chrono::milliseconds Interval) {
-    using RetTy = std::optional<
-        std::decay_t<decltype(std::forward<SelfTy>(Self).finalize())>>;
+  template <typename CancellationRequest>
+  [[nodiscard]] bool solveUntilImpl(CancellationRequest CancellationRequested,
+                                    std::chrono::milliseconds Interval) {
 
     size_t NumIterations = Interval.count() * 500;
     auto IsCancellationRequested =
@@ -213,14 +255,14 @@ private:
           }
         };
 
-    if (Self.initialize()) {
+    if (self().initialize()) {
       auto Start = std::chrono::steady_clock::now();
 
       if (IsCancellationRequested(Start)) {
-        return RetTy();
+        return false;
       }
 
-      while (Self.nextN(NumIterations)) {
+      while (self().nextN(NumIterations)) {
         auto End = std::chrono::steady_clock::now();
         using milliseconds_d = std::chrono::duration<double, std::milli>;
 
@@ -229,7 +271,7 @@ private:
         Start = End;
 
         if (IsCancellationRequested(End)) {
-          return RetTy();
+          return false;
         }
 
         // Adjust NumIterations
@@ -241,10 +283,23 @@ private:
     }
 
     auto End = std::chrono::steady_clock::now();
-    if (IsCancellationRequested(End)) {
-      return RetTy();
+    return !IsCancellationRequested(End);
+  }
+
+  [[nodiscard]] bool
+  solveWithAsyncCancellationImpl(std::atomic_bool &IsCancelled) {
+    if (self().initialize()) {
+      if (IsCancelled.load()) {
+        return false;
+      }
+      while (self().next()) {
+        if (IsCancelled.load()) {
+          return false;
+        }
+      }
     }
-    return RetTy(std::forward<SelfTy>(Self).finalize());
+
+    return !IsCancelled.load();
   }
 };
 } // namespace psr
