@@ -25,6 +25,18 @@
 
 namespace psr {
 
+int DIBasedTypeHierarchy::getTypeIndexByName(llvm::StringRef Name) {
+  int Counter = 0;
+  for (const auto &Vertex : VertexTypes) {
+    if (Vertex->getName() == Name) {
+      return Counter;
+    }
+    Counter++;
+  }
+
+  return -1;
+}
+
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   llvm::DebugInfoFinder Finder;
 
@@ -43,15 +55,23 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   }
 
   // find and save all derived types
-  Counter = 0;
   for (const llvm::DIType *DIType : Finder.types()) {
     if (const auto *DerivedType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {
       if (DerivedType->getTag() == llvm::dwarf::DW_TAG_inheritance) {
-        // TypeToVertex.try_emplace(DerivedType, Counter++);
+
+        DerivedTypeNames.push_back(DerivedType->getScope()->getName());
+        BaseTypeNames.push_back(DerivedType->getBaseType()->getName());
+
+        const int ActualDerivedType =
+            getTypeIndexByName(DerivedType->getScope()->getName());
+
+        if (ActualDerivedType == -1) {
+          llvm::report_fatal_error("Not implemented");
+        }
 
         llvm::SmallVector<size_t> BaseType = {
-            Counter++, TypeToVertex[DerivedType->getBaseType()]};
-        // VertexTypes.push_back(DerivedType);
+            TypeToVertex[DerivedType->getBaseType()],
+            static_cast<size_t>(ActualDerivedType)};
         DerivedTypesOf.push_back(BaseType);
         continue;
       }
@@ -70,12 +90,16 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure[Vertex[0]][Vertex[1]] = true;
   }
 
+  TransitiveClosureBefore = TransitiveClosure;
+
   // Add transitive edges
+
   bool Change = true;
   size_t TCSize = TransitiveClosure.size();
   size_t RowIndex = 0;
   size_t PreviousRow = 0;
   // (max): I know the code below is very ugly, but I wanted to avoid recursion
+  /*
   while (Change) {
     Change = false;
     for (size_t CurrentRow = 0; CurrentRow < TCSize; CurrentRow++) {
@@ -83,15 +107,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         if (CurrentRow == CompareRow) {
           continue;
         }
-        bool IsBaseType = false;
-        for (size_t Column = 0; Column < TCSize; Column++) {
-          if (TransitiveClosure[CurrentRow][Column]) {
-            IsBaseType = true;
-            break;
-          }
-        }
 
-        if (!IsBaseType) {
+        if (!TransitiveClosure[CurrentRow][CompareRow]) {
           continue;
         }
 
@@ -104,7 +121,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         }
       }
     }
-  }
+  } */
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::isSubType(ClassType Type,
@@ -192,13 +209,28 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   size_t VertexIndex = 0;
   size_t EdgeIndex = 0;
 
-  OS << "Transitive Closure Matrix\n";
+  OS << "Transitive Closure Matrix before\n";
 
+  size_t Index = 0;
+  for (const auto &BaseType : TransitiveClosureBefore) {
+    for (const auto &Edge : BaseType) {
+      OS << Edge << " ";
+    }
+    OS << VertexTypes[Index]->getName() << ": ";
+    OS << "\n";
+    Index++;
+  }
+
+  OS << "Transitive Closure Matrix after\n";
+
+  Index = 0;
   for (const auto &BaseType : TransitiveClosure) {
     for (const auto &Edge : BaseType) {
       OS << Edge << " ";
     }
+    OS << VertexTypes[Index]->getName() << ": ";
     OS << "\n";
+    Index++;
   }
 
   OS << "Names of vertex types\n";
@@ -219,6 +251,18 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
     }
     OS << "\n";
   }
+
+  OS << "\nBase names:\n";
+  for (const auto &BaseName : BaseTypeNames) {
+    OS << BaseName << "\n";
+  }
+  OS << "\n";
+
+  OS << "\nDerived names:\n";
+  for (const auto &DerivedName : DerivedTypeNames) {
+    OS << DerivedName << "\n";
+  }
+  OS << "\n";
 
   OS << "Type Hierarchy\n";
   for (const auto &CurrentVertex : TransitiveClosure) {

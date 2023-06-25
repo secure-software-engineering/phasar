@@ -20,6 +20,8 @@
 
 #include <deque>
 
+#include <llvm-14/llvm/ADT/StringRef.h>
+
 namespace psr {
 class LLVMProjectIRDB;
 
@@ -99,6 +101,12 @@ private:
   // 0 0 1
   // TODO (max): llvm::BitVector
   std::vector<std::vector<bool>> TransitiveClosure;
+  // debug
+  std::vector<std::vector<bool>> TransitiveClosureBefore;
+  std::vector<llvm::StringRef> BaseTypeNames;
+  std::vector<llvm::StringRef> DerivedTypeNames;
+
+  int getTypeIndexByName(llvm::StringRef Name);
 };
 } // namespace psr
 
