@@ -84,7 +84,7 @@ public:
   ///
   /// \returns A view into the computed analysis results
   decltype(auto) solve() & {
-    solveImpl(self());
+    solveImpl();
     return finalize();
   }
 
@@ -94,7 +94,41 @@ public:
   ///
   /// \returns The computed analysis results
   decltype(auto) solve() && {
-    solveImpl(self());
+    solveImpl();
+    return std::move(*this).finalize();
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. This can take some time and cannot be
+  /// interrupted. If you need the ability to interrupt the solving process
+  /// consider using solveUntil() or solveTimeout().
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// \returns A view into the computed analysis results
+  decltype(auto) continueSolving() & {
+    continueImpl();
+    return finalize();
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. This can take some time and cannot be
+  /// interrupted. If you need the ability to interrupt the solving process
+  /// consider using solveUntil() or solveTimeout().
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// \returns The computed analysis results
+  decltype(auto) continueSolving() && {
+    continueImpl();
     return std::move(*this).finalize();
   }
 
@@ -116,7 +150,7 @@ public:
   auto
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) & {
-    using RetTy = std::optional<std::decay_t<decltype(self().finalize())>>;
+    using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
     return [&]() -> RetTy {
       if (solveUntilImpl(std::move(CancellationRequested), Interval)) {
         return finalize();
@@ -144,10 +178,79 @@ public:
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) && {
     using RetTy =
-        std::optional<std::decay_t<decltype(std::move(self()).finalize())>>;
+        std::optional<std::decay_t<decltype(std::move(*this).finalize())>>;
     return [&]() -> RetTy {
       if (solveUntilImpl(std::move(CancellationRequested), Interval)) {
-        return std::move(self()).finalize();
+        return std::move(*this).finalize();
+      }
+      return std::nullopt;
+    }();
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. Periodically checks every Interval whether
+  /// CancellationRequested evaluates to true.
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// Note: Shortening the cancellation-check interval will make the
+  /// cancellation-time more precise (by having more frequent calls to
+  /// CancellationRequested) but also have negative impact on the solver's
+  /// performance.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  template <typename CancellationRequest,
+            typename = std::enable_if_t<
+                std::is_invocable_r_v<bool, CancellationRequest> ||
+                std::is_invocable_r_v<bool, CancellationRequest,
+                                      std::chrono::steady_clock::time_point>>>
+  auto continueUntil(CancellationRequest CancellationRequested,
+                     std::chrono::milliseconds Interval = std::chrono::seconds{
+                         1}) & {
+    using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
+    return [&]() -> RetTy {
+      if (continueUntilImpl(std::move(CancellationRequested), Interval)) {
+        return finalize();
+      }
+      return std::nullopt;
+    }();
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. Periodically checks every Interval whether
+  /// CancellationRequested evaluates to true.
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// Note: Shortening the cancellation-check interval will make the
+  /// cancellation-time more precise (by having more frequent calls to
+  /// CancellationRequested) but also have negative impact on the solver's
+  /// performance.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  template <typename CancellationRequest,
+            typename = std::enable_if_t<
+                std::is_invocable_r_v<bool, CancellationRequest> ||
+                std::is_invocable_r_v<bool, CancellationRequest,
+                                      std::chrono::steady_clock::time_point>>>
+  auto continueUntil(CancellationRequest CancellationRequested,
+                     std::chrono::milliseconds Interval = std::chrono::seconds{
+                         1}) && {
+    using RetTy =
+        std::optional<std::decay_t<decltype(std::move(*this).finalize())>>;
+    return [&]() -> RetTy {
+      if (continueUntilImpl(std::move(CancellationRequested), Interval)) {
+        return std::move(*this).finalize();
       }
       return std::nullopt;
     }();
@@ -161,8 +264,8 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto solveTimeout(std::chrono::milliseconds Timeout,
-                    std::chrono::milliseconds Interval) & {
+  auto solveWithTimeout(std::chrono::milliseconds Timeout,
+                        std::chrono::milliseconds Interval) & {
     auto CancellationRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -180,14 +283,66 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto solveTimeout(std::chrono::milliseconds Timeout,
-                    std::chrono::milliseconds Interval) && {
+  auto solveWithTimeout(std::chrono::milliseconds Timeout,
+                        std::chrono::milliseconds Interval) && {
     auto CancellatioNRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
           return TimeStamp - Start >= Timeout;
         };
     return std::move(*this).solveUntil(CancellatioNRequested, Interval);
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. Periodically checks every Interval whether
+  /// the Timeout has been exceeded.
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// Note: Shortening the timeout-check interval will make the timeout more
+  /// precise but also have negative impact on the solver's performance.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  auto continueWithTimeout(std::chrono::milliseconds Timeout,
+                           std::chrono::milliseconds Interval) & {
+    auto CancellationRequested =
+        [Timeout, Start = std::chrono::steady_clock::now()](
+            std::chrono::steady_clock::time_point TimeStamp) {
+          return TimeStamp - Start >= Timeout;
+        };
+
+    return continueUntil(CancellationRequested, Interval);
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. Periodically checks every Interval whether
+  /// the Timeout has been exceeded.
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// Note: Shortening the timeout-check interval will make the timeout more
+  /// precise but also have negative impact on the solver's performance.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  auto continueWithTimeout(std::chrono::milliseconds Timeout,
+                           std::chrono::milliseconds Interval) && {
+    auto CancellationRequested =
+        [Timeout, Start = std::chrono::steady_clock::now()](
+            std::chrono::steady_clock::time_point TimeStamp) {
+          return TimeStamp - Start >= Timeout;
+        };
+
+    return std::move(*this).continueUntil(CancellationRequested, Interval);
   }
 
   // -- Async cancellation
@@ -198,10 +353,10 @@ public:
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
   auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) & {
-    using RetTy = std::optional<std::decay_t<decltype(self().finalize())>>;
+    using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
     return [&]() -> RetTy {
       if (solveWithAsyncCancellationImpl(IsCancelled)) {
-        return self().finalize();
+        return finalize();
       }
       return std::nullopt;
     }();
@@ -214,10 +369,55 @@ public:
   /// the analysis was cancelled.
   auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) && {
     using RetTy =
-        std::optional<std::decay_t<decltype(std::move(self()).finalize())>>;
+        std::optional<std::decay_t<decltype(std::move(*this).finalize())>>;
     return [&]() -> RetTy {
       if (solveWithAsyncCancellationImpl(IsCancelled)) {
-        return std::move(self()).finalize();
+        return std::move(*this).finalize();
+      }
+      return std::nullopt;
+    }();
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. Periodically checks whether
+  /// IsCancelled is true.
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  auto continueWithAsyncCancellation(std::atomic_bool &IsCancelled) & {
+    using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
+    return [&]() -> RetTy {
+      if (continueWithAsyncCancellationImpl(IsCancelled)) {
+        return finalize();
+      }
+      return std::nullopt;
+    }();
+  }
+
+  /// Continues running the solver on the configured problem after it got
+  /// interrupted in a previous run. Periodically checks whether
+  /// IsCancelled is true.
+  ///
+  /// \remark Please make sure to *not* call this function on an IDESolver where
+  /// the solving process is interrupted, i.e. one of hte interruptable solving
+  /// methods returned std::nullopt. It is *invalid* to call this function on an
+  /// IDESolver that has not yet started solvong or has already flinalized
+  /// solving.
+  ///
+  /// \returns An std::optional holding a view into the analysis results or
+  /// std::nullopt if the analysis was cancelled.
+  auto continueWithAsyncCancellation(std::atomic_bool &IsCancelled) && {
+    using RetTy =
+        std::optional<std::decay_t<decltype(std::move(*this).finalize())>>;
+    return [&]() -> RetTy {
+      if (continueWithAsyncCancellationImpl(IsCancelled)) {
+        return std::move(*this).finalize();
       }
       return std::nullopt;
     }();
@@ -230,19 +430,22 @@ private:
     return static_cast<Derived &>(*this);
   }
 
-  static void solveImpl(Derived &Self) {
-    if (Self.initialize()) {
-      while (Self.next()) {
-        // no interrupt in normal solving process
-      }
+  void continueImpl() {
+    while (next()) {
+      // no interrupt in normal solving process
+    }
+  }
+
+  void solveImpl() {
+    if (initialize()) {
+      continueImpl();
     }
   }
 
   template <typename CancellationRequest>
-  [[nodiscard]] bool solveUntilImpl(CancellationRequest CancellationRequested,
-                                    std::chrono::milliseconds Interval) {
-
-    size_t NumIterations = Interval.count() * 500;
+  [[nodiscard]] bool
+  continueUntilImpl(CancellationRequest CancellationRequested,
+                    std::chrono::milliseconds Interval) {
     auto IsCancellationRequested =
         [&CancellationRequested](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -255,51 +458,75 @@ private:
           }
         };
 
-    if (self().initialize()) {
-      auto Start = std::chrono::steady_clock::now();
+    size_t NumIterations = Interval.count() * 500;
 
-      if (IsCancellationRequested(Start)) {
+    auto Start = std::chrono::steady_clock::now();
+
+    while (nextN(NumIterations)) {
+      auto End = std::chrono::steady_clock::now();
+      using milliseconds_d = std::chrono::duration<double, std::milli>;
+
+      auto DeltaTime = std::chrono::duration_cast<milliseconds_d>(End - Start);
+      Start = End;
+
+      if (IsCancellationRequested(End)) {
         return false;
       }
 
-      while (self().nextN(NumIterations)) {
-        auto End = std::chrono::steady_clock::now();
-        using milliseconds_d = std::chrono::duration<double, std::milli>;
-
-        auto DeltaTime =
-            std::chrono::duration_cast<milliseconds_d>(End - Start);
-        Start = End;
-
-        if (IsCancellationRequested(End)) {
-          return false;
-        }
-
-        // Adjust NumIterations
-        auto IterationsPerMilli = double(NumIterations) / DeltaTime.count();
-        auto NewNumIterations =
-            size_t(IterationsPerMilli * double(Interval.count()));
-        NumIterations = (NumIterations + 2 * NewNumIterations) / 3;
-      }
+      // Adjust NumIterations
+      auto IterationsPerMilli = double(NumIterations) / DeltaTime.count();
+      auto NewNumIterations =
+          size_t(IterationsPerMilli * double(Interval.count()));
+      NumIterations = (NumIterations + 2 * NewNumIterations) / 3;
     }
-
     auto End = std::chrono::steady_clock::now();
     return !IsCancellationRequested(End);
   }
 
+  template <typename CancellationRequest>
+  [[nodiscard]] bool solveUntilImpl(CancellationRequest CancellationRequested,
+                                    std::chrono::milliseconds Interval) {
+    auto IsCancellationRequested =
+        [&CancellationRequested](
+            std::chrono::steady_clock::time_point TimeStamp) {
+          if constexpr (std::is_invocable_r_v<
+                            bool, CancellationRequest,
+                            std::chrono::steady_clock::time_point>) {
+            return std::invoke(CancellationRequested, TimeStamp);
+          } else {
+            return std::invoke(CancellationRequested);
+          }
+        };
+
+    bool Initialized = initialize();
+    auto TimeStamp = std::chrono::steady_clock::now();
+    if (IsCancellationRequested(TimeStamp)) {
+      return false;
+    }
+
+    return Initialized
+               ? continueUntilImpl(std::move(CancellationRequested), Interval)
+               : true;
+  }
+
   [[nodiscard]] bool
-  solveWithAsyncCancellationImpl(std::atomic_bool &IsCancelled) {
-    if (self().initialize()) {
+  continueWithAsyncCancellationImpl(std::atomic_bool &IsCancelled) {
+    while (next()) {
       if (IsCancelled.load()) {
         return false;
       }
-      while (self().next()) {
-        if (IsCancelled.load()) {
-          return false;
-        }
-      }
+    }
+    return !IsCancelled.load();
+  }
+
+  [[nodiscard]] bool
+  solveWithAsyncCancellationImpl(std::atomic_bool &IsCancelled) {
+    bool Initialized = initialize();
+    if (IsCancelled.load()) {
+      return false;
     }
 
-    return !IsCancelled.load();
+    return Initialized ? continueWithAsyncCancellationImpl(IsCancelled) : true;
   }
 };
 } // namespace psr
