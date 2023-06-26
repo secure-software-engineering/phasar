@@ -27,6 +27,11 @@ TEST(DBTHTest, BasicTHReconstruction_1) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_1_cpp.ll");
   DIBasedTypeHierarchy DBTH(IRDB);
+
+  // EXPECT_TRUE verwenden
+  // namespace std weg
+  // boost weg
+
   EXPECT_EQ(DBTH.hasType(DBTH.getType("struct.Base")), true);
   EXPECT_EQ(DBTH.hasType(DBTH.getType("struct.Child")), true);
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);

@@ -11,11 +11,11 @@ class ChildOfChild : public Child {
 };
 
 class BaseTwo {
-  virtual int foo() { return 3; }
+  virtual int foobar() { return 3; }
 };
 
 struct ChildTwo : public BaseTwo {
-  int foo() override { return 4; };
+  int foobar() override { return 4; };
 };
 
 int main() {

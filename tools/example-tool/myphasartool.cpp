@@ -40,8 +40,6 @@ int main(int Argc, const char **Argv) {
   std::vector EntryPoints = {"main"s};
 
   HelperAnalyses HA(Argv[1], EntryPoints);
-  std::cout << "OLD Type Hierarchy" << std::endl;
-  HA.getTypeHierarchy().print();
   DIBasedTypeHierarchy Test(HA.getProjectIRDB());
   std::cout << "NEW Type Hierarchy" << std::endl;
   Test.print();

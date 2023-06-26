@@ -13,14 +13,14 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
+#include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 
 #include <deque>
-
-#include <llvm-14/llvm/ADT/StringRef.h>
 
 namespace psr {
 class LLVMProjectIRDB;
@@ -73,8 +73,8 @@ public:
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
 private:
+  llvm::DebugInfoFinder Finder;
   llvm::StringMap<ClassType> NameToType;
-
   // Map each type to an integer index that is used by VertexTypes and
   // DerivedTypesOf.
   // Note: all the below arrays should always have the same size!
@@ -84,29 +84,19 @@ private:
   // The type-graph edges ("Adjacency List").
   // DerivedTypesOf[TypeToVertex.lookup(Ty)] gives the indices of the direct
   // subclasses of type T
-  std::vector<llvm::SmallVector<size_t>> DerivedTypesOf;
   // The VTables of the polymorphic types in the TH. default-constructed if not
   // exists
   std::deque<LLVMVFTable> VTables;
   // Transitive closure implemented as a matrix
   // Example:
-  // Graph:
-  // (1) -> (3)
-  //  ^
-  //  |
-  // (2)
-  // Transitive closure:
-  // 1 0 1
-  // 1 1 1
-  // 0 0 1
-  // TODO (max): llvm::BitVector
-  std::vector<std::vector<bool>> TransitiveClosure;
-  // debug
-  std::vector<std::vector<bool>> TransitiveClosureBefore;
-  std::vector<llvm::StringRef> BaseTypeNames;
-  std::vector<llvm::StringRef> DerivedTypeNames;
-
-  int getTypeIndexByName(llvm::StringRef Name);
+  //
+  // Graph:       Transitive closure:
+  // (A) -> (C)         | A B C
+  //  ^               --+------
+  //  |               A | 1 0 1
+  // (B)              B | 1 1 1
+  //                  C | 0 0 1
+  std::vector<llvm::BitVector> TransitiveClosure;
 };
 } // namespace psr
 
