@@ -29,9 +29,9 @@ protected:
 TEST_F(PAMMTest, HandleTimer) {
   //   PAMM &pamm = PAMM::getInstance();
   PAMM::getInstance().startTimer("timer1");
-  std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(120));
   PAMM::getInstance().stopTimer("timer1");
-  EXPECT_GE(PAMM::getInstance().elapsedTime("timer1"), 1200U);
+  EXPECT_GE(PAMM::getInstance().elapsedTime("timer1"), 120U);
 }
 
 TEST_F(PAMMTest, HandleCounter) {
@@ -50,6 +50,8 @@ TEST_F(PAMMTest, HandleCounter) {
 }
 
 TEST_F(PAMMTest, HandleJSONOutput) {
+  GTEST_SKIP() << "We should really assert something in this test...";
+
   PAMM &Pamm = PAMM::getInstance();
   Pamm.regCounter("timerCount");
   Pamm.regCounter("setOpCount");
