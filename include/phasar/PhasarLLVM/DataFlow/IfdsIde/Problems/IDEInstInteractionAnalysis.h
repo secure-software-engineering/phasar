@@ -269,13 +269,13 @@ public:
           //     LLVMKFieldSensFlowFact<>::getCustomOffsetDerefValue(Alloca,
           //     {0});
           if (Source.getBaseValue() == Alloca) {
-            if (Offset != std::nullopt) {
-              auto LoadedVal = Source.getLoaded(Load, Offset.value());
-              if (LoadedVal != std::nullopt) {
-                return {Source, LoadedVal.value()};
-              }
-              return {Source};
+            // Performs the case distinction for Offset in getLoaded()
+            auto LoadedVal = Source.getLoaded(Load, Offset);
+            if (LoadedVal != std::nullopt) {
+              return {Source, LoadedVal.value()};
             }
+            return {Source};
+            // Fixed above:
             // FIXME handle non-constant load here, need another factory func
             // that performs an overapproximated load
           }
@@ -322,11 +322,12 @@ public:
           // Store to array or struct.
           if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                   Store->getPointerOperand())) {
-            Facts.insert(LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep));
+            const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
+            Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
+            // Facts.insert(LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep));
           } else {
             // Ordinary store.
-            Facts.insert(LLVMKFieldSensFlowFact<>::getNonIndirectionValue(
-                Store->getPointerOperand()));
+            Facts.insert(Src.getStored(Store->getPointerOperand()));
           }
         }
         // ... or from zero, if a constant literal is stored to y

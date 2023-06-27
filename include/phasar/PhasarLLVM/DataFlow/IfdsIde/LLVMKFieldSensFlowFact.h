@@ -109,7 +109,7 @@ public:
   }
 
   std::optional<LLVMKFieldSensFlowFact> getLoaded(const llvm::LoadInst *Load,
-                                                  int64_t FollowedOffset = 0) {
+                                                  std::optional<int64_t> FollowedOffset = 0) {
     const auto &DL = Load->getModule()->getDataLayout();
     const auto LoadSize = DL.getTypeAllocSize(Load->getType());
     const auto &Parent = KFieldSensFlowFact<d_t, K, OffsetLimit>::getLoaded(

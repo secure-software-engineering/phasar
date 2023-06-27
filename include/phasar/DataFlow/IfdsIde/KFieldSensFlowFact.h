@@ -45,13 +45,14 @@ public:
     return Result;
   }
 
-  std::optional<KFieldSensFlowFact> getLoaded(d_t LoadedBaseValue,
-                                              uint64_t TargetTypeSize,
-                                              int64_t FollowedOffset = 0) {
+  std::optional<KFieldSensFlowFact>
+  getLoaded(d_t LoadedBaseValue, uint64_t TargetTypeSize,
+            std::optional<int64_t> FollowedOffset = 0) {
     auto Result = *this;
     if (Result.AccessPath.size() > 0) {
       if (Result.AccessPath.back() == OffsetLimit ||
-          std::abs(Result.AccessPath.back() - FollowedOffset) <
+          !FollowedOffset.has_value() ||
+          std::abs(Result.AccessPath.back() - FollowedOffset.value()) <
               static_cast<int64_t>(TargetTypeSize)) {
         Result.AccessPath.pop_back();
       } else {
