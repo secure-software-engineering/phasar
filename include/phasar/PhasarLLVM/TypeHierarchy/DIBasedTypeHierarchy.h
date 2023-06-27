@@ -70,6 +70,12 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
+  /**
+   * 	@brief Prints the class hierarchy to an ostream in dot format.
+   * 	@param OS outputstream
+   */
+  void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
+
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
 private:

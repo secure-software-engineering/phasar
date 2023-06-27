@@ -10,12 +10,14 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/VFTable.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
@@ -23,8 +25,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
-
-#include <llvm-14/llvm/IR/DebugInfoMetadata.h>
+#include <iostream>
 
 namespace psr {
 
@@ -74,31 +75,40 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure.push_back(InitVector);
   }
 
-  // set edges
+  // set direct edges
   for (const auto &Vertex : DerivedTypesOf) {
     TransitiveClosure[Vertex[0]][Vertex[1]] = true;
   }
 
   // Add transitive edges
-
   bool Change = true;
   size_t TCSize = TransitiveClosure.size();
   size_t RowIndex = 0;
   size_t PreviousRow = 0;
 
   // (max): I know the code below is very ugly, but I wanted to avoid recursion
+  // if the algorithm goes over the entire matrix and couldn't update any rows
+  // anymore, it stops. As soon as one position gets updated, it goes over the
+  // matrix again
   while (Change) {
     Change = false;
+    // go over all rows of the matrix
     for (size_t CurrentRow = 0; CurrentRow < TCSize; CurrentRow++) {
+      // compare current row with all other rows and check if an edge can be
+      // added
       for (size_t CompareRow = 0; CompareRow < TCSize; CompareRow++) {
+        // row doesn't need to compare itself with itself
         if (CurrentRow == CompareRow) {
           continue;
         }
 
+        // if the current row is not a parent type of the current compare row,
+        // no edges should be added
         if (!TransitiveClosure[CurrentRow][CompareRow]) {
           continue;
         }
 
+        // Compare both rows and add edges if needed
         for (size_t Column = 0; Column < TCSize; Column++) {
           if (TransitiveClosure[CompareRow][Column] &&
               !TransitiveClosure[CurrentRow][Column] && CurrentRow != Column) {
@@ -115,17 +125,26 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure[I][I] = true;
   }
 
+  // get VTables
   const auto Subprograms = Finder.subprograms();
-  /*
-  for (const auto *Current = Subprograms.begin(); Current != Subprograms.end();
-       ++Current) {
+  for (auto *Subprogram : Subprograms) {
+
     if (const auto *SubProgramType =
-            llvm::dyn_cast<llvm::DISubprogram>(Current)) {
-      if (SubProgramType->getVirtualIndex() == 0) {
-        VTables.push_back(SubProgramType);
+            llvm::dyn_cast<llvm::DISubprogram>(Subprogram)) {
+      if (!SubProgramType->getVirtuality()) {
+        continue;
       }
+      // get all virtual functions
+      std::vector<const llvm::Function *> VirtualFunctions;
+      for (const auto &Function : Module->functions()) {
+        if (SubProgramType->getLinkageName() ==
+            Function.stripPointerCasts()->getName().str()) {
+          VirtualFunctions.push_back(&Function);
+        }
+      }
+      VTables.push_back(LLVMVFTable(VirtualFunctions));
     }
-  }*/
+  }
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::isSubType(ClassType Type,
@@ -180,44 +199,18 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
-  return Type->isVirtual();
+  return !VTables.empty();
 }
 
 [[nodiscard]] auto DIBasedTypeHierarchy::getVFTable(ClassType Type) const
     -> const VFTable<f_t> * {
 
-  // return VTables;
-
-  llvm::report_fatal_error("Not implemented");
+  return &(VTables.at(TypeToVertex.find(Type)->getSecond()));
 }
 
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
-
-  // TODO (max): printAsDot() schreiben, Ergebnis soll Format haben wie
-  // boost::write_graphviz()
-  // minimale version
-  // jede node sollte namen haben
-  /*
-  digraph G {
-    start[label="base"];
-    start -> a0;
-    start -> b0;
-    a1 -> b3;
-    b2 -> a3;
-    a3 -> a0;
-    a3 -> end;
-    b3 -> end;
-  }
-  */
-
-  OS << "Size of Transitive Closure: " << TransitiveClosure.size() << "\n";
-  OS << "Number of Vertices " << VertexTypes.size() << "\n";
-  OS << "Type Hierarchy:\n";
-
   size_t VertexIndex = 0;
   size_t EdgeIndex = 0;
-
-  OS << "Transitive Closure Matrix\n";
 
   OS << "Type Hierarchy\n";
   for (const auto &CurrentVertex : TransitiveClosure) {
@@ -233,13 +226,47 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   }
 
   OS << "VFTables:\n";
-  // TODO: implement
-
-  llvm::report_fatal_error("Not implemented");
+  for (const auto &VTable : VTables) {
+    for (const auto &Function : VTable.getAllFunctions()) {
+      OS << Function->getName() << "\n";
+    }
+  };
+  OS << "\n";
+  printAsDot();
 }
 
 [[nodiscard]] nlohmann::json DIBasedTypeHierarchy::getAsJson() const {
   /// TODO: implement
   llvm::report_fatal_error("Not implemented");
 }
+
+void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
+  OS << "digraph TypeHierarchy{\n";
+
+  // add all nodes
+  for (const auto &CompositeType : VertexTypes) {
+    OS << "  " << CompositeType->getName() << "\n";
+  }
+
+  if (TransitiveClosure.size() != VertexTypes.size()) {
+    OS << "[DIBasedTypeHierarchy::printAsDot()]: Error! Transitive Closure and "
+          "VertexType size not equal";
+    return;
+  }
+
+  // add all edges
+  size_t CurrentRowIndex = 0;
+  for (const auto &Row : TransitiveClosure) {
+    for (size_t I = 0; I < Row.size(); I++) {
+      if (Row[I]) {
+        OS << "  " << VertexTypes[CurrentRowIndex]->getName() << " -> "
+           << VertexTypes[I]->getName() << "\n";
+      }
+    }
+    CurrentRowIndex++;
+  }
+
+  OS << "}\n";
+}
+
 } // namespace psr
