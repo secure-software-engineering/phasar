@@ -461,10 +461,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleArrayTest_01) {
           "main", 28, "retval", {"7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 28, "i", {"8", "12"}));
+          "main", 28, "i", {"8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 28, "j", {"9", "15"}));
+          "main", 28, "j", {"9"}));
   // FIXME GT specification and update load and store flow functions
   //   GroundTruth.emplace(
   //   std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
@@ -485,7 +485,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "i", {"4", "5"}));
+          "main", 9, "i", {"4"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 9, "j", {"4", "5", "6", "7"}));
@@ -502,19 +502,19 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
           "main", 24, "retval", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argc.addr", {"7", "13"}));
+          "main", 24, "argc.addr", {"7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "argv.addr", {"8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "i", {"16", "18", "20"}));
+          "main", 24, "i", {"16", "18"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "j", {"9", "10", "11", "12"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "k", {"22", "21", "16", "18", "20"}));
+          "main", 24, "k", {"21", "16", "18", "20"}));
   doAnalysisAndCompareResults("basic_02_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -525,10 +525,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
           "main", 20, "retval", {"3"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "i", {"4", "10", "11", "12", "18"}));
+          "main", 20, "i", {"4", "10", "11", "12"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "x", {"5", "7", "14", "15", "16"}));
+          "main", 20, "x", {"5", "14", "15", "16"}));
   doAnalysisAndCompareResults("basic_03_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -542,27 +542,28 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
           "main", 23, "retval", {"13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "argc.addr", {"14", "21"}));
+          "main", 23, "argc.addr", {"14"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 23, "argv.addr", {"15"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "i", {"16", "17"}));
+          "main", 23, "i", {"16"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "j", {"16", "17", "19", "18", "24"}));
+          "main", 23, "j", {"16", "17", "19", "18"}));
+  //FIXME: is this right?! no interaction with std::cout?
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "k", {"16", "17", "18", "19", "20", "24", "25", "27"}));
-  doAnalysisAndCompareResults("basic_04_cpp.ll", {"main"}, GroundTruth, false);
+          "main", 23, "k", {"16", "17", "18", "19", "20", "24", "25"}));
+  doAnalysisAndCompareResults("basic_04_cpp.ll", {"main"}, GroundTruth, true);
 })
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 11, "i", {"5", "7", "9"}));
+          "main", 11, "i", {"5", "7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 11, "retval", {"2"}));
@@ -582,10 +583,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
           "main", 19, "j", {"2", "11"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "k", {"6", "13"}));
+          "main", 19, "k", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "p", {"1", "2", "9", "11", "14", "16"}));
+          "main", 19, "p", {"1", "2", "9", "11"}));
   doAnalysisAndCompareResults("basic_06_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -602,7 +603,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
           "main", 15, "argv.addr", {"7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "i", {"12", "13"}));
+          "main", 15, "i", {"12"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 15, "j", {"8", "9", "10", "11"}));
@@ -616,7 +617,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_08) {
           "main", 12, "retval", {"2"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "i", {"9", "10"}));
+          "main", 12, "i", {"9"}));
   doAnalysisAndCompareResults("basic_08_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -624,10 +625,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_09) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "i", {"4", "6"}));
+          "main", 10, "i", {"4"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "j", {"4", "6", "7", "8"}));
+          "main", 10, "j", {"4", "6", "7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 10, "retval", {"3"}));
@@ -638,7 +639,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "i", {"3", "4"}));
+          "main", 6, "i", {"3"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 6, "retval", {"2"}));
@@ -649,10 +650,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "FeatureSelector", {"5", "7", "8", "9"}));
+          "main", 20, "FeatureSelector", {"5", "7", "8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "retval", {"11", "16", "18"}));
+          "main", 20, "retval", {"11", "16"}));
   doAnalysisAndCompareResults("basic_11_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -663,14 +664,14 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
           "main", 14, "retval", {"8"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 14, "i", {"9", "10"}));
+          "main", 14, "i", {"9"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 14, "j", {"13", "12", "9", "10", "11"}));
+          "main", 14, "j", {"12", "9", "10", "11"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 14, "k",
-          {"15", "1", "2", "13", "16", "12", "9", "10", "11"}));
+          {"15", "1", "2", "13", "12", "9", "10", "11"}));
   doAnalysisAndCompareResults("call_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -681,14 +682,14 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_02) {
           "main", 13, "retval", {"12"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 13, "i", {"13", "15"}));
+          "main", 13, "i", {"13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 13, "j", {"14", "16"}));
+          "main", 13, "j", {"14"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 13, "k",
-          {"4", "19", "5", "15", "6", "3", "14", "2", "13", "16", "18"}));
+          {"4", "5", "15", "6", "3", "14", "2", "13", "16", "18"}));
   doAnalysisAndCompareResults("call_02_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -699,12 +700,11 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_03) {
           "main", 10, "retval", {"20"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "i", {"21", "22"}));
+          "main", 10, "i", {"21"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 10, "j",
-          {"22", "15", "6", "21", "3", "2", "13", "8", "9", "12", "10", "24",
-           "25"}));
+          {"22", "15", "6", "21", "2", "13", "8", "9", "12", "10", "24"}));
   doAnalysisAndCompareResults("call_03_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -715,17 +715,17 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
           "main", 20, "retval", {"33"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "i", {"41", "35", "34"}));
+          "main", 20, "i", {"34"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 20, "j",
-          {"15", "6", "3", "2", "13", "8", "9", "12", "10", "35", "38", "34",
-           "37", "42"}));
+          {"15", "6", "2", "13", "8", "9", "12", "10", "35", "34",
+           "37"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 20, "k",
-          {"41", "19", "15", "6",  "44", "3",  "2",  "13", "8",
-           "45", "18", "9",  "12", "10", "46", "24", "47", "25",
+          {"41", "19", "15", "6",  "44", "2",  "13", "8",
+           "45", "18", "9",  "12", "10", "46", "24", "25",
            "35", "27", "23", "26", "38", "34", "37", "42", "40"}));
   doAnalysisAndCompareResults("call_04_cpp.ll", {"main"}, GroundTruth, false);
 }
@@ -740,7 +740,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
           "main", 10, "i", {"1", "11", "9"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "j", {"1", "10", "12", "13"}));
+          "main", 10, "j", {"1", "10", "12"}));
   doAnalysisAndCompareResults("call_05_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -751,7 +751,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
           "main", 24, "retval", {"11"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "i", {"4", "3", "1", "2", "28", "16", "18", "12"}));
+          "main", 24, "i", {"4", "3", "1", "2", "16", "18", "12"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 24, "j", {"4", "19", "21", "3", "1", "2", "13"}));
@@ -771,7 +771,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
           "main", 9, "retval", {"3"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "i", {"7", "8"}));
+          "main", 9, "i", {"7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 9, "j", {"0", "5", "6"}));
@@ -788,16 +788,16 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
           "_Z5initBv", 2, "b", {"2"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "a", {"0", "10"}));
+          "main", 12, "a", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "b", {"2", "11"}));
+          "main", 12, "b", {"2"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 12, "retval", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "c", {"1", "8", "7", "13"}));
+          "main", 12, "c", {"1", "8", "7"}));
   doAnalysisAndCompareResults("global_02_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -808,10 +808,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_03) {
           "main", 1, "GlobalFeature", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 2, "GlobalFeature", {"0", "1"}));
+          "main", 2, "GlobalFeature", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "GlobalFeature", {"0", "1"}));
+          "main", 17, "GlobalFeature", {"0"}));
   doAnalysisAndCompareResults("global_03_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -822,10 +822,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
           "main", 1, "GlobalFeature", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 2, "GlobalFeature", {"0", "3"}));
+          "main", 2, "GlobalFeature", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "GlobalFeature", {"0", "3"}));
+          "main", 17, "GlobalFeature", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "_Z7doStuffi", 1, "GlobalFeature", {"0"}));
@@ -843,13 +843,13 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
           "main", 12, "retval", {"4"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "i", {"5", "6", "8"}));
+          "main", 12, "i", {"5"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 12, "j", {"10"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "k", {"9", "8", "5", "6"}));
+          "main", 12, "k", {"9", "8", "5"}));
   doAnalysisAndCompareResults("KillTest_01_cpp.ll", {"main"}, GroundTruth,
                               false);
 }
@@ -861,13 +861,13 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_02) {
           "main", 12, "retval", {"6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "A", {"0", "10"}));
+          "main", 12, "A", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "B", {"2", "11"}));
+          "main", 12, "B", {"2"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "C", {"1", "7", "8", "13"}));
+          "main", 12, "C", {"1", "7", "8"}));
   doAnalysisAndCompareResults("KillTest_02_cpp.ll", {"main"}, GroundTruth,
                               false);
 }
@@ -885,7 +885,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleReturnTest_01) {
           "main", 6, "call", {"0"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 8, "localVar", {"0", "6", "7"}));
+          "main", 8, "localVar", {"0", "6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 8, "call", {"0", "6"}));
@@ -899,10 +899,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
           "main", 19, "retval", {"3"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "i", {"6", "7", "8", "11"}));
+          "main", 19, "i", {"6", "7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "j", {"6", "7", "8", "17", "10", "9"}));
+          "main", 19, "j", {"6", "7", "8", "10", "9"}));
   doAnalysisAndCompareResults("heap_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -913,32 +913,37 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "retval", {"75", "76", "78"}));
+          "main", 16, "retval", {"79", "80"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "str", {"70", "65", "72", "74", "77"}));
+          "main", 16, "str", {"74", "69", "76", "78", "81"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 16, "ref.tmp", {"66", "9", "6", "29", "72", "73", "71"}));
   doAnalysisAndCompareResults("rvo_01_cpp.ll", {"main"}, GroundTruth, false);
 })
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 10, "retval", {"3"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 10, "a", {"1", "4", "5", "6", "7", "8", "13"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 10, "x", {"1", "4", "5", "13"}));
-//   doAnalysisAndCompareResults("struct_01_cpp.ll", GroundTruth, false);
-// }
+// FIXME: the fields appear as three seperate dataflow facts.
+// The comparison here tries to union them together.
+// We have no way yet to compare field values.
+// Also, the first field value represents the whole structure, so the interaction
+// with the alloc is killed. intended?
+TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+      BitVectorSet<std::string>>(
+          "main", 30, "retval", {"8"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+      BitVectorSet<std::string>>(
+          "main", 30, "l", {"9", "12", "15", "10", "11", "18", "13"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+      BitVectorSet<std::string>>(
+          "main", 30, "x", {"9", "12", "23"}));
+  doAnalysisAndCompareResults("struct_01_cpp.ll", {"main"}, GroundTruth, true);
+}
 
 // main function for the test case/*  */
 int main(int Argc, char **Argv) {
