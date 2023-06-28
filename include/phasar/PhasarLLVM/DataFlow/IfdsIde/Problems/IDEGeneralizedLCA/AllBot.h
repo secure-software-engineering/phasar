@@ -16,15 +16,15 @@
 
 namespace psr::glca {
 
-struct AllBot {
-  using type = AllBottom<IDEGeneralizedLCA::l_t>;
-  static std::shared_ptr<type> getInstance();
-  static bool isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *EdgeFn,
-                    bool NonRec = false);
-  static bool
-  isBot(const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &EdgeFn,
-        bool NonRec = false);
-};
+// struct AllBot {
+//   using type = AllBottom<IDEGeneralizedLCA::l_t>;
+//   static std::shared_ptr<type> getInstance();
+//   static bool isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *EdgeFn,
+//                     bool NonRec = false);
+//   static bool
+//   isBot(const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &EdgeFn,
+//         bool NonRec = false);
+// };
 
 } // namespace psr::glca
 

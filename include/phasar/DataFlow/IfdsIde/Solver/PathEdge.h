@@ -10,6 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
 
+#include "phasar/Utils/ByRef.h"
+
 #include "llvm/Support/raw_ostream.h"
 
 #include <type_traits>
@@ -19,29 +21,26 @@ namespace psr {
 template <typename N, typename D> class PathEdge {
 
 public:
-  PathEdge(D DSource, N Target, D DTarget) noexcept
-      : Target(std::move(Target)), DSource(std::move(DSource)),
+  PathEdge(D DSource, N Target,
+           D DTarget) noexcept(std::is_nothrow_move_constructible_v<N>
+                                   &&std::is_nothrow_move_constructible_v<D>)
+      : DSource(std::move(DSource)), Target(std::move(Target)),
         DTarget(std::move(DTarget)) {}
 
-  ~PathEdge() = default;
+  [[nodiscard]] ByConstRef<D> factAtSource() const noexcept { return DSource; }
 
-  PathEdge(const PathEdge &) noexcept(
-      std::is_nothrow_copy_constructible_v<N>
-          &&std::is_nothrow_copy_constructible_v<D>) = default;
+  [[nodiscard]] ByConstRef<N> getTarget() const noexcept { return Target; }
 
-  PathEdge &operator=(const PathEdge &) noexcept(
-      std::is_nothrow_copy_assignable_v<N>
-          &&std::is_nothrow_copy_assignable_v<D>) = default;
+  [[nodiscard]] ByConstRef<D> factAtTarget() const noexcept { return DTarget; }
 
-  PathEdge(PathEdge &&) noexcept = default;
+  [[nodiscard]] std::tuple<ByConstRef<D>, ByConstRef<N>, ByConstRef<D>>
+  get() const noexcept {
+    return {DSource, Target, DTarget};
+  }
 
-  PathEdge &operator=(PathEdge &&) noexcept = default;
-
-  [[nodiscard]] N getTarget() const { return Target; }
-
-  [[nodiscard]] D factAtSource() const { return DSource; }
-
-  [[nodiscard]] D factAtTarget() const { return DTarget; }
+  [[nodiscard]] std::tuple<D, N, D> consume() noexcept {
+    return {std::move(DSource), std::move(Target), std::move(DTarget)};
+  }
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const PathEdge &Edge) {
@@ -50,8 +49,8 @@ public:
   }
 
 private:
-  N Target;
   D DSource;
+  N Target;
   D DTarget;
 };
 

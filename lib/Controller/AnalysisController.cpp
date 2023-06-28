@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -184,6 +185,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     WithResultFileOrStdout("/psr-cg.txt",
                            [this](auto &OS) { HA.getICFG().print(OS); });
   }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+    WithResultFileOrStdout(
+        "/psr-cg.json", [this](auto &OS) { OS << HA.getICFG().getAsJson(); });
+  }
 
   if (EmitterOptions &
       (AnalysisControllerEmitterOptions::EmitStatisticsAsJson |
@@ -195,15 +200,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
-      llvm::outs() << "Module " << IRDB.getModule()->getName() << ":\n";
-      llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-                   << "\n";
-      llvm::outs() << "> Functions:\t\t" << IRDB.getModule()->size() << "\n";
-      llvm::outs() << "> Global variables:\t" << IRDB.getModule()->global_size()
-                   << "\n";
-      llvm::outs() << "> Alloca instructions:\t"
-                   << Stats.getAllocaInstructions().size() << "\n";
-      llvm::outs() << "> Call Sites:\t\t" << Stats.getFunctioncalls() << "\n";
+      llvm::outs() << Stats << '\n';
     }
 
     if (EmitterOptions &

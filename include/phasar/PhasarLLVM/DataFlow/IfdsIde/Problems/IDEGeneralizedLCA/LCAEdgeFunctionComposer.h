@@ -10,32 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_LCAEDGEFUNCTIONCOMPOSER_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_LCAEDGEFUNCTIONCOMPOSER_H
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCADomain.h"
 
 namespace psr::glca {
 
-class LCAEdgeFunctionComposer
-    : public EdgeFunctionComposer<IDEGeneralizedLCA::l_t> {
-  size_t MaxSize;
+struct LCAEdgeFunctionComposer
+    : public EdgeFunctionComposer<IDEGeneralizedLCADomain::l_t> {
 
-public:
-  LCAEdgeFunctionComposer(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> F,
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> G, size_t MaxSize);
-  // IDEGeneralizedLCA::l_t
-  // computeTarget(IDEGeneralizedLCA::l_t Source) override;
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction)
-      override;
-
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction)
-      override;
-  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &getFirst() const;
-  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
-  getSecond() const;
+  static EdgeFunction<IDEGeneralizedLCADomain::l_t>
+  join(EdgeFunctionRef<LCAEdgeFunctionComposer> This,
+       const EdgeFunction<IDEGeneralizedLCADomain::l_t> &OtherFunction);
 };
 
 } // namespace psr::glca

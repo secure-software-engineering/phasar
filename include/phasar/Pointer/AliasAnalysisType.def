@@ -11,8 +11,9 @@
 #define ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)
 #endif
 
+ALIAS_ANALYSIS_TYPE(Basic, "basic", "Basic LLVM alias resolving based on simple, local properties")
 ALIAS_ANALYSIS_TYPE(CFLSteens, "cflsteens", "Steensgaard-style alias analysis (equality-based)")
-ALIAS_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based)")
+ALIAS_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based) (default)")
 ALIAS_ANALYSIS_TYPE(PointsTo, "points-to", "Alias-information based on (external) points-to information")
 
 #undef ALIAS_ANALYSIS_TYPE

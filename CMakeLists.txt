@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.9)
+
+# Avoid IPO/LTO Warnings:
+cmake_policy(SET CMP0069 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 
 # Check if we build within the llvm source tree
 if (DEFINED LLVM_MAIN_SRC_DIR)
@@ -10,8 +14,15 @@ if (NOT PHASAR_IN_TREE)
   set(CMAKE_PROJECT_NAME "phasar")
 endif ()
 
+option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-set(CMAKE_CXX_STANDARD 17)
+if(PHASAR_EXPERIMENTAL_CXX20)
+  message(STATUS "Selected experimental C++ build")
+  set(CMAKE_CXX_STANDARD 20)
+else()
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -31,7 +42,21 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
 else()
   message(STATUS "Selected Release Build")
+
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
+
+
+  if(LTO_SUPPORTED)
+    message(STATUS "IPO/LTO enabled")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # LTO
+  else()
+    message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+  endif()
+
+
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+
 endif()
 
 # Enable testing
@@ -70,7 +95,12 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
-option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+#option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
+
+if(PHASAR_BUILD_DYNLIB AND BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "PHASAR_BUILD_DYNLIB is incompatible with BUILD_SHARED_LIBS")
+endif()
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
@@ -114,10 +144,14 @@ include_directories(
   ${PHASAR_SRC_DIR}/include
 )
 
-set(PHASAR_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}/phasar)
-
 if (NOT PHASAR_IN_TREE)
-  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${PHASAR_INSTALL_LIBDIR})
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+  if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
+    message(STATUS "Detected CMAKE_INSTALL_LIBDIR that deviates from 'lib': ${CMAKE_INSTALL_LIBDIR}. Add ${CMAKE_INSTALL_PREFIX}/lib to the RPATH as json-schema-validator needs it")
+    list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+  endif()
+
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
 
@@ -127,7 +161,12 @@ else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
-set(PHASAR_CONFIG_INSTALL_DIR "/opt/phasar/config/" CACHE STRING "Customizes the directory, where configuration files for PhASAR are installed (default is /opt/phasar/config)")
+set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
+if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
+  set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
+else()
+  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
+endif()
 
 add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
 add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
@@ -140,10 +179,17 @@ find_package(Threads)
 # Boost
 find_package(Boost 1.65.1 COMPONENTS graph ${BOOST_THREAD} REQUIRED)
 #find_package(Boost 1.72.0 COMPONENTS graph  ${BOOST_THREAD} REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
+
+# Nlohmann JSON
+
+set(JSON_BuildTests OFF)
+set(JSON_Install ON)
+add_subdirectory(external/json)
+include_directories(SYSTEM external/json/include/)
 
 # We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
 # The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
@@ -156,30 +202,20 @@ set(CMAKE_CXX_CLANG_TIDY "")
 #Override option of nlohmann_json_schema_validator to not build its tests
 set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
 
-# Make nlohmann_json_schema_validator happy by telling it how to find the single include of nlohmann_json
-include_directories(external/json/single_include/)
-
 if (PHASAR_IN_TREE)
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
 endif()
 
-set(nlohmann_json_DIR ${PHASAR_SRC_DIR}/external/json/single_include/)
-
 # Json Schema Validator
 set(JSON_VALIDATOR_INSTALL ON)
 add_subdirectory(external/json-schema-validator)
-include_directories(external/json-schema-validator/src/)
-
-# now we finally add the subdirectory
-set(JSON_BuildTests OFF)
-set(JSON_Install ON)
-add_subdirectory(external/json)
+include_directories(SYSTEM external/json-schema-validator/src/)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
   add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
-  include_directories(external/googletest/googletest/include)
-  include_directories(external/googletest/googlemock/include)
+  include_directories(SYSTEM external/googletest/googletest/include)
+  include_directories(SYSTEM external/googletest/googlemock/include)
 else()
   # Set llvm distributed includes for gtest header
   include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include)
@@ -189,13 +225,13 @@ endif()
 # SQL
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
-include_directories(${SQLITE3_INCLUDE_DIR})
+include_directories(SYSTEM ${SQLITE3_INCLUDE_DIR})
 
 # LLVM
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
   find_package(LLVM 14 REQUIRED CONFIG)
-  include_directories(${LLVM_INCLUDE_DIRS})
+  include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
 endif()
 
@@ -249,7 +285,7 @@ endif()
 
 if (PHASAR_IN_TREE)
   # Phasar needs clang headers, specificaly some that are generated by clangs table-gen
-  include_directories(
+  include_directories(SYSTEM
     ${CLANG_INCLUDE_DIR}
     ${PHASAR_SRC_DIR}/../clang/include
     ${PROJECT_BINARY_DIR}/tools/clang/include
@@ -347,7 +383,7 @@ install(DIRECTORY utils/
               WORLD_EXECUTE WORLD_READ
 )
 
-# Install the Phasar config files into /opt/phasar/config/
+# Install the Phasar config files into CMAKE_INSTALL_PREFIX/.phasar-config/
 install(DIRECTORY config/
   DESTINATION ${PHASAR_CONFIG_INSTALL_DIR}
   PATTERN "config/*"

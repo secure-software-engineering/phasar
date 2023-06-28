@@ -87,14 +87,7 @@ IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t /*Curr*/,
 InitialSeeds<IFDSTypeAnalysis::n_t, IFDSTypeAnalysis::d_t,
              IFDSTypeAnalysis::l_t>
 IFDSTypeAnalysis::initialSeeds() {
-  InitialSeeds<IFDSTypeAnalysis::n_t, IFDSTypeAnalysis::d_t,
-               IFDSTypeAnalysis::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() const {

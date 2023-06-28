@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
@@ -226,24 +227,21 @@ IDEGeneralizedLCA::initialSeeds() {
   InitialSeeds<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
                IDEGeneralizedLCA::l_t>
       Seeds;
-  // For now, out only entrypoint is main:
-  std::vector<std::string> EntryPoints = {"main"};
-  for (auto &EntryPoint : EntryPoints) {
-    std::set<IDEGeneralizedLCA::d_t> Globals;
-    Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(),
-                  getZeroValue(), bottomElement());
+
+  forallStartingPoints(EntryPoints, ICF, [this, &Seeds](n_t SP) {
+    Seeds.addSeed(SP, getZeroValue(), bottomElement());
     for (const auto &G : IRDB->getModule()->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer()) {
           if (llvm::isa<llvm::ConstantInt>(GV->getInitializer()) ||
               llvm::isa<llvm::ConstantDataArray>(GV->getInitializer())) {
-            Seeds.addSeed(&ICF->getFunction(EntryPoint)->front().front(), GV,
-                          bottomElement());
+            Seeds.addSeed(SP, GV, bottomElement());
           }
         }
       }
     }
-  }
+  });
+
   return Seeds;
 }
 
@@ -256,11 +254,9 @@ bool IDEGeneralizedLCA::isZeroValue(IDEGeneralizedLCA::d_t Fact) const {
 }
 
 // edge functions
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
-                                         IDEGeneralizedLCA::d_t CurrNode,
-                                         IDEGeneralizedLCA::n_t Succ,
-                                         IDEGeneralizedLCA::d_t SuccNode) {
+EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getNormalEdgeFunction(
+    IDEGeneralizedLCA::n_t Curr, IDEGeneralizedLCA::d_t CurrNode,
+    IDEGeneralizedLCA::n_t Succ, IDEGeneralizedLCA::d_t SuccNode) {
   PHASAR_LOG_LEVEL(DEBUG, "IDEGeneralizedLCA::getNormalEdgeFunction()");
   PHASAR_LOG_LEVEL(DEBUG,
                    "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(Curr));
@@ -283,27 +279,24 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
       if (const auto *CI =
               llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
         auto IntConst = CI->getValue();
-        return std::make_shared<GenConstant>(
-            l_t({EdgeValue(std::move(IntConst))}), MaxSetSize);
+        return GenConstant{l_t({EdgeValue(std::move(IntConst))})};
       }
       if (const auto *CF =
               llvm::dyn_cast<llvm::ConstantFP>(GV->getInitializer())) {
         auto FPConst = CF->getValueAPF();
-        return std::make_shared<GenConstant>(
-            l_t({EdgeValue(std::move(FPConst))}), MaxSetSize);
+        return GenConstant{l_t({EdgeValue(std::move(FPConst))})};
       }
       if (const auto *CS =
               llvm::dyn_cast<llvm::ConstantDataArray>(GV->getInitializer())) {
         auto StringConst = CS->getAsCString();
-        return std::make_shared<GenConstant>(
-            l_t({EdgeValue(StringConst.str())}), MaxSetSize);
+        return GenConstant{l_t({EdgeValue(StringConst.str())})};
       }
     }
   }
 
   // All_Bottom for zero value
   if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
-    return EdgeIdentity<l_t>::getInstance();
+    return EdgeIdentity<l_t>{};
   }
   // Check store instruction
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
@@ -321,7 +314,7 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
       // Case I: Storing a constant value.
       if (isZeroValue(CurrNode) && isConstant(ValueOperand)) {
         EdgeValue Ev(ValueOperand);
-        return std::make_shared<GenConstant>(l_t({Ev}), MaxSetSize);
+        return GenConstant{l_t({Ev})};
       }
       // Case II: Storing an integer typed value.
       /*if (currNode != succNode && valueOperand->getType()->isIntegerTy()) {
@@ -354,45 +347,39 @@ IDEGeneralizedLCA::getNormalEdgeFunction(IDEGeneralizedLCA::n_t Curr,
         EdgeValue Rcnst(Curr->getOperand(1));
         auto Ret = // join({lcnst}, {rcnst});
             performBinOp(BinOp->getOpcode(), {Lcnst}, {Rcnst}, MaxSetSize);
-        return std::make_shared<GenConstant>(Ret, MaxSetSize);
+        return GenConstant{Ret};
       }
       // only lhs const
-      return std::make_shared<BinaryEdgeFunction>(
-          BinOp->getOpcode(), l_t({Lcnst}), true, MaxSetSize);
+      return BinaryEdgeFunction{BinOp->getOpcode(), l_t({Lcnst}), true};
     }
     if (!isConstant(Curr->getOperand(1))) {
       // none const
-      return std::make_shared<GenConstant>(bottomElement(), MaxSetSize);
+      return GenConstant{bottomElement()};
     }
     // only rhs const
     EdgeValue Rcnst(Curr->getOperand(1));
-    return std::make_shared<BinaryEdgeFunction>(
-        BinOp->getOpcode(), l_t({Rcnst}), false, MaxSetSize);
+    return BinaryEdgeFunction{BinOp->getOpcode(), l_t({Rcnst}), false};
   }
   if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Curr);
       Cast && Curr == SuccNode) {
     if (Cast->getDestTy()->isIntegerTy()) {
       const auto *DestTy = llvm::cast<llvm::IntegerType>(Cast->getDestTy());
 
-      return std::make_shared<TypecastEdgeFunction>(
-          DestTy->getBitWidth(), EdgeValue::Integer, MaxSetSize);
+      return TypecastEdgeFunction{DestTy->getBitWidth(), EdgeValue::Integer};
     }
     if (Cast->getDestTy()->isFloatingPointTy()) {
       auto Bits = Cast->getDestTy()->isFloatTy() ? 32 : 64;
 
-      return std::make_shared<TypecastEdgeFunction>(
-          Bits, EdgeValue::FloatingPoint, MaxSetSize);
+      return TypecastEdgeFunction{unsigned(Bits), EdgeValue::FloatingPoint};
     }
   }
   // llvm::outs() << "FallThrough: identity edge fn" << std::endl;
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
-                                       IDEGeneralizedLCA::d_t SrcNode,
-                                       IDEGeneralizedLCA::f_t DestinationMethod,
-                                       IDEGeneralizedLCA::d_t DestNode) {
+EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getCallEdgeFunction(
+    IDEGeneralizedLCA::n_t CallStmt, IDEGeneralizedLCA::d_t SrcNode,
+    IDEGeneralizedLCA::f_t DestinationMethod, IDEGeneralizedLCA::d_t DestNode) {
   const auto *CallSite = llvm::cast<llvm::CallBase>(CallStmt);
   if (isZeroValue(SrcNode)) {
     auto Len =
@@ -402,16 +389,14 @@ IDEGeneralizedLCA::getCallEdgeFunction(IDEGeneralizedLCA::n_t CallStmt,
       if (DestNode == FormalArg) {
         const auto *ActualArg = CallSite->getArgOperand(I);
         // if (isConstant(actualArg))  // -> always const, since srcNode is zero
-        return std::make_shared<GenConstant>(l_t({EdgeValue(ActualArg)}),
-                                             MaxSetSize);
+        return GenConstant{l_t({EdgeValue(ActualArg)})};
       }
     }
   }
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getReturnEdgeFunction(
+EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getReturnEdgeFunction(
     IDEGeneralizedLCA::n_t /*CallSite*/,
     IDEGeneralizedLCA::f_t /*CalleeMethod*/, IDEGeneralizedLCA::n_t ExitStmt,
     IDEGeneralizedLCA::d_t ExitNode, IDEGeneralizedLCA::n_t /*RetSite*/,
@@ -421,18 +406,17 @@ IDEGeneralizedLCA::getReturnEdgeFunction(
       if (RetStmt->getReturnValue() && isConstant(RetStmt->getReturnValue())) {
         // llvm::outs() << "Constant return value: "
         //          << llvmIRToShortString(exitStmt) << std::endl;
-        return std::make_shared<GenConstant>(
-            l_t({EdgeValue(RetStmt->getReturnValue())}), MaxSetSize);
+        return GenConstant{l_t({EdgeValue(RetStmt->getReturnValue())})};
       }
     }
   }
   // llvm::outs() << "Return identity: " << llvmIRToShortString(exitStmt)
   //          << std::endl;
   // return edge-identity
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
+EdgeFunction<IDEGeneralizedLCA::l_t>
 IDEGeneralizedLCA::getCallToRetEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
                                             IDEGeneralizedLCA::d_t CallNode,
                                             IDEGeneralizedLCA::n_t /*RetSite*/,
@@ -452,15 +436,14 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
           if (!GV->hasInitializer()) {
             // in this case we don't know the initial value statically
             // return ALLBOTTOM;
-            return std::make_shared<AllBottom<l_t>>(bottomElement());
+            return AllBottom<l_t>{};
           }
           if (auto *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(
                   GV->getInitializer())) {
             if (CDA->isCString()) {
               // here we statically know the string literal the std::string is
               // initialized with
-              return std::make_shared<GenConstant>(
-                  l_t({EdgeValue(CDA->getAsCString().str())}), MaxSetSize);
+              return GenConstant{l_t({EdgeValue(CDA->getAsCString().str())})};
             }
           }
         }
@@ -468,16 +451,15 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
     }
   }
 
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::getSummaryEdgeFunction(
+EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getSummaryEdgeFunction(
     IDEGeneralizedLCA::n_t /*CallStmt*/, IDEGeneralizedLCA::d_t /*CallNode*/,
     IDEGeneralizedLCA::n_t /*RetSite*/,
     IDEGeneralizedLCA::d_t /*RetSiteNode*/) {
   // return edge-identity
-  return EdgeIdentity<l_t>::getInstance();
+  return EdgeIdentity<l_t>{};
 }
 
 IDEGeneralizedLCA::l_t IDEGeneralizedLCA::topElement() { return {{}}; }
@@ -492,10 +474,8 @@ IDEGeneralizedLCA::l_t IDEGeneralizedLCA::join(IDEGeneralizedLCA::l_t Lhs,
   return psr::join(Lhs, Rhs, MaxSetSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-IDEGeneralizedLCA::allTopFunction() {
-  static std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> AlltopFn =
-      std::make_shared<AllTop<l_t>>(topElement());
+EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::allTopFunction() {
+  static EdgeFunction<IDEGeneralizedLCA::l_t> AlltopFn = AllTop<l_t>{};
   return AlltopFn;
 }
 

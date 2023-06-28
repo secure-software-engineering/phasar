@@ -22,7 +22,6 @@
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/reverse_graph.hpp"
-#include "gtest/gtest_prod.h"
 
 #include <set>
 #include <string>

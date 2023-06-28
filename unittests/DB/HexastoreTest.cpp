@@ -11,7 +11,7 @@ using namespace psr;
 using namespace std;
 
 TEST(HexastoreTest, QueryBlankFieldEntries) {
-  Hexastore H("QueryBlankFieldEntries.sqlite");
+  Hexastore H("");
   H.put({{"one", "", ""}});
   H.put({{"two", "", ""}});
   H.put({{"", "three", ""}});
@@ -32,7 +32,7 @@ TEST(HexastoreTest, QueryBlankFieldEntries) {
 }
 
 TEST(HexastoreTest, AllQueryTypes) {
-  Hexastore H("AllQueryTypes.sqlite");
+  Hexastore H("");
   H.put({{"mary", "likes", "hexastores"}});
   H.put({{"mary", "likes", "apples"}});
   H.put({{"mary", "hates", "oranges"}});
@@ -143,7 +143,7 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
   // llvm::outs() << "Graph G:" << std::endl;
   // boost::print_graph(G, boost::get(&Vertex::name, G));
 
-  Hexastore HS("StoreGraphNoEdgeLabels.sqlite");
+  Hexastore HS("");
 
   // serialize graph G
   for (tie(EiStart, EEnd) = boost::edges(G); EiStart != EEnd; ++EiStart) {
@@ -230,7 +230,7 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   //   cout << boost::get(&Edge::edge_name, I, *ei_start) << endl;
   // }
 
-  Hexastore HS("StoreGraphWithEdgeLabels.sqlite");
+  Hexastore HS("");
 
   // serialize graph I
   for (tie(EiStart, EEnd) = boost::edges(I); EiStart != EEnd; ++EiStart) {

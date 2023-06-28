@@ -49,10 +49,11 @@ public:
   }
 
 protected:
-  LLVMBasedCFGImpl(bool IgnoreDbgInstructions = true) noexcept
+  LLVMBasedCFGImpl() noexcept = default;
+  LLVMBasedCFGImpl(bool IgnoreDbgInstructions) noexcept
       : IgnoreDbgInstructions(IgnoreDbgInstructions) {}
 
-  bool IgnoreDbgInstructions = false;
+  bool IgnoreDbgInstructions = true;
 
   [[nodiscard]] f_t getFunctionOfImpl(n_t Inst) const noexcept;
   [[nodiscard]] llvm::SmallVector<n_t, 2> getPredsOfImpl(n_t Inst) const;
@@ -99,7 +100,8 @@ class LLVMBasedCFG : public detail::LLVMBasedCFGImpl<LLVMBasedCFG> {
   friend class LLVMBasedBackwardCFG;
 
 public:
-  LLVMBasedCFG(bool IgnoreDbgInstructions = true) noexcept
+  LLVMBasedCFG() noexcept = default;
+  LLVMBasedCFG(bool IgnoreDbgInstructions) noexcept
       : detail::LLVMBasedCFGImpl<LLVMBasedCFG>(IgnoreDbgInstructions) {}
 
   [[nodiscard]] nlohmann::json exportCFGAsJson(const llvm::Function *F) const;

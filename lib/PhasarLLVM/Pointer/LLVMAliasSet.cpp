@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
@@ -22,6 +23,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalValue.h"
@@ -95,11 +97,12 @@ LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
 
 LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
                            const nlohmann::json &SerializedPTS)
-    : PTA(*IRDB) {
+    : PTA(*IRDB, true) {
   assert(IRDB != nullptr);
   // Assume, we already have validated the json schema
 
-  llvm::outs() << "Load precomputed points-to info from JSON\n";
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMAliasSet",
+                       "Load precomputed points-to info from JSON");
 
   const auto &Sets = SerializedPTS.at("AliasSets");
   assert(Sets.is_array());
@@ -303,6 +306,10 @@ bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
         return true;
       }
     }
+  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(P)) {
+    /// Arguments are no allocation sites, but in the inTRAprocedural case, they
+    /// act as such
+    return Arg->getParent() == VFun;
   }
 
   return false;

@@ -12,15 +12,24 @@ find_package(Boost 1.65.1 COMPONENTS program_options graph REQUIRED)
 
 set(PHASAR_COMPONENTS
   utils
-  config
-  phasarllvm_utils
   passes
+  config
   db
   pointer
-  typehierarchy
   controlflow
+
+  llvm_utils
+  llvm_db
+  llvm_pointer
+  llvm_typehierarchy
+  llvm_controlflow
+
   taintconfig
-  ifdside
+  mono
+  llvm
+  llvm_ifdside
+  analysis_strategy
+  controller
 )
 
 foreach(component ${PHASAR_COMPONENTS})

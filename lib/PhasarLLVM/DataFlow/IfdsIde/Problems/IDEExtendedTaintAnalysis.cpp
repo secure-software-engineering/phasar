@@ -9,11 +9,12 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/JoinEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
@@ -48,18 +49,8 @@ IDEExtendedTaintAnalysis::initialSeeds() {
     }
   }
 
-  for (const auto &Ep : base_t::EntryPoints) {
-    const auto *EntryFn = ICF->getFunction(Ep);
-
-    if (!EntryFn) {
-      llvm::errs() << "WARNING: Entry-Function \"" << Ep
-                   << "\" not contained in the module; skip it\n";
-      continue;
-    }
-
-    Seeds.addSeed(&EntryFn->front().front(), this->base_t::getZeroValue(),
-                  bottomElement());
-  }
+  addSeedsForStartingPoints(base_t::EntryPoints, ICF, Seeds,
+                            this->base_t::getZeroValue(), bottomElement());
 
   if (Seeds.empty()) {
     llvm::errs() << "WARNING: No initial seeds specified, skip the analysis. "
@@ -78,9 +69,9 @@ bool IDEExtendedTaintAnalysis::isZeroValue(d_t Fact) const {
   return Fact->isZero();
 }
 
-IDEExtendedTaintAnalysis::EdgeFunctionPtrType
+IDEExtendedTaintAnalysis::EdgeFunctionType
 IDEExtendedTaintAnalysis::allTopFunction() {
-  return getAllTop();
+  return AllTop<l_t>{};
 }
 
 // Flow functions:
@@ -591,13 +582,13 @@ IDEExtendedTaintAnalysis::getSummaryFlowFunction(n_t CallStmt, f_t DestFun) {
 auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
                                                      [[maybe_unused]] n_t Succ,
                                                      d_t SuccNode)
-    -> EdgeFunctionPtrType {
+    -> EdgeFunctionType {
   if (isZeroValue(CurrNode) && isZeroValue(SuccNode)) {
-    return getEdgeIdentity(Curr);
+    return EdgeIdentity<l_t>{};
   }
 
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
-    return getGenEdgeFunction(BBO);
+    return GenEdgeFunction{nullptr};
   }
 
   // if (EntryPoints.count(Curr->getFunction()->getName().str()) &&
@@ -615,7 +606,7 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   }();
 
   if (PointerOp == nullptr) {
-    return getEdgeIdentity(Curr);
+    return EdgeIdentity<l_t>{};
   }
 
   assert(ValueOp);
@@ -624,67 +615,68 @@ auto IDEExtendedTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
     /// Kill the PointerOp, if we store into it
     if (CurrNode->mustAlias(makeFlowFact(PointerOp), PT)) {
-      return makeEF<GenEdgeFunction>(BBO, Curr);
+      return GenEdgeFunction{Curr};
     }
 
     auto SaniConfig = getSanitizerConfigAt(Curr);
     if (!SaniConfig.empty()) {
       if (isMustAlias(SaniConfig, CurrNode)) {
-        return makeEF<GenEdgeFunction>(BBO, Curr);
+        return GenEdgeFunction{Curr};
       }
     }
   }
 
-  return getEdgeIdentity(Curr);
+  return EdgeIdentity<l_t>{};
 }
 
 auto IDEExtendedTaintAnalysis::getCallEdgeFunction(
     n_t CallInst, d_t SrcNode, [[maybe_unused]] f_t CalleeFun, d_t DestNode)
-    -> EdgeFunctionPtrType {
+    -> EdgeFunctionType {
 
   if (DisableStrongUpdates) {
-    return getEdgeIdentity(CallInst);
+    return EdgeIdentity<l_t>{};
   }
   if (isZeroValue(SrcNode) && isZeroValue(DestNode)) {
-    return getEdgeIdentity(CallInst);
+    return EdgeIdentity<l_t>{};
   }
 
   for (const auto &Arg : llvm::cast<llvm::CallBase>(CallInst)->args()) {
     // Kill sanitized facts that flow into the callee.
     if (equivalent(makeFlowFact(Arg.get()), SrcNode)) {
-      return makeKillIfSanitizedEdgeFunction(BBO, getApproxLoadFrom(Arg.get()));
+      return KillIfSanitizedEdgeFunction{
+          {}, &BBO, getApproxLoadFrom(Arg.get())};
     }
   }
 
-  return getEdgeIdentity(CallInst);
+  return EdgeIdentity<l_t>{};
 }
 
 auto IDEExtendedTaintAnalysis::getReturnEdgeFunction(
     n_t CallSite, [[maybe_unused]] f_t CalleeFun, n_t ExitInst, d_t ExitNode,
-    [[maybe_unused]] n_t RetSite, d_t RetNode) -> EdgeFunctionPtrType {
+    [[maybe_unused]] n_t RetSite, d_t RetNode) -> EdgeFunctionType {
 
   if (DisableStrongUpdates) {
-    return getEdgeIdentity(CallSite);
+    return EdgeIdentity<l_t>{};
   }
 
   if (isZeroValue(ExitNode) && isZeroValue(RetNode)) {
-    return getEdgeIdentity(CallSite);
+    return EdgeIdentity<l_t>{};
   }
 
   if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
       Ret && equivalent(RetNode, makeFlowFact(CallSite))) {
-    return makeEF<TransferEdgeFunction>(
-        BBO, getApproxLoadFrom(Ret->getReturnValue()), CallSite);
+    return TransferEdgeFunction{
+        {}, &BBO, getApproxLoadFrom(Ret->getReturnValue()), CallSite};
   }
   // Pointer parameters that have a sanitizer on all paths are always sanitized
   // at the return-site, no matter where the sanitizer is
   // return EdgeFunctionPtrType(new KillIfSanitizedEdgeFunction(BBO, nullptr));
-  return makeEF<TransferEdgeFunction>(BBO, nullptr, CallSite);
+  return TransferEdgeFunction{{}, &BBO, nullptr, CallSite};
 }
 
 auto IDEExtendedTaintAnalysis::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, [[maybe_unused]] n_t RetSite, d_t RetSiteNode,
-    llvm::ArrayRef<f_t> Callees) -> EdgeFunctionPtrType {
+    llvm::ArrayRef<f_t> Callees) -> EdgeFunctionType {
 
   // Intrinsics behave as they won't be there...
   bool IsIntrinsic = std::all_of(Callees.begin(), Callees.end(),
@@ -696,26 +688,26 @@ auto IDEExtendedTaintAnalysis::getCallToRetEdgeFunction(
       if (Arg.get()->getType()->isPointerTy() &&
           equivalent(CallNode, makeFlowFact(Arg.get()))) {
         // kill the flow fact unconditionally
-        return makeEF<GenEdgeFunction>(BBO, CallSite);
+        return GenEdgeFunction{CallSite};
       }
     }
   }
-  return getEdgeIdentity(CallSite);
+  return EdgeIdentity<l_t>{};
 }
 
 auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
                                                       [[maybe_unused]] n_t Succ,
                                                       d_t SuccNode)
-    -> EdgeFunctionPtrType {
+    -> EdgeFunctionType {
 
   const auto *Call = llvm::cast<llvm::CallBase>(Curr);
 
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
-    return getGenEdgeFunction(BBO);
+    return GenEdgeFunction{nullptr};
   }
 
   if (DisableStrongUpdates) {
-    return getEdgeIdentity(Curr);
+    return EdgeIdentity<l_t>{};
   }
 
   const auto &Callees = ICF->getCalleesOfCallAt(Curr);
@@ -738,16 +730,16 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
     }
   }
 
-  EdgeFunctionPtrType Ret = getEdgeIdentity(Curr);
+  EdgeFunctionType Ret = EdgeIdentity<l_t>{};
 
   if (isMustAlias(SaniConfig, CurrNode)) {
-    return makeEF<GenEdgeFunction>(BBO, Curr);
+    return GenEdgeFunction{Curr};
   }
 
   // MemIntrinsic covers memset, memcpy and memmove
   if (const auto *MemSet = llvm::dyn_cast<llvm::MemIntrinsic>(Curr);
       MemSet && CurrNode->mustAlias(makeFlowFact(MemSet->getRawDest()), PT)) {
-    return makeEF<GenEdgeFunction>(BBO, Curr);
+    return GenEdgeFunction{Curr};
   }
 
   return Ret;

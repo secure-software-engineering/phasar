@@ -18,6 +18,9 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
@@ -49,14 +52,7 @@
 #include <unordered_set>
 #include <utility>
 
-namespace llvm {
-class Instruction;
-class Value;
-} // namespace llvm
-
 namespace psr {
-// For sorting the results in dumpResults()
-std::string getMetaDataID(const llvm::Value *V);
 
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
@@ -68,7 +64,6 @@ public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;
   using container_type = typename ProblemTy::container_type;
   using FlowFunctionPtrType = typename ProblemTy::FlowFunctionPtrType;
-  using EdgeFunctionPtrType = typename ProblemTy::EdgeFunctionPtrType;
 
   using l_t = typename AnalysisDomainTy::l_t;
   using n_t = typename AnalysisDomainTy::n_t;
@@ -84,7 +79,7 @@ public:
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
         JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
-            AllTop, IDEProblem)),
+            IDEProblem)),
         Seeds(Problem.initialSeeds()) {
     assert(ICF != nullptr);
   }
@@ -161,6 +156,16 @@ public:
     START_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     // We start our analysis and construct exploded supergraph
     submitInitialSeeds();
+
+    while (!WorkList.empty()) {
+      auto [Edge, EF] = std::move(WorkList.back());
+      WorkList.pop_back();
+
+      auto [SourceVal, Target, TargetVal] = Edge.consume();
+      propagate(std::move(SourceVal), std::move(Target), std::move(TargetVal),
+                std::move(EF));
+    }
+
     STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     if (SolverConfig.computeValues()) {
       START_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
@@ -180,8 +185,8 @@ public:
   }
 
   /// Returns the L-type result for the given value at the given statement.
-  [[nodiscard]] virtual l_t resultAt(n_t Stmt, d_t Value) {
-    return ValTab.get(Stmt, Value);
+  [[nodiscard]] l_t resultAt(n_t Stmt, d_t Value) {
+    return getSolverResults().resultAt(Stmt, Value);
   }
 
   /// Returns the L-type result at the given statement for the given data-flow
@@ -203,11 +208,7 @@ public:
   [[nodiscard]] typename std::enable_if_t<
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>, l_t>
   resultAtInLLVMSSA(NTy Stmt, d_t Value) {
-    if (Stmt->getType()->isVoidTy()) {
-      return ValTab.get(Stmt, Value);
-    }
-    assert(Stmt->getNextNode() && "Expected to find a valid successor node!");
-    return ValTab.get(Stmt->getNextNode(), Value);
+    return getSolverResults().resultAtInLLVMSSA(Stmt, Value);
   }
 
   /// Returns the resulting environment for the given statement.
@@ -215,17 +216,7 @@ public:
   /// TOP values are never returned.
   [[nodiscard]] virtual std::unordered_map<d_t, l_t>
   resultsAt(n_t Stmt, bool StripZero = false) /*TODO const*/ {
-    std::unordered_map<d_t, l_t> Result = ValTab.row(Stmt);
-    if (StripZero) {
-      for (auto It = Result.begin(); It != Result.end();) {
-        if (IDEProblem.isZeroValue(It->first)) {
-          It = Result.erase(It);
-        } else {
-          ++It;
-        }
-      }
-    }
-    return Result;
+    return getSolverResults().resultsAt(Stmt, StripZero);
   }
 
   /// Returns the data-flow results at the given statement while respecting
@@ -248,23 +239,7 @@ public:
       std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
       std::unordered_map<d_t, l_t>>
   resultsAtInLLVMSSA(NTy Stmt, bool StripZero = false) {
-    std::unordered_map<d_t, l_t> Result = [this, Stmt]() {
-      if (Stmt->getType()->isVoidTy()) {
-        return ValTab.row(Stmt);
-      }
-      return ValTab.row(Stmt->getNextNode());
-    }();
-    if (StripZero) {
-      // TODO: replace with std::erase_if (C++20)
-      for (auto It = Result.begin(); It != Result.end();) {
-        if (IDEProblem.isZeroValue(It->first)) {
-          It = Result.erase(It);
-        } else {
-          ++It;
-        }
-      }
-    }
-    return Result;
+    return getSolverResults().resultsAtInLLVMSSA(Stmt, StripZero);
   }
 
   virtual void emitTextReport(llvm::raw_ostream &OS = llvm::outs()) {
@@ -276,49 +251,7 @@ public:
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
-    PAMM_GET_INSTANCE;
-    START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
-    OS << "\n***************************************************************\n"
-       << "*                  Raw IDESolver results                      *\n"
-       << "***************************************************************\n";
-    auto Cells = this->ValTab.cellVec();
-    if (Cells.empty()) {
-      OS << "No results computed!" << '\n';
-    } else {
-      std::sort(
-          Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
-            if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-              return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
-                                    getMetaDataID(Rhs.getRowKey()));
-            } else {
-              // If non-LLVM IR is used
-              return Lhs.getRowKey() < Rhs.getRowKey();
-            }
-          });
-      n_t Prev = n_t{};
-      n_t Curr = n_t{};
-      f_t PrevFn = f_t{};
-      f_t CurrFn = f_t{};
-      for (unsigned I = 0; I < Cells.size(); ++I) {
-        Curr = Cells[I].getRowKey();
-        CurrFn = ICF->getFunctionOf(Curr);
-        if (PrevFn != CurrFn) {
-          PrevFn = CurrFn;
-          OS << "\n\n============ Results for function '" +
-                    ICF->getFunctionName(CurrFn) + "' ============\n";
-        }
-        if (Prev != Curr) {
-          Prev = Curr;
-          std::string NString = IDEProblem.NtoString(Curr);
-          std::string Line(NString.size(), '-');
-          OS << "\n\nN: " << NString << "\n---" << Line << '\n';
-        }
-        OS << "\tD: " << IDEProblem.DtoString(Cells[I].getColumnKey())
-           << " | V: " << IDEProblem.LtoString(Cells[I].getValue()) << '\n';
-      }
-    }
-    OS << '\n';
-    STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
+    getSolverResults().dumpResults(*ICF, IDEProblem, OS);
   }
 
   void dumpAllInterPathEdges() {
@@ -361,50 +294,27 @@ public:
     }
   }
 
-  SolverResults<n_t, d_t, l_t> getSolverResults() {
-    return SolverResults<n_t, d_t, l_t>(this->ValTab,
-                                        IDEProblem.getZeroValue());
+  /// Returns a view into the computed solver-results.
+  ///
+  /// NOTE: The SolverResults store a reference into this IDESolver, so its
+  /// lifetime is also bound to the lifetime of this solver. If you want to use
+  /// the solverResults beyond the lifetime of this solver, use
+  /// comsumeSolverResults() instead.
+  [[nodiscard]] SolverResults<n_t, d_t, l_t> getSolverResults() noexcept {
+    return SolverResults<n_t, d_t, l_t>(this->ValTab, ZeroValue);
+  }
+
+  /// Moves the computed solver-results out of this solver such that the solver
+  /// can be destroyed without that the analysis results are lost.
+  /// Do not call any function (including getSolverResults()) on this IDESolver
+  /// instance after that.
+  [[nodiscard]] OwningSolverResults<n_t, d_t, l_t>
+  consumeSolverResults() noexcept(std::is_nothrow_move_constructible_v<d_t>) {
+    return OwningSolverResults<n_t, d_t, l_t>(std::move(this->ValTab),
+                                              std::move(ZeroValue));
   }
 
 protected:
-  // have a shared point to allow for a copy constructor of IDESolver
-  IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
-  d_t ZeroValue;
-  const i_t *ICF;
-  IFDSIDESolverConfig &SolverConfig;
-  unsigned PathEdgeCount = 0;
-
-  FlowEdgeFunctionCache<AnalysisDomainTy, Container> CachedFlowEdgeFunctions;
-
-  Table<n_t, n_t, std::map<d_t, Container>> ComputedIntraPathEdges;
-
-  Table<n_t, n_t, std::map<d_t, Container>> ComputedInterPathEdges;
-
-  EdgeFunctionPtrType AllTop;
-
-  std::shared_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn;
-
-  std::map<std::tuple<n_t, d_t, n_t, d_t>, std::vector<EdgeFunctionPtrType>>
-      IntermediateEdgeFunctions;
-
-  // stores summaries that were queried before they were computed
-  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<n_t, d_t, Table<n_t, d_t, EdgeFunctionPtrType>> EndsummaryTab;
-
-  // edges going along calls
-  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<n_t, d_t, std::map<n_t, Container>> IncomingTab;
-
-  // stores the return sites (inside callers) to which we have unbalanced
-  // returns if SolverConfig.followReturnPastSeeds is enabled
-  std::set<n_t> UnbalancedRetSites;
-
-  InitialSeeds<n_t, d_t, l_t> Seeds;
-
-  Table<n_t, d_t, l_t> ValTab;
-
-  std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
-
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
   ///
@@ -431,7 +341,7 @@ protected:
     n_t n = Edge.getTarget();
     // a call node; line 14...
     d_t d2 = Edge.factAtTarget();
-    EdgeFunctionPtrType f = jumpFunction(Edge);
+    EdgeFunction<l_t> f = jumpFunction(Edge);
     const auto &ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
     const auto &Callees = ICF->getCalleesOfCallAt(n);
 
@@ -462,17 +372,18 @@ protected:
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, ReturnSiteN, d2, Res, false);
           for (d_t d3 : Res) {
-            EdgeFunctionPtrType SumEdgFnE =
+            EdgeFunction<l_t> SumEdgFnE =
                 CachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                ReturnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
             IF_LOG_ENABLED(
-                PHASAR_LOG_LEVEL(DEBUG, "Queried Summary Edge Function: "
-                                            << SumEdgFnE->str());
-                PHASAR_LOG_LEVEL(DEBUG, "Compose: " << SumEdgFnE->str() << " * "
-                                                    << f->str() << '\n'));
-            propagate(d1, ReturnSiteN, d3, f->composeWith(SumEdgFnE), n, false);
+                PHASAR_LOG_LEVEL(
+                    DEBUG, "Queried Summary Edge Function: " << SumEdgFnE);
+                PHASAR_LOG_LEVEL(DEBUG, "Compose: " << SumEdgFnE << " * " << f
+                                                    << '\n'));
+            WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
+                                  f.composeWith(SumEdgFnE));
           }
         }
       } else {
@@ -495,15 +406,14 @@ protected:
           saveEdges(n, SP, d2, Res, true);
           // for each result node of the call-flow function
           for (d_t d3 : Res) {
-            using TableCell =
-                typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell;
+            using TableCell = typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell;
             // create initial self-loop
             PHASAR_LOG_LEVEL(DEBUG, "Create initial self-loop with D: "
                                         << IDEProblem.DtoString(d3));
-            propagate(d3, SP, d3, EdgeIdentity<l_t>::getInstance(), n,
-                      false); // line 15
-            // register the fact that <sp,d3> has an incoming edge from <n,d2>
-            // line 15.1 of Naeem/Lhotak/Rodriguez
+            WorkList.emplace_back(PathEdge(d3, SP, d3),
+                                  EdgeIdentity<l_t>{}); // line 15
+            //  register the fact that <sp,d3> has an incoming edge from <n,d2>
+            //  line 15.1 of Naeem/Lhotak/Rodriguez
             addIncoming(SP, d3, n, d2);
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
@@ -522,7 +432,7 @@ protected:
             for (const TableCell &Entry : endSummary(SP, d3)) {
               n_t eP = Entry.getRowKey();
               d_t d4 = Entry.getColumnKey();
-              EdgeFunctionPtrType fCalleeSummary = Entry.getValue();
+              EdgeFunction<l_t> fCalleeSummary = Entry.getValue();
               // for each return site
               for (n_t RetSiteN : ReturnSiteNs) {
                 // compute return-flow function
@@ -539,17 +449,16 @@ protected:
                 for (d_t d5 : ReturnedFacts) {
                   // update the caller-side summary function
                   // get call edge function
-                  EdgeFunctionPtrType f4 =
+                  EdgeFunction<l_t> f4 =
                       CachedFlowEdgeFunctions.getCallEdgeFunction(
                           n, d2, SCalledProcN, d3);
-                  PHASAR_LOG_LEVEL(DEBUG,
-                                   "Queried Call Edge Function: " << f4->str());
+                  PHASAR_LOG_LEVEL(DEBUG, "Queried Call Edge Function: " << f4);
                   // get return edge function
-                  EdgeFunctionPtrType f5 =
+                  EdgeFunction<l_t> f5 =
                       CachedFlowEdgeFunctions.getReturnEdgeFunction(
                           n, SCalledProcN, eP, d4, RetSiteN, d5);
-                  PHASAR_LOG_LEVEL(
-                      DEBUG, "Queried Return Edge Function: " << f5->str());
+                  PHASAR_LOG_LEVEL(DEBUG,
+                                   "Queried Return Edge Function: " << f5);
                   if (SolverConfig.emitESG()) {
                     for (auto SP : ICF->getStartPointsOf(SCalledProcN)) {
                       IntermediateEdgeFunctions[std::make_tuple(n, d2, SP, d3)]
@@ -561,20 +470,20 @@ protected:
                   }
                   INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
-                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5->str() << " * "
-                                                      << fCalleeSummary->str()
-                                                      << " * " << f4->str());
+                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5 << " * "
+                                                      << fCalleeSummary << " * "
+                                                      << f4);
                   PHASAR_LOG_LEVEL(DEBUG,
                                    "         (return * calleeSummary * call)");
-                  EdgeFunctionPtrType fPrime =
-                      f4->composeWith(fCalleeSummary)->composeWith(f5);
-                  PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime->str());
+                  EdgeFunction<l_t> fPrime =
+                      f4.composeWith(fCalleeSummary).composeWith(f5);
+                  PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime);
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
-                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime->str() << " * "
-                                                      << f->str());
-                  propagate(d1, RetSiteN, d5_restoredCtx,
-                            f->composeWith(fPrime), n, false);
+                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f);
+                  WorkList.emplace_back(
+                      PathEdge(d1, RetSiteN, std::move(d5_restoredCtx)),
+                      f.composeWith(fPrime));
                 }
               }
             }
@@ -595,21 +504,21 @@ protected:
                        PAMM_SEVERITY_LEVEL::Full);
       saveEdges(n, ReturnSiteN, d2, ReturnFacts, false);
       for (d_t d3 : ReturnFacts) {
-        EdgeFunctionPtrType EdgeFnE =
+        EdgeFunction<l_t> EdgeFnE =
             CachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, ReturnSiteN,
                                                              d3, Callees);
-        PHASAR_LOG_LEVEL(
-            DEBUG, "Queried Call-to-Return Edge Function: " << EdgeFnE->str());
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "Queried Call-to-Return Edge Function: " << EdgeFnE);
         if (SolverConfig.emitESG()) {
           IntermediateEdgeFunctions[std::make_tuple(n, d2, ReturnSiteN, d3)]
               .push_back(EdgeFnE);
         }
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        auto fPrime = f->composeWith(EdgeFnE);
-        PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE->str() << " * "
-                                            << f->str() << " = "
-                                            << fPrime->str());
-        propagate(d1, ReturnSiteN, d3, fPrime, n, false);
+        auto fPrime = f.composeWith(EdgeFnE);
+        PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
+                                            << fPrime);
+        WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
+                              std::move(fPrime));
       }
     }
   }
@@ -618,15 +527,14 @@ protected:
   /// Simply propagate normal, intra-procedural flows.
   /// @param edge
   ///
-  virtual void processNormalFlow(const PathEdge<n_t, d_t> Edge) {
+  virtual void processNormalFlow(PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
     PHASAR_LOG_LEVEL(DEBUG, "Process normal at target: "
                                 << IDEProblem.NtoString(Edge.getTarget()));
-    d_t d1 = Edge.factAtSource();
-    n_t n = Edge.getTarget();
-    d_t d2 = Edge.factAtTarget();
-    EdgeFunctionPtrType f = jumpFunction(Edge);
+    EdgeFunction<l_t> f = jumpFunction(Edge);
+    auto [d1, n, d2] = Edge.consume();
+
     for (const auto nPrime : ICF->getSuccsOf(n)) {
       FlowFunctionPtrType FlowFunc =
           CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
@@ -636,18 +544,19 @@ protected:
                        PAMM_SEVERITY_LEVEL::Full);
       saveEdges(n, nPrime, d2, Res, false);
       for (d_t d3 : Res) {
-        EdgeFunctionPtrType g =
+        EdgeFunction<l_t> g =
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
-        PHASAR_LOG_LEVEL(DEBUG, "Queried Normal Edge Function: " << g->str());
-        EdgeFunctionPtrType fPrime = f->composeWith(g);
+        PHASAR_LOG_LEVEL(DEBUG, "Queried Normal Edge Function: " << g);
+        EdgeFunction<l_t> fPrime = f.composeWith(g);
         if (SolverConfig.emitESG()) {
           IntermediateEdgeFunctions[std::make_tuple(n, d2, nPrime, d3)]
               .push_back(g);
         }
-        PHASAR_LOG_LEVEL(DEBUG, "Compose: " << g->str() << " * " << f->str()
-                                            << " = " << fPrime->str());
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "Compose: " << g << " * " << f << " = " << fPrime);
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        propagate(d1, nPrime, d3, fPrime, nullptr, false);
+        WorkList.emplace_back(PathEdge(d1, nPrime, std::move(d3)),
+                              std::move(fPrime));
       }
     }
   }
@@ -664,11 +573,11 @@ protected:
       for (size_t I = 0; I < LookupResults->get().size(); ++I) {
         auto Entry = LookupResults->get()[I];
         d_t dPrime = Entry.first;
-        EdgeFunctionPtrType fPrime = Entry.second;
+        auto fPrime = Entry.second;
         n_t SP = Stmt;
         l_t Val = val(SP, Fact);
         INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
-        propagateValue(CallSite, dPrime, fPrime->computeTarget(Val));
+        propagateValue(CallSite, dPrime, fPrime.computeTarget(Val));
       }
     }
   }
@@ -681,11 +590,9 @@ protected:
           CachedFlowEdgeFunctions.getCallFlowFunction(Stmt, Callee);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       for (const d_t dPrime : CallFlowFunction->computeTargets(Fact)) {
-        EdgeFunctionPtrType EdgeFn =
-            CachedFlowEdgeFunctions.getCallEdgeFunction(Stmt, Fact, Callee,
-                                                        dPrime);
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "Queried Call Edge Function: " << EdgeFn->str());
+        EdgeFunction<l_t> EdgeFn = CachedFlowEdgeFunctions.getCallEdgeFunction(
+            Stmt, Fact, Callee, dPrime);
+        PHASAR_LOG_LEVEL(DEBUG, "Queried Call Edge Function: " << EdgeFn);
         if (SolverConfig.emitESG()) {
           for (const auto SP : ICF->getStartPointsOf(Callee)) {
             IntermediateEdgeFunctions[std::make_tuple(Stmt, Fact, SP, dPrime)]
@@ -696,7 +603,7 @@ protected:
         for (const n_t StartPoint : ICF->getStartPointsOf(Callee)) {
           INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
           propagateValue(StartPoint, dPrime,
-                         EdgeFn->computeTarget(val(Stmt, Fact)));
+                         EdgeFn.computeTarget(val(Stmt, Fact)));
         }
       }
     }
@@ -707,7 +614,7 @@ protected:
     l_t LPrime = joinValueAt(NHashN, NHashD, ValNHash, L);
     if (!(LPrime == ValNHash)) {
       setVal(NHashN, NHashD, std::move(LPrime));
-      valuePropagationTask(std::pair<n_t, d_t>(NHashN, NHashD));
+      ValuePropWL.emplace_back(std::move(NHashN), std::move(NHashD));
     }
   }
 
@@ -737,7 +644,7 @@ protected:
     // }
   }
 
-  EdgeFunctionPtrType jumpFunction(const PathEdge<n_t, d_t> Edge) {
+  EdgeFunction<l_t> jumpFunction(const PathEdge<n_t, d_t> Edge) {
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "JumpFunctions Forward-Lookup:");
         PHASAR_LOG_LEVEL(DEBUG, "   Source D: " << IDEProblem.DtoString(
@@ -756,16 +663,16 @@ protected:
                                      return Edge.factAtTarget() == Pair.first;
                                    });
           Find != Ref.end()) {
-        PHASAR_LOG_LEVEL(DEBUG, "  => EdgeFn: " << Find->second->str());
+        PHASAR_LOG_LEVEL(DEBUG, "  => EdgeFn: " << Find->second);
         return Find->second;
       }
     }
-    PHASAR_LOG_LEVEL(DEBUG, "  => EdgeFn: " << AllTop->str());
+    PHASAR_LOG_LEVEL(DEBUG, "  => EdgeFn: " << AllTop);
     // JumpFn initialized to all-top, see line [2] in SRH96 paper
     return AllTop;
   }
 
-  void addEndSummary(n_t SP, d_t d1, n_t eP, d_t d2, EdgeFunctionPtrType f) {
+  void addEndSummary(n_t SP, d_t d1, n_t eP, d_t d2, EdgeFunction<l_t> f) {
     // note: at this point we don't need to join with a potential previous f
     // because f is a jump function, which is already properly joined
     // within propagate(..)
@@ -773,7 +680,7 @@ protected:
   }
 
   // should be made a callable at some point
-  void pathEdgeProcessingTask(const PathEdge<n_t, d_t> Edge) {
+  void pathEdgeProcessingTask(PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("JumpFn Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     IF_LOG_ENABLED(
@@ -800,15 +707,15 @@ protected:
         processExit(Edge);
       }
       if (!ICF->getSuccsOf(Edge.getTarget()).empty()) {
-        processNormalFlow(Edge);
+        processNormalFlow(std::move(Edge));
       }
     } else {
-      processCall(Edge);
+      processCall(std::move(Edge));
     }
   }
 
   // should be made a callable at some point
-  void valuePropagationTask(const std::pair<n_t, d_t> NAndD) {
+  void valuePropagationTask(std::pair<n_t, d_t> NAndD) {
     n_t n = NAndD.first;
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
@@ -830,18 +737,18 @@ protected:
     PAMM_GET_INSTANCE;
     for (n_t n : Values) {
       for (n_t SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
-        using TableCell = typename Table<d_t, d_t, EdgeFunctionPtrType>::Cell;
-        Table<d_t, d_t, EdgeFunctionPtrType> &LookupByTarget =
+        using TableCell = typename Table<d_t, d_t, EdgeFunction<l_t>>::Cell;
+        Table<d_t, d_t, EdgeFunction<l_t>> &LookupByTarget =
             JumpFn->lookupByTarget(n);
         for (const TableCell &SourceValTargetValAndFunction :
              LookupByTarget.cellSet()) {
           d_t dPrime = SourceValTargetValAndFunction.getRowKey();
           d_t d = SourceValTargetValAndFunction.getColumnKey();
-          EdgeFunctionPtrType fPrime = SourceValTargetValAndFunction.getValue();
+          EdgeFunction<l_t> fPrime = SourceValTargetValAndFunction.getValue();
           l_t TargetVal = val(SP, dPrime);
           setVal(n, d,
                  IDEProblem.join(val(n, d),
-                                 fPrime->computeTarget(std::move(TargetVal))));
+                                 fPrime.computeTarget(std::move(TargetVal))));
           INC_COUNTER("Value Computation", 1, PAMM_SEVERITY_LEVEL::Full);
         }
       }
@@ -859,10 +766,7 @@ protected:
                                                        DestVals.end());
   }
 
-  /// Computes the final values for edge functions.
-  void computeValues() {
-    PHASAR_LOG_LEVEL(DEBUG, "Start computing values");
-    // Phase II(i)
+  void submitInitialValues() {
     std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
     for (n_t UnbalancedRetSite : UnbalancedRetSites) {
       if (AllSeeds.find(UnbalancedRetSite) == AllSeeds.end()) {
@@ -881,9 +785,22 @@ protected:
         // information at the beginning of the value computation problem
         setVal(StartPoint, Fact, Value);
         std::pair<n_t, d_t> SuperGraphNode(StartPoint, Fact);
-        valuePropagationTask(SuperGraphNode);
+        valuePropagationTask(std::move(SuperGraphNode));
       }
     }
+  }
+
+  /// Computes the final values for edge functions.
+  void computeValues() {
+    PHASAR_LOG_LEVEL(DEBUG, "Start computing values");
+    // Phase II(i)
+    submitInitialValues();
+    while (!ValuePropWL.empty()) {
+      auto NAndD = std::move(ValuePropWL.back());
+      ValuePropWL.pop_back();
+      valuePropagationTask(std::move(NAndD));
+    }
+
     // Phase II(ii)
     // we create an array of all nodes and then dispatch fractions of this
     // array to multiple threads
@@ -931,10 +848,8 @@ protected:
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, PAMM_SEVERITY_LEVEL::Core);
         }
-        propagate(Fact, StartPoint, Fact, EdgeIdentity<l_t>::getInstance(),
-                  nullptr, false);
-        JumpFn->addFunction(Fact, StartPoint, Fact,
-                            EdgeIdentity<l_t>::getInstance());
+        WorkList.emplace_back(PathEdge(Fact, StartPoint, Fact),
+                              EdgeIdentity<l_t>{});
       }
     }
   }
@@ -953,7 +868,7 @@ protected:
     PHASAR_LOG_LEVEL(DEBUG, "Process exit at target: "
                                 << IDEProblem.NtoString(Edge.getTarget()));
     n_t n = Edge.getTarget(); // an exit node; line 21...
-    EdgeFunctionPtrType f = jumpFunction(Edge);
+    EdgeFunction<l_t> f = jumpFunction(Edge);
     f_t FunctionThatNeedsSummary = ICF->getFunctionOf(n);
     d_t d1 = Edge.factAtSource();
     d_t d2 = Edge.factAtTarget();
@@ -994,17 +909,14 @@ protected:
           for (d_t d5 : Targets) {
             // compute composed function
             // get call edge function
-            EdgeFunctionPtrType f4 =
-                CachedFlowEdgeFunctions.getCallEdgeFunction(
-                    c, d4, ICF->getFunctionOf(n), d1);
-            PHASAR_LOG_LEVEL(DEBUG,
-                             "Queried Call Edge Function: " << f4->str());
+            EdgeFunction<l_t> f4 = CachedFlowEdgeFunctions.getCallEdgeFunction(
+                c, d4, ICF->getFunctionOf(n), d1);
+            PHASAR_LOG_LEVEL(DEBUG, "Queried Call Edge Function: " << f4);
             // get return edge function
-            EdgeFunctionPtrType f5 =
+            EdgeFunction<l_t> f5 =
                 CachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, ICF->getFunctionOf(n), n, d2, RetSiteC, d5);
-            PHASAR_LOG_LEVEL(DEBUG,
-                             "Queried Return Edge Function: " << f5->str());
+            PHASAR_LOG_LEVEL(DEBUG, "Queried Return Edge Function: " << f5);
             if (SolverConfig.emitESG()) {
               for (auto SP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
                 IntermediateEdgeFunctions[std::make_tuple(c, d4, SP, d1)]
@@ -1015,26 +927,25 @@ protected:
             }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
-            PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5->str() << " * "
-                                                << f->str() << " * "
-                                                << f4->str());
+            PHASAR_LOG_LEVEL(DEBUG,
+                             "Compose: " << f5 << " * " << f << " * " << f4);
             PHASAR_LOG_LEVEL(DEBUG, "         (return * function * call)");
-            EdgeFunctionPtrType fPrime = f4->composeWith(f)->composeWith(f5);
-            PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime->str());
+            EdgeFunction<l_t> fPrime = f4.composeWith(f).composeWith(f5);
+            PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime);
             // for each jump function coming into the call, propagate to
             // return site using the composed function
             auto RevLookupResult = JumpFn->reverseLookup(c, d4);
             if (RevLookupResult) {
               for (size_t I = 0; I < RevLookupResult->get().size(); ++I) {
                 auto ValAndFunc = RevLookupResult->get()[I];
-                EdgeFunctionPtrType f3 = ValAndFunc.second;
-                if (!f3->equal_to(AllTop)) {
+                EdgeFunction<l_t> f3 = ValAndFunc.second;
+                if (f3 != AllTop) {
                   d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
-                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime->str() << " * "
-                                                      << f3->str());
-                  propagate(d3, RetSiteC, d5_restoredCtx,
-                            f3->composeWith(fPrime), c, false);
+                  PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f3);
+                  WorkList.emplace_back(PathEdge(std::move(d3), RetSiteC,
+                                                 std::move(d5_restoredCtx)),
+                                        f3.composeWith(fPrime));
                 }
               }
             }
@@ -1063,19 +974,17 @@ protected:
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, RetSiteC, d2, Targets, true);
           for (d_t d5 : Targets) {
-            EdgeFunctionPtrType f5 =
+            EdgeFunction<l_t> f5 =
                 CachedFlowEdgeFunctions.getReturnEdgeFunction(
                     Caller, ICF->getFunctionOf(n), n, d2, RetSiteC, d5);
-            PHASAR_LOG_LEVEL(DEBUG,
-                             "Queried Return Edge Function: " << f5->str());
+            PHASAR_LOG_LEVEL(DEBUG, "Queried Return Edge Function: " << f5);
             if (SolverConfig.emitESG()) {
               IntermediateEdgeFunctions[std::make_tuple(n, d2, RetSiteC, d5)]
                   .push_back(f5);
             }
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-            PHASAR_LOG_LEVEL(DEBUG,
-                             "Compose: " << f5->str() << " * " << f->str());
-            propagteUnbalancedReturnFlow(RetSiteC, d5, f->composeWith(f5),
+            PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5 << " * " << f);
+            propagteUnbalancedReturnFlow(RetSiteC, d5, f.composeWith(f5),
                                          Caller);
             // register for value processing (2nd IDE phase)
             UnbalancedRetSites.insert(RetSiteC);
@@ -1097,10 +1006,11 @@ protected:
   }
 
   void propagteUnbalancedReturnFlow(n_t RetSiteC, d_t TargetVal,
-                                    EdgeFunctionPtrType EdgeFunc,
-                                    n_t RelatedCallSite) {
-    propagate(ZeroValue, RetSiteC, TargetVal, std::move(EdgeFunc),
-              RelatedCallSite, true);
+                                    EdgeFunction<l_t> EdgeFunc,
+                                    n_t /*RelatedCallSite*/) {
+    WorkList.emplace_back(
+        PathEdge(ZeroValue, std::move(RetSiteC), std::move(TargetVal)),
+        std::move(EdgeFunc));
   }
 
   /// This method will be called for each incoming edge and can be used to
@@ -1203,22 +1113,17 @@ protected:
   /// but may be useful for subclasses of {@link IDESolver})
   ///
   void propagate(d_t SourceVal, n_t Target, d_t TargetVal,
-                 const EdgeFunctionPtrType &f,
-                 /* deliberately exposed to clients */
-                 n_t /*RelatedCallSite*/,
-                 /* deliberately exposed to clients */
-                 bool /*IsUnbalancedReturn*/) {
+                 EdgeFunction<l_t> f) {
     PHASAR_LOG_LEVEL(DEBUG, "Propagate flow");
     PHASAR_LOG_LEVEL(DEBUG,
                      "Source value  : " << IDEProblem.DtoString(SourceVal));
     PHASAR_LOG_LEVEL(DEBUG, "Target        : " << IDEProblem.NtoString(Target));
     PHASAR_LOG_LEVEL(DEBUG,
                      "Target value  : " << IDEProblem.DtoString(TargetVal));
-    PHASAR_LOG_LEVEL(DEBUG,
-                     "Edge function : " << f.get()->str()
-                                        << " (result of previous compose)");
+    PHASAR_LOG_LEVEL(
+        DEBUG, "Edge function : " << f << " (result of previous compose)");
 
-    EdgeFunctionPtrType JumpFnE = [&]() {
+    EdgeFunction<l_t> JumpFnE = [&]() {
       const auto RevLookupResult = JumpFn->reverseLookup(Target, TargetVal);
       if (RevLookupResult) {
         const auto &JumpFnContainer = RevLookupResult->get();
@@ -1233,23 +1138,22 @@ protected:
       // was found
       return AllTop;
     }();
-    EdgeFunctionPtrType fPrime = JumpFnE->joinWith(f);
-    bool NewFunction = !(fPrime->equal_to(JumpFnE));
+    EdgeFunction<l_t> fPrime = JumpFnE.joinWith(f);
+    bool NewFunction = fPrime != JumpFnE;
 
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(
-            DEBUG,
-            "Join: " << JumpFnE->str() << " & " << f.get()->str()
-                     << (JumpFnE->equal_to(f) ? " (EF's are equal)" : " "));
+            DEBUG, "Join: " << JumpFnE << " & " << f
+                            << (JumpFnE == f ? " (EF's are equal)" : " "));
         PHASAR_LOG_LEVEL(DEBUG,
-                         "    = " << fPrime->str()
+                         "    = " << fPrime
                                   << (NewFunction ? " (new jump func)" : " "));
         PHASAR_LOG_LEVEL(DEBUG, ' '));
     if (NewFunction) {
       JumpFn->addFunction(SourceVal, Target, TargetVal, fPrime);
-      const PathEdge<n_t, d_t> Edge(SourceVal, Target, TargetVal);
+      PathEdge Edge(SourceVal, Target, TargetVal);
       PathEdgeCount++;
-      pathEdgeProcessingTask(Edge);
+      pathEdgeProcessingTask(std::move(Edge));
 
       IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
         PHASAR_LOG_LEVEL(
@@ -1259,7 +1163,7 @@ protected:
                          " ---> <N: " << IDEProblem.NtoString(Target) << ',');
         PHASAR_LOG_LEVEL(DEBUG, "       D: " << IDEProblem.DtoString(TargetVal)
                                              << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime->str() << '>');
+        PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
         PHASAR_LOG_LEVEL(DEBUG, ' ');
       });
     } else {
@@ -1271,7 +1175,7 @@ protected:
     return IDEProblem.join(std::move(Curr), std::move(NewVal));
   }
 
-  std::set<typename Table<n_t, d_t, EdgeFunctionPtrType>::Cell>
+  std::set<typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell>
   endSummary(n_t SP, d_t d3) {
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       auto Key = std::make_pair(SP, d3);
@@ -1294,7 +1198,6 @@ protected:
   }
 
   void printIncomingTab() const {
-#ifdef DYNAMIC_LOG
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Start of incomingtab entry");
         for (const auto &Cell
@@ -1312,29 +1215,27 @@ protected:
           }
           PHASAR_LOG_LEVEL(DEBUG, "---------------");
         } PHASAR_LOG_LEVEL(DEBUG, "End of incomingtab entry");)
-#endif
   }
 
   void printEndSummaryTab() const {
-#ifdef DYNAMIC_LOG
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Start of endsummarytab entry");
-        for (const auto &Cell
-             : EndsummaryTab.cellVec()) {
-          PHASAR_LOG_LEVEL(DEBUG,
-                           "sP: " << IDEProblem.NtoString(Cell.getRowKey()));
-          PHASAR_LOG_LEVEL(DEBUG,
-                           "d1: " << IDEProblem.DtoString(Cell.getColumnKey()));
-          for (const auto &InnerCell : Cell.getValue().cellVec()) {
-            PHASAR_LOG_LEVEL(
-                DEBUG, "  eP: " << IDEProblem.NtoString(InnerCell.getRowKey()));
-            PHASAR_LOG_LEVEL(DEBUG, "  d2: " << IDEProblem.DtoString(
-                                        InnerCell.getColumnKey()));
-            PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerCell.getValue()->str());
-          }
+
+        EndsummaryTab.foreachCell([this](const auto &Row, const auto &Col,
+                                         const auto &Val) {
+          PHASAR_LOG_LEVEL(DEBUG, "sP: " << IDEProblem.NtoString(Row));
+          PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(Col));
+
+          Val.foreachCell([this](const auto &InnerRow, const auto &InnerCol,
+                                 const auto &InnerVal) {
+            PHASAR_LOG_LEVEL(DEBUG, "  eP: " << IDEProblem.NtoString(InnerRow));
+            PHASAR_LOG_LEVEL(DEBUG, "  d2: " << IDEProblem.DtoString(InnerCol));
+            PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerVal);
+          });
           PHASAR_LOG_LEVEL(DEBUG, "---------------");
-        } PHASAR_LOG_LEVEL(DEBUG, "End of endsummarytab entry");)
-#endif
+        });
+
+        PHASAR_LOG_LEVEL(DEBUG, "End of endsummarytab entry");)
   }
 
   void printComputedPathEdges() {
@@ -1416,7 +1317,6 @@ protected:
     // key
     std::unordered_map<n_t, std::set<d_t>> ValidInCallerContext;
     size_t NumGenFacts = 0;
-    size_t NumKillFacts = 0;
     size_t NumIntraPathEdges = 0;
     size_t NumInterPathEdges = 0;
     // --- Intra-procedural Path Edges ---
@@ -1437,10 +1337,6 @@ protected:
         // Case 2
         else {
           NumGenFacts += D2s.size();
-          // We ignore the zero value
-          if (!IDEProblem.isZeroValue(D1)) {
-            NumKillFacts++;
-          }
         }
         // Store all valid facts after call-to-return flow
         if (ICF->isCallSite(Edge.first)) {
@@ -1498,10 +1394,6 @@ protected:
                 NumGenFacts += SummaryDSet.size() - 1;
               } else {
                 NumGenFacts += SummaryDSet.size();
-                // We ignore the zero value
-                if (!IDEProblem.isZeroValue(D1)) {
-                  NumKillFacts++;
-                }
               }
             } else {
               ProcessSummaryFacts.emplace(Edge.second, D2);
@@ -1529,9 +1421,6 @@ protected:
               NumGenFacts++;
             }
             PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2));
-          }
-          if (!IDEProblem.isZeroValue(D1)) {
-            NumKillFacts++;
           }
           PHASAR_LOG_LEVEL(DEBUG, "----");
         }
@@ -1673,7 +1562,7 @@ public:
             auto EFVec = IntermediateEdgeFunctions[std::make_tuple(
                 Edge.first, D1Fact, Edge.second, D2Fact)];
             for (const auto &EF : EFVec) {
-              EFLabel += EF->str() + ", ";
+              EFLabel += to_string(EF) + ", ";
             }
             PHASAR_LOG_LEVEL(DEBUG, "EF LABEL: " << EFLabel);
             if (D1FactId == D2FactId && !IDEProblem.isZeroValue(D1Fact)) {
@@ -1793,8 +1682,8 @@ public:
             auto EFVec = IntermediateEdgeFunctions[std::make_tuple(
                 Edge.first, D1Fact, Edge.second, D2Fact)];
             for (const auto &EF : EFVec) {
-              PHASAR_LOG_LEVEL(DEBUG, "Partial EF Label: " << EF->str());
-              EFLabel.append(EF->str() + ", ");
+              PHASAR_LOG_LEVEL(DEBUG, "Partial EF Label: " << EF);
+              EFLabel.append(to_string(EF) + ", ");
             }
             PHASAR_LOG_LEVEL(DEBUG, "EF LABEL: " << EFLabel);
             G.InterFactEdges.emplace(D1, D2, true, EFLabel);
@@ -1816,6 +1705,49 @@ public:
       return StrIDLess(ICF->getStatementId(Lhs), ICF->getStatementId(Rhs));
     }
   };
+
+  /// -- Data members
+
+  IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
+  d_t ZeroValue;
+  const i_t *ICF;
+  IFDSIDESolverConfig &SolverConfig;
+
+  std::vector<std::pair<PathEdge<n_t, d_t>, EdgeFunction<l_t>>> WorkList;
+  std::vector<std::pair<n_t, d_t>> ValuePropWL;
+
+  size_t PathEdgeCount = 0;
+
+  FlowEdgeFunctionCache<AnalysisDomainTy, Container> CachedFlowEdgeFunctions;
+
+  Table<n_t, n_t, std::map<d_t, Container>> ComputedIntraPathEdges;
+
+  Table<n_t, n_t, std::map<d_t, Container>> ComputedInterPathEdges;
+
+  EdgeFunction<l_t> AllTop;
+
+  std::shared_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn;
+
+  std::map<std::tuple<n_t, d_t, n_t, d_t>, std::vector<EdgeFunction<l_t>>>
+      IntermediateEdgeFunctions;
+
+  // stores summaries that were queried before they were computed
+  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
+  Table<n_t, d_t, Table<n_t, d_t, EdgeFunction<l_t>>> EndsummaryTab;
+
+  // edges going along calls
+  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
+  Table<n_t, d_t, std::map<n_t, Container>> IncomingTab;
+
+  // stores the return sites (inside callers) to which we have unbalanced
+  // returns if SolverConfig.followReturnPastSeeds is enabled
+  std::set<n_t> UnbalancedRetSites;
+
+  InitialSeeds<n_t, d_t, l_t> Seeds;
+
+  Table<n_t, d_t, l_t> ValTab;
+
+  std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
 };
 
 template <typename AnalysisDomainTy, typename Container>
@@ -1834,6 +1766,17 @@ IDESolver(Problem &, ICF *)
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,
                               typename Problem::container_type>;
+
+template <typename AnalysisDomainTy, typename Container>
+OwningSolverResults<typename AnalysisDomainTy::n_t,
+                    typename AnalysisDomainTy::d_t,
+                    typename AnalysisDomainTy::l_t>
+solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
+                const typename AnalysisDomainTy::i_t &ICF) {
+  IDESolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
+  Solver.solve();
+  return Solver.consumeSolverResults();
+}
 
 } // namespace psr
 
