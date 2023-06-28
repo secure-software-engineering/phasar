@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -37,17 +38,77 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntil) {
                                 : "main"});
 
   auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
-  auto InteractiveResults = IDESolver(LCAProblem, &ICFG).solveUntil(FalseFn{});
-  //   if (PrintDump) {
-  //     HA.getProjectIRDB().dump();
-  //     ICFG.print();
-  //     AtomicResults.dumpResults(ICFG, LCAProblem);
-  //   }
+  {
+    auto InteractiveResults =
+        IDESolver(LCAProblem, &ICFG).solveUntil(FalseFn{});
 
-  ASSERT_TRUE(InteractiveResults.has_value());
+    ASSERT_TRUE(InteractiveResults.has_value());
+    for (auto &&Cell : AtomicResults.getAllResultEntries()) {
+      auto InteractiveRes =
+          InteractiveResults->resultAt(Cell.getRowKey(), Cell.getColumnKey());
+      EXPECT_EQ(InteractiveRes, Cell.getValue());
+    }
+  }
+  auto InterruptedResults = [&] {
+    IDESolver Solver(LCAProblem, &ICFG);
+    auto Result = Solver.solveUntil(TrueFn{});
+    EXPECT_EQ(std::nullopt, Result);
+    if (!Result) {
+      return std::move(Solver).continueSolving();
+    }
+    return Solver.consumeSolverResults();
+  }();
+
   for (auto &&Cell : AtomicResults.getAllResultEntries()) {
     auto InteractiveRes =
-        InteractiveResults->resultAt(Cell.getRowKey(), Cell.getColumnKey());
+        InterruptedResults.resultAt(Cell.getRowKey(), Cell.getColumnKey());
+    EXPECT_EQ(InteractiveRes, Cell.getValue());
+  }
+}
+
+TEST_P(LinearConstant, ResultsEquivalentSolveUntilAsync) {
+  HelperAnalyses HA(PathToLlFiles + GetParam(), EntryPoints);
+
+  // Compute the ICFG to possibly create the runtime model
+  auto &ICFG = HA.getICFG();
+
+  auto HasGlobalCtor = HA.getProjectIRDB().getFunctionDefinition(
+                           LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
+
+  auto LCAProblem = createAnalysisProblem<IDELinearConstantAnalysis>(
+      HA,
+      std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
+                                : "main"});
+
+  auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
+
+  {
+    std::atomic_bool IsCancelled = false;
+    auto InteractiveResults =
+        IDESolver(LCAProblem, &ICFG).solveWithAsyncCancellation(IsCancelled);
+
+    ASSERT_TRUE(InteractiveResults.has_value());
+    for (auto &&Cell : AtomicResults.getAllResultEntries()) {
+      auto InteractiveRes =
+          InteractiveResults->resultAt(Cell.getRowKey(), Cell.getColumnKey());
+      EXPECT_EQ(InteractiveRes, Cell.getValue());
+    }
+  }
+  auto InterruptedResults = [&] {
+    IDESolver Solver(LCAProblem, &ICFG);
+    std::atomic_bool IsCancelled = true;
+    auto Result = Solver.solveWithAsyncCancellation(IsCancelled);
+    EXPECT_EQ(std::nullopt, Result);
+    if (!Result) {
+      IsCancelled = false;
+      return std::move(Solver).solveWithAsyncCancellation(IsCancelled).value();
+    }
+    return Solver.consumeSolverResults();
+  }();
+
+  for (auto &&Cell : AtomicResults.getAllResultEntries()) {
+    auto InteractiveRes =
+        InterruptedResults.resultAt(Cell.getRowKey(), Cell.getColumnKey());
     EXPECT_EQ(InteractiveRes, Cell.getValue());
   }
 }
