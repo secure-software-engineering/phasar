@@ -41,7 +41,6 @@ int main(int Argc, const char **Argv) {
 
   HelperAnalyses HA(Argv[1], EntryPoints);
   DIBasedTypeHierarchy Test(HA.getProjectIRDB());
-  std::cout << "NEW Type Hierarchy" << std::endl;
   Test.print();
   return 0;
 }

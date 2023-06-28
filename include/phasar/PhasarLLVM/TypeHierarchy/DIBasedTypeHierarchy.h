@@ -56,7 +56,6 @@ public:
   }
 
   [[nodiscard]] std::string getTypeName(ClassType Type) const override {
-    /// TODO: Check: is this correct?
     return Type->getName().str();
   }
 
@@ -79,7 +78,6 @@ public:
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
 private:
-  llvm::DebugInfoFinder Finder;
   llvm::StringMap<ClassType> NameToType;
   // Map each type to an integer index that is used by VertexTypes and
   // DerivedTypesOf.

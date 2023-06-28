@@ -25,12 +25,12 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
-#include <iostream>
 
 namespace psr {
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   const auto *const Module = IRDB.getModule();
+  llvm::DebugInfoFinder Finder;
   Finder.processModule(*Module);
 
   // find and save all base types first, so they are present in TypeToVertex
@@ -45,29 +45,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     }
   }
 
-  std::vector<llvm::SmallVector<size_t>> DerivedTypesOf;
-  // find and save all derived types
-  for (const llvm::DIType *DIType : Finder.types()) {
-    if (const auto *DerivedType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {
-      if (DerivedType->getTag() == llvm::dwarf::DW_TAG_inheritance) {
-        const size_t ActualDerivedType =
-            TypeToVertex[NameToType[DerivedType->getScope()->getName()]];
-
-        // (max) assertions fail, but code works?!
-        // assert(ActualDerivedType);
-
-        size_t BaseTypeVertex = TypeToVertex[DerivedType->getBaseType()];
-        // (max) assertions fail, but code works?!
-        // assert(BaseTypeVertex);
-
-        llvm::SmallVector<size_t> BaseType = {
-            BaseTypeVertex, static_cast<size_t>(ActualDerivedType)};
-        DerivedTypesOf.push_back(BaseType);
-        continue;
-      }
-    }
-  }
-
   // Initialize the transitive closure matrix with all as false
   llvm::BitVector InitVector(VertexTypes.size(), false);
 
@@ -75,9 +52,29 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure.push_back(InitVector);
   }
 
-  // set direct edges
-  for (const auto &Vertex : DerivedTypesOf) {
-    TransitiveClosure[Vertex[0]][Vertex[1]] = true;
+  // find and save all derived types
+  for (const llvm::DIType *DIType : Finder.types()) {
+    if (const auto *DerivedType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {
+      if (DerivedType->getTag() == llvm::dwarf::DW_TAG_inheritance) {
+        assert(NameToType.find(DerivedType->getScope()->getName()) !=
+               NameToType.end());
+        assert(
+            TypeToVertex.find(NameToType[DerivedType->getScope()->getName()]) !=
+            TypeToVertex.end());
+        const size_t ActualDerivedType =
+            TypeToVertex[NameToType[DerivedType->getScope()->getName()]];
+        assert(TypeToVertex.find(DerivedType->getBaseType()) !=
+               TypeToVertex.end());
+        size_t BaseTypeVertex = TypeToVertex[DerivedType->getBaseType()];
+
+        assert(TransitiveClosure.size() >= BaseTypeVertex);
+        assert(TransitiveClosure.size() >=
+               static_cast<size_t>(ActualDerivedType));
+        TransitiveClosure[BaseTypeVertex]
+                         [static_cast<size_t>(ActualDerivedType)] = true;
+        continue;
+      }
+    }
   }
 
   // Add transitive edges
@@ -125,24 +122,53 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure[I][I] = true;
   }
 
-  // get VTables
-  const auto Subprograms = Finder.subprograms();
-  for (auto *Subprogram : Subprograms) {
+  size_t VTableSize = 0;
+  for (const auto &Subprogram : Finder.subprograms()) {
+    if (const auto *SubProgramType =
+            llvm::dyn_cast<llvm::DISubprogram>(Subprogram)) {
+      if (SubProgramType->getVirtualIndex() > VTableSize) {
+        VTableSize = SubProgramType->getVirtualIndex();
+      }
+    }
+  }
+  VTableSize++;
 
+  std::vector<const llvm::Function *> Init = {};
+  for (size_t I = 0; I < VTableSize; I++) {
+    VTables.push_back(Init);
+  }
+
+  // get VTables
+  for (auto *Subprogram : Finder.subprograms()) {
     if (const auto *SubProgramType =
             llvm::dyn_cast<llvm::DISubprogram>(Subprogram)) {
       if (!SubProgramType->getVirtuality()) {
         continue;
       }
       // get all virtual functions
-      std::vector<const llvm::Function *> VirtualFunctions;
+      // TODO (max):
+      // Comment from Fabian on code below
+      /*
+        This does not quite match the intention: VTables[Index] should contain a
+        LLVMVFTable consisting of all virtual functions of the type at the given
+        Index. The virtual functions inside one LLVMVFTable should be ordered
+        according to their virtualIndex
+      */
+
+      // Doesn't work, generates error:
+      // VTables.emplace_back(std::move(VirtualFunctions));
+      const size_t VirtualIndex = SubProgramType->getVirtualIndex();
+      std::vector<const llvm::Function *> IndexFunctions;
       for (const auto &Function : Module->functions()) {
+        ;
         if (SubProgramType->getLinkageName() ==
             Function.stripPointerCasts()->getName().str()) {
-          VirtualFunctions.push_back(&Function);
+          assert(VirtualIndex < VTableSize);
+          IndexFunctions.push_back(&Function);
         }
       }
-      VTables.push_back(LLVMVFTable(VirtualFunctions));
+      LLVMVFTable CurrentTable(IndexFunctions);
+      VTables[VirtualIndex] = CurrentTable;
     }
   }
 }
@@ -150,14 +176,15 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 [[nodiscard]] bool DIBasedTypeHierarchy::isSubType(ClassType Type,
                                                    ClassType SubType) {
   // find index of super type
-  unsigned long IndexOfType = TypeToVertex.find(Type)->getSecond();
-  unsigned long IndexOfSubType = TypeToVertex.find(SubType)->getSecond();
 
-  // if the super type or the sub type haven't been found, return false
-  if (IndexOfType >= TypeToVertex.size() ||
-      IndexOfSubType >= TypeToVertex.size()) {
-    return false;
-  }
+  const auto IndexOfTypeFind = TypeToVertex.find(Type);
+  const auto IndexOfSubTypeFind = TypeToVertex.find(SubType);
+
+  assert(IndexOfTypeFind == TypeToVertex.end());
+  assert(IndexOfSubTypeFind == TypeToVertex.end());
+
+  size_t IndexOfType = IndexOfTypeFind->getSecond();
+  size_t IndexOfSubType = IndexOfSubTypeFind->getSecond();
 
   return TransitiveClosure[IndexOfType][IndexOfSubType];
 }
@@ -165,7 +192,11 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 [[nodiscard]] auto DIBasedTypeHierarchy::getSubTypes(ClassType Type)
     -> std::set<ClassType> {
   // find index of super type
-  unsigned long IndexOfType = TypeToVertex.find(Type)->getSecond();
+  const auto IndexOfTypeFind = TypeToVertex.find(Type);
+
+  assert(IndexOfTypeFind == TypeToVertex.end());
+
+  unsigned long IndexOfType = IndexOfTypeFind->getSecond();
 
   // if the super type hasn't been found, return an empty set
   if (IndexOfType >= TypeToVertex.size()) {
@@ -175,13 +206,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // return all sub types
   std::set<ClassType> SubTypes = {};
 
-  size_t Index = 0;
-  for (size_t I = 0; I < TransitiveClosure[IndexOfType].size(); I++) {
-    if (TransitiveClosure[IndexOfType][I]) {
-      SubTypes.insert(VertexTypes[Index]);
-    }
-
-    Index++;
+  for (auto Index : TransitiveClosure[IndexOfType].set_bits()) {
+    SubTypes.insert(VertexTypes[Index]);
   }
 
   return SubTypes;
@@ -199,13 +225,16 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
-  return !VTables.empty();
+  const auto TypeIndex = TypeToVertex.find(Type);
+  assert(TypeIndex == TypeToVertex.end());
+  return VTables.at(TypeIndex->getSecond()).empty();
 }
 
 [[nodiscard]] auto DIBasedTypeHierarchy::getVFTable(ClassType Type) const
     -> const VFTable<f_t> * {
-
-  return &(VTables.at(TypeToVertex.find(Type)->getSecond()));
+  const auto TypeIndex = TypeToVertex.find(Type);
+  assert(TypeIndex == TypeToVertex.end());
+  return &(VTables[TypeIndex->getSecond()]);
 }
 
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
@@ -228,8 +257,9 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   OS << "VFTables:\n";
   for (const auto &VTable : VTables) {
     for (const auto &Function : VTable.getAllFunctions()) {
-      OS << Function->getName() << "\n";
+      OS << Function->getName() << ", ";
     }
+    OS << "\n";
   };
   OS << "\n";
   printAsDot();

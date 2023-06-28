@@ -10,83 +10,49 @@
 #include "llvm/Support/ManagedStatic.h"
 
 #include "TestConfig.h"
-#include "boost/graph/graph_utility.hpp"
-#include "boost/graph/graphviz.hpp"
-#include "boost/graph/isomorphism.hpp"
 #include "gtest/gtest.h"
-
-using namespace std;
-using namespace psr;
 
 namespace psr {
 
 // Check basic type hierarchy construction
 TEST(DBTHTest, BasicTHReconstruction_1) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "type_hierarchies/type_hierarchy_1_cpp.ll");
+                       "type_hierarchies/type_hierarchy_1_cpp_dbg.ll");
   DIBasedTypeHierarchy DBTH(IRDB);
+  const auto &Types = DBTH.getAllTypes();
+  const auto &SubTypes = DBTH.getSubTypes(DBTH.getType("Base"));
 
-  // EXPECT_TRUE verwenden
-  // namespace std weg
-  // boost weg
-}
-
-TEST(DBTHTest, THConstructionException) {
-  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "type_hierarchies/type_hierarchy_15_cpp.ll");
-  DIBasedTypeHierarchy DBTH(IRDB);
-}
-
-TEST(DBTHTest, BasicTHReconstruction_2) {
-  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_2_cpp.ll"});
-  DIBasedTypeHierarchy DBTH(IRDB);
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base")));
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Child")));
+  EXPECT_TRUE(SubTypes.find(DBTH.getType("Child")) != SubTypes.end());
 }
 
 TEST(DBTHTest, BasicTHReconstruction_3) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_3_cpp.ll"});
+                        "type_hierarchies/type_hierarchy_7_cpp_dbg.ll"});
   DIBasedTypeHierarchy DBTH(IRDB);
 }
 
-TEST(DBTHTest, BasicTHReconstruction_4) {
-  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_4_cpp.ll"});
-  DIBasedTypeHierarchy DBTH(IRDB);
-}
-
-TEST(DBTHTest, BasicTHReconstruction_5) {
-  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_5_cpp.ll"});
-  DIBasedTypeHierarchy DBTH(IRDB);
-}
-
-TEST(DBTHTest, BasicTHReconstruction_6) {
-  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_12_cpp.ll"});
-  DIBasedTypeHierarchy DBTH(IRDB);
-}
-
-TEST(DBTHTest, BasicTHReconstruction_7) {
-  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_11_cpp.ll"});
+TEST(DBTHTest, THConstructionException) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_15_cpp_dbg.ll");
   DIBasedTypeHierarchy DBTH(IRDB);
 }
 
 // check if the vtables are constructed correctly in more complex scenarios
 TEST(DBTHTest, VTableConstruction) {
   LLVMProjectIRDB IRDB1({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_1_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_1_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB2({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_7_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_7_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB3({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_8_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_8_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB4({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_9_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_9_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB5({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_10_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_10_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB6({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_14_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_14_cpp_dbg.ll"});
 
   // Creates an empty type hierarchy
   DIBasedTypeHierarchy TH1(IRDB1);
@@ -102,15 +68,15 @@ TEST(DBTHTest, VTableConstruction) {
 
 TEST(DBTHTest, TransitivelyReachableTypes) {
   LLVMProjectIRDB IRDB1({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_1_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_1_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB2({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_7_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_7_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB3({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_8_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_8_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB4({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_9_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_9_cpp_dbg.ll"});
   LLVMProjectIRDB IRDB5({unittest::PathToLLTestFiles +
-                         "type_hierarchies/type_hierarchy_10_cpp.ll"});
+                         "type_hierarchies/type_hierarchy_10_cpp_dbg.ll"});
   // Creates an empty type hierarchy
   DIBasedTypeHierarchy TH1(IRDB1);
   DIBasedTypeHierarchy TH2(IRDB2);
@@ -121,19 +87,6 @@ TEST(DBTHTest, TransitivelyReachableTypes) {
   // auto ReachableTypesBase1 = TH1.getSubTypes(TH1.getType("struct.Base"));
   // auto ReachableTypesChild1 = TH1.getSubTypes(TH1.getType("struct.Child"));
   // auto ReachableTypesA2 = TH2.getSubTypes(TH2.getType("struct.A"));
-
-  auto ReachableTypesBase3 = TH3.getSubTypes(TH3.getType("struct.Base"));
-  auto ReachableTypesChild3 = TH3.getSubTypes(TH3.getType("struct.Child"));
-  auto ReachableTypesNonvirtualclass3 =
-      TH3.getSubTypes(TH3.getType("class.NonvirtualClass"));
-  auto ReachableTypesNonvirtualstruct3 =
-      TH3.getSubTypes(TH3.getType("struct.NonvirtualStruct"));
-
-  auto ReachableTypesBase4 = TH4.getSubTypes(TH4.getType("struct.Base"));
-  auto ReachableTypesChild4 = TH4.getSubTypes(TH4.getType("struct.Child"));
-
-  auto ReachableTypesBase5 = TH5.getSubTypes(TH5.getType("struct.Base"));
-  auto ReachableTypesChild5 = TH5.getSubTypes(TH5.getType("struct.Child"));
 
   // Will be way less dangerous to have an interface (like a map) between the
   // llvm given name of class & struct (i.e. struct.Base.base ...) and the name
@@ -149,7 +102,7 @@ PHASAR_SKIP_TEST(TEST(DBTHTest, HandleSTLString) {
   LIBCPP_GTEST_SKIP;
 
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_13_cpp.ll"});
+                        "type_hierarchies/type_hierarchy_13_cpp_dbg.ll"});
   DIBasedTypeHierarchy TH(IRDB);
   // NOTE: Even if using libstdc++, depending on the version the generated IR is
   // different; so, we cannot assert on the number of types here
@@ -163,6 +116,5 @@ PHASAR_SKIP_TEST(TEST(DBTHTest, HandleSTLString) {
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   auto Res = RUN_ALL_TESTS();
-  llvm::llvm_shutdown();
   return Res;
 }
