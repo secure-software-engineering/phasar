@@ -103,11 +103,11 @@ public:
   /// interrupted. If you need the ability to interrupt the solving process
   /// consider using solveUntil() or solveTimeout().
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// \returns A view into the computed analysis results
   decltype(auto) continueSolving() & {
@@ -120,11 +120,11 @@ public:
   /// interrupted. If you need the ability to interrupt the solving process
   /// consider using solveUntil() or solveTimeout().
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// \returns The computed analysis results
   decltype(auto) continueSolving() && {
@@ -191,11 +191,11 @@ public:
   /// interrupted in a previous run. Periodically checks every Interval whether
   /// CancellationRequested evaluates to true.
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// Note: Shortening the cancellation-check interval will make the
   /// cancellation-time more precise (by having more frequent calls to
@@ -225,11 +225,11 @@ public:
   /// interrupted in a previous run. Periodically checks every Interval whether
   /// CancellationRequested evaluates to true.
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// Note: Shortening the cancellation-check interval will make the
   /// cancellation-time more precise (by having more frequent calls to
@@ -297,11 +297,11 @@ public:
   /// interrupted in a previous run. Periodically checks every Interval whether
   /// the Timeout has been exceeded.
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// Note: Shortening the timeout-check interval will make the timeout more
   /// precise but also have negative impact on the solver's performance.
@@ -323,11 +323,11 @@ public:
   /// interrupted in a previous run. Periodically checks every Interval whether
   /// the Timeout has been exceeded.
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// Note: Shortening the timeout-check interval will make the timeout more
   /// precise but also have negative impact on the solver's performance.
@@ -382,11 +382,11 @@ public:
   /// interrupted in a previous run. Periodically checks whether
   /// IsCancelled is true.
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
@@ -404,11 +404,11 @@ public:
   /// interrupted in a previous run. Periodically checks whether
   /// IsCancelled is true.
   ///
-  /// \remark Please make sure to *not* call this function on an IDESolver where
-  /// the solving process is interrupted, i.e. one of hte interruptable solving
-  /// methods returned std::nullopt. It is *invalid* to call this function on an
-  /// IDESolver that has not yet started solvong or has already flinalized
-  /// solving.
+  /// \remark Please make sure to *only* call this function on an IDESolver
+  /// where the solving process is interrupted, i.e. one of the interruptable
+  /// solving methods returned std::nullopt. It is *invalid* to call this
+  /// function on an IDESolver that has not yet started solving or has already
+  /// flinalized solving.
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
