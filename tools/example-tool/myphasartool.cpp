@@ -21,7 +21,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include <filesystem>
-#include <iostream>
 #include <string>
 
 using namespace psr;

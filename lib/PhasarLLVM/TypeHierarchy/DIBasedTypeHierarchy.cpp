@@ -26,6 +26,8 @@
 
 #include <cassert>
 
+#include <llvm-14/llvm/Support/ErrorHandling.h>
+
 namespace psr {
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
@@ -131,11 +133,14 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
       }
     }
   }
+  // if the biggest virtual index is 2 for example, the vector needs to have a
+  // size of 3 (Indices: 0, 1, 2)
   VTableSize++;
 
   std::vector<const llvm::Function *> Init = {};
+  std::vector<std::vector<const llvm::Function *>> IndexToFunctions;
   for (size_t I = 0; I < VTableSize; I++) {
-    VTables.push_back(Init);
+    IndexToFunctions.push_back(Init);
   }
 
   // get VTables
@@ -145,31 +150,27 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
       if (!SubProgramType->getVirtuality()) {
         continue;
       }
-      // get all virtual functions
-      // TODO (max):
-      // Comment from Fabian on code below
-      /*
-        This does not quite match the intention: VTables[Index] should contain a
-        LLVMVFTable consisting of all virtual functions of the type at the given
-        Index. The virtual functions inside one LLVMVFTable should be ordered
-        according to their virtualIndex
-      */
 
-      // Doesn't work, generates error:
-      // VTables.emplace_back(std::move(VirtualFunctions));
+      const auto *const FunctionToAdd =
+          IRDB.getFunction(SubProgramType->getLinkageName());
+
+      if (!FunctionToAdd) {
+        continue;
+      }
+
       const size_t VirtualIndex = SubProgramType->getVirtualIndex();
       std::vector<const llvm::Function *> IndexFunctions;
-      for (const auto &Function : Module->functions()) {
-        ;
-        if (SubProgramType->getLinkageName() ==
-            Function.stripPointerCasts()->getName().str()) {
-          assert(VirtualIndex < VTableSize);
-          IndexFunctions.push_back(&Function);
-        }
-      }
-      LLVMVFTable CurrentTable(IndexFunctions);
-      VTables[VirtualIndex] = CurrentTable;
+
+      IndexFunctions.push_back(FunctionToAdd);
+      // concatenate vectors of functions of this index
+      IndexToFunctions[VirtualIndex].insert(
+          IndexToFunctions.at(VirtualIndex).begin(), IndexFunctions.begin(),
+          IndexFunctions.end());
     }
+  }
+
+  for (const auto &ToAdd : IndexToFunctions) {
+    VTables.push_back(LLVMVFTable(ToAdd));
   }
 }
 
@@ -180,8 +181,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   const auto IndexOfTypeFind = TypeToVertex.find(Type);
   const auto IndexOfSubTypeFind = TypeToVertex.find(SubType);
 
-  assert(IndexOfTypeFind == TypeToVertex.end());
-  assert(IndexOfSubTypeFind == TypeToVertex.end());
+  assert(IndexOfTypeFind != TypeToVertex.end());
+  assert(IndexOfSubTypeFind != TypeToVertex.end());
 
   size_t IndexOfType = IndexOfTypeFind->getSecond();
   size_t IndexOfSubType = IndexOfSubTypeFind->getSecond();
@@ -194,7 +195,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // find index of super type
   const auto IndexOfTypeFind = TypeToVertex.find(Type);
 
-  assert(IndexOfTypeFind == TypeToVertex.end());
+  assert(IndexOfTypeFind != TypeToVertex.end());
 
   unsigned long IndexOfType = IndexOfTypeFind->getSecond();
 
@@ -273,14 +274,8 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
 void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   OS << "digraph TypeHierarchy{\n";
 
-  // add all nodes
-  for (const auto &CompositeType : VertexTypes) {
-    OS << "  " << CompositeType->getName() << "\n";
-  }
-
   if (TransitiveClosure.size() != VertexTypes.size()) {
-    OS << "[DIBasedTypeHierarchy::printAsDot()]: Error! Transitive Closure and "
-          "VertexType size not equal";
+    llvm::report_fatal_error("TransitiveClosure and VertexType size not equal");
     return;
   }
 
