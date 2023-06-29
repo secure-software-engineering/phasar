@@ -120,6 +120,7 @@ protected:
     if (PrintDump) {
       IIASolver.dumpResults();
     }
+    resultAt<const llvm::Instruction *, IDEInstInteractionAnalysisT<std::string>::d_t, IDEInstInteractionAnalysisT<std::string>::l_t>(IIASolver.getSolverResults(), nullptr, nullptr, false);
     // do the comparison
     for (const auto &[FunName, SrcLine, VarName, LatticeVal] : GroundTruth) {
       const auto *Fun = IRDB->getFunctionDefinition(FunName);

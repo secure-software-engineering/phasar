@@ -10,6 +10,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMKFIELDSENSFLOWFACT_H
 
 #include "phasar/DataFlow/IfdsIde/KFieldSensFlowFact.h"
+#include "phasar/DataFlow/IfdsIde/SolverResults.h"
+#include "phasar/Utils/ByRef.h"
 
 #include "llvm/ADT/APInt.h"
 #include "llvm/IR/Instructions.h"
@@ -28,6 +30,22 @@ std::optional<int64_t> getConstantOffset(const llvm::GetElementPtrInst *Gep);
 
 std::pair<const llvm::AllocaInst *, std::optional<int64_t>>
 getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep);
+
+template <typename n_t, typename d_t, typename l_t>
+l_t resultAt(const SolverResults<n_t, d_t, l_t> &Results,
+             const llvm::Instruction *Stmt, const llvm::Value *RequestedVal,
+             bool InLLVMSSA) {
+  const auto &ResultsAtStmt =
+      InLLVMSSA ? Results.resultsAtInLLVMSSA(Stmt, false, false)
+                : Results.resultsAt(Stmt);
+  l_t Result{};
+  for (const auto &[ResultFact, ResultVal] : ResultsAtStmt) {
+    if (factMatchesLLVMValue(ResultFact, RequestedVal)) {
+      Result = JoinLatticeTraits<l_t>::join(ResultVal, Result);
+    }
+  }
+  return Result;
+}
 
 template <unsigned K = 3, unsigned OffsetLimit = 1024,
           typename d_t = const llvm::Value *>
@@ -108,8 +126,9 @@ public:
                                                            FollowedOffset));
   }
 
-  std::optional<LLVMKFieldSensFlowFact> getLoaded(const llvm::LoadInst *Load,
-                                                  std::optional<int64_t> FollowedOffset = 0) {
+  std::optional<LLVMKFieldSensFlowFact>
+  getLoaded(const llvm::LoadInst *Load,
+            std::optional<int64_t> FollowedOffset = 0) {
     const auto &DL = Load->getModule()->getDataLayout();
     const auto LoadSize = DL.getTypeAllocSize(Load->getType());
     const auto &Parent = KFieldSensFlowFact<d_t, K, OffsetLimit>::getLoaded(
@@ -167,6 +186,13 @@ public:
   LLVMKFieldSensFlowFact getWithOffset();
   LLVMKFieldSensFlowFact getFirstOverapproximated();
 };
+
+template <unsigned K, unsigned OffsetLimit, typename d_t>
+bool factMatchesLLVMValue(
+    const LLVMKFieldSensFlowFact<K, OffsetLimit, d_t> &Fact,
+    const llvm::Value *Value) {
+  return Fact.getBaseValue() == Value;
+}
 
 template <unsigned K, unsigned OffsetLimit, typename d_t>
 inline llvm::raw_ostream &
