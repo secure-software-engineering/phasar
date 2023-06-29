@@ -55,7 +55,7 @@ public:
     PHASAR_LOG_LEVEL(DEBUG,
                      "[nextN]: Next " << MaxNumIterations << " Iterations");
 
-    for (size_t I = 0, End = MaxNumIterations; I != End; ++I) {
+    for (size_t I = 0; I != MaxNumIterations; ++I) {
       if (!next()) {
         PHASAR_LOG_LEVEL(DEBUG, "[nextN]: > done after " << I << " iterations");
         return false;
@@ -132,7 +132,7 @@ public:
     return std::move(*this).finalize();
   }
 
-  /// Solves the analysis problen and periodically checks every Interval whether
+  /// Solves the analysis problem and periodically checks every Interval whether
   /// CancellationRequested evaluates to true.
   ///
   /// Note: Shortening the cancellation-check interval will make the
@@ -159,7 +159,7 @@ public:
     }();
   }
 
-  /// Solves the analysis problen and periodically checks every Interval whether
+  /// Solves the analysis problem and periodically checks every Interval whether
   /// CancellationRequested evaluates to true.
   ///
   /// Note: Shortening the cancellation-check interval will make the
@@ -256,7 +256,7 @@ public:
     }();
   }
 
-  /// Solves the analysis problen and periodically checks every Interval whether
+  /// Solves the analysis problem and periodically checks every Interval whether
   /// the Timeout has been exceeded.
   ///
   /// Note: Shortening the timeout-check interval will make the timeout more
@@ -275,7 +275,7 @@ public:
     return solveUntil(CancellationRequested, Interval);
   }
 
-  /// Solves the analysis problen and periodically checks every Interval whether
+  /// Solves the analysis problem and periodically checks every Interval whether
   /// the Timeout has been exceeded.
   ///
   /// Note: Shortening the timeout-check interval will make the timeout more
@@ -347,7 +347,7 @@ public:
 
   // -- Async cancellation
 
-  /// Solves the analysis problen and periodically checks whether
+  /// Solves the analysis problem and periodically checks whether
   /// IsCancelled is true.
   ///
   /// \returns An std::optional holding a view into the analysis results or
@@ -362,7 +362,7 @@ public:
     }();
   }
 
-  /// Solves the analysis problen and periodically checks whether
+  /// Solves the analysis problem and periodically checks whether
   /// IsCancelled is true.
   ///
   /// \returns An std::optional holding the analysis results or std::nullopt if
@@ -458,6 +458,8 @@ private:
           }
         };
 
+    // Some initial number of propagations to get an idea, how long a
+    // propagation takes. This may be adjusted in the future
     size_t NumIterations = Interval.count() * 500;
 
     auto Start = std::chrono::steady_clock::now();
