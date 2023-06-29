@@ -31,22 +31,6 @@ std::optional<int64_t> getConstantOffset(const llvm::GetElementPtrInst *Gep);
 std::pair<const llvm::AllocaInst *, std::optional<int64_t>>
 getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep);
 
-template <typename n_t, typename d_t, typename l_t>
-l_t resultAt(const SolverResults<n_t, d_t, l_t> &Results,
-             const llvm::Instruction *Stmt, const llvm::Value *RequestedVal,
-             bool InLLVMSSA) {
-  const auto &ResultsAtStmt =
-      InLLVMSSA ? Results.resultsAtInLLVMSSA(Stmt, false, false)
-                : Results.resultsAt(Stmt);
-  l_t Result{};
-  for (const auto &[ResultFact, ResultVal] : ResultsAtStmt) {
-    if (factMatchesLLVMValue(ResultFact, RequestedVal)) {
-      Result = JoinLatticeTraits<l_t>::join(ResultVal, Result);
-    }
-  }
-  return Result;
-}
-
 template <unsigned K = 3, unsigned OffsetLimit = 1024,
           typename d_t = const llvm::Value *>
 class LLVMKFieldSensFlowFact : public KFieldSensFlowFact<d_t, K, OffsetLimit> {
