@@ -1286,20 +1286,9 @@ protected:
     const auto &LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
     const auto &RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
     return LhsSet.setUnion(RhsSet);
-    LLVMKFieldSensFlowFact<> foo;
-    foo.print(llvm::outs());
-    foo.getLoaded(nullptr);
-    foo.getWithOffset(nullptr);
   }
 
 private:
-  // KFieldSensFlowFact<const llvm::Value *> KFSFF,
-  //     KFSFF2 = KFSFF.getStored(nullptr), KFSFF3 = KFSFF.getWithOffset(42),
-  //     KFSFF4 = KFSFF.getFirstOverapproximated();
-  // // LLVMKFieldSensFlowFact<0> foo;
-  // // LLVMKFieldSensFlowFact<0, 0, const llvm::Value*> foo2 = foo;
-  // std::optional<KFieldSensFlowFact<const llvm::Value *>> KFSFF5 =
-  //     KFSFF.getLoaded(nullptr, 64); // FIXME just make it compile for now.
   /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(

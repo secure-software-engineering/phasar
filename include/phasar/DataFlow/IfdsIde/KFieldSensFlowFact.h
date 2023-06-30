@@ -22,10 +22,10 @@ class KFieldSensFlowFact {
       std::numeric_limits<offset_int_t>::max() > OffsetLimit &&
       "offset_int_t needs to be able to hold an offset of OffsetLimit");
 
-public:
+protected:
   KFieldSensFlowFact() = default;
-  ~KFieldSensFlowFact() = default;
 
+public:
   KFieldSensFlowFact(d_t BaseValue) : BaseValue(BaseValue) {}
 
   KFieldSensFlowFact getStored(d_t BaseValue, int64_t FollowedOffset = 0) {

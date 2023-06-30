@@ -24,10 +24,6 @@
 
 namespace psr {
 
-const llvm::AllocaInst *getAllocaInst(const llvm::GetElementPtrInst *Gep);
-
-std::optional<int64_t> getConstantOffset(const llvm::GetElementPtrInst *Gep);
-
 std::pair<const llvm::AllocaInst *, std::optional<int64_t>>
 getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep);
 
@@ -35,12 +31,12 @@ template <unsigned K = 3, unsigned OffsetLimit = 1024,
           typename d_t = const llvm::Value *>
 class LLVMKFieldSensFlowFact : public KFieldSensFlowFact<d_t, K, OffsetLimit> {
 private:
+  LLVMKFieldSensFlowFact() = default;
   LLVMKFieldSensFlowFact(const KFieldSensFlowFact<d_t, K, OffsetLimit> &Parent)
       : KFieldSensFlowFact<d_t, K, OffsetLimit>(Parent) {}
 
 public:
-  LLVMKFieldSensFlowFact() = default;
-  ~LLVMKFieldSensFlowFact() = default;
+  // ~LLVMKFieldSensFlowFact() = default;
   LLVMKFieldSensFlowFact(const LLVMKFieldSensFlowFact &) = default;
   LLVMKFieldSensFlowFact &operator=(const LLVMKFieldSensFlowFact &) = default;
   LLVMKFieldSensFlowFact(LLVMKFieldSensFlowFact &&) noexcept = default;
