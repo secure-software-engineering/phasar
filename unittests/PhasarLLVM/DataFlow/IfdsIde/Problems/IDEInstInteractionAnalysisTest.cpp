@@ -127,6 +127,7 @@ protected:
       auto ResultMap = IIASolver.resultsAt(IRLine);
       assert(IRLine && "Could not retrieve IR line!");
       bool FactFound = false;
+      IDEInstInteractionAnalysisT<std::string>::l_t ValuesMerge{};
       for (auto &[Fact, Value] : ResultMap) {
         std::string FactStr;
         llvm::raw_string_ostream RSO(FactStr);
@@ -135,10 +136,11 @@ protected:
         if (FactRef.ltrim().startswith("%" + VarName + " ") ||
             FactRef.ltrim().startswith("@" + VarName + " ")) {
           PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
-          EXPECT_EQ(LatticeVal, Value);
+          ValuesMerge = IIAProblem.join(ValuesMerge, Value);
           FactFound = true;
         }
       }
+      EXPECT_EQ(LatticeVal, ValuesMerge);
       if (!FactFound) {
         PHASAR_LOG_LEVEL(DFADEBUG, "Variable '" << VarName << "' missing at '"
                                                 << llvmIRToString(IRLine)
