@@ -13,8 +13,9 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
 
 namespace psr {
-template <typename n_t, typename d_t, typename l_t>
-l_t resultAt(const SolverResults<n_t, d_t, l_t> &Results,
+template <typename n_t, typename d_t, typename l_t, typename ProblemTy>
+l_t resultAt(ProblemTy &Problem,
+             const SolverResults<n_t, d_t, l_t> &Results,
              const llvm::Instruction *Stmt, const llvm::Value *RequestedVal,
              bool InLLVMSSA) {
   const auto &ResultsAtStmt =
@@ -22,7 +23,7 @@ l_t resultAt(const SolverResults<n_t, d_t, l_t> &Results,
   l_t Result{};
   for (const auto &[ResultFact, ResultVal] : ResultsAtStmt) {
     if (factMatchesLLVMValue(ResultFact, RequestedVal)) {
-      Result = JoinLatticeTraits<l_t>::join(ResultVal, Result);
+      Result = Problem.join(ResultVal, Result);
     }
   }
   return Result;
