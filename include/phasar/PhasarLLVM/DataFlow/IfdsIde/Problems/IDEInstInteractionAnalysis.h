@@ -310,7 +310,7 @@ public:
       //
       return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
         if (Store->getPointerOperand() == Src) {
-          return {};
+          return {Src};
         }
         container_type Facts;
         Facts.insert(Src);
@@ -719,19 +719,18 @@ public:
       if (CurrNode == SuccNode) {
         llvm::errs() << "Found store with 'CurrNode == SuccNode' at: " << *Store
                      << '\n';
-        LLVMKFieldSensFlowFact StoreTarget;
+        bool KilledByStore = false;
         if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                 Store->getPointerOperand())) {
           // Store to array/struct.
-          StoreTarget = LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep);
+          const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
+          KilledByStore = CurrNode.overwrittenByStore(Store, Alloca, Offset);
         } else {
           // Store to plain alloca.
-          StoreTarget = LLVMKFieldSensFlowFact<>::getNonIndirectionValue(
-              Store->getPointerOperand());
+          KilledByStore =
+              CurrNode.overwrittenByStore(Store, Store->getPointerOperand(), 0);
         }
-        llvm::errs() << "Compare: " << CurrNode << " with " << StoreTarget
-                     << '\n';
-        if (CurrNode == StoreTarget) {
+        if (KilledByStore) {
           llvm::errs() << "Jessas!\n";
           return IIAAKillOrReplaceEFCache.createEdgeFunction(
               BitVectorSet<e_t>());

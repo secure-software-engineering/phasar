@@ -48,21 +48,25 @@ public:
   std::optional<KFieldSensFlowFact>
   getLoaded(d_t LoadedBaseValue, uint64_t TargetTypeSize,
             std::optional<int64_t> FollowedOffset = 0) {
+    if (!firstIndirectionMatches(TargetTypeSize, FollowedOffset)) {
+      return std::nullopt;
+    }
     auto Result = *this;
     if (Result.AccessPath.size() > 0) {
-      if (Result.AccessPath.back() == OffsetLimit ||
-          !FollowedOffset.has_value() ||
-          std::abs(Result.AccessPath.back() - FollowedOffset.value()) <
-              static_cast<int64_t>(TargetTypeSize)) {
-        Result.AccessPath.pop_back();
-      } else {
-        return std::nullopt;
-      }
-    } else if (!Result.FollowedByAny) {
-      return std::nullopt;
+      Result.AccessPath.pop_back();
     }
     Result.BaseValue = LoadedBaseValue;
     return Result;
+  }
+
+  bool firstIndirectionMatches(uint64_t TargetTypeSize,
+                               std::optional<int64_t> FollowedOffset = 0) {
+    if (AccessPath.size() > 0) {
+      return AccessPath.back() == OffsetLimit || !FollowedOffset.has_value() ||
+             std::abs(AccessPath.back() - FollowedOffset.value()) <
+                 static_cast<int64_t>(TargetTypeSize);
+    }
+    return FollowedByAny;
   }
 
   // Increment the offset of the first indirection by Offset

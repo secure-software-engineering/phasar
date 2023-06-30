@@ -71,24 +71,6 @@ public:
     return Result;
   }
 
-  static LLVMKFieldSensFlowFact
-  getDerefValueFromGep(const llvm::GetElementPtrInst *Gep) {
-    LLVMKFieldSensFlowFact Result;
-    Result.BaseValue = getAllocaInst(Gep);
-    auto CumulatedOffset = getConstantOffset(Gep);
-    Result.AccessPath.push_back(CumulatedOffset.value_or(0));
-    const auto *Alloca = Gep->getPointerOperand();
-    while (const auto *ChainedGEP =
-               llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
-      if (CumulatedOffset.has_value()) {
-        const auto ChainedGepOffset = getConstantOffset(ChainedGEP);
-        Result.AccessPath.push_back(ChainedGepOffset.value_or(0));
-      }
-      Alloca = ChainedGEP->getPointerOperand();
-    }
-    return Result;
-  }
-
   bool operator==(const LLVMKFieldSensFlowFact &Other) const {
     return std::tie(this->BaseValue, this->AccessPath, this->FollowedByAny) ==
            std::tie(Other.BaseValue, Other.AccessPath, Other.FollowedByAny);
@@ -101,6 +83,16 @@ public:
   bool operator<(const LLVMKFieldSensFlowFact &Other) const {
     return std::tie(this->BaseValue, this->AccessPath, this->FollowedByAny) <
            std::tie(Other.BaseValue, Other.AccessPath, Other.FollowedByAny);
+  }
+
+  [[nodiscard]] bool overwrittenByStore(const llvm::StoreInst *Store,
+                                        const llvm::Value *BaseVal,
+                                        std::optional<int64_t> FollowedOffset) {
+    const auto &DL = Store->getModule()->getDataLayout();
+    return this->BaseValue == BaseVal &&
+           this->firstIndirectionMatches(
+               DL.getTypeAllocSize(Store->getValueOperand()->getType()),
+               FollowedOffset);
   }
 
   LLVMKFieldSensFlowFact getStored(const llvm::Value *BaseValue,
@@ -144,8 +136,8 @@ public:
     const auto &DL = Gep->getModule()->getDataLayout();
     llvm::APInt AccumulatedOffset(DL.getPointerSize() * 8, 0, true);
     Gep->accumulateConstantOffset(DL, AccumulatedOffset);
-    // The lhs offset is calculating by subtracting the gep offset from the rhs,
-    // thus we need the minus here.
+    // The lhs offset is calculating by subtracting the gep offset from the
+    // rhs, thus we need the minus here.
     return LLVMKFieldSensFlowFact(
         KFieldSensFlowFact<d_t, K, OffsetLimit>::getWithOffset(
             -AccumulatedOffset.getSExtValue()));

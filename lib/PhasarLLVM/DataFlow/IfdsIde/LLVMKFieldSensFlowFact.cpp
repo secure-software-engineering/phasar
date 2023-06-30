@@ -9,18 +9,6 @@ using namespace psr;
 
 namespace psr {
 
-const llvm::AllocaInst *getAllocaInst(const llvm::GetElementPtrInst *Gep) {
-  if (!Gep) {
-    return nullptr;
-  }
-  const auto *Alloca = Gep->getPointerOperand();
-  while (const auto *ChainedGEP =
-             llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
-    Alloca = ChainedGEP->getPointerOperand();
-  }
-  return llvm::dyn_cast<llvm::AllocaInst>(Alloca);
-}
-
 std::optional<int64_t> getConstantOffset(const llvm::GetElementPtrInst *Gep) {
   if (!Gep->hasAllConstantIndices()) {
     return std::nullopt;
