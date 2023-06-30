@@ -26,8 +26,6 @@
 
 #include <cassert>
 
-#include <llvm-14/llvm/Support/ErrorHandling.h>
-
 namespace psr {
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
@@ -282,11 +280,13 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   // add all edges
   size_t CurrentRowIndex = 0;
   for (const auto &Row : TransitiveClosure) {
-    for (size_t I = 0; I < Row.size(); I++) {
-      if (Row[I]) {
+    size_t Index = 0;
+    for (const auto &Cell : Row.set_bits()) {
+      if (Row[Cell]) {
         OS << "  " << VertexTypes[CurrentRowIndex]->getName() << " -> "
-           << VertexTypes[I]->getName() << "\n";
+           << VertexTypes[Index]->getName() << "\n";
       }
+      Index++;
     }
     CurrentRowIndex++;
   }
