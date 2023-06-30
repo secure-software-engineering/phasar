@@ -25,4 +25,3 @@ set(NoMem2RegSources
 foreach(TEST_SRC ${NoMem2RegSources})
   generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
-
