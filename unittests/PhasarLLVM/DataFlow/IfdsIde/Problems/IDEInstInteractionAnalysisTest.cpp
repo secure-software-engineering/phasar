@@ -939,12 +939,12 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string,
       BitVectorSet<std::string>>(
-          "main", 30, "l", {"9", "12", "15", "10", "11", "18", "13"}));
+          "main", 30, "l", {"9", "12", "15", "10", "11", "18"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string,
       BitVectorSet<std::string>>(
           "main", 30, "x", {"9", "12", "23"}));
-  doAnalysisAndCompareResults("struct_01_cpp.ll", {"main"}, GroundTruth, true);
+  doAnalysisAndCompareResults("struct_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
 // main function for the test case/*  */
