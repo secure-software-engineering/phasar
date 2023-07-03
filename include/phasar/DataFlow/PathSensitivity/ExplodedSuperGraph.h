@@ -41,8 +41,6 @@
 #include <unordered_set>
 #include <utility>
 
-#include <llvm/ADT/Hashing.h>
-
 /// TODO: Keep an eye on memory_resource here! it is still not supported on some
 /// MAC systems
 
@@ -207,10 +205,7 @@ public:
     /// path sensitivity, so skip it
     bool MaySkipEdge = Kind == ESGEdgeKind::CallToRet && CurrNode == ZeroValue;
     for (const d_t &SuccNode : SuccNodes) {
-      if (MaySkipEdge && SuccNode == CurrNode) {
-        continue;
-      }
-      saveEdge(PredId, Curr, CurrNode, Succ, SuccNode);
+      saveEdge(PredId, Curr, CurrNode, Succ, SuccNode, MaySkipEdge);
     }
   }
 
@@ -295,7 +290,7 @@ private:
   }
 
   void saveEdge(std::optional<size_t> PredId, n_t Curr, d_t CurrNode, n_t Succ,
-                d_t SuccNode, bool DontSkip = false) {
+                d_t SuccNode, bool MaySkipEdge, bool DontSkip = false) {
     auto [SuccVtxIt, Inserted] = FlowFactVertexMap.try_emplace(
         std::make_pair(Succ, SuccNode), Node::NoPredId);
 
@@ -318,6 +313,15 @@ private:
 
       return Ret;
     };
+
+    if (MaySkipEdge && SuccNode == CurrNode) {
+      assert(PredId);
+      if (Inserted) {
+        SuccVtxIt->second = makeNode();
+        NodeAdjOwner.back().PredecessorIdx = Node::NoPredId;
+      }
+      return;
+    }
 
     if (!DontSkip && PredId && NodeDataOwner[*PredId].Value == SuccNode &&
         NodeDataOwner[*PredId].Source->getParent() == Succ->getParent() &&
@@ -363,6 +367,12 @@ private:
     }
 
     NodeRef SuccVtx(SuccVtxIt->second, this);
+    if (!SuccVtx.predecessor()) {
+      NodeAdjOwner[SuccVtxIt->second].PredecessorIdx =
+          PredId.value_or(Node::NoPredId);
+      NodeDataOwner[SuccVtxIt->second].Source = Curr;
+      return;
+    }
 
     if (SuccVtx.predecessor().id() != PredId.value_or(Node::NoPredId) &&
         llvm::none_of(SuccVtx.neighbors(),
