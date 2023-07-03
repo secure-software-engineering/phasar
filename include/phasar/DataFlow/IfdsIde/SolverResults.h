@@ -51,13 +51,18 @@ public:
     return self().Results.get(Stmt, Node);
   }
 
-  [[nodiscard]] std::unordered_map<d_t, l_t>
-  resultsAt(ByConstRef<n_t> Stmt, bool StripZero = false) const {
+  [[nodiscard]] std::unordered_map<d_t, l_t> resultsAt(ByConstRef<n_t> Stmt,
+                                                       bool StripZero) const {
     std::unordered_map<d_t, l_t> Result = self().Results.row(Stmt);
     if (StripZero) {
       Result.erase(self().ZV);
     }
     return Result;
+  }
+
+  [[nodiscard]] const std::unordered_map<d_t, l_t> &
+  resultsAt(ByConstRef<n_t> Stmt) const {
+    return self().Results.row(Stmt);
   }
 
   // this function only exists for IFDS problems which use BinaryDomain as their
@@ -184,10 +189,6 @@ public:
   }
 
 private:
-  [[nodiscard]] Derived &self() noexcept {
-    static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
-    return static_cast<Derived &>(*this);
-  }
   [[nodiscard]] const Derived &self() const noexcept {
     static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
     return static_cast<const Derived &>(*this);
@@ -229,15 +230,15 @@ public:
 
   OwningSolverResults(Table<N, D, L> ResTab,
                       D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
-      : Results(std::move(ResTab)), ZV(ZV) {}
+      : Results(std::move(ResTab)), ZV(std::move(ZV)) {}
 
-  [[nodiscard]] SolverResults<N, D, L> asRef() const &noexcept {
+  [[nodiscard]] SolverResults<N, D, L> get() const &noexcept {
     return {Results, ZV};
   }
-  SolverResults<N, D, L> asRef() && = delete;
+  SolverResults<N, D, L> get() && = delete;
 
   [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
-    return asRef();
+    return get();
   }
 
   operator SolverResults<N, D, L>() && = delete;

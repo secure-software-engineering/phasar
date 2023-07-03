@@ -21,6 +21,10 @@
 
 namespace psr::detail {
 
+/// FIXME: This is not entirely correct: Does not skip ignored statements and
+/// does not work for backwards analyses.
+/// The right way would be to ask the ICFG, but we don't have a reference to it
+/// here yet (TODO!)
 template <typename Derived, typename N, typename D, typename L>
 template <typename NTy>
 auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(

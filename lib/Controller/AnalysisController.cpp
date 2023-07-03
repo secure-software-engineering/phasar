@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -183,6 +184,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     WithResultFileOrStdout("/psr-cg.txt",
                            [this](auto &OS) { HA.getICFG().print(OS); });
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+    WithResultFileOrStdout(
+        "/psr-cg.json", [this](auto &OS) { OS << HA.getICFG().getAsJson(); });
   }
 
   if (EmitterOptions &

@@ -218,19 +218,15 @@ public:
              "allocators that do not propagate on swap!");
     }
   }
-
   friend void swap(StableVector &LHS, StableVector &RHS) noexcept {
     LHS.swap(RHS);
   }
 
-  StableVector &operator=(StableVector Other) noexcept {
-    swap(Other);
-    return *this;
-  }
+  // This would be silently expensive... If you really want this, call clone()
+  StableVector &operator=(const StableVector &) = delete;
 
   StableVector &operator=(StableVector &&Other) noexcept {
-    auto Cpy = std::move(Other);
-    swap(Cpy);
+    swap(Other);
     return *this;
   }
 
