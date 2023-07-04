@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHTRACINGFILTER_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHTRACINGFILTER_H
+#ifndef PHASAR_DATAFLOW_PATHSENSITIVITY_PATHTRACINGFILTER_H
+#define PHASAR_DATAFLOW_PATHSENSITIVITY_PATHTRACINGFILTER_H
 
 #include <type_traits>
 
@@ -48,4 +48,4 @@ constexpr static bool is_pathtracingfilter_for_v =
     is_pathtracingfilter_for<F, NodeRef>::value;
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHTRACINGFILTER_H
+#endif // PHASAR_DATAFLOW_PATHSENSITIVITY_PATHTRACINGFILTER_H

@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_ESGEDGEKIND_H
-#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_ESGEDGEKIND_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_ESGEDGEKIND_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_ESGEDGEKIND_H
 
 namespace psr {
 enum class ESGEdgeKind { Normal, Call, CallToRet, SkipUnknownFn, Ret, Summary };
@@ -19,4 +19,4 @@ constexpr bool isInterProc(ESGEdgeKind Kind) noexcept {
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_IFDSIDE_SOLVER_ESGEDGEKIND_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_SOLVER_ESGEDGEKIND_H

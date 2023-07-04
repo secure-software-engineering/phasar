@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
+#ifndef PHASAR_DATAFLOW_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
+#define PHASAR_DATAFLOW_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
 
 #include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/Utils/ByRef.h"
@@ -40,9 +40,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-
-/// TODO: Keep an eye on memory_resource here! it is still not supported on some
-/// MAC systems
 
 namespace psr {
 
@@ -290,7 +287,7 @@ private:
   }
 
   void saveEdge(std::optional<size_t> PredId, n_t Curr, d_t CurrNode, n_t Succ,
-                d_t SuccNode, bool MaySkipEdge, bool DontSkip = false) {
+                d_t SuccNode, bool MaySkipEdge) {
     auto [SuccVtxIt, Inserted] = FlowFactVertexMap.try_emplace(
         std::make_pair(Succ, SuccNode), Node::NoPredId);
 
@@ -315,6 +312,8 @@ private:
     };
 
     if (MaySkipEdge && SuccNode == CurrNode) {
+      // This CTR edge carries no information, so skip it.
+      // We still want to create the destination node for the ret-FF later
       assert(PredId);
       if (Inserted) {
         SuccVtxIt->second = makeNode();
@@ -323,15 +322,17 @@ private:
       return;
     }
 
-    if (!DontSkip && PredId && NodeDataOwner[*PredId].Value == SuccNode &&
+    if (PredId && NodeDataOwner[*PredId].Value == SuccNode &&
         NodeDataOwner[*PredId].Source->getParent() == Succ->getParent() &&
         SuccNode != ZeroValue) {
 
+      // Identity edge, we don't need a new node; just assign the Pred here
       if (Inserted) {
         SuccVtxIt->second = *PredId;
         return;
       }
 
+      // This edge has already been here?!
       if (*PredId == SuccVtxIt->second) {
         return;
       }
@@ -366,6 +367,8 @@ private:
       }
     }
 
+    // Node has already been created, but MaySkipEdge above prevented us from
+    // connecting with the pred. Now, we have a non-skippable edge to connect to
     NodeRef SuccVtx(SuccVtxIt->second, this);
     if (!SuccVtx.predecessor()) {
       NodeAdjOwner[SuccVtxIt->second].PredecessorIdx =
@@ -374,6 +377,7 @@ private:
       return;
     }
 
+    // This node has more than one predecessor; add a neighbor then
     if (SuccVtx.predecessor().id() != PredId.value_or(Node::NoPredId) &&
         llvm::none_of(SuccVtx.neighbors(),
                       [Pred = PredId.value_or(Node::NoPredId)](NodeRef Nd) {
@@ -400,4 +404,4 @@ private:
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H
+#endif // PHASAR_DATAFLOW_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H

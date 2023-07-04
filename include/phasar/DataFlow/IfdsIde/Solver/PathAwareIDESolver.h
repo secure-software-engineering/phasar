@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHAWAREIDESOLVER_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHAWAREIDESOLVER_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_PATHAWAREIDESOLVER_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_PATHAWAREIDESOLVER_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
@@ -66,4 +66,4 @@ PathAwareIDESolver(ProblemTy &)
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHAWAREIDESOLVER_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_SOLVER_PATHAWAREIDESOLVER_H

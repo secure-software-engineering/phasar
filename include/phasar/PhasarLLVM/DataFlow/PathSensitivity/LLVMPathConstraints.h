@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_LLVMPATHCONSTRAINTS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_LLVMPATHCONSTRAINTS_H
+#ifndef PHASAR_PHASARLLVM_PATHSENSITIVITY_LLVMPATHCONSTRAINTS_H
+#define PHASAR_PHASARLLVM_PATHSENSITIVITY_LLVMPATHCONSTRAINTS_H
 
 #include "phasar/Utils/MaybeUniquePtr.h"
 
@@ -85,7 +85,6 @@ private:
   [[nodiscard]] ConstraintAndVariables
   getFunctionCallAsZ3(const llvm::CallBase *CallSite);
 
-  friend class LLVMPathConstraints;
   friend class SizeGuardCheck;
   friend class LoopGuardCheck;
 
@@ -95,4 +94,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_LLVMPATHCONSTRAINTS_H
+#endif // PHASAR_PHASARLLVM_PATHSENSITIVITY_LLVMPATHCONSTRAINTS_H

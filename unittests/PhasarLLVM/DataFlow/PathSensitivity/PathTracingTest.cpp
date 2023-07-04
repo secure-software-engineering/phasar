@@ -124,10 +124,10 @@ protected:
     llvm::outs() << "Target instruction: " << psr::llvmIRToString(LastInst)
                  << '\n';
 
-    std::error_code EC;
-    llvm::raw_fd_ostream ROS(LlvmFilePath + "_explicit_esg.dot", EC);
-    assert(!EC);
-    Solver.getExplicitESG().printAsDot(ROS);
+    // std::error_code EC;
+    // llvm::raw_fd_ostream ROS(LlvmFilePath + "_explicit_esg.dot", EC);
+    // assert(!EC);
+    // Solver.getExplicitESG().printAsDot(ROS);
 
     psr::Z3BasedPathSensitivityManager<psr::IDEExtendedTaintAnalysisDomain> PSM(
         &Solver.getExplicitESG(),

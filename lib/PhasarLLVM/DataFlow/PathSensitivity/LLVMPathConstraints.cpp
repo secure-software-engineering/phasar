@@ -45,9 +45,9 @@ auto LLVMPathConstraints::internalGetConstraintAndVariablesFromEdge(
 }
 
 std::optional<z3::expr>
-LLVMPathConstraints::getConstraintFromEdge(const llvm::Instruction *From,
-                                           const llvm::Instruction *To) {
-  if (auto CV = internalGetConstraintAndVariablesFromEdge(From, To)) {
+LLVMPathConstraints::getConstraintFromEdge(const llvm::Instruction *Curr,
+                                           const llvm::Instruction *Succ) {
+  if (auto CV = internalGetConstraintAndVariablesFromEdge(Curr, Succ)) {
     return CV->Constraint;
   }
 
@@ -55,9 +55,9 @@ LLVMPathConstraints::getConstraintFromEdge(const llvm::Instruction *From,
 }
 
 auto LLVMPathConstraints::getConstraintAndVariablesFromEdge(
-    const llvm::Instruction *From, const llvm::Instruction *To)
+    const llvm::Instruction *Curr, const llvm::Instruction *Succ)
     -> std::optional<ConstraintAndVariables> {
-  auto CV = internalGetConstraintAndVariablesFromEdge(From, To);
+  auto CV = internalGetConstraintAndVariablesFromEdge(Curr, Succ);
   if (CV) {
     /// Deduplicate the Variables vector
     std::sort(CV->Variables.begin(), CV->Variables.end());
@@ -362,7 +362,7 @@ auto LLVMPathConstraints::handleCmpInst(const llvm::CmpInst *Cmp)
     LhsZ3Expr.Constraint = LhsZ3Expr.Constraint < RhsZ3Expr.Constraint;
     break;
   case llvm::CmpInst::Predicate::ICMP_SLE: ///< signed less or equal
-    LhsZ3Expr.Constraint = LhsZ3Expr.Constraint < RhsZ3Expr.Constraint;
+    LhsZ3Expr.Constraint = LhsZ3Expr.Constraint <= RhsZ3Expr.Constraint;
     break;
   default:
     llvm::report_fatal_error("unhandled predicate!");

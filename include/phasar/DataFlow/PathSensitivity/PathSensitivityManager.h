@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
+#ifndef PHASAR_DATAFLOW_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
+#define PHASAR_DATAFLOW_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
 
 #include "phasar/DataFlow/PathSensitivity/ExplodedSuperGraph.h"
 #include "phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h"
@@ -51,4 +51,4 @@ public:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
+#endif // PHASAR_DATAFLOW_PATHSENSITIVITY_PATHSENSITIVITYMANAGER_H
