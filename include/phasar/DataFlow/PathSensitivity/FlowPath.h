@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_PATHSENSITIVITY_FLOWPATH_H
 #define PHASAR_PHASARLLVM_DATAFLOW_PATHSENSITIVITY_FLOWPATH_H
 
-#include "z3++.h"
-
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallVector.h"
+
+#include "z3++.h"
 
 namespace psr {
 template <typename N> struct FlowPath {

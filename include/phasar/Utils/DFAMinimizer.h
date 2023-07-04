@@ -24,7 +24,7 @@ template <typename GraphTy>
 [[nodiscard]] std::decay_t<GraphTy>
 createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
 #if __cplusplus >= 202002L
-  requires is_graph<GraphTy>
+    requires is_graph<GraphTy>
 #endif
 {
   using traits_t = GraphTraits<GraphTy>;
@@ -86,7 +86,7 @@ createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
 template <typename GraphTy>
 [[nodiscard]] llvm::IntEqClasses minimizeGraph(const GraphTy &G)
 #if __cplusplus >= 202002L
-  requires is_graph<GraphTy>
+    requires is_graph<GraphTy>
 #endif
 {
 
