@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/VFTable.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfoMetadata.h"
@@ -25,6 +26,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+
+#include <llvm-14/llvm/Support/raw_ostream.h>
 
 namespace psr {
 
@@ -190,7 +193,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
   for (auto &ToAdd : IndexToFunctions) {
     //
-    VTables.emplace_back(LLVMVFTable(ToAdd));
+    VTables.emplace_back(LLVMVFTable(std::move(ToAdd)));
   }
 }
 
@@ -279,19 +282,18 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
       continue;
     }
 
-    // this bool is only used to make the VTables print prettier. It avoids
-    // having an extra comma at the end
-    bool FirstFunction = true;
+    // get all function names for the llvm::interleaveComma function
+    llvm::SmallVector<std::string, 6> Names;
     for (const auto &Function : VTable.getAllFunctions()) {
       if (Function) {
-        if (FirstFunction) {
-          OS << Function->getName();
-          FirstFunction = false;
-        } else {
-          OS << ", " << Function->getName();
-        }
+        Names.push_back(Function->getName().str());
       }
     }
+
+    // prints out all function names, seperated by comma, without a trailing
+    // comma
+    llvm::interleaveComma(Names, OS);
+
     OS << "\n";
   };
   OS << "\n";
