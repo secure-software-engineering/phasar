@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_ALIASSETOWNER_H
-#define PHASAR_PHASARLLVM_POINTER_ALIASSETOWNER_H
+#ifndef PHASAR_POINTER_ALIASSETOWNER_H
+#define PHASAR_POINTER_ALIASSETOWNER_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Utils/BoxedPointer.h"
@@ -121,4 +121,4 @@ extern template class AliasSetOwner<DefaultAATraits<
     const llvm::Value *, const llvm::Instruction *>::AliasSetTy>;
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_ALIASSETOWNER_H
+#endif // PHASAR_POINTER_ALIASSETOWNER_H

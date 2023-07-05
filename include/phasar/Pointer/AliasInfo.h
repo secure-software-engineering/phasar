@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
-#define PHASAR_PHASARLLVM_POINTER_ALIASINFO_H_
+#ifndef PHASAR_POINTER_ALIASINFO_H
+#define PHASAR_POINTER_ALIASINFO_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasResult.h"

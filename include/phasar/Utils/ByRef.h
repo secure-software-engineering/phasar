@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_UTILS_BYREF_H
-#define PHASAR_PHASARLLVM_UTILS_BYREF_H
+#ifndef PHASAR_UTILS_BYREF_H
+#define PHASAR_UTILS_BYREF_H
 
 #include <type_traits>
 
@@ -26,4 +26,4 @@ using ByMoveRef = std::conditional_t<CanEfficientlyPassByValue<T>, T, T &&>;
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_UTILS_BYREF_H
+#endif // PHASAR_UTILS_BYREF_H
