@@ -86,8 +86,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   size_t RowIndex = 0;
   size_t PreviousRow = 0;
 
-  // (max): I know the code below is very ugly, but I wanted to avoid recursion
-  // if the algorithm goes over the entire matrix and couldn't update any rows
+  // (max): I know the code below is very ugly, but I wanted to avoid recursion.
+  // If the algorithm goes over the entire matrix and couldn't update any rows
   // anymore, it stops. As soon as one position gets updated, it goes over the
   // matrix again
   while (Change) {
@@ -196,8 +196,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
 [[nodiscard]] bool DIBasedTypeHierarchy::isSubType(ClassType Type,
                                                    ClassType SubType) {
-  // find index of super type
-
   const auto IndexOfTypeFind = TypeToVertex.find(Type);
   const auto IndexOfSubTypeFind = TypeToVertex.find(SubType);
 
@@ -280,10 +278,18 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
     if (VTable.empty()) {
       continue;
     }
+
+    // this bool is only used to make the VTables print prettier. It avoids
+    // having an extra comma at the end
+    bool FirstFunction = true;
     for (const auto &Function : VTable.getAllFunctions()) {
-      // OS << "Before Function ->getName()\n";
       if (Function) {
-        OS << Function->getName() << ", ";
+        if (FirstFunction) {
+          OS << Function->getName();
+          FirstFunction = false;
+        } else {
+          OS << ", " << Function->getName();
+        }
       }
     }
     OS << "\n";
@@ -307,13 +313,11 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   // add all edges
   size_t CurrentRowIndex = 0;
   for (const auto &Row : TransitiveClosure) {
-    size_t Index = 0;
     for (const auto &Cell : Row.set_bits()) {
       if (Row[Cell]) {
         OS << "  " << VertexTypes[CurrentRowIndex]->getName() << " -> "
            << VertexTypes[Cell]->getName() << "\n";
       }
-      Index++;
     }
     CurrentRowIndex++;
   }
