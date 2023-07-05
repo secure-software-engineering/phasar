@@ -26,8 +26,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
-
-#include <llvm-14/llvm/Support/raw_ostream.h>
+#include <iostream>
 
 namespace psr {
 
@@ -178,12 +177,9 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
       TypeIndex++;
     }
 
-    // throw error if type index is out of range
-    if (TypeIndex >= VertexTypes.size()) {
-      llvm::report_fatal_error("Type Scope not found");
+    if (TypeIndex >= IndexToFunctions.size()) {
+      continue;
     }
-
-    assert(TypeIndex < IndexToFunctions.size());
 
     if (IndexToFunctions[TypeIndex].size() <= VirtualIndex) {
       IndexToFunctions[TypeIndex].resize(VirtualIndex + 1);
