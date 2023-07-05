@@ -101,6 +101,8 @@ private:
   // (B)              B | 1 1 1
   //                  C | 0 0 1
   std::vector<llvm::BitVector> TransitiveClosure;
+  std::set<std::string> TypeScopeNames;
+  std::set<std::string> RecordedNames;
 };
 } // namespace psr
 

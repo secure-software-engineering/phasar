@@ -56,8 +56,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   for (const llvm::DIType *DIType : Finder.types()) {
     if (const auto *DerivedType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {
       if (DerivedType->getTag() == llvm::dwarf::DW_TAG_inheritance) {
-        assert(NameToType.find(DerivedType->getScope()->getName()) !=
-               NameToType.end());
+        assert(NameToType.count(DerivedType->getScope()->getName()));
         assert(
             TypeToVertex.find(NameToType[DerivedType->getScope()->getName()]) !=
             TypeToVertex.end());
@@ -68,10 +67,14 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         size_t BaseTypeVertex = TypeToVertex[DerivedType->getBaseType()];
 
         assert(TransitiveClosure.size() >= BaseTypeVertex);
-        assert(TransitiveClosure.size() >=
-               static_cast<size_t>(ActualDerivedType));
-        TransitiveClosure[BaseTypeVertex]
-                         [static_cast<size_t>(ActualDerivedType)] = true;
+        assert(TransitiveClosure.size() >= ActualDerivedType);
+        TransitiveClosure[BaseTypeVertex][ActualDerivedType] = true;
+
+        // if the scope isn't a nullpointer, place it's name into the set
+        if (DerivedType->getScope()) {
+          TypeScopeNames.insert(DerivedType->getScope()->getName().str());
+        }
+
         continue;
       }
     }
@@ -122,13 +125,11 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure[I][I] = true;
   }
 
+  // add virtual functions table
   size_t VTableSize = 0;
   for (const auto &Subprogram : Finder.subprograms()) {
-    if (const auto *SubProgramType =
-            llvm::dyn_cast<llvm::DISubprogram>(Subprogram)) {
-      if (SubProgramType->getVirtualIndex() > VTableSize) {
-        VTableSize = SubProgramType->getVirtualIndex();
-      }
+    if (Subprogram->getVirtualIndex() > VTableSize) {
+      VTableSize = Subprogram->getVirtualIndex();
     }
   }
   // if the biggest virtual index is 2 for example, the vector needs to have a
@@ -143,32 +144,53 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
   // get VTables
   for (auto *Subprogram : Finder.subprograms()) {
-    if (const auto *SubProgramType =
-            llvm::dyn_cast<llvm::DISubprogram>(Subprogram)) {
-      if (!SubProgramType->getVirtuality()) {
-        continue;
-      }
-
-      const auto *const FunctionToAdd =
-          IRDB.getFunction(SubProgramType->getLinkageName());
-
-      if (!FunctionToAdd) {
-        continue;
-      }
-
-      const size_t VirtualIndex = SubProgramType->getVirtualIndex();
-      std::vector<const llvm::Function *> IndexFunctions;
-
-      IndexFunctions.push_back(FunctionToAdd);
-      // concatenate vectors of functions of this index
-      IndexToFunctions[VirtualIndex].insert(
-          IndexToFunctions.at(VirtualIndex).begin(), IndexFunctions.begin(),
-          IndexFunctions.end());
+    if (RecordedNames.find(Subprogram->getScope()->getName().str()) !=
+        RecordedNames.end()) {
+      continue;
     }
+
+    if (!Subprogram->getVirtuality()) {
+      continue;
+    }
+
+    const auto *const FunctionToAdd =
+        IRDB.getFunction(Subprogram->getLinkageName());
+
+    if (!FunctionToAdd) {
+      continue;
+    }
+
+    const size_t VirtualIndex = Subprogram->getVirtualIndex();
+    std::vector<const llvm::Function *> IndexFunctions;
+
+    size_t TypeIndex = 0;
+    for (const auto &Curr : TypeScopeNames) {
+      // check if Subprogram Scope isn't a nullpointer
+      if (const auto &SubCurr = Subprogram->getScope()) {
+        if (Curr == SubCurr->getName().str()) {
+          RecordedNames.insert(SubCurr->getName().str());
+          break;
+        }
+      }
+      TypeIndex++;
+    }
+
+    // throw error if type index is out of range
+    if (TypeIndex >= VertexTypes.size()) {
+      llvm::report_fatal_error("Type Scope not found");
+    }
+
+    assert(TypeIndex < IndexToFunctions.size());
+
+    if (IndexToFunctions[TypeIndex].size() <= VirtualIndex) {
+      IndexToFunctions[TypeIndex].resize(VirtualIndex + 1);
+    }
+    IndexToFunctions[TypeIndex][VirtualIndex] = FunctionToAdd;
   }
 
-  for (const auto &ToAdd : IndexToFunctions) {
-    VTables.push_back(LLVMVFTable(ToAdd));
+  for (auto &ToAdd : IndexToFunctions) {
+    //
+    VTables.emplace_back(LLVMVFTable(ToAdd));
   }
 }
 
@@ -195,7 +217,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
   assert(IndexOfTypeFind != TypeToVertex.end());
 
-  unsigned long IndexOfType = IndexOfTypeFind->getSecond();
+  size_t IndexOfType = IndexOfTypeFind->getSecond();
 
   // if the super type hasn't been found, return an empty set
   if (IndexOfType >= TypeToVertex.size()) {
@@ -225,15 +247,15 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
 [[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
   const auto TypeIndex = TypeToVertex.find(Type);
-  assert(TypeIndex == TypeToVertex.end());
-  return VTables.at(TypeIndex->getSecond()).empty();
+  assert(TypeIndex->second < VTables.size());
+  return !VTables[TypeIndex->second].empty();
 }
 
 [[nodiscard]] auto DIBasedTypeHierarchy::getVFTable(ClassType Type) const
     -> const VFTable<f_t> * {
   const auto TypeIndex = TypeToVertex.find(Type);
-  assert(TypeIndex == TypeToVertex.end());
-  return &(VTables[TypeIndex->getSecond()]);
+  assert(TypeIndex != TypeToVertex.end());
+  return &VTables[TypeIndex->getSecond()];
 }
 
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
@@ -255,13 +277,18 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
 
   OS << "VFTables:\n";
   for (const auto &VTable : VTables) {
+    if (VTable.empty()) {
+      continue;
+    }
     for (const auto &Function : VTable.getAllFunctions()) {
-      OS << Function->getName() << ", ";
+      // OS << "Before Function ->getName()\n";
+      if (Function) {
+        OS << Function->getName() << ", ";
+      }
     }
     OS << "\n";
   };
   OS << "\n";
-  printAsDot();
 }
 
 [[nodiscard]] nlohmann::json DIBasedTypeHierarchy::getAsJson() const {
@@ -284,7 +311,7 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
     for (const auto &Cell : Row.set_bits()) {
       if (Row[Cell]) {
         OS << "  " << VertexTypes[CurrentRowIndex]->getName() << " -> "
-           << VertexTypes[Index]->getName() << "\n";
+           << VertexTypes[Cell]->getName() << "\n";
       }
       Index++;
     }
