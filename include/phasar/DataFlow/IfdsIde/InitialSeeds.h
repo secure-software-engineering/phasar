@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_INITIALSEEDS_H
+#define PHASAR_DATAFLOW_IFDSIDE_INITIALSEEDS_H
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/TypeTraits.h"

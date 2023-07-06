@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_SPECIALMEMBERFUNCTIONTYPE_H
-#define PHASAR_PHASARLLVM_SPECIALMEMBERFUNCTIONTYPE_H
+#ifndef PHASAR_CONTROLFLOW_SPECIALMEMBERFUNCTIONTYPE_H
+#define PHASAR_CONTROLFLOW_SPECIALMEMBERFUNCTIONTYPE_H
 
 #include "llvm/ADT/StringRef.h"
 
@@ -40,4 +40,4 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               SpecialMemberFunctionType SMFT);
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_SPECIALMEMBERFUNCTIONTYPE_H
+#endif // PHASAR_CONTROLFLOW_SPECIALMEMBERFUNCTIONTYPE_H

@@ -502,7 +502,7 @@ private:
       End = Blocks.back() + Size;
     }
 
-    auto Ret = Blocks[BlockIdx];
+    auto *Ret = Blocks[BlockIdx];
 
     Start = Ret;
     Pos = Ret + 1;

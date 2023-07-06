@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPH_H
-#define PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPH_H
+#ifndef PHASAR_CONTROLFLOW_CALLGRAPH_H
+#define PHASAR_CONTROLFLOW_CALLGRAPH_H
 
 #include "phasar/ControlFlow/CallGraphBase.h"
 #include "phasar/Utils/ByRef.h"
@@ -301,4 +301,4 @@ extern template class psr::CallGraph<const llvm::Instruction *,
 extern template class psr::CallGraphBuilder<const llvm::Instruction *,
                                             const llvm::Function *>;
 
-#endif // PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPH_H
+#endif // PHASAR_CONTROLFLOW_CALLGRAPH_H

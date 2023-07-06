@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
+#ifndef PHASAR_PHASARLLVM_HELPERANALYSES_H
+#define PHASAR_PHASARLLVM_HELPERANALYSES_H
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
@@ -78,4 +78,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
+#endif // PHASAR_PHASARLLVM_HELPERANALYSES_H

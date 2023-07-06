@@ -256,7 +256,7 @@ void DOTConfig::importDOTConfig(llvm::StringRef ConfigPath) {
       Ifs.close();
       nlohmann::json JDOTConfig;
       Iss >> JDOTConfig;
-      for (auto &El : JDOTConfig.items()) {
+      for (const auto &El : JDOTConfig.items()) {
         std::stringstream AttrStr;
         if (El.key().find("Node") != std::string::npos) {
           AttrStr << "node [";

@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
-#define PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
+#ifndef PHASAR_DOMAIN_BINARYDOMAIN_H
+#define PHASAR_DOMAIN_BINARYDOMAIN_H
 
 #include "phasar/Utils/JoinLattice.h"
 
