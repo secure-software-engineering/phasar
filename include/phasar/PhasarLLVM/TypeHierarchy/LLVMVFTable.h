@@ -34,10 +34,10 @@ private:
   friend class LLVMTypeHierarchy;
   friend class DIBasedTypeHierarchy;
   std::vector<const llvm::Function *> VFT;
-  LLVMVFTable(std::vector<const llvm::Function *> Fs) : VFT(std::move(Fs)) {}
 
 public:
   LLVMVFTable() = default;
+  LLVMVFTable(std::vector<const llvm::Function *> Fs) : VFT(std::move(Fs)) {}
   ~LLVMVFTable() override = default;
 
   /**

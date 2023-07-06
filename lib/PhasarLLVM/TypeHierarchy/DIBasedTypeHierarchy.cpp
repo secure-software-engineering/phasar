@@ -189,7 +189,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
   for (auto &ToAdd : IndexToFunctions) {
     //
-    VTables.emplace_back(LLVMVFTable(std::move(ToAdd)));
+    VTables.emplace_back(std::move(ToAdd));
   }
 }
 
