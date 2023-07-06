@@ -66,7 +66,7 @@ public:
     assert(IRDB != nullptr);
   }
 
-  virtual ~IDETabulationProblem() = default;
+  ~IDETabulationProblem() override = default;
 
   /// Returns an edge function that represents the top element of the analysis.
   virtual EdgeFunction<l_t> allTopFunction() = 0;

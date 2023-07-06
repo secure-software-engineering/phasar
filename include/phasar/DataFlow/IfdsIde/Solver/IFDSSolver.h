@@ -45,7 +45,7 @@ public:
              const i_t *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
 
-  virtual ~IFDSSolver() = default;
+  ~IFDSSolver() override = default;
 
   /// Returns the data-flow results at the given statement.
   [[nodiscard]] virtual std::set<d_t> ifdsResultsAt(n_t Inst) {
