@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
-#define PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
+#ifndef PHASAR_TYPEHIERARCHY_TYPEHIERARCHY_H
+#define PHASAR_TYPEHIERARCHY_TYPEHIERARCHY_H
 
 #include "phasar/TypeHierarchy/VFTable.h"
 

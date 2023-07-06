@@ -7,8 +7,8 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H_
-#define PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H_
+#ifndef PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H
+#define PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/Utils/ByRef.h"
@@ -473,4 +473,4 @@ JoinEdgeFunction<L, N>::join(EdgeFunctionRef<JoinEdgeFunction> This,
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONUTILS_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H

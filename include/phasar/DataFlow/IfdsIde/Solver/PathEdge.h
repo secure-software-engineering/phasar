@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_PATHEDGE_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_PATHEDGE_H
 
 #include "phasar/Utils/ByRef.h"
 

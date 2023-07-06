@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_DB_LLVMPROJECTIRDB_H
-#define PHASAR_DB_LLVMPROJECTIRDB_H
+#ifndef PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
+#define PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
 
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
@@ -168,4 +168,4 @@ const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
 extern template class ProjectIRDBBase<LLVMProjectIRDB>;
 } // namespace psr
 
-#endif // PHASAR_DB_LLVMPROJECTIRDB_H
+#endif // PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
