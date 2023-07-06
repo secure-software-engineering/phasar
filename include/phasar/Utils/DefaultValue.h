@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_UTILS_DEFAULTVALUE_H
-#define PHASAR_PHASARLLVM_UTILS_DEFAULTVALUE_H
+#ifndef PHASAR_UTILS_DEFAULTVALUE_H
+#define PHASAR_UTILS_DEFAULTVALUE_H
 
 #include "phasar/Utils/ByRef.h"
 
@@ -42,4 +42,4 @@ getDefaultValue() noexcept(std::is_nothrow_default_constructible_v<T>) {
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_UTILS_DEFAULTVALUE_H
+#endif // PHASAR_UTILS_DEFAULTVALUE_H

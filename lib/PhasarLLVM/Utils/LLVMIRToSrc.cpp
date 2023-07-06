@@ -128,7 +128,7 @@ std::string getFunctionNameFromIR(const llvm::Value *V) {
 }
 
 std::string getFilePathFromIR(const llvm::Value *V) {
-  if (auto *DIF = getDIFileFromIR(V)) {
+  if (const auto *DIF = getDIFileFromIR(V)) {
     std::filesystem::path File(DIF->getFilename().str());
     std::filesystem::path Dir(DIF->getDirectory().str());
     if (!File.empty()) {

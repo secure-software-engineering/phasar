@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_ALIASINFOTRAITS_H
-#define PHASAR_PHASARLLVM_POINTER_ALIASINFOTRAITS_H
+#ifndef PHASAR_POINTER_ALIASINFOTRAITS_H
+#define PHASAR_POINTER_ALIASINFOTRAITS_H
 
 #include "phasar/Utils/BoxedPointer.h"
 
@@ -35,4 +35,4 @@ template <typename V, typename N> struct DefaultAATraits {
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_ALIASINFOTRAITS_H
+#endif // PHASAR_POINTER_ALIASINFOTRAITS_H

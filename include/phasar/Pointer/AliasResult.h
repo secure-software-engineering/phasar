@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_ALIASRESULT_H_
-#define PHASAR_PHASARLLVM_POINTER_ALIASRESULT_H_
+#ifndef PHASAR_POINTER_ALIASRESULT_H
+#define PHASAR_POINTER_ALIASRESULT_H
 
 #include "llvm/Support/raw_ostream.h"
 
@@ -27,4 +27,4 @@ AliasResult toAliasResult(llvm::StringRef S);
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AliasResult AR);
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_ALIASRESULT_H_
+#endif // PHASAR_POINTER_ALIASRESULT_H

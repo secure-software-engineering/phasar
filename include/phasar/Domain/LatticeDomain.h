@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
-#define PHASAR_PHASARLLVM_UTILS_LATTICEDOMAIN_H
+#ifndef PHASAR_DOMAIN_LATTICEDOMAIN_H
+#define PHASAR_DOMAIN_LATTICEDOMAIN_H
 
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
