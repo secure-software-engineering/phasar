@@ -40,15 +40,24 @@ public:
   inline void addSinkValue(v_t Value) { SinkValues.insert(Value); }
   inline void addSanitizerValue(v_t Value) { SanitizerValues.insert(Value); }
 
-  inline std::unordered_set<v_t> getInstructions() { return SourceValues; }
-  inline std::unordered_set<v_t> getVariables() { return SinkValues; }
-  inline std::unordered_set<v_t> getFunctions() { return SanitizerValues; }
+  inline std::unordered_set<v_t> getSourceValues() const {
+    return SourceValues;
+  }
+  inline std::unordered_set<v_t> getSinkValues() const { return SinkValues; }
+  inline std::unordered_set<v_t> getSanitizerValues() const {
+    return SanitizerValues;
+  }
+  inline std::unordered_set<f_t> getFunctions() const { return Functions; }
+  inline bool hasFunctions() const { return !Functions.empty(); }
 
 private:
   llvm::Twine Path;
+  std::unordered_set<f_t> Functions;
   std::unordered_set<v_t> SourceValues;
   std::unordered_set<v_t> SinkValues;
   std::unordered_set<v_t> SanitizerValues;
+
+  void printImpl(llvm::raw_ostream &OS) const;
 };
 
 extern template class TaintConfigBase<TaintConfigData>;

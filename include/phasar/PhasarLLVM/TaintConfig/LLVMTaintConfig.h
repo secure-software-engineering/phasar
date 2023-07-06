@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_TAINTCONFIG_LLVMTAINTCONFIG_H
 
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 
 #include "llvm/IR/Instruction.h"
 
@@ -31,7 +32,7 @@ class LLVMTaintConfig : public TaintConfigBase<LLVMTaintConfig> {
 
 public:
   explicit LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
-                           const nlohmann::json &Config);
+                           const TaintConfigData &Config);
   explicit LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode);
   explicit LLVMTaintConfig(
       TaintDescriptionCallBackTy SourceCB, TaintDescriptionCallBackTy SinkCB,
@@ -93,7 +94,7 @@ private:
   // --- utilities
 
   void addAllFunctions(const LLVMProjectIRDB &IRDB,
-                       const nlohmann::json &Config);
+                       const TaintConfigData &Config);
 
   // --- data members
 

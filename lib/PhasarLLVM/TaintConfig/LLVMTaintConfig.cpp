@@ -12,10 +12,10 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
@@ -59,9 +59,9 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
 }
 
 void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
-                                      const nlohmann::json &Config) {
-  for (const auto &FunDesc : Config["functions"]) {
-    auto Name = FunDesc["name"].get<std::string>();
+                                      const TaintConfigData &Config) {
+  for (const auto &FunDesc : Config.getFunctions()) {
+    auto Name = FunDesc->getName().str();
 
     auto FnDefs = findAllFunctionDefs(IRDB, Name);
 
@@ -73,8 +73,8 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
     const auto *Fun = FnDefs[0];
 
     // handle a function's parameters
-    if (FunDesc.contains("params")) {
-      auto Params = FunDesc["params"];
+    if (!FunDesc->arg_empty()) {
+      auto Params = FunDesc->arg_begin();
       if (Params.contains("source")) {
         for (unsigned Idx : Params["source"]) {
           if (Idx >= Fun->arg_size()) {
@@ -133,16 +133,16 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
 }
 
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
-                                 const nlohmann::json &Config) {
+                                 const TaintConfigData &Config) {
   // handle functions
-  if (Config.contains("functions")) {
+  if (Config.hasFunctions()) {
     addAllFunctions(Code, Config);
   }
 
   // handle variables
   if (Config.contains("variables")) {
     // scope can be a function name or a struct.
-    std::unordered_map<const llvm::Type *, const nlohmann::json>
+    std::unordered_map<const llvm::Type *, const TaintConfigData>
         StructConfigMap;
 
     // read all struct types from config
@@ -156,7 +156,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
             Ty->getName().equals(VarDesc["scope"].get<std::string>())) {
           for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
             StructConfigMap.insert(
-                std::pair<const llvm::Type *, const nlohmann::json>(
+                std::pair<const llvm::Type *, const TaintConfigData>(
                     LlvmStructTy, VarDesc));
           }
         }
