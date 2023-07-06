@@ -68,8 +68,9 @@ private:
       if (LHS == RHS) {
         return true;
       }
-      auto Empty = llvm::DenseMapInfo<const EdgeFunctionTy *>::getEmptyKey();
-      auto Tombstone =
+      const auto *Empty =
+          llvm::DenseMapInfo<const EdgeFunctionTy *>::getEmptyKey();
+      const auto *Tombstone =
           llvm::DenseMapInfo<const EdgeFunctionTy *>::getTombstoneKey();
       if (LHS == Empty || LHS == Tombstone || RHS == Empty ||
           RHS == Tombstone) {

@@ -300,7 +300,7 @@ public:
                 new (&Ret) ConcreteEF(std::move(EF.EF));
                 return Ret;
               } else {
-                if (auto Mem = EF.Cache->lookup(EF.EF)) {
+                if (const auto *Mem = EF.Cache->lookup(EF.EF)) {
                   return static_cast<const RefCounted<ConcreteEF> *>(Mem);
                 }
 

@@ -66,7 +66,7 @@ public:
   AliasSetOwner &operator=(AliasSetOwner &&) = delete;
 
   ~AliasSetOwner() {
-    for (auto PTS : OwnedPTS) {
+    for (auto *PTS : OwnedPTS) {
       std::destroy_at(PTS);
 #if HAS_MEMORY_RESOURCE
       Alloc.deallocate(PTS, 1);
