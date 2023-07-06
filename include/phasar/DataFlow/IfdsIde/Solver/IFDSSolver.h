@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
@@ -45,7 +45,7 @@ public:
              const i_t *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
 
-  virtual ~IFDSSolver() = default;
+  ~IFDSSolver() override = default;
 
   /// Returns the data-flow results at the given statement.
   [[nodiscard]] virtual std::set<d_t> ifdsResultsAt(n_t Inst) {

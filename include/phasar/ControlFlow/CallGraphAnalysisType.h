@@ -7,8 +7,8 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CALLGRAPHANALYSISTYPE_H
-#define PHASAR_PHASARLLVM_CALLGRAPHANALYSISTYPE_H
+#ifndef PHASAR_CONTROLFLOW_CALLGRAPHANALYSISTYPE_H
+#define PHASAR_CONTROLFLOW_CALLGRAPHANALYSISTYPE_H
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
@@ -30,4 +30,4 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, CallGraphAnalysisType CGA);
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_CALLGRAPHANALYSISTYPE_H
+#endif // PHASAR_CONTROLFLOW_CALLGRAPHANALYSISTYPE_H

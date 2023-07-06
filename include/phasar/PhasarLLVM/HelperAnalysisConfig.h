@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
+#ifndef PHASAR_PHASARLLVM_HELPERANALYSISCONFIG_H
+#define PHASAR_PHASARLLVM_HELPERANALYSISCONFIG_H
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
@@ -35,4 +35,4 @@ struct HelperAnalysisConfig {
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
+#endif // PHASAR_PHASARLLVM_HELPERANALYSISCONFIG_H

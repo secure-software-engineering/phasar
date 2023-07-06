@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_VFTABLE_H_
-#define PHASAR_PHASARLLVM_TYPEHIERARCHY_VFTABLE_H_
+#ifndef PHASAR_TYPEHIERARCHY_VFTABLE_H
+#define PHASAR_TYPEHIERARCHY_VFTABLE_H
 
 #include "llvm/Support/raw_ostream.h"
 

@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H_
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H_
+#ifndef PHASAR_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H
+#define PHASAR_ANALYSISSTRATEGY_VARIATIONALANALYSIS_H
 
 #include "phasar/AnalysisStrategy/AnalysisSetup.h"
 

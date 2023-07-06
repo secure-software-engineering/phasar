@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_PATHEDGE_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_PATHEDGE_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_PATHEDGE_H
 
 #include "phasar/Utils/ByRef.h"
 
@@ -24,14 +24,23 @@ public:
   PathEdge(D DSource, N Target,
            D DTarget) noexcept(std::is_nothrow_move_constructible_v<N>
                                    &&std::is_nothrow_move_constructible_v<D>)
-      : Target(std::move(Target)), DSource(std::move(DSource)),
+      : DSource(std::move(DSource)), Target(std::move(Target)),
         DTarget(std::move(DTarget)) {}
-
-  [[nodiscard]] ByConstRef<N> getTarget() const noexcept { return Target; }
 
   [[nodiscard]] ByConstRef<D> factAtSource() const noexcept { return DSource; }
 
+  [[nodiscard]] ByConstRef<N> getTarget() const noexcept { return Target; }
+
   [[nodiscard]] ByConstRef<D> factAtTarget() const noexcept { return DTarget; }
+
+  [[nodiscard]] std::tuple<ByConstRef<D>, ByConstRef<N>, ByConstRef<D>>
+  get() const noexcept {
+    return {DSource, Target, DTarget};
+  }
+
+  [[nodiscard]] std::tuple<D, N, D> consume() noexcept {
+    return {std::move(DSource), std::move(Target), std::move(DTarget)};
+  }
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const PathEdge &Edge) {
@@ -40,8 +49,8 @@ public:
   }
 
 private:
-  N Target;
   D DSource;
+  N Target;
   D DTarget;
 };
 

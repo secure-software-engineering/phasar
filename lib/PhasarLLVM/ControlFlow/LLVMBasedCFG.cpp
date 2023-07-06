@@ -252,7 +252,7 @@ detail::LLVMBasedCFGImpl<Derived>::getSpecialMemberFunctionTypeImpl(
                  {"aSEOS_", SpecialMemberFunctionType::MoveAssignment}};
   llvm::SmallVector<std::pair<std::size_t, SpecialMemberFunctionType>> Found;
   std::size_t Blacklist = 0;
-  auto It = std::begin(Codes);
+  const auto *It = std::begin(Codes);
   while (It != std::end(Codes)) {
     if (std::size_t Index = FunctionName.find(It->first, Blacklist)) {
       if (Index != llvm::StringRef::npos) {
