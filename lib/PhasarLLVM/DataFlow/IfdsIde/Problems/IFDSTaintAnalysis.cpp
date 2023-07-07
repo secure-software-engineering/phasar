@@ -199,20 +199,46 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite,
     [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite,
     llvm::ArrayRef<f_t> Callees) {
+
+  const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+
+  bool HasDeclOnly = llvm::any_of(
+      Callees, [](const auto *DestFun) { return DestFun->isDeclaration(); });
+
+  return mapFactsAlongsideCallSite(CS, [HasDeclOnly](d_t Arg) {
+    return HasDeclOnly || !Arg->getType()->isPointerTy();
+  });
+}
+
+IFDSTaintAnalysis::FlowFunctionPtrType
+IFDSTaintAnalysis::getSummaryFlowFunction(
+    [[maybe_unused]] IFDSTaintAnalysis::n_t CallSite,
+    [[maybe_unused]] IFDSTaintAnalysis::f_t DestFun) {
+  // $sSS1poiyS2S_SStFZ is Swift's String append method
+  // if concat a tainted string with something else the
+  // result should be tainted
+  if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
+    const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+
+    return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
+      return ((Source == CS->getArgOperand(1)) ||
+              (Source == CS->getArgOperand(3)));
+    });
+  }
+
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   std::set<d_t> Gen;
   std::set<d_t> Leak;
   std::set<d_t> Kill;
   bool HasBody = false;
   // Process the effects of source or sink functions that are called
-  for (const auto *Callee : Callees) {
-    if (!Callee->isDeclaration()) {
-      HasBody = true;
-    }
-    collectGeneratedFacts(Gen, *Config, CS, Callee);
-    collectLeakedFacts(Leak, *Config, CS, Callee);
-    collectSanitizedFacts(Kill, *Config, CS, Callee);
+
+  if (!DestFun->isDeclaration()) {
+    HasBody = true;
   }
+  collectGeneratedFacts(Gen, *Config, CS, DestFun);
+  collectLeakedFacts(Leak, *Config, CS, DestFun);
+  collectSanitizedFacts(Kill, *Config, CS, DestFun);
 
   if (HasBody && Gen.empty() && Leak.empty() && Kill.empty()) {
     // We have a normal function-call and the ret-FF is responsible for handling
@@ -231,21 +257,28 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
 
   populateWithMustAliases(Kill);
 
-  if (Gen.empty() && (!Leak.empty() || !Kill.empty())) {
-    return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
-                            CallSite](d_t Source) -> std::set<d_t> {
-      if (Leak.count(Source)) {
-        Leaks[CallSite].insert(Source);
-      }
+  if (Gen.empty()) {
+    if (!Leak.empty() || !Kill.empty()) {
+      return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)},
+                              this, CallSite](d_t Source) -> std::set<d_t> {
+        if (Leak.count(Source)) {
+          Leaks[CallSite].insert(Source);
+        }
 
-      if (Kill.count(Source)) {
-        return {};
-      }
+        if (Kill.count(Source)) {
+          return {};
+        }
 
-      return {Source};
-    });
+        return {Source};
+      });
+    }
+    // all empty
+    return nullptr;
   }
-  if (Kill.empty()) {
+
+  // Gen nonempty || both leak and kill empty
+
+  if (!Gen.empty()) {
     return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
                             CallSite](d_t Source) -> std::set<d_t> {
       if (LLVMZeroValue::isLLVMZeroValue(Source)) {
@@ -259,13 +292,9 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       return {Source};
     });
   }
-  return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)},
-                          Kill{std::move(Kill)}, this,
-                          CallSite](d_t Source) -> std::set<d_t> {
-    if (LLVMZeroValue::isLLVMZeroValue(Source)) {
-      return Gen;
-    }
 
+  return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
+                          CallSite](d_t Source) -> std::set<d_t> {
     if (Leak.count(Source)) {
       Leaks[CallSite].insert(Source);
     }
@@ -276,27 +305,6 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
 
     return {Source};
   });
-
-  // Otherwise pass everything as it is
-  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
-}
-
-IFDSTaintAnalysis::FlowFunctionPtrType
-IFDSTaintAnalysis::getSummaryFlowFunction(
-    [[maybe_unused]] IFDSTaintAnalysis::n_t CallSite,
-    [[maybe_unused]] IFDSTaintAnalysis::f_t DestFun) {
-  // $sSS1poiyS2S_SStFZ is Swift's String append method
-  // if concat a tainted string with something else the
-  // result should be tainted
-  if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
-    const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-
-    return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
-      return ((Source == CS->getArgOperand(1)) ||
-              (Source == CS->getArgOperand(3)));
-    });
-  }
-  return nullptr;
 }
 
 InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
@@ -352,21 +360,22 @@ void IFDSTaintAnalysis::emitTextReport(
   OS << "\n----- Found the following leaks -----\n";
   if (Leaks.empty()) {
     OS << "No leaks found!\n";
-  } else {
-    for (const auto &Leak : Leaks) {
-      OS << "At instruction\nIR  : " << llvmIRToString(Leak.first) << '\n';
-      OS << "\n\nLeak(s):\n";
-      for (const auto *LeakedValue : Leak.second) {
-        OS << "IR  : ";
-        // Get the actual leaked alloca instruction if possible
-        if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(LeakedValue)) {
-          OS << llvmIRToString(Load->getPointerOperand()) << '\n';
-        } else {
-          OS << llvmIRToString(LeakedValue) << '\n';
-        }
+    return;
+  }
+
+  for (const auto &Leak : Leaks) {
+    OS << "At instruction\nIR  : " << llvmIRToString(Leak.first) << '\n';
+    OS << "\nLeak(s):\n";
+    for (const auto *LeakedValue : Leak.second) {
+      OS << "IR  : ";
+      // Get the actual leaked alloca instruction if possible
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(LeakedValue)) {
+        OS << llvmIRToString(Load->getPointerOperand()) << '\n';
+      } else {
+        OS << llvmIRToString(LeakedValue) << '\n';
       }
-      OS << "-------------------\n";
     }
+    OS << "-------------------\n";
   }
 }
 
