@@ -1,7 +1,7 @@
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/Demangle/Demangle.h"
@@ -39,7 +39,7 @@ public:
 TEST_F(TaintConfigTest, Array_01) {
   const std::string File = "array_01.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const llvm::Value *I = IR.getInstruction(5);
   ASSERT_TRUE(Config.isSource(I));
@@ -48,7 +48,7 @@ TEST_F(TaintConfigTest, Array_01) {
 TEST_F(TaintConfigTest, Array_02) {
   const std::string File = "array_02.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const llvm::Value *I = IR.getInstruction(5);
   ASSERT_TRUE(Config.isSource(I));
@@ -57,7 +57,7 @@ TEST_F(TaintConfigTest, Array_02) {
 TEST_F(TaintConfigTest, Basic_01) {
   const std::string File = "basic_01.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const auto *Bar = IR.getFunction("bar");
   assert(Bar);
@@ -77,7 +77,7 @@ TEST_F(TaintConfigTest, Basic_01) {
 TEST_F(TaintConfigTest, Basic_02) {
   const std::string File = "basic_02.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const llvm::Value *I1 = IR.getInstruction(9);
   const llvm::Value *I2 = IR.getInstruction(23);
@@ -88,7 +88,7 @@ TEST_F(TaintConfigTest, Basic_02) {
 TEST_F(TaintConfigTest, Basic_03) {
   const std::string File = "basic_03.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const auto *TaintPair = IR.getFunction("taintPair");
   assert(TaintPair);
@@ -102,7 +102,7 @@ TEST_F(TaintConfigTest, Basic_03) {
 TEST_F(TaintConfigTest, Basic_04) {
   const std::string File = "basic_04.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const llvm::Value *I = IR.getInstruction(4);
   ASSERT_TRUE(Config.isSource(I));
@@ -111,7 +111,7 @@ TEST_F(TaintConfigTest, Basic_04) {
 TEST_F(TaintConfigTest, DataMember_01) {
   const std::string File = "data_member_01.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const llvm::Value *I = IR.getInstruction(9);
   ASSERT_TRUE(Config.isSource(I));
@@ -120,7 +120,7 @@ TEST_F(TaintConfigTest, DataMember_01) {
 TEST_F(TaintConfigTest, FunMember_01) {
   const std::string File = "fun_member_01.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR);
+  psr::LLVMTaintConfig TConfig(IR);
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   llvm::outs() << TConfig << '\n';
   for (const auto &F : IR.getAllFunctions()) {
@@ -141,7 +141,7 @@ TEST_F(TaintConfigTest, FunMember_01) {
 TEST_F(TaintConfigTest, FunMember_02) {
   const std::string File = "fun_member_02.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR);
+  psr::LLVMTaintConfig TConfig(IR);
   // IR.emitPreprocessedIR(llvm::outs(), false);
   llvm::outs() << TConfig << '\n';
   const llvm::Value *I1 = IR.getInstruction(22);
@@ -165,7 +165,7 @@ TEST_F(TaintConfigTest, FunMember_02) {
 TEST_F(TaintConfigTest, NameMangling_01) {
   const std::string File = "name_mangling_01.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   for (const auto *F : IR.getAllFunctions()) {
     std::string FName = getFunctionName(llvm::demangle(F->getName().str()));
@@ -183,7 +183,7 @@ TEST_F(TaintConfigTest, NameMangling_01) {
 TEST_F(TaintConfigTest, StaticFun_01) {
   const std::string File = "static_fun_01.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   for (const auto *F : IR.getAllFunctions()) {
     std::string FName = getFunctionName(llvm::demangle(F->getName().str()));
@@ -202,7 +202,7 @@ TEST_F(TaintConfigTest, StaticFun_01) {
 TEST_F(TaintConfigTest, StaticFun_02) {
   const std::string File = "static_fun_02.dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
-  psr::TaintConfig Config(IR);
+  psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const llvm::Value *CallInst = IR.getInstruction(16);
   const auto *I = llvm::dyn_cast<llvm::CallBase>(CallInst);
@@ -233,7 +233,7 @@ TEST_F(TaintConfigTest, Array_01_Json) {
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   const llvm::Value *I = IR.getInstruction(3);
   ASSERT_TRUE(TConfig.isSource(I));
@@ -246,7 +246,7 @@ TEST_F(TaintConfigTest, Array_02_Json) {
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   const llvm::Value *I = IR.getInstruction(3);
   ASSERT_TRUE(TConfig.isSource(I));
@@ -258,7 +258,7 @@ TEST_F(TaintConfigTest, Basic_01_Json) {
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   const auto *Bar = IR.getFunction("bar");
   assert(Bar);
@@ -282,7 +282,7 @@ TEST_F(TaintConfigTest, Basic_02_Json) {
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   const llvm::Value *I1 = IR.getInstruction(7);
   const llvm::Value *I2 = IR.getInstruction(18);
@@ -296,7 +296,7 @@ TEST_F(TaintConfigTest, Basic_03_Json) {
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   const auto *TaintPair = IR.getFunction("taintPair");
   assert(TaintPair);
@@ -314,7 +314,7 @@ TEST_F(TaintConfigTest, Basic_04_Json) {
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   llvm::outs().flush();
   const llvm::Value *I = IR.getInstruction(2);
@@ -327,7 +327,7 @@ TEST_F(TaintConfigTest, DataMember_01_Json) {
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   llvm::outs().flush();
   const llvm::Value *I = IR.getInstruction(17);
@@ -342,7 +342,7 @@ TEST_F(TaintConfigTest, FunMember_01_Json) {
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   for (const auto &F : IR.getAllFunctions()) {
     if (F->getName().contains("foo")) {
@@ -366,7 +366,7 @@ TEST_F(TaintConfigTest, FunMember_02_Json) {
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   const llvm::Value *I1 = IR.getInstruction(18);
   const llvm::Value *I2 = IR.getInstruction(54);
@@ -398,7 +398,7 @@ TEST_F(TaintConfigTest, NameMangling_01_Json) {
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   llvm::outs().flush();
   for (const auto *F : IR.getAllFunctions()) {
@@ -420,7 +420,7 @@ TEST_F(TaintConfigTest, StaticFun_01_Json) {
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   for (const auto *F : IR.getAllFunctions()) {
     std::string FName = getFunctionName(llvm::demangle(F->getName().str()));
@@ -442,7 +442,7 @@ TEST_F(TaintConfigTest, StaticFun_02_Json) {
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
-  psr::TaintConfig TConfig(IR, JsonConfig);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
   const llvm::Value *CallInst = IR.getInstruction(13);
   const auto *I = llvm::dyn_cast<llvm::CallBase>(CallInst);

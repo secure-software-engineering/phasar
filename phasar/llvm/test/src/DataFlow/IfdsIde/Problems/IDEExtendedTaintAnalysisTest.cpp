@@ -16,7 +16,6 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
@@ -61,21 +60,23 @@ protected:
                   bool DumpResults = false) {
     HelperAnalyses HA(IRFile, EntryPoints);
 
-    auto TC = std::visit(Overloaded{[&](std::monostate) {
-                                      return TaintConfig(HA.getProjectIRDB());
-                                    },
-                                    [&](json *JS) {
-                                      auto Ret =
-                                          TaintConfig(HA.getProjectIRDB(), *JS);
-                                      if (DumpResults) {
-                                        llvm::errs() << Ret << "\n";
-                                      }
-                                      return Ret;
-                                    },
-                                    [&](CallBackPairTy &CB) {
-                                      return TaintConfig(CB.first, CB.second);
-                                    }},
-                         Config);
+    auto TC =
+        std::visit(Overloaded{[&](std::monostate) {
+                                return LLVMTaintConfig(HA.getProjectIRDB());
+                              },
+                              [&](json *JS) {
+                                auto Ret =
+                                    LLVMTaintConfig(HA.getProjectIRDB(), *JS);
+                                if (DumpResults) {
+                                  llvm::errs() << Ret << "\n";
+                                }
+                                return Ret;
+                              },
+                              [&](CallBackPairTy &&CB) {
+                                return LLVMTaintConfig(std::move(CB.first),
+                                                       std::move(CB.second));
+                              }},
+                   std::move(Config));
 
     auto TaintProblem =
         createAnalysisProblem<IDEExtendedTaintAnalysis<>>(HA, TC, EntryPoints);

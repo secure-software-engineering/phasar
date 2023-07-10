@@ -11,7 +11,7 @@ namespace psr::unittest {
 
 static constexpr llvm::StringLiteral PathToLLTestFiles = "llvm_test_code/";
 
-static constexpr llvm::StringLiteral PathToTxtTestFiles = "text_test_code/";
+static constexpr llvm::StringLiteral PathToTxtTestFiles = "";
 
 static constexpr llvm::StringLiteral PathToJSONTestFiles = "json_test_code/";
 

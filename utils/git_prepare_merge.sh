@@ -17,15 +17,18 @@ set -uo pipefail
         from="$1"
         to="$2"
         if [ -f "$1" ]; then
-            if ! git mv --force "$from" "$to" 2>/dev/null; then
+            if ! git mv "$from" "$to" 2>/dev/null; then
                 rm "$to" 2>/dev/null || true
-                git rm "$to" 2>/dev/null || true
-                if ! git mv --force "$from" "$to"; then
-                    if [ 4 -le "$(git diff "$f" | wc -l)" ]; then
-                        # merge one commit later, only if no change
-                        git add "$from"
-                    fi
-                fi
+                # carefull with git rm/git add!
+                # git rm "$to" 2>/dev/null || true
+                git mv "$from" "$to" || git mv --force "$from" "$to" || mv -f "$from" "$to" || true
+                # if ! git mv --force "$from" "$to"; then
+                #     if [ 4 -le "$(git diff "$from" | wc -l)" ]; then
+                #         # merge one commit later, only if no change
+                #         git add "$from"
+                #         echo "added \"$from\""
+                #     fi
+                # fi
             fi
         fi
     }
@@ -249,7 +252,8 @@ set -uo pipefail
     mapfile -t both_modified < <(echo "$status" | grep -Po '(?<=both modified:).*' | xargs printf '%s\n')
     echo "assuming if both modified -> check if modification is real, most of the time it isn't"
     for f in "${both_modified[@]}"; do
-        if [ 4 -eq "$(git diff "$f" | wc -l)" ]; then
+        if [ -n "$f" ] && [ -f "$f" ] && [ 4 -eq "$(git diff "$f" | wc -l)" ]; then
+            echo "quickfix, file changed without any actual changes, directly adding \"$f\""
             # e.g. in such case:
             # diff --cc phasar/llvm/include/phasar/PhasarLLVM/DB/LLVMProjectIRDB.h
             # index d1b1789d,d1b1789d..00000000

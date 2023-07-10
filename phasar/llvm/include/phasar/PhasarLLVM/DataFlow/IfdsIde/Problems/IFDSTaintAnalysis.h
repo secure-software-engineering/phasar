@@ -26,7 +26,7 @@ class CallBase;
 } // namespace llvm
 
 namespace psr {
-class TaintConfig;
+class LLVMTaintConfig;
 
 /**
  * This analysis tracks data-flows through a program. Data flows from
@@ -42,7 +42,7 @@ class IFDSTaintAnalysis
 
 public:
   // Setup the configuration type
-  using ConfigurationTy = TaintConfig;
+  using ConfigurationTy = LLVMTaintConfig;
 
   /// Holds all leaks found during the analysis
   std::map<n_t, std::set<d_t>> Leaks;
@@ -54,7 +54,7 @@ public:
    * @param EntryPoints
    */
   IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
-                    const TaintConfig *Config,
+                    const LLVMTaintConfig *Config,
                     std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSTaintAnalysis() override = default;
@@ -89,7 +89,7 @@ public:
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:
-  const TaintConfig *Config{};
+  const LLVMTaintConfig *Config{};
   LLVMAliasInfoRef PT{};
 
   bool isSourceCall(const llvm::CallBase *CB,

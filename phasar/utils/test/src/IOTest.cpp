@@ -10,7 +10,8 @@
 
 TEST(IO, ReadTextFile) {
 
-  std::string Contents = psr::readTextFile("test.txt");
+  std::string Contents =
+      psr::readTextFile(psr::unittest::PathToTxtTestFiles + "test.txt");
   std::string Expected =
       R"(This is a test file that contains very interesting content.
 I am not kidding, this file is subject to an IO test.

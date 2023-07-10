@@ -4,4 +4,5 @@ just_add_executable(
     LINK
     phasar-llvm
     phasar-controller
+    phasar-config
 )
