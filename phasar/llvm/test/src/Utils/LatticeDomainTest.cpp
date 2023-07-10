@@ -1,4 +1,4 @@
-#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
+#include "phasar/Domain/LatticeDomain.h"
 
 #include "gtest/gtest.h"
 

@@ -1,6 +1,6 @@
 #include "phasar/Config/Configuration.h"
-#include "phasar/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"

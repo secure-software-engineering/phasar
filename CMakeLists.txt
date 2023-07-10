@@ -1,7 +1,8 @@
 cmake_minimum_required (VERSION 3.21)
 project(phasar 
     VERSION 1.0.0
-    HOMEPAGE_URL "https://github.com/secure-software-engineering/phasar")
+    HOMEPAGE_URL "https://github.com/secure-software-engineering/phasar"
+    LANGUAGES C CXX)
 
 include(cmake/options.cmake)
 
@@ -18,3 +19,10 @@ add_subdirectory(phasar/example-tool)
 add_subdirectory(phasar/llvm)
 add_subdirectory(phasar/utils)
 add_subdirectory(phasar/test-utils)
+add_subdirectory(phasar/analysisstrategy)
+add_subdirectory(phasar/controlflow)
+add_subdirectory(phasar/dataflow)
+add_subdirectory(phasar/domain)
+add_subdirectory(phasar/pointer)
+add_subdirectory(phasar/typehierarchy)
+add_subdirectory(phasar/cli)

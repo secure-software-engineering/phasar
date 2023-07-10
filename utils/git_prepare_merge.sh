@@ -65,6 +65,13 @@ set -uo pipefail
     processTarget PhasarPass pass
     processTarget Utils utils
     processTarget PhasarLLVM llvm
+    # added after folder restructure phasar-x-test
+    processTarget AnalysisStrategy analysisstrategy
+    processTarget ControlFlow controlflow
+    processTarget DataFlow dataflow
+    processTarget Domain domain
+    processTarget Pointer pointer
+    processTarget TypeHierarchy typehierarchy
     echo "simpliest migration done"
     printf '\n\n\n'
 

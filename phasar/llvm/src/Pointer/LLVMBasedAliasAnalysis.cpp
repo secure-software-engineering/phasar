@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 
-#include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 
 #include "llvm/ADT/SetVector.h"

@@ -44,18 +44,11 @@ just_add_library(
       phasar-config
       phasar-utils
       phasar-db
+      phasar-pointer
+      phasar-controlflow
+      phasar-typehierarchy
+      phasar-dataflow
       
       sqlite3
       nlohmann_json_schema_validator
-    EXCLUDE "phasar-llvm.cpp$"
-)
-
-just_add_executable(
-  LINK
-    phasar-llvm
-    phasar-controller
-    pthread
-  INCLUDE "phasar-llvm.cpp$"
-  SUFFIX "-tool"
-  SKIP_SUBDIRECTORIES
 )
