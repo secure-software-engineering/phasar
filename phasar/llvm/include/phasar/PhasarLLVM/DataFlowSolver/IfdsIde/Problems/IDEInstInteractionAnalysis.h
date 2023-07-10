@@ -26,9 +26,11 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
@@ -41,6 +43,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <functional>
@@ -133,10 +136,9 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
 
 inline std::ostream &operator<<(std::ostream &OS,
                                 const IDEIIAFlowFact &FlowFact) {
-  std::string Buf;
-  llvm::raw_string_ostream Rso(Buf);
+  llvm::raw_os_ostream Rso(OS);
   FlowFact.print(Rso);
-  return OS << Buf;
+  return OS;
 }
 
 } // namespace psr
@@ -148,21 +150,18 @@ template <> struct hash<psr::IDEIIAFlowFact> {
     return std::hash<const llvm::Value *>()(FlowFact.getBase());
   }
 };
-
-template <> struct less<psr::IDEIIAFlowFact> {
-  bool operator()(const psr::IDEIIAFlowFact &Lhs,
-                  const psr::IDEIIAFlowFact &Rhs) const {
-    return Lhs < Rhs;
-  }
-};
-
-template <> struct equal_to<psr::IDEIIAFlowFact> {
-  bool operator()(const psr::IDEIIAFlowFact &Lhs,
-                  const psr::IDEIIAFlowFact &Rhs) const {
-    return Lhs == Rhs;
-  }
-};
 } // namespace std
+
+// Compatibility with LLVM Casting
+namespace llvm {
+template <> struct simplify_type<psr::IDEIIAFlowFact> {
+  using SimpleType = const llvm::Value *;
+
+  static SimpleType getSimplifiedValue(const psr::IDEIIAFlowFact &FF) noexcept {
+    return FF.getBase();
+  }
+};
+} // namespace llvm
 
 namespace psr {
 
@@ -193,6 +192,7 @@ public:
 
   using IDETabProblemType = IDETabulationProblem<AnalysisDomainTy>;
   using typename IDETabProblemType::container_type;
+  using typename IDETabProblemType::EdgeFunctionPtrType;
   using typename IDETabProblemType::FlowFunctionPtrType;
 
   using d_t = typename AnalysisDomainTy::d_t;
@@ -269,26 +269,19 @@ public:
         //                                          v  v  v  v
         //                                          0  c  x  I
         //
-        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          const llvm::BranchInst *Br;
-
-          IIAFlowFunction(const llvm::BranchInst *Br) : Br(Br) {}
-
-          container_type computeTargets(d_t Src) override {
-            container_type Facts;
-            Facts.insert(Src);
-            if (Src == Br->getCondition()) {
-              Facts.insert(Br);
-              for (const auto *Succs : Br->successors()) {
-                for (const auto &Inst : Succs->instructionsWithoutDebug()) {
-                  Facts.insert(&Inst);
-                }
+        return lambdaFlow<d_t>([Br](d_t Src) {
+          container_type Facts;
+          Facts.insert(Src);
+          if (Src == Br->getCondition()) {
+            Facts.insert(Br);
+            for (const auto *Succs : Br->successors()) {
+              for (const auto &Inst : Succs->instructionsWithoutDebug()) {
+                Facts.insert(&Inst);
               }
             }
-            return Facts;
           }
-        };
-        return std::make_shared<IIAFlowFunction>(Br);
+          return Facts;
+        });
       }
     }
 
@@ -312,28 +305,11 @@ public:
         //              v  v  v
         //              0  Y  x
         //
-        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          const llvm::LoadInst *Load;
-          LLVMAliasInfo::AllocationSiteSetPtrTy PTS;
-
-          IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
-                          const llvm::LoadInst *Load)
-              : Load(Load), PTS(Problem.PT.getReachableAllocationSites(
-                                Load->getPointerOperand(),
-                                Problem.OnlyConsiderLocalAliases)) {}
-
-          container_type computeTargets(d_t Src) override {
-            container_type Facts;
-            Facts.insert(Src);
-
-            // Handle global variables which behave a bit special.
-            if (Src == Load->getPointerOperand() || PTS->count(Src)) {
-              Facts.insert(Load);
-            }
-            return Facts;
-          }
-        };
-        return std::make_shared<IIAFlowFunction>(*this, Load);
+        return generateFlowIf<d_t>(
+            Load, [PointerOp = Load->getPointerOperand(),
+                   PTS = PT.getReachableAllocationSites(
+                       Load->getPointerOperand(), OnlyConsiderLocalAliases)](
+                      d_t Src) { return Src == PointerOp || PTS->count(Src); });
       }
 
       // (ii) Handle semantic propagation (pointers) for store instructions.
@@ -355,52 +331,31 @@ public:
         //             v  v  v
         //             0  x  Y
         //
-        struct IIAFlowFunction : FlowFunction<d_t, container_type> {
-          const llvm::StoreInst *Store;
-          LLVMAliasInfo::AllocationSiteSetPtrTy ValuePTS;
-          LLVMAliasInfo::AllocationSiteSetPtrTy PointerPTS;
-
-          IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
-                          const llvm::StoreInst *Store)
-              : Store(Store), ValuePTS([&]() {
-                  if (isInterestingPointer(Store->getValueOperand())) {
-                    return Problem.PT.getReachableAllocationSites(
-                        Store->getValueOperand(),
-                        Problem.OnlyConsiderLocalAliases);
-                  }
-                  return std::make_unique<LLVMAliasInfo::AliasSetTy>(
-                      LLVMAliasInfo::AliasSetTy{Store->getValueOperand()});
-                }()),
-                PointerPTS(Problem.PT.getReachableAllocationSites(
-                    Store->getPointerOperand(),
-                    Problem.OnlyConsiderLocalAliases)) {}
-
-          container_type computeTargets(d_t Src) override {
-            // Override old value(s), i.e., kill value(s) that is written to and
-            // generate from value that is stored.
-            if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
-              return {};
-            }
-            container_type Facts;
-            Facts.insert(Src);
-            // y/Y now obtains its new value(s) from x/X
-            // If a value is stored that holds we must generate all potential
-            // memory locations the store might write to.
-            if (Store->getValueOperand() == Src || ValuePTS->count(Src)) {
-              Facts.insert(Store->getValueOperand());
-              Facts.insert(Store->getPointerOperand());
-              Facts.insert(PointerPTS->begin(), PointerPTS->end());
-            }
-            // ... or from zero, if a constant literal is stored to y
-            if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-                IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-              Facts.insert(Store->getPointerOperand());
-              Facts.insert(PointerPTS->begin(), PointerPTS->end());
-            }
-            return Facts;
-          }
-        };
-        return std::make_shared<IIAFlowFunction>(*this, Store);
+        return lambdaFlow<d_t>(
+            [Store, PointerPTS = PT.getReachableAllocationSites(
+                        Store->getPointerOperand(), OnlyConsiderLocalAliases)](
+                d_t Src) -> container_type {
+              if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
+                // Here, we are unsound!
+                return {};
+              }
+              container_type Facts;
+              Facts.insert(Src);
+              // y/Y now obtains its new value(s) from x/X
+              // If a value is stored that holds we must generate all potential
+              // memory locations the store might write to.
+              if (Store->getValueOperand() == Src) {
+                Facts.insert(Store->getPointerOperand());
+                Facts.insert(PointerPTS->begin(), PointerPTS->end());
+              }
+              // ... or from zero, if a constant literal is stored to y
+              if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+                  IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+                Facts.insert(Store->getPointerOperand());
+                Facts.insert(PointerPTS->begin(), PointerPTS->end());
+              }
+              return Facts;
+            });
       }
     }
 
@@ -433,65 +388,17 @@ public:
       // Case x is a load instruction
       if (const auto *Load =
               llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
-        struct IIAAFlowFunction : FlowFunction<d_t> {
-          const llvm::StoreInst *Store;
-          const llvm::LoadInst *Load;
 
-          IIAAFlowFunction(const llvm::StoreInst *S, const llvm::LoadInst *L)
-              : Store(S), Load(L) {}
-          ~IIAAFlowFunction() override = default;
-
-          container_type computeTargets(d_t Src) override {
-            // Override old value, i.e., kill value that is written to and
-            // generate from value that is stored.
-            if (Store->getPointerOperand() == Src) {
-              return {};
-            }
-            container_type Facts;
-            // y now obtains its new value from x
-            if (Load == Src || Load->getPointerOperand() == Src) {
-              Facts.insert(Src);
-              Facts.insert(Load->getPointerOperand());
-              Facts.insert(Store->getPointerOperand());
-            } else {
-              Facts.insert(Src);
-            }
-            IF_LOG_ENABLED({
-              for (const auto Fact : Facts) {
-                PHASAR_LOG_LEVEL(DFADEBUG,
-                                 "Create edge: " << llvmIRToShortString(Src)
-                                                 << " --"
-                                                 << llvmIRToShortString(Store)
-                                                 << "--> " << Fact);
-              }
-            });
-            return Facts;
-          }
-        };
-        return std::make_shared<IIAAFlowFunction>(Store, Load);
-      }
-      // Otherwise
-      struct IIAAFlowFunction : FlowFunction<d_t> {
-        const llvm::StoreInst *Store;
-
-        IIAAFlowFunction(const llvm::StoreInst *S) : Store(S) {}
-        ~IIAAFlowFunction() override = default;
-
-        container_type computeTargets(d_t Src) override {
+        return lambdaFlow<d_t>([Store, Load](d_t Src) -> container_type {
           // Override old value, i.e., kill value that is written to and
           // generate from value that is stored.
           if (Store->getPointerOperand() == Src) {
             return {};
           }
-          container_type Facts;
-          Facts.insert(Src);
+          container_type Facts = {Src};
           // y now obtains its new value from x
-          if (Store->getValueOperand() == Src) {
-            Facts.insert(Store->getPointerOperand());
-          }
-          // ... or from zero, if a constant literal is stored to y
-          if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
-              IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+          if (Load == Src || Load->getPointerOperand() == Src) {
+            Facts.insert(Load->getPointerOperand());
             Facts.insert(Store->getPointerOperand());
           }
           IF_LOG_ENABLED({
@@ -503,9 +410,36 @@ public:
             }
           });
           return Facts;
+        });
+      }
+
+      // Otherwise
+      return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
+        // Override old value, i.e., kill value that is written to and
+        // generate from value that is stored.
+        if (Store->getPointerOperand() == Src) {
+          return {};
         }
-      };
-      return std::make_shared<IIAAFlowFunction>(Store);
+        container_type Facts = {Src};
+        // y now obtains its new value from x
+        if (Store->getValueOperand() == Src) {
+          Facts.insert(Store->getPointerOperand());
+        }
+        // ... or from zero, if a constant literal is stored to y
+        if (llvm::isa<llvm::ConstantData>(Store->getValueOperand()) &&
+            IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+          Facts.insert(Store->getPointerOperand());
+        }
+        IF_LOG_ENABLED({
+          for (const auto Fact : Facts) {
+            PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
+                                           << llvmIRToShortString(Src) << " --"
+                                           << llvmIRToShortString(Store)
+                                           << "--> " << Fact);
+          }
+        });
+        return Facts;
+      });
     }
     // At last, we can handle all other (unary/binary) instructions.
     //
@@ -519,48 +453,35 @@ public:
     //                       v  v  v  v
     //                       0  x  o  p
     //
-    struct IIAFlowFunction : FlowFunction<d_t> {
-      n_t Inst;
-
-      IIAFlowFunction(n_t Inst) : Inst(Inst) {}
-
-      ~IIAFlowFunction() override = default;
-
-      container_type computeTargets(d_t Src) override {
-        container_type Facts;
-        if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
-          // keep the zero flow fact
-          Facts.insert(Src);
-          return Facts;
-        }
-        // (i) syntactic propagation
-        if (Inst == Src) {
-          Facts.insert(Inst);
-        }
-        // continue syntactic propagation: populate and propagate other existing
-        // facts
-        for (auto &Op : Inst->operands()) {
-          // if one of the operands holds, also generate the instruction using
-          // it
-          if (Op == Src) {
-            Facts.insert(Inst);
-            Facts.insert(Src);
-          }
-        }
-        // pass everything that already holds as identity
+    return lambdaFlow<d_t>([Inst = Curr](d_t Src) {
+      container_type Facts;
+      if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+        // keep the zero flow fact
         Facts.insert(Src);
-        IF_LOG_ENABLED({
-          for (const auto Fact : Facts) {
-            PHASAR_LOG_LEVEL(DFADEBUG, "Create edge: "
-                                           << llvmIRToShortString(Src) << " --"
-                                           << llvmIRToShortString(Inst)
-                                           << "--> " << Fact);
-          }
-        });
         return Facts;
       }
-    };
-    return std::make_shared<IIAFlowFunction>(Curr);
+
+      // continue syntactic propagation: populate and propagate other existing
+      // facts
+      for (auto &Op : Inst->operands()) {
+        // if one of the operands holds, also generate the instruction using
+        // it
+        if (Op == Src) {
+          Facts.insert(Inst);
+        }
+      }
+      // pass everything that already holds as identity
+      Facts.insert(Src);
+      IF_LOG_ENABLED({
+        for (const auto Fact : Facts) {
+          PHASAR_LOG_LEVEL(DFADEBUG,
+                           "Create edge: " << llvmIRToShortString(Src) << " --"
+                                           << llvmIRToShortString(Inst)
+                                           << "--> " << Fact);
+        }
+      });
+      return Facts;
+    });
   }
 
   inline FlowFunctionPtrType getCallFlowFunction(n_t CallSite,
@@ -574,220 +495,53 @@ public:
       return killAllFlows<d_t>();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+
     // Map actual to formal parameters.
-    struct MapFactsToCallee : public FlowFunction<IDEIIAFlowFact> {
-      const llvm::CallBase *CallSite;
-      const llvm::Function *DestFun;
-      std::vector<const llvm::Value *> Actuals;
-      std::vector<const llvm::Argument *> Formals;
-      // Predicate for handling actual parameters
-      std::function<bool(const llvm::CallBase *, const llvm::Value *)>
-          ActualPredicate = [](const llvm::CallBase *CS, const llvm::Value *V) {
-            bool PassParameter = true;
-            for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
-              if (V == CS->getArgOperand(Idx)) {
-                return !CS->paramHasAttr(Idx, llvm::Attribute::StructRet);
-              }
-            }
-            return PassParameter;
-          };
-
-      MapFactsToCallee(const llvm::CallBase *CallSite,
-                       const llvm::Function *DestFun)
-          : CallSite(CallSite), DestFun(DestFun) {
-        // Set up the actual parameters
-        for (const auto &Actual : CallSite->args()) {
-          Actuals.push_back(Actual);
-        }
-        // Set up the formal parameters
-        for (const auto &Formal : DestFun->args()) {
-          Formals.push_back(&Formal);
-        }
-      }
-
-      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
-        // If DestFun is a declaration we cannot follow this call, we thus need
-        // to kill everything
-        if (DestFun->isDeclaration()) {
-          return {};
-        }
-        // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::isLLVMZeroValue(Source)) {
-          return {Source};
-        }
-        container_type Res;
-        // Pass global variables as is, if desired Globals could also be actual
-        // arguments, then the formal argument needs to be generated below. Need
-        // llvm::Constant here to cover also ConstantExpr and ConstantAggregate
-        if (llvm::isa<llvm::Constant>(Source.getBase())) {
-          Res.insert(Source);
-        }
-        // Handle C-style varargs functions
-        if (DestFun->isVarArg()) {
-          // Map actual parameters to corresponding formal parameters.
-          for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
-            if (Source == Actuals[Idx] &&
-                ActualPredicate(CallSite, Actuals[Idx])) {
-              if (Idx >= DestFun->arg_size()) {
-                // Over-approximate by trying to add the
-                //   alloca [1 x %struct.__va_list_tag], align 16
-                // to the results
-                // find the allocated %struct.__va_list_tag and generate it
-                for (const auto &BB : *DestFun) {
-                  for (const auto &I : BB) {
-                    if (const auto *Alloc =
-                            llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                      if (Alloc->getAllocatedType()->isArrayTy() &&
-                          Alloc->getAllocatedType()->getArrayNumElements() >
-                              0 &&
-                          Alloc->getAllocatedType()
-                              ->getArrayElementType()
-                              ->isStructTy() &&
-                          Alloc->getAllocatedType()
-                                  ->getArrayElementType()
-                                  ->getStructName() == "struct.__va_list_tag") {
-                        Res.insert(Alloc);
-                      }
-                    }
-                  }
-                }
-              } else {
-                assert(Idx < Formals.size() &&
-                       "Out of bound access to formal parameters!");
-                Res.insert(Formals[Idx]); // corresponding formal
-              }
-            }
+    auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
+        CS, DestFun, [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
+          if (d_t(ActualArg) != Src) {
+            return false;
           }
-        }
-        // Handle ordinary case
-        // Map actual parameters to corresponding formal parameters.
-        for (unsigned Idx = 0;
-             Idx < Actuals.size() && Idx < DestFun->arg_size(); ++Idx) {
-          if (Source == Actuals[Idx] &&
-              ActualPredicate(CallSite, Actuals[Idx])) {
-            assert(Idx < Formals.size() &&
-                   "Out of bound access to formal parameters!");
-            Res.insert(Formals[Idx]); // corresponding formal
+
+          if (CS->hasStructRetAttr() && ActualArg == CS->getArgOperand(0)) {
+            return false;
           }
-        }
-        return Res;
-      }
-    };
-    auto MapFactsToCalleeFF = std::make_shared<MapFactsToCallee>(CS, DestFun);
+
+          return true;
+        });
+
     // Generate the artificially introduced RVO parameters from zero value.
-    std::set<d_t> SRetFormals;
-    for (unsigned Idx = 0; Idx < CS->arg_size(); ++Idx) {
-      if (CS->paramHasAttr(Idx, llvm::Attribute::StructRet)) {
-        SRetFormals.insert(DestFun->getArg(Idx));
-      }
+    auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
+
+    if (SRetFormal) {
+      return unionFlows(
+          std::move(MapFactsToCalleeFF),
+          generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
     }
 
-    return unionFlows(std::move(MapFactsToCalleeFF),
-                      generateManyFlowsAndKillAllOthers(std::move(SRetFormals),
-                                                        this->getZeroValue()));
+    return MapFactsToCalleeFF;
   }
 
-  inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+  inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                                 n_t ExitInst,
                                                 n_t /* RetSite */) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
-    struct MapFactsToCaller : public FlowFunction<IDEIIAFlowFact> {
-      const llvm::CallBase *CallSite;
-      const llvm::Function *CalleeFun;
-      const llvm::ReturnInst *ExitInst;
-      std::vector<const llvm::Value *> Actuals;
-      std::vector<const llvm::Value *> Formals;
 
-      MapFactsToCaller(const llvm::CallBase *CallSite,
-                       const llvm::Function *CalleeFun,
-                       const llvm::ReturnInst *ExitInst)
-          : CallSite(CallSite), CalleeFun(CalleeFun), ExitInst(ExitInst) {
-        // Set up the actual parameters
-        for (const auto &Actual : CallSite->args()) {
-          Actuals.push_back(Actual);
-        }
-        // Set up the formal parameters
-        for (const auto &Formal : CalleeFun->args()) {
-          Formals.push_back(&Formal);
-        }
-      }
+    auto MapFactsToCallerFF =
+        mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
+                              {}, [](const llvm::Value *RetVal, d_t Src) {
+                                if (Src == RetVal) {
+                                  return true;
+                                }
+                                if (isZeroValueImpl(Src)) {
+                                  if (llvm::isa<llvm::ConstantData>(RetVal)) {
+                                    return true;
+                                  }
+                                }
+                                return false;
+                              });
 
-      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
-        // Pass ZeroValue as is, if desired
-        if (LLVMZeroValue::isLLVMZeroValue(Source.getBase())) {
-          return {Source};
-        }
-        // Pass global variables as is, if desired
-        // Need llvm::Constant here to cover also ConstantExpr and
-        // ConstantAggregate
-        if (llvm::isa<llvm::Constant>(Source.getBase())) {
-          return {Source};
-        }
-        // Do the parameter mapping
-        container_type Res;
-        // Handle C-style varargs functions
-        if (CalleeFun->isVarArg()) {
-          const llvm::Instruction *AllocVarArg;
-          // Find the allocation of %struct.__va_list_tag
-          for (const auto &BB : *CalleeFun) {
-            for (const auto &I : BB) {
-              if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                if (Alloc->getAllocatedType()->isArrayTy() &&
-                    Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                    Alloc->getAllocatedType()
-                        ->getArrayElementType()
-                        ->isStructTy() &&
-                    Alloc->getAllocatedType()
-                            ->getArrayElementType()
-                            ->getStructName() == "struct.__va_list_tag") {
-                  AllocVarArg = Alloc;
-                  // TODO break out this nested loop earlier (without goto ;-)
-                }
-              }
-            }
-          }
-          // Generate the varargs things by using an over-approximation
-          if (Source == AllocVarArg) {
-            for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
-              Res.insert(Actuals[Idx]);
-            }
-          }
-        }
-        // Handle ordinary case
-        // Map formal parameter into corresponding actual parameter.
-        for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
-          if (Source == Formals[Idx]) {
-            Res.insert(Actuals[Idx]); // corresponding actual
-          }
-        }
-        // Collect return value facts
-        if (ExitInst != nullptr && Source == ExitInst->getReturnValue()) {
-          Res.insert(CallSite);
-        }
-        return Res;
-      }
-    };
-    auto MapFactsToCallerFF = std::make_shared<MapFactsToCaller>(
-        llvm::dyn_cast<llvm::CallBase>(CallSite), CalleeFun,
-        llvm::dyn_cast<llvm::ReturnInst>(ExitInst));
-    // We must also handle the special case if the returned value is a constant
-    // literal, e.g. ret i32 42.
-    if (ExitInst) {
-      if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitInst)) {
-        const auto *RetVal = Ret->getReturnValue();
-        if (RetVal) {
-          if (const auto *CD = llvm::dyn_cast<llvm::ConstantData>(RetVal)) {
-            // Generate the respective callsite. The callsite will receive its
-            // value from this very return instruction cf.
-            // getReturnEdgeFunction().
-            return unionFlows(std::move(MapFactsToCallerFF),
-                              generateFlowAndKillAllOthers<d_t>(
-                                  CallSite, this->getZeroValue()));
-          }
-        }
-      }
-    }
     return MapFactsToCallerFF;
   }
 
@@ -797,23 +551,22 @@ public:
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
-      for (const auto *Callee : Callees) {
-        if (this->ICF->isHeapAllocatingFunction(Callee)) {
-          // In case a heap allocating function is called, generate the pointer
-          // that is returned.
-          //
-          // Flow function:
-          //
-          // Let H be a heap allocating function.
-          //
-          //              0
-          //              |\
-          // x = call H   | \
-          //              v  v
-          //              0  x
-          //
-          return generateFromZero(CallSite);
-        }
+      const auto *Callee = Callees.front();
+      if (this->ICF->isHeapAllocatingFunction(Callee)) {
+        // In case a heap allocating function is called, generate the pointer
+        // that is returned.
+        //
+        // Flow function:
+        //
+        // Let H be a heap allocating function.
+        //
+        //              0
+        //              |\
+        // x = call H   | \
+        //              v  v
+        //              0  x
+        //
+        return generateFromZero(CallSite);
       }
     }
     // Just use the auto mapping for values; pointer parameters and global
@@ -834,52 +587,35 @@ public:
       }
     }
 
-    struct MapFactsAlongsideCallSite : public FlowFunction<IDEIIAFlowFact> {
-      bool OnlyDecls;
-      bool AllVoidRetTys;
-      const llvm::CallBase *CallSite;
-      d_t ZeroValue;
-
-      MapFactsAlongsideCallSite(bool OnlyDecls, bool AllVoidRetTys,
-                                const llvm::CallBase *CallSite, d_t ZeroValue)
-          : OnlyDecls(OnlyDecls), AllVoidRetTys(AllVoidRetTys),
-            CallSite(CallSite), ZeroValue(ZeroValue) {}
-
-      std::set<IDEIIAFlowFact> computeTargets(IDEIIAFlowFact Source) override {
-        // There are a few things to consider, in case only declarations of
-        // callee targets are available.
-        if (OnlyDecls) {
-
-          if (!AllVoidRetTys) {
-            // If one or more of the declaration-only targets return a value, it
-            // must be generated from zero!
-            if (Source == ZeroValue) {
-              return {Source, CallSite};
-            } else {
-              return {Source};
-            }
-          } else {
-            // If all declaration-only callee targets return void, just pass
-            // everything as identity.
-            return {Source};
+    return lambdaFlow<d_t>([CallSite = llvm::cast<llvm::CallBase>(CallSite),
+                            OnlyDecls,
+                            AllVoidRetTys](d_t Source) -> container_type {
+      // There are a few things to consider, in case only declarations of
+      // callee targets are available.
+      if (OnlyDecls) {
+        if (!AllVoidRetTys) {
+          // If one or more of the declaration-only targets return a value, it
+          // must be generated from zero!
+          if (isZeroValueImpl(Source)) {
+            return {Source, CallSite};
           }
         }
-        // Do not pass global variables if definitions of the callee
-        // function(s) are available, since the effect of the callee on these
-        // values will be modelled using combined getCallFlowFunction and
-        // getReturnFlowFunction.
-        if (llvm::isa<llvm::Constant>(Source.getBase())) {
-          return {};
-        }
-        // Pass everything else as identity. In particular, also do not kill
-        // pointer or reference parameters since this then also captures usages
-        // oft he parameters, which we wish to compute using this analysis.
+        // If all declaration-only callee targets return void, just pass
+        // everything as identity.
         return {Source};
       }
-    };
-    return std::make_shared<MapFactsAlongsideCallSite>(
-        OnlyDecls, AllVoidRetTys, llvm::dyn_cast<llvm::CallBase>(CallSite),
-        this->getZeroValue());
+      // Do not pass global variables if definitions of the callee
+      // function(s) are available, since the effect of the callee on these
+      // values will be modelled using combined getCallFlowFunction and
+      // getReturnFlowFunction.
+      if (llvm::isa<llvm::Constant>(Source.getBase())) {
+        return {};
+      }
+      // Pass everything else as identity. In particular, also do not kill
+      // pointer or reference parameters since this then also captures usages
+      // oft the parameters, which we wish to compute using this analysis.
+      return {Source};
+    });
   }
 
   inline FlowFunctionPtrType
@@ -904,7 +640,7 @@ public:
       // parameters will otherwise cause trouble by overriding alloca
       // instructions without being valid data-flow facts themselves.
       for (const auto &Arg : EntryPointFun->args()) {
-        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, BottomElement);
+        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, Bottom{});
       }
       // Generate all global variables using generalized initial seeds
 
@@ -934,9 +670,9 @@ public:
 
   // In addition provide specifications for the IDE parts.
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t /* Succ */,
-                        d_t SuccNode) override {
+  inline EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode,
+                                                   n_t /* Succ */,
+                                                   d_t SuccNode) override {
     PHASAR_LOG_LEVEL(DFADEBUG,
                      "Process edge: " << llvmIRToShortString(CurrNode) << " --"
                                       << llvmIRToString(Curr) << "--> "
@@ -1233,9 +969,9 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t CallSite, d_t SrcNode, f_t /* DestinationMethod */,
-                      d_t DestNode) override {
+  inline EdgeFunctionPtrType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                                 f_t /* DestinationMethod */,
+                                                 d_t DestNode) override {
     // Handle the case in which a parameter that has been artificially
     // introduced by the compiler is passed. Such a value must be generated from
     // the zero value, to reflact the fact that the data flows from the callee
@@ -1267,7 +1003,7 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionPtrType
   getReturnEdgeFunction(n_t CallSite, f_t /* CalleeMethod */, n_t ExitInst,
                         d_t ExitNode, n_t /* RetSite */, d_t RetNode) override {
     // Handle the case in which constant data is returned, e.g. ret i32 42.
@@ -1303,7 +1039,7 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionPtrType
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /* RetSite */,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override {
@@ -1360,20 +1096,20 @@ public:
     return EdgeIdentity<l_t>::getInstance();
   }
 
-  inline std::shared_ptr<EdgeFunction<l_t>>
+  inline EdgeFunctionPtrType
   getSummaryEdgeFunction(n_t /* CallSite */, d_t /* CallNode */,
                          n_t /* RetSite */, d_t /* RetSiteNode */) override {
     // Do not use user-crafted summaries.
     return nullptr;
   }
 
-  inline l_t topElement() override { return TopElement; }
+  inline l_t topElement() override { return Top{}; }
 
-  inline l_t bottomElement() override { return BottomElement; }
+  inline l_t bottomElement() override { return Bottom{}; }
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
-  inline std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
+  inline EdgeFunctionPtrType allTopFunction() override {
     return std::make_shared<AllTop<l_t>>();
   }
 
@@ -1386,14 +1122,15 @@ public:
         public std::enable_shared_from_this<IIAAKillOrReplaceEF>,
         public EdgeFunctionSingletonFactory<IIAAKillOrReplaceEF, l_t> {
   public:
-    l_t Replacement;
+    const l_t Replacement;
 
-    explicit IIAAKillOrReplaceEF() : Replacement(BitVectorSet<e_t>()) {
+    explicit IIAAKillOrReplaceEF() noexcept : Replacement(BitVectorSet<e_t>()) {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF");
     }
 
-    explicit IIAAKillOrReplaceEF(l_t Replacement) : Replacement(Replacement) {
+    explicit IIAAKillOrReplaceEF(l_t Replacement) noexcept
+        : Replacement(std::move(Replacement)) {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF");
     }
@@ -1402,76 +1139,65 @@ public:
 
     l_t computeTarget(l_t /* Src */) override { return Replacement; }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
+    EdgeFunctionPtrType
+    composeWith(EdgeFunctionPtrType SecondFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
       //               << " * " << SecondFunction->str());
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+      if (dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
+        llvm::report_fatal_error("AllTop should not be composed with");
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+      if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+        return SecondFunction;
       }
-      if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(SecondFunction.get())) {
         if (isKillAll()) {
           return IIAAAddLabelsEF::createEdgeFunction(AD->Data);
         }
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Replacement, AD->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
-      if (auto *KR =
-              dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
-        if (isKillAll()) {
-          return IIAAKillOrReplaceEF::createEdgeFunction(KR->Replacement);
-        }
-        if (KR->isKillAll()) {
-          return SecondFunction;
-        }
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
-        return IIAAKillOrReplaceEF::createEdgeFunction(Union);
+      if (dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
+        // IIAAKillOrReplaceEF ignores its input
+        return SecondFunction;
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
+    EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAKillOrReplaceEF::joinWith");
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
+      if (dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
+        return OtherFunction;
       }
-      if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+        /// XXX: Check for plausability
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(OtherFunction.get())) {
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Replacement, AD->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction.get())) {
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Replacement, KR->Replacement);
-        return IIAAKillOrReplaceEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Replacement, KR->Replacement);
+        return IIAAKillOrReplaceEF::createEdgeFunction(std::move(Union));
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
     }
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
+    bool equal_to(EdgeFunctionPtrType Other) const override {
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(Other.get())) {
         return Replacement == KR->Replacement;
       }
-      return this == Other.get();
+      return false;
     }
 
     void print(llvm::raw_ostream &OS,
@@ -1486,7 +1212,7 @@ public:
     }
 
     [[nodiscard]] bool isKillAll() const {
-      if (auto *RSet = std::get_if<BitVectorSet<e_t>>(&Replacement)) {
+      if (auto *RSet = Replacement.getValueOrNull()) {
         return RSet->empty();
       }
       return false;
@@ -1502,75 +1228,70 @@ public:
   public:
     const l_t Data;
 
-    explicit IIAAAddLabelsEF(l_t Data) : Data(Data) {
+    explicit IIAAAddLabelsEF(l_t Data) noexcept : Data(std::move(Data)) {
       // PHASAR_LOG_LEVEL(DFADEBUG,  << "IIAAAddLabelsEF");
     }
 
     ~IIAAAddLabelsEF() override = default;
 
-    l_t computeTarget(l_t Src) override {
-      return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
-    }
+    l_t computeTarget(l_t Src) override { return joinImpl(Src, Data); }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> SecondFunction) override {
+    EdgeFunctionPtrType
+    composeWith(EdgeFunctionPtrType SecondFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,
       //               << "IIAAAddLabelEF::composeWith(): " << this->str() << "
       //               * "
       //               << SecondFunction->str());
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+      if (dynamic_cast<AllTop<l_t> *>(SecondFunction.get())) {
+        llvm::report_fatal_error("AllTop should not be composed with");
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
-        return this->shared_from_this();
+      if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
+        return SecondFunction;
       }
-      if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(SecondFunction.get())) {
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(SecondFunction.get())) {
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Data, AD->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
-      if (auto *KR =
-              dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
-        return IIAAAddLabelsEF::createEdgeFunction(KR->Replacement);
+      if (dynamic_cast<IIAAKillOrReplaceEF *>(SecondFunction.get())) {
+        return SecondFunction;
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> OtherFunction) override {
+    EdgeFunctionPtrType joinWith(EdgeFunctionPtrType OtherFunction) override {
       // PHASAR_LOG_LEVEL(DFADEBUG,  <<
       // "IIAAAddLabelsEF::joinWith");
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<AllTop<l_t> *>(OtherFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
-        return this->shared_from_this();
+      if (dynamic_cast<AllBottom<l_t> *>(OtherFunction.get())) {
+        return OtherFunction;
       }
-      if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+      if (dynamic_cast<EdgeIdentity<l_t> *>(OtherFunction.get())) {
+        /// XXX: Check for plausability
         return this->shared_from_this();
       }
       if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(OtherFunction.get())) {
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(Data, AD->Data);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Data, AD->Data);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(OtherFunction.get())) {
-        auto Union =
-            IDEInstInteractionAnalysisT::joinImpl(Data, KR->Replacement);
-        return IIAAAddLabelsEF::createEdgeFunction(Union);
+        auto Union = joinImpl(Data, KR->Replacement);
+        return IIAAAddLabelsEF::createEdgeFunction(std::move(Union));
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
-    [[nodiscard]] bool
-    equal_to(std::shared_ptr<EdgeFunction<l_t>> Other) const override {
+    [[nodiscard]] bool equal_to(EdgeFunctionPtrType Other) const override {
       if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(Other.get())) {
         return (Data == AS->Data);
       }
-      return this == Other.get();
+      return false;
     }
 
     void print(llvm::raw_ostream &OS,
@@ -1600,9 +1321,9 @@ public:
     printEdgeFactImpl(OS, EdgeFact);
   }
 
-  void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
+  static void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
     for (auto It = Res.begin(); It != Res.end();) {
-      if (It->second == BottomElement) {
+      if (It->second.isBottom()) {
         It = Res.erase(It);
       } else {
         ++It;
@@ -1628,7 +1349,7 @@ public:
         if (!Results.empty()) {
           OS << "At IR statement: " << this->NtoString(Inst) << '\n';
           for (auto Result : Results) {
-            if (Result.second != BottomElement) {
+            if (!Result.second.isBottom()) {
               OS << "   Fact: " << this->DtoString(Result.first)
                  << "\n  Value: " << this->LtoString(Result.second) << '\n';
             }
@@ -1681,7 +1402,7 @@ protected:
     return LLVMZeroValue::isLLVMZeroValue(d);
   }
 
-  static void printEdgeFactImpl(llvm::raw_ostream &OS, l_t EdgeFact) {
+  static void printEdgeFactImpl(llvm::raw_ostream &OS, const l_t &EdgeFact) {
     if (std::holds_alternative<Top>(EdgeFact)) {
       OS << std::get<Top>(EdgeFact);
     } else if (std::holds_alternative<Bottom>(EdgeFact)) {
@@ -1705,15 +1426,16 @@ protected:
     }
   }
 
-  static inline l_t joinImpl(l_t Lhs, l_t Rhs) {
-    if (Lhs == TopElement || Lhs == BottomElement) {
+  static inline l_t joinImpl(const l_t &Lhs, const l_t &Rhs) {
+    /// XXX: Check for plausability
+    if (Lhs.isTop() || Lhs.isBottom()) {
       return Rhs;
     }
-    if (Rhs == TopElement || Rhs == BottomElement) {
+    if (Rhs.isTop() || Rhs.isBottom()) {
       return Lhs;
     }
-    auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
-    auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
+    const auto &LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
+    const auto &RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
     return LhsSet.setUnion(RhsSet);
   }
 
@@ -1754,9 +1476,7 @@ private:
   const LLVMBasedICFG *ICF{};
   LLVMAliasInfoRef PT{};
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
-  static inline const l_t BottomElement = Bottom{};
-  static inline const l_t TopElement = Top{};
-  const bool OnlyConsiderLocalAliases = true;
+  static inline const bool OnlyConsiderLocalAliases = true;
 
   inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
     if (EdgeFactGen) {
