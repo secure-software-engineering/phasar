@@ -14,6 +14,8 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <variant>
 
@@ -44,7 +46,7 @@ public:
   EdgeValue(std::nullptr_t);
   ~EdgeValue();
   const static EdgeValue TopValue;
-  [[nodiscard]] bool tryGetInt(uint64_t &Res) const;
+  [[nodiscard]] bool tryGetInt(int64_t &Res) const;
   [[nodiscard]] bool tryGetFP(double &Res) const;
   [[nodiscard]] bool tryGetString(std::string &Res) const;
   [[nodiscard]] bool isTop() const;
@@ -80,6 +82,13 @@ public:
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &Os,
                                        const EdgeValue &EV);
   static std::string typeToString(Type Ty);
+
+  friend std::string to_string(const EdgeValue &EV) {
+    std::string Ret;
+    llvm::raw_string_ostream ROS(Ret);
+    ROS << EV;
+    return Ret;
+  }
 };
 class EdgeValueSet;
 using ev_t = EdgeValueSet;
@@ -93,7 +102,11 @@ ev_t join(const ev_t &Lhs, const ev_t &Rhs, size_t MaxSize);
 bool operator<(const ev_t &Lhs, const ev_t &Rhs);
 bool isTopValue(const ev_t &Val);
 llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const ev_t &Val);
-std::ostream &operator<<(std::ostream &OS, const ev_t &Val);
+inline std::ostream &operator<<(std::ostream &Os, const ev_t &Val) {
+  llvm::raw_os_ostream ROS(Os);
+  ROS << Val;
+  return Os;
+}
 
 } // namespace psr::glca
 
@@ -103,11 +116,11 @@ template <> struct hash<psr::glca::EdgeValue> {
   hash() = default;
   size_t operator()(const psr::glca::EdgeValue &Val) const {
     auto Hash = hash<int>()(Val.getKind());
-    uint64_t AsInt;
+    int64_t AsInt;
     double AsFloat;
     string AsString;
     if (Val.tryGetInt(AsInt)) {
-      return hash<uint64_t>()(AsInt) * 31 + Hash;
+      return hash<int64_t>()(AsInt) * 31 + Hash;
     }
     if (Val.tryGetFP(AsFloat)) {
       return hash<double>()(round(AsFloat)) * 31 + Hash;

@@ -45,6 +45,8 @@ protected:
   std::optional<IDEGeneralizedLCA> LCAProblem;
   std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
 
+  static constexpr size_t MaxSetSize = 2;
+
   IDEGeneralizedLCATest() = default;
 
   void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {

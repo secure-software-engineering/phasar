@@ -10,40 +10,30 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_BINARYEDGEFUNCTION_H
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_BINARYEDGEFUNCTION_H
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCADomain.h"
 
 namespace psr::glca {
 
-class BinaryEdgeFunction
-    : public EdgeFunction<IDEGeneralizedLCA::l_t>,
-      public std::enable_shared_from_this<BinaryEdgeFunction> {
-  llvm::BinaryOperator::BinaryOps Op;
-  const IDEGeneralizedLCA::l_t Const;
-  bool LeftConst;
-  size_t MaxSize;
+struct BinaryEdgeFunction {
+  using l_t = IDEGeneralizedLCADomain::l_t;
 
-public:
-  BinaryEdgeFunction(llvm::BinaryOperator::BinaryOps Op,
-                     const IDEGeneralizedLCA::l_t &Const, bool LeftConst,
-                     size_t MaxSize)
-      : Op(Op), Const(Const), LeftConst(LeftConst), MaxSize(MaxSize) {}
+  llvm::BinaryOperator::BinaryOps Op{};
+  l_t Const{};
+  bool LeftConst{};
 
-  IDEGeneralizedLCA::l_t computeTarget(IDEGeneralizedLCA::l_t Source) override;
+  l_t computeTarget(ByConstRef<l_t> Source) const;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> SecondFunction)
-      override;
+  static EdgeFunction<l_t> compose(EdgeFunctionRef<BinaryEdgeFunction> This,
+                                   const EdgeFunction<l_t> &SecondFunction);
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> OtherFunction)
-      override;
+  static EdgeFunction<l_t> join(EdgeFunctionRef<BinaryEdgeFunction> This,
+                                const EdgeFunction<l_t> &OtherFunction);
 
-  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> Other)
-      const override;
+  bool operator==(const BinaryEdgeFunction &Other) const noexcept;
 
-  void print(llvm::raw_ostream &OS, bool IsForDebug = false) const override;
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const BinaryEdgeFunction &EF);
 };
 
 } // namespace psr::glca

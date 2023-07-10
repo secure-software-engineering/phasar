@@ -19,6 +19,21 @@ namespace psr {
 enum class SecureHeapFact { ZERO, INITIALIZED };
 enum class SecureHeapValue { TOP, INITIALIZED, BOT };
 
+template <> struct JoinLatticeTraits<SecureHeapValue> {
+  static constexpr auto bottom() noexcept { return SecureHeapValue::BOT; }
+  static constexpr auto top() noexcept { return SecureHeapValue::TOP; }
+  static constexpr auto join(SecureHeapValue LHS,
+                             SecureHeapValue RHS) noexcept {
+    if (LHS == RHS || RHS == top()) {
+      return LHS;
+    }
+    if (LHS == top()) {
+      return RHS;
+    }
+    return bottom();
+  }
+};
+
 struct IDESecureHeapPropagationAnalysisDomain : LLVMAnalysisDomainDefault {
   using d_t = SecureHeapFact;
   using l_t = SecureHeapValue;
@@ -75,27 +90,25 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                        d_t SuccNode) override;
+  EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                          d_t SuccNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t CallSite,
-                                                         d_t SrcNode,
-                                                         f_t DestinationMethod,
-                                                         d_t DestNode) override;
+  EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                        f_t DestinationMethod,
+                                        d_t DestNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t CallSite, f_t CalleeMethod, n_t ExitInst,
-                        d_t ExitNode, n_t RetSite, d_t RetNode) override;
+  EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeMethod,
+                                          n_t ExitInst, d_t ExitNode,
+                                          n_t RetSite, d_t RetNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunction<l_t>
   getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
-  getSummaryEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                         d_t RetSiteNode) override;
+  EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
+                                           n_t RetSite,
+                                           d_t RetSiteNode) override;
 
   l_t topElement() override;
 
@@ -103,7 +116,7 @@ public:
 
   l_t join(l_t Lhs, l_t Rhs) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
+  EdgeFunction<l_t> allTopFunction() override;
 
   void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 
