@@ -326,9 +326,23 @@ public:
                   Store->getPointerOperand())) {
             const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
             Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
+            auto PTS = *PT.getAliasSet(Alloca);
+            for (const auto *PTBase : PTS) {
+              if (llvm::isa<llvm::GetElementPtrInst>(PTBase)) {
+                continue;
+              }
+              Facts.insert(Src.getStored(PTBase, Offset.value_or(9002)));
+            }
             // Facts.insert(LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep));
           } else {
             // Ordinary store.
+            auto PTS = *PT.getAliasSet(Store->getPointerOperand());
+            for (const auto *PTBase : PTS) {
+              if (llvm::isa<llvm::GetElementPtrInst>(PTBase)) {
+                continue;
+              }
+              Facts.insert(Src.getStored(PTBase));
+            }
             Facts.insert(Src.getStored(Store->getPointerOperand()));
           }
         }
