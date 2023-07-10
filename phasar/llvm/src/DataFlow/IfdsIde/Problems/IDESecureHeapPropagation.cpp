@@ -101,16 +101,7 @@ IDESecureHeapPropagation::getSummaryFlowFunction(n_t /*CallSite*/,
 InitialSeeds<IDESecureHeapPropagation::n_t, IDESecureHeapPropagation::d_t,
              IDESecureHeapPropagation::l_t>
 IDESecureHeapPropagation::initialSeeds() {
-  InitialSeeds<IDESecureHeapPropagation::n_t, IDESecureHeapPropagation::d_t,
-               IDESecureHeapPropagation::l_t>
-      Seeds;
-  for (const auto &Entry : EntryPoints) {
-    const auto *Fn = IRDB->getFunction(Entry);
-    if (Fn && !Fn->isDeclaration()) {
-      Seeds.addSeed(&Fn->front().front(), getZeroValue(), bottomElement());
-    }
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IDESecureHeapPropagation::d_t

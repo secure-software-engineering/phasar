@@ -6,7 +6,11 @@ project(phasar
 
 include(cmake/options.cmake)
 
-set(CMAKE_CXX_STANDARD 17)
+if (NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(${CMAKE_CXX_STANDARD} LESS 17)
+  message(FATAL_ERROR "phasar requires CMAKE_CXX_STANDARD >= 17")
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(cmake/just-simple.cmake)
 

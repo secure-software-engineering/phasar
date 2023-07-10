@@ -1,5 +1,6 @@
 #include "phasar/Utils/BitVectorSet.h"
 
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DebugOutput.h"
 
 #include "llvm/ADT/BitVector.h"

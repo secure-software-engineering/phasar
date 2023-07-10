@@ -12,6 +12,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -384,29 +385,9 @@ InitialSeeds<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
              IDELinearConstantAnalysis::l_t>
 IDELinearConstantAnalysis::initialSeeds() {
   InitialSeeds<n_t, d_t, l_t> Seeds;
-  // The analysis' entry points
-  std::set<const llvm::Function *> EntryPointFuns;
 
-  // Consider the user-defined entry point(s)
-  if (EntryPoints.size() == 1U && EntryPoints.front() == "__ALL__") {
-    // Consider all available function definitions as entry points
-    for (const auto *Fun : IRDB->getAllFunctions()) {
-      if (!Fun->isDeclaration()) {
-        EntryPointFuns.insert(Fun);
-      }
-    }
-  } else {
-    // Consider the user specified entry points
-    for (const auto &EntryPoint : EntryPoints) {
-      EntryPointFuns.insert(IRDB->getFunctionDefinition(EntryPoint));
-    }
-  }
-
-  // std::set initial seeds at the required entry points and generate global
-  // integer-typed variables using generalized initial seeds
-  for (const auto *EntryPointFun : EntryPointFuns) {
-    Seeds.addSeed(&EntryPointFun->front().front(), getZeroValue(),
-                  bottomElement());
+  forallStartingPoints(EntryPoints, ICF, [this, &Seeds](n_t SP) {
+    Seeds.addSeed(SP, getZeroValue(), bottomElement());
     // Generate global integer-typed variables using generalized initial seeds
 
     for (const auto &G : IRDB->getModule()->globals()) {
@@ -414,13 +395,12 @@ IDELinearConstantAnalysis::initialSeeds() {
         if (GV->hasInitializer()) {
           if (const auto *ConstInt =
                   llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
-            Seeds.addSeed(&EntryPointFun->front().front(), GV,
-                          ConstInt->getSExtValue());
+            Seeds.addSeed(SP, GV, ConstInt->getSExtValue());
           }
         }
       }
     }
-  }
+  });
 
   return Seeds;
 }

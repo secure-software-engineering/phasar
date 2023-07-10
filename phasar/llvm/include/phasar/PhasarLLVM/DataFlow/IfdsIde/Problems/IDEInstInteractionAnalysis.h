@@ -18,6 +18,7 @@
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
@@ -620,21 +621,18 @@ public:
 
   inline InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     InitialSeeds<n_t, d_t, l_t> Seeds;
-    std::set<const llvm::Function *> EntryPointFuns;
-    for (const auto &EntryPoint : this->EntryPoints) {
-      EntryPointFuns.insert(this->IRDB->getFunctionDefinition(EntryPoint));
-    }
-    // Set initial seeds at the required entry points and generate the global
-    // variables using generalized initial seeds
-    for (const auto *EntryPointFun : EntryPointFuns) {
+
+    forallStartingPoints(this->EntryPoints, ICF, [this, &Seeds](n_t SP) {
+      // Set initial seeds at the required entry points and generate the global
+      // variables using generalized initial seeds
+
       // Generate zero value at the entry points
-      Seeds.addSeed(&EntryPointFun->front().front(), this->getZeroValue(),
-                    bottomElement());
+      Seeds.addSeed(SP, this->getZeroValue(), bottomElement());
       // Generate formal parameters of entry points, e.g. main(). Formal
       // parameters will otherwise cause trouble by overriding alloca
       // instructions without being valid data-flow facts themselves.
-      for (const auto &Arg : EntryPointFun->args()) {
-        Seeds.addSeed(&EntryPointFun->front().front(), &Arg, Bottom{});
+      for (const auto &Arg : SP->getFunction()->args()) {
+        Seeds.addSeed(SP, &Arg, Bottom{});
       }
       // Generate all global variables using generalized initial seeds
 
@@ -648,10 +646,11 @@ public:
             InitialValues =
                 BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
           }
-          Seeds.addSeed(&EntryPointFun->front().front(), GV, InitialValues);
+          Seeds.addSeed(SP, GV, InitialValues);
         }
       }
-    }
+    });
+
     return Seeds;
   }
 

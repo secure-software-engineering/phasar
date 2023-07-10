@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSSignAnalysis.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -60,14 +61,7 @@ InitialSeeds<IFDSSignAnalysis::n_t, IFDSSignAnalysis::d_t,
              IFDSSignAnalysis::l_t>
 IFDSSignAnalysis::initialSeeds() {
   llvm::outs() << "IFDSSignAnalysis::initialSeeds()\n";
-  InitialSeeds<IFDSSignAnalysis::n_t, IFDSSignAnalysis::d_t,
-               IFDSSignAnalysis::l_t>
-      Seeds;
-  for (const auto &EntryPoint : EntryPoints) {
-    Seeds.addSeed(&IRDB->getFunction(EntryPoint)->front().front(),
-                  getZeroValue());
-  }
-  return Seeds;
+  return createDefaultSeeds();
 }
 
 IFDSSignAnalysis::d_t IFDSSignAnalysis::createZeroValue() const {
