@@ -17,8 +17,8 @@
 //===----------------------------------------------------------------------===//
 // Unit tests for the code annotation taint configuration
 
-const std::string PathToAttrTaintConfigTestCode =
-    "llvm_test_code/TaintConfig/AttrConfig/";
+static constexpr auto PathToAttrTaintConfigTestCode =
+    PHASAR_BUILD_SUBFOLDER("TaintConfig/AttrConfig/");
 
 namespace {
 class TaintConfigTest : public ::testing::Test {
@@ -223,8 +223,8 @@ TEST_F(TaintConfigTest, StaticFun_02) {
 //===----------------------------------------------------------------------===//
 // Unit tests for the json taint configuration
 
-const std::string PathToJsonTaintConfigTestCode =
-    "llvm_test_code/TaintConfig/JsonConfig/";
+static constexpr auto PathToJsonTaintConfigTestCode =
+    PHASAR_BUILD_SUBFOLDER("TaintConfig/JsonConfig/");
 
 TEST_F(TaintConfigTest, Array_01_Json) {
   const std::string File = "array_01.dbg.ll";

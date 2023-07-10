@@ -49,7 +49,7 @@ using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
 
 class IDETaintAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLLFiles = "llvm_test_code/xtaint/";
+  static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("xtaint/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   IDETaintAnalysisTest() = default;

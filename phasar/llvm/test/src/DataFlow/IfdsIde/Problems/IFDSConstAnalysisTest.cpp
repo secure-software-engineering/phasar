@@ -26,7 +26,7 @@ using namespace psr;
 
 class IFDSConstAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = "llvm_test_code/constness/";
+  static constexpr auto PathToLlFiles = PHASAR_BUILD_SUBFOLDER("constness/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   std::optional<HelperAnalyses> HA;

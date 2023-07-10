@@ -13,12 +13,29 @@ set -uo pipefail
         mkdir -p "phasar/$1/test/resource"
     }
 
+    force_git_mv() {
+        from="$1"
+        to="$2"
+        if [ -f "$1" ]; then
+            if ! git mv --force "$from" "$to" 2>/dev/null; then
+                rm "$to" 2>/dev/null || true
+                git rm "$to" 2>/dev/null || true
+                if ! git mv --force "$from" "$to"; then
+                    if [ 4 -le "$(git diff "$f" | wc -l)" ]; then
+                        # merge one commit later, only if no change
+                        git add "$from"
+                    fi
+                fi
+            fi
+        fi
+    }
+
     moveInclude() {
         if [ -d include ]; then
             mapfile -t headers < <(cd "include/" && find . -wholename "*phasar/$1/*.h*" -or -wholename "*phasar/$1/*.def*")
             for header in "${headers[@]}"; do
                 mkdir -p "$(dirname "phasar/$2/include/$header")"
-                git mv "include/$header" "phasar/$2/include/$header"
+                force_git_mv "include/$header" "phasar/$2/include/$header"
             done
         fi
     }
@@ -28,7 +45,7 @@ set -uo pipefail
             mapfile -t sources < <(cd "lib/$1/" && find . -iname "*.cpp")
             for src in "${sources[@]}"; do
                 mkdir -p "$(dirname "phasar/$2/src/$src")"
-                git mv "lib/$1/$src" "phasar/$2/src/$src"
+                force_git_mv "lib/$1/$src" "phasar/$2/src/$src"
             done
         fi
     }
@@ -38,13 +55,13 @@ set -uo pipefail
             mapfile -t sources < <(cd "unittests/$1/" && find . -iname "*.cpp")
             for src in "${sources[@]}"; do
                 mkdir -p "$(dirname "phasar/$2/test/src/$src")"
-                git mv "unittests/$1/$src" "phasar/$2/test/src/$src"
+                force_git_mv "unittests/$1/$src" "phasar/$2/test/src/$src"
             done
 
             mapfile -t headers < <(cd "unittests/$1/" && find . -iname "*.h*")
             for header in "${headers[@]}"; do
                 mkdir -p "$(dirname "phasar/$2/test/include/$header")"
-                git mv "unittests/$1/$header" "phasar/$2/test/include/$header"
+                force_git_mv "unittests/$1/$header" "phasar/$2/test/include/$header"
             done
         fi
     }
@@ -120,6 +137,10 @@ set -uo pipefail
     mkdir -p  phasar/test-utils/include/
     git mv unittests/TestUtils/TestConfig.h phasar/test-utils/include/TestConfig.h 2>/dev/null
     check "unittests" -not -name "CMakeLists.txt" -and -not -name ".clang-tidy"
+
+    (
+        git mv --force tools/phasar-cli/phasar-cli.cpp phasar/cli/src/phasar-cli.cpp 2>/dev/null && git add phasar/cli/src/phasar-cli.cpp 
+    ) || true
 
     # replaced CMakeLists
     git rm -rf cmake/{phasar_macros,limit-ninja-jobs,dependencies}.cmake &> /dev/null || true
@@ -220,6 +241,23 @@ set -uo pipefail
     if [ -n "${added_by_them[*]}" ]; then
         gitAddFilesWithoutChanges "${added_by_them[@]}"
     fi
+    printf '\n\n\n\n'
+
+
+
+        
+    mapfile -t both_modified < <(echo "$status" | grep -Po '(?<=both modified:).*' | xargs printf '%s\n')
+    echo "assuming if both modified -> check if modification is real, most of the time it isn't"
+    for f in "${both_modified[@]}"; do
+        if [ 4 -eq "$(git diff "$f" | wc -l)" ]; then
+            # e.g. in such case:
+            # diff --cc phasar/llvm/include/phasar/PhasarLLVM/DB/LLVMProjectIRDB.h
+            # index d1b1789d,d1b1789d..00000000
+            # --- a/phasar/llvm/include/phasar/PhasarLLVM/DB/LLVMProjectIRDB.h
+            # +++ b/phasar/llvm/include/phasar/PhasarLLVM/DB/LLVMProjectIRDB.h
+            git add "$f"
+        fi
+    done
     printf '\n\n\n\n'
 
 

@@ -24,14 +24,15 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = "llvm_test_code/taint_analysis/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("taint_analysis/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
   doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false) {
     HelperAnalyses HA(PathToLlFiles + LlvmFilePath, EntryPoints);
 
-    auto ConfigPath = PathToLlFiles + "config.json";
+    auto ConfigPath = (PathToLlFiles + "config.json").str();
     auto BuildPos = ConfigPath.rfind("/build/") + 1;
     ConfigPath.erase(BuildPos, 6);
     TaintConfig TC(HA.getProjectIRDB(), parseTaintConfig(ConfigPath));

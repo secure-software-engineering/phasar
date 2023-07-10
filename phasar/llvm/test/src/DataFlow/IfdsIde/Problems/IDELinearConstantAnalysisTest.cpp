@@ -21,7 +21,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = "llvm_test_code/linear_constant/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("linear_constant/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value

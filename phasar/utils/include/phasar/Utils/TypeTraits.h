@@ -165,7 +165,7 @@ constexpr bool is_crtp_base_of_v = // NOLINT
 
 // clang-format off
 #if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; }; // NOLINT
+template <typename T> struct type_identity { using type = T; };
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif

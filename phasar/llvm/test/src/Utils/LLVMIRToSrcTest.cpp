@@ -12,6 +12,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <memory>
@@ -23,7 +24,7 @@ using namespace psr;
 
 class LLVMIRToSrcTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = "llvm_test_code/llvmIRtoSrc/";
+  static constexpr auto PathToLlFiles = PHASAR_BUILD_SUBFOLDER("llvmIRtoSrc/");
 
   unique_ptr<LLVMProjectIRDB> IRDB;
   unique_ptr<LLVMTypeHierarchy> TH;

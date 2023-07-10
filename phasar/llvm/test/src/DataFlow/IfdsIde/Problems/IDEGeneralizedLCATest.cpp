@@ -38,7 +38,8 @@ using groundTruth_t =
 class IDEGeneralizedLCATest : public ::testing::Test {
 
 protected:
-  const std::string PathToLLFiles = "llvm_test_code/general_linear_constant/";
+  static constexpr auto PathToLLFiles =
+      PHASAR_BUILD_SUBFOLDER("general_linear_constant/");
 
   std::optional<HelperAnalyses> HA;
   std::optional<IDEGeneralizedLCA> LCAProblem;

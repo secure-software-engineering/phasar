@@ -31,7 +31,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisFileIOTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles = "llvm_test_code/typestate_analysis_fileio/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("typestate_analysis_fileio/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   std::optional<HelperAnalyses> HA;

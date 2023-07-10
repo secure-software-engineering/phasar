@@ -11,7 +11,9 @@
 using namespace std;
 using namespace psr;
 
-class LLVMBasedBackwardICFGTest : public ::testing::Test {};
+class LLVMBasedBackwardICFGTest : public ::testing::Test {
+protected:
+};
 
 TEST_F(LLVMBasedBackwardICFGTest, test1) {
   // TODO add suitable test cases
