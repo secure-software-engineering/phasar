@@ -10,6 +10,8 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -37,26 +39,19 @@ class IDEGeneralizedLCATest : public ::testing::Test {
 protected:
   const std::string PathToLLFiles = "llvm_test_code/general_linear_constant/";
 
-  std::unique_ptr<LLVMProjectIRDB> IRDB;
+  std::optional<HelperAnalyses> HA;
+  std::optional<IDEGeneralizedLCA> LCAProblem;
   std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
-  std::unique_ptr<LLVMTypeHierarchy> TH;
-  std::unique_ptr<LLVMAliasSet> PT;
-  std::unique_ptr<LLVMBasedICFG> ICFG;
-  std::unique_ptr<IDEGeneralizedLCA> LCAProblem;
 
   IDEGeneralizedLCATest() = default;
 
   void initialize(llvm::StringRef LLFile, size_t MaxSetSize = 2) {
-    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLLFiles + LLFile);
-    TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = std::make_unique<LLVMAliasSet>(IRDB.get());
-    ICFG = std::make_unique<LLVMBasedICFG>(
-        IRDB.get(), CallGraphAnalysisType::RTA,
-        std::vector<std::string>{"main"}, TH.get(), PT.get());
-    LCAProblem = std::make_unique<IDEGeneralizedLCA>(
-        IRDB.get(), ICFG.get(), std::vector<std::string>{"main"}, MaxSetSize);
+    using namespace std::literals;
+    HA.emplace(PathToLLFiles + LLFile, std::vector{"main"s});
+    LCAProblem = createAnalysisProblem<IDEGeneralizedLCA>(
+        *HA, std::vector{"main"s}, MaxSetSize);
     LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(
-        *LCAProblem, ICFG.get());
+        *LCAProblem, &HA->getICFG());
 
     LCASolver->solve();
   }
@@ -70,16 +65,14 @@ protected:
   /// alloca, inst)
   void compareResults(const std::vector<groundTruth_t> &Expected) {
     for (const auto &[EVal, VrId, InstId] : Expected) {
-      auto *Vr = IRDB->getInstruction(VrId);
-      auto *Inst = IRDB->getInstruction(InstId);
+      auto *Vr = HA->getProjectIRDB().getInstruction(VrId);
+      auto *Inst = HA->getProjectIRDB().getInstruction(InstId);
       ASSERT_NE(nullptr, Vr);
       ASSERT_NE(nullptr, Inst);
       auto Result = LCASolver->resultAt(Inst, Vr);
-      std::string Buffer;
-      llvm::raw_string_ostream SStr(Buffer);
-      LCASolver->dumpResults(SStr);
-      EXPECT_EQ(EVal, Result)
-          << "vr:" << VrId << " inst:" << InstId << " LCASolver:" << SStr.str();
+
+      EXPECT_EQ(EVal, Result) << "vr:" << VrId << " inst:" << InstId
+                              << " Expected: " << EVal << " Got:" << Result;
     }
   }
 
@@ -130,7 +123,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   initialize("StringTestCpp.ll");
   std::vector<groundTruth_t> GroundTruth;
   const auto *LastMainInstruction =
-      getLastInstructionOf(IRDB->getFunction("main"));
+      getLastInstructionOf(HA->getProjectIRDB().getFunction("main"));
   GroundTruth.push_back({{EdgeValue("Hello, World")},
                          3,
                          std::stoi(getMetaDataID(LastMainInstruction))});

@@ -1,4 +1,6 @@
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
@@ -25,23 +27,16 @@ protected:
   // Function - Line Nr - Variable - Value
   using LCACompactResult_t = std::tuple<std::string, std::size_t, std::string,
                                         IDELinearConstantAnalysisDomain::l_t>;
-  std::unique_ptr<LLVMProjectIRDB> IRDB;
 
-  void SetUp() override {}
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   IDELinearConstantAnalysis::lca_results_t
   doAnalysis(llvm::StringRef LlvmFilePath, bool PrintDump = false,
              bool EmitESG = false) {
-    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
-    ValueAnnotationPass::resetValueID();
-    LLVMTypeHierarchy TH(*IRDB);
-    LLVMAliasSet PT(IRDB.get());
-    LLVMBasedICFG ICFG(
-        IRDB.get(), CallGraphAnalysisType::OTF,
-        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
-        &PT);
-    IDELinearConstantAnalysis LCAProblem(IRDB.get(), &ICFG, EntryPoints);
-    IDESolver LCASolver(LCAProblem, &ICFG);
+    HelperAnalyses HA(PathToLlFiles + LlvmFilePath, EntryPoints);
+    auto LCAProblem =
+        createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+    IDESolver LCASolver(LCAProblem, &HA.getICFG());
     LCASolver.solve();
     if (EmitESG) {
       Logger::enable();

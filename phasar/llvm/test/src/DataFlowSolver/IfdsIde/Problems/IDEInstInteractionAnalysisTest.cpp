@@ -10,7 +10,11 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalysisConfig.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -44,32 +48,35 @@ protected:
       std::tuple<std::string, std::size_t, std::string,
                  IDEInstInteractionAnalysisT<std::string, true>::l_t>;
 
-  std::unique_ptr<LLVMProjectIRDB> IRDB;
+  std::optional<HelperAnalyses> HA;
+  LLVMProjectIRDB *IRDB{};
 
-  void SetUp() override {}
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
-  void initializeIR(const std::string &LlvmFilePath) {
-    ValueAnnotationPass::resetValueID();
-    IRDB = std::make_unique<LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
+  void initializeIR(const std::string &LlvmFilePath,
+                    const std::vector<std::string> &EntryPoints = {"main"}) {
+    HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints,
+               HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
+    IRDB = &HA->getProjectIRDB();
   }
 
   void
   doAnalysisAndCompareResults(const std::string &LlvmFilePath,
-                              const std::vector<std::string> EntryPoints,
+                              const std::vector<std::string> &EntryPoints,
                               const std::set<IIACompactResult_t> &GroundTruth,
                               bool PrintDump = false) {
-    initializeIR(LlvmFilePath);
+    initializeIR(LlvmFilePath, EntryPoints);
     if (PrintDump) {
       IRDB->dump();
     }
-    LLVMTypeHierarchy TH(*IRDB);
-    LLVMAliasSet PT(IRDB.get());
-    LLVMBasedICFG ICFG(
-        IRDB.get(), CallGraphAnalysisType::CHA,
-        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()}, &TH,
-        &PT);
-    IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB.get(), &ICFG,
-                                                              &PT, EntryPoints);
+
+    // IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &ICFG,
+    // &PT,
+    //                                                           EntryPoints);
+    assert(HA);
+    auto IIAProblem =
+        createAnalysisProblem<IDEInstInteractionAnalysisT<std::string, true>>(
+            *HA, EntryPoints);
     // use Phasar's instruction ids as testing labels
     auto Generator =
         [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
@@ -110,7 +117,7 @@ protected:
     };
     // register the above generator function
     IIAProblem.registerEdgeFactGenerator(Generator);
-    IDESolver IIASolver(IIAProblem, &ICFG);
+    IDESolver IIASolver(IIAProblem, &HA->getICFG());
     IIASolver.solve();
     if (PrintDump) {
       IIASolver.dumpResults();

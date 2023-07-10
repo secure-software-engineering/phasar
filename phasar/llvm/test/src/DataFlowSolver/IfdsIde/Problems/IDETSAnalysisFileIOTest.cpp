@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include "phasar/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
@@ -20,6 +22,7 @@
 #include "gtest/gtest.h"
 
 #include <memory>
+#include <optional>
 
 using namespace std;
 using namespace psr;
@@ -30,12 +33,9 @@ protected:
   const std::string PathToLlFiles = "llvm_test_code/typestate_analysis_fileio/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  unique_ptr<LLVMProjectIRDB> IRDB;
-  unique_ptr<LLVMTypeHierarchy> TH;
-  unique_ptr<LLVMBasedICFG> ICFG;
-  LLVMAliasInfo PT;
-  unique_ptr<CSTDFILEIOTypeStateDescription> CSTDFILEIODesc;
-  unique_ptr<IDETypeStateAnalysis> TSProblem;
+  std::optional<HelperAnalyses> HA;
+  CSTDFILEIOTypeStateDescription CSTDFILEIODesc{};
+  std::optional<IDETypeStateAnalysis> TSProblem;
   enum IOSTATE {
     TOP = 42,
     UNINIT = 0,
@@ -49,16 +49,10 @@ protected:
   ~IDETSAnalysisFileIOTest() override = default;
 
   void initialize(const llvm::Twine &IRFile) {
-    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
-    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
-    PT = make_unique<LLVMAliasSet>(IRDB.get());
-    ICFG = make_unique<LLVMBasedICFG>(
-        IRDB.get(), CallGraphAnalysisType::OTF,
-        std::vector<std::string>{EntryPoints.begin(), EntryPoints.end()},
-        TH.get(), PT.get());
-    CSTDFILEIODesc = make_unique<CSTDFILEIOTypeStateDescription>();
-    TSProblem = make_unique<IDETypeStateAnalysis>(
-        IRDB.get(), PT.get(), CSTDFILEIODesc.get(), EntryPoints);
+    HA.emplace(IRFile, EntryPoints);
+
+    TSProblem = createAnalysisProblem<IDETypeStateAnalysis>(
+        *HA, &CSTDFILEIODesc, EntryPoints);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
@@ -75,7 +69,8 @@ protected:
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth,
       IDESolver_P<IDETypeStateAnalysis> &Solver) {
     for (const auto &InstToGroundTruth : GroundTruth) {
-      auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      const auto *Inst =
+          HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
       // std::cout << "Handle results at " << InstToGroundTruth.first <<
       // std::endl;
       auto GT = InstToGroundTruth.second;
@@ -93,7 +88,7 @@ protected:
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
   initialize({PathToLlFiles + "typestate_01.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       {5, {{"3", IOSTATE::UNINIT}}},
@@ -104,7 +99,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
   initialize({PathToLlFiles + "typestate_02.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -114,7 +109,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
   initialize({PathToLlFiles + "typestate_03.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   // llvmtssolver.printReport();
@@ -140,7 +135,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
   initialize({PathToLlFiles + "typestate_04.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
 
@@ -162,7 +157,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
   initialize({PathToLlFiles + "typestate_05.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -181,7 +176,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
 TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
   // This test fails due to imprecise points-to information
   initialize({PathToLlFiles + "typestate_06.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -216,7 +211,7 @@ TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
   initialize({PathToLlFiles + "typestate_07.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -248,7 +243,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
   initialize({PathToLlFiles + "typestate_08.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -261,7 +256,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
   initialize({PathToLlFiles + "typestate_09.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -279,7 +274,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
   initialize({PathToLlFiles + "typestate_10.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -301,7 +296,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
   initialize({PathToLlFiles + "typestate_11.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -328,7 +323,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
   initialize({PathToLlFiles + "typestate_12.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -348,7 +343,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
   initialize({PathToLlFiles + "typestate_13.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -363,7 +358,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
   initialize({PathToLlFiles + "typestate_14.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -386,7 +381,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
   initialize({PathToLlFiles + "typestate_15.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -448,7 +443,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   /// TODO: After the EF fix everything is BOT; --> Make the TSA more precise!
 
   initialize({PathToLlFiles + "typestate_16.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   // Llvmtssolver.dumpResults();
@@ -485,7 +480,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
   initialize({PathToLlFiles + "typestate_17.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
 
@@ -516,7 +511,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
   /// TODO: After the EF fix everything is BOT; --> Make the TSA more precise!
 
   initialize({PathToLlFiles + "typestate_18.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -538,7 +533,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
   initialize({PathToLlFiles + "typestate_19.ll"});
-  IDESolver Llvmtssolver(*TSProblem, ICFG.get());
+  IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
