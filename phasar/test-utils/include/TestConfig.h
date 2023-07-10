@@ -9,6 +9,14 @@
 
 namespace psr::unittest {
 
+inline const std::string PathToLLTestFiles("llvm_test_code/");
+
+inline const std::string PathToTxtTestFiles("text_test_code/");
+
+inline const std::string PathToJSONTestFiles("json_test_code/");
+
+inline const std::string PathToSwiftTestFiles("llvm_swift_test_code/");
+
 // Remove wrapped tests in case GTEST_SKIP is not available. This is needed as
 // LLVM currently ships with an older version of gtest (<1.10.0) that does not
 // support GTEST_SKIP. TODO: Remove this macro after LLVM updated their gtest.
