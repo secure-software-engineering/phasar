@@ -24,7 +24,7 @@
 
 namespace psr {
 
-std::pair<const llvm::AllocaInst *, std::optional<int64_t>>
+std::pair<const llvm::Value *, std::optional<int64_t>>
 getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep);
 
 template <unsigned K = 3, unsigned OffsetLimit = 1024,

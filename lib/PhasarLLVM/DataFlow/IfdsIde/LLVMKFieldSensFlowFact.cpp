@@ -19,7 +19,7 @@ std::optional<int64_t> getConstantOffset(const llvm::GetElementPtrInst *Gep) {
   return AccumulatedOffset.getSExtValue();
 }
 
-std::pair<const llvm::AllocaInst *, std::optional<int64_t>>
+std::pair<const llvm::Value *, std::optional<int64_t>>
 getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep) {
   if (!Gep) {
     return {nullptr, std::nullopt};
@@ -38,7 +38,7 @@ getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep) {
     }
     Alloca = ChainedGEP->getPointerOperand();
   }
-  return {llvm::dyn_cast<llvm::AllocaInst>(Alloca), CumulatedOffset};
+  return {Alloca, CumulatedOffset};
 }
 
 } // namespace psr
