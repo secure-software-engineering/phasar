@@ -308,8 +308,11 @@ public:
       //             v  v  v
       //             0  x  Y
       //
-      return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
+      return lambdaFlow<d_t>([Store, this](d_t Src) -> container_type {
         if (Store->getPointerOperand() == Src) {
+          if (Src.overwrittenByStore(Store, Store->getPointerOperand(), 0)) {
+            return {};
+          }
           return {Src};
         }
         container_type Facts;
