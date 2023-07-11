@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_ANALYSISSETUP_H_
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_ANALYSISSETUP_H_
+#ifndef PHASAR_ANALYSISSTRATEGY_ANALYSISSETUP_H
+#define PHASAR_ANALYSISSTRATEGY_ANALYSISSETUP_H
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"

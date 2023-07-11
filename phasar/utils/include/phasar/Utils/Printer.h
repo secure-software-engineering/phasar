@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_UTILS_PRINTER_H
-#define PHASAR_PHASARLLVM_UTILS_PRINTER_H
+#ifndef PHASAR_UTILS_PRINTER_H
+#define PHASAR_UTILS_PRINTER_H
 
 #include "llvm/Support/raw_ostream.h"
 

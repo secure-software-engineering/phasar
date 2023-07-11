@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFGBASE_H
-#define PHASAR_PHASARLLVM_CONTROLFLOW_CFGBASE_H
+#ifndef PHASAR_CONTROLFLOW_CFGBASE_H
+#define PHASAR_CONTROLFLOW_CFGBASE_H
 
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -150,4 +150,4 @@ constexpr bool is_cfg_v = is_crtp_base_of_v<CFGBase, ICF>
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_CONTROLFLOW_CFGBASE_H
+#endif // PHASAR_CONTROLFLOW_CFGBASE_H

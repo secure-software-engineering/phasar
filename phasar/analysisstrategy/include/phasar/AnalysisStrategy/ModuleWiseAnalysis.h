@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_MODULEWISEANALYSIS_H_
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_MODULEWISEANALYSIS_H_
+#ifndef PHASAR_ANALYSISSTRATEGY_MODULEWISEANALYSIS_H
+#define PHASAR_ANALYSISSTRATEGY_MODULEWISEANALYSIS_H
 
 namespace psr {
 

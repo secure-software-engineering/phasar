@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_STRATEGIES_H
+#ifndef PHASAR_ANALYSISSTRATEGY_STRATEGIES_H
+#define PHASAR_ANALYSISSTRATEGY_STRATEGIES_H
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
