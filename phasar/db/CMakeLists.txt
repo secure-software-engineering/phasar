@@ -3,4 +3,5 @@ just_add_library(
     ${OPTION_DOXYGEN_DISABLED}
     LINK
         phasar-utils
+        sqlite3
 )

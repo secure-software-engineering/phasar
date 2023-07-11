@@ -27,6 +27,18 @@ endif()
 
 
 
+option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
+
+
+
+if (NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(${CMAKE_CXX_STANDARD} LESS 17)
+  message(FATAL_ERROR "phasar requires CMAKE_CXX_STANDARD >= 17")
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+
 
 # Check if we build within the llvm source tree
 if (DEFINED LLVM_MAIN_SRC_DIR)

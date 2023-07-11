@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
 #define PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/Utils/Utilities.h"
 
 #include <map>
@@ -47,8 +46,7 @@ public:
     return LambdaInterEdge;
   }
 
-  static void
-  importDOTConfig(llvm::StringRef ConfigPath = PhasarConfig::PhasarDirectory());
+  static void importDOTConfig(llvm::StringRef ConfigPath);
 
   static DOTConfig &getDOTConfig();
   ~DOTConfig() = default;

@@ -1,3 +1,6 @@
+#include "gtest/gtest.h"
+// -- Need gtest for the FRIEND_TEST macro
+
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
@@ -9,7 +12,6 @@
 
 #include "TestConfig.h"
 #include "boost/graph/isomorphism.hpp"
-#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;

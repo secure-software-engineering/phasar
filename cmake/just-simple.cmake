@@ -269,12 +269,8 @@ function(just_add_library)
     endif()
 
     # create filelist
-    file(GLOB_RECURSE files include/*)
-    list(FILTER files EXCLUDE REGEX "^.*/\.gitkeep$")
-    file(GLOB_RECURSE files_src src/*)
-    list(FILTER files_src EXCLUDE REGEX "^.*/\.gitkeep$")
-
-    list(APPEND files ${files_src})
+    file(GLOB_RECURSE files include/* src/*)
+    list(FILTER files EXCLUDE REGEX "^.*/\.gitkeep$") #XXX filter others to? only whitelist for .cpp? Variable for it?
     if(just_add_INCLUDE)
         foreach(pattern ${just_add_INCLUDE})
             set(just_add_temp ${files})
@@ -288,7 +284,10 @@ function(just_add_library)
             list(FILTER files EXCLUDE REGEX ${pattern})
         endforeach()
     endif()
+    
     set(is_header_only OFF)
+    list(APPEND files_src ${files})
+    list(FILTER files_src EXCLUDE REGEX "^.*/include/.*$")
     if (NOT files_src)
         set(is_header_only ON)
     endif()

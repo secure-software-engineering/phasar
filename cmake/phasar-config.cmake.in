@@ -1,0 +1,59 @@
+set(PHASAR_VERSION 1.0.0)
+
+@PACKAGE_INIT@
+set_and_check(PHASAR_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+
+# TODO: add CPack support? https://youtu.be/bsXLMQ6WgIk?t=2700
+
+# TODO: unused previously
+#set_and_check(PHASAR_SYSCONFIG_DIR "@PACKAGE_SYSCONFIG_INSTALL_DIR@")
+check_required_components(phasar)
+
+# reference: https://youtu.be/bsXLMQ6WgIk?t=2422
+# Maybe generate this from conanfile? Could also be helpful for different configurations.
+include (CMakeFindDependencyMacro)
+# find_dependency(...)
+# include(.../FooTargets.cmake)
+find_dependency(nlohmann_json)
+find_dependency(nlohmann_json_schema_validator)
+find_package(Boost 1.65.1 COMPONENTS program_options graph REQUIRED)
+
+# TODO: The order seems to be important. Fix this!
+
+set(PHASAR_COMPONENTS
+  utils
+  config
+  phasarllvm_utils
+  passes
+  db
+  pointer
+  typehierarchy
+  controlflow
+  taintconfig
+  ifdside
+)
+
+foreach(component ${PHASAR_COMPONENTS})
+  include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-targets.cmake")
+  list(APPEND PHASAR_NEEDED_LIBS phasar::phasar_${component})
+endforeach()
+
+list(REMOVE_DUPLICATES PHASAR_NEEDED_LIBS)
+
+find_package(LLVM 14 REQUIRED CONFIG)
+include_directories(${LLVM_INCLUDE_DIRS}) # TODO: just dont add to global!
+link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS}) # TODO: just dont add to global!
+find_library(LLVM_LIBRARY NAMES LLVM HINTS ${LLVM_LIBRARY_DIRS})
+
+function(phasar_config executable)
+  if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+    llvm_config(${executable} USE_SHARED ${PHASAR_LLVM_DEPS}) # TODO: llvm_config shouldn't be used anymore!
+  else()
+    llvm_config(${executable} ${PHASAR_LLVM_DEPS})
+  endif()
+
+  target_link_libraries(${executable}
+    PUBLIC
+    ${PHASAR_NEEDED_LIBS}
+  )
+endfunction()

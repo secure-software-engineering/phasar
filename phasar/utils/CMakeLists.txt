@@ -9,6 +9,4 @@ just_add_library(
         LLVMBinaryFormat
         LLVMSupport
         LLVMDemangle
-        
-        phasar-config
   )

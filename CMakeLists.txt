@@ -5,20 +5,26 @@ project(phasar
     LANGUAGES C CXX)
 
 include(cmake/options.cmake)
-
-if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-elseif(${CMAKE_CXX_STANDARD} LESS 17)
-  message(FATAL_ERROR "phasar requires CMAKE_CXX_STANDARD >= 17")
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(cmake/just-simple.cmake)
 
+# disable target completion output in terminal
+set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
+
+# handle LTO
+include(CheckIPOSupported)
+check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
+if(LTO_SUPPORTED)
+  message(STATUS "IPO/LTO enabled")
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+  message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+
+# TODO: really cache?
 set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is ${CMAKE_INSTALL_PREFIX}/.phasar-config)")
 if (PHASAR_CUSTOM_CONFIG_INSTALL_DIR)
-    set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
-else()
-    set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
+  set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
 add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
 
@@ -41,3 +47,4 @@ add_subdirectory(phasar/domain)
 add_subdirectory(phasar/pointer)
 add_subdirectory(phasar/typehierarchy)
 add_subdirectory(phasar/cli)
+add_subdirectory(phasar/all)
