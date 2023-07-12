@@ -428,8 +428,8 @@ public:
     // Map actual to formal parameters.
     auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
         CS, DestFun,
-        [CS, &CurrentSourceHasOffset, &CurrentSourceOffset](
-            const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
+        [CS, CurrentSourceHasOffset, CurrentSourceOffset](
+            const llvm::Value *ActualArg, ByConstRef<d_t> Src) mutable {
           if (ActualArg != Src.getBaseValue()) { // FIXMEMM
             if (const auto *Gep =
                     llvm::dyn_cast<llvm::GetElementPtrInst>(ActualArg)) {
