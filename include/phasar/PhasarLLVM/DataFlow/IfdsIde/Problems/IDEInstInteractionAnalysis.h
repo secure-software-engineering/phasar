@@ -422,11 +422,22 @@ public:
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
+    bool CurrentSourceHasOffset = false;
+    std::optional<int64_t> CurrentSourceOffset;
+
     // Map actual to formal parameters.
     auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
         CS, DestFun,
-        [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
+        [CS, &CurrentSourceHasOffset, &CurrentSourceOffset](
+            const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
           if (ActualArg != Src.getBaseValue()) { // FIXMEMM
+            if (const auto *Gep =
+                    llvm::dyn_cast<llvm::GetElementPtrInst>(ActualArg)) {
+              const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
+              CurrentSourceHasOffset = true;
+              CurrentSourceOffset = Offset;
+              return Alloca == Src.getBaseValue();
+            }
             return false;
           }
 
@@ -437,7 +448,12 @@ public:
           return true;
         },
         {}, true, true,
-        [](const llvm::Value *Lhs, d_t Rhs) { return Rhs.getSameAP(Lhs); });
+        [CurrentSourceHasOffset, CurrentSourceOffset](const llvm::Value *Lhs,
+                                                      d_t Rhs) {
+          return CurrentSourceHasOffset
+                     ? Rhs.getWithOffset(Lhs, CurrentSourceOffset)
+                     : Rhs.getSameAP(Lhs);
+        });
 
     // Generate the artificially introduced RVO parameters from zero value.
     auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
