@@ -70,7 +70,7 @@ public:
   }
 
   // Increment the offset of the first indirection by Offset
-  KFieldSensFlowFact getWithOffset(int64_t Offset) {
+  KFieldSensFlowFact getWithOffset(d_t NewBase, int64_t Offset) {
     auto Result = *this;
     int64_t NewFirstOffset64 =
         static_cast<int64_t>(Result.AccessPath.back()) + Offset;
@@ -83,6 +83,7 @@ public:
       NewFirstOffset = static_cast<offset_int_t>(NewFirstOffset64);
     }
     Result.AccessPath.back() = NewFirstOffset;
+    Result.BaseValue = NewBase;
     return Result;
   }
 

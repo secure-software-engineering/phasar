@@ -124,20 +124,34 @@ public:
     return Result;
   }
 
-  LLVMKFieldSensFlowFact getWithOffset(const llvm::GetElementPtrInst *Gep) {
-    if (!Gep->hasAllConstantIndices()) {
+  LLVMKFieldSensFlowFact getWithOffset(const llvm::Value *NewBase,
+                                       std::optional<int64_t> FollowedOffset) {
+    if (!FollowedOffset.has_value()) {
       return LLVMKFieldSensFlowFact(
           KFieldSensFlowFact<d_t, K, OffsetLimit>::getFirstOverapproximated());
     }
-    const auto &DL = Gep->getModule()->getDataLayout();
-    llvm::APInt AccumulatedOffset(DL.getPointerSize() * 8, 0, true);
-    Gep->accumulateConstantOffset(DL, AccumulatedOffset);
     // The lhs offset is calculating by subtracting the gep offset from the
     // rhs, thus we need the minus here.
     return LLVMKFieldSensFlowFact(
         KFieldSensFlowFact<d_t, K, OffsetLimit>::getWithOffset(
-            -AccumulatedOffset.getSExtValue()));
+            NewBase, -FollowedOffset.value()));
   }
+
+  // LLVMKFieldSensFlowFact getWithOffset(const llvm::GetElementPtrInst *Gep) {
+  //   if (!Gep->hasAllConstantIndices()) {
+  //     return LLVMKFieldSensFlowFact(
+  //         KFieldSensFlowFact<d_t, K,
+  //         OffsetLimit>::getFirstOverapproximated());
+  //   }
+  //   const auto &DL = Gep->getModule()->getDataLayout();
+  //   llvm::APInt AccumulatedOffset(DL.getPointerSize() * 8, 0, true);
+  //   Gep->accumulateConstantOffset(DL, AccumulatedOffset);
+  //   // The lhs offset is calculating by subtracting the gep offset from the
+  //   // rhs, thus we need the minus here.
+  //   return LLVMKFieldSensFlowFact(
+  //       KFieldSensFlowFact<d_t, K, OffsetLimit>::getWithOffset(
+  //           -AccumulatedOffset.getSExtValue()));
+  // }
 
   LLVMKFieldSensFlowFact getFirstOverapproximated();
   void print(llvm::raw_ostream &OS) const {
