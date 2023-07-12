@@ -26,7 +26,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
-#include <iostream>
 
 namespace psr {
 
@@ -54,6 +53,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure.push_back(InitVector);
   }
 
+  std::set<std::string> TypeScopeNames;
+  std::set<std::string> RecordedNames;
   // find and save all derived types
   for (const llvm::DIType *DIType : Finder.types()) {
     if (const auto *DerivedType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {

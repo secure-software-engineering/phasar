@@ -55,6 +55,10 @@ public:
     return {VertexTypes.begin(), VertexTypes.end()};
   }
 
+  //[[nodiscard]] auto getAllVTables() const {
+  //  return {VTables.begin(), VTables.end()};
+  //}
+
   [[nodiscard]] std::string getTypeName(ClassType Type) const override {
     return Type->getName().str();
   }
@@ -101,8 +105,6 @@ private:
   // (B)              B | 1 1 1
   //                  C | 0 0 1
   std::vector<llvm::BitVector> TransitiveClosure;
-  std::set<std::string> TypeScopeNames;
-  std::set<std::string> RecordedNames;
 };
 } // namespace psr
 
