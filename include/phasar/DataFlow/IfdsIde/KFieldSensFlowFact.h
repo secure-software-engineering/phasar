@@ -72,17 +72,19 @@ public:
   // Increment the offset of the first indirection by Offset
   KFieldSensFlowFact getWithOffset(d_t NewBase, int64_t Offset) {
     auto Result = *this;
-    int64_t NewFirstOffset64 =
-        static_cast<int64_t>(Result.AccessPath.back()) + Offset;
-    constexpr auto UpcastOffsetLimit = static_cast<int64_t>(OffsetLimit);
-    offset_int_t NewFirstOffset;
-    if (NewFirstOffset64 >= UpcastOffsetLimit ||
-        NewFirstOffset64 <= -UpcastOffsetLimit) {
-      NewFirstOffset = OffsetLimit;
-    } else {
-      NewFirstOffset = static_cast<offset_int_t>(NewFirstOffset64);
+    if (Result.AccessPath.size() > 0) {
+      int64_t NewFirstOffset64 =
+          static_cast<int64_t>(Result.AccessPath.back()) + Offset;
+      constexpr auto UpcastOffsetLimit = static_cast<int64_t>(OffsetLimit);
+      offset_int_t NewFirstOffset;
+      if (NewFirstOffset64 >= UpcastOffsetLimit ||
+          NewFirstOffset64 <= -UpcastOffsetLimit) {
+        NewFirstOffset = OffsetLimit;
+      } else {
+        NewFirstOffset = static_cast<offset_int_t>(NewFirstOffset64);
+      }
+      Result.AccessPath.back() = NewFirstOffset;
     }
-    Result.AccessPath.back() = NewFirstOffset;
     Result.BaseValue = NewBase;
     return Result;
   }
