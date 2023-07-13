@@ -320,20 +320,33 @@ public:
         // y/Y now obtains its new value(s) from x/X
         // If a value is stored that holds we must generate all potential
         // memory locations the store might write to.
+        d_t LhsForStore = Src;
+        bool DoStore = false;
         if (Store->getValueOperand() == Src) {
+          DoStore = true;
+        } else if (const auto *LhsGep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                       Store->getValueOperand())) {
+          const auto [LhsBase, LhsOffset] =
+              getAllocaInstAndConstantOffset(LhsGep);
+          if (LhsBase == Src) {
+            DoStore = true;
+            LhsForStore = Src.getWithOffset(LhsGep, LhsOffset);
+          }
+        }
+        if (DoStore) {
           // Store to array or struct.
           if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                   Store->getPointerOperand())) {
             const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
-            Facts.insert(Src.getStored(Alloca, Offset.value_or(9001)));
+            Facts.insert(LhsForStore.getStored(Alloca, Offset.value_or(9001)));
             auto PTS = *PT.getAliasSet(Alloca);
             for (const auto *PTBase : PTS) {
               if (llvm::isa<llvm::GetElementPtrInst>(PTBase)) {
                 continue;
               }
-              Facts.insert(Src.getStored(PTBase, Offset.value_or(9002)));
+              Facts.insert(
+                  LhsForStore.getStored(PTBase, Offset.value_or(9002)));
             }
-            // Facts.insert(LLVMKFieldSensFlowFact<>::getDerefValueFromGep(Gep));
           } else {
             // Ordinary store.
             auto PTS = *PT.getAliasSet(Store->getPointerOperand());
@@ -341,9 +354,9 @@ public:
               if (llvm::isa<llvm::GetElementPtrInst>(PTBase)) {
                 continue;
               }
-              Facts.insert(Src.getStored(PTBase));
+              Facts.insert(LhsForStore.getStored(PTBase));
             }
-            Facts.insert(Src.getStored(Store->getPointerOperand()));
+            Facts.insert(LhsForStore.getStored(Store->getPointerOperand()));
           }
         }
         // ... or from zero, if a constant literal is stored to y
