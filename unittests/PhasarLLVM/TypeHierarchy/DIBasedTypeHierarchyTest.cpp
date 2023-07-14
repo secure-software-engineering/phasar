@@ -15,13 +15,21 @@ namespace psr {
 TEST(DBTHTest, BasicTHReconstruction_1) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_1_cpp_dbg.ll");
+
   DIBasedTypeHierarchy DBTH(IRDB);
+
   const auto &Types = DBTH.getAllTypes();
   const auto &SubTypes = DBTH.getSubTypes(DBTH.getType("Base"));
 
   EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base")));
   EXPECT_TRUE(DBTH.hasType(DBTH.getType("Child")));
   EXPECT_TRUE(SubTypes.find(DBTH.getType("Child")) != SubTypes.end());
+
+  EXPECT_FALSE(DBTH.hasVFTable(DBTH.getType("Base")));
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child")));
+
+  const auto &VTableForChild = DBTH.getVFTable(DBTH.getType("Child"));
+  EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "_ZN5Child3fooEv");
 }
 
 TEST(DBTHTest, BasicTHReconstruction_2) {
@@ -42,6 +50,19 @@ TEST(DBTHTest, BasicTHReconstruction_2) {
 
   EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base2")));
   EXPECT_TRUE(DBTH.hasType(DBTH.getType("Kid")));
+
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child")));
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Kid")));
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Base2")));
+
+  const auto &VTableForChild = DBTH.getVFTable(DBTH.getType("Child"));
+  EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "_ZN5Child3fooEv");
+  const auto &VTableForKid = DBTH.getVFTable(DBTH.getType("Kid"));
+  EXPECT_TRUE(VTableForKid->getFunction(0)->getName() == "_ZN3Kid3fooEv");
+  const auto &VTableForBase2 = DBTH.getVFTable(DBTH.getType("Base2"));
+  EXPECT_TRUE(VTableForBase2->getFunction(0)->getName() == "_ZN5Base23barEv");
+  EXPECT_TRUE(VTableForBase2->getFunction(1)->getName() ==
+              "_ZN5Base26foobarEv");
 }
 
 TEST(DBTHTest, BasicTHReconstruction_3) {
@@ -61,6 +82,13 @@ TEST(DBTHTest, BasicTHReconstruction_3) {
   EXPECT_TRUE(BaseSubTypes.find(DBTH.getType("Child")) != BaseSubTypes.end());
   EXPECT_TRUE(BaseSubTypes.find(DBTH.getType("Child_2")) != BaseSubTypes.end());
   EXPECT_TRUE(BaseSubTypes.find(DBTH.getType("Child_3")) != BaseSubTypes.end());
+
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child")));
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child_2")));
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child_3")));
+
+  const auto &VTableForChild = DBTH.getVFTable(DBTH.getType("Child"));
+  EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "_ZN5Child3fooEv");
 }
 
 } // namespace psr

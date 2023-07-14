@@ -55,9 +55,9 @@ public:
     return {VertexTypes.begin(), VertexTypes.end()};
   }
 
-  //[[nodiscard]] auto getAllVTables() const {
-  //  return {VTables.begin(), VTables.end()};
-  //}
+  [[nodiscard]] std::deque<LLVMVFTable> getAllVTables() const {
+    return {VTables.begin(), VTables.end()};
+  }
 
   [[nodiscard]] std::string getTypeName(ClassType Type) const override {
     return Type->getName().str();

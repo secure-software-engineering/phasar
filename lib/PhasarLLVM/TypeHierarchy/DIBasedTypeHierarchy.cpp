@@ -31,6 +31,7 @@ namespace psr {
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   const auto *const Module = IRDB.getModule();
+
   llvm::DebugInfoFinder Finder;
   Finder.processModule(*Module);
 
@@ -46,15 +47,13 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     }
   }
 
-  // Initialize the transitive closure matrix with all as false
+  // Initialize the transitive closure matrix with all positions as false
   llvm::BitVector InitVector(VertexTypes.size(), false);
 
   for (size_t I = 0; I < VertexTypes.size(); I++) {
     TransitiveClosure.push_back(InitVector);
   }
 
-  std::set<std::string> TypeScopeNames;
-  std::set<std::string> RecordedNames;
   // find and save all derived types
   for (const llvm::DIType *DIType : Finder.types()) {
     if (const auto *DerivedType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {
@@ -72,11 +71,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         assert(TransitiveClosure.size() >= BaseTypeVertex);
         assert(TransitiveClosure.size() >= ActualDerivedType);
         TransitiveClosure[BaseTypeVertex][ActualDerivedType] = true;
-
-        // if the scope isn't a nullpointer, place it's name into the set
-        if (DerivedType->getScope()) {
-          TypeScopeNames.insert(DerivedType->getScope()->getName().str());
-        }
 
         continue;
       }
@@ -144,14 +138,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   for (size_t I = 0; I < VTableSize; I++) {
     IndexToFunctions.push_back(Init);
   }
-
   // get VTables
   for (auto *Subprogram : Finder.subprograms()) {
-    if (RecordedNames.find(Subprogram->getScope()->getName().str()) !=
-        RecordedNames.end()) {
-      continue;
-    }
-
     if (!Subprogram->getVirtuality()) {
       continue;
     }
@@ -163,33 +151,16 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
       continue;
     }
 
-    const size_t VirtualIndex = Subprogram->getVirtualIndex();
-    std::vector<const llvm::Function *> IndexFunctions;
+    const auto &TypeIndex = TypeToVertex.find(Subprogram->getContainingType());
 
-    size_t TypeIndex = 0;
-    for (const auto &Curr : TypeScopeNames) {
-      // check if Subprogram Scope isn't a nullpointer
-      if (const auto &SubCurr = Subprogram->getScope()) {
-        if (Curr == SubCurr->getName().str()) {
-          RecordedNames.insert(SubCurr->getName().str());
-          break;
-        }
-      }
-      TypeIndex++;
-    }
-
-    if (TypeIndex >= IndexToFunctions.size()) {
+    if (TypeIndex->getSecond() >= IndexToFunctions.size()) {
       continue;
     }
 
-    if (IndexToFunctions[TypeIndex].size() <= VirtualIndex) {
-      IndexToFunctions[TypeIndex].resize(VirtualIndex + 1);
-    }
-    IndexToFunctions[TypeIndex][VirtualIndex] = FunctionToAdd;
+    IndexToFunctions[TypeIndex->getSecond()].push_back(FunctionToAdd);
   }
 
   for (auto &ToAdd : IndexToFunctions) {
-    //
     VTables.emplace_back(std::move(ToAdd));
   }
 }
@@ -245,7 +216,11 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
 [[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
   const auto TypeIndex = TypeToVertex.find(Type);
-  assert(TypeIndex->second < VTables.size());
+
+  if (TypeIndex == TypeToVertex.end() || TypeIndex->second >= VTables.size()) {
+    return false;
+  }
+
   return !VTables[TypeIndex->second].empty();
 }
 
@@ -274,10 +249,12 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   }
 
   OS << "VFTables:\n";
-  for (const auto &VTable : VTables) {
-    if (VTable.empty()) {
-      continue;
-    }
+
+  size_t TypeIndex = 0;
+  for (const auto &Type : VertexTypes) {
+    const auto &VTable = VTables[TypeIndex];
+
+    OS << Type->getName() << ": ";
 
     // get all function names for the llvm::interleaveComma function
     llvm::SmallVector<std::string, 6> Names;
@@ -286,13 +263,32 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
         Names.push_back(Function->getName().str());
       }
     }
-
     // prints out all function names, seperated by comma, without a trailing
     // comma
     llvm::interleaveComma(Names, OS);
-
     OS << "\n";
-  };
+    TypeIndex++;
+  }
+  /*
+    for (const auto &VTable : VTables) {
+      if (VTable.empty()) {
+        continue;
+      }
+
+      // get all function names for the llvm::interleaveComma function
+      llvm::SmallVector<std::string, 6> Names;
+      for (const auto &Function : VTable.getAllFunctions()) {
+        if (Function) {
+          Names.push_back(Function->getName().str());
+        }
+      }
+
+      // prints out all function names, seperated by comma, without a trailing
+      // comma
+      llvm::interleaveComma(Names, OS);
+
+      OS << "\n";
+    };*/
   OS << "\n";
 }
 
