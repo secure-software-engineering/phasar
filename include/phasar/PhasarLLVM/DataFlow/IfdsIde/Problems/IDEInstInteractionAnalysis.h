@@ -707,9 +707,20 @@ public:
       //                v
       //                x
       //
-      if (CurrNode.getBaseValue() == Load->getPointerOperand() &&
-          Load == SuccNode) {
-        return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+      if (Load == SuccNode) {
+        if (CurrNode.getBaseValue() == Load->getPointerOperand()) {
+          return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+        }
+        if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
+                Load->getPointerOperand())) {
+          const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
+          // Assuming that the offset matching already occurred in FF
+          if (CurrNode.getBaseValue() == Alloca) {
+            return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+          }
+        } else {
+          return EdgeIdentity<l_t>{};
+        }
       } else {
         //
         // y --> y
