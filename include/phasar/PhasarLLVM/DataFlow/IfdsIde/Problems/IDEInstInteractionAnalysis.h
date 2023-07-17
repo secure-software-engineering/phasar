@@ -810,8 +810,8 @@ public:
       //            y
       //
       if (CurrNode == SuccNode) {
-        llvm::errs() << "Found store with 'CurrNode == SuccNode' at: " << *Store
-                     << '\n';
+        // llvm::errs() << "Found store with 'CurrNode == SuccNode' at: " << *Store
+        //              << '\n';
         bool KilledByStore = false;
         if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                 Store->getPointerOperand())) {
@@ -824,11 +824,11 @@ public:
               CurrNode.overwrittenByStore(Store, Store->getPointerOperand(), 0);
         }
         if (KilledByStore) {
-          llvm::errs() << "Jessas!\n";
+          // llvm::errs() << "Jessas!\n";
           return IIAAKillOrReplaceEFCache.createEdgeFunction(
               BitVectorSet<e_t>());
         }
-        llvm::errs() << "Error Jessas not found!\n";
+        // llvm::errs() << "Error Jessas not found!\n";
       }
       // Overriding edge: obtain labels from value to be stored (and may add
       // UserEdgeFacts, if any).
