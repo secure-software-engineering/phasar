@@ -810,7 +810,8 @@ public:
       //            y
       //
       if (CurrNode == SuccNode) {
-        // llvm::errs() << "Found store with 'CurrNode == SuccNode' at: " << *Store
+        // llvm::errs() << "Found store with 'CurrNode == SuccNode' at: " <<
+        // *Store
         //              << '\n';
         bool KilledByStore = false;
         if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
@@ -1454,6 +1455,9 @@ private:
       return {};
     }
     llvm::Type *ElementType = BaseType->getPointerElementType();
+    if (!ElementType->isSized()) {
+      return {};
+    }
     llvm::APInt Offset{64, Fact.getFirstIndirectionOffset()};
     return DL.getGEPIndicesForOffset(ElementType, Offset);
   }
