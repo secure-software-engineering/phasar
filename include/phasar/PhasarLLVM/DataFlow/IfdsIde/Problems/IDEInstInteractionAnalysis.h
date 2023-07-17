@@ -1449,8 +1449,11 @@ private:
   inline llvm::SmallVector<llvm::APInt>
   getGepIndicesForFirstOffsetIntoFact(n_t Curr, const d_t &Fact) {
     const auto &DL = Curr->getModule()->getDataLayout();
-    llvm::Type *ElementType =
-        Fact.getBaseValue()->getType()->getPointerElementType();
+    auto *BaseType = Fact.getBaseValue()->getType();
+    if (!BaseType->isPointerTy()) {
+      return {};
+    }
+    llvm::Type *ElementType = BaseType->getPointerElementType();
     llvm::APInt Offset{64, Fact.getFirstIndirectionOffset()};
     return DL.getGEPIndicesForOffset(ElementType, Offset);
   }
