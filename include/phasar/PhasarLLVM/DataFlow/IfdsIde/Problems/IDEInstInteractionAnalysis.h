@@ -109,13 +109,18 @@ public:
   using EdgeFactGeneratorTy = std::set<e_t>(
       std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
 
+  using FlowFactGeneratorTy =
+      std::set<std::pair<const llvm::Value *, int64_t>>(n_t);
+
   IDEInstInteractionAnalysisT(
       const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
       LLVMAliasInfoRef PT, std::vector<std::string> EntryPoints = {"main"},
-      std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
+      std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr,
+      std::function<FlowFactGeneratorTy> FlowFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
             IRDB, std::move(EntryPoints), createZeroValue()),
-        ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
+        ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)),
+        FlowFactGen(std::move(FlowFactGenerator)) {
     assert(ICF != nullptr);
     assert(PT);
     // IIAAAddLabelsEF::initEdgeFunctionCleaner();
@@ -191,9 +196,15 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return lambdaFlow<d_t>([Alloca](d_t Src) -> container_type {
+      return lambdaFlow<d_t>([Alloca, this](d_t Src) -> container_type {
         container_type Facts = {Src};
         if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
+          if (FlowFactGen) {
+            auto FurtherFlowFactsRaw = FlowFactGen(Alloca);
+            for (const auto &[Base, Offset]: FurtherFlowFactsRaw) {
+              Facts.insert(Src.getStored(Base, Offset));
+            }
+          }
           Facts.insert(Src.getStored(Alloca));
         }
         IF_LOG_ENABLED({
@@ -1386,6 +1397,7 @@ private:
   const LLVMBasedICFG *ICF{};
   LLVMAliasInfoRef PT{};
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
+  std::function<FlowFactGeneratorTy> FlowFactGen;
   static inline const bool OnlyConsiderLocalAliases = true;
 
   inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
