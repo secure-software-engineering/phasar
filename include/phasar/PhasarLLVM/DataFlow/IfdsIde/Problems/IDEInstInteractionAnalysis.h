@@ -109,7 +109,7 @@ public:
   using EdgeFactGeneratorTy = std::set<e_t>(
       std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
 
-  using FlowFactGeneratorTy = std::set<uint16_t>(n_t);
+  using FlowFactGeneratorTy = std::set<std::vector<uint16_t>>(n_t);
 
   IDEInstInteractionAnalysisT(
       const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
@@ -202,12 +202,24 @@ public:
             if (auto *AllocatedStructType = llvm::dyn_cast<llvm::StructType>(
                     Alloca->getAllocatedType())) {
               const auto &DL = Alloca->getModule()->getDataLayout();
-              const auto *AllocatedStructLayout =
-                  DL.getStructLayout(AllocatedStructType);
               auto FurtherFlowFactsRaw = FlowFactGen(Alloca);
-              for (const auto &Index : FurtherFlowFactsRaw) {
-                Facts.insert(Src.getStored(
-                    Alloca, AllocatedStructLayout->getElementOffset(Index)));
+
+              for (const auto &IndexV : FurtherFlowFactsRaw) {
+                int64_t AccumulatedOffset = 0;
+                auto *CurrStructType = AllocatedStructType;
+                unsigned VIdx = 0;
+                for (; VIdx < IndexV.size(); VIdx++) {
+                  const auto *CurrStructLayout =
+                      DL.getStructLayout(CurrStructType);
+                  AccumulatedOffset +=
+                      CurrStructLayout->getElementOffset(IndexV[VIdx]);
+                  auto *NextStructType = llvm::dyn_cast<llvm::StructType>(
+                      CurrStructType->getTypeAtIndex(IndexV[VIdx]));
+                  assert(NextStructType != nullptr ||
+                         VIdx == IndexV.size() - 1);
+                  CurrStructType = NextStructType;
+                }
+                Facts.insert(Src.getStored(Alloca, AccumulatedOffset));
               }
             }
           }
