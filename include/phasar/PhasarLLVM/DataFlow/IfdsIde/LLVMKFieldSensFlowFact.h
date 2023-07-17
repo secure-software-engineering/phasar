@@ -81,6 +81,11 @@ public:
            std::tie(Other.BaseValue, Other.AccessPath, Other.FollowedByAny);
   }
 
+  [[nodiscard]] uint64_t getFirstIndirectionOffset() const {
+    assert(this->AccessPath.size() > 0);
+    return this->AccessPath.back();
+  }
+
   [[nodiscard]] bool overwrittenByStore(const llvm::StoreInst *Store,
                                         const llvm::Value *BaseVal,
                                         std::optional<int64_t> FollowedOffset) {

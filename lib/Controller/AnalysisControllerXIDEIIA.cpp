@@ -20,7 +20,9 @@ void AnalysisController::executeIDEIIA() {
   // use Phasar's instruction ids as testing labels
   auto Generator =
       [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
-             Current) -> std::set<std::string> {
+             Current,
+         const llvm::SmallVector<llvm::APInt> & /* unused */)
+      -> std::set<std::string> {
     return std::visit(
         [](const auto *InstOrGlob) -> std::set<std::string> {
           std::set<std::string> Labels;

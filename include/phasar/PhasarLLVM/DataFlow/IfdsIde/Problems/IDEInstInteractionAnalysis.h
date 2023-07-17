@@ -107,7 +107,8 @@ public:
   using EdgeFunctionType = EdgeFunction<l_t>;
 
   using EdgeFactGeneratorTy = std::set<e_t>(
-      std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
+      std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal,
+      const llvm::SmallVector<llvm::APInt> &GenFactIndices);
 
   using FlowFactGeneratorTy = std::set<std::vector<uint16_t>>(n_t);
 
@@ -647,7 +648,7 @@ public:
           l_t InitialValues = BitVectorSet<e_t>();
           std::set<e_t> EdgeFacts;
           if (EdgeFactGen) {
-            EdgeFacts = EdgeFactGen(GV);
+            EdgeFacts = EdgeFactGen(GV, {});
             // fill BitVectorSet
             InitialValues =
                 BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
@@ -694,7 +695,8 @@ public:
     l_t UserEdgeFacts = BitVectorSet<e_t>();
     std::set<e_t> EdgeFacts;
     if (EdgeFactGen) {
-      EdgeFacts = EdgeFactGen(Curr);
+      EdgeFacts = EdgeFactGen(
+          Curr, getGepIndicesForFirstOffsetIntoFact(Curr, SuccNode));
       // fill BitVectorSet
       UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
     }
@@ -974,7 +976,8 @@ public:
         l_t UserEdgeFacts = BitVectorSet<e_t>();
         std::set<e_t> EdgeFacts;
         if (EdgeFactGen) {
-          EdgeFacts = EdgeFactGen(ExitInst);
+          EdgeFacts = EdgeFactGen(
+              ExitInst, getGepIndicesForFirstOffsetIntoFact(ExitInst, RetNode));
           // fill BitVectorSet
           UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
         }
@@ -993,7 +996,8 @@ public:
     l_t UserEdgeFacts = BitVectorSet<e_t>();
     std::set<e_t> EdgeFacts;
     if (EdgeFactGen) {
-      EdgeFacts = EdgeFactGen(CallSite);
+      EdgeFacts = EdgeFactGen(
+          CallSite, getGepIndicesForFirstOffsetIntoFact(CallSite, RetSiteNode));
       // fill BitVectorSet
       UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
     }
@@ -1425,7 +1429,7 @@ private:
 
   inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
     if (EdgeFactGen) {
-      auto Results = EdgeFactGen(CurrInst);
+      auto Results = EdgeFactGen(CurrInst, {0});
       BitVectorSet<e_t> BVS(Results.begin(), Results.end());
       return BVS;
     }
@@ -1435,11 +1439,20 @@ private:
   inline BitVectorSet<e_t>
   edgeFactGenForGlobalVarToBitVectorSet(const llvm::GlobalVariable *GlobalVar) {
     if (EdgeFactGen) {
-      auto Results = EdgeFactGen(GlobalVar);
+      auto Results = EdgeFactGen(GlobalVar, {0});
       BitVectorSet<e_t> BVS(Results.begin(), Results.end());
       return BVS;
     }
     return {};
+  }
+
+  inline llvm::SmallVector<llvm::APInt>
+  getGepIndicesForFirstOffsetIntoFact(n_t Curr, const d_t &Fact) {
+    const auto &DL = Curr->getModule()->getDataLayout();
+    llvm::Type *ElementType =
+        Fact.getBaseValue()->getType()->getPointerElementType();
+    llvm::APInt Offset{64, Fact.getFirstIndirectionOffset()};
+    return DL.getGEPIndicesForOffset(ElementType, Offset);
   }
 }; // namespace psr
 
