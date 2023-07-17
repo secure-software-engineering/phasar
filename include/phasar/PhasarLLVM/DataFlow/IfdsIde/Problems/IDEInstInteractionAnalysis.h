@@ -136,6 +136,11 @@ public:
     EdgeFactGen = std::move(EdgeFactGenerator);
   }
 
+  inline void registerFlowFactGenerator(
+      std::function<FlowFactGeneratorTy> FlowFactGenerator) {
+    FlowFactGen = std::move(FlowFactGenerator);
+  }
+
   template <typename Container = std::set<d_t>>
   auto generateFlow(const llvm::Value *FactToGenerate, d_t From) {
     struct GenFrom final : public FlowFunction<d_t, Container> {
