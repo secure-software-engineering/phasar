@@ -82,7 +82,9 @@ public:
   }
 
   [[nodiscard]] uint64_t getFirstIndirectionOffset() const {
-    assert(this->AccessPath.size() > 0);
+    if (this->AccessPath.size() == 0) {
+      return 0;
+    }
     return this->AccessPath.back();
   }
 
