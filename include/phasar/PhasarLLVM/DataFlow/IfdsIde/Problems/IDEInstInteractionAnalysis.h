@@ -109,8 +109,7 @@ public:
   using EdgeFactGeneratorTy = std::set<e_t>(
       std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
 
-  using FlowFactGeneratorTy =
-      std::set<std::pair<const llvm::Value *, int64_t>>(n_t);
+  using FlowFactGeneratorTy = std::set<uint16_t>(n_t);
 
   IDEInstInteractionAnalysisT(
       const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
@@ -200,9 +199,16 @@ public:
         container_type Facts = {Src};
         if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
           if (FlowFactGen) {
-            auto FurtherFlowFactsRaw = FlowFactGen(Alloca);
-            for (const auto &[Base, Offset]: FurtherFlowFactsRaw) {
-              Facts.insert(Src.getStored(Base, Offset));
+            if (auto *AllocatedStructType = llvm::dyn_cast<llvm::StructType>(
+                    Alloca->getAllocatedType())) {
+              const auto &DL = Alloca->getModule()->getDataLayout();
+              const auto *AllocatedStructLayout =
+                  DL.getStructLayout(AllocatedStructType);
+              auto FurtherFlowFactsRaw = FlowFactGen(Alloca);
+              for (const auto &Index : FurtherFlowFactsRaw) {
+                Facts.insert(Src.getStored(
+                    Alloca, AllocatedStructLayout->getElementOffset(Index)));
+              }
             }
           }
           Facts.insert(Src.getStored(Alloca));
