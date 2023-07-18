@@ -143,24 +143,64 @@ public:
   }
 
   template <typename Container = std::set<d_t>>
-  auto generateFlow(const llvm::Value *FactToGenerate, d_t From) {
+  auto generateFlow(const llvm::Value *FactToGenerate, d_t From,
+                    std::function<FlowFactGeneratorTy> FlowFactGen = {},
+                    bool EnableCustomFlowGen = false) {
     struct GenFrom final : public FlowFunction<d_t, Container> {
-      GenFrom(const llvm::Value *GenValue, d_t FromValue)
-          : GenValue(GenValue), FromValue(std::move(FromValue)) {}
+      GenFrom(const llvm::Value *GenValue, d_t FromValue,
+              std::function<FlowFactGeneratorTy> FlowFactGen,
+              bool EnableCustomFlowGen)
+          : GenValue(GenValue), FromValue(std::move(FromValue)),
+            FlowFactGen(std::move(FlowFactGen)),
+            EnableCustomFlowGen(EnableCustomFlowGen) {}
 
       Container computeTargets(d_t Source) override {
+        Container Result = {std::move(Source)};
         if (Source == FromValue) {
-          return {std::move(Source), FromValue.getSameAP(GenValue)};
+          Result.insert(FromValue.getSameAP(GenValue));
         }
-        return {std::move(Source)};
+        if (EnableCustomFlowGen && FlowFactGen) {
+          for (const auto *User : GenValue->users()) {
+            if (const auto *BC = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+              if (auto *AllocatedStructType = llvm::dyn_cast<llvm::StructType>(
+                      BC->getType()->getPointerElementType())) {
+                const auto &DL = BC->getModule()->getDataLayout();
+                auto FurtherFlowFactsRaw =
+                    FlowFactGen(llvm::dyn_cast<llvm::Instruction>(GenValue));
+
+                for (const auto &IndexV : FurtherFlowFactsRaw) {
+                  int64_t AccumulatedOffset = 0;
+                  auto *CurrStructType = AllocatedStructType;
+                  unsigned VIdx = 0;
+                  for (; VIdx < IndexV.size(); VIdx++) {
+                    const auto *CurrStructLayout =
+                        DL.getStructLayout(CurrStructType);
+                    AccumulatedOffset +=
+                        CurrStructLayout->getElementOffset(IndexV[VIdx]);
+                    auto *NextStructType = llvm::dyn_cast<llvm::StructType>(
+                        CurrStructType->getTypeAtIndex(IndexV[VIdx]));
+                    assert(NextStructType != nullptr ||
+                           VIdx == IndexV.size() - 1);
+                    CurrStructType = NextStructType;
+                  }
+                  Result.insert(Source.getStored(GenValue, AccumulatedOffset));
+                }
+              }
+            }
+          }
+        }
+        return Result;
       }
 
       const llvm::Value *GenValue;
       d_t FromValue;
+      std::function<FlowFactGeneratorTy> FlowFactGen;
+      const bool EnableCustomFlowGen;
     };
 
-    return std::make_shared<GenFrom>(std::move(FactToGenerate),
-                                     std::move(From));
+    return std::make_shared<GenFrom>(std::move(FactToGenerate), std::move(From),
+                                     std::move(FlowFactGen),
+                                     EnableCustomFlowGen);
   }
 
   template <typename Container = std::set<d_t>>
@@ -564,7 +604,8 @@ public:
         //              v  v
         //              0  x
         //
-        return generateFlow(CallSite, this->getZeroValue()); // FIXMEMM
+        return generateFlow(CallSite, this->getZeroValue(), FlowFactGen,
+                            true); // FIXMEMM
       }
     }
     // Just use the auto mapping for values; pointer parameters and global
