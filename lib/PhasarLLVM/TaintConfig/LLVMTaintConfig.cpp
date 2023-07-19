@@ -24,43 +24,19 @@
 
 namespace psr {
 
-static llvm::SmallVector<const llvm::Function *>
-findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
-  llvm::SmallVector<const llvm::Function *> FnDefs;
-  llvm::DebugInfoFinder DIF;
-  const auto *M = IRDB.getModule();
-
-  DIF.processModule(*M);
-  for (const auto &SubProgram : DIF.subprograms()) {
-    if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
-        (SubProgram->getName() == Name ||
-         SubProgram->getLinkageName() == Name)) {
-      FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
-    }
-  }
-  DIF.reset();
-
-  if (FnDefs.empty()) {
-    const auto *F = IRDB.getFunction(Name);
-    if (F) {
-      FnDefs.push_back(F);
-    }
-  } else if (FnDefs.size() > 1) {
-    llvm::errs() << "The function name '" << Name
-                 << "' is ambiguous. Possible candidates are:\n";
-    for (const auto *F : FnDefs) {
-      llvm::errs() << "> " << F->getName() << "\n";
-    }
-    llvm::errs() << "Please further specify the function's name, such that it "
-                    "becomes unambiguous\n";
-  }
-
-  return FnDefs;
-}
-
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
                                  const TaintConfigData &Config) {
-  // TODO
+  for (const auto &Value : Config.getSourceValues()) {
+    SourceValues.insert(Code.getFunction(Value));
+  }
+
+  for (const auto &Value : Config.getSinkValues()) {
+    SinkValues.insert(Code.getFunction(Value));
+  }
+
+  for (const auto &Value : Config.getSanitizerValues()) {
+    SanitizerValues.insert(Code.getFunction(Value));
+  }
 }
 
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
