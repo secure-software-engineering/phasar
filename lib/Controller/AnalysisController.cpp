@@ -28,6 +28,8 @@
 #include <set>
 #include <utility>
 
+#include <llvm-14/llvm/ADT/Twine.h>
+
 namespace psr {
 
 AnalysisController::AnalysisController(
@@ -216,7 +218,8 @@ LLVMTaintConfig AnalysisController::makeTaintConfig() {
       !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
   return !AnalysisConfigPath.empty()
              ? LLVMTaintConfig(HA.getProjectIRDB(),
-                               parseTaintConfig(AnalysisConfigPath))
+                               TaintConfigData((llvm::Twine)AnalysisConfigPath,
+                                               HA.getProjectIRDB()))
              : LLVMTaintConfig(HA.getProjectIRDB());
 }
 

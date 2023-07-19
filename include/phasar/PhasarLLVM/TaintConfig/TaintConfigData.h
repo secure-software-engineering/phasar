@@ -10,57 +10,57 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGDATA_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGDATA_H
 
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 
-#include "llvm/ADT/Twine.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
 #include <unordered_set>
 
+#include <nlohmann/json_fwd.hpp>
+
 namespace psr {
 class TaintConfigData;
 
-template <> struct TaintConfigTraits<TaintConfigData> {
-  using n_t = const llvm::Instruction *;
-  using v_t = const llvm::Value *;
-  using f_t = const llvm::Function *;
-};
-
-class TaintConfigData : public TaintConfigBase<TaintConfigData> {
-  friend TaintConfigBase;
-
+class TaintConfigData {
 public:
-  TaintConfigData(const llvm::Twine &Path);
+  TaintConfigData() = default;
+  TaintConfigData(const llvm::Twine &Path, const LLVMProjectIRDB &IRDB);
+  TaintConfigData(const nlohmann::json &JSON, const LLVMProjectIRDB &IRDB);
 
-  void loadDataFromFile();
-  void addDataToFile();
+  static TaintConfigData loadDataFromFile(const llvm::Twine &Path,
+                                          const LLVMProjectIRDB &IRDB);
+  void addDataToFile(const llvm::Twine &Path);
 
-  inline void addSourceValue(v_t Value) { SourceValues.insert(Value); }
-  inline void addSinkValue(v_t Value) { SinkValues.insert(Value); }
-  inline void addSanitizerValue(v_t Value) { SanitizerValues.insert(Value); }
+  inline void addSourceValue(std::string Value) {
+    SourceValues.insert(std::move(Value));
+  }
+  inline void addSinkValue(std::string Value) {
+    SinkValues.insert(std::move(Value));
+  }
+  inline void addSanitizerValue(std::string Value) {
+    SanitizerValues.insert(std::move(Value));
+  }
 
-  inline std::unordered_set<v_t> getSourceValues() const {
+  void getValuesFromJSON(nlohmann::json JSON);
+
+  inline const std::unordered_set<std::string> &getSourceValues() const {
     return SourceValues;
   }
-  inline std::unordered_set<v_t> getSinkValues() const { return SinkValues; }
-  inline std::unordered_set<v_t> getSanitizerValues() const {
+  inline const std::unordered_set<std::string> &getSinkValues() const {
+    return SinkValues;
+  }
+  inline const std::unordered_set<std::string> &getSanitizerValues() const {
     return SanitizerValues;
   }
-  inline std::unordered_set<f_t> getFunctions() const { return Functions; }
-  inline bool hasFunctions() const { return !Functions.empty(); }
 
 private:
-  llvm::Twine Path;
-  std::unordered_set<f_t> Functions;
-  std::unordered_set<v_t> SourceValues;
-  std::unordered_set<v_t> SinkValues;
-  std::unordered_set<v_t> SanitizerValues;
-
-  void printImpl(llvm::raw_ostream &OS) const;
+  void loadDataFromFileForThis(const llvm::Twine &Path,
+                               const LLVMProjectIRDB &IRDB);
+  std::unordered_set<std::string> SourceValues;
+  std::unordered_set<std::string> SinkValues;
+  std::unordered_set<std::string> SanitizerValues;
 };
-
-extern template class TaintConfigBase<TaintConfigData>;
 
 } // namespace psr
 
