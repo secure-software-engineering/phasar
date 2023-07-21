@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGDATA_H
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
@@ -26,11 +27,16 @@ class TaintConfigData {
 public:
   TaintConfigData() = default;
   TaintConfigData(const llvm::Twine &Path, const LLVMProjectIRDB &IRDB);
-  TaintConfigData(const nlohmann::json &JSON, const LLVMProjectIRDB &IRDB);
+  TaintConfigData(const nlohmann::json &Config, const LLVMProjectIRDB &IRDB);
 
   static TaintConfigData loadDataFromFile(const llvm::Twine &Path,
                                           const LLVMProjectIRDB &IRDB);
   void addDataToFile(const llvm::Twine &Path);
+
+  void addAllFunctions(const LLVMProjectIRDB &IRDB,
+                       const nlohmann::json &Config);
+  void addAllVariables(const LLVMProjectIRDB &IRDB,
+                       const nlohmann::json &Config);
 
   inline void addSourceValue(std::string Value) {
     SourceValues.insert(std::move(Value));
@@ -41,6 +47,12 @@ public:
   inline void addSanitizerValue(std::string Value) {
     SanitizerValues.insert(std::move(Value));
   }
+
+  void addSourceValue(const llvm::Value *V);
+  void addSinkValue(const llvm::Value *V);
+  void addSanitizerValue(const llvm::Value *V);
+  void addTaintCategory(const llvm::Value *Val, llvm::StringRef AnnotationStr);
+  void addTaintCategory(const llvm::Value *Val, TaintCategory Annotation);
 
   void getValuesFromJSON(nlohmann::json JSON);
 

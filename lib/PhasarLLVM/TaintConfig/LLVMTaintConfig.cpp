@@ -29,11 +29,9 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
   for (const auto &Value : Config.getSourceValues()) {
     SourceValues.insert(Code.getFunction(Value));
   }
-
   for (const auto &Value : Config.getSinkValues()) {
     SinkValues.insert(Code.getFunction(Value));
   }
-
   for (const auto &Value : Config.getSanitizerValues()) {
     SanitizerValues.insert(Code.getFunction(Value));
   }

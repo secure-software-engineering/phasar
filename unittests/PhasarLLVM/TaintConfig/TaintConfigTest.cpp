@@ -229,6 +229,7 @@ static constexpr auto PathToJsonTaintConfigTestCode =
 TEST_F(TaintConfigTest, Array_01_Json) {
   const std::string File = "array_01_c_dbg.ll";
   const std::string Config = "array_01_config.json";
+
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
