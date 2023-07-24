@@ -1,0 +1,129 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Debug Static",
+            "description": "Sets Ninja generator, build and install directory",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/cmake-build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-install/${presetName}",
+                "PHASAR_BUILD_UNITTESTS": "ON",
+                "BUILD_SHARED_LIBS": "OFF",
+                "CODE_COVERAGE": "ON",
+                "USE_CLANG_ADDRESS_SANITIZER": "ON"
+            }
+        },
+        {
+            "inherits": [
+                "default"
+            ],
+            "name": "debug",
+            "displayName": "Debug Static"
+        },
+        {
+            "inherits": [
+                "default"
+            ],
+            "name": "release",
+            "displayName": "Release Static",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CODE_COVERAGE": "OFF",
+                "USE_CLANG_ADDRESS_SANITIZER": "OFF"
+            }
+        },
+        {
+            "inherits": [
+                "default"
+            ],
+            "name": "debug-shared",
+            "displayName": "Debug Shared",
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": "ON"
+            }
+        },
+        {
+            "inherits": [
+                "default"
+            ],
+            "name": "release-shared",
+            "displayName": "Release Shared",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_SHARED_LIBS": "ON",
+                "CODE_COVERAGE": "OFF",
+                "USE_CLANG_ADDRESS_SANITIZER": "OFF"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "targets": [
+                "all"
+            ]
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "targets": [
+                "all"
+            ]
+        },
+        {
+            "name": "debug-shared",
+            "configurePreset": "debug-shared",
+            "targets": [
+                "all"
+            ]
+        },
+        {
+            "name": "release-shared",
+            "configurePreset": "release-shared",
+            "targets": [
+                "all"
+            ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "debug",
+            "displayName": "Debug Static",
+            "configurePreset": "debug",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "jobs": 20
+            }
+        },
+        {
+            "inherits": [
+                "debug"
+            ],
+            "name": "release",
+            "displayName": "Release Static",
+            "configurePreset": "release"
+        },
+        {
+            "inherits": [
+                "debug"
+            ],
+            "name": "debug-shared",
+            "displayName": "Debug Shared",
+            "configurePreset": "debug-shared"
+        },
+        {
+            "inherits": [
+                "debug"
+            ],
+            "name": "release-shared",
+            "displayName": "Release Shared",
+            "configurePreset": "release-shared"
+        }
+    ]
+}

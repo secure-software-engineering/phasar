@@ -1,0 +1,27 @@
+[requires]
+llvm/14.0.6
+boost/[>=1.72.0 <=1.81.0]
+gtest/[>=1.10.0 <2.0.0]
+sqlite3/[>=3.36.0 <4.0.0]
+json-schema-validator/[>=2.1.0 <3.0.0]
+nlohmann_json/[>=3.10.5 <3.11.0]
+libcurl/[>=7.80.0 <8.0.0]
+zlib/[>=1.2.0 <2.0.0] # fix boost / clash zlib
+openssl/3.0.5 # includes needed for some test files
+doxygen/[>=1.9.0 <2.0.0]
+
+[generators]
+cmake
+
+[options]
+llvm:shared=False
+llvm:llvm_build_llvm_dylib=False
+llvm:conan_center_index_limits=False
+llvm:with_project_clang=True
+llvm:with_project_openmp=True
+llvm:keep_binaries_regex=^(clang|clang\+\+|opt)$
+
+# not for phasar needed but the llvm conan recipe doesn't understand currently,
+# that "with compiler-rt" can be used for without compiler-rt
+# so it would compile llvm just without compiler-rt for no reason
+llvm:with_runtime_compiler-rt=True

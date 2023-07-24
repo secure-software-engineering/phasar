@@ -1,0 +1,49 @@
+just_add_library(
+    ${OPTION_TESTS_DISABLED}
+    ${OPTION_DOXYGEN_DISABLED}
+    LINK
+        clangTooling # core dep
+        clangFrontend # core dep
+        clangDriver
+        clangParse
+        clangSerialization
+        clangSema
+        clangAnalysis
+        clangASTMatchers
+        clangEdit
+        clangAST
+        clangFormat
+        clangToolingInclusions
+        clangToolingCore
+        clangRewrite # core dep
+        clangLex
+        clangBasic
+        LLVMFrontendOpenMP
+        LLVMScalarOpts
+        LLVMAggressiveInstCombine
+        LLVMInstCombine
+        LLVMTransformUtils
+        LLVMAnalysis
+        LLVMProfileData
+        LLVMDebugInfoDWARF
+        LLVMObject
+        LLVMMCParser
+        LLVMMC
+        LLVMDebugInfoCodeView
+        LLVMBitReader
+        LLVMCore
+        LLVMRemarks
+        LLVMBitstreamReader
+        LLVMTextAPI
+        LLVMBinaryFormat
+        LLVMOption
+        LLVMSupport
+        LLVMDemangle
+        z        
+        m
+        dl
+        pthread
+        rt
+
+        phasar-utils
+)

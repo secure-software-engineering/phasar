@@ -4,9 +4,10 @@
 bin/*
 
 # build directories for cmake
-build/
-build_*/
-build-*/
+build*/
+cmake-build*/
+cmake-install*/
+CMakeUserPresets.json
 
 # LLVM project
 llvm-project/*
@@ -26,6 +27,7 @@ doc/*
 
 # log/ directory
 log/*
+**/*/logs/
 
 # CMake build dir
 build/*
@@ -118,22 +120,3 @@ TAGS
 # config files
 compiler_info.txt
 standard_header_paths.conf
-
-# CMake temporary files
-CMakeFiles
-CMakeCache.txt
-!cmake/*.cmake
-cmake-build-debug/*
-*.pc
-Makefile
-!test/*/Makefile
-
-# Unit test output
-Testing/
-unittests/DB/DBConnTest
-unittests/PhasarLLVM/ControlFlow/LLVMBasedCFGTest
-unittests/PhasarLLVM/ifdside/Problems/IFDSConstAnalysisTest
-unittests/PhasarLLVM/ifdside/Problems/IFDSTaintAnalysisTest
-unittests/PhasarLLVM/Pointer/LLVMTypeHierarchyTest
-unittests/Utils/LLVMShorthandsTest
-unittests/Utils/PAMMTest

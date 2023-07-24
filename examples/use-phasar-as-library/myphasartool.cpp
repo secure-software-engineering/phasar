@@ -1,1 +1,1 @@
-../../tools/example-tool/myphasartool.cpp
+../../phasar/example-tool/src/myphasartool.cpp
