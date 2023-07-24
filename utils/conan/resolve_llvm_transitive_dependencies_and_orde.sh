@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Info:
+# This script shouldnt be needed, so if you think you can remove it do so!
+# It seems that the issues arised from conan generator "cmake" and other generators, which should be prefered, don't have such issues if recipe is correct!
 
 json="$1"
 if [ -z "$1" ]; then

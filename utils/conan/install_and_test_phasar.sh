@@ -28,4 +28,7 @@ set -euo pipefail
         cd "$tmp_dir"
         conan install "$package" --build=missing -s build_type=Debug
     )
+    echo "deployed $package to your system"
+    echo "you maybe want to upload it to your remote via:"
+    echo "conan upload -r remoteName $package"
 )

@@ -32,7 +32,7 @@ class PhasarConan(ConanFile):
     generators = "cmake"
     
     requires = [
-        "llvm/[>=14.0.0 <15.0.0]@phasar/develop",
+        "llvm/[>=14.0.0 <15.0.0]",
         "boost/[>=1.72.0 <=1.81.0]",
         "gtest/[>=1.10.0 <2.0.0]",
         "sqlite3/[>=3.36.0 <4.0.0]",
@@ -49,7 +49,8 @@ class PhasarConan(ConanFile):
         # XXX extract version from root CMakeLists.txt
 
     def requirements(self):
-        self.options['llvm'].enable_debug = True
+        self.options['llvm'].conan_center_index_limits = False
+        self.options['llvm'].llvm_build_llvm_dylib = False
         self.options['llvm'].with_project_clang = True
         self.options['llvm'].with_project_openmp = True
 
