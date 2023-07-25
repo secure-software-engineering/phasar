@@ -31,8 +31,7 @@ class LLVMTaintConfig : public TaintConfigBase<LLVMTaintConfig> {
   friend TaintConfigBase;
 
 public:
-  explicit LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
-                           const TaintConfigData &Config);
+  explicit LLVMTaintConfig(TaintConfigData &Config);
   explicit LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode);
   explicit LLVMTaintConfig(
       TaintDescriptionCallBackTy SourceCB, TaintDescriptionCallBackTy SinkCB,
@@ -90,6 +89,11 @@ private:
   makeInitialSeedsImpl() const;
 
   void printImpl(llvm::raw_ostream &OS) const;
+
+  // --- utilities
+
+  void addAllFunctions(const LLVMProjectIRDB &IRDB,
+                       const nlohmann::json &Config);
 
   // --- data members
 

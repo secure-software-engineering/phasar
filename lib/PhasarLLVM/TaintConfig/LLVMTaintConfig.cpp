@@ -9,13 +9,13 @@
 
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
@@ -24,17 +24,118 @@
 
 namespace psr {
 
-LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
-                                 const TaintConfigData &Config) {
-  for (const auto &Value : Config.getSourceValues()) {
-    SourceValues.insert(Code.getFunction(Value));
+static llvm::SmallVector<const llvm::Function *>
+findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
+  llvm::SmallVector<const llvm::Function *> FnDefs;
+  llvm::DebugInfoFinder DIF;
+  const auto *M = IRDB.getModule();
+
+  DIF.processModule(*M);
+  for (const auto &SubProgram : DIF.subprograms()) {
+    if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
+        (SubProgram->getName() == Name ||
+         SubProgram->getLinkageName() == Name)) {
+      FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
+    }
   }
-  for (const auto &Value : Config.getSinkValues()) {
-    SinkValues.insert(Code.getFunction(Value));
+  DIF.reset();
+
+  if (FnDefs.empty()) {
+    const auto *F = IRDB.getFunction(Name);
+    if (F) {
+      FnDefs.push_back(F);
+    }
+  } else if (FnDefs.size() > 1) {
+    llvm::errs() << "The function name '" << Name
+                 << "' is ambiguous. Possible candidates are:\n";
+    for (const auto *F : FnDefs) {
+      llvm::errs() << "> " << F->getName() << "\n";
+    }
+    llvm::errs() << "Please further specify the function's name, such that it "
+                    "becomes unambiguous\n";
   }
-  for (const auto &Value : Config.getSanitizerValues()) {
-    SanitizerValues.insert(Code.getFunction(Value));
+
+  return FnDefs;
+}
+
+void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
+                                      const nlohmann::json &Config) {
+  for (const auto &FunDesc : Config["functions"]) {
+    auto Name = FunDesc["name"].get<std::string>();
+
+    auto FnDefs = findAllFunctionDefs(IRDB, Name);
+
+    if (FnDefs.empty()) {
+      llvm::errs() << "WARNING: Cannot retrieve function " << Name << "\n";
+      continue;
+    }
+
+    const auto *Fun = FnDefs[0];
+
+    // handle a function's parameters
+    if (FunDesc.contains("params")) {
+      auto Params = FunDesc["params"];
+      if (Params.contains("source")) {
+        for (unsigned Idx : Params["source"]) {
+          if (Idx >= Fun->arg_size()) {
+            llvm::errs()
+                << "ERROR: The source-function parameter index is out of "
+                   "bounds: "
+                << Idx << "\n";
+            // Use 'continue' instead of 'break' to get error messages for the
+            // remaining parameters as well
+            continue;
+          }
+          addTaintCategory(Fun->getArg(Idx), TaintCategory::Source);
+        }
+      }
+      if (Params.contains("sink")) {
+        for (const auto &Idx : Params["sink"]) {
+          if (Idx.is_number()) {
+            if (Idx >= Fun->arg_size()) {
+              llvm::errs()
+                  << "ERROR: The source-function parameter index is out of "
+                     "bounds: "
+                  << Idx << "\n";
+              continue;
+            }
+            addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
+          } else if (Idx.is_string()) {
+            const auto Sinks = Idx.get<std::string>();
+            if (Sinks == "all") {
+              for (const auto &Arg : Fun->args()) {
+                addTaintCategory(&Arg, TaintCategory::Sink);
+              }
+            }
+          }
+        }
+      }
+      if (Params.contains("sanitizer")) {
+        for (unsigned Idx : Params["sanitizer"]) {
+          if (Idx >= Fun->arg_size()) {
+            llvm::errs()
+                << "ERROR: The source-function parameter index is out of "
+                   "bounds: "
+                << Idx << "\n";
+            continue;
+          }
+          addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);
+        }
+      }
+    }
+    // handle a function's return value
+    if (FunDesc.contains("ret")) {
+      for (const auto &User : Fun->users()) {
+        addTaintCategory(User, FunDesc["ret"].get<std::string>());
+      }
+    }
   }
+}
+
+LLVMTaintConfig::LLVMTaintConfig(TaintConfigData &Config) {
+  SinkValues = Config.getAllSinkValues();
+  SourceValues = Config.getAllSourceValues();
+  SanitizerValues = Config.getAllSanitizerValues();
 }
 
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
@@ -317,10 +418,8 @@ LLVMTaintConfig::makeInitialSeedsImpl() const {
       InitialSeeds[Inst].insert(Inst);
     } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(SourceValue);
                Arg && !Arg->getParent()->isDeclaration()) {
-      LLVMBasedCFG C;
-      for (const auto *SP : C.getStartPointsOf(Arg->getParent())) {
-        InitialSeeds[SP].insert(Arg);
-      }
+      const auto *FunFirstInst = &Arg->getParent()->getEntryBlock().front();
+      InitialSeeds[FunFirstInst].insert(Arg);
     }
   }
   return InitialSeeds;

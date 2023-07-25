@@ -7,6 +7,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -34,9 +35,9 @@ protected:
     auto ConfigPath = (PathToLlFiles + "config.json").str();
     auto BuildPos = ConfigPath.rfind("/build/") + 1;
     ConfigPath.erase(BuildPos, 6);
-    LLVMTaintConfig TC(
-        HA.getProjectIRDB(),
-        TaintConfigData(parseTaintConfig(ConfigPath), HA.getProjectIRDB()));
+    TaintConfigData Data =
+        TaintConfigData(HA.getProjectIRDB(), parseTaintConfig(ConfigPath));
+    LLVMTaintConfig TC(Data);
     TC.registerSinkCallBack([](const llvm::Instruction *Inst) {
       std::set<const llvm::Value *> Ret;
       if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);

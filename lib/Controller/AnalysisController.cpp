@@ -15,8 +15,8 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -27,8 +27,6 @@
 #include <functional>
 #include <set>
 #include <utility>
-
-#include <llvm-14/llvm/ADT/Twine.h>
 
 namespace psr {
 
@@ -187,10 +185,6 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     WithResultFileOrStdout("/psr-cg.txt",
                            [this](auto &OS) { HA.getICFG().print(OS); });
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-    WithResultFileOrStdout(
-        "/psr-cg.json", [this](auto &OS) { OS << HA.getICFG().getAsJson(); });
-  }
 
   if (EmitterOptions &
       (AnalysisControllerEmitterOptions::EmitStatisticsAsJson |
@@ -202,7 +196,15 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
-      llvm::outs() << Stats << '\n';
+      llvm::outs() << "Module " << IRDB.getModule()->getName() << ":\n";
+      llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
+                   << "\n";
+      llvm::outs() << "> Functions:\t\t" << IRDB.getModule()->size() << "\n";
+      llvm::outs() << "> Global variables:\t" << IRDB.getModule()->global_size()
+                   << "\n";
+      llvm::outs() << "> Alloca instructions:\t"
+                   << Stats.getAllocaInstructions().size() << "\n";
+      llvm::outs() << "> Call Sites:\t\t" << Stats.getFunctioncalls() << "\n";
     }
 
     if (EmitterOptions &
@@ -216,10 +218,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 LLVMTaintConfig AnalysisController::makeTaintConfig() {
   std::string AnalysisConfigPath =
       !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
+  TaintConfigData IfAnalysisConfigPathIsEmpty = TaintConfigData(
+      HA.getProjectIRDB(), parseTaintConfig(AnalysisConfigPath));
   return !AnalysisConfigPath.empty()
-             ? LLVMTaintConfig(HA.getProjectIRDB(),
-                               TaintConfigData((llvm::Twine)AnalysisConfigPath,
-                                               HA.getProjectIRDB()))
+             ? LLVMTaintConfig(IfAnalysisConfigPathIsEmpty)
              : LLVMTaintConfig(HA.getProjectIRDB());
 }
 

@@ -25,53 +25,32 @@ class TaintConfigData;
 
 class TaintConfigData {
 public:
-  TaintConfigData() = default;
-  TaintConfigData(const llvm::Twine &Path, const LLVMProjectIRDB &IRDB);
-  TaintConfigData(const nlohmann::json &Config, const LLVMProjectIRDB &IRDB);
-
-  static TaintConfigData loadDataFromFile(const llvm::Twine &Path,
-                                          const LLVMProjectIRDB &IRDB);
-  void addDataToFile(const llvm::Twine &Path);
-
-  void addAllFunctions(const LLVMProjectIRDB &IRDB,
-                       const nlohmann::json &Config);
-  void addAllVariables(const LLVMProjectIRDB &IRDB,
-                       const nlohmann::json &Config);
-
-  inline void addSourceValue(std::string Value) {
-    SourceValues.insert(std::move(Value));
-  }
-  inline void addSinkValue(std::string Value) {
-    SinkValues.insert(std::move(Value));
-  }
-  inline void addSanitizerValue(std::string Value) {
-    SanitizerValues.insert(std::move(Value));
-  }
+  TaintConfigData(const LLVMProjectIRDB &IRDB, const nlohmann::json &Config);
 
   void addSourceValue(const llvm::Value *V);
   void addSinkValue(const llvm::Value *V);
   void addSanitizerValue(const llvm::Value *V);
   void addTaintCategory(const llvm::Value *Val, llvm::StringRef AnnotationStr);
   void addTaintCategory(const llvm::Value *Val, TaintCategory Annotation);
+  // --- utilities
 
-  void getValuesFromJSON(nlohmann::json JSON);
+  void addAllFunctions(const LLVMProjectIRDB &IRDB,
+                       const nlohmann::json &Config);
 
-  inline const std::unordered_set<std::string> &getSourceValues() const {
+  inline std::unordered_set<const llvm::Value *> getAllSourceValues() const {
     return SourceValues;
   }
-  inline const std::unordered_set<std::string> &getSinkValues() const {
+  inline std::unordered_set<const llvm::Value *> getAllSinkValues() const {
     return SinkValues;
   }
-  inline const std::unordered_set<std::string> &getSanitizerValues() const {
+  inline std::unordered_set<const llvm::Value *> getAllSanitizerValues() const {
     return SanitizerValues;
   }
 
 private:
-  void loadDataFromFileForThis(const llvm::Twine &Path,
-                               const LLVMProjectIRDB &IRDB);
-  std::unordered_set<std::string> SourceValues;
-  std::unordered_set<std::string> SinkValues;
-  std::unordered_set<std::string> SanitizerValues;
+  std::unordered_set<const llvm::Value *> SourceValues;
+  std::unordered_set<const llvm::Value *> SinkValues;
+  std::unordered_set<const llvm::Value *> SanitizerValues;
 };
 
 } // namespace psr

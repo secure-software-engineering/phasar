@@ -14,9 +14,74 @@
 
 namespace psr {
 
-TaintConfigData::TaintConfigData(const llvm::Twine &Path,
-                                 const LLVMProjectIRDB &IRDB) {
-  loadDataFromFileForThis(Path, IRDB);
+TaintConfigData::TaintConfigData(const LLVMProjectIRDB &IRDB,
+                                 const nlohmann::json &Config) {
+  // handle functions
+  if (Config.contains("functions")) {
+    addAllFunctions(IRDB, Config);
+  }
+
+  // handle variables
+  if (Config.contains("variables")) {
+    // scope can be a function name or a struct.
+    std::unordered_map<const llvm::Type *, const nlohmann::json>
+        StructConfigMap;
+
+    // read all struct types from config
+    for (const auto &VarDesc : Config["variables"]) {
+      llvm::DebugInfoFinder DIF;
+      const auto *M = IRDB.getModule();
+
+      DIF.processModule(*M);
+      for (const auto &Ty : DIF.types()) {
+        if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
+            Ty->getName().equals(VarDesc["scope"].get<std::string>())) {
+          for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
+            StructConfigMap.insert(
+                std::pair<const llvm::Type *, const nlohmann::json>(
+                    LlvmStructTy, VarDesc));
+          }
+        }
+      }
+      DIF.reset();
+    }
+
+    // add corresponding Allocas or getElementPtr instructions to the taint
+    // category
+    for (const auto &VarDesc : Config["variables"]) {
+      for (const auto &Fun : IRDB.getAllFunctions()) {
+        for (const auto &I : llvm::instructions(Fun)) {
+          if (const auto *DbgDeclare =
+                  llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
+            const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
+            // matching line number with for Allocas
+            if (LocalVar->getName().equals(
+                    VarDesc["name"].get<std::string>()) &&
+                LocalVar->getLine() == VarDesc["line"].get<unsigned int>()) {
+              addTaintCategory(DbgDeclare->getAddress(),
+                               VarDesc["cat"].get<std::string>());
+            }
+          } else if (!StructConfigMap.empty()) {
+            // Ignorning line numbers for getElementPtr instructions
+            if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
+              const auto *StType = llvm::dyn_cast<llvm::StructType>(
+                  Gep->getPointerOperandType()->getPointerElementType());
+              if (StType && StructConfigMap.count(StType)) {
+                const auto VarDesc = StructConfigMap.at(StType);
+                auto VarName = VarDesc["name"].get<std::string>();
+                // using substr to cover the edge case in which same variable
+                // name is present as a local variable and also as a struct
+                // member variable. (Ex. JsonConfig/fun_member_02.cpp)
+                if (Gep->getName().substr(0, VarName.size()).equals(VarName)) {
+                  addTaintCategory(Gep, VarDesc["cat"].get<std::string>());
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 static llvm::SmallVector<const llvm::Function *>
@@ -51,46 +116,6 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
   }
 
   return FnDefs;
-}
-
-void TaintConfigData::addSourceValue(const llvm::Value *V) {
-  SourceValues.insert(V->getName().str());
-}
-
-void TaintConfigData::addSinkValue(const llvm::Value *V) {
-  SinkValues.insert(V->getName().str());
-}
-
-void TaintConfigData::addSanitizerValue(const llvm::Value *V) {
-  SanitizerValues.insert(V->getName().str());
-}
-
-void TaintConfigData::addTaintCategory(const llvm::Value *Val,
-                                       TaintCategory Annotation) {
-  switch (Annotation) {
-  case TaintCategory::Source:
-    addSourceValue(Val);
-    break;
-  case TaintCategory::Sink:
-    addSinkValue(Val);
-    break;
-  case TaintCategory::Sanitizer:
-    addSanitizerValue(Val);
-    break;
-  default:
-    // ignore
-    break;
-  }
-}
-
-void TaintConfigData::addTaintCategory(const llvm::Value *Val,
-                                       llvm::StringRef AnnotationStr) {
-  auto TC = toTaintCategory(AnnotationStr);
-  if (TC == TaintCategory::None) {
-    PHASAR_LOG_LEVEL(ERROR, "Unknown taint category: " << AnnotationStr);
-  } else {
-    addTaintCategory(Val, TC);
-  }
 }
 
 void TaintConfigData::addAllFunctions(const LLVMProjectIRDB &IRDB,
@@ -167,266 +192,47 @@ void TaintConfigData::addAllFunctions(const LLVMProjectIRDB &IRDB,
   }
 }
 
-void TaintConfigData::addAllVariables(const LLVMProjectIRDB &IRDB,
-                                      const nlohmann::json &Config) {
-  // scope can be a function name or a struct.
-  std::unordered_map<const llvm::Type *, const nlohmann::json> StructConfigMap;
+//
+// --- Own API function implementations
+//
 
-  // read all struct types from config
-  for (const auto &VarDesc : Config["variables"]) {
-    llvm::DebugInfoFinder DIF;
-    const auto *M = IRDB.getModule();
+void TaintConfigData::addSourceValue(const llvm::Value *V) {
+  SourceValues.insert(V);
+}
 
-    DIF.processModule(*M);
-    for (const auto &Ty : DIF.types()) {
-      if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
-          Ty->getName().equals(VarDesc["scope"].get<std::string>())) {
-        for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
-          StructConfigMap.insert(
-              std::pair<const llvm::Type *, const nlohmann::json>(LlvmStructTy,
-                                                                  VarDesc));
-        }
-      }
-    }
-    DIF.reset();
-  }
+void TaintConfigData::addSinkValue(const llvm::Value *V) {
+  SinkValues.insert(V);
+}
 
-  // add corresponding Allocas or getElementPtr instructions to the taint
-  // category
-  for (const auto &VarDesc : Config["variables"]) {
-    for (const auto &Fun : IRDB.getAllFunctions()) {
-      for (const auto &I : llvm::instructions(Fun)) {
-        if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
-          const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
-          // matching line number with for Allocas
-          if (LocalVar->getName().equals(VarDesc["name"].get<std::string>()) &&
-              LocalVar->getLine() == VarDesc["line"].get<unsigned int>()) {
-            addTaintCategory(DbgDeclare->getAddress(),
-                             VarDesc["cat"].get<std::string>());
-          }
-        } else if (!StructConfigMap.empty()) {
-          // Ignorning line numbers for getElementPtr instructions
-          if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
-            const auto *StType = llvm::dyn_cast<llvm::StructType>(
-                Gep->getPointerOperandType()->getPointerElementType());
-            if (StType && StructConfigMap.count(StType)) {
-              const auto VarDesc = StructConfigMap.at(StType);
-              auto VarName = VarDesc["name"].get<std::string>();
-              // using substr to cover the edge case in which same variable
-              // name is present as a local variable and also as a struct
-              // member variable. (Ex. JsonConfig/fun_member_02.cpp)
-              if (Gep->getName().substr(0, VarName.size()).equals(VarName)) {
-                addTaintCategory(Gep, VarDesc["cat"].get<std::string>());
-              }
-            }
-          }
-        }
-      }
-    }
+void TaintConfigData::addSanitizerValue(const llvm::Value *V) {
+  SanitizerValues.insert(V);
+}
+
+void TaintConfigData::addTaintCategory(const llvm::Value *Val,
+                                       llvm::StringRef AnnotationStr) {
+  auto TC = toTaintCategory(AnnotationStr);
+  if (TC == TaintCategory::None) {
+    PHASAR_LOG_LEVEL(ERROR, "Unknown taint category: " << AnnotationStr);
+  } else {
+    addTaintCategory(Val, TC);
   }
 }
 
-TaintConfigData::TaintConfigData(const nlohmann::json &Config,
-                                 const LLVMProjectIRDB &IRDB) {
-  // handle functions
-  if (Config.contains("functions")) {
-    addAllFunctions(IRDB, Config);
-  }
-
-  // handle variables
-  if (Config.contains("variables")) {
-    addAllVariables(IRDB, Config);
-  }
-
-  // add corresponding Allocas or getElementPtr instructions to the taint
-  // category
-  for (const auto &VarDesc : Config["variables"]) {
-    for (const auto &Fun : IRDB.getAllFunctions()) {
-      for (const auto &I : llvm::instructions(Fun)) {
-        //
-      }
-    }
-  }
-}
-
-TaintConfigData TaintConfigData::loadDataFromFile(const llvm::Twine &Path,
-                                                  const LLVMProjectIRDB &IRDB) {
-  TaintConfigData Data = TaintConfigData();
-  nlohmann::json Config = readJsonFile(Path);
-  for (const auto &FunDesc : Config["functions"]) {
-    auto Name = FunDesc["name"].get<std::string>();
-
-    auto FnDefs = findAllFunctionDefs(IRDB, Name);
-
-    if (FnDefs.empty()) {
-      llvm::errs() << "WARNING: Cannot retrieve function " << Name << "\n";
-      continue;
-    }
-
-    const auto *Fun = FnDefs[0];
-
-    // handle a function's parameters
-    if (FunDesc.contains("params")) {
-      auto Params = FunDesc["params"];
-      if (Params.contains("source")) {
-        for (unsigned Idx : Params["source"]) {
-          if (Idx >= Fun->arg_size()) {
-            llvm::errs()
-                << "ERROR: The source-function parameter index is out of "
-                   "bounds: "
-                << Idx << "\n";
-            // Use 'continue' instead of 'break' to get error messages for the
-            // remaining parameters as well
-            continue;
-          }
-          Data.addSourceValue(Fun->getArg(Idx)->getName().str());
-        }
-      }
-      if (Params.contains("sink")) {
-        for (const auto &Idx : Params["sink"]) {
-          if (Idx.is_number()) {
-            if (Idx >= Fun->arg_size()) {
-              llvm::errs()
-                  << "ERROR: The source-function parameter index is out of "
-                     "bounds: "
-                  << Idx << "\n";
-              continue;
-            }
-            Data.addSinkValue(Fun->getArg(Idx)->getName().str());
-          } else if (Idx.is_string()) {
-            const auto Sinks = Idx.get<std::string>();
-            if (Sinks == "all") {
-              for (const auto &Arg : Fun->args()) {
-                Data.addSinkValue(Fun->getArg(Idx)->getName().str());
-              }
-            }
-          }
-        }
-      }
-      if (Params.contains("sanitizer")) {
-        for (unsigned Idx : Params["sanitizer"]) {
-          if (Idx >= Fun->arg_size()) {
-            llvm::errs()
-                << "ERROR: The source-function parameter index is out of "
-                   "bounds: "
-                << Idx << "\n";
-            continue;
-          }
-          Data.addSanitizerValue(Fun->getArg(Idx)->getName().str());
-        }
-      }
-    }
-    // handle a function's return value
-    /*
-    if (FunDesc.contains("ret")) {
-      for (const auto &User : Fun->users()) {
-        Data.addTaintValue(User, FunDesc["ret"].get<std::string>());
-      }
-    }*/
-  }
-
-  return Data;
-}
-
-void TaintConfigData::addDataToFile(const llvm::Twine &Path) {
-  nlohmann::json Config;
-
-  for (const auto &Source : SourceValues) {
-    Config.push_back({"SourceValues", {{Source}}});
-  }
-
-  for (const auto &Sink : SinkValues) {
-    Config.push_back({"SinkValues", {{Sink}}});
-  }
-
-  for (const auto &Sanitizer : SanitizerValues) {
-    Config.push_back({"SanitizerValues", {{Sanitizer}}});
-  }
-
-  std::error_code FileError;
-  llvm::raw_fd_ostream File(Path.str(), FileError);
-
-  if (FileError) {
-    llvm::errs() << "Error while creating file: " << Path.str() << "\n";
-  }
-
-  File << Config;
-}
-
-void TaintConfigData::getValuesFromJSON(nlohmann::json JSON) {
-  // TODO:
-}
-
-void TaintConfigData::loadDataFromFileForThis(const llvm::Twine &Path,
-                                              const LLVMProjectIRDB &IRDB) {
-  nlohmann::json Config = readJsonFile(Path);
-
-  if (!Config.contains("functions")) {
-    return;
-  }
-  for (const auto &FunDesc : Config["functions"]) {
-    auto Name = FunDesc["name"].get<std::string>();
-
-    auto FnDefs = findAllFunctionDefs(IRDB, Name);
-
-    if (FnDefs.empty()) {
-      llvm::errs() << "WARNING: Cannot retrieve function " << Name << "\n";
-      continue;
-    }
-
-    const auto *Fun = FnDefs[0];
-
-    // handle a function's parameters
-    if (FunDesc.contains("params")) {
-      auto Params = FunDesc["params"];
-      if (Params.contains("source")) {
-        for (unsigned Idx : Params["source"]) {
-          if (Idx >= Fun->arg_size()) {
-            llvm::errs()
-                << "ERROR: The source-function parameter index is out of "
-                   "bounds: "
-                << Idx << "\n";
-            // Use 'continue' instead of 'break' to get error messages for the
-            // remaining parameters as well
-            continue;
-          }
-          SourceValues.insert(Fun->getArg(Idx)->getName().str());
-        }
-      }
-      if (Params.contains("sink")) {
-        for (const auto &Idx : Params["sink"]) {
-          if (Idx.is_number()) {
-            if (Idx >= Fun->arg_size()) {
-              llvm::errs()
-                  << "ERROR: The source-function parameter index is out of "
-                     "bounds: "
-                  << Idx << "\n";
-              continue;
-            }
-            SinkValues.insert(Fun->getArg(Idx)->getName().str());
-          } else if (Idx.is_string()) {
-            const auto Sinks = Idx.get<std::string>();
-            if (Sinks == "all") {
-              for (const auto &Arg : Fun->args()) {
-                SinkValues.insert(Fun->getArg(Idx)->getName().str());
-              }
-            }
-          }
-        }
-      }
-      if (Params.contains("sanitizer")) {
-        for (unsigned Idx : Params["sanitizer"]) {
-          if (Idx >= Fun->arg_size()) {
-            llvm::errs()
-                << "ERROR: The source-function parameter index is out of "
-                   "bounds: "
-                << Idx << "\n";
-            continue;
-          }
-          SanitizerValues.insert(Fun->getArg(Idx)->getName().str());
-        }
-      }
-    }
+void TaintConfigData::addTaintCategory(const llvm::Value *Val,
+                                       TaintCategory Annotation) {
+  switch (Annotation) {
+  case TaintCategory::Source:
+    addSourceValue(Val);
+    break;
+  case TaintCategory::Sink:
+    addSinkValue(Val);
+    break;
+  case TaintCategory::Sanitizer:
+    addSanitizerValue(Val);
+    break;
+  default:
+    // ignore
+    break;
   }
 }
 

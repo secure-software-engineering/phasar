@@ -64,9 +64,9 @@ protected:
                                 return LLVMTaintConfig(HA.getProjectIRDB());
                               },
                               [&](json *JS) {
-                                auto Ret = LLVMTaintConfig(
-                                    HA.getProjectIRDB(),
-                                    TaintConfigData(*JS, HA.getProjectIRDB()));
+                                TaintConfigData Data =
+                                    TaintConfigData(HA.getProjectIRDB(), *JS);
+                                auto Ret = LLVMTaintConfig(Data);
                                 if (DumpResults) {
                                   llvm::errs() << Ret << "\n";
                                 }
