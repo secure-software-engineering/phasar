@@ -19,7 +19,7 @@ R"(
             "properties": {
                 "name": {
                     "type": "string",
-                    "description": "Name of the function in the llvm IR (look for possible mangling)"
+                    "description": "Name of the function in the llvm IR, look for possible mangling"
                 },
                 "ret": {
                     "enum": ["source", "sink", "sanitizer"],
