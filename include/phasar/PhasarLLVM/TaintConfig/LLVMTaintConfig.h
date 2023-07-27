@@ -91,11 +91,6 @@ private:
 
   void printImpl(llvm::raw_ostream &OS) const;
 
-  // --- utilities
-
-  void addAllFunctions(const LLVMProjectIRDB &IRDB,
-                       const nlohmann::json &Config);
-
   // --- data members
 
   std::unordered_set<const llvm::Value *> SourceValues;
