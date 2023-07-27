@@ -218,11 +218,8 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 LLVMTaintConfig AnalysisController::makeTaintConfig() {
   std::string AnalysisConfigPath =
       !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
-  TaintConfigData IfAnalysisConfigPathIsEmpty = TaintConfigData(
-      HA.getProjectIRDB(), parseTaintConfig(AnalysisConfigPath));
-  return !AnalysisConfigPath.empty()
-             ? LLVMTaintConfig(IfAnalysisConfigPathIsEmpty)
-             : LLVMTaintConfig(HA.getProjectIRDB());
+
+  return LLVMTaintConfig(HA.getProjectIRDB());
 }
 
 } // namespace psr

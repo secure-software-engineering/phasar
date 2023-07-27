@@ -1,5 +1,6 @@
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
@@ -146,7 +147,7 @@ void TaintConfigData::addAllFunctions(const LLVMProjectIRDB &IRDB,
             // remaining parameters as well
             continue;
           }
-          addTaintCategory(Fun->getArg(Idx), TaintCategory::Source);
+          addTaintCategory(Fun->getArg(Idx), "source");
         }
       }
       if (Params.contains("sink")) {
@@ -159,12 +160,12 @@ void TaintConfigData::addAllFunctions(const LLVMProjectIRDB &IRDB,
                   << Idx << "\n";
               continue;
             }
-            addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
+            addTaintCategory(Fun->getArg(Idx), "Sink");
           } else if (Idx.is_string()) {
             const auto Sinks = Idx.get<std::string>();
             if (Sinks == "all") {
               for (const auto &Arg : Fun->args()) {
-                addTaintCategory(&Arg, TaintCategory::Sink);
+                addTaintCategory(&Arg, "sink");
               }
             }
           }
@@ -179,7 +180,7 @@ void TaintConfigData::addAllFunctions(const LLVMProjectIRDB &IRDB,
                 << Idx << "\n";
             continue;
           }
-          addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);
+          addTaintCategory(Fun->getArg(Idx), "sanitizer");
         }
       }
     }

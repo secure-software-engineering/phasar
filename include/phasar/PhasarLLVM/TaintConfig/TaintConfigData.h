@@ -22,10 +22,12 @@
 
 namespace psr {
 class TaintConfigData;
+class LLVMProjectIRDB;
 
 class TaintConfigData {
 public:
-  TaintConfigData(const LLVMProjectIRDB &IRDB, const nlohmann::json &Config);
+  explicit TaintConfigData(const psr::LLVMProjectIRDB &IRDB,
+                           const nlohmann::json &Config);
 
   void addSourceValue(const llvm::Value *V);
   void addSinkValue(const llvm::Value *V);

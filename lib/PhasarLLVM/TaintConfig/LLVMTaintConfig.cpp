@@ -132,7 +132,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
   }
 }
 
-LLVMTaintConfig::LLVMTaintConfig(TaintConfigData &Config) {
+LLVMTaintConfig::LLVMTaintConfig(const TaintConfigData &Config) {
   SinkValues = Config.getAllSinkValues();
   SourceValues = Config.getAllSourceValues();
   SanitizerValues = Config.getAllSanitizerValues();
