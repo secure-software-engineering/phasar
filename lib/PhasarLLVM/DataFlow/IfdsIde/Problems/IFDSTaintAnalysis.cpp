@@ -331,21 +331,6 @@ bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t FlowFact) const {
   return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
-void IFDSTaintAnalysis::printNode(llvm::raw_ostream &Os,
-                                  IFDSTaintAnalysis::n_t Inst) const {
-  Os << llvmIRToString(Inst);
-}
-
-void IFDSTaintAnalysis::printDataFlowFact(
-    llvm::raw_ostream &Os, IFDSTaintAnalysis::d_t FlowFact) const {
-  Os << llvmIRToString(FlowFact);
-}
-
-void IFDSTaintAnalysis::printFunction(llvm::raw_ostream &Os,
-                                      IFDSTaintAnalysis::f_t Fun) const {
-  Os << Fun->getName();
-}
-
 void IFDSTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
     llvm::raw_ostream &OS) {

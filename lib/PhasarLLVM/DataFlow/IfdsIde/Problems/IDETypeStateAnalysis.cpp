@@ -47,7 +47,7 @@ namespace psr {
 // customize the edge function composer
 struct TSEdgeFunctionComposer
     : EdgeFunctionComposer<IDETypeStateAnalysisDomain::l_t> {
-  IDETypeStateAnalysisDomain::l_t BotElement{};
+  IDETypeStateAnalysisDomain::l_t BotElement;
 
   static EdgeFunction<IDETypeStateAnalysisDomain::l_t>
   join(EdgeFunctionRef<TSEdgeFunctionComposer> This,
@@ -76,9 +76,9 @@ struct TSEdgeFunction {
     auto CurrentState = TSD->getNextState(
         Token, Source == TSD->top() ? TSD->uninit() : Source, CallSite);
     PHASAR_LOG_LEVEL(DEBUG, "State machine transition: ("
-                                << Token << " , " << TSD->stateToString(Source)
-                                << ") -> " << TSD->stateToString(CurrentState));
-    return CurrentState;
+                                << Token << " , " << LToString(Source)
+                                << ") -> " << LToString(CurrentState));
+    return {CurrentState, Source.Print};
   }
 
   static EdgeFunction<l_t> compose(EdgeFunctionRef<TSEdgeFunction> This,
@@ -87,7 +87,9 @@ struct TSEdgeFunction {
       return Default;
     }
 
-    return TSEdgeFunctionComposer{{This, SecondFunction}, This->TSD->bottom()};
+    return TSEdgeFunctionComposer{
+        {This, SecondFunction},
+        {This->TSD->bottom(), This->TSD->getStateToString()}};
   }
 
   static EdgeFunction<l_t> join(EdgeFunctionRef<TSEdgeFunction> This,
@@ -96,7 +98,8 @@ struct TSEdgeFunction {
       return Default;
     }
 
-    return AllBottom<IDETypeStateAnalysis::l_t>{This->TSD->bottom()};
+    return AllBottom<IDETypeStateAnalysis::l_t>{
+        {This->TSD->bottom(), This->TSD->getStateToString()}};
   }
 
   bool operator==(const TSEdgeFunction &Other) const {
@@ -123,7 +126,7 @@ struct TSConstant : ConstantEdgeFunction<IDETypeStateAnalysisDomain::l_t> {
       return Default;
     }
 
-    auto Ret = SecondFunction.computeTarget(This->Value);
+    l_t Ret = SecondFunction.computeTarget(This->Value);
     if (Ret == This->Value) {
       return This;
     }
@@ -150,7 +153,8 @@ struct TSConstant : ConstantEdgeFunction<IDETypeStateAnalysisDomain::l_t> {
         return OtherFunction;
       }
     }
-    return AllBottom<IDETypeStateAnalysis::l_t>{TSD->bottom()};
+    return AllBottom<IDETypeStateAnalysis::l_t>{
+        {TSD->bottom(), TSD->getStateToString()}};
   }
 };
 
@@ -161,7 +165,7 @@ bool operator==(ByConstRef<TSConstant> LHS,
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               ByConstRef<TSConstant> EF) {
-  return OS << "TSConstant[" << EF.TSD->stateToString(EF.Value) << "]";
+  return OS << "TSConstant[" << LToString(EF.Value) << "]";
 }
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB,
@@ -172,6 +176,8 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(const LLVMProjectIRDB *IRDB,
       TSD(TSD), PT(PT) {
   assert(TSD != nullptr);
   assert(PT);
+
+  Print = TSD->getStateToString();
 }
 
 // Start formulating our analysis by specifying the parts required for IFDS
@@ -448,7 +454,8 @@ struct TSAllocaEF : TSConstant {
   const llvm::AllocaInst *Alloca;
   TSAllocaEF(const TypeStateDescription *Tsd,
              const llvm::AllocaInst *Alloca) noexcept
-      : TSConstant{{Tsd->uninit()}, Tsd}, Alloca(Alloca) {}
+      : TSConstant{{{Tsd->uninit(), Tsd->getStateToString()}}, Tsd},
+        Alloca(Alloca) {}
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const TSAllocaEF &TSA) {
@@ -504,7 +511,8 @@ auto IDETypeStateAnalysis::getCallToRetEdgeFunction(
       PHASAR_LOG_LEVEL(DEBUG, "Processing factory function");
       if (isZeroValue(CallNode) && RetSiteNode == CS) {
         return TSConstant{
-            {TSD->getNextState(DemangledFname, TSD->uninit(), CS)}, TSD};
+            {{TSD->getNextState(DemangledFname, TSD->uninit(), CS), Print}},
+            TSD};
       }
     }
 
@@ -535,11 +543,11 @@ auto IDETypeStateAnalysis::getSummaryEdgeFunction(
 }
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::topElement() {
-  return TSD->top();
+  return {TSD->top(), Print};
 }
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::bottomElement() {
-  return TSD->bottom();
+  return {TSD->bottom(), Print};
 }
 
 IDETypeStateAnalysis::l_t
@@ -554,30 +562,11 @@ IDETypeStateAnalysis::join(IDETypeStateAnalysis::l_t Lhs,
   if (Rhs == TSD->top()) {
     return Lhs;
   }
-  return TSD->bottom();
+  return {TSD->bottom(), Print};
 }
 
 auto IDETypeStateAnalysis::allTopFunction() -> EdgeFunction<l_t> {
-  return AllTop<IDETypeStateAnalysis::l_t>{TSD->top()};
-}
-
-void IDETypeStateAnalysis::printNode(llvm::raw_ostream &OS, n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IDETypeStateAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                             d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IDETypeStateAnalysis::printFunction(llvm::raw_ostream &OS,
-                                         IDETypeStateAnalysis::f_t Func) const {
-  OS << Func->getName();
-}
-
-void IDETypeStateAnalysis::printEdgeFact(llvm::raw_ostream &OS,
-                                         IDETypeStateAnalysis::l_t L) const {
-  OS << TSD->stateToString(L);
+  return AllTop<IDETypeStateAnalysis::l_t>{{TSD->top(), Print}};
 }
 
 std::set<IDETypeStateAnalysis::d_t>
@@ -587,30 +576,25 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
   }
   auto AliasSet = getWMAliasSet(V);
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas;
-  PHASAR_LOG_LEVEL(DEBUG, "Compute relevant alloca's of "
-                              << IDETypeStateAnalysis::DtoString(V));
+  PHASAR_LOG_LEVEL(DEBUG, "Compute relevant alloca's of " << DToString(V));
   for (const auto *Alias : AliasSet) {
-    PHASAR_LOG_LEVEL(DEBUG,
-                     "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
+    PHASAR_LOG_LEVEL(DEBUG, "Alias: " << DToString(Alias));
     // Collect the pointer operand of a aliased load instruciton
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
       if (hasMatchingType(Alias)) {
-        PHASAR_LOG_LEVEL(DEBUG,
-                         " -> Alloca: " << IDETypeStateAnalysis::DtoString(
-                             Load->getPointerOperand()));
+        PHASAR_LOG_LEVEL(
+            DEBUG, " -> Alloca: " << DToString(Load->getPointerOperand()));
         RelevantAllocas.insert(Load->getPointerOperand());
       }
     } else {
       // For all other types of aliases, e.g. callsites, function arguments,
       // we check store instructions where thoses aliases are value operands.
       for (const auto *User : Alias->users()) {
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "  User: " << IDETypeStateAnalysis::DtoString(User));
+        PHASAR_LOG_LEVEL(DEBUG, "  User: " << DToString(User));
         if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
           if (hasMatchingType(Store)) {
-            PHASAR_LOG_LEVEL(
-                DEBUG, "    -> Alloca: " << IDETypeStateAnalysis::DtoString(
-                           Store->getPointerOperand()));
+            PHASAR_LOG_LEVEL(DEBUG, "    -> Alloca: " << DToString(
+                                        Store->getPointerOperand()));
             RelevantAllocas.insert(Store->getPointerOperand());
           }
         }
@@ -737,31 +721,31 @@ void IDETypeStateAnalysis::emitTextReport(
       for (const auto &I : BB) {
         auto Results = SR.resultsAt(&I, true);
         if (CFG.isExitInst(&I)) {
-          OS << "\nAt exit stmt: " << NtoString(&I) << '\n';
+          OS << "\nAt exit stmt: " << NToString(&I) << '\n';
           for (auto Res : Results) {
             if (const auto *Alloca =
                     llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
               if (Res.second == TSD->error()) {
                 OS << "\n=== ERROR STATE DETECTED ===\nAlloca: "
-                   << DtoString(Res.first) << '\n';
+                   << DToString(Res.first) << '\n';
                 for (const auto *Pred : CFG.getPredsOf(&I)) {
-                  OS << "\nPredecessor: " << NtoString(Pred) << '\n';
+                  OS << "\nPredecessor: " << NToString(Pred) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {
-                      OS << "Pred State: " << LtoString(Res.second) << '\n';
+                      OS << "Pred State: " << LToString(Res.second) << '\n';
                     }
                   }
                 }
                 OS << "============================\n";
               } else {
-                OS << "\nAlloca : " << DtoString(Res.first)
-                   << "\nState  : " << LtoString(Res.second) << '\n';
+                OS << "\nAlloca : " << DToString(Res.first)
+                   << "\nState  : " << LToString(Res.second) << '\n';
               }
             } else {
-              OS << "\nInst: " << NtoString(&I) << '\n'
-                 << "Fact: " << DtoString(Res.first) << '\n'
-                 << "State: " << LtoString(Res.second) << '\n';
+              OS << "\nInst: " << NToString(&I) << '\n'
+                 << "Fact: " << DToString(Res.first) << '\n'
+                 << "State: " << LToString(Res.second) << '\n';
             }
           }
         } else {
@@ -770,23 +754,23 @@ void IDETypeStateAnalysis::emitTextReport(
                     llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
               if (Res.second == TSD->error()) {
                 OS << "\n=== ERROR STATE DETECTED ===\nAlloca: "
-                   << DtoString(Res.first) << '\n'
-                   << "\nAt IR Inst: " << NtoString(&I) << '\n';
+                   << DToString(Res.first) << '\n'
+                   << "\nAt IR Inst: " << NToString(&I) << '\n';
                 for (const auto *Pred : CFG.getPredsOf(&I)) {
-                  OS << "\nPredecessor: " << NtoString(Pred) << '\n';
+                  OS << "\nPredecessor: " << NToString(Pred) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {
-                      OS << "Pred State: " << LtoString(Res.second) << '\n';
+                      OS << "Pred State: " << LToString(Res.second) << '\n';
                     }
                   }
                 }
                 OS << "============================\n";
               }
             } else {
-              OS << "\nInst: " << NtoString(&I) << '\n'
-                 << "Fact: " << DtoString(Res.first) << '\n'
-                 << "State: " << LtoString(Res.second) << '\n';
+              OS << "\nInst: " << NToString(&I) << '\n'
+                 << "Fact: " << DToString(Res.first) << '\n'
+                 << "State: " << LToString(Res.second) << '\n';
             }
           }
         }
@@ -797,3 +781,12 @@ void IDETypeStateAnalysis::emitTextReport(
 }
 
 } // namespace psr
+
+std::string psr::LToString(TypeState S) {
+  if (!S.Print) {
+    PHASAR_LOG_LEVEL(WARNING, "Printing default constructed TypeState");
+    return "TOP";
+  }
+
+  return S.Print(S.State);
+}

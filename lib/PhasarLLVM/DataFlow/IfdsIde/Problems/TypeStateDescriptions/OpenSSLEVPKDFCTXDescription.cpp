@@ -150,35 +150,37 @@ OpenSSLEVPKDFCTXDescription::getFactoryParamIdx(const std::string &F) const {
   return {};
 }
 
-std::string OpenSSLEVPKDFCTXDescription::stateToString(
-    TypeStateDescription::State S) const {
-  switch (S) {
-  case OpenSSLEVPKDFState::TOP:
-    return "TOP";
-    break;
-  case OpenSSLEVPKDFState::UNINIT:
-    return "UNINIT";
-    break;
+auto OpenSSLEVPKDFCTXDescription::getStateToString() const
+    -> std::string (*)(int) {
+  return [](TypeStateDescription::State S) -> std::string {
+    switch (S) {
+    case OpenSSLEVPKDFState::TOP:
+      return "TOP";
+      break;
+    case OpenSSLEVPKDFState::UNINIT:
+      return "UNINIT";
+      break;
 
-  case OpenSSLEVPKDFState::CTX_ATTACHED:
-    return "CTX_ATTACHED";
-    break;
-  case OpenSSLEVPKDFState::PARAM_INIT:
-    return "PARAM_INIT";
-    break;
-  case OpenSSLEVPKDFState::DERIVED:
-    return "DERIVED";
-    break;
-  case OpenSSLEVPKDFState::ERROR:
-    return "ERROR";
-    break;
-  case OpenSSLEVPKDFState::BOT:
-    return "BOT";
-    break;
-  default:
-    llvm::report_fatal_error("received unknown state!");
-    break;
-  }
+    case OpenSSLEVPKDFState::CTX_ATTACHED:
+      return "CTX_ATTACHED";
+      break;
+    case OpenSSLEVPKDFState::PARAM_INIT:
+      return "PARAM_INIT";
+      break;
+    case OpenSSLEVPKDFState::DERIVED:
+      return "DERIVED";
+      break;
+    case OpenSSLEVPKDFState::ERROR:
+      return "ERROR";
+      break;
+    case OpenSSLEVPKDFState::BOT:
+      return "BOT";
+      break;
+    default:
+      llvm::report_fatal_error("received unknown state!");
+      break;
+    }
+  };
 }
 
 TypeStateDescription::State OpenSSLEVPKDFCTXDescription::bottom() const {

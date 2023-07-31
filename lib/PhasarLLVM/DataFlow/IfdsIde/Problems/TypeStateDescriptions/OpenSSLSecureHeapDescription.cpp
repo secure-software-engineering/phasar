@@ -130,25 +130,27 @@ OpenSSLSecureHeapDescription::getFactoryParamIdx(const std::string &F) const {
   return {};
 }
 
-std::string OpenSSLSecureHeapDescription::stateToString(
-    TypeStateDescription::State S) const {
-  switch (S) {
-  case OpenSSLSecureHeapState::TOP:
-    return "TOP";
-  case OpenSSLSecureHeapState::BOT:
-    return "BOT";
-  case OpenSSLSecureHeapState::ALLOCATED:
-    return "ALLOCATED";
-  case OpenSSLSecureHeapState::UNINIT:
-    return "UNINIT";
-  case OpenSSLSecureHeapState::FREED:
-    return "FREED";
-  case OpenSSLSecureHeapState::ERROR:
-    return "ERROR";
-  default:
-    llvm::report_fatal_error("received unknown state!");
-    break;
-  }
+auto OpenSSLSecureHeapDescription::getStateToString() const
+    -> std::string (*)(int) {
+  return [](TypeStateDescription::State S) -> std::string {
+    switch (S) {
+    case OpenSSLSecureHeapState::TOP:
+      return "TOP";
+    case OpenSSLSecureHeapState::BOT:
+      return "BOT";
+    case OpenSSLSecureHeapState::ALLOCATED:
+      return "ALLOCATED";
+    case OpenSSLSecureHeapState::UNINIT:
+      return "UNINIT";
+    case OpenSSLSecureHeapState::FREED:
+      return "FREED";
+    case OpenSSLSecureHeapState::ERROR:
+      return "ERROR";
+    default:
+      llvm::report_fatal_error("received unknown state!");
+      break;
+    }
+  };
 }
 
 TypeStateDescription::State OpenSSLSecureHeapDescription::bottom() const {

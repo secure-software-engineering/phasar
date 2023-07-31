@@ -68,11 +68,10 @@ public:
     return Lhs.cs < Rhs.cs;
   }
 
-  llvm::raw_ostream &print(llvm::raw_ostream &OS,
-                           const NodePrinterBase<N> &NP) const {
+  llvm::raw_ostream &print(llvm::raw_ostream &OS) const {
     OS << "Call string: [ ";
     for (auto C : CallString) {
-      NP.printNode(OS, C);
+      OS << NToString((C));
       if (C != CallString.back()) {
         OS << " * ";
       }

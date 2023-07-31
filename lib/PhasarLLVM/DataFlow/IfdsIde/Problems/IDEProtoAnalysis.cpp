@@ -141,24 +141,4 @@ EdgeFunction<IDEProtoAnalysis::l_t> IDEProtoAnalysis::allTopFunction() {
   return AllTop<l_t>{nullptr};
 }
 
-void IDEProtoAnalysis::printNode(llvm::raw_ostream &OS,
-                                 IDEProtoAnalysis::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IDEProtoAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                         IDEProtoAnalysis::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IDEProtoAnalysis::printFunction(llvm::raw_ostream &OS,
-                                     IDEProtoAnalysis::f_t Func) const {
-  OS << Func->getName();
-}
-
-void IDEProtoAnalysis::printEdgeFact(llvm::raw_ostream &OS,
-                                     IDEProtoAnalysis::l_t L) const {
-  OS << llvmIRToString(L);
-}
-
 } // namespace psr

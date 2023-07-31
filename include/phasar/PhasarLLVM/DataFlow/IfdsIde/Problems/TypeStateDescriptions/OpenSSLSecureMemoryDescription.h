@@ -19,29 +19,6 @@
 namespace psr {
 
 class OpenSSLSecureMemoryDescription : public TypeStateDescription {
-private:
-  enum OpenSSLSecureMemoryState {
-    TOP = 42,
-    BOT = 0,
-    ZEROED = 1,
-    FREED = 2,
-    ERROR = 3,
-    ALLOCATED = 4
-  };
-
-  enum class OpenSSLSecureMemoryToken {
-    CRYPTO_MALLOC = 0,
-    CRYPTO_ZALLOC = 1,
-    CRYPTO_FREE = 2,
-    OPENSSL_CLEANSE = 3,
-    STAR = 4
-  };
-
-  static const std::map<std::string, std::set<int>> OpenSSLSecureMemoryFuncs;
-  // Delta matrix to implement the state machine's Delta function
-  static const OpenSSLSecureMemoryState Delta[6][7];
-  static OpenSSLSecureMemoryToken funcNameToToken(const std::string &F);
-
 public:
   [[nodiscard]] bool isFactoryFunction(const std::string &F) const override;
   [[nodiscard]] bool isConsumingFunction(const std::string &F) const override;
@@ -53,8 +30,7 @@ public:
   getConsumerParamIdx(const std::string &F) const override;
   [[nodiscard]] std::set<int>
   getFactoryParamIdx(const std::string &F) const override;
-  [[nodiscard]] std::string
-  stateToString(TypeStateDescription::State S) const override;
+  [[nodiscard]] auto getStateToString() const -> std::string (*)(int) override;
   [[nodiscard]] TypeStateDescription::State bottom() const override;
   [[nodiscard]] TypeStateDescription::State top() const override;
   [[nodiscard]] TypeStateDescription::State uninit() const override;

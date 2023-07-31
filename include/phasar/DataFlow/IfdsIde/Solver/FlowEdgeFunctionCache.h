@@ -188,8 +188,8 @@ public:
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Normal flow function factory call");
-        PHASAR_LOG_LEVEL(DEBUG, "(N) Curr Inst : " << Problem.NtoString(Curr));
-        PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << Problem.NtoString(Succ)));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Curr Inst : " << NToString(Curr));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << NToString(Succ)));
     auto Key = createEdgeFunctionInstKey(Curr, Succ);
     auto SearchNormalFlowFunction = NormalFunctionCache.find(Key);
     if (SearchNormalFlowFunction != NormalFunctionCache.end()) {
@@ -218,11 +218,10 @@ public:
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) {
     PAMM_GET_INSTANCE;
-    IF_LOG_ENABLED(PHASAR_LOG_LEVEL(DEBUG, "Call flow function factory call");
-                   PHASAR_LOG_LEVEL(DEBUG, "(N) Call Stmt : "
-                                               << Problem.NtoString(CallSite));
-                   PHASAR_LOG_LEVEL(
-                       DEBUG, "(F) Dest Fun : " << Problem.FtoString(DestFun)));
+    IF_LOG_ENABLED(
+        PHASAR_LOG_LEVEL(DEBUG, "Call flow function factory call");
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Stmt : " << NToString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(F) Dest Fun : " << FToString(DestFun)));
     auto Key = std::tie(CallSite, DestFun);
     auto SearchCallFlowFunction = CallFlowFunctionCache.find(Key);
     if (SearchCallFlowFunction != CallFlowFunctionCache.end()) {
@@ -245,14 +244,10 @@ public:
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Return flow function factory call");
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Call Site : " << Problem.NtoString(CallSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(F) Callee    : " << Problem.FtoString(CalleeFun));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Exit Stmt : " << Problem.NtoString(ExitInst));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Ret Site  : " << Problem.NtoString(RetSite)));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Site : " << NToString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(F) Callee    : " << FToString(CalleeFun));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Exit Stmt : " << NToString(ExitInst));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite)));
     auto Key = std::tie(CallSite, CalleeFun, ExitInst, RetSite);
     auto SearchReturnFlowFunction = ReturnFlowFunctionCache.find(Key);
     if (SearchReturnFlowFunction != ReturnFlowFunctionCache.end()) {
@@ -279,13 +274,11 @@ public:
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return flow function factory call");
 
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Call Site : " << Problem.NtoString(CallSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Site : " << NToString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite));
         PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
                                                           : Callees) {
-          PHASAR_LOG_LEVEL(DEBUG, "  " << Problem.FtoString(callee));
+          PHASAR_LOG_LEVEL(DEBUG, "  " << FToString(callee));
         };);
     auto Key = std::tie(CallSite, RetSite);
     auto SearchCallToRetFlowFunction = CallToRetFlowFunctionCache.find(Key);
@@ -311,10 +304,8 @@ public:
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Summary flow function factory call");
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Call Stmt : " << Problem.NtoString(CallSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(F) Dest Mthd : " << Problem.FtoString(DestFun));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Stmt : " << NToString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(F) Dest Mthd : " << FToString(DestFun));
         PHASAR_LOG_LEVEL(DEBUG, ' '));
     auto FF = Problem.getSummaryFlowFunction(CallSite, DestFun);
     return FF;
@@ -325,12 +316,10 @@ public:
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Normal edge function factory call");
-        PHASAR_LOG_LEVEL(DEBUG, "(N) Curr Inst : " << Problem.NtoString(Curr));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Curr Node : " << Problem.DtoString(CurrNode));
-        PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << Problem.NtoString(Succ));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Succ Node : " << Problem.DtoString(SuccNode)));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Curr Inst : " << NToString(Curr));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Curr Node : " << DToString(CurrNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << NToString(Succ));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Succ Node : " << DToString(SuccNode)));
 
     EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(Curr, Succ);
     auto SearchInnerMap = NormalFunctionCache.find(OuterMapKey);
@@ -371,15 +360,12 @@ public:
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call edge function factory call");
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Call Stmt : " << Problem.NtoString(CallSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Src Node  : " << Problem.DtoString(SrcNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Stmt : " << NToString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Src Node  : " << DToString(SrcNode));
 
-        PHASAR_LOG_LEVEL(
-            DEBUG, "(F) Dest Fun : " << Problem.FtoString(DestinationFunction));
         PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Dest Node : " << Problem.DtoString(DestNode)));
+                         "(F) Dest Fun : " << FToString(DestinationFunction));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Dest Node : " << DToString(DestNode)));
     auto Key = std::tie(CallSite, SrcNode, DestinationFunction, DestNode);
     auto SearchCallEdgeFunction = CallEdgeFunctionCache.find(Key);
     if (SearchCallEdgeFunction != CallEdgeFunctionCache.end()) {
@@ -404,18 +390,13 @@ public:
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Return edge function factory call");
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Site : " << NToString(CallSite));
         PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Call Site : " << Problem.NtoString(CallSite));
-        PHASAR_LOG_LEVEL(
-            DEBUG, "(F) Callee    : " << Problem.FtoString(CalleeFunction));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Exit Stmt : " << Problem.NtoString(ExitInst));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Exit Node : " << Problem.DtoString(ExitNode));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Ret Node  : " << Problem.DtoString(RetNode)));
+                         "(F) Callee    : " << FToString(CalleeFunction));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Exit Stmt : " << NToString(ExitInst));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Exit Node : " << DToString(ExitNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Ret Node  : " << DToString(RetNode)));
     auto Key = std::tie(CallSite, CalleeFunction, ExitInst, ExitNode, RetSite,
                         RetNode);
     auto SearchReturnEdgeFunction = ReturnEdgeFunctionCache.find(Key);
@@ -442,18 +423,14 @@ public:
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return edge function factory call");
 
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Call Site : " << Problem.NtoString(CallSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Call Node : " << Problem.DtoString(CallNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Site : " << NToString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Call Node : " << DToString(CallNode));
 
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Ret Node  : " << Problem.DtoString(RetSiteNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Ret Node  : " << DToString(RetSiteNode));
         PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
                                                           : Callees) {
-          PHASAR_LOG_LEVEL(DEBUG, "  " << Problem.FtoString(callee));
+          PHASAR_LOG_LEVEL(DEBUG, "  " << FToString(callee));
         });
 
     EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(CallSite, RetSite);
@@ -498,14 +475,10 @@ public:
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Summary edge function factory call");
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Call Site : " << Problem.NtoString(CallSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Call Node : " << Problem.DtoString(CallNode));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(N) Ret Site  : " << Problem.NtoString(RetSite));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "(D) Ret Node  : " << Problem.DtoString(RetSiteNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Call Site : " << NToString(CallSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Call Node : " << DToString(CallNode));
+        PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite));
+        PHASAR_LOG_LEVEL(DEBUG, "(D) Ret Node  : " << DToString(RetSiteNode));
         PHASAR_LOG_LEVEL(DEBUG, ' '));
     auto Key = std::tie(CallSite, CallNode, RetSite, RetSiteNode);
     auto SearchSummaryEdgeFunction = SummaryEdgeFunctionCache.find(Key);

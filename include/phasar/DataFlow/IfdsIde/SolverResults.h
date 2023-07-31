@@ -131,9 +131,7 @@ public:
   }
 
   template <typename ICFGTy>
-  void dumpResults(const ICFGTy &ICF, const NodePrinterBase<n_t> &NP,
-                   const DataFlowFactPrinterBase<d_t> &DP,
-                   const EdgeFactPrinterBase<l_t> &LP,
+  void dumpResults(const ICFGTy &ICF,
                    llvm::raw_ostream &OS = llvm::outs()) const {
     using f_t = typename ICFGTy::f_t;
 
@@ -170,22 +168,16 @@ public:
         }
         if (Prev != Curr) {
           Prev = Curr;
-          std::string NString = NP.NtoString(Curr);
+          std::string NString = NToString(Curr);
           std::string Line(NString.size(), '-');
           OS << "\n\nN: " << NString << "\n---" << Line << '\n';
         }
-        OS << "\tD: " << DP.DtoString(Cells[I].getColumnKey())
-           << " | V: " << LP.LtoString(Cells[I].getValue()) << '\n';
+        OS << "\tD: " << DToString(Cells[I].getColumnKey())
+           << " | V: " << LToString(Cells[I].getValue()) << '\n';
       }
     }
     OS << '\n';
     STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
-  }
-
-  template <typename ICFGTy, typename ProblemTy>
-  void dumpResults(const ICFGTy &ICF, const ProblemTy &IDEProblem,
-                   llvm::raw_ostream &OS = llvm::outs()) const {
-    dumpResults(ICF, IDEProblem, IDEProblem, IDEProblem, OS);
   }
 
 private:

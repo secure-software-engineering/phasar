@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/Utils/Printer.h"
 
 #include "llvm/IR/InstrTypes.h"
 
@@ -34,8 +35,19 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 struct TypeStateDescription;
 
+struct TypeState {
+  int State{};
+  std::string (*Print)(int) = nullptr;
+
+  TypeState() noexcept = default;
+  TypeState(int State, std::string (*Print)(int)) noexcept
+      : State(State), Print{Print} {}
+
+  operator int() const noexcept { return State; }
+};
+
 struct IDETypeStateAnalysisDomain : public LLVMAnalysisDomainDefault {
-  using l_t = int;
+  using l_t = TypeState;
 };
 
 class IDETypeStateAnalysis
@@ -118,19 +130,12 @@ public:
 
   EdgeFunction<l_t> allTopFunction() override;
 
-  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
-
-  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
-
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:
   const TypeStateDescription *TSD{};
+  std::string (*Print)(int) = nullptr;
   std::map<const llvm::Value *, LLVMAliasInfo::AliasSetTy> AliasCache;
   LLVMAliasInfoRef PT{};
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
@@ -173,6 +178,8 @@ private:
    */
   bool hasMatchingType(d_t V);
 };
+
+std::string LToString(TypeState S);
 
 } // namespace psr
 

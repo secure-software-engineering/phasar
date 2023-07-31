@@ -55,7 +55,8 @@ struct TypeStateDescription {
   getConsumerParamIdx(const std::string &F) const = 0;
   [[nodiscard]] virtual std::set<int>
   getFactoryParamIdx(const std::string &F) const = 0;
-  [[nodiscard]] virtual std::string stateToString(State S) const = 0;
+  [[nodiscard]] virtual auto getStateToString() const
+      -> std::string (*)(int) = 0;
   [[nodiscard]] virtual State bottom() const = 0;
   [[nodiscard]] virtual State top() const = 0;
 

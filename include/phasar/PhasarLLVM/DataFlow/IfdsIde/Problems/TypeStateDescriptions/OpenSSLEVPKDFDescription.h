@@ -69,8 +69,7 @@ public:
   [[nodiscard]] std::set<int>
   getFactoryParamIdx(const std::string &F) const override;
 
-  [[nodiscard]] std::string
-  stateToString(TypeStateDescription::State S) const override;
+  [[nodiscard]] auto getStateToString() const -> std::string (*)(int) override;
 
   [[nodiscard]] TypeStateDescription::State bottom() const override;
 

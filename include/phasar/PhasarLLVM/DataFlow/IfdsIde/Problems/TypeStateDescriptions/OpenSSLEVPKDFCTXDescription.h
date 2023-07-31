@@ -15,7 +15,6 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
-#include <functional>
 #include <map>
 #include <set>
 #include <string>
@@ -95,8 +94,7 @@ public:
   getConsumerParamIdx(const std::string &F) const override;
   [[nodiscard]] std::set<int>
   getFactoryParamIdx(const std::string &F) const override;
-  [[nodiscard]] std::string
-  stateToString(TypeStateDescription::State S) const override;
+  [[nodiscard]] auto getStateToString() const -> std::string (*)(int) override;
   [[nodiscard]] TypeStateDescription::State bottom() const override;
   [[nodiscard]] TypeStateDescription::State top() const override;
   [[nodiscard]] TypeStateDescription::State uninit() const override;

@@ -9,6 +9,8 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
+
 #include "llvm/Support/ErrorHandling.h"
 
 #include <map>
@@ -94,23 +96,25 @@ OpenSSLEVPKDFDescription::getFactoryParamIdx(const std::string &F) const {
   return {};
 }
 
-std::string
-OpenSSLEVPKDFDescription::stateToString(TypeStateDescription::State S) const {
-  switch (S) {
-  case OpenSSLEVPKDFState::TOP:
-    return "TOP";
-  case OpenSSLEVPKDFState::UNINIT:
-    return "UNINIT";
-  case OpenSSLEVPKDFState::KDF_FETCHED:
-    return "KDF_FETCHED";
-  case OpenSSLEVPKDFState::ERROR:
-    return "ERROR";
-  case OpenSSLEVPKDFState::BOT:
-    return "BOT";
-  default:
-    llvm::report_fatal_error("received unknown state!");
-    break;
-  }
+auto OpenSSLEVPKDFDescription::getStateToString() const
+    -> std::string (*)(int) {
+  return [](TypeStateDescription::State S) -> std::string {
+    switch (S) {
+    case OpenSSLEVPKDFState::TOP:
+      return "TOP";
+    case OpenSSLEVPKDFState::UNINIT:
+      return "UNINIT";
+    case OpenSSLEVPKDFState::KDF_FETCHED:
+      return "KDF_FETCHED";
+    case OpenSSLEVPKDFState::ERROR:
+      return "ERROR";
+    case OpenSSLEVPKDFState::BOT:
+      return "BOT";
+    default:
+      llvm::report_fatal_error("received unknown state!");
+      break;
+    }
+  };
 }
 
 TypeStateDescription::State OpenSSLEVPKDFDescription::bottom() const {

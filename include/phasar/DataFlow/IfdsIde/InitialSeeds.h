@@ -46,7 +46,7 @@ public:
   }
 
   void addSeed(N Node, D Fact, L Value) {
-    Seeds[Node][Fact] = std::move(Value);
+    Seeds[std::move(Node)].insert_or_assign(std::move(Fact), std::move(Value));
   }
 
   [[nodiscard]] size_t countInitialSeeds() const {
