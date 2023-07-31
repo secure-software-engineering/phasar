@@ -230,35 +230,19 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
   std::set<d_t> Gen;
   std::set<d_t> Leak;
   std::set<d_t> Kill;
-  bool HasBody = false;
-  // Process the effects of source or sink functions that are called
 
-  if (!DestFun->isDeclaration()) {
-    HasBody = true;
-  }
+  // Process the effects of source or sink functions that are called
   collectGeneratedFacts(Gen, *Config, CS, DestFun);
   collectLeakedFacts(Leak, *Config, CS, DestFun);
   collectSanitizedFacts(Kill, *Config, CS, DestFun);
 
-  if (HasBody && Gen.empty() && Leak.empty() && Kill.empty()) {
-    // We have a normal function-call and the ret-FF is responsible for handling
-    // pointer parameters. So we need to kill them here
-    for (const auto &Arg : CS->args()) {
-      if (Arg->getType()->isPointerTy()) {
-        Kill.insert(Arg.get());
-      }
-    }
-  }
-
   populateWithMayAliases(Gen);
   populateWithMayAliases(Leak);
-
-  Gen.insert(LLVMZeroValue::getInstance());
-
   populateWithMustAliases(Kill);
 
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
+
       return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)},
                               this, CallSite](d_t Source) -> std::set<d_t> {
         if (Leak.count(Source)) {
@@ -272,35 +256,22 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
         return {Source};
       });
     }
+
     // all empty
     return nullptr;
   }
 
-  // Gen nonempty || both leak and kill empty
+  // Gen nonempty
 
-  if (!Gen.empty()) {
-    return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
-                            CallSite](d_t Source) -> std::set<d_t> {
-      if (LLVMZeroValue::isLLVMZeroValue(Source)) {
-        return Gen;
-      }
-
-      if (Leak.count(Source)) {
-        Leaks[CallSite].insert(Source);
-      }
-
-      return {Source};
-    });
-  }
-
-  return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
+  Gen.insert(LLVMZeroValue::getInstance());
+  return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
                           CallSite](d_t Source) -> std::set<d_t> {
-    if (Leak.count(Source)) {
-      Leaks[CallSite].insert(Source);
+    if (LLVMZeroValue::isLLVMZeroValue(Source)) {
+      return Gen;
     }
 
-    if (Kill.count(Source)) {
-      return {};
+    if (Leak.count(Source)) {
+      Leaks[CallSite].insert(Source);
     }
 
     return {Source};
