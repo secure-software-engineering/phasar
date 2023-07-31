@@ -24,8 +24,11 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <utility>
@@ -154,8 +157,21 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   // Check if a tainted value is extracted and taint the targets of
   // the extract operation accordingly
   if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
-
     return generateFlow(Extract, Extract->getAggregateOperand());
+  }
+
+  if (const auto *Insert = llvm::dyn_cast<llvm::InsertValueInst>(Curr)) {
+    return lambdaFlow<d_t>([Insert](d_t Source) -> container_type {
+      if (Source == Insert->getAggregateOperand() ||
+          Source == Insert->getInsertedValueOperand()) {
+        return {Source, Insert};
+      }
+      return {Source};
+    });
+  }
+
+  if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Curr)) {
+    return generateFlow<d_t>(Cast, Cast->getOperand(0));
   }
 
   // Otherwise we do not care and leave everything as it is
