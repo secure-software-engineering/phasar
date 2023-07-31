@@ -263,7 +263,7 @@ public:
       : EdgeFunction(
             [](auto &&...Args) {
               if constexpr (IsSOOCandidate<std::decay_t<ConcreteEF>>) {
-                void *Ret;
+                void *Ret = nullptr;
                 new (&Ret) ConcreteEF(std::forward<ArgTys>(Args)...);
                 return Ret;
               } else {
