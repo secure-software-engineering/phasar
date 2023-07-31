@@ -14,29 +14,36 @@ R"(
             "description": "Version of this taint configuration"
         },
         "functions": {
+            "description": "Array of functions you want to include in your analysis",
             "type": "array",
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Name of the function in the llvm IR, look for possible mangling"
                 },
                 "ret": {
-                    "enum": ["source", "sink", "sanitizer"]
+                    "enum": ["source", "sink", "sanitizer"],
+                    "description": "Tags the returned value as source sink or sanitizer"
                 },
                 "params": {
+                    "description": "Tags function parameters as source, sink or sanitizer",
                     "properties": {
                         "source": {
+                            "description": "Zero based indices of source tags",
                             "type": "array",
                             "properties": {
                                 "type": ["number", "string"]
                             }
                         },
                         "sink": {
+                            "description": "Zero based indices of sink tags. A Leak is detected if the function gets called with source taged value in this indices.",
                             "type": "array",
                             "properties": {
                                 "type": ["number", "string"]
                             }
                         },
                         "sanitizer": {
+                            "description": "Zero based indices of sanitizer tags",
                             "type": "array",
                             "properties": {
                                 "type": ["number", "string"]

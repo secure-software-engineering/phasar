@@ -1,5 +1,5 @@
-#ifndef PHASAR_PHASARLLVM_POINTER_ALIASANALYSISTYPE_H_
-#define PHASAR_PHASARLLVM_POINTER_ALIASANALYSISTYPE_H_
+#ifndef PHASAR_POINTER_ALIASANALYSISTYPE_H
+#define PHASAR_POINTER_ALIASANALYSISTYPE_H
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
@@ -20,4 +20,4 @@ AliasAnalysisType toAliasAnalysisType(llvm::StringRef S);
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AliasAnalysisType PA);
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_ALIASANALYSISTYPE_H_
+#endif // PHASAR_POINTER_ALIASANALYSISTYPE_H

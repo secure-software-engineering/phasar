@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_UTILS_CHRONO_UTILS_H
-#define PHASAR_PHASARLLVM_UTILS_CHRONO_UTILS_H
+#ifndef PHASAR_UTILS_CHRONOUTILS_H
+#define PHASAR_UTILS_CHRONOUTILS_H
 
 #include "llvm/Support/Format.h"
 #include "llvm/Support/raw_ostream.h"
@@ -52,4 +52,4 @@ struct hms { // NOLINT
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_UTILS_CHRONO_UTILS_H
+#endif // PHASAR_UTILS_CHRONOUTILS_H

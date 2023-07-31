@@ -14,8 +14,8 @@
  *      Author: rleer
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVERRESULTS_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVERRESULTS_H
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
@@ -51,13 +51,18 @@ public:
     return self().Results.get(Stmt, Node);
   }
 
-  [[nodiscard]] std::unordered_map<d_t, l_t>
-  resultsAt(ByConstRef<n_t> Stmt, bool StripZero = false) const {
+  [[nodiscard]] std::unordered_map<d_t, l_t> resultsAt(ByConstRef<n_t> Stmt,
+                                                       bool StripZero) const {
     std::unordered_map<d_t, l_t> Result = self().Results.row(Stmt);
     if (StripZero) {
       Result.erase(self().ZV);
     }
     return Result;
+  }
+
+  [[nodiscard]] const std::unordered_map<d_t, l_t> &
+  resultsAt(ByConstRef<n_t> Stmt) const {
+    return self().Results.row(Stmt);
   }
 
   // this function only exists for IFDS problems which use BinaryDomain as their
