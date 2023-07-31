@@ -24,7 +24,9 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
@@ -108,17 +110,40 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
       [this](const auto &Arg) { return Config->isSanitizer(&Arg); });
 }
 
-void IFDSTaintAnalysis::populateWithMayAliases(std::set<d_t> &Facts) const {
-  std::set<d_t> Tmp = Facts;
+void IFDSTaintAnalysis::populateWithMayAliases(
+    container_type &Facts, const llvm::Instruction *Context) const {
+  container_type Tmp = Facts;
   for (const auto *Fact : Facts) {
     auto Aliases = PT.getAliasSet(Fact);
-    Tmp.insert(Aliases->begin(), Aliases->end());
+    for (const auto *Alias : *Aliases) {
+      if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Alias)) {
+        /// Mapping instructions between functions is done via the call-FF and
+        /// ret-FF
+        if (Inst->getFunction() != Context->getFunction()) {
+          continue;
+        }
+        if (Inst->getParent() == Context->getParent() &&
+            Context->comesBefore(Inst)) {
+          // We will see that inst later
+          continue;
+        }
+      } else if (const auto *Glob =
+                     llvm::dyn_cast<llvm::GlobalVariable>(Alias)) {
+        if (Glob != Fact && Glob->isConstant()) {
+          // Data cannot flow into the readonly-data section
+          continue;
+        }
+      }
+
+      Tmp.insert(Alias);
+    }
   }
 
   Facts = std::move(Tmp);
 }
 
-void IFDSTaintAnalysis::populateWithMustAliases(std::set<d_t> &Facts) const {
+void IFDSTaintAnalysis::populateWithMustAliases(
+    container_type &Facts, const llvm::Instruction *Context) const {
   /// TODO: Find must-aliases; Currently the AliasSet only contains
   /// may-aliases
 }
@@ -127,37 +152,35 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
     IFDSTaintAnalysis::n_t Curr, [[maybe_unused]] IFDSTaintAnalysis::n_t Succ) {
   // If a tainted value is stored, the store location must be tainted too
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
-      const llvm::StoreInst *Store;
-      TAFF(const llvm::StoreInst *S) : Store(S){};
-      std::set<IFDSTaintAnalysis::d_t>
-      computeTargets(IFDSTaintAnalysis::d_t Source) override {
-        if (Store->getValueOperand() == Source) {
-          return std::set<IFDSTaintAnalysis::d_t>{Store->getPointerOperand(),
-                                                  Source};
-        }
-        if (Store->getValueOperand() != Source &&
-            Store->getPointerOperand() == Source) {
-          return {};
-        }
-        return {Source};
-      }
-    };
-    return std::make_shared<TAFF>(Store);
+    container_type Gen;
+    Gen.insert(Store->getPointerOperand());
+    populateWithMayAliases(Gen, Store);
+    Gen.insert(Store->getValueOperand());
+
+    return lambdaFlow<d_t>(
+        [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
+          if (Store->getValueOperand() == Source) {
+            return Gen;
+          }
+          if (Store->getPointerOperand() == Source) {
+            return {};
+          }
+          return {Source};
+        });
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return generateFlow(Load, Load->getPointerOperand());
+    return transferFlow(Load, Load->getPointerOperand());
   }
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return generateFlow(GEP, GEP->getPointerOperand());
+    return transferFlow(GEP, GEP->getPointerOperand());
   }
   // Check if a tainted value is extracted and taint the targets of
   // the extract operation accordingly
   if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
-    return generateFlow(Extract, Extract->getAggregateOperand());
+    return transferFlow(Extract, Extract->getAggregateOperand());
   }
 
   if (const auto *Insert = llvm::dyn_cast<llvm::InsertValueInst>(Curr)) {
@@ -166,12 +189,17 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
           Source == Insert->getInsertedValueOperand()) {
         return {Source, Insert};
       }
+
+      if (Source == Insert) {
+        return {};
+      }
+
       return {Source};
     });
   }
 
   if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Curr)) {
-    return generateFlow<d_t>(Cast, Cast->getOperand(0));
+    return transferFlow<d_t>(Cast, Cast->getOperand(0));
   }
 
   // Otherwise we do not care and leave everything as it is
@@ -243,24 +271,34 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
   }
 
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-  std::set<d_t> Gen;
-  std::set<d_t> Leak;
-  std::set<d_t> Kill;
+  container_type Gen;
+  container_type Leak;
+  container_type Kill;
 
   // Process the effects of source or sink functions that are called
   collectGeneratedFacts(Gen, *Config, CS, DestFun);
   collectLeakedFacts(Leak, *Config, CS, DestFun);
   collectSanitizedFacts(Kill, *Config, CS, DestFun);
 
-  populateWithMayAliases(Gen);
-  populateWithMayAliases(Leak);
-  populateWithMustAliases(Kill);
+  populateWithMayAliases(Gen, CallSite);
+  /// We now generate all aliases within the flow functions as facts, so we can
+  /// safely just check for the sink values here
+  // populateWithMayAliases(Leak, CallSite);
+  populateWithMustAliases(Kill, CallSite);
+
+  if (CS->hasStructRetAttr()) {
+    const auto *SRet = CS->getArgOperand(0);
+    if (!Gen.count(SRet)) {
+      // SRet is guaranteed to be written to by the call. If it does not
+      // generate it, we can freely kill it
+      Kill.insert(SRet);
+    }
+  }
 
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
-
       return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)},
-                              this, CallSite](d_t Source) -> std::set<d_t> {
+                              this, CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           Leaks[CallSite].insert(Source);
         }
@@ -281,7 +319,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
 
   Gen.insert(LLVMZeroValue::getInstance());
   return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
-                          CallSite](d_t Source) -> std::set<d_t> {
+                          CallSite](d_t Source) -> container_type {
     if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return Gen;
     }
@@ -306,7 +344,6 @@ IFDSTaintAnalysis::initialSeeds() {
   forallStartingPoints(EntryPoints, IRDB, C, [this, &Seeds](n_t SP) {
     Seeds.addSeed(SP, getZeroValue());
     if (SP->getFunction()->getName() == "main") {
-      std::set<IFDSTaintAnalysis::d_t> CmdArgs;
       for (const auto &Arg : SP->getFunction()->args()) {
         Seeds.addSeed(SP, &Arg);
       }

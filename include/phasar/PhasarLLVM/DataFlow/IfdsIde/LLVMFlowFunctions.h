@@ -179,6 +179,12 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
       llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
 
+      if (ParamIt != ParamEnd && (*ParamIt).hasStructRetAttr()) {
+        // sret parameters are writeonly
+        ++ParamIt;
+        ++ArgIt;
+      }
+
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, ArgIt->get(), Source)) {
           Res.insert(std::invoke(FactConstructor, &*ParamIt));
