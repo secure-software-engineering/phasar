@@ -148,8 +148,9 @@ void IFDSTaintAnalysis::populateWithMustAliases(
   /// may-aliases
 }
 
-IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
-    IFDSTaintAnalysis::n_t Curr, [[maybe_unused]] IFDSTaintAnalysis::n_t Succ) {
+auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
+                                              [[maybe_unused]] n_t Succ)
+    -> FlowFunctionPtrType {
   // If a tainted value is stored, the store location must be tainted too
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     container_type Gen;
@@ -203,12 +204,11 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getNormalFlowFunction(
   }
 
   // Otherwise we do not care and leave everything as it is
-  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
+  return Identity<d_t>::getInstance();
 }
 
-IFDSTaintAnalysis::FlowFunctionPtrType
-IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallSite,
-                                       IFDSTaintAnalysis::f_t DestFun) {
+auto IFDSTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
+    -> FlowFunctionPtrType {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
   // Check if a source or sink function is called:
   // We then can kill all data-flow facts not following the called function.
@@ -222,10 +222,10 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t CallSite,
   return mapFactsToCallee(CS, DestFun);
 }
 
-IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
-    IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::f_t /*CalleeFun*/,
-    IFDSTaintAnalysis::n_t ExitStmt,
-    [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite) {
+auto IFDSTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
+                                           n_t ExitStmt,
+                                           [[maybe_unused]] n_t RetSite)
+    -> FlowFunctionPtrType {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
@@ -238,11 +238,10 @@ IFDSTaintAnalysis::FlowFunctionPtrType IFDSTaintAnalysis::getRetFlowFunction(
   // All other stuff is killed at this point
 }
 
-IFDSTaintAnalysis::FlowFunctionPtrType
-IFDSTaintAnalysis::getCallToRetFlowFunction(
-    IFDSTaintAnalysis::n_t CallSite,
-    [[maybe_unused]] IFDSTaintAnalysis::n_t RetSite,
-    llvm::ArrayRef<f_t> Callees) {
+auto IFDSTaintAnalysis::getCallToRetFlowFunction(n_t CallSite,
+                                                 [[maybe_unused]] n_t RetSite,
+                                                 llvm::ArrayRef<f_t> Callees)
+    -> FlowFunctionPtrType {
 
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
@@ -254,10 +253,9 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   });
 }
 
-IFDSTaintAnalysis::FlowFunctionPtrType
-IFDSTaintAnalysis::getSummaryFlowFunction(
-    [[maybe_unused]] IFDSTaintAnalysis::n_t CallSite,
-    [[maybe_unused]] IFDSTaintAnalysis::f_t DestFun) {
+auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
+                                               [[maybe_unused]] f_t DestFun)
+    -> FlowFunctionPtrType {
   // $sSS1poiyS2S_SStFZ is Swift's String append method
   // if concat a tainted string with something else the
   // result should be tainted
@@ -332,9 +330,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(
   });
 }
 
-InitialSeeds<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::l_t>
-IFDSTaintAnalysis::initialSeeds() {
+auto IFDSTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
@@ -353,28 +349,26 @@ IFDSTaintAnalysis::initialSeeds() {
   return Seeds;
 }
 
-IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
+auto IFDSTaintAnalysis::createZeroValue() const -> d_t {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t FlowFact) const {
+bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const {
   return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
-void IFDSTaintAnalysis::printNode(llvm::raw_ostream &Os,
-                                  IFDSTaintAnalysis::n_t Inst) const {
+void IFDSTaintAnalysis::printNode(llvm::raw_ostream &Os, n_t Inst) const {
   Os << llvmIRToString(Inst);
 }
 
-void IFDSTaintAnalysis::printDataFlowFact(
-    llvm::raw_ostream &Os, IFDSTaintAnalysis::d_t FlowFact) const {
+void IFDSTaintAnalysis::printDataFlowFact(llvm::raw_ostream &Os,
+                                          d_t FlowFact) const {
   Os << llvmIRToString(FlowFact);
 }
 
-void IFDSTaintAnalysis::printFunction(llvm::raw_ostream &Os,
-                                      IFDSTaintAnalysis::f_t Fun) const {
+void IFDSTaintAnalysis::printFunction(llvm::raw_ostream &Os, f_t Fun) const {
   Os << Fun->getName();
 }
 
